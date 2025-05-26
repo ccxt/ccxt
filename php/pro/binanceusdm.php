@@ -9,7 +9,7 @@ use Exception; // a common import
 
 class binanceusdm extends \ccxt\pro\binance {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'binanceusdm',
             'name' => 'Binance USDⓈ-M',

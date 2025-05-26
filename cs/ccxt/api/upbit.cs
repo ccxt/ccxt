@@ -26,6 +26,11 @@ public partial class upbit : Exchange
         return await this.callAsync ("publicGetCandlesTimeframeUnit",parameters);
     }
 
+    public async Task<object> publicGetCandlesSeconds (object parameters = null)
+    {
+        return await this.callAsync ("publicGetCandlesSeconds",parameters);
+    }
+
     public async Task<object> publicGetCandlesMinutesUnit (object parameters = null)
     {
         return await this.callAsync ("publicGetCandlesMinutesUnit",parameters);
@@ -86,6 +91,11 @@ public partial class upbit : Exchange
         return await this.callAsync ("publicGetCandlesMonths",parameters);
     }
 
+    public async Task<object> publicGetCandlesYears (object parameters = null)
+    {
+        return await this.callAsync ("publicGetCandlesYears",parameters);
+    }
+
     public async Task<object> publicGetTradesTicks (object parameters = null)
     {
         return await this.callAsync ("publicGetTradesTicks",parameters);
@@ -96,9 +106,19 @@ public partial class upbit : Exchange
         return await this.callAsync ("publicGetTicker",parameters);
     }
 
+    public async Task<object> publicGetTickerAll (object parameters = null)
+    {
+        return await this.callAsync ("publicGetTickerAll",parameters);
+    }
+
     public async Task<object> publicGetOrderbook (object parameters = null)
     {
         return await this.callAsync ("publicGetOrderbook",parameters);
+    }
+
+    public async Task<object> publicGetOrderbookSupportedLevels (object parameters = null)
+    {
+        return await this.callAsync ("publicGetOrderbookSupportedLevels",parameters);
     }
 
     public async Task<object> privateGetAccounts (object parameters = null)
@@ -114,11 +134,6 @@ public partial class upbit : Exchange
     public async Task<object> privateGetOrder (object parameters = null)
     {
         return await this.callAsync ("privateGetOrder",parameters);
-    }
-
-    public async Task<object> privateGetOrders (object parameters = null)
-    {
-        return await this.callAsync ("privateGetOrders",parameters);
     }
 
     public async Task<object> privateGetOrdersClosed (object parameters = null)
@@ -151,9 +166,19 @@ public partial class upbit : Exchange
         return await this.callAsync ("privateGetWithdrawsChance",parameters);
     }
 
+    public async Task<object> privateGetWithdrawsCoinAddresses (object parameters = null)
+    {
+        return await this.callAsync ("privateGetWithdrawsCoinAddresses",parameters);
+    }
+
     public async Task<object> privateGetDeposits (object parameters = null)
     {
         return await this.callAsync ("privateGetDeposits",parameters);
+    }
+
+    public async Task<object> privateGetDepositsChanceCoin (object parameters = null)
+    {
+        return await this.callAsync ("privateGetDepositsChanceCoin",parameters);
     }
 
     public async Task<object> privateGetDeposit (object parameters = null)
@@ -171,9 +196,29 @@ public partial class upbit : Exchange
         return await this.callAsync ("privateGetDepositsCoinAddress",parameters);
     }
 
+    public async Task<object> privateGetTravelRuleVasps (object parameters = null)
+    {
+        return await this.callAsync ("privateGetTravelRuleVasps",parameters);
+    }
+
+    public async Task<object> privateGetStatusWallet (object parameters = null)
+    {
+        return await this.callAsync ("privateGetStatusWallet",parameters);
+    }
+
+    public async Task<object> privateGetApiKeys (object parameters = null)
+    {
+        return await this.callAsync ("privateGetApiKeys",parameters);
+    }
+
     public async Task<object> privatePostOrders (object parameters = null)
     {
         return await this.callAsync ("privatePostOrders",parameters);
+    }
+
+    public async Task<object> privatePostOrdersCancelAndNew (object parameters = null)
+    {
+        return await this.callAsync ("privatePostOrdersCancelAndNew",parameters);
     }
 
     public async Task<object> privatePostWithdrawsCoin (object parameters = null)
@@ -186,14 +231,39 @@ public partial class upbit : Exchange
         return await this.callAsync ("privatePostWithdrawsKrw",parameters);
     }
 
+    public async Task<object> privatePostDepositsKrw (object parameters = null)
+    {
+        return await this.callAsync ("privatePostDepositsKrw",parameters);
+    }
+
     public async Task<object> privatePostDepositsGenerateCoinAddress (object parameters = null)
     {
         return await this.callAsync ("privatePostDepositsGenerateCoinAddress",parameters);
     }
 
+    public async Task<object> privatePostTravelRuleDepositUuid (object parameters = null)
+    {
+        return await this.callAsync ("privatePostTravelRuleDepositUuid",parameters);
+    }
+
+    public async Task<object> privatePostTravelRuleDepositTxid (object parameters = null)
+    {
+        return await this.callAsync ("privatePostTravelRuleDepositTxid",parameters);
+    }
+
     public async Task<object> privateDeleteOrder (object parameters = null)
     {
         return await this.callAsync ("privateDeleteOrder",parameters);
+    }
+
+    public async Task<object> privateDeleteOrdersOpen (object parameters = null)
+    {
+        return await this.callAsync ("privateDeleteOrdersOpen",parameters);
+    }
+
+    public async Task<object> privateDeleteOrdersUuids (object parameters = null)
+    {
+        return await this.callAsync ("privateDeleteOrdersUuids",parameters);
     }
 
 }

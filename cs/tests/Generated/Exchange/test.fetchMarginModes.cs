@@ -7,7 +7,7 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task testFetchMarginModes(Exchange exchange, object skippedProperties, object symbol)
+    async static public Task<object> testFetchMarginModes(Exchange exchange, object skippedProperties, object symbol)
     {
         object method = "fetchMarginModes";
         object marginModes = await exchange.fetchMarginModes(new List<object>() {"symbol"});
@@ -20,6 +20,7 @@ public partial class testMainClass : BaseTest
             testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, marginMode, symbol);
             testMarginMode(exchange, skippedProperties, method, marginMode);
         }
+        return true;
     }
 
 }

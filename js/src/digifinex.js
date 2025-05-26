@@ -214,6 +214,7 @@ export default class digifinex extends Exchange {
                             'trade/order_info',
                         ],
                         'post': [
+                            'account/transfer',
                             'account/leverage',
                             'account/position_mode',
                             'account/position_margin',
@@ -234,6 +235,112 @@ export default class digifinex extends Exchange {
                             'follow/instrument_list',
                         ],
                     },
+                },
+            },
+            'features': {
+                'default': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': true,
+                        'triggerPrice': false,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': false,
+                            'FOK': false,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'selfTradePrevention': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': {
+                        'max': 10,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': true,
+                        'limit': 500,
+                        'daysBack': 100000,
+                        'untilDays': 30,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': true,
+                        'trigger': false,
+                        'trailing': false,
+                        'marketType': true,
+                        'symbolRequired': true,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': true,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': true,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'untilDays': 30,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchClosedOrders': undefined,
+                    'fetchOHLCV': {
+                        'limit': 500,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'forDerivatives': {
+                    'extends': 'default',
+                    'createOrders': {
+                        'max': 20,
+                        'marginMode': false,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'untilDays': 100000, // todo
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'daysBack': 100000, // todo
+                    },
+                    'fetchOHLCV': {
+                        'limit': 100,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
                 },
             },
             'fees': {
@@ -448,11 +555,12 @@ export default class digifinex extends Exchange {
                 },
             };
             if (code in result) {
-                if (Array.isArray(result[code]['info'])) {
-                    result[code]['info'].push(currency);
+                let resultCodeInfo = result[code]['info'];
+                if (Array.isArray(resultCodeInfo)) {
+                    resultCodeInfo.push(currency);
                 }
                 else {
-                    result[code]['info'] = [result[code]['info'], currency];
+                    resultCodeInfo = [resultCodeInfo, currency];
                 }
                 if (withdraw) {
                     result[code]['withdraw'] = true;
@@ -1503,6 +1611,7 @@ export default class digifinex extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -1519,22 +1628,38 @@ export default class digifinex extends Exchange {
             response = await this.publicSwapGetPublicCandles(this.extend(request, params));
         }
         else {
+            const until = this.safeInteger(params, 'until');
             request['symbol'] = market['id'];
             request['period'] = this.safeString(this.timeframes, timeframe, timeframe);
-            if (since !== undefined) {
-                const startTime = this.parseToInt(since / 1000);
-                request['start_time'] = startTime;
-                if (limit !== undefined) {
-                    const duration = this.parseTimeframe(timeframe);
-                    request['end_time'] = this.sum(startTime, limit * duration);
+            let startTime = since;
+            const duration = this.parseTimeframe(timeframe);
+            if (startTime === undefined) {
+                if ((limit !== undefined) || (until !== undefined)) {
+                    const endTime = (until !== undefined) ? until : this.milliseconds();
+                    const startLimit = (limit !== undefined) ? limit : 200;
+                    startTime = endTime - (startLimit * duration * 1000);
                 }
             }
-            else if (limit !== undefined) {
-                const endTime = this.seconds();
-                const duration = this.parseTimeframe(timeframe);
-                const auxLimit = limit; // in c# -limit is mutating the arg
-                request['start_time'] = this.sum(endTime, -auxLimit * duration);
+            if (startTime !== undefined) {
+                startTime = this.parseToInt(startTime / 1000);
+                request['start_time'] = startTime;
+                if ((limit !== undefined) || (until !== undefined)) {
+                    if (until !== undefined) {
+                        const endByUntil = this.parseToInt(until / 1000);
+                        if (limit !== undefined) {
+                            const endByLimit = this.sum(startTime, limit * duration);
+                            request['end_time'] = Math.min(endByLimit, endByUntil);
+                        }
+                        else {
+                            request['end_time'] = endByUntil;
+                        }
+                    }
+                    else {
+                        request['end_time'] = this.sum(startTime, limit * duration);
+                    }
+                }
             }
+            params = this.omit(params, 'until');
             response = await this.publicSpotGetKline(this.extend(request, params));
         }
         //
@@ -2151,7 +2276,6 @@ export default class digifinex extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': this.safeNumber(order, 'price'),
-            'stopPrice': undefined,
             'triggerPrice': undefined,
             'amount': this.safeNumber2(order, 'amount', 'size'),
             'filled': this.safeNumber2(order, 'executed_amount', 'filled_qty'),
@@ -2645,7 +2769,7 @@ export default class digifinex extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -2942,10 +3066,21 @@ export default class digifinex extends Exchange {
     }
     parseTransfer(transfer, currency = undefined) {
         //
-        // transfer
+        // transfer between spot, margin and OTC
         //
         //     {
         //         "code": 0
+        //     }
+        //
+        // transfer between spot and swap
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "type": 2,
+        //             "currency": "USDT",
+        //             "transfer_amount": "5"
+        //         }
         //     }
         //
         // fetchTransfers
@@ -2960,7 +3095,8 @@ export default class digifinex extends Exchange {
         //
         let fromAccount = undefined;
         let toAccount = undefined;
-        const type = this.safeInteger(transfer, 'type');
+        const data = this.safeDict(transfer, 'data', transfer);
+        const type = this.safeInteger(data, 'type');
         if (type === 1) {
             fromAccount = 'spot';
             toAccount = 'swap';
@@ -2975,8 +3111,8 @@ export default class digifinex extends Exchange {
             'id': this.safeString(transfer, 'transfer_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'currency': this.safeCurrencyCode(this.safeString(transfer, 'currency'), currency),
-            'amount': this.safeNumber(transfer, 'amount'),
+            'currency': this.safeCurrencyCode(this.safeString(data, 'currency'), currency),
+            'amount': this.safeNumber2(data, 'amount', 'transfer_amount'),
             'fromAccount': fromAccount,
             'toAccount': toAccount,
             'status': this.parseTransferStatus(this.safeString(transfer, 'code')),
@@ -2986,31 +3122,58 @@ export default class digifinex extends Exchange {
      * @method
      * @name digifinex#transfer
      * @description transfer currency internally between wallets on the same account
+     * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#transfer-assets-among-accounts
+     * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#accounttransfer
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
-     * @param {string} fromAccount account to transfer from
-     * @param {string} toAccount account to transfer to
+     * @param {string} fromAccount 'spot', 'swap', 'margin', 'OTC' - account to transfer from
+     * @param {string} toAccount 'spot', 'swap', 'margin', 'OTC' - account to transfer to
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
         await this.loadMarkets();
         const currency = this.currency(code);
+        const currencyId = currency['id'];
         const accountsByType = this.safeValue(this.options, 'accountsByType', {});
         const fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         const toId = this.safeString(accountsByType, toAccount, toAccount);
-        const request = {
-            'currency_mark': currency['id'],
-            'num': this.currencyToPrecision(code, amount),
-            'from': fromId,
-            'to': toId, // 1 = SPOT, 2 = MARGIN, 3 = OTC
-        };
-        const response = await this.privateSpotPostTransfer(this.extend(request, params));
-        //
-        //     {
-        //         "code": 0
-        //     }
-        //
+        const request = {};
+        const fromSwap = (fromAccount === 'swap');
+        const toSwap = (toAccount === 'swap');
+        let response = undefined;
+        const amountString = this.currencyToPrecision(code, amount);
+        if (fromSwap || toSwap) {
+            if ((fromId !== '1') && (toId !== '1')) {
+                throw new ExchangeError(this.id + ' transfer() supports transferring between spot and swap, spot and margin, spot and OTC only');
+            }
+            request['type'] = toSwap ? 1 : 2; // 1 = spot to swap, 2 = swap to spot
+            request['currency'] = currencyId;
+            request['transfer_amount'] = amountString;
+            //
+            //     {
+            //         "code": 0,
+            //         "data": {
+            //             "type": 2,
+            //             "currency": "USDT",
+            //             "transfer_amount": "5"
+            //         }
+            //     }
+            //
+            response = await this.privateSwapPostAccountTransfer(this.extend(request, params));
+        }
+        else {
+            request['currency_mark'] = currencyId;
+            request['num'] = amountString;
+            request['from'] = fromId; // 1 = SPOT, 2 = MARGIN, 3 = OTC
+            request['to'] = toId; // 1 = SPOT, 2 = MARGIN, 3 = OTC
+            //
+            //     {
+            //         "code": 0
+            //     }
+            //
+            response = await this.privateSpotPostTransfer(this.extend(request, params));
+        }
         return this.parseTransfer(response, currency);
     }
     /**
@@ -4069,7 +4232,8 @@ export default class digifinex extends Exchange {
                     depositWithdrawFees[code] = this.depositWithdrawFee({});
                     depositWithdrawFees[code]['info'] = [];
                 }
-                depositWithdrawFees[code]['info'].push(entry);
+                const depositWithdrawInfo = depositWithdrawFees[code]['info'];
+                depositWithdrawInfo.push(entry);
                 const networkId = this.safeString(entry, 'chain');
                 const withdrawFee = this.safeValue(entry, 'min_withdraw_fee');
                 const withdrawResult = {

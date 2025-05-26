@@ -11,7 +11,7 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class ascendex extends ascendexRest {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -442,7 +442,7 @@ export default class ascendex extends ascendexRest {
         //
         // {
         //     "m": "balance",
-        //     "accountId": "cshQtyfq8XLAA9kcf19h8bXHbAwwoqDo",
+        //     "accountId": "cshQtyfq8XLAA9kcf19h8bXHbAwwoqEo",
         //     "ac": "CASH",
         //     "data": {
         //         "a" : "USDT",

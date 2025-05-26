@@ -155,12 +155,12 @@ This way you can keep the build tools and processes isolated, not having to work
     - via pip: `pip install tox`
     - MacOS with [brew](https://brew.sh): `brew install tox`
     - Ubuntu Linux: `apt-get install tox`
-- [PHP](https://secure.php.net/downloads.php) 5.3+ with the following extensions installed and enabled:
+- [PHP](https://secure.php.net/downloads.php) 8.1+ with the following extensions installed and enabled:
   - cURL
   - iconv
   - mbstring
   - PCRE
-  - bcmath (php<7.1) or gmp (this is a built-in extension as of PHP 7.2+)
+  - gmp
 - [C#](https://dotnet.microsoft.com/en-us/download) 7.0
 
 #### Build Steps
@@ -536,7 +536,7 @@ The `safeValue` function is used for objects inside objects, arrays inside objec
 If you need to search for several different keys within an object you have available the `safeMethodN` function's family that allows for a search with an arbitrary number of keys by accepting an array of keys as an argument.
 
 ```javascript
-const price = this.safeStringN (object, [ 'key1', 'key2', 'key3' ], default)
+const price = this.safeStringN (object, [ 'key1', 'key2', 'key3' ], defaultValue)
 ```
 For every safe method listed above, there is the correspondent `safeMethodN` too.
 
@@ -942,7 +942,7 @@ Folder: `ts/src/test/static/request/`
 
 You can create a static-request test by running this command and pasting the result in the correct file (eg: `static/request/binance.json`)
 
-```Javascript
+```shell
 node cli.js binance fetchTrades "BTC/USDT:USDT" --report
 ````
 
@@ -954,7 +954,7 @@ Folder: `ts/src/test/static/response/binance.json`
 
 You can create a static-response test by running this command and pasting the result in the correct file (eg: `static/response/binance.json`)
 
-```Javascript
+```shell
 node cli.js binance fetchTrades "BTC/USDT:USDT"  undefined 1 --response
 ````
 #### Adding Exchange Credentials
@@ -967,7 +967,7 @@ Exchange API keys can be added to the `keys.local.json` in the root folder insid
 
 An example of `keys.local.json` file:
 
-```javascript
+```json
 {
     "ftx": {
         "apiKey": "XXX",

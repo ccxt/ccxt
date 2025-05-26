@@ -6,6 +6,7 @@ var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
+// ----------------------------------------------------------------------------
 /**
  * @class coinlist
  * @augments Exchange
@@ -63,7 +64,7 @@ class coinlist extends coinlist$1 {
                 'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': false,
-                'fetchFundingRate': false,
+                'fetchFundingRate': true,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
@@ -155,6 +156,7 @@ class coinlist extends coinlist$1 {
                         'v1/leaderboard': 1,
                         'v1/affiliate/{competition_code}': 1,
                         'v1/competition/{competition_id}': 1,
+                        'v1/symbols/{symbol}/funding': 1,
                     },
                 },
                 'private': {
@@ -178,6 +180,7 @@ class coinlist extends coinlist$1 {
                         'v1/credits': 1,
                         'v1/positions': 1,
                         'v1/accounts/{trader_id}/competitions': 1,
+                        'v1/closedPositions': 1,
                     },
                     'post': {
                         'v1/keys': 1,
@@ -196,12 +199,97 @@ class coinlist extends coinlist$1 {
                         'v1/orders/{order_id}': 1,
                         'v1/orders/bulk': 1, // not unified
                     },
+                    'put': {
+                        'v1/accounts/{trader_id}/alias': 1,
+                    },
                     'delete': {
                         'v1/keys/{key}': 1,
                         'v1/orders': 1,
                         'v1/orders/{order_id}': 1,
                         'v1/orders/bulk': 1,
                     },
+                },
+            },
+            'features': {
+                'default': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': true,
+                            'index': true,
+                        },
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': false,
+                            'FOK': false,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': true,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': true,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'daysBack': 100000,
+                        'daysBackCanceled': undefined,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 300,
+                    },
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
                 },
             },
             'fees': {
@@ -365,29 +453,31 @@ class coinlist extends coinlist$1 {
             const currency = currencies[i];
             const id = this.safeString(currency, 'asset');
             const code = this.safeCurrencyCode(id);
+            const isFiat = code === 'USD';
             const isTransferable = this.safeBool(currency, 'is_transferable', false);
-            const withdrawEnabled = isTransferable;
-            const depositEnabled = isTransferable;
-            const active = isTransferable;
-            const decimalPlaces = this.safeString(currency, 'decimal_places');
-            const precision = this.parseNumber(this.parsePrecision(decimalPlaces));
-            const minWithdrawal = this.safeString(currency, 'min_withdrawal');
-            result[code] = {
+            result[code] = this.safeCurrencyStructure({
                 'id': id,
                 'code': code,
                 'name': code,
                 'info': currency,
-                'active': active,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
+                'active': undefined,
+                'deposit': isTransferable,
+                'withdraw': isTransferable,
                 'fee': undefined,
-                'precision': precision,
+                'precision': this.parseNumber(this.parsePrecision(this.safeString(currency, 'decimal_places'))),
                 'limits': {
-                    'amount': { 'min': undefined, 'max': undefined },
-                    'withdraw': { 'min': minWithdrawal, 'max': undefined },
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': this.safeNumber(currency, 'min_withdrawal'),
+                        'max': undefined,
+                    },
                 },
                 'networks': {},
-            };
+                'type': isFiat ? 'fiat' : 'crypto',
+            });
         }
         return result;
     }
@@ -405,7 +495,7 @@ class coinlist extends coinlist$1 {
         //     {
         //         "symbols": [
         //             {
-        //                 "symbol": "CQT-USDT",
+        //                 "symbol": "CQT-USDT", // spot
         //                 "base_currency": "CQT",
         //                 "is_trader_geofenced": false,
         //                 "list_time": "2021-06-15T00:00:00.000Z",
@@ -430,6 +520,62 @@ class coinlist extends coinlist$1 {
         return this.parseMarkets(markets);
     }
     parseMarket(market) {
+        // perp
+        //   {
+        //       "symbol":"BTC-PERP",
+        //       "base_currency":"BTC",
+        //       "is_trader_geofenced":false,
+        //       "expiry_name":null,
+        //       "expiry_time":null,
+        //       "list_time":"2024-09-16T00:00:00.000Z",
+        //       "type":"perp-swap",
+        //       "series_code":"BTC",
+        //       "long_name":"Bitcoin",
+        //       "asset_class":"CRYPTO",
+        //       "minimum_price_increment":"0.01",
+        //       "minimum_size_increment":"0.0001",
+        //       "quote_currency":"USDT",
+        //       "multiplier":"1",
+        //       "contract_frequency":"FGHJKMNQUVXZ",
+        //       "index_code":".BTC-USDT",
+        //       "price_band_threshold_market":"0.05",
+        //       "price_band_threshold_limit":"0.25",
+        //       "maintenance_initial_ratio":"0.500000000000000000",
+        //       "liquidation_initial_ratio":"0.500000000000000000",
+        //       "last_price":"75881.36000000",
+        //       "fair_price":"76256.00000000",
+        //       "index_price":"77609.90000000",
+        //       "mark_price":"76237.75000000",
+        //       "mark_price_dollarizer":"0.99950000",
+        //       "funding_interval":{
+        //          "hours":"8"
+        //       },
+        //       "funding_rate_index_code":".BTC-USDT-FR8H",
+        //       "initial_margin_base":"0.200000000000000000",
+        //       "initial_margin_per_contract":"0.160000000000000000",
+        //       "position_limit":"5.0000"
+        //   }
+        // spot
+        //    {
+        //        "symbol": "CQT-USDT", // spot
+        //        "base_currency": "CQT",
+        //        "is_trader_geofenced": false,
+        //        "list_time": "2021-06-15T00:00:00.000Z",
+        //        "type": "spot",
+        //        "series_code": "CQT-USDT-SPOT",
+        //        "long_name": "Covalent",
+        //        "asset_class": "CRYPTO",
+        //        "minimum_price_increment": "0.0001",
+        //        "minimum_size_increment": "0.0001",
+        //        "quote_currency": "USDT",
+        //        "index_code": null,
+        //        "price_band_threshold_market": "0.05",
+        //        "price_band_threshold_limit": "0.25",
+        //        "last_price": "0.12160000",
+        //        "fair_price": "0.12300000",
+        //        "index_price": null
+        //    }
+        const isSwap = this.safeString(market, 'type') === 'perp-swap';
         const id = this.safeString(market, 'symbol');
         const baseId = this.safeString(market, 'base_currency');
         const quoteId = this.safeString(market, 'quote_currency');
@@ -438,26 +584,41 @@ class coinlist extends coinlist$1 {
         const amountPrecision = this.safeString(market, 'minimum_size_increment');
         const pricePrecision = this.safeString(market, 'minimum_price_increment');
         const created = this.safeString(market, 'list_time');
+        let settledId = undefined;
+        let settled = undefined;
+        let linear = undefined;
+        let inverse = undefined;
+        let contractSize = undefined;
+        let symbol = base + '/' + quote;
+        if (isSwap) {
+            contractSize = this.parseNumber('1');
+            linear = true;
+            inverse = false;
+            settledId = quoteId;
+            settled = quote;
+            symbol = symbol + ':' + quote;
+        }
+        const type = isSwap ? 'swap' : 'spot';
         return {
             'id': id,
-            'symbol': base + '/' + quote,
+            'symbol': symbol,
             'base': base,
             'quote': quote,
-            'settle': undefined,
+            'settle': settled,
             'baseId': baseId,
             'quoteId': quoteId,
-            'settleId': undefined,
-            'type': 'spot',
-            'spot': true,
+            'settleId': settledId,
+            'type': type,
+            'spot': !isSwap,
             'margin': false,
-            'swap': false,
+            'swap': isSwap,
             'future': false,
             'option': false,
             'active': true,
-            'contract': false,
-            'linear': undefined,
-            'inverse': undefined,
-            'contractSize': undefined,
+            'contract': isSwap,
+            'linear': linear,
+            'inverse': inverse,
+            'contractSize': contractSize,
             'expiry': undefined,
             'expiryDatetime': undefined,
             'strike': undefined,
@@ -1528,7 +1689,7 @@ class coinlist extends coinlist$1 {
             }
         }
         else if ((type === 'stop_market') || (type === 'stop_limit') || (type === 'take_market') || (type === 'take_limit')) {
-            throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a stopPrice parameter for stop-loss and take-profit orders');
+            throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a triggerPrice parameter for stop-loss and take-profit orders');
         }
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'client_id');
         if (clientOrderId !== undefined) {
@@ -1672,7 +1833,7 @@ class coinlist extends coinlist$1 {
         const type = this.parseOrderType(this.safeString(order, 'type'));
         const side = this.safeString(order, 'side');
         const price = this.safeString(order, 'price');
-        const stopPrice = this.safeString(order, 'stop_price');
+        const triggerPrice = this.safeString(order, 'stop_price');
         const average = this.safeString(order, 'average_fill_price'); // from documentation
         const amount = this.safeString(order, 'size');
         const filled = this.safeString(order, 'size_filled');
@@ -1698,8 +1859,7 @@ class coinlist extends coinlist$1 {
             'timeInForce': 'GTC',
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'average': average,
             'amount': amount,
             'cost': undefined,
@@ -2091,7 +2251,7 @@ class coinlist extends coinlist$1 {
      * @param {int} [limit] max number of ledger entries to return (default 200, max 500)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch entries for
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         const traderId = this.safeString2(params, 'trader_id', 'traderId');
@@ -2301,6 +2461,90 @@ class coinlist extends coinlist$1 {
             'withdrawal': 'transfer',
         };
         return this.safeString(types, type, type);
+    }
+    /**
+     * @method
+     * @name coinlist#fetchFundingRate
+     * @description fetch the current funding rate
+     * @see https://trade-docs.coinlist.co/#coinlist-pro-api-Funding-Rates
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
+    async fetchFundingRate(symbol, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (!market['swap']) {
+            throw new errors.BadSymbol(this.id + ' fetchFundingRate() supports swap contracts only');
+        }
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetV1SymbolsSymbolFunding(this.extend(request, params));
+        //
+        //     {
+        //         "last": {
+        //             "funding_rate": "-0.00043841",
+        //             "funding_time": "2025-04-15T04:00:00.000Z"
+        //         },
+        //         "next": {
+        //             "funding_rate": "-0.00046952",
+        //             "funding_time": "2025-04-15T12:00:00.000Z"
+        //         },
+        //         "indicative": {
+        //             "funding_rate": "-0.00042517",
+        //             "funding_time": "2025-04-15T20:00:00.000Z"
+        //         },
+        //         "timestamp": "2025-04-15T07:01:15.219Z"
+        //     }
+        //
+        return this.parseFundingRate(response, market);
+    }
+    parseFundingRate(contract, market = undefined) {
+        //
+        //     {
+        //         "last": {
+        //             "funding_rate": "-0.00043841",
+        //             "funding_time": "2025-04-15T04:00:00.000Z"
+        //         },
+        //         "next": {
+        //             "funding_rate": "-0.00046952",
+        //             "funding_time": "2025-04-15T12:00:00.000Z"
+        //         },
+        //         "indicative": {
+        //             "funding_rate": "-0.00042517",
+        //             "funding_time": "2025-04-15T20:00:00.000Z"
+        //         },
+        //         "timestamp": "2025-04-15T07:01:15.219Z"
+        //     }
+        //
+        const previous = this.safeDict(contract, 'last', {});
+        const current = this.safeDict(contract, 'next', {});
+        const next = this.safeDict(contract, 'indicative', {});
+        const previousDatetime = this.safeString(previous, 'funding_time');
+        const currentDatetime = this.safeString(current, 'funding_time');
+        const nextDatetime = this.safeString(next, 'funding_time');
+        const datetime = this.safeString(contract, 'timestamp');
+        return {
+            'info': contract,
+            'symbol': this.safeSymbol(undefined, market),
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': this.parse8601(datetime),
+            'datetime': datetime,
+            'fundingRate': this.safeNumber(current, 'funding_rate'),
+            'fundingTimestamp': this.parse8601(currentDatetime),
+            'fundingDatetime': currentDatetime,
+            'nextFundingRate': this.safeNumber(next, 'funding_rate'),
+            'nextFundingTimestamp': this.parse8601(nextDatetime),
+            'nextFundingDatetime': nextDatetime,
+            'previousFundingRate': this.safeNumber(previous, 'funding_rate'),
+            'previousFundingTimestamp': this.parse8601(previousDatetime),
+            'previousFundingDatetime': previousDatetime,
+            'interval': '8h',
+        };
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const request = this.omit(params, this.extractParams(path));

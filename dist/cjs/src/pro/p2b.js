@@ -4,7 +4,7 @@ var p2b$1 = require('../p2b.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class p2b extends p2b$1 {
     describe() {
@@ -494,11 +494,11 @@ class p2b extends p2b$1 {
     }
     onError(client, error) {
         this.options['tickerSubs'] = this.createSafeDictionary();
-        this.onError(client, error);
+        super.onError(client, error);
     }
     onClose(client, error) {
         this.options['tickerSubs'] = this.createSafeDictionary();
-        this.onClose(client, error);
+        super.onClose(client, error);
     }
 }
 

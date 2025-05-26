@@ -15,7 +15,7 @@ import type { Balances, Currency, Greeks, Int, Market, MarketInterface, OHLCV, O
  * @augments Exchange
  */
 export default class delta extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'delta',
             'name': 'Delta Exchange',
@@ -221,6 +221,91 @@ export default class delta extends Exchange {
                     'BEP20': 'BEP20(BSC)',
                 },
             },
+            'features': {
+                'default': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true, // todo implement
+                        // todo implement
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': true,
+                            'index': true,
+                        },
+                        'triggerDirection': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': undefined,
+                            'price': true,
+                        },
+                        // todo implementation
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'selfTradePrevention': false,
+                        'trailing': false, // todo: implement
+                        'iceberg': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                    },
+                    'createOrders': undefined, // todo: implement
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100, // todo: revise
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': undefined,
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 100, // todo: revise
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 2000, // todo: recheck
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+            },
             'precisionMode': TICK_SIZE,
             'requiredCredentials': {
                 'apiKey': true,
@@ -265,6 +350,9 @@ export default class delta extends Exchange {
             base = this.safeString (optionParts, 1);
             expiry = this.safeString (optionParts, 3);
             optionType = this.safeString (optionParts, 0);
+        }
+        if (expiry !== undefined) {
+            expiry = expiry.slice (4) + expiry.slice (2, 4) + expiry.slice (0, 2);
         }
         const settle = quote;
         const strike = this.safeString (optionParts, 2);
@@ -332,7 +420,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         const response = await this.publicGetSettings (params);
         // full response sample under `fetchStatus`
         const result = this.safeDict (response, 'result', {});
@@ -425,31 +513,49 @@ export default class delta extends Exchange {
     async fetchCurrencies (params = {}): Promise<Currencies> {
         const response = await this.publicGetAssets (params);
         //
-        //     {
-        //         "result":[
-        //             {
-        //                 "base_withdrawal_fee":"0.0005",
-        //                 "deposit_status":"enabled",
-        //                 "id":2,
-        //                 "interest_credit":true,
-        //                 "interest_slabs":[
-        //                     {"limit":"0.1","rate":"0"},
-        //                     {"limit":"1","rate":"0.05"},
-        //                     {"limit":"5","rate":"0.075"},
-        //                     {"limit":"10","rate":"0.1"},
-        //                     {"limit":"9999999999999999","rate":"0"}
-        //                 ],
-        //                 "kyc_deposit_limit":"10",
-        //                 "kyc_withdrawal_limit":"2",
-        //                 "min_withdrawal_amount":"0.001",
-        //                 "minimum_precision":4,
-        //                 "name":"Bitcoin",
-        //                 "precision":8,
-        //                 "sort_priority":1,
-        //                 "symbol":"BTC",
-        //                 "variable_withdrawal_fee":"0",
-        //                 "withdrawal_status":"enabled"
-        //             },
+        //    {
+        //        "result": [
+        //            {
+        //                "base_withdrawal_fee": "0.005000000000000000",
+        //                "id": "1",
+        //                "interest_credit": false,
+        //                "interest_slabs": null,
+        //                "kyc_deposit_limit": "0.000000000000000000",
+        //                "kyc_withdrawal_limit": "0.000000000000000000",
+        //                "min_withdrawal_amount": "0.010000000000000000",
+        //                "minimum_precision": "4",
+        //                "name": "Ethereum",
+        //                "networks": [
+        //                    {
+        //                        "allowed_deposit_groups": null,
+        //                        "base_withdrawal_fee": "0.0025",
+        //                        "deposit_status": "enabled",
+        //                        "memo_required": false,
+        //                        "min_deposit_amount": "0.000050000000000000",
+        //                        "min_withdrawal_amount": "0.010000000000000000",
+        //                        "minimum_deposit_confirmations": "12",
+        //                        "network": "ERC20",
+        //                        "variable_withdrawal_fee": "0",
+        //                        "withdrawal_status": "enabled"
+        //                    },
+        //                    {
+        //                        "allowed_deposit_groups": null,
+        //                        "base_withdrawal_fee": "0.0001",
+        //                        "deposit_status": "enabled",
+        //                        "memo_required": false,
+        //                        "min_deposit_amount": "0.000050000000000000",
+        //                        "min_withdrawal_amount": "0.000300000000000000",
+        //                        "minimum_deposit_confirmations": "15",
+        //                        "network": "BEP20(BSC)",
+        //                        "variable_withdrawal_fee": "0",
+        //                        "withdrawal_status": "enabled"
+        //                    }
+        //                ],
+        //                "precision": "18",
+        //                "sort_priority": "3",
+        //                "symbol": "ETH",
+        //                "variable_withdrawal_fee": "0.000000000000000000"
+        //            },
         //         ],
         //         "success":true
         //     }
@@ -461,20 +567,42 @@ export default class delta extends Exchange {
             const id = this.safeString (currency, 'symbol');
             const numericId = this.safeInteger (currency, 'id');
             const code = this.safeCurrencyCode (id);
-            const depositStatus = this.safeString (currency, 'deposit_status');
-            const withdrawalStatus = this.safeString (currency, 'withdrawal_status');
-            const depositsEnabled = (depositStatus === 'enabled');
-            const withdrawalsEnabled = (withdrawalStatus === 'enabled');
-            const active = depositsEnabled && withdrawalsEnabled;
-            result[code] = {
+            const chains = this.safeList (currency, 'networks', []);
+            const networks = {};
+            for (let j = 0; j < chains.length; j++) {
+                const chain = chains[j];
+                const networkId = this.safeString (chain, 'network');
+                const networkCode = this.networkIdToCode (networkId);
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'name': this.safeString (chain, 'name'),
+                    'info': chain,
+                    'active': this.safeString (chain, 'status') === 'enabled',
+                    'deposit': this.safeString (chain, 'deposit_status') === 'enabled',
+                    'withdraw': this.safeString (chain, 'withdrawal_status') === 'enabled',
+                    'fee': this.safeNumber (chain, 'base_withdrawal_fee'),
+                    'limits': {
+                        'deposit': {
+                            'min': this.safeNumber (chain, 'min_deposit_amount'),
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': this.safeNumber (chain, 'min_withdrawal_amount'),
+                            'max': undefined,
+                        },
+                    },
+                };
+            }
+            result[code] = this.safeCurrencyStructure ({
                 'id': id,
                 'numericId': numericId,
                 'code': code,
                 'name': this.safeString (currency, 'name'),
                 'info': currency, // the original payload
-                'active': active,
-                'deposit': depositsEnabled,
-                'withdraw': withdrawalsEnabled,
+                'active': undefined,
+                'deposit': this.safeString (currency, 'deposit_status') === 'enabled',
+                'withdraw': this.safeString (currency, 'withdrawal_status') === 'enabled',
                 'fee': this.safeNumber (currency, 'base_withdrawal_fee'),
                 'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'precision'))),
                 'limits': {
@@ -484,8 +612,9 @@ export default class delta extends Exchange {
                         'max': undefined,
                     },
                 },
-                'networks': {},
-            };
+                'networks': networks,
+                'type': 'crypto',
+            });
         }
         return result;
     }
@@ -748,7 +877,7 @@ export default class delta extends Exchange {
                 // other markets (swap, futures, move, spread, irs) seem to use the step of '1' contract
                 amountPrecision = this.parseNumber ('1');
             }
-            const linear = (settle === base);
+            const linear = (settle === quote);
             let optionType = undefined;
             let symbol = base + '/' + quote;
             if (swap || future || option) {
@@ -1479,12 +1608,13 @@ export default class delta extends Exchange {
      * @method
      * @name delta#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://docs.delta.exchange/#get-ohlc-candles
+     * @see https://docs.delta.exchange/#delta-exchange-api-v2-historical-ohlc-candles-sparklines
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
@@ -1495,14 +1625,19 @@ export default class delta extends Exchange {
         };
         const duration = this.parseTimeframe (timeframe);
         limit = limit ? limit : 2000; // max 2000
+        let until = this.safeIntegerProduct (params, 'until', 0.001);
+        const untilIsDefined = (until !== undefined);
+        if (untilIsDefined) {
+            until = this.parseToInt (until);
+        }
         if (since === undefined) {
-            const end = this.seconds ();
+            const end = untilIsDefined ? until : this.seconds ();
             request['end'] = end;
             request['start'] = end - limit * duration;
         } else {
             const start = this.parseToInt (since / 1000);
             request['start'] = start;
-            request['end'] = this.sum (start, limit * duration);
+            request['end'] = untilIsDefined ? until : this.sum (start, limit * duration);
         }
         const price = this.safeString (params, 'price');
         if (price === 'mark') {
@@ -1512,7 +1647,7 @@ export default class delta extends Exchange {
         } else {
             request['symbol'] = market['id'];
         }
-        params = this.omit (params, 'price');
+        params = this.omit (params, [ 'price', 'until' ]);
         const response = await this.publicGetHistoryCandles (this.extend (request, params));
         //
         //     {
@@ -1619,7 +1754,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    async fetchPositions (symbols: Strings = undefined, params = {}) {
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         const response = await this.privateGetPositionsMargined (params);
         //
@@ -2221,7 +2356,7 @@ export default class delta extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         await this.loadMarkets ();
@@ -2541,8 +2676,7 @@ export default class delta extends Exchange {
         //     }
         //
         const rates = this.safeList (response, 'result', []);
-        const result = this.parseFundingRates (rates);
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.parseFundingRates (rates, symbols);
     }
 
     parseFundingRate (contract, market: Market = undefined): FundingRate {
@@ -3529,7 +3663,7 @@ export default class delta extends Exchange {
                 'timestamp': timestamp,
             };
             let auth = method + timestamp + requestPath;
-            if ((method === 'GET') || (method === 'DELETE')) {
+            if (method === 'GET') {
                 if (Object.keys (query).length) {
                     const queryString = '?' + this.urlencode (query);
                     auth += queryString;

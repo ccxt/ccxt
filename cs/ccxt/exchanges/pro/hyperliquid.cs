@@ -78,7 +78,7 @@ public partial class hyperliquid : ccxt.hyperliquid
 
     /**
      * @method
-     * @name hyperliquid#createOrder
+     * @name hyperliquid#createOrderWs
      * @description create a trade order using WebSocket post request
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
      * @param {string} symbol unified symbol of the market to create an order in
@@ -100,18 +100,21 @@ public partial class hyperliquid : ccxt.hyperliquid
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        var orderglobalParamsVariable = this.parseCreateOrderArgs(symbol, type, side, amount, price, parameters);
+        var orderglobalParamsVariable = this.parseCreateEditOrderArgs(null, symbol, type, side, amount, price, parameters);
         var order = ((IList<object>) orderglobalParamsVariable)[0];
         var globalParams = ((IList<object>) orderglobalParamsVariable)[1];
         object orders = await this.createOrdersWs(new List<object>() {((object)order)}, globalParams);
-        return getValue(orders, 0);
+        object parsedOrder = getValue(orders, 0);
+        object orderInfo = this.safeDict(parsedOrder, "info");
+        // handle potential error here
+        this.handleErrors(null, null, null, null, null, this.json(orderInfo), orderInfo, null, null);
+        return parsedOrder;
     }
 
     /**
      * @method
-     * @name hyperliquid#editOrder
+     * @name hyperliquid#editOrderWs
      * @description edit a trade order
-     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-an-order
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
      * @param {string} id cancel order id
      * @param {string} symbol unified symbol of the market to create an order in
@@ -134,7 +137,10 @@ public partial class hyperliquid : ccxt.hyperliquid
         await this.loadMarkets();
         object market = this.market(symbol);
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
-        object postRequest = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
+        var orderglobalParamsVariable = this.parseCreateEditOrderArgs(id, symbol, type, side, amount, price, parameters);
+        var order = ((IList<object>) orderglobalParamsVariable)[0];
+        var globalParams = ((IList<object>) orderglobalParamsVariable)[1];
+        object postRequest = this.editOrdersRequest(new List<object>() {((object)order)}, globalParams);
         object wrapped = this.wrapAsPostAction(postRequest);
         object request = this.safeDict(wrapped, "request", new Dictionary<string, object>() {});
         object requestId = this.safeString(wrapped, "requestId");
@@ -144,7 +150,11 @@ public partial class hyperliquid : ccxt.hyperliquid
         object dataObject = this.safeDict(responseObject, "data", new Dictionary<string, object>() {});
         object statuses = this.safeList(dataObject, "statuses", new List<object>() {});
         object first = this.safeDict(statuses, 0, new Dictionary<string, object>() {});
-        return this.parseOrder(first, market);
+        object parsedOrder = this.parseOrder(first, market);
+        object orderInfo = this.safeDict(parsedOrder, "info");
+        // handle potential error here
+        this.handleErrors(null, null, null, null, null, this.json(orderInfo), orderInfo, null, null);
+        return parsedOrder;
     }
 
     /**
@@ -681,7 +691,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             { "datetime", this.iso8601(timestamp) },
             { "symbol", symbol },
             { "id", id },
-            { "order", null },
+            { "order", this.safeString(trade, "oid") },
             { "type", null },
             { "side", side },
             { "takerOrMaker", null },

@@ -11,7 +11,7 @@ abstract class woo extends \ccxt\async\Exchange {
         return $this->request('hist/kline', array('v1', 'pub'), 'GET', $params, null, null, array("cost" => 10));
     }
     public function v1_pub_get_hist_trades($params = array()) {
-        return $this->request('hist/trades', array('v1', 'pub'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('hist/trades', array('v1', 'pub'), 'GET', $params, null, null, array("cost" => 10));
     }
     public function v1_public_get_info($params = array()) {
         return $this->request('info', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
@@ -131,7 +131,7 @@ abstract class woo extends \ccxt\async\Exchange {
         return $this->request('client/futures_leverage', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 60));
     }
     public function v1_private_post_order($params = array()) {
-        return $this->request('order', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('order', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function v1_private_post_order_cancel_all_after($params = array()) {
         return $this->request('order/cancel_all_after', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
@@ -257,7 +257,7 @@ abstract class woo extends \ccxt\async\Exchange {
         return $this->request('hist/kline', array('v1', 'pub'), 'GET', $params, null, null, array("cost" => 10));
     }
     public function v1PubGetHistTrades($params = array()) {
-        return $this->request('hist/trades', array('v1', 'pub'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('hist/trades', array('v1', 'pub'), 'GET', $params, null, null, array("cost" => 10));
     }
     public function v1PublicGetInfo($params = array()) {
         return $this->request('info', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
@@ -377,7 +377,7 @@ abstract class woo extends \ccxt\async\Exchange {
         return $this->request('client/futures_leverage', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 60));
     }
     public function v1PrivatePostOrder($params = array()) {
-        return $this->request('order', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('order', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function v1PrivatePostOrderCancelAllAfter($params = array()) {
         return $this->request('order/cancel_all_after', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));

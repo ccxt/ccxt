@@ -61,6 +61,9 @@ class Client {
     public $log = null;
     public $heartbeat = null;
     public $cost = 1;
+    public $timeframes = null;
+    public $watchTradesForSymbols = null;
+    public $watchOrderBookForSymbols = null;
 
     // ratchet/pawl/reactphp stuff
     public $connector = null;

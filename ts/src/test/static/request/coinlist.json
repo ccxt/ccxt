@@ -3,6 +3,15 @@
     "skipKeys": [],
     "outputType": "json",
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://trade-api.coinlist.co/v1/assets",
+                "input": [],
+                "output": null
+            }
+        ],
         "createOrder": [
             {
                 "description": "Spot market buy",
@@ -168,6 +177,16 @@
                   ]
                 ],
                 "output": "[\"024d5d0c-c952-414a-84ca-4145b8e58657\"]"
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "Fetch the funding rate for a swap symbol",
+                "method": "fetchFundingRate",
+                "url": "https://trade-api.coinlist.co/v1/symbols/BTC-PERP/funding",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
             }
         ]
     }

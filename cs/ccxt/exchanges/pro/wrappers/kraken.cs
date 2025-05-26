@@ -10,7 +10,7 @@ public partial class kraken
     /// create a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/api/docs/websocket-v1/addorder"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/websocket-v2/add_order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -37,7 +37,7 @@ public partial class kraken
     /// edit a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/api/docs/websocket-v1/editorder"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/websocket-v2/amend_order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -68,6 +68,12 @@ public partial class kraken
     /// See <see href="https://docs.kraken.com/api/docs/websocket-v1/cancelorder"/>  <br/>
     /// <list type="table">
     /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol, default is undefined
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
@@ -88,6 +94,12 @@ public partial class kraken
     /// See <see href="https://docs.kraken.com/api/docs/websocket-v1/cancelorder"/>  <br/>
     /// <list type="table">
     /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified symbol of the market the order was made in
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
@@ -107,6 +119,12 @@ public partial class kraken
     /// <remarks>
     /// See <see href="https://docs.kraken.com/api/docs/websocket-v1/cancelall"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+    /// </description>
+    /// </item>
     /// <item>
     /// <term>params</term>
     /// <description>

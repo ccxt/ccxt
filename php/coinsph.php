@@ -10,7 +10,7 @@ use ccxt\abstract\coinsph as Exchange;
 
 class coinsph extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coinsph',
             'name' => 'Coins.ph',
@@ -55,7 +55,7 @@ class coinsph extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
-                'fetchCurrencies' => false,
+                'fetchCurrencies' => true,
                 'fetchDeposit' => null,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
@@ -293,6 +293,76 @@ class coinsph extends Exchange {
                     'ARB' => 'ARBITRUM',
                 ),
             ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => false,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => true, // todo implement
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => 100000,
+                        'untilDays' => 100000, // todo implement
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => 100000,
+                        'daysBackCanceled' => 1,
+                        'untilDays' => 100000,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 1000,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
             // https://coins-docs.github.io/errors/
             'exceptions' => array(
                 'exact' => array(
@@ -412,6 +482,132 @@ class coinsph extends Exchange {
         ));
     }
 
+    public function fetch_currencies($params = array ()): ?array {
+        /**
+         * fetches all available currencies on an exchange
+         *
+         * @see https://docs.coins.ph/rest-api/#all-coins-information-user_data
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an associative dictionary of currencies
+         */
+        if (!$this->check_required_credentials(false)) {
+            return null;
+        }
+        $response = $this->privateGetOpenapiWalletV1ConfigGetall ($params);
+        //
+        //    [
+        //        array(
+        //            "coin" => "PHP",
+        //            "name" => "PHP",
+        //            "depositAllEnable" => false,
+        //            "withdrawAllEnable" => false,
+        //            "free" => "0",
+        //            "locked" => "0",
+        //            "transferPrecision" => "2",
+        //            "transferMinQuantity" => "0",
+        //            "networkList" => array(),
+        //            "legalMoney" => true
+        //        ),
+        //        {
+        //            "coin" => "USDT",
+        //            "name" => "USDT",
+        //            "depositAllEnable" => true,
+        //            "withdrawAllEnable" => true,
+        //            "free" => "0",
+        //            "locked" => "0",
+        //            "transferPrecision" => "8",
+        //            "transferMinQuantity" => "0",
+        //            "networkList" => [
+        //                array(
+        //                    "addressRegex" => "^0x[0-9a-fA-F]{40}$",
+        //                    "memoRegex" => " ",
+        //                    "network" => "ETH",
+        //                    "name" => "Ethereum (ERC20)",
+        //                    "depositEnable" => true,
+        //                    "minConfirm" => "12",
+        //                    "unLockConfirm" => "-1",
+        //                    "withdrawDesc" => "",
+        //                    "withdrawEnable" => true,
+        //                    "withdrawFee" => "6",
+        //                    "withdrawIntegerMultiple" => "0.000001",
+        //                    "withdrawMax" => "500000",
+        //                    "withdrawMin" => "10",
+        //                    "sameAddress" => false
+        //                ),
+        //                {
+        //                    "addressRegex" => "^T[0-9a-zA-Z]{33}$",
+        //                    "memoRegex" => "",
+        //                    "network" => "TRX",
+        //                    "name" => "TRON",
+        //                    "depositEnable" => true,
+        //                    "minConfirm" => "19",
+        //                    "unLockConfirm" => "-1",
+        //                    "withdrawDesc" => "",
+        //                    "withdrawEnable" => true,
+        //                    "withdrawFee" => "3",
+        //                    "withdrawIntegerMultiple" => "0.000001",
+        //                    "withdrawMax" => "1000000",
+        //                    "withdrawMin" => "20",
+        //                    "sameAddress" => false
+        //                }
+        //            ],
+        //            "legalMoney" => false
+        //        }
+        //    ]
+        //
+        $result = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $entry = $response[$i];
+            $id = $this->safe_string($entry, 'coin');
+            $code = $this->safe_currency_code($id);
+            $isFiat = $this->safe_bool($entry, 'isLegalMoney');
+            $networkList = $this->safe_list($entry, 'networkList', array());
+            $networks = array();
+            for ($j = 0; $j < count($networkList); $j++) {
+                $networkItem = $networkList[$j];
+                $network = $this->safe_string($networkItem, 'network');
+                $networkCode = $this->network_id_to_code($network);
+                $networks[$networkCode] = array(
+                    'info' => $networkItem,
+                    'id' => $network,
+                    'network' => $networkCode,
+                    'active' => null,
+                    'deposit' => $this->safe_bool($networkItem, 'depositEnable'),
+                    'withdraw' => $this->safe_bool($networkItem, 'withdrawEnable'),
+                    'fee' => $this->safe_number($networkItem, 'withdrawFee'),
+                    'precision' => $this->safe_number($networkItem, 'withdrawIntegerMultiple'),
+                    'limits' => array(
+                        'withdraw' => array(
+                            'min' => $this->safe_number($networkItem, 'withdrawMin'),
+                            'max' => $this->safe_number($networkItem, 'withdrawMax'),
+                        ),
+                        'deposit' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                    ),
+                );
+            }
+            $result[$code] = $this->safe_currency_structure(array(
+                'id' => $id,
+                'name' => $this->safe_string($entry, 'name'),
+                'code' => $code,
+                'type' => $isFiat ? 'fiat' : 'crypto',
+                'precision' => $this->parse_number($this->parse_precision($this->safe_string($entry, 'transferPrecision'))),
+                'info' => $entry,
+                'active' => null,
+                'deposit' => $this->safe_bool($entry, 'depositAllEnable'),
+                'withdraw' => $this->safe_bool($entry, 'withdrawAllEnable'),
+                'networks' => $networks,
+                'fee' => null,
+                'fees' => null,
+                'limits' => array(),
+            ));
+        }
+        return $result;
+    }
+
     public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array ()) {
         if ((is_array($config) && array_key_exists('noSymbol', $config)) && !(is_array($params) && array_key_exists('symbol', $params))) {
             return $config['noSymbol'];
@@ -459,7 +655,7 @@ class coinsph extends Exchange {
         );
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          *
@@ -809,30 +1005,39 @@ class coinsph extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch (default 500, max 1000)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
         $interval = $this->safe_string($this->timeframes, $timeframe);
+        $until = $this->safe_integer($params, 'until');
         $request = array(
             'symbol' => $market['id'],
             'interval' => $interval,
         );
+        if ($limit === null) {
+            $limit = 1000;
+        }
         if ($since !== null) {
             $request['startTime'] = $since;
-            $request['limit'] = 1000;
             // $since work properly only when it is "younger" than last "limit" candle
-            if ($limit !== null) {
-                $duration = $this->parse_timeframe($timeframe) * 1000;
-                $request['endTime'] = $this->sum($since, $duration * ($limit - 1));
+            if ($until !== null) {
+                $request['endTime'] = $until;
             } else {
-                $request['endTime'] = $this->milliseconds();
+                $duration = $this->parse_timeframe($timeframe) * 1000;
+                $endTimeByLimit = $this->sum($since, $duration * ($limit - 1));
+                $now = $this->milliseconds();
+                $request['endTime'] = min ($endTimeByLimit, $now);
             }
-        } else {
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-            }
+        } elseif ($until !== null) {
+            $request['endTime'] = $until;
+            // $since work properly only when it is "younger" than last "limit" candle
+            $duration = $this->parse_timeframe($timeframe) * 1000;
+            $request['startTime'] = $until - ($duration * ($limit - 1));
         }
+        $request['limit'] = $limit;
+        $params = $this->omit($params, 'until');
         $response = $this->publicGetOpenapiQuoteV1Klines ($this->extend($request, $params));
         //
         //     array(
@@ -1173,11 +1378,11 @@ class coinsph extends Exchange {
             }
         }
         if ($orderType === 'STOP_LOSS' || $orderType === 'STOP_LOSS_LIMIT' || $orderType === 'TAKE_PROFIT' || $orderType === 'TAKE_PROFIT_LIMIT') {
-            $stopPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
-            if ($stopPrice === null) {
-                throw new InvalidOrder($this->id . ' createOrder () requires a triggerPrice or $stopPrice param for stop_loss, take_profit, stop_loss_limit, and take_profit_limit orders');
+            $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
+            if ($triggerPrice === null) {
+                throw new InvalidOrder($this->id . ' createOrder () requires a $triggerPrice or stopPrice param for stop_loss, take_profit, stop_loss_limit, and take_profit_limit orders');
             }
-            $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
+            $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
         }
         $request['newOrderRespType'] = $newOrderRespType;
         $params = $this->omit($params, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
@@ -1245,7 +1450,7 @@ class coinsph extends Exchange {
         /**
          * fetch all unfilled currently open orders
          *
-         * @see https://coins-docs.github.io/rest-api/#query-order-user_data
+         * @see https://coins-docs.github.io/rest-api/#current-open-orders-user_data
          *
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open orders for
@@ -1417,9 +1622,9 @@ class coinsph extends Exchange {
         $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer_2($order, 'time', 'transactTime');
         $trades = $this->safe_value($order, 'fills', null);
-        $stopPrice = $this->safe_string($order, 'stopPrice');
-        if (Precise::string_eq($stopPrice, '0')) {
-            $stopPrice = null;
+        $triggerPrice = $this->safe_string($order, 'stopPrice');
+        if (Precise::string_eq($triggerPrice, '0')) {
+            $triggerPrice = null;
         }
         return $this->safe_order(array(
             'id' => $id,
@@ -1433,8 +1638,7 @@ class coinsph extends Exchange {
             'timeInForce' => $this->parse_order_time_in_force($this->safe_string($order, 'timeInForce')),
             'side' => $this->parse_order_side($this->safe_string($order, 'side')),
             'price' => $this->safe_string($order, 'price'),
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $triggerPrice,
             'average' => null,
             'amount' => $this->safe_string($order, 'origQty'),
             'cost' => $this->safe_string($order, 'cummulativeQuoteQty'),

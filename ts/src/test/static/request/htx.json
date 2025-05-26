@@ -11,6 +11,15 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.huobi.pro/v2/reference/currencies",
+                "input": [],
+                "output": null
+            }
+        ],
         "createOrder": [
             {
                 "description": "market sell in hedged mode and reduceOnly",
@@ -696,6 +705,39 @@
                 "url": "https://api.hbdm.com/api/v1/contract_open_interest?contract_code=BTC231124&contract_type=next_week&symbol=btc",
                 "input": [
                     "BTC/USD:BTC-231124"
+                ]
+            }
+        ],
+        "fetchOpenInterests": [
+            {
+                "description": "inverse swap fetch open interests",
+                "method": "fetchOpenInterests",
+                "url": "https://api.hbdm.com/swap-api/v1/swap_open_interest",
+                "input": [
+                  [
+                    "BTC/USD:BTC"
+                  ]
+                ]
+            },
+            {
+                "description": "linear swap fetch open interests",
+                "method": "fetchOpenInterests",
+                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_open_interest?contract_type=swap",
+                "input": [
+                  [
+                    "BTC/USDT:USDT"
+                  ]
+                ]
+            },
+            {
+                "description": "future fetch open interests",
+                "method": "fetchOpenInterests",
+                "url": "https://api.hbdm.com/api/v1/contract_open_interest",
+                "input": [
+                  null,
+                  {
+                    "type": "future"
+                  }
                 ]
             }
         ],

@@ -146,7 +146,7 @@ public partial class woo : Exchange
                     { "pub", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
                             { "hist/kline", 10 },
-                            { "hist/trades", 1 },
+                            { "hist/trades", 10 },
                         } },
                     } },
                     { "public", new Dictionary<string, object>() {
@@ -196,7 +196,7 @@ public partial class woo : Exchange
                             { "client/futures_leverage", 60 },
                         } },
                         { "post", new Dictionary<string, object>() {
-                            { "order", 5 },
+                            { "order", 1 },
                             { "order/cancel_all_after", 1 },
                             { "asset/main_sub_transfer", 30 },
                             { "asset/ltv", 30 },
@@ -274,6 +274,8 @@ public partial class woo : Exchange
                 } },
             } },
             { "options", new Dictionary<string, object>() {
+                { "timeDifference", 0 },
+                { "adjustForTimeDifference", false },
                 { "sandboxMode", false },
                 { "createMarketBuyOrderRequiresPrice", true },
                 { "network-aliases-for-tokens", new Dictionary<string, object>() {
@@ -293,6 +295,99 @@ public partial class woo : Exchange
                     { "fillResponseFromRequest", true },
                 } },
                 { "brokerId", "bc830de7-50f3-460b-9ee0-f430f83f9dad" },
+            } },
+            { "features", new Dictionary<string, object>() {
+                { "default", new Dictionary<string, object>() {
+                    { "sandbox", true },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", new Dictionary<string, object>() {
+                            { "last", true },
+                            { "mark", true },
+                            { "index", false },
+                        } },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", true },
+                        } },
+                        { "hedged", false },
+                        { "trailing", true },
+                        { "leverage", false },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", false },
+                        { "selfTradePrevention", false },
+                        { "iceberg", true },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 500 },
+                        { "daysBack", 90 },
+                        { "untilDays", 10000 },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", true },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 500 },
+                        { "trigger", true },
+                        { "trailing", true },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 500 },
+                        { "daysBack", null },
+                        { "untilDays", 100000 },
+                        { "trigger", true },
+                        { "trailing", true },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 500 },
+                        { "daysBack", null },
+                        { "daysBackCanceled", null },
+                        { "untilDays", 100000 },
+                        { "trigger", true },
+                        { "trailing", true },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1000 },
+                    } },
+                } },
+                { "spot", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                } },
+                { "forSwap", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "hedged", true },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "forSwap" },
+                    } },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {} },
             { "exceptions", new Dictionary<string, object>() {
@@ -406,6 +501,10 @@ public partial class woo : Exchange
     public async override Task<object> fetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(getValue(this.options, "adjustForTimeDifference")))
+        {
+            await this.loadTimeDifference();
+        }
         object response = await this.v1PublicGetInfo(parameters);
         //
         // {
@@ -458,6 +557,7 @@ public partial class woo : Exchange
         object symbol = add(add(bs, "/"), quote);
         object contractSize = null;
         object linear = null;
+        object inverse = null;
         object margin = true;
         object contract = swap;
         if (isTrue(contract))
@@ -468,7 +568,9 @@ public partial class woo : Exchange
             symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
             contractSize = this.parseNumber("1");
             linear = true;
+            inverse = false;
         }
+        object active = isEqual(this.safeString(market, "is_trading"), "1");
         return new Dictionary<string, object>() {
             { "id", marketId },
             { "symbol", symbol },
@@ -484,10 +586,10 @@ public partial class woo : Exchange
             { "swap", swap },
             { "future", false },
             { "option", false },
-            { "active", isEqual(this.safeString(market, "is_trading"), "1") },
+            { "active", active },
             { "contract", contract },
             { "linear", linear },
-            { "inverse", null },
+            { "inverse", inverse },
             { "contractSize", contractSize },
             { "expiry", null },
             { "expiryDatetime", null },
@@ -849,6 +951,7 @@ public partial class woo : Exchange
                 { "networks", resultingNetworks },
                 { "deposit", null },
                 { "withdraw", null },
+                { "type", "crypto" },
                 { "limits", new Dictionary<string, object>() {
                     { "deposit", new Dictionary<string, object>() {
                         { "min", null },
@@ -1018,7 +1121,7 @@ public partial class woo : Exchange
         {
             ((IDictionary<string,object>)request)["margin_mode"] = this.encodeMarginMode(marginMode);
         }
-        object stopPrice = this.safeNumber2(parameters, "triggerPrice", "stopPrice");
+        object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         object stopLoss = this.safeValue(parameters, "stopLoss");
         object takeProfit = this.safeValue(parameters, "takeProfit");
         object algoType = this.safeString(parameters, "algoType");
@@ -1028,17 +1131,17 @@ public partial class woo : Exchange
         object isTrailingAmountOrder = !isEqual(trailingAmount, null);
         object isTrailingPercentOrder = !isEqual(trailingPercent, null);
         object isTrailing = isTrue(isTrailingAmountOrder) || isTrue(isTrailingPercentOrder);
-        object isStop = isTrue(isTrue(isTrue(isTrue(isTrailing) || isTrue(!isEqual(stopPrice, null))) || isTrue(!isEqual(stopLoss, null))) || isTrue(!isEqual(takeProfit, null))) || isTrue((!isEqual(this.safeValue(parameters, "childOrders"), null)));
+        object isConditional = isTrue(isTrue(isTrue(isTrue(isTrailing) || isTrue(!isEqual(triggerPrice, null))) || isTrue(!isEqual(stopLoss, null))) || isTrue(!isEqual(takeProfit, null))) || isTrue((!isEqual(this.safeValue(parameters, "childOrders"), null)));
         object isMarket = isEqual(orderType, "MARKET");
         object timeInForce = this.safeStringLower(parameters, "timeInForce");
         object postOnly = this.isPostOnly(isMarket, null, parameters);
-        object reduceOnlyKey = ((bool) isTrue(isStop)) ? "reduceOnly" : "reduce_only";
-        object clientOrderIdKey = ((bool) isTrue(isStop)) ? "clientOrderId" : "client_order_id";
-        object orderQtyKey = ((bool) isTrue(isStop)) ? "quantity" : "order_quantity";
-        object priceKey = ((bool) isTrue(isStop)) ? "price" : "order_price";
-        object typeKey = ((bool) isTrue(isStop)) ? "type" : "order_type";
+        object reduceOnlyKey = ((bool) isTrue(isConditional)) ? "reduceOnly" : "reduce_only";
+        object clientOrderIdKey = ((bool) isTrue(isConditional)) ? "clientOrderId" : "client_order_id";
+        object orderQtyKey = ((bool) isTrue(isConditional)) ? "quantity" : "order_quantity";
+        object priceKey = ((bool) isTrue(isConditional)) ? "price" : "order_price";
+        object typeKey = ((bool) isTrue(isConditional)) ? "type" : "order_type";
         ((IDictionary<string,object>)request)[(string)typeKey] = orderType; // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
-        if (!isTrue(isStop))
+        if (!isTrue(isConditional))
         {
             if (isTrue(postOnly))
             {
@@ -1059,7 +1162,7 @@ public partial class woo : Exchange
         {
             ((IDictionary<string,object>)request)[(string)priceKey] = this.priceToPrecision(symbol, price);
         }
-        if (isTrue(isTrue(isMarket) && !isTrue(isStop)))
+        if (isTrue(isTrue(isMarket) && !isTrue(isConditional)))
         {
             // for market buy it requires the amount of quote currency to spend
             object cost = this.safeString2(parameters, "cost", "order_amount");
@@ -1108,11 +1211,11 @@ public partial class woo : Exchange
                 object convertedTrailingPercent = Precise.stringDiv(trailingPercent, "100");
                 ((IDictionary<string,object>)request)["callbackRate"] = convertedTrailingPercent;
             }
-        } else if (isTrue(!isEqual(stopPrice, null)))
+        } else if (isTrue(!isEqual(triggerPrice, null)))
         {
             if (isTrue(!isEqual(algoType, "TRAILING_STOP")))
             {
-                ((IDictionary<string,object>)request)["triggerPrice"] = this.priceToPrecision(symbol, stopPrice);
+                ((IDictionary<string,object>)request)["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
                 ((IDictionary<string,object>)request)["algoType"] = "STOP";
             }
         } else if (isTrue(isTrue((!isEqual(stopLoss, null))) || isTrue((!isEqual(takeProfit, null)))))
@@ -1124,10 +1227,11 @@ public partial class woo : Exchange
                 { "algoType", "POSITIONAL_TP_SL" },
                 { "childOrders", new List<object>() {} },
             };
+            object childOrders = getValue(outterOrder, "childOrders");
             object closeSide = ((bool) isTrue((isEqual(orderSide, "BUY")))) ? "SELL" : "BUY";
             if (isTrue(!isEqual(stopLoss, null)))
             {
-                object stopLossPrice = this.safeNumber2(stopLoss, "triggerPrice", "price", stopLoss);
+                object stopLossPrice = this.safeString(stopLoss, "triggerPrice", stopLoss);
                 object stopLossOrder = new Dictionary<string, object>() {
                     { "side", closeSide },
                     { "algoType", "STOP_LOSS" },
@@ -1135,11 +1239,11 @@ public partial class woo : Exchange
                     { "type", "CLOSE_POSITION" },
                     { "reduceOnly", true },
                 };
-                ((IList<object>)getValue(outterOrder, "childOrders")).Add(stopLossOrder);
+                ((IList<object>)childOrders).Add(stopLossOrder);
             }
             if (isTrue(!isEqual(takeProfit, null)))
             {
-                object takeProfitPrice = this.safeNumber2(takeProfit, "triggerPrice", "price", takeProfit);
+                object takeProfitPrice = this.safeString(takeProfit, "triggerPrice", takeProfit);
                 object takeProfitOrder = new Dictionary<string, object>() {
                     { "side", closeSide },
                     { "algoType", "TAKE_PROFIT" },
@@ -1147,13 +1251,13 @@ public partial class woo : Exchange
                     { "type", "CLOSE_POSITION" },
                     { "reduceOnly", true },
                 };
-                ((IList<object>)getValue(outterOrder, "childOrders")).Add(takeProfitOrder);
+                ((IList<object>)childOrders).Add(takeProfitOrder);
             }
             ((IDictionary<string,object>)request)["childOrders"] = new List<object>() {outterOrder};
         }
         parameters = this.omit(parameters, new List<object>() {"clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit", "trailingPercent", "trailingAmount", "trailingTriggerPrice"});
         object response = null;
-        if (isTrue(isStop))
+        if (isTrue(isConditional))
         {
             response = await this.v3PrivatePostAlgoOrder(this.extend(request, parameters));
         } else
@@ -1245,10 +1349,10 @@ public partial class woo : Exchange
         object clientOrderIdUnified = this.safeString2(parameters, "clOrdID", "clientOrderId");
         object clientOrderIdExchangeSpecific = this.safeString(parameters, "client_order_id", clientOrderIdUnified);
         object isByClientOrder = !isEqual(clientOrderIdExchangeSpecific, null);
-        object stopPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "takeProfitPrice", "stopLossPrice"});
-        if (isTrue(!isEqual(stopPrice, null)))
+        object triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "takeProfitPrice", "stopLossPrice"});
+        if (isTrue(!isEqual(triggerPrice, null)))
         {
-            ((IDictionary<string,object>)request)["triggerPrice"] = this.priceToPrecision(symbol, stopPrice);
+            ((IDictionary<string,object>)request)["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
         }
         object trailingTriggerPrice = this.safeString2(parameters, "trailingTriggerPrice", "activatedPrice", this.numberToString(price));
         object trailingAmount = this.safeString2(parameters, "trailingAmount", "callbackValue");
@@ -1272,12 +1376,12 @@ public partial class woo : Exchange
             }
         }
         parameters = this.omit(parameters, new List<object>() {"clOrdID", "clientOrderId", "client_order_id", "stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent"});
-        object isStop = isTrue(isTrue(isTrailing) || isTrue((!isEqual(stopPrice, null)))) || isTrue((!isEqual(this.safeValue(parameters, "childOrders"), null)));
+        object isConditional = isTrue(isTrue(isTrailing) || isTrue((!isEqual(triggerPrice, null)))) || isTrue((!isEqual(this.safeValue(parameters, "childOrders"), null)));
         object response = null;
         if (isTrue(isByClientOrder))
         {
             ((IDictionary<string,object>)request)["client_order_id"] = clientOrderIdExchangeSpecific;
-            if (isTrue(isStop))
+            if (isTrue(isConditional))
             {
                 response = await this.v3PrivatePutAlgoOrderClientClientOrderId(this.extend(request, parameters));
             } else
@@ -1287,7 +1391,7 @@ public partial class woo : Exchange
         } else
         {
             ((IDictionary<string,object>)request)["oid"] = id;
-            if (isTrue(isStop))
+            if (isTrue(isConditional))
             {
                 response = await this.v3PrivatePutAlgoOrderOid(this.extend(request, parameters));
             } else
@@ -1321,15 +1425,15 @@ public partial class woo : Exchange
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.stop] whether the order is a stop/algo order
+     * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object stop = this.safeBool(parameters, "stop", false);
-        parameters = this.omit(parameters, "stop");
-        if (isTrue(!isTrue(stop) && isTrue((isEqual(symbol, null)))))
+        object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
+        parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
+        if (isTrue(!isTrue(isTrigger) && isTrue((isEqual(symbol, null)))))
         {
             throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a symbol argument")) ;
         }
@@ -1344,7 +1448,7 @@ public partial class woo : Exchange
         object clientOrderIdExchangeSpecific = this.safeString(parameters, "client_order_id", clientOrderIdUnified);
         object isByClientOrder = !isEqual(clientOrderIdExchangeSpecific, null);
         object response = null;
-        if (isTrue(stop))
+        if (isTrue(isTrigger))
         {
             ((IDictionary<string,object>)request)["order_id"] = id;
             response = await this.v3PrivateDeleteAlgoOrderOrderId(this.extend(request, parameters));
@@ -1387,16 +1491,16 @@ public partial class woo : Exchange
      * @description cancel all open orders in a market
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.stop] whether the order is a stop/algo order
+     * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object stop = this.safeBool2(parameters, "stop", "trigger");
+        object trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             return await this.v3PrivateDeleteAlgoOrdersPending(parameters);
         }
@@ -1456,7 +1560,7 @@ public partial class woo : Exchange
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.stop] whether the order is a stop/algo order
+     * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
@@ -1464,12 +1568,12 @@ public partial class woo : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = ((bool) isTrue((!isEqual(symbol, null)))) ? this.market(symbol) : null;
-        object stop = this.safeBool2(parameters, "stop", "trigger");
+        object trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object request = new Dictionary<string, object>() {};
         object clientOrderId = this.safeString2(parameters, "clOrdID", "clientOrderId");
         object response = null;
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             ((IDictionary<string,object>)request)["oid"] = id;
             response = await this.v3PrivateGetAlgoOrderOid(this.extend(request, parameters));
@@ -1531,7 +1635,7 @@ public partial class woo : Exchange
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.stop] whether the order is a stop/algo order
+     * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @param {boolean} [params.isTriggered] whether the order has been triggered (false by default)
      * @param {string} [params.side] 'buy' or 'sell'
      * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
@@ -1552,7 +1656,7 @@ public partial class woo : Exchange
         }
         object request = new Dictionary<string, object>() {};
         object market = null;
-        object stop = this.safeBool2(parameters, "stop", "trigger");
+        object trigger = this.safeBool2(parameters, "stop", "trigger");
         object trailing = this.safeBool(parameters, "trailing", false);
         parameters = this.omit(parameters, new List<object>() {"stop", "trailing", "trigger"});
         if (isTrue(!isEqual(symbol, null)))
@@ -1562,7 +1666,7 @@ public partial class woo : Exchange
         }
         if (isTrue(!isEqual(since, null)))
         {
-            if (isTrue(isTrue(stop) || isTrue(trailing)))
+            if (isTrue(isTrue(trigger) || isTrue(trailing)))
             {
                 ((IDictionary<string,object>)request)["createdTimeStart"] = since;
             } else
@@ -1577,7 +1681,7 @@ public partial class woo : Exchange
         {
             ((IDictionary<string,object>)request)["size"] = 500;
         }
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             ((IDictionary<string,object>)request)["algoType"] = "stop";
         } else if (isTrue(trailing))
@@ -1585,7 +1689,7 @@ public partial class woo : Exchange
             ((IDictionary<string,object>)request)["algoType"] = "TRAILING_STOP";
         }
         object response = null;
-        if (isTrue(isTrue(stop) || isTrue(trailing)))
+        if (isTrue(isTrue(trigger) || isTrue(trailing)))
         {
             response = await this.v3PrivateGetAlgoOrders(this.extend(request, parameters));
         } else
@@ -1638,7 +1742,7 @@ public partial class woo : Exchange
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.stop] whether the order is a stop/algo order
+     * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @param {boolean} [params.isTriggered] whether the order has been triggered (false by default)
      * @param {string} [params.side] 'buy' or 'sell'
      * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
@@ -1665,7 +1769,7 @@ public partial class woo : Exchange
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.stop] whether the order is a stop/algo order
+     * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @param {boolean} [params.isTriggered] whether the order has been triggered (false by default)
      * @param {string} [params.side] 'buy' or 'sell'
      * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
@@ -1756,7 +1860,7 @@ public partial class woo : Exchange
         object fee = this.safeNumber2(order, "total_fee", "totalFee");
         object feeCurrency = this.safeString2(order, "fee_asset", "feeAsset");
         object transactions = this.safeValue(order, "Transactions");
-        object stopPrice = this.safeNumber(order, "triggerPrice");
+        object triggerPrice = this.safeNumber(order, "triggerPrice");
         object takeProfitPrice = null;
         object stopLossPrice = null;
         object childOrders = this.safeValue(order, "childOrders");
@@ -1789,8 +1893,7 @@ public partial class woo : Exchange
             { "reduceOnly", this.safeBool(order, "reduce_only") },
             { "side", side },
             { "price", price },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "triggerPrice", triggerPrice },
             { "takeProfitPrice", takeProfitPrice },
             { "stopLossPrice", stopLossPrice },
             { "average", average },
@@ -1978,7 +2081,7 @@ public partial class woo : Exchange
      * @method
      * @name woo#fetchMyTrades
      * @description fetch all trades made by the user
-     * @see https://docs.woox.io/#get-trades
+     * @see https://docs.woox.io/#get-trade-history
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -2009,6 +2112,9 @@ public partial class woo : Exchange
         {
             ((IDictionary<string,object>)request)["start_t"] = since;
         }
+        var requestparametersVariable = this.handleUntilOption("end_t", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
         if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["size"] = limit;
@@ -2265,14 +2371,14 @@ public partial class woo : Exchange
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        var currencyrowsVariable = await this.getAssetHistoryRows(code, since, limit, parameters);
-        var currency = ((IList<object>) currencyrowsVariable)[0];
-        var rows = ((IList<object>) currencyrowsVariable)[1];
+        object currencyRows = await this.getAssetHistoryRows(code, since, limit, parameters);
+        object currency = this.safeValue(currencyRows, 0);
+        object rows = this.safeList(currencyRows, 1);
         return this.parseLedger(rows, currency, since, limit, parameters);
     }
 
@@ -2392,9 +2498,9 @@ public partial class woo : Exchange
         object request = new Dictionary<string, object>() {
             { "type", "BALANCE" },
         };
-        var currencyrowsVariable = await this.getAssetHistoryRows(code, since, limit, this.extend(request, parameters));
-        var currency = ((IList<object>) currencyrowsVariable)[0];
-        var rows = ((IList<object>) currencyrowsVariable)[1];
+        object currencyRows = await this.getAssetHistoryRows(code, since, limit, this.extend(request, parameters));
+        object currency = this.safeValue(currencyRows, 0);
+        object rows = this.safeList(currencyRows, 1);
         //
         //     {
         //         "rows":[],
@@ -2728,7 +2834,7 @@ public partial class woo : Exchange
 
     public override object nonce()
     {
-        return this.milliseconds();
+        return subtract(this.milliseconds(), getValue(this.options, "timeDifference"));
     }
 
     public override object sign(object path, object section = null, object method = null, object parameters = null, object headers = null, object body = null)
@@ -2767,8 +2873,8 @@ public partial class woo : Exchange
                 {
                     object applicationId = "bc830de7-50f3-460b-9ee0-f430f83f9dad";
                     object brokerId = this.safeString(this.options, "brokerId", applicationId);
-                    object isStop = isGreaterThan(getIndexOf(path, "algo"), -1);
-                    if (isTrue(isStop))
+                    object isTrigger = isGreaterThan(getIndexOf(path, "algo"), -1);
+                    if (isTrue(isTrigger))
                     {
                         ((IDictionary<string,object>)parameters)["brokerId"] = brokerId;
                     } else
@@ -3090,8 +3196,7 @@ public partial class woo : Exchange
         //     }
         //
         object rows = this.safeList(response, "rows", new List<object>() {});
-        object result = this.parseFundingRates(rows);
-        return this.filterByArray(result, "symbol", symbols);
+        return this.parseFundingRates(rows, symbols);
     }
 
     /**
@@ -3372,7 +3477,7 @@ public partial class woo : Exchange
         return await this.v1PrivatePostClientIsolatedMargin(this.extend(request, parameters));
     }
 
-    public async override Task<object> fetchPosition(object symbol = null, object parameters = null)
+    public async override Task<object> fetchPosition(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -3629,7 +3734,7 @@ public partial class woo : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
      */
-    public async virtual Task<object> createConvertTrade(object id, object fromCode, object toCode, object amount = null, object parameters = null)
+    public async override Task<object> createConvertTrade(object id, object fromCode, object toCode, object amount = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -3661,7 +3766,7 @@ public partial class woo : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
      */
-    public async virtual Task<object> fetchConvertTrade(object id, object code = null, object parameters = null)
+    public async override Task<object> fetchConvertTrade(object id, object code = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -3711,7 +3816,7 @@ public partial class woo : Exchange
      * @param {int} [params.until] timestamp in ms of the latest conversion to fetch
      * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}
      */
-    public async virtual Task<object> fetchConvertTradeHistory(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchConvertTradeHistory(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();

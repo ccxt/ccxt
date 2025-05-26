@@ -17,6 +17,8 @@ public partial class Exchange
         if (value1.GetType() == typeof(string))
         {
             var sortedList2 = list.OrderBy(x => ((dict)x)[(string)value1]).ToList();
+            if (desc)
+                sortedList2.Reverse();
             return sortedList2;
         }
         else
@@ -72,7 +74,7 @@ public partial class Exchange
         var outList = new List<object>();
         foreach (object elem in targetA)
         {
-            if (((dict)elem)[(string)key].ToString() == value.ToString())
+            if (((dict)elem)[(string)key]?.ToString() == value?.ToString())
             {
                 outList.Add(elem);
             }
@@ -267,7 +269,10 @@ public partial class Exchange
                 var elem2 = (dict)elem;
                 if (elem2.ContainsKey((string)key2))
                 {
-                    outDict[elem2[(string)key2].ToString()] = elem2;
+                    var elem2Value = elem2[(string)key2];
+                    if (elem2Value == null)
+                        continue;
+                    outDict[elem2Value.ToString()] = elem2;
                 }
             }
             else if (elem.GetType() == typeof(List<string>) || elem.GetType() == typeof(List<object>))
@@ -278,7 +283,10 @@ public partial class Exchange
                     var elem2 = (List<string>)elem;
                     if (elem2.Count > 0)
                     {
-                        outDict[elem2[index].ToString()] = elem2;
+                        var elem2IndexValue = elem2[index];
+                        if (elem2IndexValue == null)
+                            continue;
+                        outDict[elem2IndexValue.ToString()] = elem2;
                     }
                 }
                 if (elem.GetType() == typeof(List<object>))
@@ -286,7 +294,10 @@ public partial class Exchange
                     var elem2 = (List<object>)elem;
                     if (elem2.Count > 0)
                     {
-                        outDict[elem2[index].ToString()] = elem2;
+                        var elem2IndexValue = elem2[index];
+                        if (elem2IndexValue == null)
+                            continue;
+                        outDict[elem2IndexValue.ToString()] = elem2;
                     }
                 }
 
@@ -307,6 +318,8 @@ public partial class Exchange
             if (elemDict.ContainsKey(key))
             {
                 var elem2 = (string)elemDict[key];
+                if (elem2 == null)
+                    continue;
                 if (outDict.ContainsKey(elem2))
                 {
                     var list2 = (List<object>)outDict[elem2];

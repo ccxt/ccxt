@@ -20,9 +20,11 @@ function test_fetch_trades($exchange, $skipped_properties, $symbol) {
         $now = $exchange->milliseconds();
         for ($i = 0; $i < count($trades); $i++) {
             test_trade($exchange, $skipped_properties, $method, $trades[$i], $symbol, $now);
+            assert_in_array($exchange, $skipped_properties, $method, $trades[$i], 'takerOrMaker', ['taker', null]);
         }
         if (!(is_array($skipped_properties) && array_key_exists('timestamp', $skipped_properties))) {
             assert_timestamp_order($exchange, $method, $symbol, $trades);
         }
+        return true;
     }) ();
 }

@@ -12,12 +12,12 @@ use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class onetrading extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'onetrading',
             'name' => 'One Trading',
@@ -281,6 +281,7 @@ class onetrading extends Exchange {
                     'INTERNAL_SERVER_ERROR' => '\\ccxt\\ExchangeError',
                 ),
                 'broad' => array(
+                    'Order not found.' => '\\ccxt\\OrderNotFound',
                 ),
             ),
             'commonCurrencies' => array(
@@ -293,10 +294,80 @@ class onetrading extends Exchange {
                 ),
                 'fiat' => array( 'EUR', 'CHF' ),
             ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => false,
+                        'triggerDirection' => false,
+                        'triggerPriceType' => null,
+                        'stopLossPrice' => false,
+                        'takeProfitPrice' => false,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => 100000, // todo
+                        'untilDays' => 100000, // todo
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => null, // todo
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => 100000, // todo
+                        'daysBackCanceled' => 1 / 12, // todo
+                        'untilDays' => 100000, // todo
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 5000,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
         ));
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
@@ -330,10 +401,13 @@ class onetrading extends Exchange {
             $response = Async\await($this->publicGetCurrencies ($params));
             //
             //     array(
-            //         {
-            //             "code":"BEST",
-            //             "precision":8
-            //         }
+            //         array(
+            //             "code" => "USDT",
+            //             "precision" => 6,
+            //             "unified_cryptoasset_id" => 825,
+            //             "name" => "Tether USDt",
+            //             "collateral_percentage" => 0
+            //         ),
             //     )
             //
             $result = array();
@@ -341,11 +415,11 @@ class onetrading extends Exchange {
                 $currency = $response[$i];
                 $id = $this->safe_string($currency, 'code');
                 $code = $this->safe_currency_code($id);
-                $result[$code] = array(
+                $result[$code] = $this->safe_currency_structure(array(
                     'id' => $id,
                     'code' => $code,
-                    'name' => null,
-                    'info' => $currency, // the original payload
+                    'name' => $this->safe_string($currency, 'name'),
+                    'info' => $currency,
                     'active' => null,
                     'fee' => null,
                     'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'precision'))),
@@ -356,7 +430,7 @@ class onetrading extends Exchange {
                         'withdraw' => array( 'min' => null, 'max' => null ),
                     ),
                     'networks' => array(),
-                );
+                ));
             }
             return $result;
         }) ();
@@ -900,7 +974,8 @@ class onetrading extends Exchange {
             //         array("instrument_code":"BTC_EUR","granularity":array("unit":"HOURS","period":1),"high":"9135.7","low":"9002.59","open":"9055.45","close":"9133.98","total_amount":"26.21919","volume":"238278.8724959","time":"2020-05-09T00:59:59.999Z","last_sequence":461521),
             //     )
             //
-            return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+            $ohlcv = $this->safe_list($response, 'candlesticks');
+            return $this->parse_ohlcvs($ohlcv, $market, $timeframe, $since, $limit);
         }) ();
     }
 
@@ -1044,6 +1119,7 @@ class onetrading extends Exchange {
             'CLOSED' => 'canceled',
             'FAILED' => 'failed',
             'STOP_TRIGGERED' => 'triggered',
+            'DONE' => 'closed',
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -1129,7 +1205,6 @@ class onetrading extends Exchange {
         $side = $this->safe_string_lower($rawOrder, 'side');
         $type = $this->safe_string_lower($rawOrder, 'type');
         $timeInForce = $this->parse_time_in_force($this->safe_string($rawOrder, 'time_in_force'));
-        $stopPrice = $this->safe_number($rawOrder, 'trigger_price');
         $postOnly = $this->safe_value($rawOrder, 'is_post_only');
         $rawTrades = $this->safe_value($order, 'trades', array());
         return $this->safe_order(array(
@@ -1140,13 +1215,12 @@ class onetrading extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
-            'type' => $type,
+            'type' => $this->parse_order_type($type),
             'timeInForce' => $timeInForce,
             'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $this->safe_number($rawOrder, 'trigger_price'),
             'amount' => $amount,
             'cost' => null,
             'average' => null,
@@ -1156,6 +1230,13 @@ class onetrading extends Exchange {
             // 'fee' => null,
             'trades' => $rawTrades,
         ), $market);
+    }
+
+    public function parse_order_type(?string $type) {
+        $types = array(
+            'booked' => 'limit',
+        );
+        return $this->safe_string($types, $type, $type);
     }
 
     public function parse_time_in_force(?string $timeInForce) {
@@ -1176,7 +1257,7 @@ class onetrading extends Exchange {
              * @see https://docs.onetrading.com/#create-order
              *
              * @param {string} $symbol unified $symbol of the $market to create an order in
-             * @param {string} $type 'market' or 'limit'
+             * @param {string} $type 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
@@ -1222,6 +1303,9 @@ class onetrading extends Exchange {
                 $request['client_id'] = $clientOrderId;
                 $params = $this->omit($params, array( 'clientOrderId', 'client_id' ));
             }
+            $timeInForce = $this->safe_string_2($params, 'timeInForce', 'time_in_force', 'GOOD_TILL_CANCELLED');
+            $params = $this->omit($params, 'timeInForce');
+            $request['time_in_force'] = $timeInForce;
             $response = Async\await($this->privatePostAccountOrders ($this->extend($request, $params)));
             //
             //     {
@@ -1265,11 +1349,16 @@ class onetrading extends Exchange {
             } else {
                 $request['order_id'] = $id;
             }
-            $response = Async\await($this->$method ($this->extend($request, $params)));
+            $response = null;
+            if ($method === 'privateDeleteAccountOrdersOrderId') {
+                $response = Async\await($this->privateDeleteAccountOrdersOrderId ($this->extend($request, $params)));
+            } else {
+                $response = Async\await($this->privateDeleteAccountOrdersClientClientId ($this->extend($request, $params)));
+            }
             //
             // responds with an empty body
             //
-            return $response;
+            return $this->parse_order($response);
         }) ();
     }
 

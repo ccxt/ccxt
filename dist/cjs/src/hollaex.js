@@ -6,7 +6,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class hollaex
@@ -164,6 +164,84 @@ class hollaex extends hollaex$1 {
                         'order/all': 1,
                         'order': 1,
                     },
+                },
+            },
+            'features': {
+                'spot': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': false,
+                            'FOK': false,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'selfTradePrevention': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000, // todo: no limit in request
+                    },
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
                 },
             },
             'fees': {
@@ -336,66 +414,116 @@ class hollaex extends hollaex$1 {
     async fetchCurrencies(params = {}) {
         const response = await this.publicGetConstants(params);
         //
-        //     {
-        //         "coins":{
-        //             "bch":{
-        //                 "id":4,
-        //                 "fullname":"Bitcoin Cash",
-        //                 "symbol":"bch",
-        //                 "active":true,
-        //                 "verified":true,
-        //                 "allow_deposit":true,
-        //                 "allow_withdrawal":true,
-        //                 "withdrawal_fee":0.0001,
-        //                 "min":0.001,
-        //                 "max":100000,
-        //                 "increment_unit":0.001,
-        //                 "logo":"https://bitholla.s3.ap-northeast-2.amazonaws.com/icon/BCH-hollaex-asset-01.svg",
-        //                 "code":"bch",
-        //                 "is_public":true,
-        //                 "meta":{},
-        //                 "estimated_price":null,
-        //                 "description":null,
-        //                 "type":"blockchain",
-        //                 "network":null,
-        //                 "standard":null,
-        //                 "issuer":"HollaEx",
-        //                 "withdrawal_fees":null,
-        //                 "created_at":"2019-08-09T10:45:43.367Z",
-        //                 "updated_at":"2021-12-13T03:08:32.372Z",
-        //                 "created_by":1,
-        //                 "owner_id":1
-        //             },
+        //    {
+        //        "coins": {
+        //            "usdt": {
+        //                "id": "6",
+        //                "fullname": "USD Tether",
+        //                "symbol": "usdt",
+        //                "active": true,
+        //                "verified": true,
+        //                "allow_deposit": true,
+        //                "allow_withdrawal": true,
+        //                "withdrawal_fee": "20",
+        //                "min": "1",
+        //                "max": "10000000",
+        //                "increment_unit": "0.0001",
+        //                "logo": "https://hollaex-resources.s3.ap-southeast-1.amazonaws.com/icons/usdt.svg",
+        //                "code": "usdt",
+        //                "is_public": true,
+        //                "meta": {
+        //                    "color": "#27a17a",
+        //                    "website": "https://tether.to",
+        //                    "explorer": "https://blockchair.com/tether",
+        //                    "decimal_points": "6"
+        //                },
+        //                "estimated_price": "1",
+        //                "description": "<p>Tether (USDT) is a stablecoin pegged 1:1 to the US dollar. It is a digital currency that aims to maintain its value while allowing for fast and secure transfer of funds. It was the first stablecoin, and is the most widely used due stablecoin due to its stability and low volatility compared to other cryptocurrencies. It was launched in 2014 by Tether Limited.</p>",
+        //                "type": "blockchain",
+        //                "network": "eth,trx,bnb,matic",
+        //                "standard": "",
+        //                "issuer": "HollaEx",
+        //                "withdrawal_fees": {
+        //                    "bnb": {
+        //                        "value": "0.8",
+        //                        "active": true,
+        //                        "symbol": "usdt"
+        //                    },
+        //                    "eth": {
+        //                        "value": "1.5",
+        //                        "active": true,
+        //                        "symbol": "usdt"
+        //                    },
+        //                    "trx": {
+        //                        "value": "4",
+        //                        "active": true,
+        //                        "symbol": "usdt"
+        //                    },
+        //                    "matic": {
+        //                        "value": "0.3",
+        //                        "active": true,
+        //                        "symbol": "usdt"
+        //                    }
+        //                },
+        //                "display_name": null,
+        //                "deposit_fees": null,
+        //                "is_risky": false,
+        //                "market_cap": "144568098696.29",
+        //                "category": "stable",
+        //                "created_at": "2019-08-09T10:45:43.367Z",
+        //                "updated_at": "2025-03-25T17:12:37.970Z",
+        //                "created_by": "168",
+        //                "owner_id": "1"
+        //            },
         //         },
         //         "network":"https://api.hollaex.network"
         //     }
         //
-        const coins = this.safeValue(response, 'coins', {});
+        const coins = this.safeDict(response, 'coins', {});
         const keys = Object.keys(coins);
         const result = {};
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             const currency = coins[key];
             const id = this.safeString(currency, 'symbol');
-            const numericId = this.safeInteger(currency, 'id');
             const code = this.safeCurrencyCode(id);
-            const name = this.safeString(currency, 'fullname');
-            const depositEnabled = this.safeValue(currency, 'allow_deposit');
-            const withdrawEnabled = this.safeValue(currency, 'allow_withdrawal');
-            const isActive = this.safeValue(currency, 'active');
-            const active = isActive && depositEnabled && withdrawEnabled;
-            const fee = this.safeNumber(currency, 'withdrawal_fee');
-            const withdrawalLimits = this.safeValue(currency, 'withdrawal_limits', []);
-            result[code] = {
+            const withdrawalLimits = this.safeList(currency, 'withdrawal_limits', []);
+            const rawType = this.safeString(currency, 'type');
+            const type = (rawType === 'blockchain') ? 'crypto' : 'other';
+            const rawNetworks = this.safeDict(currency, 'withdrawal_fees', {});
+            const networks = {};
+            const networkIds = Object.keys(rawNetworks);
+            for (let j = 0; j < networkIds.length; j++) {
+                const networkId = networkIds[j];
+                const networkEntry = this.safeDict(rawNetworks, networkId);
+                const networkCode = this.networkIdToCode(networkId);
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': this.safeBool(networkEntry, 'active'),
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': this.safeNumber(networkEntry, 'value'),
+                    'precision': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                    },
+                    'info': networkEntry,
+                };
+            }
+            result[code] = this.safeCurrencyStructure({
                 'id': id,
-                'numericId': numericId,
+                'numericId': this.safeInteger(currency, 'id'),
                 'code': code,
                 'info': currency,
-                'name': name,
-                'active': active,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
-                'fee': fee,
+                'name': this.safeString(currency, 'fullname'),
+                'active': this.safeBool(currency, 'active'),
+                'deposit': this.safeBool(currency, 'allow_deposit'),
+                'withdraw': this.safeBool(currency, 'allow_withdrawal'),
+                'fee': this.safeNumber(currency, 'withdrawal_fee'),
                 'precision': this.safeNumber(currency, 'increment_unit'),
                 'limits': {
                     'amount': {
@@ -407,8 +535,9 @@ class hollaex extends hollaex$1 {
                         'max': this.safeValue(withdrawalLimits, 0),
                     },
                 },
-                'networks': {},
-            };
+                'networks': networks,
+                'type': type,
+            });
         }
         return result;
     }
@@ -755,13 +884,14 @@ class hollaex extends hollaex$1 {
     /**
      * @method
      * @name hollaex#fetchOHLCV
-     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @description hollaex has large gaps between candles, so it's recommended to specify since
      * @see https://apidocs.hollaex.com/#chart
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -771,27 +901,20 @@ class hollaex extends hollaex$1 {
             'symbol': market['id'],
             'resolution': this.safeString(this.timeframes, timeframe, timeframe),
         };
-        const duration = this.parseTimeframe(timeframe);
-        if (since === undefined) {
-            if (limit === undefined) {
-                limit = 1000; // they have no defaults and can actually provide tens of thousands of bars in one request, but we should cap "default" at generous amount
-            }
-            const end = this.seconds();
-            const start = end - duration * limit;
-            request['to'] = end;
-            request['from'] = start;
+        const until = this.safeInteger(params, 'until');
+        let end = this.seconds();
+        if (until !== undefined) {
+            end = this.parseToInt(until / 1000);
+        }
+        const defaultSpan = 2592000; // 30 days
+        if (since !== undefined) {
+            request['from'] = this.parseToInt(since / 1000);
         }
         else {
-            if (limit === undefined) {
-                request['from'] = this.parseToInt(since / 1000);
-                request['to'] = this.seconds();
-            }
-            else {
-                const start = this.parseToInt(since / 1000);
-                request['from'] = start;
-                request['to'] = this.sum(start, duration * limit);
-            }
+            request['from'] = end - defaultSpan;
         }
+        request['to'] = end;
+        params = this.omit(params, 'until');
         const response = await this.publicGetChart(this.extend(request, params));
         //
         //     [
@@ -1106,7 +1229,6 @@ class hollaex extends hollaex$1 {
         const type = this.safeString(order, 'type');
         const side = this.safeString(order, 'side');
         const price = this.safeString(order, 'price');
-        const stopPrice = this.safeString(order, 'stop');
         const amount = this.safeString(order, 'size');
         const filled = this.safeString(order, 'filled');
         const status = this.parseOrderStatus(this.safeString(order, 'status'));
@@ -1125,8 +1247,7 @@ class hollaex extends hollaex$1 {
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': this.safeString(order, 'stop'),
             'amount': amount,
             'filled': filled,
             'remaining': undefined,
@@ -1164,7 +1285,7 @@ class hollaex extends hollaex$1 {
             // 'stop': parseFloat (this.priceToPrecision (symbol, stopPrice)),
             // 'meta': {}, // other options such as post_only
         };
-        const stopPrice = this.safeNumberN(params, ['triggerPrice', 'stopPrice', 'stop']);
+        const triggerPrice = this.safeNumberN(params, ['triggerPrice', 'stopPrice', 'stop']);
         const meta = this.safeValue(params, 'meta', {});
         const exchangeSpecificParam = this.safeBool(meta, 'post_only', false);
         const isMarketOrder = type === 'market';
@@ -1173,8 +1294,8 @@ class hollaex extends hollaex$1 {
             const convertedPrice = parseFloat(this.priceToPrecision(symbol, price));
             request['price'] = this.normalizeNumberIfNeeded(convertedPrice);
         }
-        if (stopPrice !== undefined) {
-            request['stop'] = this.normalizeNumberIfNeeded(parseFloat(this.priceToPrecision(symbol, stopPrice)));
+        if (triggerPrice !== undefined) {
+            request['stop'] = this.normalizeNumberIfNeeded(parseFloat(this.priceToPrecision(symbol, triggerPrice)));
         }
         if (postOnly) {
             request['meta'] = { 'post_only': true };
@@ -1844,7 +1965,7 @@ class hollaex extends hollaex$1 {
         //         "network":"https://api.hollaex.network"
         //     }
         //
-        const coins = this.safeList(response, 'coins');
+        const coins = this.safeDict(response, 'coins', {});
         return this.parseDepositWithdrawFees(coins, codes, 'symbol');
     }
     normalizeNumberIfNeeded(number) {
@@ -1885,6 +2006,7 @@ class hollaex extends hollaex$1 {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        // { "message": "Invalid token" }
         if (response === undefined) {
             return undefined;
         }
@@ -1892,7 +2014,7 @@ class hollaex extends hollaex$1 {
             //
             //  { "message": "Invalid token" }
             //
-            // different errors return the same code eg:
+            // different errors return the same code eg
             //
             //  { "message":"Error 1001 - Order rejected. Order could not be submitted as this order was set to a post only order." }
             //

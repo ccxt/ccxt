@@ -9,7 +9,7 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class probit extends probitRest {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -163,6 +163,7 @@ export default class probit extends probitRest {
      */
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         const channel = 'recent_trades';
+        symbol = this.safeSymbol (symbol);
         const trades = await this.subscribePublic ('watchTrades', symbol, 'trades', channel, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);

@@ -23,6 +23,7 @@ public partial class cex : Exchange
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
                 { "createOrder", true },
+                { "createReduceOnlyOrder", false },
                 { "createStopOrder", true },
                 { "createTriggerOrder", true },
                 { "fetchAccounts", true },
@@ -98,6 +99,65 @@ public partial class cex : Exchange
                         { "do_deposit_funds_from_wallet", 1 },
                         { "do_withdrawal_funds_to_wallet", 1 },
                     } },
+                } },
+            } },
+            { "features", new Dictionary<string, object>() {
+                { "spot", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", false },
+                            { "GTD", true },
+                        } },
+                        { "hedged", false },
+                        { "leverage", false },
+                        { "marketBuyRequiresPrice", false },
+                        { "marketBuyByCost", true },
+                        { "selfTradePrevention", false },
+                        { "trailing", false },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", null },
+                    { "fetchOrder", null },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "daysBack", 100000 },
+                        { "daysBackCanceled", 1 },
+                        { "untilDays", 100000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1000 },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
                 } },
             } },
             { "precisionMode", TICK_SIZE },
@@ -233,8 +293,6 @@ public partial class cex : Exchange
         object id = this.safeString(rawCurrency, "currency");
         object code = this.safeCurrencyCode(id);
         object type = ((bool) isTrue(this.safeBool(rawCurrency, "fiat"))) ? "fiat" : "crypto";
-        object currencyDepositEnabled = this.safeBool(rawCurrency, "walletDeposit");
-        object currencyWithdrawEnabled = this.safeBool(rawCurrency, "walletWithdrawal");
         object currencyPrecision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, "precision")));
         object networks = new Dictionary<string, object>() {};
         object rawNetworks = this.safeDict(rawCurrency, "blockchains", new Dictionary<string, object>() {});
@@ -252,6 +310,7 @@ public partial class cex : Exchange
                 { "margin", null },
                 { "deposit", deposit },
                 { "withdraw", withdraw },
+                { "active", null },
                 { "fee", this.safeNumber(rawNetwork, "withdrawalFee") },
                 { "precision", currencyPrecision },
                 { "limits", new Dictionary<string, object>() {
@@ -273,8 +332,8 @@ public partial class cex : Exchange
             { "name", null },
             { "type", type },
             { "active", null },
-            { "deposit", currencyDepositEnabled },
-            { "withdraw", currencyWithdrawEnabled },
+            { "deposit", this.safeBool(rawCurrency, "walletDeposit") },
+            { "withdraw", this.safeBool(rawCurrency, "walletWithdrawal") },
             { "fee", null },
             { "precision", currencyPrecision },
             { "limits", new Dictionary<string, object>() {
@@ -497,7 +556,7 @@ public partial class cex : Exchange
             { "askVolume", null },
             { "vwap", null },
             { "open", null },
-            { "close", this.safeString(ticker, "lastTradePrice") },
+            { "close", this.safeString(ticker, "last") },
             { "previousClose", null },
             { "change", this.safeNumber(ticker, "priceChange") },
             { "percentage", this.safeNumber(ticker, "priceChangePercentage") },
@@ -1172,7 +1231,7 @@ public partial class cex : Exchange
             { "postOnly", null },
             { "side", this.safeStringLower(order, "side") },
             { "price", this.safeNumber(order, "price") },
-            { "stopPrice", this.safeNumber(order, "stopPrice") },
+            { "triggerPrice", this.safeNumber(order, "stopPrice") },
             { "amount", requestedBase },
             { "cost", executedQuote },
             { "average", this.safeNumber(order, "averagePrice") },
@@ -1368,7 +1427,7 @@ public partial class cex : Exchange
      * @param {int} [limit] max number of ledger entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest ledger entry
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {

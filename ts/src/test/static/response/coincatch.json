@@ -2,6 +2,573 @@
     "exchange": "coincatch",
     "skipKeys": [],
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": {
+                    "code": "00000",
+                    "data": [
+                        {
+                            "chains": [
+                                {
+                                    "browserUrl": "https://blockchair.com/bitcoin/transaction/",
+                                    "chain": "BITCOIN",
+                                    "chainId": "10",
+                                    "coinChainId": "10",
+                                    "depositConfirm": "1",
+                                    "extraWithDrawFee": "0",
+                                    "minDepositAmount": "0.00001",
+                                    "minWithdrawAmount": "0.001",
+                                    "needTag": "false",
+                                    "rechargeable": "true",
+                                    "shortName": "BTC",
+                                    "withdrawConfirm": "1",
+                                    "withdrawFee": "0.00008",
+                                    "withdrawable": "true"
+                                }
+                            ],
+                            "coinDisplayName": "BTC",
+                            "coinId": "1",
+                            "coinName": "BTC",
+                            "transfer": "true"
+                        },
+                        {
+                            "chains": [
+                                {
+                                    "browserUrl": "https://etherscan.io/tx/",
+                                    "chain": "ERC20",
+                                    "chainId": "70",
+                                    "coinChainId": "70",
+                                    "depositConfirm": "12",
+                                    "extraWithDrawFee": "0",
+                                    "minDepositAmount": "0.9",
+                                    "minWithdrawAmount": "1",
+                                    "needTag": "false",
+                                    "rechargeable": "true",
+                                    "shortName": "ETH",
+                                    "withdrawConfirm": "64",
+                                    "withdrawFee": "3",
+                                    "withdrawable": "true"
+                                },
+                                {
+                                    "browserUrl": "https://tronscan.org/#/transaction/",
+                                    "chain": "TRC20",
+                                    "chainId": "73",
+                                    "coinChainId": "73",
+                                    "depositConfirm": "1",
+                                    "extraWithDrawFee": "0",
+                                    "minDepositAmount": "1",
+                                    "minWithdrawAmount": "1",
+                                    "needTag": "false",
+                                    "rechargeable": "true",
+                                    "shortName": "TRX",
+                                    "withdrawConfirm": "1",
+                                    "withdrawFee": "1",
+                                    "withdrawable": "true"
+                                },
+                                {
+                                    "browserUrl": "https://bscscan.com/tx/",
+                                    "chain": "BEP20",
+                                    "chainId": "1000",
+                                    "coinChainId": "1000",
+                                    "depositConfirm": "15",
+                                    "extraWithDrawFee": "0",
+                                    "minDepositAmount": "0.01",
+                                    "minWithdrawAmount": "0.01",
+                                    "needTag": "false",
+                                    "rechargeable": "true",
+                                    "shortName": "BSC",
+                                    "withdrawConfirm": "15",
+                                    "withdrawFee": "0.29",
+                                    "withdrawable": "true"
+                                },
+                                {
+                                    "browserUrl": "https://arbiscan.io/tx/",
+                                    "chain": "ArbitrumOne",
+                                    "chainId": "4720",
+                                    "coinChainId": "4720",
+                                    "depositConfirm": "24",
+                                    "extraWithDrawFee": "0",
+                                    "minDepositAmount": "0.1",
+                                    "minWithdrawAmount": "10",
+                                    "needTag": "false",
+                                    "rechargeable": "true",
+                                    "shortName": "ARBITRUMONE",
+                                    "withdrawConfirm": "24",
+                                    "withdrawFee": "0.8",
+                                    "withdrawable": "true"
+                                },
+                                {
+                                    "browserUrl": "https://solscan.io/tx/",
+                                    "chain": "SOL",
+                                    "chainId": "3000",
+                                    "coinChainId": "3000",
+                                    "depositConfirm": "10",
+                                    "extraWithDrawFee": "0",
+                                    "minDepositAmount": "0.0014",
+                                    "minWithdrawAmount": "1",
+                                    "needTag": "false",
+                                    "rechargeable": "true",
+                                    "shortName": "SOL",
+                                    "withdrawConfirm": "10",
+                                    "withdrawFee": "1",
+                                    "withdrawable": "true"
+                                },
+                                {
+                                    "browserUrl": "https://polygonscan.com/tx/",
+                                    "chain": "Polygon",
+                                    "chainId": "4400",
+                                    "coinChainId": "4400",
+                                    "depositConfirm": "60",
+                                    "extraWithDrawFee": "0",
+                                    "minDepositAmount": "0.01",
+                                    "minWithdrawAmount": "10",
+                                    "needTag": "false",
+                                    "rechargeable": "true",
+                                    "shortName": "POL",
+                                    "withdrawConfirm": "60",
+                                    "withdrawFee": "0.2",
+                                    "withdrawable": "true"
+                                }
+                            ],
+                            "coinDisplayName": "USDT",
+                            "coinId": "2",
+                            "coinName": "USDT",
+                            "transfer": "true"
+                        }
+                    ],
+                    "msg": "success",
+                    "requestTime": "1747311244441"
+                },
+                "parsedResponse": {
+                    "BTC": {
+                        "info": {
+                            "chains": [
+                                {
+                                    "browserUrl": "https://blockchair.com/bitcoin/transaction/",
+                                    "chain": "BITCOIN",
+                                    "chainId": "10",
+                                    "coinChainId": "10",
+                                    "depositConfirm": "1",
+                                    "extraWithDrawFee": "0",
+                                    "minDepositAmount": "0.00001",
+                                    "minWithdrawAmount": "0.001",
+                                    "needTag": "false",
+                                    "rechargeable": "true",
+                                    "shortName": "BTC",
+                                    "withdrawConfirm": "1",
+                                    "withdrawFee": "0.00008",
+                                    "withdrawable": "true"
+                                }
+                            ],
+                            "coinDisplayName": "BTC",
+                            "coinId": "1",
+                            "coinName": "BTC",
+                            "transfer": "true"
+                        },
+                        "id": "BTC",
+                        "numericId": 1,
+                        "code": "BTC",
+                        "precision": null,
+                        "type": null,
+                        "name": null,
+                        "active": true,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": 0.00008,
+                        "fees": {},
+                        "networks": {
+                            "BITCOIN": {
+                                "id": "BITCOIN",
+                                "network": "BITCOIN",
+                                "limits": {
+                                    "deposit": {
+                                        "min": 0.00001,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": 0.001,
+                                        "max": null
+                                    }
+                                },
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 0.00008,
+                                "precision": null,
+                                "info": {
+                                    "browserUrl": "https://blockchair.com/bitcoin/transaction/",
+                                    "chain": "BITCOIN",
+                                    "chainId": "10",
+                                    "coinChainId": "10",
+                                    "depositConfirm": "1",
+                                    "extraWithDrawFee": "0",
+                                    "minDepositAmount": "0.00001",
+                                    "minWithdrawAmount": "0.001",
+                                    "needTag": "false",
+                                    "rechargeable": "true",
+                                    "shortName": "BTC",
+                                    "withdrawConfirm": "1",
+                                    "withdrawFee": "0.00008",
+                                    "withdrawable": "true"
+                                }
+                            }
+                        },
+                        "limits": {
+                            "deposit": {
+                                "min": 0.00001,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": 0.001,
+                                "max": null
+                            }
+                        }
+                    },
+                    "USDT": {
+                        "info": {
+                            "chains": [
+                                {
+                                    "browserUrl": "https://etherscan.io/tx/",
+                                    "chain": "ERC20",
+                                    "chainId": "70",
+                                    "coinChainId": "70",
+                                    "depositConfirm": "12",
+                                    "extraWithDrawFee": "0",
+                                    "minDepositAmount": "0.9",
+                                    "minWithdrawAmount": "1",
+                                    "needTag": "false",
+                                    "rechargeable": "true",
+                                    "shortName": "ETH",
+                                    "withdrawConfirm": "64",
+                                    "withdrawFee": "3",
+                                    "withdrawable": "true"
+                                },
+                                {
+                                    "browserUrl": "https://tronscan.org/#/transaction/",
+                                    "chain": "TRC20",
+                                    "chainId": "73",
+                                    "coinChainId": "73",
+                                    "depositConfirm": "1",
+                                    "extraWithDrawFee": "0",
+                                    "minDepositAmount": "1",
+                                    "minWithdrawAmount": "1",
+                                    "needTag": "false",
+                                    "rechargeable": "true",
+                                    "shortName": "TRX",
+                                    "withdrawConfirm": "1",
+                                    "withdrawFee": "1",
+                                    "withdrawable": "true"
+                                },
+                                {
+                                    "browserUrl": "https://bscscan.com/tx/",
+                                    "chain": "BEP20",
+                                    "chainId": "1000",
+                                    "coinChainId": "1000",
+                                    "depositConfirm": "15",
+                                    "extraWithDrawFee": "0",
+                                    "minDepositAmount": "0.01",
+                                    "minWithdrawAmount": "0.01",
+                                    "needTag": "false",
+                                    "rechargeable": "true",
+                                    "shortName": "BSC",
+                                    "withdrawConfirm": "15",
+                                    "withdrawFee": "0.29",
+                                    "withdrawable": "true"
+                                },
+                                {
+                                    "browserUrl": "https://arbiscan.io/tx/",
+                                    "chain": "ArbitrumOne",
+                                    "chainId": "4720",
+                                    "coinChainId": "4720",
+                                    "depositConfirm": "24",
+                                    "extraWithDrawFee": "0",
+                                    "minDepositAmount": "0.1",
+                                    "minWithdrawAmount": "10",
+                                    "needTag": "false",
+                                    "rechargeable": "true",
+                                    "shortName": "ARBITRUMONE",
+                                    "withdrawConfirm": "24",
+                                    "withdrawFee": "0.8",
+                                    "withdrawable": "true"
+                                },
+                                {
+                                    "browserUrl": "https://solscan.io/tx/",
+                                    "chain": "SOL",
+                                    "chainId": "3000",
+                                    "coinChainId": "3000",
+                                    "depositConfirm": "10",
+                                    "extraWithDrawFee": "0",
+                                    "minDepositAmount": "0.0014",
+                                    "minWithdrawAmount": "1",
+                                    "needTag": "false",
+                                    "rechargeable": "true",
+                                    "shortName": "SOL",
+                                    "withdrawConfirm": "10",
+                                    "withdrawFee": "1",
+                                    "withdrawable": "true"
+                                },
+                                {
+                                    "browserUrl": "https://polygonscan.com/tx/",
+                                    "chain": "Polygon",
+                                    "chainId": "4400",
+                                    "coinChainId": "4400",
+                                    "depositConfirm": "60",
+                                    "extraWithDrawFee": "0",
+                                    "minDepositAmount": "0.01",
+                                    "minWithdrawAmount": "10",
+                                    "needTag": "false",
+                                    "rechargeable": "true",
+                                    "shortName": "POL",
+                                    "withdrawConfirm": "60",
+                                    "withdrawFee": "0.2",
+                                    "withdrawable": "true"
+                                }
+                            ],
+                            "coinDisplayName": "USDT",
+                            "coinId": "2",
+                            "coinName": "USDT",
+                            "transfer": "true"
+                        },
+                        "id": "USDT",
+                        "numericId": 2,
+                        "code": "USDT",
+                        "precision": null,
+                        "type": null,
+                        "name": null,
+                        "active": true,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": 0.2,
+                        "fees": {},
+                        "networks": {
+                            "ERC20": {
+                                "id": "ERC20",
+                                "network": "ERC20",
+                                "limits": {
+                                    "deposit": {
+                                        "min": 0.9,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": 1,
+                                        "max": null
+                                    }
+                                },
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 3,
+                                "precision": null,
+                                "info": {
+                                    "browserUrl": "https://etherscan.io/tx/",
+                                    "chain": "ERC20",
+                                    "chainId": "70",
+                                    "coinChainId": "70",
+                                    "depositConfirm": "12",
+                                    "extraWithDrawFee": "0",
+                                    "minDepositAmount": "0.9",
+                                    "minWithdrawAmount": "1",
+                                    "needTag": "false",
+                                    "rechargeable": "true",
+                                    "shortName": "ETH",
+                                    "withdrawConfirm": "64",
+                                    "withdrawFee": "3",
+                                    "withdrawable": "true"
+                                }
+                            },
+                            "TRC20": {
+                                "id": "TRC20",
+                                "network": "TRC20",
+                                "limits": {
+                                    "deposit": {
+                                        "min": 1,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": 1,
+                                        "max": null
+                                    }
+                                },
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 1,
+                                "precision": null,
+                                "info": {
+                                    "browserUrl": "https://tronscan.org/#/transaction/",
+                                    "chain": "TRC20",
+                                    "chainId": "73",
+                                    "coinChainId": "73",
+                                    "depositConfirm": "1",
+                                    "extraWithDrawFee": "0",
+                                    "minDepositAmount": "1",
+                                    "minWithdrawAmount": "1",
+                                    "needTag": "false",
+                                    "rechargeable": "true",
+                                    "shortName": "TRX",
+                                    "withdrawConfirm": "1",
+                                    "withdrawFee": "1",
+                                    "withdrawable": "true"
+                                }
+                            },
+                            "BEP20": {
+                                "id": "BEP20",
+                                "network": "BEP20",
+                                "limits": {
+                                    "deposit": {
+                                        "min": 0.01,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": 0.01,
+                                        "max": null
+                                    }
+                                },
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 0.29,
+                                "precision": null,
+                                "info": {
+                                    "browserUrl": "https://bscscan.com/tx/",
+                                    "chain": "BEP20",
+                                    "chainId": "1000",
+                                    "coinChainId": "1000",
+                                    "depositConfirm": "15",
+                                    "extraWithDrawFee": "0",
+                                    "minDepositAmount": "0.01",
+                                    "minWithdrawAmount": "0.01",
+                                    "needTag": "false",
+                                    "rechargeable": "true",
+                                    "shortName": "BSC",
+                                    "withdrawConfirm": "15",
+                                    "withdrawFee": "0.29",
+                                    "withdrawable": "true"
+                                }
+                            },
+                            "ArbitrumOne": {
+                                "id": "ArbitrumOne",
+                                "network": "ArbitrumOne",
+                                "limits": {
+                                    "deposit": {
+                                        "min": 0.1,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": 10,
+                                        "max": null
+                                    }
+                                },
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 0.8,
+                                "precision": null,
+                                "info": {
+                                    "browserUrl": "https://arbiscan.io/tx/",
+                                    "chain": "ArbitrumOne",
+                                    "chainId": "4720",
+                                    "coinChainId": "4720",
+                                    "depositConfirm": "24",
+                                    "extraWithDrawFee": "0",
+                                    "minDepositAmount": "0.1",
+                                    "minWithdrawAmount": "10",
+                                    "needTag": "false",
+                                    "rechargeable": "true",
+                                    "shortName": "ARBITRUMONE",
+                                    "withdrawConfirm": "24",
+                                    "withdrawFee": "0.8",
+                                    "withdrawable": "true"
+                                }
+                            },
+                            "SOL": {
+                                "id": "SOL",
+                                "network": "SOL",
+                                "limits": {
+                                    "deposit": {
+                                        "min": 0.0014,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": 1,
+                                        "max": null
+                                    }
+                                },
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 1,
+                                "precision": null,
+                                "info": {
+                                    "browserUrl": "https://solscan.io/tx/",
+                                    "chain": "SOL",
+                                    "chainId": "3000",
+                                    "coinChainId": "3000",
+                                    "depositConfirm": "10",
+                                    "extraWithDrawFee": "0",
+                                    "minDepositAmount": "0.0014",
+                                    "minWithdrawAmount": "1",
+                                    "needTag": "false",
+                                    "rechargeable": "true",
+                                    "shortName": "SOL",
+                                    "withdrawConfirm": "10",
+                                    "withdrawFee": "1",
+                                    "withdrawable": "true"
+                                }
+                            },
+                            "Polygon": {
+                                "id": "Polygon",
+                                "network": "Polygon",
+                                "limits": {
+                                    "deposit": {
+                                        "min": 0.01,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": 10,
+                                        "max": null
+                                    }
+                                },
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 0.2,
+                                "precision": null,
+                                "info": {
+                                    "browserUrl": "https://polygonscan.com/tx/",
+                                    "chain": "Polygon",
+                                    "chainId": "4400",
+                                    "coinChainId": "4400",
+                                    "depositConfirm": "60",
+                                    "extraWithDrawFee": "0",
+                                    "minDepositAmount": "0.01",
+                                    "minWithdrawAmount": "10",
+                                    "needTag": "false",
+                                    "rechargeable": "true",
+                                    "shortName": "POL",
+                                    "withdrawConfirm": "60",
+                                    "withdrawFee": "0.2",
+                                    "withdrawable": "true"
+                                }
+                            }
+                        },
+                        "limits": {
+                            "deposit": {
+                                "min": 0.0014,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": 0.01,
+                                "max": null
+                            }
+                        }
+                    }
+                }
+            }
+        ],
         "fetchTime": [
             {
                 "description": "Fetch time",
@@ -134,112 +701,6 @@
                         2564.04,
                         84.15
                     ]
-                ]
-            }
-        ],
-        "fetchTrades": [
-            {
-                "description": "Fetch trades for spot",
-                "method": "fetchTrades",
-                "input": [
-                    "ETH/USDT",
-                    1726956360000,
-                    1
-                ],
-                "httpResponse": {
-                    "code": "00000",
-                    "msg": "success",
-                    "requestTime": "1726957529021",
-                    "data": [
-                        {
-                            "symbol": "ETHUSDT_SPBL",
-                            "tradeId": "1221509009577381895",
-                            "side": "Buy",
-                            "fillPrice": "2562.19",
-                            "fillQuantity": "0.4927",
-                            "fillTime": "1726956363000"
-                        }
-                    ]
-                },
-                "parsedResponse": [
-                    {
-                        "id": "1221509009577381895",
-                        "order": null,
-                        "timestamp": 1726956363000,
-                        "datetime": "2024-09-21T22:06:03.000Z",
-                        "symbol": "ETH/USDT",
-                        "type": null,
-                        "side": "buy",
-                        "takerOrMaker": null,
-                        "price": 2562.19,
-                        "amount": 0.4927,
-                        "cost": 1262.391013,
-                        "fee": {
-                        "cost": null,
-                        "currency": null
-                        },
-                        "info": {
-                            "symbol": "ETHUSDT_SPBL",
-                            "tradeId": "1221509009577381895",
-                            "side": "Buy",
-                            "fillPrice": "2562.19",
-                            "fillQuantity": "0.4927",
-                            "fillTime": "1726956363000"
-                        },
-                        "fees": []
-                    }
-                ]
-            },
-            {
-                "description": "Fetch trades for swap",
-                "method": "fetchTrades",
-                "input": [
-                    "ETH/USDT:USDT",
-                    1726956360000,
-                    1
-                ],
-                "httpResponse": {
-                    "code": "00000",
-                    "msg": "success",
-                    "requestTime": "1726957779791",
-                    "data": [
-                        {
-                            "tradeId": "1221508997762031617",
-                            "price": "2560.25",
-                            "size": "26.21",
-                            "side": "Sell",
-                            "timestamp": "1726956360000",
-                            "symbol": "ETHUSDT_UMCBL"
-                        }
-                    ]
-                },
-                "parsedResponse": [
-                    {
-                        "id": "1221508997762031617",
-                        "order": null,
-                        "timestamp": 1726956360000,
-                        "datetime": "2024-09-21T22:06:00.000Z",
-                        "symbol": "ETH/USDT:USDT",
-                        "type": null,
-                        "side": "sell",
-                        "takerOrMaker": null,
-                        "price": 2560.25,
-                        "amount": 26.21,
-                        "cost": 0.00010237281515476997,
-                        "fee": {
-                        "cost": null,
-                        "currency": null
-                        },
-                        "info": {
-                            "tradeId": "1221508997762031617",
-                            "price": "2560.25",
-                            "size": "26.21",
-                            "side": "Sell",
-                            "timestamp": "1726956360000",
-                            "symbol": "ETHUSDT_UMCBL"
-                        },
-                        "fees": []
-                    }
                 ]
             }
         ],

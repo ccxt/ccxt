@@ -15,7 +15,7 @@ import type { Dict, int, Num, Strings, Int, Str, Market, OrderType, OrderSide, O
  * @augments Exchange
  */
 export default class defx extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'defx',
             'name': 'Defx X',
@@ -252,6 +252,92 @@ export default class defx extends Exchange {
             'options': {
                 'sandboxMode': false,
             },
+            'features': {
+                'spot': undefined,
+                'forDerivatives': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        // todo implement
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': true,
+                            'index': false,
+                        },
+                        'triggerDirection': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'selfTradePrevention': false,
+                        'trailing': false,
+                        'iceberg': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': true,
+                        'limit': 100,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
             'commonCurrencies': {},
             'exceptions': {
                 'exact': {
@@ -318,7 +404,7 @@ export default class defx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         const response = await this.v1PublicGetHealthcheckPing (params);
         //
         // {
@@ -529,7 +615,7 @@ export default class defx extends Exchange {
             'active': this.safeString (market, 'status', '') === 'active',
             'contract': true,
             'linear': true,
-            'inverse': undefined,
+            'inverse': false,
             'taker': this.safeNumber (fees, 'taker'),
             'maker': this.safeNumber (fees, 'maker'),
             'contractSize': this.parseNumber ('1'),
@@ -867,7 +953,7 @@ export default class defx extends Exchange {
 
     /**
      * @method
-     * @name defx#fetchTrades
+     * @name defx#fetchMyTrades
      * @description fetch all trades made by the user
      * @see https://api-docs.defx.com/#06b5b33c-2fc6-48de-896c-fc316f5871a7
      * @param {string} symbol unified symbol of the market to fetch trades for
@@ -946,10 +1032,10 @@ export default class defx extends Exchange {
         const id = this.safeString (trade, 'id');
         const oid = this.safeString (trade, 'orderId');
         const takerOrMaker = this.safeStringLower (trade, 'role');
-        const buyerMaker = this.safeString (trade, 'buyerMaker');
+        const buyerMaker = this.safeBool (trade, 'buyerMaker');
         let side = this.safeStringLower (trade, 'side');
         if (buyerMaker !== undefined) {
-            if (buyerMaker === 'true') {
+            if (buyerMaker) {
                 side = 'sell';
             } else {
                 side = 'buy';
@@ -1188,7 +1274,7 @@ export default class defx extends Exchange {
             'type': orderType,
         };
         const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
-        const stopPrice = this.safeString2 (params, 'stopPrice', 'triggerPrice');
+        const triggerPrice = this.safeString2 (params, 'stopPrice', 'triggerPrice');
         const isMarket = orderType === 'MARKET';
         const isLimit = orderType === 'LIMIT';
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
@@ -1207,7 +1293,7 @@ export default class defx extends Exchange {
         if (clientOrderId !== undefined) {
             request['newClientOrderId'] = clientOrderId;
         }
-        if (stopPrice !== undefined || takeProfitPrice !== undefined) {
+        if (triggerPrice !== undefined || takeProfitPrice !== undefined) {
             request['workingType'] = 'MARK_PRICE';
             if (takeProfitPrice !== undefined) {
                 request['stopPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
@@ -1217,7 +1303,7 @@ export default class defx extends Exchange {
                     request['type'] = 'TAKE_PROFIT_LIMIT';
                 }
             } else {
-                request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
+                request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
                 if (isMarket) {
                     request['type'] = 'STOP_MARKET';
                 } else {
@@ -1311,12 +1397,12 @@ export default class defx extends Exchange {
         const average = this.omitZero (this.safeString (order, 'avgPrice'));
         const timeInForce = this.safeStringLower (order, 'timeInForce');
         let takeProfitPrice: Str = undefined;
-        let stopPrice: Str = undefined;
+        let triggerPrice: Str = undefined;
         if (orderType !== undefined) {
             if (orderType.indexOf ('take_profit') >= 0) {
                 takeProfitPrice = this.safeString (order, 'stopPrice');
             } else {
-                stopPrice = this.safeString (order, 'stopPrice');
+                triggerPrice = this.safeString (order, 'stopPrice');
             }
         }
         const timestamp = this.parse8601 (this.safeString (order, 'createdAt'));
@@ -1336,8 +1422,7 @@ export default class defx extends Exchange {
             'reduceOnly': this.safeBool (order, 'reduceOnly'),
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'takeProfitPrice': takeProfitPrice,
             'stopLossPrice': undefined,
             'average': average,
@@ -1362,7 +1447,6 @@ export default class defx extends Exchange {
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.stop] whether the order is a stop/algo order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -1473,7 +1557,7 @@ export default class defx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    async fetchPositions (symbols: Strings = undefined, params = {}) {
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         const response = await this.v1PrivateGetApiPositionActive (params);
         //
@@ -1684,8 +1768,10 @@ export default class defx extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        params['statuses'] = 'OPEN';
-        return await this.fetchOrders (symbol, since, limit, params);
+        const req = {
+            'statuses': 'OPEN',
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (req, params));
     }
 
     /**
@@ -1701,8 +1787,10 @@ export default class defx extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        params['statuses'] = 'FILLED';
-        return await this.fetchOrders (symbol, since, limit, params);
+        const req = {
+            'statuses': 'FILLED',
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (req, params));
     }
 
     /**
@@ -1718,8 +1806,10 @@ export default class defx extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        params['statuses'] = 'CANCELED';
-        return await this.fetchOrders (symbol, since, limit, params);
+        const req = {
+            'statuses': 'CANCELED',
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (req, params));
     }
 
     /**
@@ -1806,7 +1896,7 @@ export default class defx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest ledger entry
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         await this.loadMarkets ();

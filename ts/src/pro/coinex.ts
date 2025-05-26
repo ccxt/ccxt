@@ -11,7 +11,7 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class coinex extends coinexRest {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -261,7 +261,10 @@ export default class coinex extends coinexRest {
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params, 'spot');
         await this.authenticate (type);
         const url = this.urls['api']['ws'][type];
-        let currencies = Object.keys (this.currencies_by_id);
+        // coinex throws a closes the websocket when subscribing over 1422 currencies, therefore we filter out inactive currencies
+        const activeCurrencies = this.filterBy (this.currencies_by_id, 'active', true);
+        const activeCurrenciesById = this.indexBy (activeCurrencies, 'id');
+        let currencies = Object.keys (activeCurrenciesById);
         if (currencies === undefined) {
             currencies = [];
         }
@@ -908,7 +911,7 @@ export default class coinex extends coinexRest {
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        const stop = this.safeBool2 (params, 'trigger', 'stop');
+        const trigger = this.safeBool2 (params, 'trigger', 'stop');
         params = this.omit (params, [ 'trigger', 'stop' ]);
         let messageHash = 'orders';
         let market = undefined;
@@ -932,7 +935,7 @@ export default class coinex extends coinexRest {
             }
         }
         let method = undefined;
-        if (stop) {
+        if (trigger) {
             method = 'stop.subscribe';
         } else {
             method = 'order.subscribe';
@@ -1303,7 +1306,7 @@ export default class coinex extends coinexRest {
         const defaultType = this.safeString (this.options, 'defaultType');
         const marketId = this.safeString (ticker, 'market');
         market = this.safeMarket (marketId, market, undefined, defaultType);
-        const timestamp = this.safeTimestamp (ticker, 'updated_at');
+        const timestamp = this.safeInteger (ticker, 'updated_at');
         return this.safeTicker ({
             'symbol': this.safeSymbol (marketId, market, undefined, defaultType),
             'timestamp': timestamp,

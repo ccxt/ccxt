@@ -10,7 +10,7 @@ use ccxt\abstract\cryptocom as Exchange;
 
 class cryptocom extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'cryptocom',
             'name' => 'Crypto.com',
@@ -49,7 +49,7 @@ class cryptocom extends Exchange {
                 'fetchClosedOrders' => 'emulated',
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
-                'fetchCurrencies' => false,
+                'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => true,
@@ -346,6 +346,102 @@ class cryptocom extends Exchange {
                 ),
                 'broker' => 'CCXT',
             ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => true,
+                        'triggerPrice' => true,
+                        // todo => implementation fix
+                        'triggerPriceType' => array(
+                            'last' => true,
+                            'mark' => true,
+                            'index' => true,
+                        ),
+                        'triggerDirection' => false,
+                        'stopLossPrice' => true,
+                        'takeProfitPrice' => true,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'selfTradePrevention' => true, // todo => implement
+                        'trailing' => false,
+                        'iceberg' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => true,
+                    ),
+                    'createOrders' => array(
+                        'max' => 10,
+                    ),
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => null,
+                        'untilDays' => 1,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => true,
+                        'limit' => 100,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => null,
+                        'untilDays' => 1,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => null,
+                        'daysBackCanceled' => null,
+                        'untilDays' => 1,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 300,
+                    ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'default',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'default',
+                    ),
+                ),
+                'future' => array(
+                    'linear' => array(
+                        'extends' => 'default',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'default',
+                    ),
+                ),
+            ),
             // https://exchange-docs.crypto.com/spot/index.html#response-and-reason-codes
             'commonCurrencies' => array(
                 'USD_STABLE_COIN' => 'USDC',
@@ -355,6 +451,8 @@ class cryptocom extends Exchange {
                 'exact' => array(
                     '219' => '\\ccxt\\InvalidOrder',
                     '314' => '\\ccxt\\InvalidOrder', // array( "id" : 1700xxx, "method" : "private/create-order", "code" : 314, "message" : "EXCEEDS_MAX_ORDER_SIZE", "result" : array( "client_oid" : "1700xxx", "order_id" : "6530xxx" ) )
+                    '325' => '\\ccxt\\InvalidOrder', // array( "id" : 1741xxx, "method" : "private/create-order", "code" : 325, "message" : "EXCEED_DAILY_VOL_LIMIT", "result" : array( "client_oid" : "1741xxx", "order_id" : "6530xxx" ) )
+                    '415' => '\\ccxt\\InvalidOrder', // array( "id" : 1741xxx, "method" : "private/create-order", "code" : 415, "message" : "BELOW_MIN_ORDER_SIZE", "result" : array( "client_oid" : "1741xxx", "order_id" : "6530xxx" ) )
                     '10001' => '\\ccxt\\ExchangeError',
                     '10002' => '\\ccxt\\PermissionDenied',
                     '10003' => '\\ccxt\\PermissionDenied',
@@ -398,12 +496,126 @@ class cryptocom extends Exchange {
                     '40801' => '\\ccxt\\RequestTimeout',
                     '42901' => '\\ccxt\\RateLimitExceeded',
                     '43005' => '\\ccxt\\InvalidOrder', // Rejected POST_ONLY create-order request (normally happened when exec_inst contains POST_ONLY but time_in_force is NOT GOOD_TILL_CANCEL)
+                    '43003' => '\\ccxt\\InvalidOrder', // FOK order has not been filled and cancelled
+                    '43004' => '\\ccxt\\InvalidOrder', // IOC order has not been filled and cancelled
+                    '43012' => '\\ccxt\\BadRequest', // Canceled due to Self Trade Prevention
                     '50001' => '\\ccxt\\ExchangeError',
                     '9010001' => '\\ccxt\\OnMaintenance', // array("code":9010001,"message":"SYSTEM_MAINTENANCE","details":"Crypto.com Exchange is currently under maintenance. Please refer to https://status.crypto.com for more details.")
                 ),
                 'broad' => array(),
             ),
         ));
+    }
+
+    public function fetch_currencies($params = array ()): ?array {
+        /**
+         * fetches all available currencies on an exchange
+         *
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-$currency-$networks
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an associative dictionary of currencies
+         */
+        // this endpoint requires authentication
+        if (!$this->check_required_credentials(false)) {
+            return null;
+        }
+        $response = $this->v1PrivatePostPrivateGetCurrencyNetworks ($params);
+        //
+        //    {
+        //        "id" => "1747502328559",
+        //        "method" => "private/get-$currency-$networks",
+        //        "code" => "0",
+        //        "result" => {
+        //            "update_time" => "1747502281000",
+        //            "currency_map" => {
+        //                "USDT" => {
+        //                    "full_name" => "Tether USD",
+        //                    "default_network" => "ETH",
+        //                    "network_list" => array(
+        //                        array(
+        //                            "network_id" => "ETH",
+        //                            "withdrawal_fee" => "10.00000000",
+        //                            "withdraw_enabled" => true,
+        //                            "min_withdrawal_amount" => "20.0",
+        //                            "deposit_enabled" => true,
+        //                            "confirmation_required" => "32"
+        //                        ),
+        //                        array(
+        //                            "network_id" => "CRONOS",
+        //                            "withdrawal_fee" => "0.18000000",
+        //                            "withdraw_enabled" => true,
+        //                            "min_withdrawal_amount" => "0.36",
+        //                            "deposit_enabled" => true,
+        //                            "confirmation_required" => "15"
+        //                        ),
+        //                        {
+        //                            "network_id" => "SOL",
+        //                            "withdrawal_fee" => "5.31000000",
+        //                            "withdraw_enabled" => true,
+        //                            "min_withdrawal_amount" => "10.62",
+        //                            "deposit_enabled" => true,
+        //                            "confirmation_required" => "1"
+        //                        }
+        //                    )
+        //                }
+        //            }
+        //        }
+        //    }
+        //
+        $resultData = $this->safe_dict($response, 'result', array());
+        $currencyMap = $this->safe_dict($resultData, 'currency_map', array());
+        $keys = is_array($currencyMap) ? array_keys($currencyMap) : array();
+        $result = array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            $currency = $currencyMap[$key];
+            $id = $key;
+            $code = $this->safe_currency_code($id);
+            $networks = array();
+            $chains = $this->safe_list($currency, 'network_list', array());
+            for ($j = 0; $j < count($chains); $j++) {
+                $chain = $chains[$j];
+                $networkId = $this->safe_string($chain, 'network_id');
+                $network = $this->network_id_to_code($networkId);
+                $networks[$network] = array(
+                    'info' => $chain,
+                    'id' => $networkId,
+                    'network' => $network,
+                    'active' => null,
+                    'deposit' => $this->safe_bool($chain, 'deposit_enabled', false),
+                    'withdraw' => $this->safe_bool($chain, 'withdraw_enabled', false),
+                    'fee' => $this->safe_number($chain, 'withdrawal_fee'),
+                    'precision' => null,
+                    'limits' => array(
+                        'withdraw' => array(
+                            'min' => $this->safe_number($chain, 'min_withdrawal_amount'),
+                            'max' => null,
+                        ),
+                    ),
+                );
+            }
+            $result[$code] = $this->safe_currency_structure(array(
+                'info' => $currency,
+                'id' => $id,
+                'code' => $code,
+                'name' => $this->safe_string($currency, 'full_name'),
+                'active' => null,
+                'deposit' => null,
+                'withdraw' => null,
+                'fee' => null,
+                'precision' => null,
+                'limits' => array(
+                    'amount' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
+                'type' => 'crypto', // only crypto now
+                'networks' => $networks,
+            ));
+        }
+        return $result;
     }
 
     public function fetch_markets($params = array ()): array {
@@ -1176,7 +1388,7 @@ class cryptocom extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
          * @param {string} [$params->ref_price_type] 'MARK_PRICE', 'INDEX_PRICE', 'LAST_PRICE' which trigger $price $type to use, default is MARK_PRICE
-         * @param {float} [$params->triggerPrice] $price to trigger a stop order
+         * @param {float} [$params->triggerPrice] $price to trigger a trigger order
          * @param {float} [$params->stopLossPrice] $price to trigger a stop-loss trigger order
          * @param {float} [$params->takeProfitPrice] $price to trigger a take-profit trigger order
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
@@ -2395,7 +2607,7 @@ class cryptocom extends Exchange {
          * @param {int} [$limit] max number of $ledger entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms for the ending date filter, default is the current time
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ledger-structure $ledger structure~
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ledger ledger structure~
          */
         $this->load_markets();
         $request = array();
@@ -2825,7 +3037,7 @@ class cryptocom extends Exchange {
         return $this->parse_position($this->safe_dict($data, 0), $market);
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): array {
         /**
          * fetch all open $positions
          *

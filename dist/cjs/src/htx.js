@@ -6,10 +6,10 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
- * @class huobi
+ * @class htx
  * @augments Exchange
  */
 class htx extends htx$1 {
@@ -96,6 +96,7 @@ class htx extends htx$1 {
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': true,
+                'fetchOpenInterests': true,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -890,6 +891,7 @@ class htx extends htx$1 {
                     '1041': errors.InvalidOrder,
                     '1047': errors.InsufficientFunds,
                     '1048': errors.InsufficientFunds,
+                    '1061': errors.OrderNotFound,
                     '1051': errors.InvalidOrder,
                     '1066': errors.BadSymbol,
                     '1067': errors.InvalidOrder,
@@ -942,6 +944,7 @@ class htx extends htx$1 {
             },
             'precisionMode': number.TICK_SIZE,
             'options': {
+                'include_OS_certificates': false,
                 'fetchMarkets': {
                     'types': {
                         'spot': true,
@@ -949,6 +952,8 @@ class htx extends htx$1 {
                         'inverse': true,
                     },
                 },
+                'timeDifference': 0,
+                'adjustForTimeDifference': false,
                 'fetchOHLCV': {
                     'useHistoricalEndpointForSpot': true,
                 },
@@ -1231,6 +1236,135 @@ class htx extends htx$1 {
                 'SOUL': 'SOULSAVER',
                 'BIFI': 'BITCOINFILE',
                 'FUD': 'FTX Users Debt',
+            },
+            'features': {
+                'spot': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': true,
+                        'triggerPrice': true,
+                        'triggerDirection': true,
+                        'triggerPriceType': undefined,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'iceberg': false,
+                        'selfTradePrevention': true,
+                        'leverage': true,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': true,
+                    },
+                    'createOrders': {
+                        'max': 10,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'daysBack': 120,
+                        'untilDays': 2,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'trigger': true,
+                        'trailing': false,
+                        'limit': 500,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'trigger': true,
+                        'trailing': false,
+                        'limit': 500,
+                        'untilDays': 2,
+                        'daysBack': 180,
+                        'symbolRequired': false,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'trigger': true,
+                        'trailing': false,
+                        'untilDays': 2,
+                        'limit': 500,
+                        'daysBack': 180,
+                        'daysBackCanceled': 1 / 12,
+                        'symbolRequired': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000, // 2000 for non-historical
+                    },
+                },
+                'forDerivatives': {
+                    'extends': 'spot',
+                    'createOrder': {
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                        'trailing': true,
+                        'hedged': true,
+                        // 'leverage': true, // todo
+                    },
+                    'createOrders': {
+                        'max': 25,
+                    },
+                    'fetchOrder': {
+                        'marginMode': true,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': true,
+                        'trigger': false,
+                        'trailing': false,
+                        'limit': 50,
+                    },
+                    'fetchOrders': {
+                        'marginMode': true,
+                        'trigger': false,
+                        'trailing': false,
+                        'limit': 50,
+                        'daysBack': 90,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': true,
+                        'trigger': false,
+                        'trailing': false,
+                        'untilDays': 2,
+                        'limit': 50,
+                        'daysBack': 90,
+                        'daysBackCanceled': 1 / 12,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 2000,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
+                },
             },
         });
     }
@@ -1643,6 +1777,9 @@ class htx extends htx$1 {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference();
+        }
         let types = undefined;
         [types, params] = this.handleOptionAndParams(params, 'fetchMarkets', 'types', {});
         let allMarkets = [];
@@ -2071,7 +2208,7 @@ class htx extends htx$1 {
         let ask = undefined;
         let askVolume = undefined;
         if ('bid' in ticker) {
-            if (Array.isArray(ticker['bid'])) {
+            if (ticker['bid'] !== undefined && Array.isArray(ticker['bid'])) {
                 bid = this.safeString(ticker['bid'], 0);
                 bidVolume = this.safeString(ticker['bid'], 1);
             }
@@ -2081,7 +2218,7 @@ class htx extends htx$1 {
             }
         }
         if ('ask' in ticker) {
-            if (Array.isArray(ticker['ask'])) {
+            if (ticker['ask'] !== undefined && Array.isArray(ticker['ask'])) {
                 ask = this.safeString(ticker['ask'], 0);
                 askVolume = this.safeString(ticker['ask'], 1);
             }
@@ -3230,7 +3367,10 @@ class htx extends htx$1 {
                 type = 'margin';
             }
         }
-        const marketId = (symbol === undefined) ? undefined : this.marketId(symbol);
+        let marketId = undefined;
+        if (symbol !== undefined) {
+            marketId = this.marketId(symbol);
+        }
         for (let i = 0; i < accounts.length; i++) {
             const account = accounts[i];
             const info = this.safeValue(account, 'info');
@@ -3284,7 +3424,7 @@ class htx extends htx$1 {
         //                        "withdrawQuotaPerYear": null,
         //                        "withdrawQuotaTotal": null,
         //                        "withdrawFeeType": "fixed",
-        //                        "transactFeeWithdraw": "11.1653",
+        //                        "transactFeeWithdraw": "11.1654",
         //                        "addrWithTag": false,
         //                        "addrDepositTag": false
         //                    }
@@ -3293,9 +3433,8 @@ class htx extends htx$1 {
         //            }
         //        ]
         //    }
-        //    }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         const result = {};
         this.options['networkChainIdsByNames'] = {};
         this.options['networkNamesByChainIds'] = {};
@@ -3303,17 +3442,11 @@ class htx extends htx$1 {
             const entry = data[i];
             const currencyId = this.safeString(entry, 'currency');
             const code = this.safeCurrencyCode(currencyId);
+            const assetType = this.safeString(entry, 'assetType');
+            const type = assetType === '1' ? 'crypto' : 'fiat';
             this.options['networkChainIdsByNames'][code] = {};
-            const chains = this.safeValue(entry, 'chains', []);
+            const chains = this.safeList(entry, 'chains', []);
             const networks = {};
-            const instStatus = this.safeString(entry, 'instStatus');
-            const currencyActive = instStatus === 'normal';
-            let minPrecision = undefined;
-            let minDeposit = undefined;
-            let minWithdraw = undefined;
-            let maxWithdraw = undefined;
-            let deposit = false;
-            let withdraw = false;
             for (let j = 0; j < chains.length; j++) {
                 const chainEntry = chains[j];
                 const uniqueChainId = this.safeString(chainEntry, 'chain'); // i.e. usdterc20, trc20usdt ...
@@ -3321,68 +3454,54 @@ class htx extends htx$1 {
                 this.options['networkChainIdsByNames'][code][title] = uniqueChainId;
                 this.options['networkNamesByChainIds'][uniqueChainId] = title;
                 const networkCode = this.networkIdToCode(uniqueChainId);
-                minDeposit = this.safeNumber(chainEntry, 'minDepositAmt');
-                minWithdraw = this.safeNumber(chainEntry, 'minWithdrawAmt');
-                maxWithdraw = this.safeNumber(chainEntry, 'maxWithdrawAmt');
-                const withdrawStatus = this.safeString(chainEntry, 'withdrawStatus');
-                const depositStatus = this.safeString(chainEntry, 'depositStatus');
-                const withdrawEnabled = (withdrawStatus === 'allowed');
-                const depositEnabled = (depositStatus === 'allowed');
-                withdraw = (withdrawEnabled) ? withdrawEnabled : withdraw;
-                deposit = (depositEnabled) ? depositEnabled : deposit;
-                const active = withdrawEnabled && depositEnabled;
-                const precision = this.parsePrecision(this.safeString(chainEntry, 'withdrawPrecision'));
-                if (precision !== undefined) {
-                    minPrecision = (minPrecision === undefined) ? precision : Precise["default"].stringMin(precision, minPrecision);
-                }
-                const fee = this.safeNumber(chainEntry, 'transactFeeWithdraw');
                 networks[networkCode] = {
                     'info': chainEntry,
                     'id': uniqueChainId,
                     'network': networkCode,
                     'limits': {
                         'deposit': {
-                            'min': minDeposit,
+                            'min': this.safeNumber(chainEntry, 'minDepositAmt'),
                             'max': undefined,
                         },
                         'withdraw': {
-                            'min': minWithdraw,
-                            'max': maxWithdraw,
+                            'min': this.safeNumber(chainEntry, 'minWithdrawAmt'),
+                            'max': this.safeNumber(chainEntry, 'maxWithdrawAmt'),
                         },
                     },
-                    'active': active,
-                    'deposit': depositEnabled,
-                    'withdraw': withdrawEnabled,
-                    'fee': fee,
-                    'precision': this.parseNumber(precision),
+                    'active': undefined,
+                    'deposit': this.safeString(chainEntry, 'depositStatus') === 'allowed',
+                    'withdraw': this.safeString(chainEntry, 'withdrawStatus') === 'allowed',
+                    'fee': this.safeNumber(chainEntry, 'transactFeeWithdraw'),
+                    'precision': this.parseNumber(this.parsePrecision(this.safeString(chainEntry, 'withdrawPrecision'))),
                 };
             }
-            result[code] = {
+            result[code] = this.safeCurrencyStructure({
                 'info': entry,
                 'code': code,
                 'id': currencyId,
-                'active': currencyActive,
-                'deposit': deposit,
-                'withdraw': withdraw,
+                'active': this.safeString(entry, 'instStatus') === 'normal',
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': undefined,
                 'name': undefined,
+                'type': type,
                 'limits': {
                     'amount': {
                         'min': undefined,
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': minWithdraw,
-                        'max': maxWithdraw,
+                        'min': undefined,
+                        'max': undefined,
                     },
                     'deposit': {
                         'min': undefined,
                         'max': undefined,
                     },
                 },
-                'precision': this.parseNumber(minPrecision),
+                'precision': undefined,
                 'networks': networks,
-            };
+            });
         }
         return result;
     }
@@ -4081,11 +4200,11 @@ class htx extends htx$1 {
             'status': '0', // support multiple query seperated by ',',such as '3,4,5', 0: all. 3. Have sumbmitted the orders; 4. Orders partially matched; 5. Orders cancelled with partially matched; 6. Orders fully matched; 7. Orders cancelled;
         };
         let response = undefined;
-        const stop = this.safeBool2(params, 'stop', 'trigger');
+        const trigger = this.safeBool2(params, 'stop', 'trigger');
         const stopLossTakeProfit = this.safeValue(params, 'stopLossTakeProfit');
         const trailing = this.safeBool(params, 'trailing', false);
         params = this.omit(params, ['stop', 'stopLossTakeProfit', 'trailing', 'trigger']);
-        if (stop || stopLossTakeProfit || trailing) {
+        if (trigger || stopLossTakeProfit || trailing) {
             if (limit !== undefined) {
                 request['page_size'] = limit;
             }
@@ -4106,7 +4225,7 @@ class htx extends htx$1 {
             [marginMode, params] = this.handleMarginModeAndParams('fetchContractOrders', params);
             marginMode = (marginMode === undefined) ? 'cross' : marginMode;
             if (marginMode === 'isolated') {
-                if (stop) {
+                if (trigger) {
                     response = await this.contractPrivatePostLinearSwapApiV1SwapTriggerHisorders(this.extend(request, params));
                 }
                 else if (stopLossTakeProfit) {
@@ -4120,7 +4239,7 @@ class htx extends htx$1 {
                 }
             }
             else if (marginMode === 'cross') {
-                if (stop) {
+                if (trigger) {
                     response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTriggerHisorders(this.extend(request, params));
                 }
                 else if (stopLossTakeProfit) {
@@ -4136,7 +4255,7 @@ class htx extends htx$1 {
         }
         else if (market['inverse']) {
             if (market['swap']) {
-                if (stop) {
+                if (trigger) {
                     response = await this.contractPrivatePostSwapApiV1SwapTriggerHisorders(this.extend(request, params));
                 }
                 else if (stopLossTakeProfit) {
@@ -4151,7 +4270,7 @@ class htx extends htx$1 {
             }
             else if (market['future']) {
                 request['symbol'] = market['settleId'];
-                if (stop) {
+                if (trigger) {
                     response = await this.contractPrivatePostApiV1ContractTriggerHisorders(this.extend(request, params));
                 }
                 else if (stopLossTakeProfit) {
@@ -4333,7 +4452,7 @@ class htx extends htx$1 {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] *contract only* if the orders are stop trigger orders or not
+     * @param {bool} [params.trigger] *contract only* if the orders are trigger trigger orders or not
      * @param {bool} [params.stopLossTakeProfit] *contract only* if the orders are stop-loss or take-profit orders
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {boolean} [params.trailing] *contract only* set to true if you want to fetch trailing stop orders
@@ -4407,7 +4526,7 @@ class htx extends htx$1 {
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] *contract only* if the orders are stop trigger orders or not
+     * @param {bool} [params.trigger] *contract only* if the orders are trigger trigger orders or not
      * @param {bool} [params.stopLossTakeProfit] *contract only* if the orders are stop-loss or take-profit orders
      * @param {boolean} [params.trailing] *contract only* set to true if you want to fetch trailing stop orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -4456,7 +4575,7 @@ class htx extends htx$1 {
                 request['page_size'] = limit;
             }
             request['contract_code'] = market['id'];
-            const stop = this.safeBool2(params, 'stop', 'trigger');
+            const trigger = this.safeBool2(params, 'stop', 'trigger');
             const stopLossTakeProfit = this.safeValue(params, 'stopLossTakeProfit');
             const trailing = this.safeBool(params, 'trailing', false);
             params = this.omit(params, ['stop', 'stopLossTakeProfit', 'trailing', 'trigger']);
@@ -4465,7 +4584,7 @@ class htx extends htx$1 {
                 [marginMode, params] = this.handleMarginModeAndParams('fetchOpenOrders', params);
                 marginMode = (marginMode === undefined) ? 'cross' : marginMode;
                 if (marginMode === 'isolated') {
-                    if (stop) {
+                    if (trigger) {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapTriggerOpenorders(this.extend(request, params));
                     }
                     else if (stopLossTakeProfit) {
@@ -4479,7 +4598,7 @@ class htx extends htx$1 {
                     }
                 }
                 else if (marginMode === 'cross') {
-                    if (stop) {
+                    if (trigger) {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTriggerOpenorders(this.extend(request, params));
                     }
                     else if (stopLossTakeProfit) {
@@ -4495,7 +4614,7 @@ class htx extends htx$1 {
             }
             else if (market['inverse']) {
                 if (market['swap']) {
-                    if (stop) {
+                    if (trigger) {
                         response = await this.contractPrivatePostSwapApiV1SwapTriggerOpenorders(this.extend(request, params));
                     }
                     else if (stopLossTakeProfit) {
@@ -4510,7 +4629,7 @@ class htx extends htx$1 {
                 }
                 else if (market['future']) {
                     request['symbol'] = market['settleId'];
-                    if (stop) {
+                    if (trigger) {
                         response = await this.contractPrivatePostApiV1ContractTriggerOpenorders(this.extend(request, params));
                     }
                     else if (stopLossTakeProfit) {
@@ -5140,7 +5259,6 @@ class htx extends htx$1 {
                 'currency': feeCurrency,
             };
         }
-        const stopPrice = this.safeString2(order, 'stop-price', 'trigger_price');
         const average = this.safeString(order, 'trade_avg_price');
         const trades = this.safeValue(order, 'trades');
         const reduceOnlyInteger = this.safeInteger(order, 'reduce_only');
@@ -5161,8 +5279,7 @@ class htx extends htx$1 {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': this.safeString2(order, 'stop-price', 'trigger_price'),
             'average': average,
             'cost': cost,
             'amount': amount,
@@ -5259,7 +5376,7 @@ class htx extends htx$1 {
         if (triggerPrice === undefined) {
             const stopOrderTypes = this.safeValue(options, 'stopOrderTypes', {});
             if (orderType in stopOrderTypes) {
-                throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a triggerPrice for a stop order');
+                throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a triggerPrice for a trigger order');
             }
         }
         else {
@@ -5789,7 +5906,7 @@ class htx extends htx$1 {
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.stop] *contract only* if the order is a stop trigger order or not
+     * @param {boolean} [params.trigger] *contract only* if the order is a trigger trigger order or not
      * @param {boolean} [params.stopLossTakeProfit] *contract only* if the order is a stop-loss or take-profit order
      * @param {boolean} [params.trailing] *contract only* set to true if you want to cancel a trailing order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -5845,7 +5962,7 @@ class htx extends htx$1 {
             else {
                 request['contract_code'] = market['id'];
             }
-            const stop = this.safeBool2(params, 'stop', 'trigger');
+            const trigger = this.safeBool2(params, 'stop', 'trigger');
             const stopLossTakeProfit = this.safeValue(params, 'stopLossTakeProfit');
             const trailing = this.safeBool(params, 'trailing', false);
             params = this.omit(params, ['stop', 'stopLossTakeProfit', 'trailing', 'trigger']);
@@ -5854,7 +5971,7 @@ class htx extends htx$1 {
                 [marginMode, params] = this.handleMarginModeAndParams('cancelOrder', params);
                 marginMode = (marginMode === undefined) ? 'cross' : marginMode;
                 if (marginMode === 'isolated') {
-                    if (stop) {
+                    if (trigger) {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapTriggerCancel(this.extend(request, params));
                     }
                     else if (stopLossTakeProfit) {
@@ -5868,7 +5985,7 @@ class htx extends htx$1 {
                     }
                 }
                 else if (marginMode === 'cross') {
-                    if (stop) {
+                    if (trigger) {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTriggerCancel(this.extend(request, params));
                     }
                     else if (stopLossTakeProfit) {
@@ -5884,7 +6001,7 @@ class htx extends htx$1 {
             }
             else if (market['inverse']) {
                 if (market['swap']) {
-                    if (stop) {
+                    if (trigger) {
                         response = await this.contractPrivatePostSwapApiV1SwapTriggerCancel(this.extend(request, params));
                     }
                     else if (stopLossTakeProfit) {
@@ -5898,7 +6015,7 @@ class htx extends htx$1 {
                     }
                 }
                 else if (market['future']) {
-                    if (stop) {
+                    if (trigger) {
                         response = await this.contractPrivatePostApiV1ContractTriggerCancel(this.extend(request, params));
                     }
                     else if (stopLossTakeProfit) {
@@ -5947,7 +6064,7 @@ class htx extends htx$1 {
      * @param {string[]} ids order ids
      * @param {string} symbol unified market symbol, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] *contract only* if the orders are stop trigger orders or not
+     * @param {bool} [params.trigger] *contract only* if the orders are trigger trigger orders or not
      * @param {bool} [params.stopLossTakeProfit] *contract only* if the orders are stop-loss or take-profit orders
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -6011,7 +6128,7 @@ class htx extends htx$1 {
             else {
                 request['contract_code'] = market['id'];
             }
-            const stop = this.safeBool2(params, 'stop', 'trigger');
+            const trigger = this.safeBool2(params, 'stop', 'trigger');
             const stopLossTakeProfit = this.safeValue(params, 'stopLossTakeProfit');
             params = this.omit(params, ['stop', 'stopLossTakeProfit', 'trigger']);
             if (market['linear']) {
@@ -6019,7 +6136,7 @@ class htx extends htx$1 {
                 [marginMode, params] = this.handleMarginModeAndParams('cancelOrders', params);
                 marginMode = (marginMode === undefined) ? 'cross' : marginMode;
                 if (marginMode === 'isolated') {
-                    if (stop) {
+                    if (trigger) {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapTriggerCancel(this.extend(request, params));
                     }
                     else if (stopLossTakeProfit) {
@@ -6030,7 +6147,7 @@ class htx extends htx$1 {
                     }
                 }
                 else if (marginMode === 'cross') {
-                    if (stop) {
+                    if (trigger) {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTriggerCancel(this.extend(request, params));
                     }
                     else if (stopLossTakeProfit) {
@@ -6043,7 +6160,7 @@ class htx extends htx$1 {
             }
             else if (market['inverse']) {
                 if (market['swap']) {
-                    if (stop) {
+                    if (trigger) {
                         response = await this.contractPrivatePostSwapApiV1SwapTriggerCancel(this.extend(request, params));
                     }
                     else if (stopLossTakeProfit) {
@@ -6054,7 +6171,7 @@ class htx extends htx$1 {
                     }
                 }
                 else if (market['future']) {
-                    if (stop) {
+                    if (trigger) {
                         response = await this.contractPrivatePostApiV1ContractTriggerCancel(this.extend(request, params));
                     }
                     else if (stopLossTakeProfit) {
@@ -6187,7 +6304,7 @@ class htx extends htx$1 {
      * @description cancel all open orders
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.stop] *contract only* if the orders are stop trigger orders or not
+     * @param {boolean} [params.trigger] *contract only* if the orders are trigger trigger orders or not
      * @param {boolean} [params.stopLossTakeProfit] *contract only* if the orders are stop-loss or take-profit orders
      * @param {boolean} [params.trailing] *contract only* set to true if you want to cancel all trailing orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -6245,7 +6362,7 @@ class htx extends htx$1 {
                 request['symbol'] = market['settleId'];
             }
             request['contract_code'] = market['id'];
-            const stop = this.safeBool2(params, 'stop', 'trigger');
+            const trigger = this.safeBool2(params, 'stop', 'trigger');
             const stopLossTakeProfit = this.safeValue(params, 'stopLossTakeProfit');
             const trailing = this.safeBool(params, 'trailing', false);
             params = this.omit(params, ['stop', 'stopLossTakeProfit', 'trailing', 'trigger']);
@@ -6254,7 +6371,7 @@ class htx extends htx$1 {
                 [marginMode, params] = this.handleMarginModeAndParams('cancelAllOrders', params);
                 marginMode = (marginMode === undefined) ? 'cross' : marginMode;
                 if (marginMode === 'isolated') {
-                    if (stop) {
+                    if (trigger) {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapTriggerCancelall(this.extend(request, params));
                     }
                     else if (stopLossTakeProfit) {
@@ -6268,7 +6385,7 @@ class htx extends htx$1 {
                     }
                 }
                 else if (marginMode === 'cross') {
-                    if (stop) {
+                    if (trigger) {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTriggerCancelall(this.extend(request, params));
                     }
                     else if (stopLossTakeProfit) {
@@ -6284,7 +6401,7 @@ class htx extends htx$1 {
             }
             else if (market['inverse']) {
                 if (market['swap']) {
-                    if (stop) {
+                    if (trigger) {
                         response = await this.contractPrivatePostSwapApiV1SwapTriggerCancelall(this.extend(request, params));
                     }
                     else if (stopLossTakeProfit) {
@@ -6298,7 +6415,7 @@ class htx extends htx$1 {
                     }
                 }
                 else if (market['future']) {
-                    if (stop) {
+                    if (trigger) {
                         response = await this.contractPrivatePostApiV1ContractTriggerCancelall(this.extend(request, params));
                     }
                     else if (stopLossTakeProfit) {
@@ -7160,14 +7277,18 @@ class htx extends htx$1 {
     async fetchFundingRates(symbols = undefined, params = {}) {
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        const options = this.safeValue(this.options, 'fetchFundingRates', {});
-        const defaultSubType = this.safeString(this.options, 'defaultSubType', 'inverse');
-        let subType = this.safeString(options, 'subType', defaultSubType);
-        subType = this.safeString(params, 'subType', subType);
+        const defaultSubType = this.safeString(this.options, 'defaultSubType', 'linear');
+        let subType = undefined;
+        [subType, params] = this.handleOptionAndParams(params, 'fetchFundingRates', 'subType', defaultSubType);
+        if (symbols !== undefined) {
+            const firstSymbol = this.safeString(symbols, 0);
+            const market = this.market(firstSymbol);
+            const isLinear = market['linear'];
+            subType = isLinear ? 'linear' : 'inverse';
+        }
         const request = {
         // 'contract_code': market['id'],
         };
-        params = this.omit(params, 'subType');
         let response = undefined;
         if (subType === 'linear') {
             response = await this.contractPublicGetLinearSwapApiV1SwapBatchFundingRate(this.extend(request, params));
@@ -7197,8 +7318,7 @@ class htx extends htx$1 {
         //     }
         //
         const data = this.safeValue(response, 'data', []);
-        const result = this.parseFundingRates(data);
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.parseFundingRates(data, symbols);
     }
     /**
      * @method
@@ -7326,6 +7446,9 @@ class htx extends htx$1 {
             'datetime': this.iso8601(timestamp),
         };
     }
+    nonce() {
+        return this.milliseconds() - this.options['timeDifference'];
+    }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/';
         const query = this.omit(params, this.extractParams(path));
@@ -7340,7 +7463,7 @@ class htx extends htx$1 {
             url += '/' + this.implodeParams(path, params);
             if (api === 'private' || api === 'v2Private') {
                 this.checkRequiredCredentials();
-                const timestamp = this.ymdhms(this.milliseconds(), 'T');
+                const timestamp = this.ymdhms(this.nonce(), 'T');
                 let request = {
                     'SignatureMethod': 'HmacSHA256',
                     'SignatureVersion': '2',
@@ -7351,7 +7474,7 @@ class htx extends htx$1 {
                     request = this.extend(request, query);
                 }
                 const sortedRequest = this.keysort(request);
-                let auth = this.urlencode(sortedRequest);
+                let auth = this.urlencode(sortedRequest, true); // true is a go only requirment
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 const payload = [method, this.hostname, url, auth].join("\n"); // eslint-disable-line quotes
                 const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256, 'base64');
@@ -7420,18 +7543,20 @@ class htx extends htx$1 {
                         }
                     }
                 }
-                const timestamp = this.ymdhms(this.milliseconds(), 'T');
+                const timestamp = this.ymdhms(this.nonce(), 'T');
                 let request = {
                     'SignatureMethod': 'HmacSHA256',
                     'SignatureVersion': '2',
                     'AccessKeyId': this.apiKey,
                     'Timestamp': timestamp,
                 };
-                if (method !== 'POST') {
-                    request = this.extend(request, query);
-                }
+                // sorting needs such flow exactly, before urlencoding (more at: https://github.com/ccxt/ccxt/issues/24930 )
                 request = this.keysort(request);
-                let auth = this.urlencode(request);
+                if (method !== 'POST') {
+                    const sortedQuery = this.keysort(query);
+                    request = this.extend(request, sortedQuery);
+                }
+                let auth = this.urlencode(request, true).replace('%2c', '%2C'); // in c# it manually needs to be uppercased
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 const payload = [method, hostname, url, auth].join("\n"); // eslint-disable-line quotes
                 const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256, 'base64');
@@ -7465,6 +7590,7 @@ class htx extends htx$1 {
         if ('status' in response) {
             //
             //     {"status":"error","err-code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
+            //     {"status":"ok","data":{"errors":[{"order_id":"1349442392365359104","err_code":1061,"err_msg":"The order does not exist."}],"successes":""},"ts":1741773744526}
             //
             const status = this.safeString(response, 'status');
             if (status === 'error') {
@@ -7482,6 +7608,16 @@ class htx extends htx$1 {
             const feedback = this.id + ' ' + body;
             const code = this.safeString(response, 'code');
             this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
+        }
+        const data = this.safeDict(response, 'data');
+        const errorsList = this.safeList(data, 'errors');
+        if (errorsList !== undefined) {
+            const first = this.safeDict(errorsList, 0);
+            const errcode = this.safeString(first, 'err_code');
+            const errmessage = this.safeString(first, 'err_msg');
+            const feedBack = this.id + ' ' + body;
+            this.throwExactlyMatchedException(this.exceptions['exact'], errcode, feedBack);
+            this.throwExactlyMatchedException(this.exceptions['exact'], errmessage, feedBack);
         }
         return undefined;
     }
@@ -8264,7 +8400,7 @@ class htx extends htx$1 {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -8518,7 +8654,105 @@ class htx extends htx$1 {
         //
         const data = this.safeValue(response, 'data');
         const tick = this.safeList(data, 'tick');
-        return this.parseOpenInterests(tick, market, since, limit);
+        return this.parseOpenInterestsHistory(tick, market, since, limit);
+    }
+    /**
+     * @method
+     * @name htx#fetchOpenInterests
+     * @description Retrieves the open interest for a list of symbols
+     * @see https://huobiapi.github.io/docs/dm/v1/en/#get-contract-open-interest-information
+     * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-swap-open-interest-information
+     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-swap-open-interest-information
+     * @param {string[]} [symbols] a list of unified CCXT market symbols
+     * @param {object} [params] exchange specific parameters
+     * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     */
+    async fetchOpenInterests(symbols = undefined, params = {}) {
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        let market = undefined;
+        if (symbols !== undefined) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength > 0) {
+                const first = this.safeString(symbols, 0);
+                market = this.market(first);
+            }
+        }
+        const request = {};
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('fetchPositions', market, params, 'linear');
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('fetchPositions', market, params);
+        let response = undefined;
+        if (marketType === 'future') {
+            response = await this.contractPublicGetApiV1ContractOpenInterest(this.extend(request, params));
+            //
+            //     {
+            //         "status": "ok",
+            //         "data": [
+            //             {
+            //                 "volume": 118850.000000000000000000,
+            //                 "amount": 635.502025211544374189,
+            //                 "symbol": "BTC",
+            //                 "contract_type": "this_week",
+            //                 "contract_code": "BTC220930",
+            //                 "trade_amount": 1470.9400749347598691119206024033947897351,
+            //                 "trade_volume": 286286,
+            //                 "trade_turnover": 28628600.000000000000000000
+            //             }
+            //         ],
+            //         "ts": 1664337928805
+            //     }
+            //
+        }
+        else if (subType === 'inverse') {
+            response = await this.contractPublicGetSwapApiV1SwapOpenInterest(this.extend(request, params));
+            //
+            //     {
+            //         "status": "ok",
+            //         "data": [
+            //             {
+            //                 "volume": 518018.000000000000000000,
+            //                 "amount": 2769.675777407074725180,
+            //                 "symbol": "BTC",
+            //                 "contract_code": "BTC-USD",
+            //                 "trade_amount": 9544.4032080046491323463688602729806842458,
+            //                 "trade_volume": 1848448,
+            //                 "trade_turnover": 184844800.000000000000000000
+            //             }
+            //         ],
+            //         "ts": 1664337226028
+            //     }
+            //
+        }
+        else {
+            request['contract_type'] = 'swap';
+            response = await this.contractPublicGetLinearSwapApiV1SwapOpenInterest(this.extend(request, params));
+            //
+            //     {
+            //         "status": "ok",
+            //         "data": [
+            //             {
+            //                 "volume": 7192610.000000000000000000,
+            //                 "amount": 7192.610000000000000000,
+            //                 "symbol": "BTC",
+            //                 "value": 134654290.332000000000000000,
+            //                 "contract_code": "BTC-USDT",
+            //                 "trade_amount": 70692.804,
+            //                 "trade_volume": 70692804,
+            //                 "trade_turnover": 1379302592.9518,
+            //                 "business_type": "swap",
+            //                 "pair": "BTC-USDT",
+            //                 "contract_type": "swap",
+            //                 "trade_partition": "USDT"
+            //             }
+            //         ],
+            //         "ts": 1664336503144
+            //     }
+            //
+        }
+        const data = this.safeList(response, 'data', []);
+        return this.parseOpenInterests(data, symbols);
     }
     /**
      * @method
@@ -8683,8 +8917,9 @@ class htx extends htx$1 {
         const timestamp = this.safeInteger(interest, 'ts');
         const amount = this.safeNumber(interest, 'volume');
         const value = this.safeNumber(interest, 'value');
+        const marketId = this.safeString(interest, 'contract_code');
         return this.safeOpenInterest({
-            'symbol': this.safeString(market, 'symbol'),
+            'symbol': this.safeSymbol(marketId, market),
             'baseVolume': amount,
             'quoteVolume': value,
             'openInterestAmount': amount,

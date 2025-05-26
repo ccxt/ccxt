@@ -24,6 +24,9 @@ public partial class exmo : Exchange
                 { "cancelOrder", true },
                 { "cancelOrders", false },
                 { "createDepositAddress", false },
+                { "createMarketBuyOrder", true },
+                { "createMarketBuyOrderWithCost", true },
+                { "createMarketOrderWithCost", true },
                 { "createOrder", true },
                 { "createStopLimitOrder", true },
                 { "createStopMarketOrder", true },
@@ -140,6 +143,67 @@ public partial class exmo : Exchange
                 } },
                 { "margin", new Dictionary<string, object>() {
                     { "fillResponseFromRequest", true },
+                } },
+            } },
+            { "features", new Dictionary<string, object>() {
+                { "spot", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", true },
+                        } },
+                        { "hedged", false },
+                        { "selfTradePrevention", false },
+                        { "trailing", false },
+                        { "leverage", true },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", false },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", 100 },
+                        { "daysBack", null },
+                        { "untilDays", null },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", null },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1000 },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
                 } },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
@@ -864,6 +928,7 @@ public partial class exmo : Exchange
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
@@ -872,15 +937,18 @@ public partial class exmo : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
+        object until = this.safeIntegerProduct(parameters, "until", 0.001);
+        object untilIsDefined = (!isEqual(until, null));
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "resolution", this.safeString(this.timeframes, timeframe, timeframe) },
         };
         object maxLimit = 3000;
         object duration = this.parseTimeframe(timeframe);
-        object now = this.milliseconds();
+        object now = this.parseToInt(divide(this.milliseconds(), 1000));
         if (isTrue(isEqual(since, null)))
         {
+            object to = ((bool) isTrue(untilIsDefined)) ? mathMin(until, now) : now;
             if (isTrue(isEqual(limit, null)))
             {
                 limit = 1000; // cap default at generous amount
@@ -888,21 +956,28 @@ public partial class exmo : Exchange
             {
                 limit = mathMin(limit, maxLimit);
             }
-            ((IDictionary<string,object>)request)["from"] = subtract(subtract(this.parseToInt(divide(now, 1000)), multiply(limit, duration)), 1);
-            ((IDictionary<string,object>)request)["to"] = this.parseToInt(divide(now, 1000));
+            ((IDictionary<string,object>)request)["from"] = subtract(subtract(to, (multiply(limit, duration))), 1);
+            ((IDictionary<string,object>)request)["to"] = to;
         } else
         {
             ((IDictionary<string,object>)request)["from"] = subtract(this.parseToInt(divide(since, 1000)), 1);
-            if (isTrue(isEqual(limit, null)))
+            if (isTrue(untilIsDefined))
             {
-                limit = maxLimit;
+                ((IDictionary<string,object>)request)["to"] = mathMin(until, now);
             } else
             {
-                limit = mathMin(limit, maxLimit);
+                if (isTrue(isEqual(limit, null)))
+                {
+                    limit = maxLimit;
+                } else
+                {
+                    limit = mathMin(limit, maxLimit);
+                }
+                object to = this.sum(since, multiply(limit, duration));
+                ((IDictionary<string,object>)request)["to"] = mathMin(to, now);
             }
-            object to = this.sum(since, multiply(multiply(limit, duration), 1000));
-            ((IDictionary<string,object>)request)["to"] = this.parseToInt(divide(to, 1000));
         }
+        parameters = this.omit(parameters, "until");
         object response = await this.publicGetCandlesHistory(this.extend(request, parameters));
         //
         //     {
@@ -1356,7 +1431,7 @@ public partial class exmo : Exchange
         parameters = ((IList<object>)marginModeparametersVariable)[1];
         if (isTrue(isEqual(marginMode, "cross")))
         {
-            throw new BadRequest ((string)add(this.id, "only isolated margin is supported")) ;
+            throw new BadRequest ((string)add(this.id, " only isolated margin is supported")) ;
         }
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1422,6 +1497,67 @@ public partial class exmo : Exchange
 
     /**
      * @method
+     * @name exmo#createMarketOrderWithCost
+     * @description create a market order by providing the symbol, side and cost
+     * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#80daa469-ec59-4d0a-b229-6a311d8dd1cd
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public async override Task<object> createMarketOrderWithCost(object symbol, object side, object cost, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        parameters = this.extend(parameters, new Dictionary<string, object>() {
+            { "cost", cost },
+        });
+        return await this.createOrder(symbol, "market", side, cost, null, parameters);
+    }
+
+    /**
+     * @method
+     * @name exmo#createMarketBuyOrderWithCost
+     * @description create a market buy order by providing the symbol and cost
+     * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#80daa469-ec59-4d0a-b229-6a311d8dd1cd
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public async override Task<object> createMarketBuyOrderWithCost(object symbol, object cost, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        parameters = this.extend(parameters, new Dictionary<string, object>() {
+            { "cost", cost },
+        });
+        return await this.createOrder(symbol, "market", "buy", cost, null, parameters);
+    }
+
+    /**
+     * @method
+     * @name exmo#createMarketSellOrderWithCost
+     * @description create a market sell order by providing the symbol and cost
+     * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#80daa469-ec59-4d0a-b229-6a311d8dd1cd
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public async override Task<object> createMarketSellOrderWithCost(object symbol, object cost, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        parameters = this.extend(parameters, new Dictionary<string, object>() {
+            { "cost", cost },
+        });
+        return await this.createOrder(symbol, "market", "sell", cost, null, parameters);
+    }
+
+    /**
+     * @method
      * @name exmo#createOrder
      * @description create a trade order
      * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#80daa469-ec59-4d0a-b229-6a311d8dd1cd
@@ -1433,9 +1569,10 @@ public partial class exmo : Exchange
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.stopPrice] the price at which a trigger order is triggered at
+     * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
      * @param {string} [params.timeInForce] *spot only* 'fok', 'ioc' or 'post_only'
      * @param {boolean} [params.postOnly] *spot only* true for post only orders
+     * @param {float} [params.cost] *spot only* *market orders only* the cost of the order in the quote currency for market orders
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -1453,11 +1590,18 @@ public partial class exmo : Exchange
             throw new BadRequest ((string)add(this.id, " only supports isolated margin")) ;
         }
         object isSpot = (!isEqual(marginMode, "isolated"));
-        object triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "stop_price"});
+        object triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopPrice", "stop_price"});
+        object cost = this.safeString(parameters, "cost");
         object request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
-            { "quantity", this.amountToPrecision(getValue(market, "symbol"), amount) },
         };
+        if (isTrue(isEqual(cost, null)))
+        {
+            ((IDictionary<string,object>)request)["quantity"] = this.amountToPrecision(getValue(market, "symbol"), amount);
+        } else
+        {
+            ((IDictionary<string,object>)request)["quantity"] = this.costToPrecision(getValue(market, "symbol"), cost);
+        }
         object clientOrderId = this.safeValue2(parameters, "client_id", "clientOrderId");
         if (isTrue(!isEqual(clientOrderId, null)))
         {
@@ -1475,7 +1619,7 @@ public partial class exmo : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " createOrder requires an extra param params[\"leverage\"] for margin orders")) ;
         }
-        parameters = this.omit(parameters, new List<object>() {"stopPrice", "stop_price", "triggerPrice", "timeInForce", "client_id", "clientOrderId"});
+        parameters = this.omit(parameters, new List<object>() {"stopPrice", "stop_price", "triggerPrice", "timeInForce", "client_id", "clientOrderId", "cost"});
         if (isTrue(!isEqual(price, null)))
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(getValue(market, "symbol"), price);
@@ -1508,7 +1652,8 @@ public partial class exmo : Exchange
                     ((IDictionary<string,object>)request)["type"] = side;
                 } else if (isTrue(isEqual(type, "market")))
                 {
-                    ((IDictionary<string,object>)request)["type"] = add("market_", side);
+                    object marketSuffix = ((bool) isTrue((!isEqual(cost, null)))) ? "_total" : "";
+                    ((IDictionary<string,object>)request)["type"] = add(add("market_", side), marketSuffix);
                 }
                 if (isTrue(isPostOnly))
                 {
@@ -1568,7 +1713,7 @@ public partial class exmo : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
-        object stop = this.safeValue2(parameters, "trigger", "stop");
+        object trigger = this.safeValue2(parameters, "trigger", "stop");
         parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
         object marginMode = null;
         var marginModeparametersVariable = this.handleMarginModeAndParams("cancelOrder", parameters);
@@ -1585,7 +1730,7 @@ public partial class exmo : Exchange
             response = await this.privatePostMarginUserOrderCancel(this.extend(request, parameters));
         } else
         {
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 ((IDictionary<string,object>)request)["parent_order_id"] = id;
                 response = await this.privatePostStopMarketOrderCancel(this.extend(request, parameters));
@@ -1959,7 +2104,6 @@ public partial class exmo : Exchange
             { "postOnly", null },
             { "side", side },
             { "price", price },
-            { "stopPrice", triggerPrice },
             { "triggerPrice", triggerPrice },
             { "cost", cost },
             { "amount", amount },
@@ -2577,7 +2721,7 @@ public partial class exmo : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    public async virtual Task<object> fetchDeposit(object id = null, object code = null, object parameters = null)
+    public async virtual Task<object> fetchDeposit(object id, object code = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();

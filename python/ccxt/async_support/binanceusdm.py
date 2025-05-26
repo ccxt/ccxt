@@ -5,12 +5,13 @@
 
 from ccxt.async_support.binance import binance
 from ccxt.abstract.binanceusdm import ImplicitAPI
+from ccxt.base.types import Any
 from ccxt.base.errors import InvalidOrder
 
 
 class binanceusdm(binance, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(binanceusdm, self).describe(), {
             'id': 'binanceusdm',
             'name': 'Binance USDⓈ-M',
@@ -35,7 +36,7 @@ class binanceusdm(binance, ImplicitAPI):
                 'fetchMarkets': ['linear'],
                 'defaultSubType': 'linear',
                 # https://www.binance.com/en/support/faq/360033162192
-                # tier amount, maintenance margin, initial margin
+                # tier amount, maintenance margin, initial margin,
                 'leverageBrackets': None,
                 'marginTypes': {},
                 'marginModes': {},

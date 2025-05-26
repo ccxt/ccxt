@@ -5,11 +5,12 @@
 
 from ccxt.onetrading import onetrading
 from ccxt.abstract.bitpanda import ImplicitAPI
+from ccxt.base.types import Any
 
 
 class bitpanda(onetrading, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(bitpanda, self).describe(), {
             'id': 'bitpanda',
             'alias': True,

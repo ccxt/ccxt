@@ -18,16 +18,17 @@ if sys.platform == 'win32':
 # ########### args ###########
 isWs = get_cli_arg_value('--ws')
 isBaseTests = get_cli_arg_value('--baseTests')
-run_all = get_cli_arg_value('--all')
+runAll = get_cli_arg_value('--all')
 
 # ###### base tests #######
 if (isBaseTests):
     if (isWs):
         test_base_init_ws()
+        print('base WS tests passed!')
     else:
         base_tests_init()
-    print('base tests passed!')
-    if not run_all:
+        print('base REST tests passed!')
+    if not runAll:
         exit(0)
 
 # ###### exchange tests #######

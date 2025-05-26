@@ -12,12 +12,12 @@ use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\BadSymbol;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class delta extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'delta',
             'name' => 'Delta Exchange',
@@ -223,6 +223,91 @@ class delta extends Exchange {
                     'BEP20' => 'BEP20(BSC)',
                 ),
             ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true, // todo implement
+                        // todo implement
+                        'triggerPriceType' => array(
+                            'last' => true,
+                            'mark' => true,
+                            'index' => true,
+                        ),
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'attachedStopLossTakeProfit' => array(
+                            'triggerPriceType' => null,
+                            'price' => true,
+                        ),
+                        // todo implementation
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'selfTradePrevention' => false,
+                        'trailing' => false, // todo => implement
+                        'iceberg' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => false,
+                        'marketBuyRequiresPrice' => false,
+                    ),
+                    'createOrders' => null, // todo => implement
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 100, // todo => revise
+                        'daysBack' => 100000,
+                        'untilDays' => 100000,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrder' => null,
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100, // todo => revise
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'daysBack' => 100000,
+                        'daysBackCanceled' => 1,
+                        'untilDays' => 100000,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 2000, // todo => recheck
+                    ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'default',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'default',
+                    ),
+                ),
+                'future' => array(
+                    'linear' => array(
+                        'extends' => 'default',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'default',
+                    ),
+                ),
+            ),
             'precisionMode' => TICK_SIZE,
             'requiredCredentials' => array(
                 'apiKey' => true,
@@ -267,6 +352,9 @@ class delta extends Exchange {
             $base = $this->safe_string($optionParts, 1);
             $expiry = $this->safe_string($optionParts, 3);
             $optionType = $this->safe_string($optionParts, 0);
+        }
+        if ($expiry !== null) {
+            $expiry = mb_substr($expiry, 4) . mb_substr($expiry, 2, 4 - 2) . mb_substr($expiry, 0, 2 - 0);
         }
         $settle = $quote;
         $strike = $this->safe_string($optionParts, 2);
@@ -327,7 +415,7 @@ class delta extends Exchange {
         return parent::safe_market($marketId, $market, $delimiter, $marketType);
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
@@ -428,31 +516,49 @@ class delta extends Exchange {
              */
             $response = Async\await($this->publicGetAssets ($params));
             //
-            //     {
-            //         "result":array(
-            //             array(
-            //                 "base_withdrawal_fee":"0.0005",
-            //                 "deposit_status":"enabled",
-            //                 "id":2,
-            //                 "interest_credit":true,
-            //                 "interest_slabs":array(
-            //                     array("limit":"0.1","rate":"0"),
-            //                     array("limit":"1","rate":"0.05"),
-            //                     array("limit":"5","rate":"0.075"),
-            //                     array("limit":"10","rate":"0.1"),
-            //                     array("limit":"9999999999999999","rate":"0")
-            //                 ),
-            //                 "kyc_deposit_limit":"10",
-            //                 "kyc_withdrawal_limit":"2",
-            //                 "min_withdrawal_amount":"0.001",
-            //                 "minimum_precision":4,
-            //                 "name":"Bitcoin",
-            //                 "precision":8,
-            //                 "sort_priority":1,
-            //                 "symbol":"BTC",
-            //                 "variable_withdrawal_fee":"0",
-            //                 "withdrawal_status":"enabled"
-            //             ),
+            //    {
+            //        "result" => array(
+            //            {
+            //                "base_withdrawal_fee" => "0.005000000000000000",
+            //                "id" => "1",
+            //                "interest_credit" => false,
+            //                "interest_slabs" => null,
+            //                "kyc_deposit_limit" => "0.000000000000000000",
+            //                "kyc_withdrawal_limit" => "0.000000000000000000",
+            //                "min_withdrawal_amount" => "0.010000000000000000",
+            //                "minimum_precision" => "4",
+            //                "name" => "Ethereum",
+            //                "networks" => array(
+            //                    array(
+            //                        "allowed_deposit_groups" => null,
+            //                        "base_withdrawal_fee" => "0.0025",
+            //                        "deposit_status" => "enabled",
+            //                        "memo_required" => false,
+            //                        "min_deposit_amount" => "0.000050000000000000",
+            //                        "min_withdrawal_amount" => "0.010000000000000000",
+            //                        "minimum_deposit_confirmations" => "12",
+            //                        "network" => "ERC20",
+            //                        "variable_withdrawal_fee" => "0",
+            //                        "withdrawal_status" => "enabled"
+            //                    ),
+            //                    array(
+            //                        "allowed_deposit_groups" => null,
+            //                        "base_withdrawal_fee" => "0.0001",
+            //                        "deposit_status" => "enabled",
+            //                        "memo_required" => false,
+            //                        "min_deposit_amount" => "0.000050000000000000",
+            //                        "min_withdrawal_amount" => "0.000300000000000000",
+            //                        "minimum_deposit_confirmations" => "15",
+            //                        "network" => "BEP20(BSC)",
+            //                        "variable_withdrawal_fee" => "0",
+            //                        "withdrawal_status" => "enabled"
+            //                    }
+            //                ),
+            //                "precision" => "18",
+            //                "sort_priority" => "3",
+            //                "symbol" => "ETH",
+            //                "variable_withdrawal_fee" => "0.000000000000000000"
+            //            ),
             //         ),
             //         "success":true
             //     }
@@ -464,20 +570,42 @@ class delta extends Exchange {
                 $id = $this->safe_string($currency, 'symbol');
                 $numericId = $this->safe_integer($currency, 'id');
                 $code = $this->safe_currency_code($id);
-                $depositStatus = $this->safe_string($currency, 'deposit_status');
-                $withdrawalStatus = $this->safe_string($currency, 'withdrawal_status');
-                $depositsEnabled = ($depositStatus === 'enabled');
-                $withdrawalsEnabled = ($withdrawalStatus === 'enabled');
-                $active = $depositsEnabled && $withdrawalsEnabled;
-                $result[$code] = array(
+                $chains = $this->safe_list($currency, 'networks', array());
+                $networks = array();
+                for ($j = 0; $j < count($chains); $j++) {
+                    $chain = $chains[$j];
+                    $networkId = $this->safe_string($chain, 'network');
+                    $networkCode = $this->network_id_to_code($networkId);
+                    $networks[$networkCode] = array(
+                        'id' => $networkId,
+                        'network' => $networkCode,
+                        'name' => $this->safe_string($chain, 'name'),
+                        'info' => $chain,
+                        'active' => $this->safe_string($chain, 'status') === 'enabled',
+                        'deposit' => $this->safe_string($chain, 'deposit_status') === 'enabled',
+                        'withdraw' => $this->safe_string($chain, 'withdrawal_status') === 'enabled',
+                        'fee' => $this->safe_number($chain, 'base_withdrawal_fee'),
+                        'limits' => array(
+                            'deposit' => array(
+                                'min' => $this->safe_number($chain, 'min_deposit_amount'),
+                                'max' => null,
+                            ),
+                            'withdraw' => array(
+                                'min' => $this->safe_number($chain, 'min_withdrawal_amount'),
+                                'max' => null,
+                            ),
+                        ),
+                    );
+                }
+                $result[$code] = $this->safe_currency_structure(array(
                     'id' => $id,
                     'numericId' => $numericId,
                     'code' => $code,
                     'name' => $this->safe_string($currency, 'name'),
                     'info' => $currency, // the original payload
-                    'active' => $active,
-                    'deposit' => $depositsEnabled,
-                    'withdraw' => $withdrawalsEnabled,
+                    'active' => null,
+                    'deposit' => $this->safe_string($currency, 'deposit_status') === 'enabled',
+                    'withdraw' => $this->safe_string($currency, 'withdrawal_status') === 'enabled',
                     'fee' => $this->safe_number($currency, 'base_withdrawal_fee'),
                     'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'precision'))),
                     'limits' => array(
@@ -487,8 +615,9 @@ class delta extends Exchange {
                             'max' => null,
                         ),
                     ),
-                    'networks' => array(),
-                );
+                    'networks' => $networks,
+                    'type' => 'crypto',
+                ));
             }
             return $result;
         }) ();
@@ -755,7 +884,7 @@ class delta extends Exchange {
                     // other $markets ($swap, futures, move, spread, irs) seem to use the step of '1' contract
                     $amountPrecision = $this->parse_number('1');
                 }
-                $linear = ($settle === $base);
+                $linear = ($settle === $quote);
                 $optionType = null;
                 $symbol = $base . '/' . $quote;
                 if ($swap || $future || $option) {
@@ -1496,13 +1625,14 @@ class delta extends Exchange {
             /**
              * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
              *
-             * @see https://docs.delta.exchange/#get-ohlc-candles
+             * @see https://docs.delta.exchange/#delta-exchange-api-v2-historical-ohlc-candles-sparklines
              *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->until] timestamp in ms of the latest candle to fetch
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
@@ -1512,14 +1642,19 @@ class delta extends Exchange {
             );
             $duration = $this->parse_timeframe($timeframe);
             $limit = $limit ? $limit : 2000; // max 2000
+            $until = $this->safe_integer_product($params, 'until', 0.001);
+            $untilIsDefined = ($until !== null);
+            if ($untilIsDefined) {
+                $until = $this->parse_to_int($until);
+            }
             if ($since === null) {
-                $end = $this->seconds();
+                $end = $untilIsDefined ? $until : $this->seconds();
                 $request['end'] = $end;
                 $request['start'] = $end - $limit * $duration;
             } else {
                 $start = $this->parse_to_int($since / 1000);
                 $request['start'] = $start;
-                $request['end'] = $this->sum($start, $limit * $duration);
+                $request['end'] = $untilIsDefined ? $until : $this->sum($start, $limit * $duration);
             }
             $price = $this->safe_string($params, 'price');
             if ($price === 'mark') {
@@ -1529,7 +1664,7 @@ class delta extends Exchange {
             } else {
                 $request['symbol'] = $market['id'];
             }
-            $params = $this->omit($params, 'price');
+            $params = $this->omit($params, array( 'price', 'until' ));
             $response = Async\await($this->publicGetHistoryCandles ($this->extend($request, $params)));
             //
             //     {
@@ -1632,7 +1767,7 @@ class delta extends Exchange {
         }) ();
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions
@@ -2263,7 +2398,7 @@ class delta extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
              * @param {int} [$limit] max number of ledger entries to return, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -2586,8 +2721,7 @@ class delta extends Exchange {
             //     }
             //
             $rates = $this->safe_list($response, 'result', array());
-            $result = $this->parse_funding_rates($rates);
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->parse_funding_rates($rates, $symbols);
         }) ();
     }
 
@@ -3597,7 +3731,7 @@ class delta extends Exchange {
                 'timestamp' => $timestamp,
             );
             $auth = $method . $timestamp . $requestPath;
-            if (($method === 'GET') || ($method === 'DELETE')) {
+            if ($method === 'GET') {
                 if ($query) {
                     $queryString = '?' . $this->urlencode($query);
                     $auth .= $queryString;

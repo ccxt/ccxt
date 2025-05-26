@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.luno import ImplicitAPI
-from ccxt.base.types import Account, Balances, Currency, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface
+from ccxt.base.types import Account, Any, Balances, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -15,7 +15,7 @@ from ccxt.base.precise import Precise
 
 class luno(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(luno, self).describe(), {
             'id': 'luno',
             'name': 'luno',
@@ -35,6 +35,7 @@ class luno(Exchange, ImplicitAPI):
                 'cancelOrder': True,
                 'closeAllPositions': False,
                 'closePosition': False,
+                'createDepositAddress': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
                 'fetchAccounts': True,
@@ -43,6 +44,7 @@ class luno(Exchange, ImplicitAPI):
                 'fetchClosedOrders': True,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
+                'fetchDepositAddress': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -183,6 +185,84 @@ class luno(Exchange, ImplicitAPI):
                 },
             },
             'precisionMode': TICK_SIZE,
+            'features': {
+                'spot': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,  # todo
+                        'triggerPriceType': None,
+                        'triggerDirection': True,  # todo
+                        'stopLossPrice': False,  # todo
+                        'takeProfitPrice': False,  # todo
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': 100000,  # todo
+                        'untilDays': 100000,  # todo
+                        'symbolRequired': True,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'untilDays': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': None,
+                    },
+                },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
         })
 
     async def fetch_markets(self, params={}) -> List[Market]:
@@ -441,7 +521,6 @@ class luno(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': None,
             'triggerPrice': None,
             'amount': amount,
             'filled': filled,
@@ -471,7 +550,7 @@ class luno(Exchange, ImplicitAPI):
         response = await self.privateGetOrdersId(self.extend(request, params))
         return self.parse_order(response)
 
-    async def fetch_orders_by_state(self, state=None, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_orders_by_state(self, state: Str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         await self.load_markets()
         request: dict = {}
         market = None
@@ -963,7 +1042,7 @@ class luno(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
         await self.load_markets()
         await self.load_accounts()
@@ -1080,6 +1159,116 @@ class luno(Exchange, ImplicitAPI):
             'status': status,
             'fee': None,
         }, currency)
+
+    async def create_deposit_address(self, code: str, params={}) -> DepositAddress:
+        """
+        create a currency deposit address
+
+        https://www.luno.com/en/developers/api#tag/Receive/operation/createFundingAddress
+
+        :param str code: unified currency code of the currency for the deposit address
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.name]: an optional name for the new address
+        :param int [params.account_id]: an optional account id for the new address
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        """
+        await self.load_markets()
+        currency = self.currency(code)
+        request: dict = {
+            'asset': currency['id'],
+        }
+        response = await self.privatePostFundingAddress(self.extend(request, params))
+        #
+        #     {
+        #         "account_id": "string",
+        #         "address": "string",
+        #         "address_meta": [
+        #             {
+        #                 "label": "string",
+        #                 "value": "string"
+        #             }
+        #         ],
+        #         "asset": "string",
+        #         "assigned_at": 0,
+        #         "name": "string",
+        #         "network": 0,
+        #         "qr_code_uri": "string",
+        #         "receive_fee": "string",
+        #         "total_received": "string",
+        #         "total_unconfirmed": "string"
+        #     }
+        #
+        return self.parse_deposit_address(response, currency)
+
+    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
+        """
+        fetch the deposit address for a currency associated with self account
+
+        https://www.luno.com/en/developers/api#tag/Receive/operation/getFundingAddress
+
+        :param str code: unified currency code
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.address]: a specific cryptocurrency address to retrieve
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        """
+        await self.load_markets()
+        currency = self.currency(code)
+        request: dict = {
+            'asset': currency['id'],
+        }
+        response = await self.privateGetFundingAddress(self.extend(request, params))
+        #
+        #     {
+        #         "account_id": "string",
+        #         "address": "string",
+        #         "address_meta": [
+        #             {
+        #                 "label": "string",
+        #                 "value": "string"
+        #             }
+        #         ],
+        #         "asset": "string",
+        #         "assigned_at": 0,
+        #         "name": "string",
+        #         "network": 0,
+        #         "qr_code_uri": "string",
+        #         "receive_fee": "string",
+        #         "total_received": "string",
+        #         "total_unconfirmed": "string"
+        #     }
+        #
+        return self.parse_deposit_address(response, currency)
+
+    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
+        #
+        #     {
+        #         "account_id": "string",
+        #         "address": "string",
+        #         "address_meta": [
+        #             {
+        #                 "label": "string",
+        #                 "value": "string"
+        #             }
+        #         ],
+        #         "asset": "string",
+        #         "assigned_at": 0,
+        #         "name": "string",
+        #         "network": 0,
+        #         "qr_code_uri": "string",
+        #         "receive_fee": "string",
+        #         "total_received": "string",
+        #         "total_unconfirmed": "string"
+        #     }
+        #
+        currencyId = self.safe_string_upper(depositAddress, 'currency')
+        code = self.safe_currency_code(currencyId, currency)
+        return {
+            'info': depositAddress,
+            'currency': code,
+            'network': None,
+            'address': self.safe_string(depositAddress, 'address'),
+            'tag': self.safe_string(depositAddress, 'name'),
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api] + '/' + self.version + '/' + self.implode_params(path, params)

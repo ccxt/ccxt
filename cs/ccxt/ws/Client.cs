@@ -366,7 +366,7 @@ public partial class Exchange
     
         private async Task Receiving(ClientWebSocket webSocket)
         {
-            var buffer = new byte[1000000]; // check best size later
+            var buffer = new byte[10485760]; // 10MB, check best size later
             try
             {
                 while (webSocket.State == WebSocketState.Open)

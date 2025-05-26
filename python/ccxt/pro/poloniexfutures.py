@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
-from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Ticker, Trade
+from ccxt.base.types import Any, Balances, Int, Order, OrderBook, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import AuthenticationError
@@ -15,7 +15,7 @@ from ccxt.base.errors import ChecksumError
 
 class poloniexfutures(ccxt.async_support.poloniexfutures):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(poloniexfutures, self).describe(), {
             'has': {
                 'ws': True,

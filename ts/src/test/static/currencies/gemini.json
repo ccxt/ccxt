@@ -13,14 +13,16 @@
             "bitcoin"
         ],
         "id": "BTC",
+        "numericId": null,
         "code": "BTC",
-        "name": "Bitcoin",
-        "type": "fiat",
         "precision": 1e-8,
-        "limits": {
-            "deposit": {},
-            "withdraw": {}
-        },
+        "type": "fiat",
+        "name": "Bitcoin",
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
         "networks": {
             "BTC": {
                 "info": [
@@ -37,11 +39,31 @@
                 ],
                 "id": "bitcoin",
                 "network": "BTC",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": null,
                 "precision": 1e-8,
                 "limits": {
-                    "deposit": {},
-                    "withdraw": {}
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
                 }
+            }
+        },
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
             }
         }
     },
@@ -59,14 +81,16 @@
             "ethereum"
         ],
         "id": "USDT",
+        "numericId": null,
         "code": "USDT",
-        "name": "Tether",
-        "type": "fiat",
         "precision": 0.000001,
-        "limits": {
-            "deposit": {},
-            "withdraw": {}
-        },
+        "type": "fiat",
+        "name": "Tether",
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
         "networks": {
             "ERC20": {
                 "info": [
@@ -83,11 +107,31 @@
                 ],
                 "id": "ethereum",
                 "network": "ERC20",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": null,
                 "precision": 0.000001,
                 "limits": {
-                    "deposit": {},
-                    "withdraw": {}
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
                 }
+            }
+        },
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
             }
         }
     },
@@ -105,33 +149,25 @@
             null
         ],
         "id": "EUR",
+        "numericId": null,
         "code": "EUR",
-        "name": "Euro",
-        "type": "fiat",
         "precision": 0.01,
+        "type": "fiat",
+        "name": "Euro",
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
         "limits": {
-            "deposit": {},
-            "withdraw": {}
-        },
-        "networks": {
-            "undefined": {
-                "info": [
-                    "EUR",
-                    "Euro",
-                    21,
-                    2,
-                    2,
-                    2,
-                    2,
-                    true,
-                    "€",
-                    null
-                ],
-                "precision": 0.01,
-                "limits": {
-                    "deposit": {},
-                    "withdraw": {}
-                }
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
             }
         }
     },
@@ -149,33 +185,25 @@
             null
         ],
         "id": "USD",
+        "numericId": null,
         "code": "USD",
-        "name": "U.S. Dollar",
-        "type": "fiat",
         "precision": 0.01,
+        "type": "fiat",
+        "name": "U.S. Dollar",
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
         "limits": {
-            "deposit": {},
-            "withdraw": {}
-        },
-        "networks": {
-            "undefined": {
-                "info": [
-                    "USD",
-                    "U.S. Dollar",
-                    0,
-                    2,
-                    2,
-                    2,
-                    2,
-                    true,
-                    "$",
-                    null
-                ],
-                "precision": 0.01,
-                "limits": {
-                    "deposit": {},
-                    "withdraw": {}
-                }
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
             }
         }
     },
@@ -193,14 +221,16 @@
             "litecoin"
         ],
         "id": "LTC",
+        "numericId": null,
         "code": "LTC",
-        "name": "Litecoin",
-        "type": "fiat",
         "precision": 1e-8,
-        "limits": {
-            "deposit": {},
-            "withdraw": {}
-        },
+        "type": "fiat",
+        "name": "Litecoin",
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
         "networks": {
             "LTC": {
                 "info": [
@@ -217,11 +247,31 @@
                 ],
                 "id": "litecoin",
                 "network": "LTC",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": null,
                 "precision": 1e-8,
                 "limits": {
-                    "deposit": {},
-                    "withdraw": {}
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
                 }
+            }
+        },
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
             }
         }
     },
@@ -239,14 +289,16 @@
             "ethereum"
         ],
         "id": "ETH",
+        "numericId": null,
         "code": "ETH",
-        "name": "Ether",
-        "type": "fiat",
         "precision": 1e-18,
-        "limits": {
-            "deposit": {},
-            "withdraw": {}
-        },
+        "type": "fiat",
+        "name": "Ether",
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
         "networks": {
             "ERC20": {
                 "info": [
@@ -263,11 +315,31 @@
                 ],
                 "id": "ethereum",
                 "network": "ERC20",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": null,
                 "precision": 1e-18,
                 "limits": {
-                    "deposit": {},
-                    "withdraw": {}
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
                 }
+            }
+        },
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
             }
         }
     },
@@ -285,14 +357,16 @@
             "xrpl"
         ],
         "id": "XRP",
+        "numericId": null,
         "code": "XRP",
-        "name": "XRP",
-        "type": "fiat",
         "precision": 0.000001,
-        "limits": {
-            "deposit": {},
-            "withdraw": {}
-        },
+        "type": "fiat",
+        "name": "XRP",
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
         "networks": {
             "xrpl": {
                 "info": [
@@ -309,11 +383,31 @@
                 ],
                 "id": "xrpl",
                 "network": "xrpl",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": null,
                 "precision": 0.000001,
                 "limits": {
-                    "deposit": {},
-                    "withdraw": {}
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
                 }
+            }
+        },
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
             }
         }
     },
@@ -331,14 +425,16 @@
             "ethereum"
         ],
         "id": "USDC",
+        "numericId": null,
         "code": "USDC",
-        "name": "USD Coin",
-        "type": "fiat",
         "precision": 0.000001,
-        "limits": {
-            "deposit": {},
-            "withdraw": {}
-        },
+        "type": "fiat",
+        "name": "USD Coin",
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
         "networks": {
             "ERC20": {
                 "info": [
@@ -355,11 +451,31 @@
                 ],
                 "id": "ethereum",
                 "network": "ERC20",
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "fee": null,
                 "precision": 0.000001,
                 "limits": {
-                    "deposit": {},
-                    "withdraw": {}
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
                 }
+            }
+        },
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
             }
         }
     }

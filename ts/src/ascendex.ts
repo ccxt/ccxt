@@ -6,7 +6,7 @@ import { ArgumentsRequired, AuthenticationError, ExchangeError, AccountSuspended
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, FundingHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Strings, Num, Currency, Market, Leverage, Leverages, Account, MarginModes, MarginMode, MarginModification, Currencies, TradingFees, Dict, LeverageTier, LeverageTiers, int, FundingRate, FundingRates, DepositAddress } from './base/types.js';
+import type { TransferEntry, FundingHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Strings, Num, Currency, Market, Leverage, Leverages, Account, MarginModes, MarginMode, MarginModification, Currencies, TradingFees, Dict, LeverageTier, LeverageTiers, int, FundingRate, FundingRates, DepositAddress, Position } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -15,7 +15,7 @@ import type { TransferEntry, FundingHistory, Int, OHLCV, Order, OrderSide, Order
  * @augments Exchange
  */
 export default class ascendex extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'ascendex',
             'name': 'AscendEX',
@@ -58,6 +58,7 @@ export default class ascendex extends Exchange {
                 'fetchFundingRate': 'emulated',
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': true,
+                'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
                 'fetchLeverage': 'emulated',
                 'fetchLeverages': true,
@@ -67,10 +68,13 @@ export default class ascendex extends Exchange {
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
+                'fetchMySettlementHistory': false,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
@@ -79,6 +83,7 @@ export default class ascendex extends Exchange {
                 'fetchPositions': true,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -90,6 +95,7 @@ export default class ascendex extends Exchange {
                 'fetchTransactions': 'emulated',
                 'fetchTransfer': false,
                 'fetchTransfers': false,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
@@ -285,7 +291,6 @@ export default class ascendex extends Exchange {
                     'AVAX': 'avalanche C chain',
                     'OMNI': 'Omni',
                     // 'TRC': 'TRC20',
-                    'TRX': 'TRC20',
                     'TRC20': 'TRC20',
                     'ERC20': 'ERC20',
                     'GO20': 'GO20',
@@ -295,6 +300,104 @@ export default class ascendex extends Exchange {
                     'LTC': 'Litecoin',
                     'MATIC': 'Matic Network',
                     'AKT': 'Akash',
+                },
+            },
+            'features': {
+                'default': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': true,
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false, // todo with triggerprice
+                        'takeProfitPrice': false, // todo with triggerprice
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyRequiresPrice': false,
+                        'marketBuyByCost': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': {
+                        'max': 10,
+                    },
+                    'fetchMyTrades': undefined,
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'marketType': true,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'marketType': true,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': undefined,
+                    'fetchOHLCV': {
+                        'limit': 500,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                },
+                'forDerivatives': {
+                    'extends': 'default',
+                    'createOrder': {
+                        // todo: implementation
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': {
+                                'last': true,
+                                'mark': false,
+                                'index': false,
+                            },
+                            'price': false,
+                        },
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': undefined,
+                        'daysBackCanceled': undefined,
+                        'untilDays': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
                 },
             },
             'exceptions': {
@@ -365,6 +468,7 @@ export default class ascendex extends Exchange {
                 'broad': {},
             },
             'commonCurrencies': {
+                'XBT': 'XBT', // this is not BTC ! just another token
                 'BOND': 'BONDED',
                 'BTCBEAR': 'BEAR',
                 'BTCBULL': 'BULL',
@@ -389,95 +493,83 @@ export default class ascendex extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies (params = {}): Promise<Currencies> {
-        const assetsPromise = this.v1PublicGetAssets (params);
+        const response = await this.v2PublicGetAssets (params);
         //
-        //     {
-        //         "code":0,
-        //         "data":[
-        //             {
-        //                 "assetCode" : "LTCBULL",
-        //                 "assetName" : "3X Long LTC Token",
-        //                 "precisionScale" : 9,
-        //                 "nativeScale" : 4,
-        //                 "withdrawalFee" : "0.2",
-        //                 "minWithdrawalAmt" : "1.0",
-        //                 "status" : "Normal"
-        //             },
+        //    {
+        //        "code": "0",
+        //        "data": [
+        //            {
+        //                "assetCode": "USDT",
+        //                "assetName": "Tether",
+        //                "precisionScale": 9,
+        //                "nativeScale": 4,
+        //                "blockChain": [
+        //                    {
+        //                        "chainName": "Solana",
+        //                        "withdrawFee": "2.0",
+        //                        "allowDeposit": true,
+        //                        "allowWithdraw": true,
+        //                        "minDepositAmt": "0.01",
+        //                        "minWithdrawal": "4.0",
+        //                        "numConfirmations": 1
+        //                    },
+        //                    ...
+        //                ]
+        //            },
         //         ]
-        //     }
+        //    }
         //
-        const marginPromise = this.v1PublicGetMarginAssets (params);
-        //
-        //     {
-        //         "code":0,
-        //         "data":[
-        //             {
-        //                 "assetCode":"BTT",
-        //                 "borrowAssetCode":"BTT-B",
-        //                 "interestAssetCode":"BTT-I",
-        //                 "nativeScale":0,
-        //                 "numConfirmations":1,
-        //                 "withdrawFee":"100.0",
-        //                 "minWithdrawalAmt":"1000.0",
-        //                 "statusCode":"Normal",
-        //                 "statusMessage":"",
-        //                 "interestRate":"0.001"
-        //             }
-        //         ]
-        //     }
-        //
-        const cashPromise = this.v1PublicGetCashAssets (params);
-        //
-        //     {
-        //         "code":0,
-        //         "data":[
-        //             {
-        //                 "assetCode":"LTCBULL",
-        //                 "nativeScale":4,
-        //                 "numConfirmations":20,
-        //                 "withdrawFee":"0.2",
-        //                 "minWithdrawalAmt":"1.0",
-        //                 "statusCode":"Normal",
-        //                 "statusMessage":""
-        //             }
-        //         ]
-        //     }
-        //
-        const [ assets, margin, cash ] = await Promise.all ([ assetsPromise, marginPromise, cashPromise ]);
-        const assetsData = this.safeList (assets, 'data', []);
-        const marginData = this.safeList (margin, 'data', []);
-        const cashData = this.safeList (cash, 'data', []);
-        const assetsById = this.indexBy (assetsData, 'assetCode');
-        const marginById = this.indexBy (marginData, 'assetCode');
-        const cashById = this.indexBy (cashData, 'assetCode');
-        const dataById = this.deepExtend (assetsById, marginById, cashById);
-        const ids = Object.keys (dataById);
+        const data = this.safeList (response, 'data', []);
         const result: Dict = {};
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const currency = dataById[id];
+        for (let i = 0; i < data.length; i++) {
+            const currency = data[i];
+            const id = this.safeString (currency, 'assetCode');
             const code = this.safeCurrencyCode (id);
-            const scale = this.safeString2 (currency, 'precisionScale', 'nativeScale');
-            const precision = this.parseNumber (this.parsePrecision (scale));
-            const fee = this.safeNumber2 (currency, 'withdrawFee', 'withdrawalFee');
-            const status = this.safeString2 (currency, 'status', 'statusCode');
-            const active = (status === 'Normal');
-            const marginInside = ('borrowAssetCode' in currency);
-            result[code] = {
+            const chains = this.safeList (currency, 'blockChain', []);
+            const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'nativeScale')));
+            const networks = {};
+            for (let j = 0; j < chains.length; j++) {
+                const networkEtnry = chains[j];
+                const networkId = this.safeString (networkEtnry, 'chainName');
+                const networkCode = this.networkCodeToId (networkId);
+                networks[networkCode] = {
+                    'fee': this.safeNumber (networkEtnry, 'withdrawFee'),
+                    'active': undefined,
+                    'withdraw': this.safeBool (networkEtnry, 'allowWithdraw'),
+                    'deposit': this.safeBool (networkEtnry, 'allowDeposit'),
+                    'precision': precision,
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': this.safeNumber (networkEtnry, 'minWithdrawal'),
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': this.safeNumber (networkEtnry, 'minDepositAmt'),
+                            'max': undefined,
+                        },
+                    },
+                };
+            }
+            // todo type: if (chainsLength === 0 && (assetName.endsWith (' Staking') || assetName.indexOf (' Reward ') >= 0 || assetName.indexOf ('Slot Auction') >= 0 || assetName.indexOf (' Freeze Asset') >= 0))
+            result[code] = this.safeCurrencyStructure ({
                 'id': id,
                 'code': code,
                 'info': currency,
                 'type': undefined,
-                'margin': marginInside,
+                'margin': undefined,
                 'name': this.safeString (currency, 'assetName'),
-                'active': active,
+                'active': undefined,
                 'deposit': undefined,
                 'withdraw': undefined,
-                'fee': fee,
+                'fee': undefined,
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': precision,
+                        'min': undefined,
                         'max': undefined,
                     },
                     'withdraw': {
@@ -485,8 +577,8 @@ export default class ascendex extends Exchange {
                         'max': undefined,
                     },
                 },
-                'networks': {},
-            };
+                'networks': networks,
+            });
         }
         return result;
     }
@@ -499,6 +591,13 @@ export default class ascendex extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
+        const spotPromise = this.fetchSpotMarkets (params);
+        const contractPromise = this.fetchContractMarkets (params);
+        const [ spotMarkets, contractMarkets ] = await Promise.all ([ spotPromise, contractPromise ]);
+        return this.arrayConcat (spotMarkets, contractMarkets);
+    }
+
+    async fetchSpotMarkets (params = {}): Promise<Market[]> {
         const productsPromise = this.v1PublicGetProducts (params);
         //
         //     {
@@ -550,112 +649,60 @@ export default class ascendex extends Exchange {
         //         ]
         //     }
         //
-        const perpetualsPromise = this.v2PublicGetFuturesContract (params);
-        //
-        //    {
-        //        "code": 0,
-        //        "data": [
-        //            {
-        //                "symbol": "BTC-PERP",
-        //                "status": "Normal",
-        //                "displayName": "BTCUSDT",
-        //                "settlementAsset": "USDT",
-        //                "underlying": "BTC/USDT",
-        //                "tradingStartTime": 1579701600000,
-        //                "priceFilter": {
-        //                    "minPrice": "1",
-        //                    "maxPrice": "1000000",
-        //                    "tickSize": "1"
-        //                },
-        //                "lotSizeFilter": {
-        //                    "minQty": "0.0001",
-        //                    "maxQty": "1000000000",
-        //                    "lotSize": "0.0001"
-        //                },
-        //                "commissionType": "Quote",
-        //                "commissionReserveRate": "0.001",
-        //                "marketOrderPriceMarkup": "0.03",
-        //                "marginRequirements": [
-        //                    {
-        //                        "positionNotionalLowerBound": "0",
-        //                        "positionNotionalUpperBound": "50000",
-        //                        "initialMarginRate": "0.01",
-        //                        "maintenanceMarginRate": "0.006"
-        //                    },
-        //                    ...
-        //                ]
-        //            }
-        //        ]
-        //    }
-        //
-        const [ products, cash, perpetuals ] = await Promise.all ([ productsPromise, cashPromise, perpetualsPromise ]);
+        const [ products, cash ] = await Promise.all ([ productsPromise, cashPromise ]);
         const productsData = this.safeList (products, 'data', []);
         const productsById = this.indexBy (productsData, 'symbol');
         const cashData = this.safeList (cash, 'data', []);
-        const perpetualsData = this.safeList (perpetuals, 'data', []);
-        const cashAndPerpetualsData = this.arrayConcat (cashData, perpetualsData);
-        const cashAndPerpetualsById = this.indexBy (cashAndPerpetualsData, 'symbol');
+        const cashAndPerpetualsById = this.indexBy (cashData, 'symbol');
         const dataById = this.deepExtend (productsById, cashAndPerpetualsById);
         const ids = Object.keys (dataById);
         const result = [];
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
+            if (id.indexOf ('-PERP') >= 0) {
+                continue; // skip perpetuals, as separate endpoint returns them
+            }
             const market = dataById[id];
-            const settleId = this.safeString (market, 'settlementAsset');
-            const settle = this.safeCurrencyCode (settleId);
             const status = this.safeString (market, 'status');
             const domain = this.safeString (market, 'domain');
             let active = false;
             if (((status === 'Normal') || (status === 'InternalTrading')) && (domain !== 'LeveragedETF')) {
                 active = true;
             }
-            const spot = settle === undefined;
-            const swap = !spot;
-            const linear = swap ? true : undefined;
-            let minQty = this.safeNumber (market, 'minQty');
-            let maxQty = this.safeNumber (market, 'maxQty');
-            let minPrice = this.safeNumber (market, 'tickSize');
-            let maxPrice: Num = undefined;
+            const minQty = this.safeNumber (market, 'minQty');
+            const maxQty = this.safeNumber (market, 'maxQty');
+            const minPrice = this.safeNumber (market, 'tickSize');
+            const maxPrice: Num = undefined;
             const underlying = this.safeString2 (market, 'underlying', 'symbol');
             const parts = underlying.split ('/');
             const baseId = this.safeString (parts, 0);
             const quoteId = this.safeString (parts, 1);
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            let symbol = base + '/' + quote;
-            if (swap) {
-                const lotSizeFilter = this.safeDict (market, 'lotSizeFilter');
-                minQty = this.safeNumber (lotSizeFilter, 'minQty');
-                maxQty = this.safeNumber (lotSizeFilter, 'maxQty');
-                const priceFilter = this.safeDict (market, 'priceFilter');
-                minPrice = this.safeNumber (priceFilter, 'minPrice');
-                maxPrice = this.safeNumber (priceFilter, 'maxPrice');
-                symbol = base + '/' + quote + ':' + settle;
-            }
             const fee = this.safeNumber (market, 'commissionReserveRate');
             const marginTradable = this.safeBool (market, 'marginTradable', false);
             result.push ({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
-                'quote': quote,
-                'settle': settle,
                 'baseId': baseId,
+                'quote': quote,
                 'quoteId': quoteId,
-                'settleId': settleId,
-                'type': swap ? 'swap' : 'spot',
-                'spot': spot,
-                'margin': spot ? marginTradable : undefined,
-                'swap': swap,
+                'settle': undefined,
+                'settleId': undefined,
+                'type': 'spot',
+                'spot': true,
+                'margin': marginTradable,
+                'swap': false,
                 'future': false,
                 'option': false,
                 'active': active,
-                'contract': swap,
-                'linear': linear,
-                'inverse': swap ? !linear : undefined,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
                 'taker': fee,
                 'maker': fee,
-                'contractSize': swap ? this.parseNumber ('1') : undefined,
+                'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
@@ -689,6 +736,119 @@ export default class ascendex extends Exchange {
         return result;
     }
 
+    async fetchContractMarkets (params = {}): Promise<Market[]> {
+        const contracts = await this.v2PublicGetFuturesContract (params);
+        //
+        //    {
+        //        "code": 0,
+        //        "data": [
+        //            {
+        //                "symbol": "BTC-PERP",
+        //                "status": "Normal",
+        //                "displayName": "BTCUSDT",
+        //                "settlementAsset": "USDT",
+        //                "underlying": "BTC/USDT",
+        //                "tradingStartTime": 1579701600000,
+        //                "priceFilter": {
+        //                    "minPrice": "0.1",
+        //                    "maxPrice": "1000000",
+        //                    "tickSize": "0.1"
+        //                },
+        //                "lotSizeFilter": {
+        //                    "minQty": "0.0001",
+        //                    "maxQty": "1000000000",
+        //                    "lotSize": "0.0001"
+        //                },
+        //                "commissionType": "Quote",
+        //                "commissionReserveRate": "0.001",
+        //                "marketOrderPriceMarkup": "0.03",
+        //                "marginRequirements": [
+        //                    {
+        //                        "positionNotionalLowerBound": "0",
+        //                        "positionNotionalUpperBound": "50000",
+        //                        "initialMarginRate": "0.01",
+        //                        "maintenanceMarginRate": "0.006"
+        //                    },
+        //                    ...
+        //                ]
+        //            }
+        //        ]
+        //    }
+        //
+        const data = this.safeList (contracts, 'data', []);
+        const result = [];
+        for (let i = 0; i < data.length; i++) {
+            const market = data[i];
+            const id = this.safeString (market, 'symbol');
+            const underlying = this.safeString (market, 'underlying');
+            const parts = underlying.split ('/');
+            const baseId = this.safeString (parts, 0);
+            const base = this.safeCurrencyCode (baseId);
+            const quoteId = this.safeString (parts, 1);
+            const quote = this.safeCurrencyCode (quoteId);
+            const settleId = this.safeString (market, 'settlementAsset');
+            const settle = this.safeCurrencyCode (settleId);
+            const linear = settle === quote;
+            const inverse = settle === base;
+            const symbol = base + '/' + quote + ':' + settle;
+            const priceFilter = this.safeDict (market, 'priceFilter');
+            const lotSizeFilter = this.safeDict (market, 'lotSizeFilter');
+            const fee = this.safeNumber (market, 'commissionReserveRate');
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'settle': settle,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': settleId,
+                'type': 'swap',
+                'spot': false,
+                'margin': undefined,
+                'swap': true,
+                'future': false,
+                'option': false,
+                'active': this.safeString (market, 'status') === 'Normal',
+                'contract': true,
+                'linear': linear,
+                'inverse': inverse,
+                'taker': fee,
+                'maker': fee,
+                'contractSize': this.parseNumber ('1'),
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.safeNumber (lotSizeFilter, 'lotSize'),
+                    'price': this.safeNumber (priceFilter, 'tickSize'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': this.safeNumber (lotSizeFilter, 'minQty'),
+                        'max': this.safeNumber (lotSizeFilter, 'maxQty'),
+                    },
+                    'price': {
+                        'min': this.safeNumber (priceFilter, 'minPrice'),
+                        'max': this.safeNumber (priceFilter, 'maxPrice'),
+                    },
+                    'cost': {
+                        'min': this.safeNumber (market, 'minNotional'),
+                        'max': this.safeNumber (market, 'maxNotional'),
+                    },
+                },
+                'created': this.safeInteger (market, 'tradingStartTime'),
+                'info': market,
+            });
+        }
+        return result;
+    }
+
     /**
      * @method
      * @name ascendex#fetchTime
@@ -696,7 +856,7 @@ export default class ascendex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the ascendex server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         const request: Dict = {
             'requestTime': this.milliseconds (),
         };
@@ -1126,6 +1286,7 @@ export default class ascendex extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
@@ -1140,6 +1301,7 @@ export default class ascendex extends Exchange {
         const duration = this.parseTimeframe (timeframe);
         const options = this.safeDict (this.options, 'fetchOHLCV', {});
         const defaultLimit = this.safeInteger (options, 'limit', 500);
+        const until = this.safeInteger (params, 'until');
         if (since !== undefined) {
             request['from'] = since;
             if (limit === undefined) {
@@ -1147,10 +1309,24 @@ export default class ascendex extends Exchange {
             } else {
                 limit = Math.min (limit, defaultLimit);
             }
-            request['to'] = this.sum (since, limit * duration * 1000, 1);
+            const toWithLimit = this.sum (since, limit * duration * 1000, 1);
+            if (until !== undefined) {
+                request['to'] = Math.min (toWithLimit, until + 1);
+            } else {
+                request['to'] = toWithLimit;
+            }
+        } else if (until !== undefined) {
+            request['to'] = until + 1;
+            if (limit === undefined) {
+                limit = defaultLimit;
+            } else {
+                limit = Math.min (limit, defaultLimit);
+            }
+            request['from'] = until - (limit * duration * 1000);
         } else if (limit !== undefined) {
             request['n'] = limit; // max 500
         }
+        params = this.omit (params, 'until');
         const response = await this.v1PublicGetBarhist (this.extend (request, params));
         //
         //     {
@@ -1408,7 +1584,7 @@ export default class ascendex extends Exchange {
                 'currency': feeCurrencyCode,
             };
         }
-        const stopPrice = this.omitZero (this.safeString (order, 'stopPrice'));
+        const triggerPrice = this.omitZero (this.safeString (order, 'stopPrice'));
         let reduceOnly = undefined;
         const execInst = this.safeString (order, 'execInst');
         if (execInst === 'reduceOnly') {
@@ -1432,8 +1608,7 @@ export default class ascendex extends Exchange {
             'reduceOnly': reduceOnly,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'amount': amount,
             'cost': undefined,
             'average': average,
@@ -1511,7 +1686,7 @@ export default class ascendex extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
          * @param {bool} [params.postOnly] true or false
-         * @param {float} [params.stopPrice] the price at which a trigger order is triggered at
+         * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
          * @returns {object} request to be sent to the exchange
          */
         const market = this.market (symbol);
@@ -1543,7 +1718,7 @@ export default class ascendex extends Exchange {
         const timeInForce = this.safeString (params, 'timeInForce');
         const postOnly = this.isPostOnly (isMarketOrder, false, params);
         const reduceOnly = this.safeBool (params, 'reduceOnly', false);
-        const stopPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         if (isLimitOrder) {
             request['orderPrice'] = this.priceToPrecision (symbol, price);
         }
@@ -1556,8 +1731,8 @@ export default class ascendex extends Exchange {
         if (postOnly) {
             request['postOnly'] = true;
         }
-        if (stopPrice !== undefined) {
-            request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
+        if (triggerPrice !== undefined) {
+            request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
             if (isLimitOrder) {
                 request['orderType'] = 'stop_limit';
             } else if (isMarketOrder) {
@@ -1598,7 +1773,7 @@ export default class ascendex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
      * @param {bool} [params.postOnly] true or false
-     * @param {float} [params.stopPrice] the price at which a trigger order is triggered at
+     * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
      * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice that the attached take profit order will be triggered (perpetual swap markets only)
      * @param {float} [params.takeProfit.triggerPrice] *swap only* take profit trigger price
      * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice that the attached stop loss order will be triggered (perpetual swap markets only)
@@ -1694,7 +1869,7 @@ export default class ascendex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
      * @param {bool} [params.postOnly] true or false
-     * @param {float} [params.stopPrice] the price at which a trigger order is triggered at
+     * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrders (orders: OrderRequest[], params = {}) {
@@ -1936,7 +2111,7 @@ export default class ascendex extends Exchange {
         //         "code": 0,
         //         "data": [
         //             {
-        //                 "avgPx": "0",         // Average filled price of the order
+        //                 "avgPx": "0",        // Average filled price of the order
         //                 "cumFee": "0",       // cumulative fee paid for this order
         //                 "cumFilledQty": "0", // cumulative filled quantity
         //                 "errorCode": "",     // error code; could be empty
@@ -2649,7 +2824,7 @@ export default class ascendex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    async fetchPositions (symbols: Strings = undefined, params = {}) {
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         await this.loadAccounts ();
         const account = this.safeDict (this.accounts, 0, {});
@@ -2850,8 +3025,7 @@ export default class ascendex extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         const contracts = this.safeList (data, 'contracts', []);
-        const result = this.parseFundingRates (contracts);
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.parseFundingRates (contracts, symbols);
     }
 
     async modifyMarginHelper (symbol: string, amount, type, params = {}): Promise<MarginModification> {

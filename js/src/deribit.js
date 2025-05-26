@@ -40,6 +40,7 @@ export default class deribit extends Exchange {
                 'cancelOrders': false,
                 'createDepositAddress': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
@@ -281,6 +282,92 @@ export default class deribit extends Exchange {
                     },
                 },
             },
+            'features': {
+                'default': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        // todo implement
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': true,
+                            'index': true,
+                        },
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': true,
+                        },
+                        'hedged': false,
+                        'selfTradePrevention': false,
+                        'trailing': true,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
+                        'iceberg': true, // todo
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'symbolRequired': true, // todo
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true, // todo
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true, // todo
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true, // todo
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000, // todo: recheck
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+            },
             'exceptions': {
                 // 0 or absent Success, No error.
                 '9999': PermissionDenied,
@@ -400,9 +487,6 @@ export default class deribit extends Exchange {
             'options': {
                 'code': 'BTC',
                 'fetchBalance': {
-                    'code': 'BTC',
-                },
-                'fetchPositions': {
                     'code': 'BTC',
                 },
                 'transfer': {
@@ -553,21 +637,21 @@ export default class deribit extends Exchange {
         //      "testnet": true
         //    }
         //
-        const data = this.safeValue(response, 'result', {});
+        const data = this.safeList(response, 'result', []);
         const result = {};
         for (let i = 0; i < data.length; i++) {
             const currency = data[i];
             const currencyId = this.safeString(currency, 'currency');
             const code = this.safeCurrencyCode(currencyId);
-            const name = this.safeString(currency, 'currency_long');
-            result[code] = {
+            result[code] = this.safeCurrencyStructure({
                 'info': currency,
                 'code': code,
                 'id': currencyId,
-                'name': name,
+                'name': this.safeString(currency, 'currency_long'),
                 'active': undefined,
                 'deposit': undefined,
                 'withdraw': undefined,
+                'type': 'crypto',
                 'fee': this.safeNumber(currency, 'withdrawal_fee'),
                 'precision': this.parseNumber(this.parsePrecision(this.safeString(currency, 'fee_precision'))),
                 'limits': {
@@ -585,7 +669,7 @@ export default class deribit extends Exchange {
                     },
                 },
                 'networks': undefined,
-            };
+            });
         }
         return result;
     }
@@ -676,7 +760,7 @@ export default class deribit extends Exchange {
         const result = this.safeValue(response, 'result', []);
         return this.parseAccounts(result);
     }
-    parseAccount(account, currency = undefined) {
+    parseAccount(account) {
         //
         //      {
         //          "username": "someusername_1",
@@ -695,7 +779,7 @@ export default class deribit extends Exchange {
             'info': account,
             'id': this.safeString(account, 'id'),
             'type': this.safeString(account, 'type'),
-            'code': this.safeCurrencyCode(undefined, currency),
+            'code': undefined,
         };
     }
     /**
@@ -1067,6 +1151,7 @@ export default class deribit extends Exchange {
             'currency': code,
             'address': address,
             'tag': undefined,
+            'network': undefined,
             'info': response,
         };
     }
@@ -1251,8 +1336,21 @@ export default class deribit extends Exchange {
     async fetchTickers(symbols = undefined, params = {}) {
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        const code = this.safeString2(params, 'code', 'currency');
+        let code = this.safeString2(params, 'code', 'currency');
+        let type = undefined;
         params = this.omit(params, ['code']);
+        if (symbols !== undefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                const market = this.market(symbols[i]);
+                if (code !== undefined && code !== market['base']) {
+                    throw new BadRequest(this.id + ' fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/#public-get_book_summary_by_currency');
+                }
+                if (code === undefined) {
+                    code = market['base'];
+                    type = market['type'];
+                }
+            }
+        }
         if (code === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchTickers requires a currency/code (eg: BTC/ETH/USDT) parameter to fetch tickers for');
         }
@@ -1260,6 +1358,21 @@ export default class deribit extends Exchange {
         const request = {
             'currency': currency['id'],
         };
+        if (type !== undefined) {
+            let requestType = undefined;
+            if (type === 'spot') {
+                requestType = 'spot';
+            }
+            else if (type === 'future' || (type === 'contract')) {
+                requestType = 'future';
+            }
+            else if (type === 'option') {
+                requestType = 'option';
+            }
+            if (requestType !== undefined) {
+                request['kind'] = requestType;
+            }
+        }
         const response = await this.publicGetGetBookSummaryByCurrency(this.extend(request, params));
         //
         //     {
@@ -1815,7 +1928,6 @@ export default class deribit extends Exchange {
         // injected in createOrder
         const trades = this.safeValue(order, 'trades');
         const timeInForce = this.parseTimeInForce(this.safeString(order, 'time_in_force'));
-        const stopPrice = this.safeValue(order, 'stop_price');
         const postOnly = this.safeValue(order, 'post_only');
         return this.safeOrder({
             'info': order,
@@ -1830,8 +1942,7 @@ export default class deribit extends Exchange {
             'postOnly': postOnly,
             'side': side,
             'price': priceString,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': this.safeValue(order, 'stop_price'),
             'amount': amount,
             'cost': cost,
             'average': averageString,
@@ -2667,38 +2778,19 @@ export default class deribit extends Exchange {
      * @see https://docs.deribit.com/#private-get_positions
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.currency] currency code filter for positions
      * @param {string} [params.kind] market type filter for positions 'future', 'option', 'spot', 'future_combo' or 'option_combo'
+     * @param {int} [params.subaccount_id] the user id for the subaccount
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
         await this.loadMarkets();
-        let kind = this.safeString(params, 'kind');
-        let code = undefined;
-        if (symbols === undefined) {
-            code = this.codeFromOptions('fetchPositions', params);
-        }
-        else if (typeof symbols === 'string') {
-            code = symbols;
-            symbols = undefined; // fix https://github.com/ccxt/ccxt/issues/13961
-        }
-        else {
-            if (Array.isArray(symbols)) {
-                const length = symbols.length;
-                if (length !== 1) {
-                    throw new BadRequest(this.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol');
-                }
-                const market = this.market(symbols[0]);
-                const settle = market['settle'];
-                code = (settle !== undefined) ? settle : market['base'];
-                kind = market['info']['kind'];
-            }
-        }
-        const currency = this.currency(code);
-        const request = {
-            'currency': currency['id'],
-        };
-        if (kind !== undefined) {
-            request['kind'] = kind;
+        const code = this.safeString(params, 'currency');
+        const request = {};
+        if (code !== undefined) {
+            params = this.omit(params, 'currency');
+            const currency = this.currency(code);
+            request['currency'] = currency['id'];
         }
         const response = await this.privateGetGetPositions(this.extend(request, params));
         //
@@ -3084,7 +3176,7 @@ export default class deribit extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch funding rate history for
      * @param {int} [limit] the maximum number of entries to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.end_timestamp] fetch funding rate ending at this timestamp
+     * @param {int} [params.until] fetch funding rate ending at this timestamp
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
      */
@@ -3093,19 +3185,38 @@ export default class deribit extends Exchange {
         const market = this.market(symbol);
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
+        const maxEntriesPerRequest = 744; // seems exchange returns max 744 items per request
+        const eachItemDuration = '1h';
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params, 720);
+            // fix for: https://github.com/ccxt/ccxt/issues/25040
+            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, eachItemDuration, this.extend(params, { 'isDeribitPaginationCall': true }), maxEntriesPerRequest);
         }
-        const time = this.milliseconds();
+        const duration = this.parseTimeframe(eachItemDuration) * 1000;
+        let time = this.milliseconds();
         const month = 30 * 24 * 60 * 60 * 1000;
         if (since === undefined) {
             since = time - month;
         }
+        else {
+            time = since + month;
+        }
         const request = {
             'instrument_name': market['id'],
             'start_timestamp': since - 1,
-            'end_timestamp': time,
         };
+        const until = this.safeInteger2(params, 'until', 'end_timestamp');
+        if (until !== undefined) {
+            params = this.omit(params, ['until']);
+            request['end_timestamp'] = until;
+        }
+        else {
+            request['end_timestamp'] = time;
+        }
+        if ('isDeribitPaginationCall' in params) {
+            params = this.omit(params, 'isDeribitPaginationCall');
+            const maxUntil = this.sum(since, limit * duration);
+            request['end_timestamp'] = Math.min(request['end_timestamp'], maxUntil);
+        }
         const response = await this.publicGetGetFundingRateHistory(this.extend(request, params));
         //
         //    {

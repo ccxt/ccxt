@@ -227,6 +227,8 @@ interface Exchange {
     sapiGetPortfolioRepayFuturesSwitch (params?: {}): Promise<implicitReturnType>;
     sapiGetPortfolioMarginAssetLeverage (params?: {}): Promise<implicitReturnType>;
     sapiGetPortfolioBalance (params?: {}): Promise<implicitReturnType>;
+    sapiGetPortfolioNegativeBalanceExchangeRecord (params?: {}): Promise<implicitReturnType>;
+    sapiGetPortfolioPmloanHistory (params?: {}): Promise<implicitReturnType>;
     sapiGetStakingProductList (params?: {}): Promise<implicitReturnType>;
     sapiGetStakingPosition (params?: {}): Promise<implicitReturnType>;
     sapiGetStakingStakingRecord (params?: {}): Promise<implicitReturnType>;
@@ -367,6 +369,8 @@ interface Exchange {
     sapiPostPortfolioBnbTransfer (params?: {}): Promise<implicitReturnType>;
     sapiPostPortfolioRepayFuturesSwitch (params?: {}): Promise<implicitReturnType>;
     sapiPostPortfolioRepayFuturesNegativeBalance (params?: {}): Promise<implicitReturnType>;
+    sapiPostPortfolioMint (params?: {}): Promise<implicitReturnType>;
+    sapiPostPortfolioRedeem (params?: {}): Promise<implicitReturnType>;
     sapiPostLendingAutoInvestPlanAdd (params?: {}): Promise<implicitReturnType>;
     sapiPostLendingAutoInvestPlanEdit (params?: {}): Promise<implicitReturnType>;
     sapiPostLendingAutoInvestPlanEditStatus (params?: {}): Promise<implicitReturnType>;
@@ -606,6 +610,7 @@ interface Exchange {
     eapiPrivateGetBlockOrderOrders (params?: {}): Promise<implicitReturnType>;
     eapiPrivateGetBlockOrderExecute (params?: {}): Promise<implicitReturnType>;
     eapiPrivateGetBlockUserTrades (params?: {}): Promise<implicitReturnType>;
+    eapiPrivateGetBlockTrades (params?: {}): Promise<implicitReturnType>;
     eapiPrivatePostOrder (params?: {}): Promise<implicitReturnType>;
     eapiPrivatePostBatchOrders (params?: {}): Promise<implicitReturnType>;
     eapiPrivatePostListenKey (params?: {}): Promise<implicitReturnType>;
@@ -731,6 +736,7 @@ interface Exchange {
     papiGetUmSymbolConfig (params?: {}): Promise<implicitReturnType>;
     papiGetCmAccountConfig (params?: {}): Promise<implicitReturnType>;
     papiGetCmSymbolConfig (params?: {}): Promise<implicitReturnType>;
+    papiGetRateLimitOrder (params?: {}): Promise<implicitReturnType>;
     papiPostUmOrder (params?: {}): Promise<implicitReturnType>;
     papiPostUmConditionalOrder (params?: {}): Promise<implicitReturnType>;
     papiPostCmOrder (params?: {}): Promise<implicitReturnType>;

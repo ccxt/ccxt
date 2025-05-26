@@ -1,10 +1,5 @@
 {
     "BTC": {
-        "id": "BTC",
-        "name": "Bitcoin",
-        "code": "BTC",
-        "type": "crypto",
-        "precision": 1e-8,
         "info": {
             "currency": "BTC",
             "name": "BTC",
@@ -17,75 +12,153 @@
             "chains": [
                 {
                     "chainName": "BTC",
-                    "withdrawalMinSize": "0.0008",
-                    "withdrawalMinFee": "0.0005",
+                    "withdrawalMinSize": "0.0009",
+                    "depositMinSize": "0.0002",
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "0.00045",
                     "isWithdrawEnabled": true,
                     "isDepositEnabled": true,
                     "confirms": 3,
                     "preConfirms": 1,
                     "contractAddress": "",
+                    "withdrawPrecision": 8,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "btc"
+                },
+                {
+                    "chainName": "Lightning Network",
+                    "withdrawalMinSize": "0.00001",
+                    "depositMinSize": "0.00001",
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "0.000015",
+                    "isWithdrawEnabled": true,
+                    "isDepositEnabled": true,
+                    "confirms": 1,
+                    "preConfirms": 1,
+                    "contractAddress": "",
+                    "withdrawPrecision": 8,
+                    "maxWithdraw": null,
+                    "maxDeposit": "0.03",
+                    "needTag": false,
+                    "chainId": "btcln"
                 },
                 {
                     "chainName": "KCC",
                     "withdrawalMinSize": "0.0008",
+                    "depositMinSize": null,
+                    "withdrawFeeRate": "0",
                     "withdrawalMinFee": "0.00002",
                     "isWithdrawEnabled": true,
                     "isDepositEnabled": true,
                     "confirms": 20,
                     "preConfirms": 20,
                     "contractAddress": "0xfa93c12cd345c658bc4644d1d4e1b9615952258c",
+                    "withdrawPrecision": 8,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "kcc"
                 },
                 {
                     "chainName": "BTC-Segwit",
                     "withdrawalMinSize": "0.0008",
+                    "depositMinSize": "0.0002",
+                    "withdrawFeeRate": "0",
                     "withdrawalMinFee": "0.0005",
                     "isWithdrawEnabled": false,
                     "isDepositEnabled": true,
                     "confirms": 2,
                     "preConfirms": 2,
                     "contractAddress": "",
+                    "withdrawPrecision": 8,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "bech32"
                 }
             ]
         },
+        "id": "BTC",
+        "code": "BTC",
+        "precision": 1e-8,
+        "type": "crypto",
+        "name": "Bitcoin",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "limits": {
-            "leverage": {},
-            "amount": {},
-            "price": {},
-            "cost": {}
-        },
+        "fee": 0.000015,
+        "fees": {},
         "networks": {
-            "BTC": {
+            "BRC20": {
                 "info": {
                     "chainName": "BTC",
-                    "withdrawalMinSize": "0.0008",
-                    "withdrawalMinFee": "0.0005",
+                    "withdrawalMinSize": "0.0009",
+                    "depositMinSize": "0.0002",
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "0.00045",
                     "isWithdrawEnabled": true,
                     "isDepositEnabled": true,
                     "confirms": 3,
                     "preConfirms": 1,
                     "contractAddress": "",
+                    "withdrawPrecision": 8,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "btc"
                 },
                 "id": "btc",
                 "name": "BTC",
-                "code": "BTC",
+                "code": "BRC20",
                 "active": true,
-                "fee": 0.0005,
+                "fee": 0.00045,
                 "deposit": true,
                 "withdraw": true,
                 "precision": 1e-8,
                 "limits": {
                     "withdraw": {
-                        "min": 0.0008
+                        "min": 0.0009
                     },
                     "deposit": {
                         "min": 0.0002
+                    }
+                }
+            },
+            "btcln": {
+                "info": {
+                    "chainName": "Lightning Network",
+                    "withdrawalMinSize": "0.00001",
+                    "depositMinSize": "0.00001",
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "0.000015",
+                    "isWithdrawEnabled": true,
+                    "isDepositEnabled": true,
+                    "confirms": 1,
+                    "preConfirms": 1,
+                    "contractAddress": "",
+                    "withdrawPrecision": 8,
+                    "maxWithdraw": null,
+                    "maxDeposit": "0.03",
+                    "needTag": false,
+                    "chainId": "btcln"
+                },
+                "id": "btcln",
+                "name": "Lightning Network",
+                "code": "btcln",
+                "active": true,
+                "fee": 0.000015,
+                "deposit": true,
+                "withdraw": true,
+                "precision": 1e-8,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.00001
+                    },
+                    "deposit": {
+                        "min": 0.00001,
+                        "max": 0.03
                     }
                 }
             },
@@ -93,12 +166,18 @@
                 "info": {
                     "chainName": "KCC",
                     "withdrawalMinSize": "0.0008",
+                    "depositMinSize": null,
+                    "withdrawFeeRate": "0",
                     "withdrawalMinFee": "0.00002",
                     "isWithdrawEnabled": true,
                     "isDepositEnabled": true,
                     "confirms": 20,
                     "preConfirms": 20,
                     "contractAddress": "0xfa93c12cd345c658bc4644d1d4e1b9615952258c",
+                    "withdrawPrecision": 8,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "kcc"
                 },
                 "id": "kcc",
@@ -108,7 +187,7 @@
                 "fee": 0.00002,
                 "deposit": true,
                 "withdraw": true,
-                "precision": 1e-18,
+                "precision": 1e-8,
                 "limits": {
                     "withdraw": {
                         "min": 0.0008
@@ -120,12 +199,18 @@
                 "info": {
                     "chainName": "BTC-Segwit",
                     "withdrawalMinSize": "0.0008",
+                    "depositMinSize": "0.0002",
+                    "withdrawFeeRate": "0",
                     "withdrawalMinFee": "0.0005",
                     "isWithdrawEnabled": false,
                     "isDepositEnabled": true,
                     "confirms": 2,
                     "preConfirms": 2,
                     "contractAddress": "",
+                    "withdrawPrecision": 8,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "bech32"
                 },
                 "id": "bech32",
@@ -145,14 +230,18 @@
                     }
                 }
             }
+        },
+        "limits": {
+            "deposit": {
+                "min": 0.00001,
+                "max": 0.03
+            },
+            "withdraw": {
+                "min": 0.00001
+            }
         }
     },
     "USDT": {
-        "id": "USDT",
-        "name": "Tether",
-        "code": "USDT",
-        "type": "crypto",
-        "precision": 1e-8,
         "info": {
             "currency": "USDT",
             "name": "USDT",
@@ -164,173 +253,418 @@
             "isDebitEnabled": true,
             "chains": [
                 {
+                    "chainName": "Asset Hub(Polkadot)",
+                    "withdrawalMinSize": "10",
+                    "depositMinSize": "0.7",
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "1",
+                    "isWithdrawEnabled": false,
+                    "isDepositEnabled": true,
+                    "confirms": 30,
+                    "preConfirms": 30,
+                    "contractAddress": "1984",
+                    "withdrawPrecision": 6,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
+                    "chainId": "statemint"
+                },
+                {
+                    "chainName": "OPTIMISM",
+                    "withdrawalMinSize": "3",
+                    "depositMinSize": null,
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "1",
+                    "isWithdrawEnabled": true,
+                    "isDepositEnabled": true,
+                    "confirms": 250,
+                    "preConfirms": 100,
+                    "contractAddress": "0x94b008aa00579c1307b0ef2c499ad98a8ce58e58",
+                    "depositTierFee": "[{\"amountRange\":\"0,50000\",\"tierRate\":0},{\"amountRange\":\"50000,999999999\",\"tierRate\":0.0002}]",
+                    "withdrawPrecision": 6,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
+                    "chainId": "optimism"
+                },
+                {
+                    "chainName": "EOS",
+                    "withdrawalMinSize": "10",
+                    "depositMinSize": null,
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "1",
+                    "isWithdrawEnabled": false,
+                    "isDepositEnabled": false,
+                    "confirms": 1,
+                    "preConfirms": 1,
+                    "contractAddress": "tethertether",
+                    "withdrawPrecision": 4,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": true,
+                    "chainId": "eos"
+                },
+                {
+                    "chainName": "KCC",
+                    "withdrawalMinSize": "1",
+                    "depositMinSize": null,
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "0.5",
+                    "isWithdrawEnabled": true,
+                    "isDepositEnabled": true,
+                    "confirms": 20,
+                    "preConfirms": 20,
+                    "contractAddress": "0x0039f574ee5cc39bdd162e9a88e3eb1f111baf48",
+                    "withdrawPrecision": 8,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
+                    "chainId": "kcc"
+                },
+                {
                     "chainName": "SOL",
                     "withdrawalMinSize": "2",
-                    "withdrawalMinFee": "0.8",
+                    "depositMinSize": null,
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "1",
                     "isWithdrawEnabled": true,
                     "isDepositEnabled": true,
                     "confirms": 200,
                     "preConfirms": 200,
                     "contractAddress": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+                    "withdrawPrecision": 6,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "sol"
                 },
                 {
+                    "chainName": "TON",
+                    "withdrawalMinSize": "1",
+                    "depositMinSize": "0.1",
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "0.5",
+                    "isWithdrawEnabled": true,
+                    "isDepositEnabled": true,
+                    "confirms": 1,
+                    "preConfirms": 1,
+                    "contractAddress": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs",
+                    "withdrawPrecision": 6,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": true,
+                    "chainId": "ton"
+                },
+                {
                     "chainName": "BEP20",
-                    "withdrawalMinSize": "3",
+                    "withdrawalMinSize": "5",
+                    "depositMinSize": "1",
+                    "withdrawFeeRate": "0",
                     "withdrawalMinFee": "1",
                     "isWithdrawEnabled": true,
                     "isDepositEnabled": true,
                     "confirms": 32,
                     "preConfirms": 32,
                     "contractAddress": "0x55d398326f99059ff775485246999027b3197955",
-                    "depositFeeRate": "0.002",
+                    "depositTierFee": "[{\"amountRange\":\"0,100000\",\"tierRate\":0},{\"amountRange\":\"100000,999999999\",\"tierRate\":0.0002}]",
+                    "withdrawPrecision": 8,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "bsc"
-                },
-                {
-                    "chainName": "OPTIMISM",
-                    "withdrawalMinSize": "5",
-                    "withdrawalMinFee": "0.8",
-                    "isWithdrawEnabled": false,
-                    "isDepositEnabled": true,
-                    "confirms": 100,
-                    "preConfirms": 100,
-                    "contractAddress": "0x94b008aa00579c1307b0ef2c499ad98a8ce58e58",
-                    "depositFeeRate": "0.002",
-                    "chainId": "optimism"
                 },
                 {
                     "chainName": "KAVA EVM Co-Chain",
                     "withdrawalMinSize": "3",
+                    "depositMinSize": null,
+                    "withdrawFeeRate": "0",
                     "withdrawalMinFee": "1",
                     "isWithdrawEnabled": true,
                     "isDepositEnabled": true,
                     "confirms": 20,
                     "preConfirms": 20,
                     "contractAddress": "0x919c1c267bc06a7039e03fcc2ef738525769109c",
-                    "depositFeeRate": "0.001",
+                    "withdrawPrecision": 6,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "kavaevm"
                 },
                 {
-                    "chainName": "EOS",
-                    "withdrawalMinSize": "2",
-                    "withdrawalMinFee": "0.5",
-                    "isWithdrawEnabled": false,
-                    "isDepositEnabled": true,
-                    "confirms": 1,
-                    "preConfirms": 1,
-                    "contractAddress": "tethertether",
-                    "chainId": "eos"
-                },
-                {
                     "chainName": "ERC20",
-                    "withdrawalMinSize": "40",
-                    "withdrawalMinFee": "25",
+                    "withdrawalMinSize": "30",
+                    "depositMinSize": "7.5",
+                    "withdrawFeeRate": "0.002",
+                    "withdrawMaxFee": "36",
+                    "withdrawalMinFee": "5.5",
                     "isWithdrawEnabled": true,
                     "isDepositEnabled": true,
                     "confirms": 64,
                     "preConfirms": 12,
                     "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                    "withdrawPrecision": 6,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "eth"
-                },
-                {
-                    "chainName": "KCC",
-                    "withdrawalMinSize": "0.55",
-                    "withdrawalMinFee": "0.500",
-                    "isWithdrawEnabled": true,
-                    "isDepositEnabled": true,
-                    "confirms": 20,
-                    "preConfirms": 20,
-                    "contractAddress": "0x0039f574ee5cc39bdd162e9a88e3eb1f111baf48",
-                    "chainId": "kcc"
                 },
                 {
                     "chainName": "NEAR",
                     "withdrawalMinSize": "3",
+                    "depositMinSize": null,
+                    "withdrawFeeRate": "0",
                     "withdrawalMinFee": "1",
                     "isWithdrawEnabled": true,
                     "isDepositEnabled": true,
                     "confirms": 5,
                     "preConfirms": 5,
                     "contractAddress": "usdt.tether-token.near",
-                    "depositFeeRate": "0.001",
+                    "withdrawPrecision": 6,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "near"
                 },
                 {
                     "chainName": "TRC20",
                     "withdrawalMinSize": "3",
-                    "withdrawalMinFee": "1.3",
+                    "depositMinSize": "1",
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "1.5",
                     "isWithdrawEnabled": true,
                     "isDepositEnabled": true,
                     "confirms": 3,
                     "preConfirms": 3,
                     "contractAddress": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+                    "withdrawPrecision": 6,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "trx"
                 },
                 {
                     "chainName": "ALGO",
                     "withdrawalMinSize": "3",
+                    "depositMinSize": null,
+                    "withdrawFeeRate": "0",
                     "withdrawalMinFee": "2",
-                    "isWithdrawEnabled": true,
-                    "isDepositEnabled": true,
+                    "isWithdrawEnabled": false,
+                    "isDepositEnabled": false,
                     "confirms": 8,
                     "preConfirms": 8,
                     "contractAddress": "312769",
-                    "depositFeeRate": "0.001",
+                    "withdrawPrecision": 6,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "algo"
                 },
                 {
                     "chainName": "XTZ",
                     "withdrawalMinSize": "2",
+                    "depositMinSize": null,
+                    "withdrawFeeRate": "0",
                     "withdrawalMinFee": "1",
-                    "isWithdrawEnabled": false,
+                    "isWithdrawEnabled": true,
                     "isDepositEnabled": true,
                     "confirms": 10,
                     "preConfirms": 10,
                     "contractAddress": "KT1XnTn74bUtxHfDtBmm2bGZAQfhPbvKWR8o",
-                    "depositFeeRate": "0.001",
+                    "withdrawPrecision": 6,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "xtz"
                 },
                 {
                     "chainName": "ARBITRUM",
                     "withdrawalMinSize": "5",
-                    "withdrawalMinFee": "0.8",
+                    "depositMinSize": null,
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "1",
                     "isWithdrawEnabled": false,
                     "isDepositEnabled": true,
                     "confirms": 120,
                     "preConfirms": 120,
                     "contractAddress": "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9",
-                    "depositFeeRate": "0.002",
+                    "depositTierFee": "[{\"amountRange\":\"0,50000\",\"tierRate\":0},{\"amountRange\":\"50000,999999999\",\"tierRate\":0.0002}]",
+                    "withdrawPrecision": 6,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "arbitrum"
                 }
             ]
         },
+        "id": "USDT",
+        "code": "USDT",
+        "precision": 1e-8,
+        "type": "crypto",
+        "name": "Tether",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "limits": {
-            "leverage": {},
-            "amount": {},
-            "price": {},
-            "cost": {}
-        },
+        "fee": 0.5,
+        "fees": {},
         "networks": {
+            "statemint": {
+                "info": {
+                    "chainName": "Asset Hub(Polkadot)",
+                    "withdrawalMinSize": "10",
+                    "depositMinSize": "0.7",
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "1",
+                    "isWithdrawEnabled": false,
+                    "isDepositEnabled": true,
+                    "confirms": 30,
+                    "preConfirms": 30,
+                    "contractAddress": "1984",
+                    "withdrawPrecision": 6,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
+                    "chainId": "statemint"
+                },
+                "id": "statemint",
+                "name": "Asset Hub(Polkadot)",
+                "code": "statemint",
+                "active": false,
+                "fee": 1,
+                "deposit": true,
+                "withdraw": false,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {
+                        "min": 10
+                    },
+                    "deposit": {
+                        "min": 0.7
+                    }
+                }
+            },
+            "OP": {
+                "info": {
+                    "chainName": "OPTIMISM",
+                    "withdrawalMinSize": "3",
+                    "depositMinSize": null,
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "1",
+                    "isWithdrawEnabled": true,
+                    "isDepositEnabled": true,
+                    "confirms": 250,
+                    "preConfirms": 100,
+                    "contractAddress": "0x94b008aa00579c1307b0ef2c499ad98a8ce58e58",
+                    "depositTierFee": "[{\"amountRange\":\"0,50000\",\"tierRate\":0},{\"amountRange\":\"50000,999999999\",\"tierRate\":0.0002}]",
+                    "withdrawPrecision": 6,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
+                    "chainId": "optimism"
+                },
+                "id": "optimism",
+                "name": "OPTIMISM",
+                "code": "OP",
+                "active": true,
+                "fee": 1,
+                "deposit": true,
+                "withdraw": true,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {
+                        "min": 3
+                    },
+                    "deposit": {}
+                }
+            },
+            "EOS": {
+                "info": {
+                    "chainName": "EOS",
+                    "withdrawalMinSize": "10",
+                    "depositMinSize": null,
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "1",
+                    "isWithdrawEnabled": false,
+                    "isDepositEnabled": false,
+                    "confirms": 1,
+                    "preConfirms": 1,
+                    "contractAddress": "tethertether",
+                    "withdrawPrecision": 4,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": true,
+                    "chainId": "eos"
+                },
+                "id": "eos",
+                "name": "EOS",
+                "code": "EOS",
+                "active": false,
+                "fee": 1,
+                "deposit": false,
+                "withdraw": false,
+                "precision": 0.0001,
+                "limits": {
+                    "withdraw": {
+                        "min": 10
+                    },
+                    "deposit": {}
+                }
+            },
+            "KCC": {
+                "info": {
+                    "chainName": "KCC",
+                    "withdrawalMinSize": "1",
+                    "depositMinSize": null,
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "0.5",
+                    "isWithdrawEnabled": true,
+                    "isDepositEnabled": true,
+                    "confirms": 20,
+                    "preConfirms": 20,
+                    "contractAddress": "0x0039f574ee5cc39bdd162e9a88e3eb1f111baf48",
+                    "withdrawPrecision": 8,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
+                    "chainId": "kcc"
+                },
+                "id": "kcc",
+                "name": "KCC",
+                "code": "KCC",
+                "active": true,
+                "fee": 0.5,
+                "deposit": true,
+                "withdraw": true,
+                "precision": 1e-8,
+                "limits": {
+                    "withdraw": {
+                        "min": 1
+                    },
+                    "deposit": {}
+                }
+            },
             "SOL": {
                 "info": {
                     "chainName": "SOL",
                     "withdrawalMinSize": "2",
-                    "withdrawalMinFee": "0.8",
+                    "depositMinSize": null,
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "1",
                     "isWithdrawEnabled": true,
                     "isDepositEnabled": true,
                     "confirms": 200,
                     "preConfirms": 200,
                     "contractAddress": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+                    "withdrawPrecision": 6,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "sol"
                 },
                 "id": "sol",
                 "name": "SOL",
                 "code": "SOL",
                 "active": true,
-                "fee": 0.8,
+                "fee": 1,
                 "deposit": true,
                 "withdraw": true,
                 "precision": 0.000001,
@@ -341,17 +675,58 @@
                     "deposit": {}
                 }
             },
+            "TON": {
+                "info": {
+                    "chainName": "TON",
+                    "withdrawalMinSize": "1",
+                    "depositMinSize": "0.1",
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "0.5",
+                    "isWithdrawEnabled": true,
+                    "isDepositEnabled": true,
+                    "confirms": 1,
+                    "preConfirms": 1,
+                    "contractAddress": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs",
+                    "withdrawPrecision": 6,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": true,
+                    "chainId": "ton"
+                },
+                "id": "ton",
+                "name": "TON",
+                "code": "TON",
+                "active": true,
+                "fee": 0.5,
+                "deposit": true,
+                "withdraw": true,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {
+                        "min": 1
+                    },
+                    "deposit": {
+                        "min": 0.1
+                    }
+                }
+            },
             "BEP20": {
                 "info": {
                     "chainName": "BEP20",
-                    "withdrawalMinSize": "3",
+                    "withdrawalMinSize": "5",
+                    "depositMinSize": "1",
+                    "withdrawFeeRate": "0",
                     "withdrawalMinFee": "1",
                     "isWithdrawEnabled": true,
                     "isDepositEnabled": true,
                     "confirms": 32,
                     "preConfirms": 32,
                     "contractAddress": "0x55d398326f99059ff775485246999027b3197955",
-                    "depositFeeRate": "0.002",
+                    "depositTierFee": "[{\"amountRange\":\"0,100000\",\"tierRate\":0},{\"amountRange\":\"100000,999999999\",\"tierRate\":0.0002}]",
+                    "withdrawPrecision": 8,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "bsc"
                 },
                 "id": "bsc",
@@ -361,55 +736,32 @@
                 "fee": 1,
                 "deposit": true,
                 "withdraw": true,
-                "precision": 1e-18,
+                "precision": 1e-8,
                 "limits": {
                     "withdraw": {
-                        "min": 3
+                        "min": 5
                     },
                     "deposit": {
                         "min": 1
                     }
                 }
             },
-            "OPTIMISM": {
-                "info": {
-                    "chainName": "OPTIMISM",
-                    "withdrawalMinSize": "5",
-                    "withdrawalMinFee": "0.8",
-                    "isWithdrawEnabled": false,
-                    "isDepositEnabled": true,
-                    "confirms": 100,
-                    "preConfirms": 100,
-                    "contractAddress": "0x94b008aa00579c1307b0ef2c499ad98a8ce58e58",
-                    "depositFeeRate": "0.002",
-                    "chainId": "optimism"
-                },
-                "id": "optimism",
-                "name": "OPTIMISM",
-                "code": "OPTIMISM",
-                "active": false,
-                "fee": 0.8,
-                "deposit": true,
-                "withdraw": false,
-                "precision": 0.000001,
-                "limits": {
-                    "withdraw": {
-                        "min": 5
-                    },
-                    "deposit": {}
-                }
-            },
             "kavaevm": {
                 "info": {
                     "chainName": "KAVA EVM Co-Chain",
                     "withdrawalMinSize": "3",
+                    "depositMinSize": null,
+                    "withdrawFeeRate": "0",
                     "withdrawalMinFee": "1",
                     "isWithdrawEnabled": true,
                     "isDepositEnabled": true,
                     "confirms": 20,
                     "preConfirms": 20,
                     "contractAddress": "0x919c1c267bc06a7039e03fcc2ef738525769109c",
-                    "depositFeeRate": "0.001",
+                    "withdrawPrecision": 6,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "kavaevm"
                 },
                 "id": "kavaevm",
@@ -427,100 +779,58 @@
                     "deposit": {}
                 }
             },
-            "EOS": {
-                "info": {
-                    "chainName": "EOS",
-                    "withdrawalMinSize": "2",
-                    "withdrawalMinFee": "0.5",
-                    "isWithdrawEnabled": false,
-                    "isDepositEnabled": true,
-                    "confirms": 1,
-                    "preConfirms": 1,
-                    "contractAddress": "tethertether",
-                    "chainId": "eos"
-                },
-                "id": "eos",
-                "name": "EOS",
-                "code": "EOS",
-                "active": false,
-                "fee": 0.5,
-                "deposit": true,
-                "withdraw": false,
-                "precision": 0.0001,
-                "limits": {
-                    "withdraw": {
-                        "min": 2
-                    },
-                    "deposit": {}
-                }
-            },
             "ERC20": {
                 "info": {
                     "chainName": "ERC20",
-                    "withdrawalMinSize": "40",
-                    "withdrawalMinFee": "25",
+                    "withdrawalMinSize": "30",
+                    "depositMinSize": "7.5",
+                    "withdrawFeeRate": "0.002",
+                    "withdrawMaxFee": "36",
+                    "withdrawalMinFee": "5.5",
                     "isWithdrawEnabled": true,
                     "isDepositEnabled": true,
                     "confirms": 64,
                     "preConfirms": 12,
                     "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                    "withdrawPrecision": 6,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "eth"
                 },
                 "id": "eth",
                 "name": "ERC20",
                 "code": "ERC20",
                 "active": true,
-                "fee": 25,
+                "fee": 5.5,
                 "deposit": true,
                 "withdraw": true,
                 "precision": 0.000001,
                 "limits": {
                     "withdraw": {
-                        "min": 40
+                        "min": 30
                     },
                     "deposit": {
                         "min": 7.5
                     }
                 }
             },
-            "KCC": {
-                "info": {
-                    "chainName": "KCC",
-                    "withdrawalMinSize": "0.55",
-                    "withdrawalMinFee": "0.500",
-                    "isWithdrawEnabled": true,
-                    "isDepositEnabled": true,
-                    "confirms": 20,
-                    "preConfirms": 20,
-                    "contractAddress": "0x0039f574ee5cc39bdd162e9a88e3eb1f111baf48",
-                    "chainId": "kcc"
-                },
-                "id": "kcc",
-                "name": "KCC",
-                "code": "KCC",
-                "active": true,
-                "fee": 0.5,
-                "deposit": true,
-                "withdraw": true,
-                "precision": 1e-18,
-                "limits": {
-                    "withdraw": {
-                        "min": 0.55
-                    },
-                    "deposit": {}
-                }
-            },
             "NEAR": {
                 "info": {
                     "chainName": "NEAR",
                     "withdrawalMinSize": "3",
+                    "depositMinSize": null,
+                    "withdrawFeeRate": "0",
                     "withdrawalMinFee": "1",
                     "isWithdrawEnabled": true,
                     "isDepositEnabled": true,
                     "confirms": 5,
                     "preConfirms": 5,
                     "contractAddress": "usdt.tether-token.near",
-                    "depositFeeRate": "0.001",
+                    "withdrawPrecision": 6,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "near"
                 },
                 "id": "near",
@@ -542,19 +852,25 @@
                 "info": {
                     "chainName": "TRC20",
                     "withdrawalMinSize": "3",
-                    "withdrawalMinFee": "1.3",
+                    "depositMinSize": "1",
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "1.5",
                     "isWithdrawEnabled": true,
                     "isDepositEnabled": true,
                     "confirms": 3,
                     "preConfirms": 3,
                     "contractAddress": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+                    "withdrawPrecision": 6,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "trx"
                 },
                 "id": "trx",
                 "name": "TRC20",
                 "code": "TRC20",
                 "active": true,
-                "fee": 1.3,
+                "fee": 1.5,
                 "deposit": true,
                 "withdraw": true,
                 "precision": 0.000001,
@@ -571,22 +887,27 @@
                 "info": {
                     "chainName": "ALGO",
                     "withdrawalMinSize": "3",
+                    "depositMinSize": null,
+                    "withdrawFeeRate": "0",
                     "withdrawalMinFee": "2",
-                    "isWithdrawEnabled": true,
-                    "isDepositEnabled": true,
+                    "isWithdrawEnabled": false,
+                    "isDepositEnabled": false,
                     "confirms": 8,
                     "preConfirms": 8,
                     "contractAddress": "312769",
-                    "depositFeeRate": "0.001",
+                    "withdrawPrecision": 6,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "algo"
                 },
                 "id": "algo",
                 "name": "ALGO",
                 "code": "ALGO",
-                "active": true,
+                "active": false,
                 "fee": 2,
-                "deposit": true,
-                "withdraw": true,
+                "deposit": false,
+                "withdraw": false,
                 "precision": 0.000001,
                 "limits": {
                     "withdraw": {
@@ -599,22 +920,27 @@
                 "info": {
                     "chainName": "XTZ",
                     "withdrawalMinSize": "2",
+                    "depositMinSize": null,
+                    "withdrawFeeRate": "0",
                     "withdrawalMinFee": "1",
-                    "isWithdrawEnabled": false,
+                    "isWithdrawEnabled": true,
                     "isDepositEnabled": true,
                     "confirms": 10,
                     "preConfirms": 10,
                     "contractAddress": "KT1XnTn74bUtxHfDtBmm2bGZAQfhPbvKWR8o",
-                    "depositFeeRate": "0.001",
+                    "withdrawPrecision": 6,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "xtz"
                 },
                 "id": "xtz",
                 "name": "XTZ",
                 "code": "XTZ",
-                "active": false,
+                "active": true,
                 "fee": 1,
                 "deposit": true,
-                "withdraw": false,
+                "withdraw": true,
                 "precision": 0.000001,
                 "limits": {
                     "withdraw": {
@@ -627,20 +953,26 @@
                 "info": {
                     "chainName": "ARBITRUM",
                     "withdrawalMinSize": "5",
-                    "withdrawalMinFee": "0.8",
+                    "depositMinSize": null,
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "1",
                     "isWithdrawEnabled": false,
                     "isDepositEnabled": true,
                     "confirms": 120,
                     "preConfirms": 120,
                     "contractAddress": "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9",
-                    "depositFeeRate": "0.002",
+                    "depositTierFee": "[{\"amountRange\":\"0,50000\",\"tierRate\":0},{\"amountRange\":\"50000,999999999\",\"tierRate\":0.0002}]",
+                    "withdrawPrecision": 6,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "arbitrum"
                 },
                 "id": "arbitrum",
                 "name": "ARBITRUM",
                 "code": "ARBONE",
                 "active": false,
-                "fee": 0.8,
+                "fee": 1,
                 "deposit": true,
                 "withdraw": false,
                 "precision": 0.000001,
@@ -651,35 +983,15 @@
                     "deposit": {}
                 }
             }
-        }
-    },
-    "EUR": {
-        "id": "EUR",
-        "name": "Euro",
-        "code": "EUR",
-        "type": "fiat",
-        "precision": 0.01,
-        "info": {
-            "currency": "EUR",
-            "name": "EUR",
-            "fullName": "Euro",
-            "precision": 2,
-            "confirms": null,
-            "contractAddress": null,
-            "isMarginEnabled": false,
-            "isDebitEnabled": false,
-            "chains": null
         },
-        "active": false,
-        "deposit": false,
-        "withdraw": false,
         "limits": {
-            "leverage": {},
-            "amount": {},
-            "price": {},
-            "cost": {}
-        },
-        "networks": {}
+            "deposit": {
+                "min": 0.1
+            },
+            "withdraw": {
+                "min": 1
+            }
+        }
     },
     "INR": {
         "id": "INR",
@@ -766,11 +1078,6 @@
         "networks": {}
     },
     "LTC": {
-        "id": "LTC",
-        "name": "Litecoin",
-        "code": "LTC",
-        "type": "crypto",
-        "precision": 1e-8,
         "info": {
             "currency": "LTC",
             "name": "LTC",
@@ -783,64 +1090,80 @@
             "chains": [
                 {
                     "chainName": "LTC",
-                    "withdrawalMinSize": "0.0061",
-                    "withdrawalMinFee": "0.005",
+                    "withdrawalMinSize": "0.009",
+                    "depositMinSize": "0.00000546",
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "0.007",
                     "isWithdrawEnabled": true,
                     "isDepositEnabled": true,
                     "confirms": 7,
                     "preConfirms": 5,
                     "contractAddress": "",
+                    "withdrawPrecision": 8,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "ltc"
                 }
             ]
         },
+        "id": "LTC",
+        "code": "LTC",
+        "precision": 1e-8,
+        "type": "crypto",
+        "name": "Litecoin",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "limits": {
-            "leverage": {},
-            "amount": {},
-            "price": {},
-            "cost": {}
-        },
+        "fee": 0.007,
+        "fees": {},
         "networks": {
             "LTC": {
                 "info": {
                     "chainName": "LTC",
-                    "withdrawalMinSize": "0.0061",
-                    "withdrawalMinFee": "0.005",
+                    "withdrawalMinSize": "0.009",
+                    "depositMinSize": "0.00000546",
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "0.007",
                     "isWithdrawEnabled": true,
                     "isDepositEnabled": true,
                     "confirms": 7,
                     "preConfirms": 5,
                     "contractAddress": "",
+                    "withdrawPrecision": 8,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "ltc"
                 },
                 "id": "ltc",
                 "name": "LTC",
                 "code": "LTC",
                 "active": true,
-                "fee": 0.005,
+                "fee": 0.007,
                 "deposit": true,
                 "withdraw": true,
                 "precision": 1e-8,
                 "limits": {
                     "withdraw": {
-                        "min": 0.0061
+                        "min": 0.009
                     },
                     "deposit": {
                         "min": 0.00000546
                     }
                 }
             }
+        },
+        "limits": {
+            "deposit": {
+                "min": 0.00000546
+            },
+            "withdraw": {
+                "min": 0.009
+            }
         }
     },
     "ETH": {
-        "id": "ETH",
-        "name": "Ethereum",
-        "code": "ETH",
-        "type": "crypto",
-        "precision": 1e-8,
         "info": {
             "currency": "ETH",
             "name": "ETH",
@@ -853,145 +1176,200 @@
             "chains": [
                 {
                     "chainName": "BEP20",
-                    "withdrawalMinSize": "0.01",
-                    "withdrawalMinFee": "0.001",
+                    "withdrawalMinSize": "0.0004",
+                    "depositMinSize": null,
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "0.0002",
                     "isWithdrawEnabled": false,
                     "isDepositEnabled": true,
                     "confirms": 32,
                     "preConfirms": 32,
                     "contractAddress": "0x2170ed0880ac9a755fd29b2688956bd959f933f8",
-                    "depositFeeRate": "0.002",
+                    "depositFeeRate": "0.001",
+                    "withdrawPrecision": 8,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "bsc"
                 },
                 {
                     "chainName": "OPTIMISM",
                     "withdrawalMinSize": "0.01",
-                    "withdrawalMinFee": "0.001",
-                    "isWithdrawEnabled": false,
+                    "depositMinSize": null,
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "0.0002",
+                    "isWithdrawEnabled": true,
                     "isDepositEnabled": true,
-                    "confirms": 100,
+                    "confirms": 250,
                     "preConfirms": 100,
                     "contractAddress": "",
-                    "depositFeeRate": "0.002",
+                    "depositFeeRate": "0.001",
+                    "withdrawPrecision": 8,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "optimism"
                 },
                 {
                     "chainName": "ERC20",
                     "withdrawalMinSize": "0.01",
+                    "depositMinSize": "0.0021",
+                    "withdrawFeeRate": "0",
                     "withdrawalMinFee": "0.005",
                     "isWithdrawEnabled": true,
                     "isDepositEnabled": true,
                     "confirms": 64,
                     "preConfirms": 12,
                     "contractAddress": "",
+                    "withdrawPrecision": 8,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "eth"
                 },
                 {
                     "chainName": "HRC20",
                     "withdrawalMinSize": "0.01",
+                    "depositMinSize": null,
+                    "withdrawFeeRate": "0",
                     "withdrawalMinFee": "0.0005",
                     "isWithdrawEnabled": false,
                     "isDepositEnabled": false,
                     "confirms": 32,
                     "preConfirms": 32,
                     "contractAddress": "",
+                    "withdrawPrecision": 8,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "heco"
                 },
                 {
                     "chainName": "KCC",
                     "withdrawalMinSize": "0.01",
+                    "depositMinSize": null,
+                    "withdrawFeeRate": "0",
                     "withdrawalMinFee": "0.00027",
                     "isWithdrawEnabled": true,
                     "isDepositEnabled": true,
                     "confirms": 20,
                     "preConfirms": 20,
                     "contractAddress": "0xf55af137a98607f7ed2efefa4cd2dfe70e4253b1",
+                    "withdrawPrecision": 8,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "kcc"
                 },
                 {
                     "chainName": "TRC20",
                     "withdrawalMinSize": "0.002",
+                    "depositMinSize": "0.00001",
+                    "withdrawFeeRate": "0",
                     "withdrawalMinFee": "0.0005",
                     "isWithdrawEnabled": false,
                     "isDepositEnabled": false,
                     "confirms": 3,
                     "preConfirms": 3,
                     "contractAddress": "THb4CqiFdwNHsWsQCs4JhzwjMWys4aqCbF",
+                    "withdrawPrecision": 8,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "trx"
                 },
                 {
                     "chainName": "ARBITRUM",
-                    "withdrawalMinSize": "0.001",
-                    "withdrawalMinFee": "0.001",
+                    "withdrawalMinSize": "0.0012",
+                    "depositMinSize": null,
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "0.0003",
                     "isWithdrawEnabled": true,
                     "isDepositEnabled": true,
                     "confirms": 120,
                     "preConfirms": 120,
                     "contractAddress": "",
-                    "depositFeeRate": "0.002",
+                    "depositFeeRate": "0.001",
+                    "withdrawPrecision": 8,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "arbitrum"
                 }
             ]
         },
+        "id": "ETH",
+        "code": "ETH",
+        "precision": 1e-8,
+        "type": "crypto",
+        "name": "Ethereum",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "limits": {
-            "leverage": {},
-            "amount": {},
-            "price": {},
-            "cost": {}
-        },
+        "fee": 0.0002,
+        "fees": {},
         "networks": {
             "BEP20": {
                 "info": {
                     "chainName": "BEP20",
-                    "withdrawalMinSize": "0.01",
-                    "withdrawalMinFee": "0.001",
+                    "withdrawalMinSize": "0.0004",
+                    "depositMinSize": null,
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "0.0002",
                     "isWithdrawEnabled": false,
                     "isDepositEnabled": true,
                     "confirms": 32,
                     "preConfirms": 32,
                     "contractAddress": "0x2170ed0880ac9a755fd29b2688956bd959f933f8",
-                    "depositFeeRate": "0.002",
+                    "depositFeeRate": "0.001",
+                    "withdrawPrecision": 8,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "bsc"
                 },
                 "id": "bsc",
                 "name": "BEP20",
                 "code": "BEP20",
                 "active": false,
-                "fee": 0.001,
+                "fee": 0.0002,
                 "deposit": true,
                 "withdraw": false,
-                "precision": 1e-18,
+                "precision": 1e-8,
                 "limits": {
                     "withdraw": {
-                        "min": 0.01
+                        "min": 0.0004
                     },
                     "deposit": {}
                 }
             },
-            "OPTIMISM": {
+            "OP": {
                 "info": {
                     "chainName": "OPTIMISM",
                     "withdrawalMinSize": "0.01",
-                    "withdrawalMinFee": "0.001",
-                    "isWithdrawEnabled": false,
+                    "depositMinSize": null,
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "0.0002",
+                    "isWithdrawEnabled": true,
                     "isDepositEnabled": true,
-                    "confirms": 100,
+                    "confirms": 250,
                     "preConfirms": 100,
                     "contractAddress": "",
-                    "depositFeeRate": "0.002",
+                    "depositFeeRate": "0.001",
+                    "withdrawPrecision": 8,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "optimism"
                 },
                 "id": "optimism",
                 "name": "OPTIMISM",
-                "code": "OPTIMISM",
-                "active": false,
-                "fee": 0.001,
+                "code": "OP",
+                "active": true,
+                "fee": 0.0002,
                 "deposit": true,
-                "withdraw": false,
-                "precision": 1e-18,
+                "withdraw": true,
+                "precision": 1e-8,
                 "limits": {
                     "withdraw": {
                         "min": 0.01
@@ -999,32 +1377,38 @@
                     "deposit": {}
                 }
             },
-            "ERC20": {
+            "ETH": {
                 "info": {
                     "chainName": "ERC20",
                     "withdrawalMinSize": "0.01",
+                    "depositMinSize": "0.0021",
+                    "withdrawFeeRate": "0",
                     "withdrawalMinFee": "0.005",
                     "isWithdrawEnabled": true,
                     "isDepositEnabled": true,
                     "confirms": 64,
                     "preConfirms": 12,
                     "contractAddress": "",
+                    "withdrawPrecision": 8,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "eth"
                 },
                 "id": "eth",
                 "name": "ERC20",
-                "code": "ERC20",
+                "code": "ETH",
                 "active": true,
                 "fee": 0.005,
                 "deposit": true,
                 "withdraw": true,
-                "precision": 1e-18,
+                "precision": 1e-8,
                 "limits": {
                     "withdraw": {
                         "min": 0.01
                     },
                     "deposit": {
-                        "min": 0.004
+                        "min": 0.0021
                     }
                 }
             },
@@ -1032,12 +1416,18 @@
                 "info": {
                     "chainName": "HRC20",
                     "withdrawalMinSize": "0.01",
+                    "depositMinSize": null,
+                    "withdrawFeeRate": "0",
                     "withdrawalMinFee": "0.0005",
                     "isWithdrawEnabled": false,
                     "isDepositEnabled": false,
                     "confirms": 32,
                     "preConfirms": 32,
                     "contractAddress": "",
+                    "withdrawPrecision": 8,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "heco"
                 },
                 "id": "heco",
@@ -1047,7 +1437,7 @@
                 "fee": 0.0005,
                 "deposit": false,
                 "withdraw": false,
-                "precision": 1e-18,
+                "precision": 1e-8,
                 "limits": {
                     "withdraw": {
                         "min": 0.01
@@ -1059,12 +1449,18 @@
                 "info": {
                     "chainName": "KCC",
                     "withdrawalMinSize": "0.01",
+                    "depositMinSize": null,
+                    "withdrawFeeRate": "0",
                     "withdrawalMinFee": "0.00027",
                     "isWithdrawEnabled": true,
                     "isDepositEnabled": true,
                     "confirms": 20,
                     "preConfirms": 20,
                     "contractAddress": "0xf55af137a98607f7ed2efefa4cd2dfe70e4253b1",
+                    "withdrawPrecision": 8,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "kcc"
                 },
                 "id": "kcc",
@@ -1074,7 +1470,7 @@
                 "fee": 0.00027,
                 "deposit": true,
                 "withdraw": true,
-                "precision": 1e-18,
+                "precision": 1e-8,
                 "limits": {
                     "withdraw": {
                         "min": 0.01
@@ -1086,12 +1482,18 @@
                 "info": {
                     "chainName": "TRC20",
                     "withdrawalMinSize": "0.002",
+                    "depositMinSize": "0.00001",
+                    "withdrawFeeRate": "0",
                     "withdrawalMinFee": "0.0005",
                     "isWithdrawEnabled": false,
                     "isDepositEnabled": false,
                     "confirms": 3,
                     "preConfirms": 3,
                     "contractAddress": "THb4CqiFdwNHsWsQCs4JhzwjMWys4aqCbF",
+                    "withdrawPrecision": 8,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "trx"
                 },
                 "id": "trx",
@@ -1101,7 +1503,7 @@
                 "fee": 0.0005,
                 "deposit": false,
                 "withdraw": false,
-                "precision": 1e-18,
+                "precision": 1e-8,
                 "limits": {
                     "withdraw": {
                         "min": 0.002
@@ -1114,39 +1516,48 @@
             "ARBONE": {
                 "info": {
                     "chainName": "ARBITRUM",
-                    "withdrawalMinSize": "0.001",
-                    "withdrawalMinFee": "0.001",
+                    "withdrawalMinSize": "0.0012",
+                    "depositMinSize": null,
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "0.0003",
                     "isWithdrawEnabled": true,
                     "isDepositEnabled": true,
                     "confirms": 120,
                     "preConfirms": 120,
                     "contractAddress": "",
-                    "depositFeeRate": "0.002",
+                    "depositFeeRate": "0.001",
+                    "withdrawPrecision": 8,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "arbitrum"
                 },
                 "id": "arbitrum",
                 "name": "ARBITRUM",
                 "code": "ARBONE",
                 "active": true,
-                "fee": 0.001,
+                "fee": 0.0003,
                 "deposit": true,
                 "withdraw": true,
-                "precision": 1e-18,
+                "precision": 1e-8,
                 "limits": {
                     "withdraw": {
-                        "min": 0.001
+                        "min": 0.0012
                     },
                     "deposit": {}
                 }
             }
+        },
+        "limits": {
+            "deposit": {
+                "min": 0.00001
+            },
+            "withdraw": {
+                "min": 0.0004
+            }
         }
     },
     "ADA": {
-        "id": "ADA",
-        "name": "Cardano",
-        "code": "ADA",
-        "type": "crypto",
-        "precision": 1e-8,
         "info": {
             "currency": "ADA",
             "name": "ADA",
@@ -1159,64 +1570,80 @@
             "chains": [
                 {
                     "chainName": "ADA",
-                    "withdrawalMinSize": "2",
-                    "withdrawalMinFee": "1.613",
+                    "withdrawalMinSize": "8",
+                    "depositMinSize": "1",
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "2.5",
                     "isWithdrawEnabled": true,
                     "isDepositEnabled": true,
                     "confirms": 30,
                     "preConfirms": 30,
                     "contractAddress": "",
+                    "withdrawPrecision": 6,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "ada"
                 }
             ]
         },
+        "id": "ADA",
+        "code": "ADA",
+        "precision": 1e-8,
+        "type": "crypto",
+        "name": "Cardano",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "limits": {
-            "leverage": {},
-            "amount": {},
-            "price": {},
-            "cost": {}
-        },
+        "fee": 2.5,
+        "fees": {},
         "networks": {
             "ADA": {
                 "info": {
                     "chainName": "ADA",
-                    "withdrawalMinSize": "2",
-                    "withdrawalMinFee": "1.613",
+                    "withdrawalMinSize": "8",
+                    "depositMinSize": "1",
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "2.5",
                     "isWithdrawEnabled": true,
                     "isDepositEnabled": true,
                     "confirms": 30,
                     "preConfirms": 30,
                     "contractAddress": "",
+                    "withdrawPrecision": 6,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "ada"
                 },
                 "id": "ada",
                 "name": "ADA",
                 "code": "ADA",
                 "active": true,
-                "fee": 1.613,
+                "fee": 2.5,
                 "deposit": true,
                 "withdraw": true,
                 "precision": 0.000001,
                 "limits": {
                     "withdraw": {
-                        "min": 2
+                        "min": 8
                     },
                     "deposit": {
                         "min": 1
                     }
                 }
             }
+        },
+        "limits": {
+            "deposit": {
+                "min": 1
+            },
+            "withdraw": {
+                "min": 8
+            }
         }
     },
     "XRP": {
-        "id": "XRP",
-        "name": "XRP",
-        "code": "XRP",
-        "type": "crypto",
-        "precision": 1e-8,
         "info": {
             "currency": "XRP",
             "name": "XRP",
@@ -1230,43 +1657,56 @@
                 {
                     "chainName": "XRP",
                     "withdrawalMinSize": "30",
-                    "withdrawalMinFee": "0.703",
+                    "depositMinSize": "0.1",
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "0.95",
                     "isWithdrawEnabled": true,
                     "isDepositEnabled": true,
                     "confirms": 20,
                     "preConfirms": 20,
                     "contractAddress": "",
+                    "withdrawPrecision": 6,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": true,
                     "chainId": "xrp"
                 }
             ]
         },
+        "id": "XRP",
+        "code": "XRP",
+        "precision": 1e-8,
+        "type": "crypto",
+        "name": "XRP",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "limits": {
-            "leverage": {},
-            "amount": {},
-            "price": {},
-            "cost": {}
-        },
+        "fee": 0.95,
+        "fees": {},
         "networks": {
             "XRP": {
                 "info": {
                     "chainName": "XRP",
                     "withdrawalMinSize": "30",
-                    "withdrawalMinFee": "0.703",
+                    "depositMinSize": "0.1",
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "0.95",
                     "isWithdrawEnabled": true,
                     "isDepositEnabled": true,
                     "confirms": 20,
                     "preConfirms": 20,
                     "contractAddress": "",
+                    "withdrawPrecision": 6,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": true,
                     "chainId": "xrp"
                 },
                 "id": "xrp",
                 "name": "XRP",
                 "code": "XRP",
                 "active": true,
-                "fee": 0.703,
+                "fee": 0.95,
                 "deposit": true,
                 "withdraw": true,
                 "precision": 0.000001,
@@ -1279,14 +1719,17 @@
                     }
                 }
             }
+        },
+        "limits": {
+            "deposit": {
+                "min": 0.1
+            },
+            "withdraw": {
+                "min": 30
+            }
         }
     },
     "USDC": {
-        "id": "USDC",
-        "name": "USD Coin",
-        "code": "USDC",
-        "type": "crypto",
-        "precision": 1e-8,
         "info": {
             "currency": "USDC",
             "name": "USDC",
@@ -1300,134 +1743,230 @@
                 {
                     "chainName": "SOL",
                     "withdrawalMinSize": "2",
-                    "withdrawalMinFee": "0.8",
+                    "depositMinSize": "0.1",
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "1",
                     "isWithdrawEnabled": true,
                     "isDepositEnabled": true,
                     "confirms": 200,
                     "preConfirms": 200,
                     "contractAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                    "withdrawPrecision": 6,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "sol"
+                },
+                {
+                    "chainName": "Asset Hub(Polkadot)",
+                    "withdrawalMinSize": "2",
+                    "depositMinSize": "0.01",
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "1",
+                    "isWithdrawEnabled": true,
+                    "isDepositEnabled": true,
+                    "confirms": 30,
+                    "preConfirms": 30,
+                    "contractAddress": "1337",
+                    "withdrawPrecision": 6,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
+                    "chainId": "statemint"
                 },
                 {
                     "chainName": "OPTIMISM",
                     "withdrawalMinSize": "3",
+                    "depositMinSize": null,
+                    "withdrawFeeRate": "0",
                     "withdrawalMinFee": "1",
-                    "isWithdrawEnabled": false,
+                    "isWithdrawEnabled": true,
                     "isDepositEnabled": true,
-                    "confirms": 100,
+                    "confirms": 250,
                     "preConfirms": 100,
                     "contractAddress": "0x0b2c639c533813f4aa9d7837caf62653d097ff85",
                     "depositFeeRate": "0.001",
+                    "withdrawPrecision": 6,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "optimism"
                 },
                 {
-                    "chainName": "MATIC",
+                    "chainName": "SUI",
                     "withdrawalMinSize": "2",
-                    "withdrawalMinFee": "0.8",
+                    "depositMinSize": null,
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "1",
+                    "isWithdrawEnabled": true,
+                    "isDepositEnabled": true,
+                    "confirms": 1,
+                    "preConfirms": 1,
+                    "contractAddress": "0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC",
+                    "withdrawPrecision": 6,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
+                    "chainId": "sui"
+                },
+                {
+                    "chainName": "Polygon POS",
+                    "withdrawalMinSize": "1.2",
+                    "depositMinSize": null,
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "0.6",
                     "isWithdrawEnabled": false,
                     "isDepositEnabled": false,
                     "confirms": 800,
-                    "preConfirms": 400,
+                    "preConfirms": 300,
                     "contractAddress": "0x2791bca1f2de4661ed88a30c99a7a9449aa84174",
-                    "depositFeeRate": "0.002",
+                    "depositFeeRate": "0.001",
+                    "withdrawPrecision": 6,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "matic"
                 },
                 {
                     "chainName": "ERC20",
-                    "withdrawalMinSize": "40",
-                    "withdrawalMinFee": "25",
+                    "withdrawalMinSize": "30",
+                    "depositMinSize": "7.5",
+                    "withdrawFeeRate": "0.002",
+                    "withdrawMaxFee": "36",
+                    "withdrawalMinFee": "5.5",
                     "isWithdrawEnabled": true,
                     "isDepositEnabled": true,
                     "confirms": 64,
                     "preConfirms": 12,
                     "contractAddress": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                    "withdrawPrecision": 6,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "eth"
-                },
-                {
-                    "chainName": "AVAX C-Chain",
-                    "withdrawalMinSize": "70",
-                    "withdrawalMinFee": "35",
-                    "isWithdrawEnabled": false,
-                    "isDepositEnabled": false,
-                    "confirms": 32,
-                    "preConfirms": 32,
-                    "contractAddress": "0xb97ef9ef8734c71904d8002f8b6bc66dd9c48a6e",
-                    "chainId": "avaxc"
                 },
                 {
                     "chainName": "KCC",
                     "withdrawalMinSize": "2",
-                    "withdrawalMinFee": "0.1",
+                    "depositMinSize": null,
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "0.5",
                     "isWithdrawEnabled": true,
                     "isDepositEnabled": true,
                     "confirms": 20,
                     "preConfirms": 20,
                     "contractAddress": "0x980a5afef3d17ad98635f6c5aebcbaeded3c3430",
+                    "withdrawPrecision": 8,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "kcc"
+                },
+                {
+                    "chainName": "NEAR",
+                    "withdrawalMinSize": "1",
+                    "depositMinSize": null,
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "0.5",
+                    "isWithdrawEnabled": true,
+                    "isDepositEnabled": true,
+                    "confirms": 5,
+                    "preConfirms": 5,
+                    "contractAddress": "17208628f84f5d6ad33f0da3bbbeb27ffcb398eac501a31bd6ad2011e36133a1",
+                    "withdrawPrecision": 6,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
+                    "chainId": "near"
                 },
                 {
                     "chainName": "TRC20",
                     "withdrawalMinSize": "3",
+                    "depositMinSize": "0.00001",
+                    "withdrawFeeRate": "0",
                     "withdrawalMinFee": "1",
-                    "isWithdrawEnabled": true,
-                    "isDepositEnabled": true,
+                    "isWithdrawEnabled": false,
+                    "isDepositEnabled": false,
                     "confirms": 3,
                     "preConfirms": 3,
                     "contractAddress": "TEkxiTehnzSmSe2XqrBj4w32RUN966rdz8",
+                    "withdrawPrecision": 6,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "trx"
                 },
                 {
                     "chainName": "ALGO",
                     "withdrawalMinSize": "2",
+                    "depositMinSize": null,
+                    "withdrawFeeRate": "0",
                     "withdrawalMinFee": "1",
-                    "isWithdrawEnabled": true,
+                    "isWithdrawEnabled": false,
                     "isDepositEnabled": false,
                     "confirms": 8,
                     "preConfirms": 8,
                     "contractAddress": "31566704",
+                    "withdrawPrecision": 6,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "algo"
                 },
                 {
                     "chainName": "ARBITRUM",
                     "withdrawalMinSize": "5",
-                    "withdrawalMinFee": "3",
+                    "depositMinSize": "0.05",
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "1",
                     "isWithdrawEnabled": true,
                     "isDepositEnabled": true,
                     "confirms": 120,
                     "preConfirms": 120,
                     "contractAddress": "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
                     "depositFeeRate": "0.001",
+                    "withdrawPrecision": 6,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "arbitrum"
                 }
             ]
         },
+        "id": "USDC",
+        "code": "USDC",
+        "precision": 1e-8,
+        "type": "crypto",
+        "name": "USD Coin",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "limits": {
-            "leverage": {},
-            "amount": {},
-            "price": {},
-            "cost": {}
-        },
+        "fee": 0.5,
+        "fees": {},
         "networks": {
             "SOL": {
                 "info": {
                     "chainName": "SOL",
                     "withdrawalMinSize": "2",
-                    "withdrawalMinFee": "0.8",
+                    "depositMinSize": "0.1",
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "1",
                     "isWithdrawEnabled": true,
                     "isDepositEnabled": true,
                     "confirms": 200,
                     "preConfirms": 200,
                     "contractAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                    "withdrawPrecision": 6,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "sol"
                 },
                 "id": "sol",
                 "name": "SOL",
                 "code": "SOL",
                 "active": true,
-                "fee": 0.8,
+                "fee": 1,
                 "deposit": true,
                 "withdraw": true,
                 "precision": 0.000001,
@@ -1435,29 +1974,72 @@
                     "withdraw": {
                         "min": 2
                     },
-                    "deposit": {}
+                    "deposit": {
+                        "min": 0.1
+                    }
                 }
             },
-            "OPTIMISM": {
+            "statemint": {
+                "info": {
+                    "chainName": "Asset Hub(Polkadot)",
+                    "withdrawalMinSize": "2",
+                    "depositMinSize": "0.01",
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "1",
+                    "isWithdrawEnabled": true,
+                    "isDepositEnabled": true,
+                    "confirms": 30,
+                    "preConfirms": 30,
+                    "contractAddress": "1337",
+                    "withdrawPrecision": 6,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
+                    "chainId": "statemint"
+                },
+                "id": "statemint",
+                "name": "Asset Hub(Polkadot)",
+                "code": "statemint",
+                "active": true,
+                "fee": 1,
+                "deposit": true,
+                "withdraw": true,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {
+                        "min": 2
+                    },
+                    "deposit": {
+                        "min": 0.01
+                    }
+                }
+            },
+            "OP": {
                 "info": {
                     "chainName": "OPTIMISM",
                     "withdrawalMinSize": "3",
+                    "depositMinSize": null,
+                    "withdrawFeeRate": "0",
                     "withdrawalMinFee": "1",
-                    "isWithdrawEnabled": false,
+                    "isWithdrawEnabled": true,
                     "isDepositEnabled": true,
-                    "confirms": 100,
+                    "confirms": 250,
                     "preConfirms": 100,
                     "contractAddress": "0x0b2c639c533813f4aa9d7837caf62653d097ff85",
                     "depositFeeRate": "0.001",
+                    "withdrawPrecision": 6,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "optimism"
                 },
                 "id": "optimism",
                 "name": "OPTIMISM",
-                "code": "OPTIMISM",
-                "active": false,
+                "code": "OP",
+                "active": true,
                 "fee": 1,
                 "deposit": true,
-                "withdraw": false,
+                "withdraw": true,
                 "precision": 0.000001,
                 "limits": {
                     "withdraw": {
@@ -1466,30 +2048,69 @@
                     "deposit": {}
                 }
             },
+            "sui": {
+                "info": {
+                    "chainName": "SUI",
+                    "withdrawalMinSize": "2",
+                    "depositMinSize": null,
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "1",
+                    "isWithdrawEnabled": true,
+                    "isDepositEnabled": true,
+                    "confirms": 1,
+                    "preConfirms": 1,
+                    "contractAddress": "0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC",
+                    "withdrawPrecision": 6,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
+                    "chainId": "sui"
+                },
+                "id": "sui",
+                "name": "SUI",
+                "code": "sui",
+                "active": true,
+                "fee": 1,
+                "deposit": true,
+                "withdraw": true,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {
+                        "min": 2
+                    },
+                    "deposit": {}
+                }
+            },
             "MATIC": {
                 "info": {
-                    "chainName": "MATIC",
-                    "withdrawalMinSize": "2",
-                    "withdrawalMinFee": "0.8",
+                    "chainName": "Polygon POS",
+                    "withdrawalMinSize": "1.2",
+                    "depositMinSize": null,
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "0.6",
                     "isWithdrawEnabled": false,
                     "isDepositEnabled": false,
                     "confirms": 800,
-                    "preConfirms": 400,
+                    "preConfirms": 300,
                     "contractAddress": "0x2791bca1f2de4661ed88a30c99a7a9449aa84174",
-                    "depositFeeRate": "0.002",
+                    "depositFeeRate": "0.001",
+                    "withdrawPrecision": 6,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "matic"
                 },
                 "id": "matic",
-                "name": "MATIC",
+                "name": "Polygon POS",
                 "code": "MATIC",
                 "active": false,
-                "fee": 0.8,
+                "fee": 0.6,
                 "deposit": false,
                 "withdraw": false,
                 "precision": 0.000001,
                 "limits": {
                     "withdraw": {
-                        "min": 2
+                        "min": 1.2
                     },
                     "deposit": {}
                 }
@@ -1497,82 +2118,101 @@
             "ERC20": {
                 "info": {
                     "chainName": "ERC20",
-                    "withdrawalMinSize": "40",
-                    "withdrawalMinFee": "25",
+                    "withdrawalMinSize": "30",
+                    "depositMinSize": "7.5",
+                    "withdrawFeeRate": "0.002",
+                    "withdrawMaxFee": "36",
+                    "withdrawalMinFee": "5.5",
                     "isWithdrawEnabled": true,
                     "isDepositEnabled": true,
                     "confirms": 64,
                     "preConfirms": 12,
                     "contractAddress": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                    "withdrawPrecision": 6,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "eth"
                 },
                 "id": "eth",
                 "name": "ERC20",
                 "code": "ERC20",
                 "active": true,
-                "fee": 25,
+                "fee": 5.5,
                 "deposit": true,
                 "withdraw": true,
                 "precision": 0.000001,
                 "limits": {
                     "withdraw": {
-                        "min": 40
+                        "min": 30
                     },
                     "deposit": {
                         "min": 7.5
                     }
                 }
             },
-            "AVAXC": {
-                "info": {
-                    "chainName": "AVAX C-Chain",
-                    "withdrawalMinSize": "70",
-                    "withdrawalMinFee": "35",
-                    "isWithdrawEnabled": false,
-                    "isDepositEnabled": false,
-                    "confirms": 32,
-                    "preConfirms": 32,
-                    "contractAddress": "0xb97ef9ef8734c71904d8002f8b6bc66dd9c48a6e",
-                    "chainId": "avaxc"
-                },
-                "id": "avaxc",
-                "name": "AVAX C-Chain",
-                "code": "AVAXC",
-                "active": false,
-                "fee": 35,
-                "deposit": false,
-                "withdraw": false,
-                "precision": 0.000001,
-                "limits": {
-                    "withdraw": {
-                        "min": 70
-                    },
-                    "deposit": {}
-                }
-            },
             "KCC": {
                 "info": {
                     "chainName": "KCC",
                     "withdrawalMinSize": "2",
-                    "withdrawalMinFee": "0.1",
+                    "depositMinSize": null,
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "0.5",
                     "isWithdrawEnabled": true,
                     "isDepositEnabled": true,
                     "confirms": 20,
                     "preConfirms": 20,
                     "contractAddress": "0x980a5afef3d17ad98635f6c5aebcbaeded3c3430",
+                    "withdrawPrecision": 8,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "kcc"
                 },
                 "id": "kcc",
                 "name": "KCC",
                 "code": "KCC",
                 "active": true,
-                "fee": 0.1,
+                "fee": 0.5,
                 "deposit": true,
                 "withdraw": true,
-                "precision": 1e-18,
+                "precision": 1e-8,
                 "limits": {
                     "withdraw": {
                         "min": 2
+                    },
+                    "deposit": {}
+                }
+            },
+            "NEAR": {
+                "info": {
+                    "chainName": "NEAR",
+                    "withdrawalMinSize": "1",
+                    "depositMinSize": null,
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "0.5",
+                    "isWithdrawEnabled": true,
+                    "isDepositEnabled": true,
+                    "confirms": 5,
+                    "preConfirms": 5,
+                    "contractAddress": "17208628f84f5d6ad33f0da3bbbeb27ffcb398eac501a31bd6ad2011e36133a1",
+                    "withdrawPrecision": 6,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
+                    "chainId": "near"
+                },
+                "id": "near",
+                "name": "NEAR",
+                "code": "NEAR",
+                "active": true,
+                "fee": 0.5,
+                "deposit": true,
+                "withdraw": true,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {
+                        "min": 1
                     },
                     "deposit": {}
                 }
@@ -1581,21 +2221,27 @@
                 "info": {
                     "chainName": "TRC20",
                     "withdrawalMinSize": "3",
+                    "depositMinSize": "0.00001",
+                    "withdrawFeeRate": "0",
                     "withdrawalMinFee": "1",
-                    "isWithdrawEnabled": true,
-                    "isDepositEnabled": true,
+                    "isWithdrawEnabled": false,
+                    "isDepositEnabled": false,
                     "confirms": 3,
                     "preConfirms": 3,
                     "contractAddress": "TEkxiTehnzSmSe2XqrBj4w32RUN966rdz8",
+                    "withdrawPrecision": 6,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "trx"
                 },
                 "id": "trx",
                 "name": "TRC20",
                 "code": "TRC20",
-                "active": true,
+                "active": false,
                 "fee": 1,
-                "deposit": true,
-                "withdraw": true,
+                "deposit": false,
+                "withdraw": false,
                 "precision": 0.000001,
                 "limits": {
                     "withdraw": {
@@ -1610,12 +2256,18 @@
                 "info": {
                     "chainName": "ALGO",
                     "withdrawalMinSize": "2",
+                    "depositMinSize": null,
+                    "withdrawFeeRate": "0",
                     "withdrawalMinFee": "1",
-                    "isWithdrawEnabled": true,
+                    "isWithdrawEnabled": false,
                     "isDepositEnabled": false,
                     "confirms": 8,
                     "preConfirms": 8,
                     "contractAddress": "31566704",
+                    "withdrawPrecision": 6,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "algo"
                 },
                 "id": "algo",
@@ -1624,7 +2276,7 @@
                 "active": false,
                 "fee": 1,
                 "deposit": false,
-                "withdraw": true,
+                "withdraw": false,
                 "precision": 0.000001,
                 "limits": {
                     "withdraw": {
@@ -1637,20 +2289,26 @@
                 "info": {
                     "chainName": "ARBITRUM",
                     "withdrawalMinSize": "5",
-                    "withdrawalMinFee": "3",
+                    "depositMinSize": "0.05",
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "1",
                     "isWithdrawEnabled": true,
                     "isDepositEnabled": true,
                     "confirms": 120,
                     "preConfirms": 120,
                     "contractAddress": "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
                     "depositFeeRate": "0.001",
+                    "withdrawPrecision": 6,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "arbitrum"
                 },
                 "id": "arbitrum",
                 "name": "ARBITRUM",
                 "code": "ARBONE",
                 "active": true,
-                "fee": 3,
+                "fee": 1,
                 "deposit": true,
                 "withdraw": true,
                 "precision": 0.000001,
@@ -1658,17 +2316,22 @@
                     "withdraw": {
                         "min": 5
                     },
-                    "deposit": {}
+                    "deposit": {
+                        "min": 0.05
+                    }
                 }
+            }
+        },
+        "limits": {
+            "deposit": {
+                "min": 0.00001
+            },
+            "withdraw": {
+                "min": 1
             }
         }
     },
     "ALT": {
-        "id": "KALT",
-        "name": "Altlayer",
-        "code": "ALT",
-        "type": "crypto",
-        "precision": 1e-8,
         "info": {
             "currency": "KALT",
             "name": "kALT",
@@ -1681,67 +2344,80 @@
             "chains": [
                 {
                     "chainName": "BEP20",
-                    "withdrawalMinSize": "3.5",
+                    "withdrawalMinSize": "10",
                     "depositMinSize": null,
                     "withdrawFeeRate": "0",
-                    "withdrawalMinFee": "2.5",
+                    "withdrawalMinFee": "5",
                     "isWithdrawEnabled": true,
                     "isDepositEnabled": true,
                     "confirms": 32,
                     "preConfirms": 32,
                     "contractAddress": "0x8457ca5040ad67fdebbcc8edce889a335bc0fbfb",
+                    "withdrawPrecision": 8,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "bsc"
                 },
                 {
                     "chainName": "ERC20",
-                    "withdrawalMinSize": "60",
-                    "depositMinSize": "20",
+                    "withdrawalMinSize": "150",
+                    "depositMinSize": "53",
                     "withdrawFeeRate": "0",
-                    "withdrawalMinFee": "35",
-                    "isWithdrawEnabled": false,
+                    "withdrawalMinFee": "75",
+                    "isWithdrawEnabled": true,
                     "isDepositEnabled": true,
                     "confirms": 64,
                     "preConfirms": 12,
                     "contractAddress": "0x8457ca5040ad67fdebbcc8edce889a335bc0fbfb",
+                    "withdrawPrecision": 8,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "eth"
                 }
             ]
         },
+        "id": "KALT",
+        "code": "ALT",
+        "precision": 1e-8,
+        "type": "crypto",
+        "name": "Altlayer",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "limits": {
-            "leverage": {},
-            "amount": {},
-            "price": {},
-            "cost": {}
-        },
+        "fee": 5,
+        "fees": {},
         "networks": {
             "BEP20": {
                 "info": {
                     "chainName": "BEP20",
-                    "withdrawalMinSize": "3.5",
+                    "withdrawalMinSize": "10",
                     "depositMinSize": null,
                     "withdrawFeeRate": "0",
-                    "withdrawalMinFee": "2.5",
+                    "withdrawalMinFee": "5",
                     "isWithdrawEnabled": true,
                     "isDepositEnabled": true,
                     "confirms": 32,
                     "preConfirms": 32,
                     "contractAddress": "0x8457ca5040ad67fdebbcc8edce889a335bc0fbfb",
+                    "withdrawPrecision": 8,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "bsc"
                 },
                 "id": "bsc",
                 "name": "BEP20",
                 "code": "BEP20",
                 "active": true,
-                "fee": 2.5,
+                "fee": 5,
                 "deposit": true,
                 "withdraw": true,
-                "precision": 1e-18,
+                "precision": 1e-8,
                 "limits": {
                     "withdraw": {
-                        "min": 3.5
+                        "min": 10
                     },
                     "deposit": {}
                 }
@@ -1749,42 +2425,49 @@
             "ERC20": {
                 "info": {
                     "chainName": "ERC20",
-                    "withdrawalMinSize": "60",
-                    "depositMinSize": "20",
+                    "withdrawalMinSize": "150",
+                    "depositMinSize": "53",
                     "withdrawFeeRate": "0",
-                    "withdrawalMinFee": "35",
-                    "isWithdrawEnabled": false,
+                    "withdrawalMinFee": "75",
+                    "isWithdrawEnabled": true,
                     "isDepositEnabled": true,
                     "confirms": 64,
                     "preConfirms": 12,
                     "contractAddress": "0x8457ca5040ad67fdebbcc8edce889a335bc0fbfb",
+                    "withdrawPrecision": 8,
+                    "maxWithdraw": null,
+                    "maxDeposit": null,
+                    "needTag": false,
                     "chainId": "eth"
                 },
                 "id": "eth",
                 "name": "ERC20",
                 "code": "ERC20",
-                "active": false,
-                "fee": 35,
+                "active": true,
+                "fee": 75,
                 "deposit": true,
-                "withdraw": false,
-                "precision": 1e-18,
+                "withdraw": true,
+                "precision": 1e-8,
                 "limits": {
                     "withdraw": {
-                        "min": 60
+                        "min": 150
                     },
                     "deposit": {
-                        "min": 20
+                        "min": 53
                     }
                 }
+            }
+        },
+        "limits": {
+            "deposit": {
+                "min": 53
+            },
+            "withdraw": {
+                "min": 10
             }
         }
     },
     "BNB": {
-        "id": "BNB",
-        "name": "Binance Chain Native Token",
-        "code": "BNB",
-        "type": "crypto",
-        "precision": 1e-8,
         "info": {
             "currency": "BNB",
             "name": "BNB",
@@ -1831,15 +2514,16 @@
                 }
             ]
         },
+        "id": "BNB",
+        "code": "BNB",
+        "precision": 1e-8,
+        "type": "crypto",
+        "name": "Binance Chain Native Token",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "limits": {
-            "leverage": {},
-            "amount": {},
-            "price": {},
-            "cost": {}
-        },
+        "fee": 0.002,
+        "fees": {},
         "networks": {
             "BEP20": {
                 "info": {
@@ -1866,7 +2550,7 @@
                 "fee": 0.002,
                 "deposit": true,
                 "withdraw": true,
-                "precision": 1e-18,
+                "precision": 1e-8,
                 "limits": {
                     "withdraw": {
                         "min": 0.004
@@ -1910,6 +2594,14 @@
                         "min": 0.005
                     }
                 }
+            }
+        },
+        "limits": {
+            "deposit": {
+                "min": 0.002
+            },
+            "withdraw": {
+                "min": 0.004
             }
         }
     }

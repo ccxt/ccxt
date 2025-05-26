@@ -10,7 +10,7 @@ use ccxt\abstract\oxfun as Exchange;
 
 class oxfun extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'oxfun',
             'name' => 'OXFUN',
@@ -64,7 +64,7 @@ class oxfun extends Exchange {
                 'fetchDepositWithdrawFee' => false,
                 'fetchDepositWithdrawFees' => false,
                 'fetchFundingHistory' => true,
-                'fetchFundingRate' => 'emulated',
+                'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => false,
@@ -113,6 +113,7 @@ class oxfun extends Exchange {
                 'reduceMargin' => false,
                 'repayCrossMargin' => false,
                 'repayIsolatedMargin' => false,
+                'sandbox' => true,
                 'setLeverage' => false,
                 'setMargin' => false,
                 'setMarginMode' => false,
@@ -237,6 +238,74 @@ class oxfun extends Exchange {
                     'Base' => 'BASE',
                     'BNBSmartChain' => 'BNB',
                     'Optimism' => 'OPTIMISM',
+                ),
+            ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        'triggerDirection' => false,
+                        'triggerPriceType' => null,
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => true, // todo
+                        'iceberg' => true, // todo
+                    ),
+                    'createOrders' => array(
+                        'max' => 10, // todo
+                    ),
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'daysBack' => 100000, // todo
+                        'untilDays' => 7,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => null, // todo?
+                    'fetchOHLCV' => array(
+                        'limit' => 500,
+                    ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'default',
+                    ),
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
                 ),
             ),
             'exceptions' => array(
@@ -505,7 +574,7 @@ class oxfun extends Exchange {
         //     {
         //         "success" => true,
         //         "data" =>  array(
-        //             {
+        //             array(
         //                 "asset" => "OX",
         //                 "isCollateral" => true,
         //                 "loanToValue" => "1.000000000",
@@ -531,66 +600,7 @@ class oxfun extends Exchange {
         //                         "minDeposit" => "0.00010",
         //                         "minWithdrawal" => "0.00010"
         //                     ),
-        //                     array(
-        //                         "network" => "Arbitrum",
-        //                         "tokenId" => "0xba0Dda8762C24dA9487f5FA026a9B64b695A07Ea",
-        //                         "transactionPrecision" => "18",
-        //                         "isWithdrawalFeeChargedToUser" => true,
-        //                         "canDeposit" => true,
-        //                         "canWithdraw" => true,
-        //                         "minDeposit" => "0.00010",
-        //                         "minWithdrawal" => "0.00010"
-        //                     ),
-        //                     array(
-        //                         "network" => "Ethereum",
-        //                         "tokenId" => "0xba0Dda8762C24dA9487f5FA026a9B64b695A07Ea",
-        //                         "transactionPrecision" => "18",
-        //                         "isWithdrawalFeeChargedToUser" => true,
-        //                         "canDeposit" => true,
-        //                         "canWithdraw" => true,
-        //                         "minDeposit" => "0.00010",
-        //                         "minWithdrawal" => "0.00010"
-        //                     ),
-        //                     array(
-        //                         "network" => "Arbitrum",
-        //                         "tokenId" => "0x78a0A62Fba6Fb21A83FE8a3433d44C73a4017A6f",
-        //                         "transactionPrecision" => "18",
-        //                         "isWithdrawalFeeChargedToUser" => true,
-        //                         "canDeposit" => true,
-        //                         "canWithdraw" => false,
-        //                         "minDeposit" => "0.00010",
-        //                         "minWithdrawal" => "0.00010"
-        //                     ),
-        //                     array(
-        //                         "network" => "Avalanche",
-        //                         "tokenId" => "0x78a0A62Fba6Fb21A83FE8a3433d44C73a4017A6f",
-        //                         "transactionPrecision" => "18",
-        //                         "isWithdrawalFeeChargedToUser" => true,
-        //                         "canDeposit" => true,
-        //                         "canWithdraw" => false,
-        //                         "minDeposit" => "0.00010",
-        //                         "minWithdrawal" => "0.00010"
-        //                     ),
-        //                     array(
-        //                         "network" => "Solana",
-        //                         "tokenId" => "DV3845GEAVXfwpyVGGgWbqBVCtzHdCXNCGfcdboSEuZz",
-        //                         "transactionPrecision" => "8",
-        //                         "isWithdrawalFeeChargedToUser" => true,
-        //                         "canDeposit" => true,
-        //                         "canWithdraw" => true,
-        //                         "minDeposit" => "0.00010",
-        //                         "minWithdrawal" => "0.00010"
-        //                     ),
-        //                     array(
-        //                         "network" => "Ethereum",
-        //                         "tokenId" => "0x78a0A62Fba6Fb21A83FE8a3433d44C73a4017A6f",
-        //                         "transactionPrecision" => "18",
-        //                         "isWithdrawalFeeChargedToUser" => true,
-        //                         "canDeposit" => true,
-        //                         "canWithdraw" => false,
-        //                         "minDeposit" => "0.00010",
-        //                         "minWithdrawal" => "0.00010"
-        //                     }
+        //                     ...
         //                 )
         //             ),
         //             {
@@ -640,79 +650,67 @@ class oxfun extends Exchange {
             $parts = explode('.', $fullId);
             $id = $parts[0];
             $code = $this->safe_currency_code($id);
-            $networks = array();
+            if (!(is_array($result) && array_key_exists($code, $result))) {
+                $result[$code] = array(
+                    'id' => $id,
+                    'code' => $code,
+                    'precision' => null,
+                    'type' => null,
+                    'name' => null,
+                    'active' => null,
+                    'deposit' => null,
+                    'withdraw' => null,
+                    'fee' => null,
+                    'limits' => array(
+                        'withdraw' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'deposit' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                    ),
+                    'networks' => array(),
+                    'info' => array(),
+                );
+            }
             $chains = $this->safe_list($currency, 'networkList', array());
-            $currencyMaxPrecision = null;
-            $currencyDepositEnabled = null;
-            $currencyWithdrawEnabled = null;
             for ($j = 0; $j < count($chains); $j++) {
                 $chain = $chains[$j];
                 $networkId = $this->safe_string($chain, 'network');
                 $networkCode = $this->network_id_to_code($networkId);
-                $deposit = $this->safe_bool($chain, 'canDeposit');
-                $withdraw = $this->safe_bool($chain, 'canWithdraw');
-                $active = ($deposit && $withdraw);
-                $minDeposit = $this->safe_string($chain, 'minDeposit');
-                $minWithdrawal = $this->safe_string($chain, 'minWithdrawal');
-                $precision = $this->parse_precision($this->safe_string($chain, 'transactionPrecision'));
-                $networks[$networkCode] = array(
+                $result[$code]['networks'][$networkCode] = array(
                     'id' => $networkId,
                     'network' => $networkCode,
                     'margin' => null,
-                    'deposit' => $deposit,
-                    'withdraw' => $withdraw,
-                    'active' => $active,
+                    'deposit' => $this->safe_bool($chain, 'canDeposit'),
+                    'withdraw' => $this->safe_bool($chain, 'canWithdraw'),
+                    'active' => null,
                     'fee' => null,
-                    'precision' => $this->parse_number($precision),
+                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($chain, 'transactionPrecision'))),
                     'limits' => array(
                         'deposit' => array(
-                            'min' => $minDeposit,
+                            'min' => $this->safe_number($chain, 'minDeposit'),
                             'max' => null,
                         ),
                         'withdraw' => array(
-                            'min' => $minWithdrawal,
+                            'min' => $this->safe_number($chain, 'minWithdrawal'),
                             'max' => null,
                         ),
                     ),
                     'info' => $chain,
                 );
-                if (($currencyDepositEnabled === null) || $deposit) {
-                    $currencyDepositEnabled = $deposit;
-                }
-                if (($currencyWithdrawEnabled === null) || $withdraw) {
-                    $currencyWithdrawEnabled = $withdraw;
-                }
-                if (($currencyMaxPrecision === null) || Precise::string_gt($currencyMaxPrecision, $precision)) {
-                    $currencyMaxPrecision = $precision;
-                }
             }
-            if (is_array($result) && array_key_exists($code, $result)) {
-                // checking for specific ids.ARB
-                $networks = $this->extend($result[$code]['networks'], $networks);
-            }
-            $result[$code] = array(
-                'id' => $id,
-                'code' => $code,
-                'name' => null,
-                'type' => null,
-                'active' => null,
-                'deposit' => $currencyDepositEnabled,
-                'withdraw' => $currencyWithdrawEnabled,
-                'fee' => null,
-                'precision' => $this->parse_number($currencyMaxPrecision),
-                'limits' => array(
-                    'amount' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'withdraw' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                ),
-                'networks' => $networks,
-                'info' => $currency,
-            );
+            $infos = $this->safe_list($result[$code], 'info', array());
+            $infos[] = $currency;
+            $result[$code]['info'] = $infos;
+        }
+        // only after all entries are formed in currencies, restructure each entry
+        $allKeys = is_array($result) ? array_keys($result) : array();
+        for ($i = 0; $i < count($allKeys); $i++) {
+            $code = $allKeys[$i];
+            $result[$code] = $this->safe_currency_structure($result[$code]); // this is needed after adding network entry
         }
         return $result;
     }
@@ -1037,8 +1035,28 @@ class oxfun extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
-        $result = $this->parse_funding_rates($data);
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return $this->parse_funding_rates($data, $symbols);
+    }
+
+    public function fetch_funding_rate(string $symbol, $params = array ()): array {
+        /**
+         * fetch the current funding rates for a $symbol
+         *
+         * @see https://docs.ox.fun/?json#get-v3-funding-estimates
+         *
+         * @param {string} $symbol unified market symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Order[]} an array of ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structures~
+         */
+        $this->load_markets();
+        $request = array(
+            'marketCode' => $this->market_id($symbol),
+        );
+        $response = $this->publicGetV3FundingEstimates ($this->extend($request, $params));
+        //
+        $data = $this->safe_list($response, 'data', array());
+        $first = $this->safe_dict($data, 0, array());
+        return $this->parse_funding_rate($first, $this->market($symbol));
     }
 
     public function parse_funding_rate($fundingRate, ?array $market = null): array {
@@ -2132,7 +2150,7 @@ class oxfun extends Exchange {
         return $this->parse_transaction($data, $currency);
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): array {
         /**
          * fetch all open $positions
          *
@@ -2922,7 +2940,7 @@ class oxfun extends Exchange {
                 'AccessKey' => $this->apiKey,
                 'Timestamp' => $datetime,
                 'Signature' => $signature,
-                'Nonce' => $nonce,
+                'Nonce' => (string) $nonce,
             );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
