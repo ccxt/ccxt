@@ -11,6 +11,15 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.huobi.pro/v2/reference/currencies",
+                "input": [],
+                "output": null
+            }
+        ],
         "createOrder": [
             {
                 "description": "market sell in hedged mode and reduceOnly",

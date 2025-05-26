@@ -509,31 +509,49 @@ export default class delta extends Exchange {
     async fetchCurrencies(params = {}) {
         const response = await this.publicGetAssets(params);
         //
-        //     {
-        //         "result":[
-        //             {
-        //                 "base_withdrawal_fee":"0.0005",
-        //                 "deposit_status":"enabled",
-        //                 "id":2,
-        //                 "interest_credit":true,
-        //                 "interest_slabs":[
-        //                     {"limit":"0.1","rate":"0"},
-        //                     {"limit":"1","rate":"0.05"},
-        //                     {"limit":"5","rate":"0.075"},
-        //                     {"limit":"10","rate":"0.1"},
-        //                     {"limit":"9999999999999999","rate":"0"}
-        //                 ],
-        //                 "kyc_deposit_limit":"10",
-        //                 "kyc_withdrawal_limit":"2",
-        //                 "min_withdrawal_amount":"0.001",
-        //                 "minimum_precision":4,
-        //                 "name":"Bitcoin",
-        //                 "precision":8,
-        //                 "sort_priority":1,
-        //                 "symbol":"BTC",
-        //                 "variable_withdrawal_fee":"0",
-        //                 "withdrawal_status":"enabled"
-        //             },
+        //    {
+        //        "result": [
+        //            {
+        //                "base_withdrawal_fee": "0.005000000000000000",
+        //                "id": "1",
+        //                "interest_credit": false,
+        //                "interest_slabs": null,
+        //                "kyc_deposit_limit": "0.000000000000000000",
+        //                "kyc_withdrawal_limit": "0.000000000000000000",
+        //                "min_withdrawal_amount": "0.010000000000000000",
+        //                "minimum_precision": "4",
+        //                "name": "Ethereum",
+        //                "networks": [
+        //                    {
+        //                        "allowed_deposit_groups": null,
+        //                        "base_withdrawal_fee": "0.0025",
+        //                        "deposit_status": "enabled",
+        //                        "memo_required": false,
+        //                        "min_deposit_amount": "0.000050000000000000",
+        //                        "min_withdrawal_amount": "0.010000000000000000",
+        //                        "minimum_deposit_confirmations": "12",
+        //                        "network": "ERC20",
+        //                        "variable_withdrawal_fee": "0",
+        //                        "withdrawal_status": "enabled"
+        //                    },
+        //                    {
+        //                        "allowed_deposit_groups": null,
+        //                        "base_withdrawal_fee": "0.0001",
+        //                        "deposit_status": "enabled",
+        //                        "memo_required": false,
+        //                        "min_deposit_amount": "0.000050000000000000",
+        //                        "min_withdrawal_amount": "0.000300000000000000",
+        //                        "minimum_deposit_confirmations": "15",
+        //                        "network": "BEP20(BSC)",
+        //                        "variable_withdrawal_fee": "0",
+        //                        "withdrawal_status": "enabled"
+        //                    }
+        //                ],
+        //                "precision": "18",
+        //                "sort_priority": "3",
+        //                "symbol": "ETH",
+        //                "variable_withdrawal_fee": "0.000000000000000000"
+        //            },
         //         ],
         //         "success":true
         //     }
@@ -545,20 +563,42 @@ export default class delta extends Exchange {
             const id = this.safeString(currency, 'symbol');
             const numericId = this.safeInteger(currency, 'id');
             const code = this.safeCurrencyCode(id);
-            const depositStatus = this.safeString(currency, 'deposit_status');
-            const withdrawalStatus = this.safeString(currency, 'withdrawal_status');
-            const depositsEnabled = (depositStatus === 'enabled');
-            const withdrawalsEnabled = (withdrawalStatus === 'enabled');
-            const active = depositsEnabled && withdrawalsEnabled;
-            result[code] = {
+            const chains = this.safeList(currency, 'networks', []);
+            const networks = {};
+            for (let j = 0; j < chains.length; j++) {
+                const chain = chains[j];
+                const networkId = this.safeString(chain, 'network');
+                const networkCode = this.networkIdToCode(networkId);
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'name': this.safeString(chain, 'name'),
+                    'info': chain,
+                    'active': this.safeString(chain, 'status') === 'enabled',
+                    'deposit': this.safeString(chain, 'deposit_status') === 'enabled',
+                    'withdraw': this.safeString(chain, 'withdrawal_status') === 'enabled',
+                    'fee': this.safeNumber(chain, 'base_withdrawal_fee'),
+                    'limits': {
+                        'deposit': {
+                            'min': this.safeNumber(chain, 'min_deposit_amount'),
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': this.safeNumber(chain, 'min_withdrawal_amount'),
+                            'max': undefined,
+                        },
+                    },
+                };
+            }
+            result[code] = this.safeCurrencyStructure({
                 'id': id,
                 'numericId': numericId,
                 'code': code,
                 'name': this.safeString(currency, 'name'),
                 'info': currency,
-                'active': active,
-                'deposit': depositsEnabled,
-                'withdraw': withdrawalsEnabled,
+                'active': undefined,
+                'deposit': this.safeString(currency, 'deposit_status') === 'enabled',
+                'withdraw': this.safeString(currency, 'withdrawal_status') === 'enabled',
                 'fee': this.safeNumber(currency, 'base_withdrawal_fee'),
                 'precision': this.parseNumber(this.parsePrecision(this.safeString(currency, 'precision'))),
                 'limits': {
@@ -568,9 +608,9 @@ export default class delta extends Exchange {
                         'max': undefined,
                     },
                 },
-                'networks': {},
+                'networks': networks,
                 'type': 'crypto',
-            };
+            });
         }
         return result;
     }

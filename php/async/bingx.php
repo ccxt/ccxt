@@ -765,60 +765,42 @@ class bingx extends Exchange {
                 $name = $this->safe_string($entry, 'name');
                 $networkList = $this->safe_list($entry, 'networkList');
                 $networks = array();
-                $fee = null;
-                $depositEnabled = false;
-                $withdrawEnabled = false;
-                $defaultLimits = array();
                 for ($j = 0; $j < count($networkList); $j++) {
                     $rawNetwork = $networkList[$j];
                     $network = $this->safe_string($rawNetwork, 'network');
                     $networkCode = $this->network_id_to_code($network);
-                    $isDefault = $this->safe_bool($rawNetwork, 'isDefault');
-                    $networkDepositEnabled = $this->safe_bool($rawNetwork, 'depositEnable');
-                    if ($networkDepositEnabled) {
-                        $depositEnabled = true;
-                    }
-                    $networkWithdrawEnabled = $this->safe_bool($rawNetwork, 'withdrawEnable');
-                    if ($networkWithdrawEnabled) {
-                        $withdrawEnabled = true;
-                    }
                     $limits = array(
                         'withdraw' => array(
                             'min' => $this->safe_number($rawNetwork, 'withdrawMin'),
                             'max' => $this->safe_number($rawNetwork, 'withdrawMax'),
                         ),
                     );
-                    $fee = $this->safe_number($rawNetwork, 'withdrawFee');
-                    if ($isDefault) {
-                        $defaultLimits = $limits;
-                    }
-                    $precision = $this->safe_number($rawNetwork, 'withdrawPrecision');
-                    $networkActive = $networkDepositEnabled || $networkWithdrawEnabled;
+                    $precision = $this->parse_number($this->parse_precision($this->safe_string($rawNetwork, 'withdrawPrecision')));
                     $networks[$networkCode] = array(
                         'info' => $rawNetwork,
                         'id' => $network,
                         'network' => $networkCode,
-                        'fee' => $fee,
-                        'active' => $networkActive,
-                        'deposit' => $networkDepositEnabled,
-                        'withdraw' => $networkWithdrawEnabled,
+                        'fee' => $this->safe_number($rawNetwork, 'withdrawFee'),
+                        'active' => null,
+                        'deposit' => $this->safe_bool($rawNetwork, 'depositEnable'),
+                        'withdraw' => $this->safe_bool($rawNetwork, 'withdrawEnable'),
                         'precision' => $precision,
                         'limits' => $limits,
                     );
                 }
-                $active = $depositEnabled || $withdrawEnabled;
                 $result[$code] = $this->safe_currency_structure(array(
                     'info' => $entry,
                     'code' => $code,
                     'id' => $currencyId,
                     'precision' => null,
                     'name' => $name,
-                    'active' => $active,
-                    'deposit' => $depositEnabled,
-                    'withdraw' => $withdrawEnabled,
+                    'active' => null,
+                    'deposit' => null,
+                    'withdraw' => null,
                     'networks' => $networks,
-                    'fee' => $fee,
-                    'limits' => $defaultLimits,
+                    'fee' => null,
+                    'limits' => null,
+                    'type' => 'crypto', // only cryptos now
                 ));
             }
             return $result;
@@ -5891,20 +5873,14 @@ class bingx extends Exchange {
              * @param {string} $address the $address to withdraw to
              * @param {string} [$tag]
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->walletType] 1 fund account, 2 standard account, 3 perpetual account
+             * @param {int} [$params->walletType] 1 fund account, 2 standard account, 3 perpetual account, 15 spot account
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
             $this->check_address($address);
             Async\await($this->load_markets());
             $currency = $this->currency($code);
-            $walletType = $this->safe_integer($params, 'walletType');
-            if ($walletType === null) {
-                $walletType = 1;
-            }
-            if (!$this->in_array($walletType, array( 1, 2, 3 ))) {
-                throw new BadRequest($this->id . ' withdraw() requires either 1 fund account, 2 standard futures account, 3 perpetual account for walletType');
-            }
+            $walletType = $this->safe_integer($params, 'walletType', 1);
             $request = array(
                 'coin' => $currency['id'],
                 'address' => $address,

@@ -341,12 +341,14 @@ func (this *Blofin) FetchBalance(params ...interface{}) (Balances, error) {
  * @param {float} amount how much of currency you want to trade in units of base currency
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.triggerPrice] the trigger price for a trigger order
  * @param {bool} [params.reduceOnly] a mark to reduce the position size for margin, swap and future orders
  * @param {bool} [params.postOnly] true to place a post only order
  * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross'
  * @param {float} [params.stopLossPrice] stop loss trigger price (will use privatePostTradeOrderTpsl)
  * @param {float} [params.takeProfitPrice] take profit trigger price (will use privatePostTradeOrderTpsl)
  * @param {string} [params.positionSide] *stopLossPrice/takeProfitPrice orders only* 'long' or 'short' or 'net' default is 'net'
+ * @param {boolean} [params.hedged] if true, the positionSide will be set to long/short instead of net, default is false
  * @param {string} [params.clientOrderId] a unique id for the order
  * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
  * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
@@ -388,7 +390,8 @@ func (this *Blofin) CreateOrder(symbol string, typeVar string, side string, amou
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [params.trigger] True if cancelling a trigger/conditional order/tp sl orders
+ * @param {boolean} [params.trigger] True if cancelling a trigger/conditional
+ * @param {boolean} [params.tpsl] True if cancelling a tpsl order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
 func (this *Blofin) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
@@ -447,6 +450,7 @@ func (this *Blofin) CreateOrders(orders []OrderRequest, options ...CreateOrdersO
  * @description Fetch orders that are still open
  * @see https://blofin.com/docs#get-active-orders
  * @see https://blofin.com/docs#get-active-tpsl-orders
+ * @see https://docs.blofin.com/index.html#get-active-algo-orders
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -868,6 +872,7 @@ func (this *Blofin) FetchLeverage(symbol string, options ...FetchLeverageOptions
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.marginMode] 'cross' or 'isolated'
+ * @param {string} [params.positionSide] 'long' or 'short' - required for hedged mode in isolated margin
  * @returns {object} response from the exchange
  */
 func (this *Blofin) SetLeverage(leverage int64, options ...SetLeverageOptions) (map[string]interface{}, error) {
@@ -966,4 +971,102 @@ func (this *Blofin) FetchMarginMode(symbol string, options ...FetchMarginModeOpt
         return MarginMode{}, CreateReturnError(res)
     }
     return NewMarginMode(res), nil
+}
+/**
+ * @method
+ * @name blofin#setMarginMode
+ * @description set margin mode to 'cross' or 'isolated'
+ * @see https://docs.blofin.com/index.html#set-margin-mode
+ * @param {string} marginMode 'cross' or 'isolated'
+ * @param {string} [symbol] unified market symbol (not used in blofin setMarginMode)
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} response from the exchange
+ */
+func (this *Blofin) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (MarginMode, error) {
+
+    opts := SetMarginModeOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var symbol interface{} = nil
+    if opts.Symbol != nil {
+        symbol = *opts.Symbol
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.SetMarginMode(marginMode, symbol, params)
+    if IsError(res) {
+        return MarginMode{}, CreateReturnError(res)
+    }
+    return NewMarginMode(res), nil
+}
+/**
+ * @method
+ * @name blofin#fetchPositionMode
+ * @description fetchs the position mode, hedged or one way
+ * @see https://docs.blofin.com/index.html#get-position-mode
+ * @param {string} [symbol] unified symbol of the market to fetch the position mode for (not used in blofin fetchPositionMode)
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an object detailing whether the market is in hedged or one-way mode
+ */
+func (this *Blofin) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]interface{}, error) {
+
+    opts := FetchPositionModeOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var symbol interface{} = nil
+    if opts.Symbol != nil {
+        symbol = *opts.Symbol
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.FetchPositionMode(symbol, params)
+    if IsError(res) {
+        return map[string]interface{}{}, CreateReturnError(res)
+    }
+    return res.(map[string]interface{}), nil
+}
+/**
+ * @method
+ * @name blofin#setPositionMode
+ * @description set hedged to true or false for a market
+ * @see https://docs.blofin.com/index.html#set-position-mode
+ * @param {bool} hedged set to true to use hedged mode, false for one-way mode
+ * @param {string} [symbol] not used by blofin setPositionMode ()
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} response from the exchange
+ */
+func (this *Blofin) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]interface{}, error) {
+
+    opts := SetPositionModeOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var symbol interface{} = nil
+    if opts.Symbol != nil {
+        symbol = *opts.Symbol
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.SetPositionMode(hedged, symbol, params)
+    if IsError(res) {
+        return map[string]interface{}{}, CreateReturnError(res)
+    }
+    return res.(map[string]interface{}), nil
 }

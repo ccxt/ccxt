@@ -366,6 +366,7 @@ export default class okx extends Exchange {
                         'account/spot-manual-borrow-repay': 10,
                         'account/set-auto-repay': 4,
                         'account/spot-borrow-repay-history': 4,
+                        'account/move-positions-history': 10,
                         // subaccount
                         'users/subaccount/list': 10,
                         'account/subaccount/balances': 10 / 3,
@@ -503,6 +504,7 @@ export default class okx extends Exchange {
                         'account/fixed-loan/manual-reborrow': 5,
                         'account/fixed-loan/repay-borrowing-order': 5,
                         'account/bills-history-archive': 72000,
+                        'account/move-positions': 10,
                         // subaccount
                         'users/subaccount/modify-apikey': 10,
                         'asset/subaccount/transfer': 10,
@@ -969,6 +971,13 @@ export default class okx extends Exchange {
                     '70010': BadRequest,
                     '70013': BadRequest,
                     '70016': BadRequest,
+                    '70060': BadRequest,
+                    '70061': BadRequest,
+                    '70062': BadRequest,
+                    '70064': BadRequest,
+                    '70065': BadRequest,
+                    '70066': BadRequest,
+                    '70067': BadRequest,
                     '1009': BadRequest,
                     '4001': AuthenticationError,
                     '4002': BadRequest,
@@ -1646,7 +1655,6 @@ export default class okx extends Exchange {
                 }
             }
         }
-        const tickSize = this.safeString(market, 'tickSz');
         const fees = this.safeDict2(this.fees, type, 'trading', {});
         let maxLeverage = this.safeString(market, 'lever', '1');
         maxLeverage = Precise.stringMax(maxLeverage, '1');
@@ -1678,7 +1686,7 @@ export default class okx extends Exchange {
             'created': this.safeInteger(market, 'listTime'),
             'precision': {
                 'amount': this.safeNumber(market, 'lotSz'),
-                'price': this.parseNumber(tickSize),
+                'price': this.safeNumber(market, 'tickSz'),
             },
             'limits': {
                 'leverage': {
@@ -5078,7 +5086,7 @@ export default class okx extends Exchange {
      */
     async fetchDepositAddress(code, params = {}) {
         await this.loadMarkets();
-        const rawNetwork = this.safeStringUpper(params, 'network');
+        const rawNetwork = this.safeString(params, 'network'); // some networks are like "Dora Vota Mainnet"
         params = this.omit(params, 'network');
         code = this.safeCurrencyCode(code);
         const network = this.networkIdToCode(rawNetwork, code);

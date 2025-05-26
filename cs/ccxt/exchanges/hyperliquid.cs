@@ -354,7 +354,7 @@ public partial class hyperliquid : Exchange
             object id = i;
             object name = this.safeString(data, "name");
             object code = this.safeCurrencyCode(name);
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "name", name },
                 { "code", code },
@@ -376,7 +376,7 @@ public partial class hyperliquid : Exchange
                         { "max", null },
                     } },
                 } },
-            };
+            });
         }
         return result;
     }
@@ -2475,6 +2475,10 @@ public partial class hyperliquid : Exchange
     public override object parseOrder(object order, object market = null)
     {
         //
+        // createOrdersWs error
+        //
+        //  {error: 'Insufficient margin to place order. asset=159'}
+        //
         //  fetchOpenOrders
         //
         //     {
@@ -2565,6 +2569,14 @@ public partial class hyperliquid : Exchange
         //     "triggerPx": "0.6"
         // }
         //
+        object error = this.safeString(order, "error");
+        if (isTrue(!isEqual(error, null)))
+        {
+            return this.safeOrder(new Dictionary<string, object>() {
+                { "info", order },
+                { "status", "rejected" },
+            });
+        }
         object entry = this.safeDictN(order, new List<object>() {"order", "resting", "filled"});
         if (isTrue(isEqual(entry, null)))
         {
@@ -3960,10 +3972,14 @@ public partial class hyperliquid : Exchange
         // {"status":"ok","response":{"type":"order","data":{"statuses":[{"error":"Insufficient margin to place order. asset=84"}]}}}
         //
         object status = this.safeString(response, "status", "");
+        object error = this.safeString(response, "error");
         object message = null;
         if (isTrue(isEqual(status, "err")))
         {
             message = this.safeString(response, "response");
+        } else if (isTrue(!isEqual(error, null)))
+        {
+            message = error;
         } else
         {
             object responsePayload = this.safeDict(response, "response", new Dictionary<string, object>() {});

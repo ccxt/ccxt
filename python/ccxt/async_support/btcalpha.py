@@ -216,7 +216,7 @@ class btcalpha(Exchange, ImplicitAPI):
                         'symbolRequired': False,
                     },
                     'fetchOHLCV': {
-                        'max': 720,
+                        'limit': 720,
                     },
                 },
                 'swap': {

@@ -369,41 +369,9 @@ class cryptomus(Exchange, ImplicitAPI):
         coins = self.safe_list(response, 'result')
         result: dict = {}
         for i in range(0, len(coins)):
-            currency = coins[i]
-            currencyId = self.safe_string(currency, 'currency_code')
+            networkEntry = coins[i]
+            currencyId = self.safe_string(networkEntry, 'currency_code')
             code = self.safe_currency_code(currencyId)
-            allowWithdraw = self.safe_bool(currency, 'can_withdraw')
-            allowDeposit = self.safe_bool(currency, 'can_deposit')
-            isActive = allowWithdraw and allowDeposit
-            networkId = self.safe_string(currency, 'network_code')
-            networksById = self.safe_dict(self.options, 'networksById')
-            networkName = self.safe_string(networksById, networkId, networkId)
-            minWithdraw = self.safe_number(currency, 'min_withdraw')
-            maxWithdraw = self.safe_number(currency, 'max_withdraw')
-            minDeposit = self.safe_number(currency, 'min_deposit')
-            maxDeposit = self.safe_number(currency, 'max_deposit')
-            network = {
-                'id': networkId,
-                'network': networkName,
-                'limits': {
-                    'withdraw': {
-                        'min': minWithdraw,
-                        'max': maxWithdraw,
-                    },
-                    'deposit': {
-                        'min': minDeposit,
-                        'max': maxDeposit,
-                    },
-                },
-                'active': isActive,
-                'deposit': allowDeposit,
-                'withdraw': allowWithdraw,
-                'fee': None,
-                'precision': None,
-                'info': currency,
-            }
-            networks = {}
-            networks[networkName] = network
             if not (code in result):
                 result[code] = {
                     'id': currencyId,
@@ -411,60 +379,54 @@ class cryptomus(Exchange, ImplicitAPI):
                     'precision': None,
                     'type': None,
                     'name': None,
-                    'active': isActive,
-                    'deposit': allowDeposit,
-                    'withdraw': allowWithdraw,
+                    'active': None,
+                    'deposit': None,
+                    'withdraw': None,
                     'fee': None,
                     'limits': {
                         'withdraw': {
-                            'min': minWithdraw,
-                            'max': maxWithdraw,
+                            'min': None,
+                            'max': None,
                         },
                         'deposit': {
-                            'min': minDeposit,
-                            'max': maxDeposit,
+                            'min': None,
+                            'max': None,
                         },
                     },
-                    'networks': networks,
-                    'info': currency,
+                    'networks': {},
+                    'info': {},
                 }
-            else:
-                parsed = result[code]
-                parsedNetworks = self.safe_dict(parsed, 'networks')
-                parsed['networks'] = self.extend(parsedNetworks, networks)
-                if isActive:
-                    parsed['active'] = True
-                    parsed['deposit'] = True
-                    parsed['withdraw'] = True
-                else:
-                    if allowWithdraw:
-                        parsed['withdraw'] = True
-                    if allowDeposit:
-                        parsed['deposit'] = True
-                parsedLimits = self.safe_dict(parsed, 'limits')
-                withdrawLimits = {
-                    'min': None,
-                    'max': None,
-                }
-                parsedWithdrawLimits = self.safe_dict(parsedLimits, 'withdraw', withdrawLimits)
-                depositLimits = {
-                    'min': None,
-                    'max': None,
-                }
-                parsedDepositLimits = self.safe_dict(parsedLimits, 'deposit', depositLimits)
-                if minWithdraw:
-                    withdrawLimits['min'] = min(parsedWithdrawLimits['min'], minWithdraw) if parsedWithdrawLimits['min'] else minWithdraw
-                if maxWithdraw:
-                    withdrawLimits['max'] = max(parsedWithdrawLimits['max'], maxWithdraw) if parsedWithdrawLimits['max'] else maxWithdraw
-                if minDeposit:
-                    depositLimits['min'] = min(parsedDepositLimits['min'], minDeposit) if parsedDepositLimits['min'] else minDeposit
-                if maxDeposit:
-                    depositLimits['max'] = max(parsedDepositLimits['max'], maxDeposit) if parsedDepositLimits['max'] else maxDeposit
-                limits = {
-                    'withdraw': withdrawLimits,
-                    'deposit': depositLimits,
-                }
-                parsed['limits'] = limits
+            networkId = self.safe_string(networkEntry, 'network_code')
+            networkCode = self.network_id_to_code(networkId)
+            result[code]['networks'][networkCode] = {
+                'id': networkId,
+                'network': networkCode,
+                'limits': {
+                    'withdraw': {
+                        'min': self.safe_number(networkEntry, 'min_withdraw'),
+                        'max': self.safe_number(networkEntry, 'max_withdraw'),
+                    },
+                    'deposit': {
+                        'min': self.safe_number(networkEntry, 'min_deposit'),
+                        'max': self.safe_number(networkEntry, 'max_deposit'),
+                    },
+                },
+                'active': None,
+                'deposit': self.safe_bool(networkEntry, 'can_withdraw'),
+                'withdraw': self.safe_bool(networkEntry, 'can_deposit'),
+                'fee': None,
+                'precision': None,
+                'info': networkEntry,
+            }
+            # add entry in info
+            info = self.safe_list(result[code], 'info', [])
+            info.append(networkEntry)
+            result[code]['info'] = info
+        # only after all entries are formed in currencies, restructure each entry
+        allKeys = list(result.keys())
+        for i in range(0, len(allKeys)):
+            code = allKeys[i]
+            result[code] = self.safe_currency_structure(result[code])  # self is needed after adding network entry
         return result
 
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:

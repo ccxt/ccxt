@@ -31,6 +31,12 @@ public partial class mexc : ccxt.mexc
                 { "watchBidsAsks", true },
                 { "watchTrades", true },
                 { "watchTradesForSymbols", false },
+                { "unWatchTicker", true },
+                { "unWatchTickers", true },
+                { "unWatchBidsAsks", true },
+                { "unWatchOHLCV", true },
+                { "unWatchOrderBook", true },
+                { "unWatchTrades", true },
             } },
             { "urls", new Dictionary<string, object>() {
                 { "api", new Dictionary<string, object>() {
@@ -536,12 +542,15 @@ public partial class mexc : ccxt.mexc
     public async virtual Task<object> watchSpotPublic(object channel, object messageHash, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        object unsubscribed = this.safeBool(parameters, "unsubscribed", false);
+        parameters = this.omit(parameters, new List<object>() {"unsubscribed"});
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "spot");
+        object method = ((bool) isTrue((unsubscribed))) ? "UNSUBSCRIPTION" : "SUBSCRIPTION";
         object request = new Dictionary<string, object>() {
-            { "method", "SUBSCRIPTION" },
+            { "method", method },
             { "params", new List<object>() {channel} },
         };
-        return await this.watch(url, messageHash, this.extend(request, parameters), channel);
+        return await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
     }
 
     public async virtual Task<object> watchSpotPrivate(object channel, object messageHash, object parameters = null)
@@ -859,13 +868,6 @@ public partial class mexc : ccxt.mexc
         object messageHash = add("orderbook:", symbol);
         object subscription = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         object limit = this.safeInteger(subscription, "limit");
-        if (isTrue(isEqual(subscription, true)))
-        {
-            // we set ((WebSocketClient)client).subscriptions[messageHash] to 1
-            // once we have received the first delta and initialized the orderbook
-            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)messageHash] = 1;
-            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.countedOrderBook(new Dictionary<string, object>() {});
-        }
         object storedOrderBook = getValue(this.orderbooks, symbol);
         object nonce = this.safeInteger(storedOrderBook, "nonce");
         if (isTrue(isEqual(nonce, null)))
@@ -1551,6 +1553,351 @@ public partial class mexc : ccxt.mexc
         ((IDictionary<string,object>)getValue(this.balance, type))[(string)code] = account;
         ((IDictionary<string,object>)this.balance)[(string)type] = this.safeBalance(getValue(this.balance, type));
         callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.balance, type), messageHash});
+    }
+
+    /**
+     * @method
+     * @name mexc#unWatchTicker
+     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    public async virtual Task<object> unWatchTicker(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object messageHash = add("unsubscribe:ticker:", getValue(market, "symbol"));
+        object url = null;
+        object channel = null;
+        if (isTrue(getValue(market, "spot")))
+        {
+            object miniTicker = false;
+            var miniTickerparametersVariable = this.handleOptionAndParams(parameters, "watchTicker", "miniTicker");
+            miniTicker = ((IList<object>)miniTickerparametersVariable)[0];
+            parameters = ((IList<object>)miniTickerparametersVariable)[1];
+            if (isTrue(miniTicker))
+            {
+                channel = add(add("spot@public.miniTicker.v3.api@", getValue(market, "id")), "@UTC+8");
+            } else
+            {
+                channel = add("spot@public.bookTicker.v3.api@", getValue(market, "id"));
+            }
+            url = getValue(getValue(getValue(this.urls, "api"), "ws"), "spot");
+            ((IDictionary<string,object>)parameters)["unsubscribed"] = true;
+            this.watchSpotPublic(channel, messageHash, parameters);
+        } else
+        {
+            channel = "unsub.ticker";
+            object requestParams = new Dictionary<string, object>() {
+                { "symbol", getValue(market, "id") },
+            };
+            url = getValue(getValue(getValue(this.urls, "api"), "ws"), "swap");
+            this.watchSwapPublic(channel, messageHash, requestParams, parameters);
+        }
+        var client = this.client(url);
+        this.handleUnsubscriptions(client as WebSocketClient, new List<object>() {messageHash});
+        return null;
+    }
+
+    /**
+     * @method
+     * @name mexc#unWatchTickers
+     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    public async override Task<object> unWatchTickers(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null);
+        object messageHashes = new List<object>() {};
+        object firstSymbol = this.safeString(symbols, 0);
+        object market = null;
+        if (isTrue(!isEqual(firstSymbol, null)))
+        {
+            market = this.market(firstSymbol);
+        }
+        object type = null;
+        var typeparametersVariable = this.handleMarketTypeAndParams("watchTickers", market, parameters);
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
+        object isSpot = (isEqual(type, "spot"));
+        object url = ((bool) isTrue((isSpot))) ? getValue(getValue(getValue(this.urls, "api"), "ws"), "spot") : getValue(getValue(getValue(this.urls, "api"), "ws"), "swap");
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(isSpot))
+        {
+            object miniTicker = false;
+            var miniTickerparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "miniTicker");
+            miniTicker = ((IList<object>)miniTickerparametersVariable)[0];
+            parameters = ((IList<object>)miniTickerparametersVariable)[1];
+            object topics = new List<object>() {};
+            if (!isTrue(miniTicker))
+            {
+                if (isTrue(isEqual(symbols, null)))
+                {
+                    throw new ArgumentsRequired ((string)add(this.id, " watchTickers required symbols argument for the bookTicker channel")) ;
+                }
+                object marketIds = this.marketIds(symbols);
+                for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+                {
+                    object marketId = getValue(marketIds, i);
+                    ((IList<object>)messageHashes).Add(add("unsubscribe:ticker:", getValue(symbols, i)));
+                    object channel = add("spot@public.bookTicker.v3.api@", marketId);
+                    ((IList<object>)topics).Add(channel);
+                }
+            } else
+            {
+                ((IList<object>)topics).Add("spot@public.miniTickers.v3.api@UTC+8");
+                if (isTrue(isEqual(symbols, null)))
+                {
+                    ((IList<object>)messageHashes).Add("unsubscribe:spot:ticker");
+                } else
+                {
+                    for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+                    {
+                        ((IList<object>)messageHashes).Add(add("unsubscribe:ticker:", getValue(symbols, i)));
+                    }
+                }
+            }
+            ((IDictionary<string,object>)request)["method"] = "UNSUBSCRIPTION";
+            ((IDictionary<string,object>)request)["params"] = topics;
+        } else
+        {
+            ((IDictionary<string,object>)request)["method"] = "unsub.tickers";
+            ((IDictionary<string,object>)request)["params"] = new Dictionary<string, object>() {};
+            ((IList<object>)messageHashes).Add("unsubscribe:ticker");
+        }
+        var client = this.client(url);
+        this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
+        this.handleUnsubscriptions(client as WebSocketClient, messageHashes);
+        return null;
+    }
+
+    /**
+     * @method
+     * @name mexc#unWatchBidsAsks
+     * @description unWatches best bid & ask for symbols
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    public async virtual Task<object> unWatchBidsAsks(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, true, false, true);
+        object marketType = null;
+        if (isTrue(isEqual(symbols, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " watchBidsAsks required symbols argument")) ;
+        }
+        object markets = this.marketsForSymbols(symbols);
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchBidsAsks", getValue(markets, 0), parameters);
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        object isSpot = isEqual(marketType, "spot");
+        if (!isTrue(isSpot))
+        {
+            throw new NotSupported ((string)add(this.id, " watchBidsAsks only support spot market")) ;
+        }
+        object messageHashes = new List<object>() {};
+        object topics = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            if (isTrue(isSpot))
+            {
+                object market = this.market(getValue(symbols, i));
+                ((IList<object>)topics).Add(add("spot@public.bookTicker.v3.api@", getValue(market, "id")));
+            }
+            ((IList<object>)messageHashes).Add(add("unsubscribe:bidask:", getValue(symbols, i)));
+        }
+        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "spot");
+        object request = new Dictionary<string, object>() {
+            { "method", "UNSUBSCRIPTION" },
+            { "params", topics },
+        };
+        var client = this.client(url);
+        this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
+        this.handleUnsubscriptions(client as WebSocketClient, messageHashes);
+        return null;
+    }
+
+    /**
+     * @method
+     * @name mexc#unWatchOHLCV
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    public async virtual Task<object> unWatchOHLCV(object symbol, object timeframe = null, object parameters = null)
+    {
+        timeframe ??= "1m";
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        symbol = getValue(market, "symbol");
+        object timeframes = this.safeValue(this.options, "timeframes", new Dictionary<string, object>() {});
+        object timeframeId = this.safeString(timeframes, timeframe);
+        object messageHash = add(add(add("unsubscribe:candles:", symbol), ":"), timeframe);
+        object url = null;
+        if (isTrue(getValue(market, "spot")))
+        {
+            url = getValue(getValue(getValue(this.urls, "api"), "ws"), "spot");
+            object channel = add(add(add("spot@public.kline.v3.api@", getValue(market, "id")), "@"), timeframeId);
+            ((IDictionary<string,object>)parameters)["unsubscribed"] = true;
+            this.watchSpotPublic(channel, messageHash, parameters);
+        } else
+        {
+            url = getValue(getValue(getValue(this.urls, "api"), "ws"), "swap");
+            object channel = "unsub.kline";
+            object requestParams = new Dictionary<string, object>() {
+                { "symbol", getValue(market, "id") },
+                { "interval", timeframeId },
+            };
+            this.watchSwapPublic(channel, messageHash, requestParams, parameters);
+        }
+        var client = this.client(url);
+        this.handleUnsubscriptions(client as WebSocketClient, new List<object>() {messageHash});
+        return null;
+    }
+
+    /**
+     * @method
+     * @name mexc#unWatchOrderBook
+     * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified array of symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        symbol = getValue(market, "symbol");
+        object messageHash = add("unsubscribe:orderbook:", symbol);
+        object url = null;
+        if (isTrue(getValue(market, "spot")))
+        {
+            url = getValue(getValue(getValue(this.urls, "api"), "ws"), "spot");
+            object channel = add("spot@public.increase.depth.v3.api@", getValue(market, "id"));
+            ((IDictionary<string,object>)parameters)["unsubscribed"] = true;
+            this.watchSpotPublic(channel, messageHash, parameters);
+        } else
+        {
+            url = getValue(getValue(getValue(this.urls, "api"), "ws"), "swap");
+            object channel = "unsub.depth";
+            object requestParams = new Dictionary<string, object>() {
+                { "symbol", getValue(market, "id") },
+            };
+            this.watchSwapPublic(channel, messageHash, requestParams, parameters);
+        }
+        var client = this.client(url);
+        this.handleUnsubscriptions(client as WebSocketClient, new List<object>() {messageHash});
+        return null;
+    }
+
+    /**
+     * @method
+     * @name mexc#unWatchTrades
+     * @description unsubscribes from the trades channel
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    public async override Task<object> unWatchTrades(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        symbol = getValue(market, "symbol");
+        object messageHash = add("unsubscribe:trades:", symbol);
+        object url = null;
+        if (isTrue(getValue(market, "spot")))
+        {
+            url = getValue(getValue(getValue(this.urls, "api"), "ws"), "spot");
+            object channel = add("spot@public.deals.v3.api@", getValue(market, "id"));
+            ((IDictionary<string,object>)parameters)["unsubscribed"] = true;
+            this.watchSpotPublic(channel, messageHash, parameters);
+        } else
+        {
+            url = getValue(getValue(getValue(this.urls, "api"), "ws"), "swap");
+            object channel = "unsub.deal";
+            object requestParams = new Dictionary<string, object>() {
+                { "symbol", getValue(market, "id") },
+            };
+            this.watchSwapPublic(channel, messageHash, requestParams, parameters);
+        }
+        var client = this.client(url);
+        this.handleUnsubscriptions(client as WebSocketClient, new List<object>() {messageHash});
+        return null;
+    }
+
+    public virtual void handleUnsubscriptions(WebSocketClient client, object messageHashes)
+    {
+        for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
+        {
+            object messageHash = getValue(messageHashes, i);
+            object subMessageHash = ((string)messageHash).Replace((string)"unsubscribe:", (string)"");
+            this.cleanUnsubscription(client as WebSocketClient, subMessageHash, messageHash);
+            if (isTrue(isGreaterThanOrEqual(getIndexOf(messageHash, "ticker"), 0)))
+            {
+                object symbol = ((string)messageHash).Replace((string)"unsubscribe:ticker:", (string)"");
+                if (isTrue(isGreaterThanOrEqual(getIndexOf(symbol, "unsubscribe"), 0)))
+                {
+                    // unWatchTickers
+                    object symbols = new List<object>(((IDictionary<string,object>)this.tickers).Keys);
+                    for (object j = 0; isLessThan(j, getArrayLength(symbols)); postFixIncrement(ref j))
+                    {
+                        ((IDictionary<string,object>)this.tickers).Remove((string)getValue(symbols, j));
+                    }
+                } else if (isTrue(inOp(this.tickers, symbol)))
+                {
+                    ((IDictionary<string,object>)this.tickers).Remove((string)symbol);
+                }
+            } else if (isTrue(isGreaterThanOrEqual(getIndexOf(messageHash, "bidask"), 0)))
+            {
+                object symbol = ((string)messageHash).Replace((string)"unsubscribe:bidask:", (string)"");
+                if (isTrue(inOp(this.bidsasks, symbol)))
+                {
+                    ((IDictionary<string,object>)this.bidsasks).Remove((string)symbol);
+                }
+            } else if (isTrue(isGreaterThanOrEqual(getIndexOf(messageHash, "candles"), 0)))
+            {
+                object splitHashes = ((string)messageHash).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
+                object symbol = this.safeString(splitHashes, 2);
+                if (isTrue(isGreaterThan(getArrayLength(splitHashes), 4)))
+                {
+                    symbol = add(symbol, add(":", this.safeString(splitHashes, 3)));
+                }
+                if (isTrue(inOp(this.ohlcvs, symbol)))
+                {
+                    ((IDictionary<string,object>)this.ohlcvs).Remove((string)symbol);
+                }
+            } else if (isTrue(isGreaterThanOrEqual(getIndexOf(messageHash, "orderbook"), 0)))
+            {
+                object symbol = ((string)messageHash).Replace((string)"unsubscribe:orderbook:", (string)"");
+                if (isTrue(inOp(this.orderbooks, symbol)))
+                {
+                    ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
+                }
+            } else if (isTrue(isGreaterThanOrEqual(getIndexOf(messageHash, "trades"), 0)))
+            {
+                object symbol = ((string)messageHash).Replace((string)"unsubscribe:trades:", (string)"");
+                if (isTrue(inOp(this.trades, symbol)))
+                {
+                    ((IDictionary<string,object>)this.trades).Remove((string)symbol);
+                }
+            }
+        }
     }
 
     public async virtual Task<object> authenticate(object subscriptionHash, object parameters = null)

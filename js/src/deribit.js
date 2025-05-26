@@ -637,18 +637,17 @@ export default class deribit extends Exchange {
         //      "testnet": true
         //    }
         //
-        const data = this.safeValue(response, 'result', {});
+        const data = this.safeList(response, 'result', []);
         const result = {};
         for (let i = 0; i < data.length; i++) {
             const currency = data[i];
             const currencyId = this.safeString(currency, 'currency');
             const code = this.safeCurrencyCode(currencyId);
-            const name = this.safeString(currency, 'currency_long');
-            result[code] = {
+            result[code] = this.safeCurrencyStructure({
                 'info': currency,
                 'code': code,
                 'id': currencyId,
-                'name': name,
+                'name': this.safeString(currency, 'currency_long'),
                 'active': undefined,
                 'deposit': undefined,
                 'withdraw': undefined,
@@ -670,7 +669,7 @@ export default class deribit extends Exchange {
                     },
                 },
                 'networks': undefined,
-            };
+            });
         }
         return result;
     }

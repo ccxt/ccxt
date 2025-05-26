@@ -708,7 +708,7 @@ public partial class bitfinex : Exchange
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object labels = new List<object>() {"pub:list:currency", "pub:map:currency:sym", "pub:map:currency:label", "pub:map:currency:unit", "pub:map:currency:undl", "pub:map:currency:pool", "pub:map:currency:explorer", "pub:map:currency:tx:fee", "pub:map:tx:method"};
+        object labels = new List<object>() {"pub:list:currency", "pub:map:currency:sym", "pub:map:currency:label", "pub:map:currency:unit", "pub:map:currency:undl", "pub:map:currency:pool", "pub:map:currency:explorer", "pub:map:currency:tx:fee", "pub:map:tx:method", "pub:info:tx:status"};
         object config = String.Join(",", ((IList<object>)labels).ToArray());
         object request = new Dictionary<string, object>() {
             { "config", config },
@@ -790,30 +790,49 @@ public partial class bitfinex : Exchange
         //             ["ABS",[0,131.3]],
         //             ["ADA",[0,0.3]],
         //         ],
+        //         // deposit/withdrawal data
+        //         [
+        //           ["BITCOIN", 1, 1, null, null, null, null, 0, 0, null, null, 3],
+        //           ...
+        //         ]
         //     ]
         //
         object indexed = new Dictionary<string, object>() {
-            { "sym", this.indexBy(this.safeValue(response, 1, new List<object>() {}), 0) },
-            { "label", this.indexBy(this.safeValue(response, 2, new List<object>() {}), 0) },
-            { "unit", this.indexBy(this.safeValue(response, 3, new List<object>() {}), 0) },
-            { "undl", this.indexBy(this.safeValue(response, 4, new List<object>() {}), 0) },
-            { "pool", this.indexBy(this.safeValue(response, 5, new List<object>() {}), 0) },
-            { "explorer", this.indexBy(this.safeValue(response, 6, new List<object>() {}), 0) },
-            { "fees", this.indexBy(this.safeValue(response, 7, new List<object>() {}), 0) },
+            { "sym", this.indexBy(this.safeList(response, 1, new List<object>() {}), 0) },
+            { "label", this.indexBy(this.safeList(response, 2, new List<object>() {}), 0) },
+            { "unit", this.indexBy(this.safeList(response, 3, new List<object>() {}), 0) },
+            { "undl", this.indexBy(this.safeList(response, 4, new List<object>() {}), 0) },
+            { "pool", this.indexBy(this.safeList(response, 5, new List<object>() {}), 0) },
+            { "explorer", this.indexBy(this.safeList(response, 6, new List<object>() {}), 0) },
+            { "fees", this.indexBy(this.safeList(response, 7, new List<object>() {}), 0) },
+            { "networks", this.safeList(response, 8, new List<object>() {}) },
+            { "statuses", this.indexBy(this.safeList(response, 9, new List<object>() {}), 0) },
         };
-        object ids = this.safeValue(response, 0, new List<object>() {});
+        object indexedNetworks = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(getValue(indexed, "networks"))); postFixIncrement(ref i))
+        {
+            object networkObj = getValue(getValue(indexed, "networks"), i);
+            object networkId = this.safeString(networkObj, 0);
+            object valuesList = this.safeList(networkObj, 1);
+            object networkName = this.safeString(valuesList, 0);
+            // for GOlang transpiler, do with "safe" method
+            object networksList = this.safeList(indexedNetworks, networkName, new List<object>() {});
+            ((IList<object>)networksList).Add(networkId);
+            ((IDictionary<string,object>)indexedNetworks)[(string)networkName] = networksList;
+        }
+        object ids = this.safeList(response, 0, new List<object>() {});
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
             object id = getValue(ids, i);
-            if (isTrue(isGreaterThanOrEqual(getIndexOf(id, "F0"), 0)))
+            if (isTrue(((string)id).EndsWith(((string)"F0"))))
             {
                 continue;
             }
             object code = this.safeCurrencyCode(id);
-            object label = this.safeValue(getValue(indexed, "label"), id, new List<object>() {});
+            object label = this.safeList(getValue(indexed, "label"), id, new List<object>() {});
             object name = this.safeString(label, 1);
-            object pool = this.safeValue(getValue(indexed, "pool"), id, new List<object>() {});
+            object pool = this.safeList(getValue(indexed, "pool"), id, new List<object>() {});
             object rawType = this.safeString(pool, 1);
             object isCryptoCoin = isTrue((!isEqual(rawType, null))) || isTrue((inOp(getValue(indexed, "explorer"), id))); // "hacky" solution
             object type = null;
@@ -821,13 +840,39 @@ public partial class bitfinex : Exchange
             {
                 type = "crypto";
             }
-            object feeValues = this.safeValue(getValue(indexed, "fees"), id, new List<object>() {});
-            object fees = this.safeValue(feeValues, 1, new List<object>() {});
+            object feeValues = this.safeList(getValue(indexed, "fees"), id, new List<object>() {});
+            object fees = this.safeList(feeValues, 1, new List<object>() {});
             object fee = this.safeNumber(fees, 1);
-            object undl = this.safeValue(getValue(indexed, "undl"), id, new List<object>() {});
+            object undl = this.safeList(getValue(indexed, "undl"), id, new List<object>() {});
             object precision = "8"; // default precision, todo: fix "magic constants"
             object fid = add("f", id);
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            object dwStatuses = this.safeList(getValue(indexed, "statuses"), id, new List<object>() {});
+            object depositEnabled = isEqual(this.safeInteger(dwStatuses, 1), 1);
+            object withdrawEnabled = isEqual(this.safeInteger(dwStatuses, 2), 1);
+            object networks = new Dictionary<string, object>() {};
+            object netwokIds = this.safeList(indexedNetworks, id, new List<object>() {});
+            for (object j = 0; isLessThan(j, getArrayLength(netwokIds)); postFixIncrement(ref j))
+            {
+                object networkId = getValue(netwokIds, j);
+                object network = this.networkIdToCode(networkId);
+                ((IDictionary<string,object>)networks)[(string)network] = new Dictionary<string, object>() {
+                    { "info", networkId },
+                    { "id", ((string)networkId).ToLower() },
+                    { "network", networkId },
+                    { "active", null },
+                    { "deposit", null },
+                    { "withdraw", null },
+                    { "fee", null },
+                    { "precision", null },
+                    { "limits", new Dictionary<string, object>() {
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
+                    } },
+                };
+            }
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", fid },
                 { "uppercaseId", id },
                 { "code", code },
@@ -835,8 +880,8 @@ public partial class bitfinex : Exchange
                 { "type", type },
                 { "name", name },
                 { "active", true },
-                { "deposit", null },
-                { "withdraw", null },
+                { "deposit", depositEnabled },
+                { "withdraw", withdrawEnabled },
                 { "fee", fee },
                 { "precision", parseInt(precision) },
                 { "limits", new Dictionary<string, object>() {
@@ -849,43 +894,8 @@ public partial class bitfinex : Exchange
                         { "max", null },
                     } },
                 } },
-                { "networks", new Dictionary<string, object>() {} },
-            };
-            object networks = new Dictionary<string, object>() {};
-            object currencyNetworks = this.safeValue(response, 8, new List<object>() {});
-            object cleanId = ((string)id).Replace((string)"F0", (string)"");
-            for (object j = 0; isLessThan(j, getArrayLength(currencyNetworks)); postFixIncrement(ref j))
-            {
-                object pair = getValue(currencyNetworks, j);
-                object networkId = this.safeString(pair, 0);
-                object currencyId = this.safeString(this.safeValue(pair, 1, new List<object>() {}), 0);
-                if (isTrue(isEqual(currencyId, cleanId)))
-                {
-                    object network = this.networkIdToCode(networkId);
-                    ((IDictionary<string,object>)networks)[(string)network] = new Dictionary<string, object>() {
-                        { "info", networkId },
-                        { "id", ((string)networkId).ToLower() },
-                        { "network", networkId },
-                        { "active", null },
-                        { "deposit", null },
-                        { "withdraw", null },
-                        { "fee", null },
-                        { "precision", null },
-                        { "limits", new Dictionary<string, object>() {
-                            { "withdraw", new Dictionary<string, object>() {
-                                { "min", null },
-                                { "max", null },
-                            } },
-                        } },
-                    };
-                }
-            }
-            object keysNetworks = new List<object>(((IDictionary<string,object>)networks).Keys);
-            object networksLength = getArrayLength(keysNetworks);
-            if (isTrue(isGreaterThan(networksLength, 0)))
-            {
-                ((IDictionary<string,object>)getValue(result, code))["networks"] = networks;
-            }
+                { "networks", networks },
+            });
         }
         return result;
     }

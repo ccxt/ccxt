@@ -8,6 +8,16 @@
     ],
     "outputType": "urlencoded",
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "disabled": true,
+                "url": "https://open-api.bingx.com/openApi/wallets/v1/capital/config/getall?timestamp=1747127546816&signature=6e1ce65a1c34a706d933e692b11b58f5295e2a610269e8b0d35acbb58739b9fd",
+                "input": [],
+                "output": null
+            }
+        ],
         "withdraw": [
             {
                 "description": "sol",

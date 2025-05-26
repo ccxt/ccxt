@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.cryptocom import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Any, Balances, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction
+from ccxt.base.types import Account, Any, Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -69,7 +69,7 @@ class cryptocom(Exchange, ImplicitAPI):
                 'fetchClosedOrders': 'emulated',
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
-                'fetchCurrencies': False,
+                'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': True,
@@ -525,6 +525,113 @@ class cryptocom(Exchange, ImplicitAPI):
                 'broad': {},
             },
         })
+
+    async def fetch_currencies(self, params={}) -> Currencies:
+        """
+        fetches all available currencies on an exchange
+
+        https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-currency-networks
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an associative dictionary of currencies
+        """
+        # self endpoint requires authentication
+        if not self.check_required_credentials(False):
+            return None
+        response = await self.v1PrivatePostPrivateGetCurrencyNetworks(params)
+        #
+        #    {
+        #        "id": "1747502328559",
+        #        "method": "private/get-currency-networks",
+        #        "code": "0",
+        #        "result": {
+        #            "update_time": "1747502281000",
+        #            "currency_map": {
+        #                "USDT": {
+        #                    "full_name": "Tether USD",
+        #                    "default_network": "ETH",
+        #                    "network_list": [
+        #                        {
+        #                            "network_id": "ETH",
+        #                            "withdrawal_fee": "10.00000000",
+        #                            "withdraw_enabled": True,
+        #                            "min_withdrawal_amount": "20.0",
+        #                            "deposit_enabled": True,
+        #                            "confirmation_required": "32"
+        #                        },
+        #                        {
+        #                            "network_id": "CRONOS",
+        #                            "withdrawal_fee": "0.18000000",
+        #                            "withdraw_enabled": True,
+        #                            "min_withdrawal_amount": "0.36",
+        #                            "deposit_enabled": True,
+        #                            "confirmation_required": "15"
+        #                        },
+        #                        {
+        #                            "network_id": "SOL",
+        #                            "withdrawal_fee": "5.31000000",
+        #                            "withdraw_enabled": True,
+        #                            "min_withdrawal_amount": "10.62",
+        #                            "deposit_enabled": True,
+        #                            "confirmation_required": "1"
+        #                        }
+        #                    ]
+        #                }
+        #            }
+        #        }
+        #    }
+        #
+        resultData = self.safe_dict(response, 'result', {})
+        currencyMap = self.safe_dict(resultData, 'currency_map', {})
+        keys = list(currencyMap.keys())
+        result: dict = {}
+        for i in range(0, len(keys)):
+            key = keys[i]
+            currency = currencyMap[key]
+            id = key
+            code = self.safe_currency_code(id)
+            networks: dict = {}
+            chains = self.safe_list(currency, 'network_list', [])
+            for j in range(0, len(chains)):
+                chain = chains[j]
+                networkId = self.safe_string(chain, 'network_id')
+                network = self.network_id_to_code(networkId)
+                networks[network] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': network,
+                    'active': None,
+                    'deposit': self.safe_bool(chain, 'deposit_enabled', False),
+                    'withdraw': self.safe_bool(chain, 'withdraw_enabled', False),
+                    'fee': self.safe_number(chain, 'withdrawal_fee'),
+                    'precision': None,
+                    'limits': {
+                        'withdraw': {
+                            'min': self.safe_number(chain, 'min_withdrawal_amount'),
+                            'max': None,
+                        },
+                    },
+                }
+            result[code] = self.safe_currency_structure({
+                'info': currency,
+                'id': id,
+                'code': code,
+                'name': self.safe_string(currency, 'full_name'),
+                'active': None,
+                'deposit': None,
+                'withdraw': None,
+                'fee': None,
+                'precision': None,
+                'limits': {
+                    'amount': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+                'type': 'crypto',  # only crypto now
+                'networks': networks,
+            })
+        return result
 
     async def fetch_markets(self, params={}) -> List[Market]:
         """

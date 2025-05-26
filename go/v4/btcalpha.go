@@ -196,7 +196,7 @@ func  (this *btcalpha) Describe() interface{}  {
                     "symbolRequired": false,
                 },
                 "fetchOHLCV": map[string]interface{} {
-                    "max": 720,
+                    "limit": 720,
                 },
             },
             "swap": map[string]interface{} {

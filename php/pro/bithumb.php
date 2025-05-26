@@ -348,18 +348,20 @@ class bithumb extends \ccxt\async\bithumb {
         //        "contPrice" : "10579000",
         //        "contQty" : "0.01",
         //        "contAmt" : "105790.00",
-        //        "contDtm" : "2020-01-29 12:24:18.830039",
+        //        "contDtm" : "2020-01-29 12:24:18.830038",
         //        "updn" : "dn"
         //    }
         //
         $marketId = $this->safe_string($trade, 'symbol');
         $datetime = $this->safe_string($trade, 'contDtm');
+        // that date is not UTC iso8601, but exchange's local time, -9hr difference
+        $timestamp = $this->parse8601($datetime) - 32400000;
         $sideId = $this->safe_string($trade, 'buySellGb');
         return $this->safe_trade(array(
             'id' => null,
             'info' => $trade,
-            'timestamp' => $this->parse8601($datetime),
-            'datetime' => $datetime,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
             'symbol' => $this->safe_symbol($marketId, $market, '_'),
             'order' => null,
             'type' => null,

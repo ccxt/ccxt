@@ -35,6 +35,21 @@ func (this *Bitteam) FetchMarkets(params ...interface{}) ([]MarketInterface, err
 }
 /**
  * @method
+ * @name bitteam#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://bit.team/trade/api/documentation#/PUBLIC/getTradeApiCurrencies
+ * @param {object} [params] extra parameters specific to the bitteam api endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Bitteam) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name bitteam#fetchOHLCV
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for

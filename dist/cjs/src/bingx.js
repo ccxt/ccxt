@@ -753,60 +753,42 @@ class bingx extends bingx$1 {
             const name = this.safeString(entry, 'name');
             const networkList = this.safeList(entry, 'networkList');
             const networks = {};
-            let fee = undefined;
-            let depositEnabled = false;
-            let withdrawEnabled = false;
-            let defaultLimits = {};
             for (let j = 0; j < networkList.length; j++) {
                 const rawNetwork = networkList[j];
                 const network = this.safeString(rawNetwork, 'network');
                 const networkCode = this.networkIdToCode(network);
-                const isDefault = this.safeBool(rawNetwork, 'isDefault');
-                const networkDepositEnabled = this.safeBool(rawNetwork, 'depositEnable');
-                if (networkDepositEnabled) {
-                    depositEnabled = true;
-                }
-                const networkWithdrawEnabled = this.safeBool(rawNetwork, 'withdrawEnable');
-                if (networkWithdrawEnabled) {
-                    withdrawEnabled = true;
-                }
                 const limits = {
                     'withdraw': {
                         'min': this.safeNumber(rawNetwork, 'withdrawMin'),
                         'max': this.safeNumber(rawNetwork, 'withdrawMax'),
                     },
                 };
-                fee = this.safeNumber(rawNetwork, 'withdrawFee');
-                if (isDefault) {
-                    defaultLimits = limits;
-                }
-                const precision = this.safeNumber(rawNetwork, 'withdrawPrecision');
-                const networkActive = networkDepositEnabled || networkWithdrawEnabled;
+                const precision = this.parseNumber(this.parsePrecision(this.safeString(rawNetwork, 'withdrawPrecision')));
                 networks[networkCode] = {
                     'info': rawNetwork,
                     'id': network,
                     'network': networkCode,
-                    'fee': fee,
-                    'active': networkActive,
-                    'deposit': networkDepositEnabled,
-                    'withdraw': networkWithdrawEnabled,
+                    'fee': this.safeNumber(rawNetwork, 'withdrawFee'),
+                    'active': undefined,
+                    'deposit': this.safeBool(rawNetwork, 'depositEnable'),
+                    'withdraw': this.safeBool(rawNetwork, 'withdrawEnable'),
                     'precision': precision,
                     'limits': limits,
                 };
             }
-            const active = depositEnabled || withdrawEnabled;
             result[code] = this.safeCurrencyStructure({
                 'info': entry,
                 'code': code,
                 'id': currencyId,
                 'precision': undefined,
                 'name': name,
-                'active': active,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'networks': networks,
-                'fee': fee,
-                'limits': defaultLimits,
+                'fee': undefined,
+                'limits': undefined,
+                'type': 'crypto', // only cryptos now
             });
         }
         return result;
@@ -5797,7 +5779,7 @@ class bingx extends bingx$1 {
      * @param {string} address the address to withdraw to
      * @param {string} [tag]
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.walletType] 1 fund account, 2 standard account, 3 perpetual account
+     * @param {int} [params.walletType] 1 fund account, 2 standard account, 3 perpetual account, 15 spot account
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
@@ -5805,13 +5787,7 @@ class bingx extends bingx$1 {
         this.checkAddress(address);
         await this.loadMarkets();
         const currency = this.currency(code);
-        let walletType = this.safeInteger(params, 'walletType');
-        if (walletType === undefined) {
-            walletType = 1;
-        }
-        if (!this.inArray(walletType, [1, 2, 3])) {
-            throw new errors.BadRequest(this.id + ' withdraw() requires either 1 fund account, 2 standard futures account, 3 perpetual account for walletType');
-        }
+        const walletType = this.safeInteger(params, 'walletType', 1);
         const request = {
             'coin': currency['id'],
             'address': address,

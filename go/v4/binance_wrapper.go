@@ -38,6 +38,22 @@ func (this *Binance) FetchTime(params ...interface{}) ( int64, error) {
 }
 /**
  * @method
+ * @name binance#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://developers.binance.com/docs/wallet/capital/all-coins-info
+ * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Margin-Assets
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Binance) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name binance#fetchMarkets
  * @description retrieves data on all markets for binance
  * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/general-endpoints#exchange-information           // spot

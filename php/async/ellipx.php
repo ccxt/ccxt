@@ -807,103 +807,198 @@ class ellipx extends Exchange {
     public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
-             * fetches information on all $currencies from the exchange, including deposit/withdrawal details and available chains
+             * fetches information on all currencies from the exchange, including deposit/withdrawal details and available chains
              *
              * @see https://docs.google.com/document/d/1ZXzTQYffKE_EglTaKptxGQERRnunuLHEMmar7VC9syM/edit?tab=t.0#heading=h.x65f9s9j74jf
              *
              * @param {array} [$params] extra parameters specific to the ellipx API endpoint
-             * @param {string} [$params->Can_Deposit] filter $currencies by deposit availability, Y for available
+             * @param {string} [$params->Can_Deposit] filter currencies by deposit availability, Y for available
              * @param {number} [$params->results_per_page] number of results per page, default 100
              * @param {string} [$params->_expand] additional fields to expand in $response, default '/Crypto_Token,/Crypto_Chain'
-             * @return array(Promise<Currencies>) An object of $currency structures indexed by $currency codes
+             * @return array(Promise<Currencies>) An object of currency structures indexed by currency codes
              */
             $response = Async\await($this->_restGetCryptoTokenInfo ($this->extend(array(
                 'Can_Deposit' => 'Y',
                 'results_per_page' => 100,
                 '_expand' => '/Crypto_Token,/Crypto_Chain',
             ), $params)));
-            $currencies = array();
-            $data = $this->safe_value($response, 'data', array());
+            $result = array();
+            $data = $this->safe_list($response, 'data', array());
             for ($i = 0; $i < count($data); $i++) {
-                $currency = $this->parse_currency($data[$i]);
-                $code = $this->safe_string($currency, 'code');
-                if ($code !== null) {
-                    $currencies[$code] = $currency;
+                $networkEntry = $data[$i];
+                //
+                //    {
+                //        "Crypto_Token_Info__" => "crtev-5nsn35-f4ir-g5hp-iaft-i4ztx6zu",
+                //        "Crypto_Token__" => "crtok-c5v3mh-grfn-hl5d-lmel-fvggbf4i",
+                //        "Crypto_Chain__" => "chain-xjbini-7wlz-dmzf-gm7z-zf7ei6fq",
+                //        "Type" => "native",
+                //        "Symbol" => null,
+                //        "Name" => null,
+                //        "Contract_Address" => null,
+                //        "Minimum_Deposit" => array(
+                //            "v" => "6",
+                //            "e" => "6",
+                //            "f" => "6.0e-6"
+                //        ),
+                //        "Minimum_Withdraw" => array(
+                //            "v" => "15",
+                //            "e" => "5",
+                //            "f" => "0.00015"
+                //        ),
+                //        "Withdraw_Fee" => array(
+                //            "v" => "1",
+                //            "e" => "4",
+                //            "f" => "0.0001"
+                //        ),
+                //        "Minimum_Collect" => null,
+                //        "Status" => "valid",
+                //        "Can_Deposit" => "Y",
+                //        "Decimals" => null,
+                //        "Priority" => "100",
+                //        "Created" => array(
+                //            "unix" => "1727552199",
+                //            "us" => "0",
+                //            "iso" => "2024-09-28 19:36:39.000000",
+                //            "tz" => "UTC",
+                //            "full" => "1727552199000000",
+                //            "unixms" => "1727552199000"
+                //        ),
+                //        "Crypto_Token" => {
+                //            "Crypto_Token__" => "crtok-c5v3mh-grfn-hl5d-lmel-fvggbf4i",
+                //            "Name" => "Bitcoin",
+                //            "Symbol" => "BTC",
+                //            "Decimals" => "8",
+                //            "CMC_Id" => "1",
+                //            "Priority" => "100",
+                //            "Can_Deposit" => "Y",
+                //            "Category" => "token",
+                //            "Testnet" => "N",
+                //            "Created" => array(
+                //                "unix" => "1727552113",
+                //                "us" => "0",
+                //                "iso" => "2024-09-28 19:35:13.000000",
+                //                "tz" => "UTC",
+                //                "full" => "1727552113000000",
+                //                "unixms" => "1727552113000"
+                //            ),
+                //            "Logo" => array(
+                //                {
+                //                    "Crypto_Token_Logo__" => "ctklg-aoozyr-rzm5-fphf-dhm7-5wbtetha",
+                //                    "Crypto_Token__" => "crtok-c5v3mh-grfn-hl5d-lmel-fvggbf4i",
+                //                    "Blob__" => "blob-d6hvgx-37s5-dh5h-ogj5-qxqvnaoy",
+                //                    "Default" => "Y",
+                //                    "Format" => "png",
+                //                    "Priority" => "0",
+                //                    "Created" => array(
+                //                        "unix" => "1730196627",
+                //                        "us" => "929660",
+                //                        "iso" => "2024-10-29 10:10:27.929660",
+                //                        "tz" => "UTC",
+                //                        "full" => "1730196627929660",
+                //                        "unixms" => "1730196627929"
+                //                    ),
+                //                    "Source" => array(
+                //                        "Media_Image__" => "blob-d6hvgx-37s5-dh5h-ogj5-qxqvnaoy",
+                //                        "Url" => "https://static.atonline.net/image/m_X7_tnmIYFCwn6EUVQuMKqrCuPB3CMl4ONTegeYpC0wIg68YZM0CuBpbjspnYwz/1a942eab068a2173e66d08c736283cfe22e1c1ed"
+                //                    }
+                //                }
+                //            )
+                //        ),
+                //        "Crypto_Chain" => {
+                //            "Crypto_Chain__" => "chain-xjbini-7wlz-dmzf-gm7z-zf7ei6fq",
+                //            "EVM_Chain__" => null,
+                //            "Crypto_Token__" => "crtok-c5v3mh-grfn-hl5d-lmel-fvggbf4i",
+                //            "Name" => "Bitcoin",
+                //            "Key" => "bitcoin",
+                //            "Type" => "Bitcoin",
+                //            "Curve" => "secp256k1",
+                //            "Backend_Url" => null,
+                //            "Wallet_Verification_Methods" => array(
+                //                "signature" => true
+                //            ),
+                //            "Block_Margin" => "3",
+                //            "Created" => {
+                //                "unix" => "1725340084",
+                //                "us" => "0",
+                //                "iso" => "2024-09-03 05:08:04.000000",
+                //                "tz" => "UTC",
+                //                "full" => "1725340084000000",
+                //                "unixms" => "1725340084000"
+                //            }
+                //        }
+                //    }
+                //
+                $id = $this->safe_string($networkEntry, 'Crypto_Token__');
+                $token = $this->safe_dict($networkEntry, 'Crypto_Token', array());
+                $code = $this->safe_currency_code($this->safe_string($token, 'Symbol'));
+                if (!(is_array($result) && array_key_exists($code, $result))) {
+                    $result[$code] = array(
+                        'id' => $id,
+                        'code' => $code,
+                        'info' => array(),
+                        'type' => null,
+                        'name' => $this->safe_string($token, 'Name'),
+                        'active' => null,
+                        'deposit' => null,
+                        'withdraw' => null,
+                        'fee' => null,
+                        'precision' => null,
+                        'limits' => array(
+                            'amount' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
+                            'withdraw' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
+                            'deposit' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
+                        ),
+                        'networks' => array(),
+                    );
                 }
+                $networkId = $this->safe_string($networkEntry, 'Crypto_Chain__');
+                $cryptoChainDict = $this->safe_string($networkEntry, 'Crypto_Chain');
+                $networkName = $this->safe_string($cryptoChainDict, 'Type', 'default');
+                $networkCode = $this->network_id_to_code($networkName);
+                $result[$code]['networks'][$networkCode] = array(
+                    'id' => $networkId,
+                    'network' => $networkCode,
+                    'active' => $this->safe_string($networkEntry, 'Status') === 'valid',
+                    'deposit' => $this->safe_string($networkEntry, 'Can_Deposit') === 'Y',
+                    'withdraw' => null,
+                    'fee' => $this->parse_number($this->parse_amount($networkEntry['Withdraw_Fee'])),
+                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($token, 'Decimals'))),
+                    'limits' => array(
+                        'amount' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'withdraw' => array(
+                            'min' => $this->parse_amount($networkEntry['Minimum_Withdraw']),
+                            'max' => null,
+                        ),
+                        'deposit' => array(
+                            'min' => $this->parse_amount($networkEntry['Minimum_Deposit']),
+                            'max' => null,
+                        ),
+                    ),
+                );
+                $infos = $this->safe_list($result[$code], 'info', array());
+                $infos[] = $networkEntry;
+                $result[$code]['info'] = $infos;
             }
-            return $currencies;
+            // only after all entries are formed in currencies, restructure each entry
+            $allKeys = is_array($result) ? array_keys($result) : array();
+            for ($i = 0; $i < count($allKeys); $i++) {
+                $code = $allKeys[$i];
+                $result[$code] = $this->safe_currency_structure($result[$code]); // this is needed after adding network entry
+            }
+            return $result;
         }) ();
-    }
-
-    public function parse_currency($currency): array {
-        $id = $this->safe_string($currency, 'Crypto_Token__');
-        $token = $this->safe_value($currency, 'Crypto_Token', array());
-        $code = $this->safe_currency_code($this->safe_string($token, 'Symbol'));
-        $name = $this->safe_string($token, 'Name');
-        $active = $this->safe_string($currency, 'Status') === 'valid';
-        $deposit = $this->safe_string($currency, 'Can_Deposit') === 'Y';
-        $withdraw = $this->safe_string($currency, 'Status') === 'valid';
-        $fee = null;
-        if ($currency['Withdraw_Fee'] !== null) {
-            $fee = $this->parse_number($this->parse_amount($currency['Withdraw_Fee']));
-        }
-        $precision = $this->parse_number($this->parse_precision($this->safe_string($token, 'Decimals')));
-        $minDeposit = null;
-        if ($currency['Minimum_Deposit'] !== null) {
-            $minDeposit = $this->parse_amount($currency['Minimum_Deposit']);
-        }
-        $minWithdraw = null;
-        if ($currency['Minimum_Withdraw'] !== null) {
-            $minWithdraw = $this->parse_amount($currency['Minimum_Withdraw']);
-        }
-        $networkId = $this->safe_string($currency, 'Crypto_Chain__');
-        $networkData = $this->safe_value($currency, 'Crypto_Chain', array());
-        $networkCode = $this->safe_string($networkData, 'Type', 'default');
-        $networks = array(
-            'string' => null,
-            'info' => $networkCode === 'default' ? array() : $networkData,
-            'id' => $networkId || $id || '',
-            'network' => $networkCode,
-            'active' => $active,
-            'deposit' => $deposit,
-            'withdraw' => $withdraw,
-            'fee' => $fee,
-            'precision' => $precision,
-            'limits' => array(
-                'deposit' => array(
-                    'min' => $minDeposit,
-                    'max' => null,
-                ),
-                'withdraw' => array(
-                    'min' => $minWithdraw,
-                    'max' => null,
-                ),
-            ),
-        );
-        $result = array(
-            'info' => $currency,
-            'id' => $id,
-            'code' => $code,
-            'name' => $name,
-            'active' => $active,
-            'deposit' => $deposit,
-            'withdraw' => $withdraw,
-            'fee' => $fee,
-            'precision' => $precision,
-            'type' => null,
-            'limits' => array(
-                'amount' => array(
-                    'min' => null,
-                    'max' => null,
-                ),
-                'withdraw' => array(
-                    'min' => $minWithdraw,
-                    'max' => null,
-                ),
-            ),
-            'networks' => $networks,
-        );
-        return $result;
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
@@ -1104,14 +1199,14 @@ class ellipx extends Exchange {
             for ($i = 0; $i < count($dataArray); $i++) {
                 $entry = $dataArray[$i];
                 $balance = $this->safe_dict($entry, 'Balance', array());
-                $currency = $this->safe_string($balance, 'currency');
-                if ($currency !== null) {
+                $code = $this->safe_string($balance, 'currency');
+                if ($code !== null) {
                     $account = array(
                         'free' => $this->parse_amount($entry['Unencumbered_Balance']['value_xint']),
                         'used' => $this->parse_amount($entry['Liabilities']['value_xint']),
                         'total' => $this->parse_amount($balance['value_xint']),
                     );
-                    $result[$currency] = $account;
+                    $result[$code] = $account;
                 }
             }
             return $this->safe_balance($result);
@@ -1761,7 +1856,7 @@ class ellipx extends Exchange {
              *
              * @see https://docs.google.com/document/d/1ZXzTQYffKE_EglTaKptxGQERRnunuLHEMmar7VC9syM/edit?tab=t.0#heading=h.zegupoa8g4t9
              *
-             * @param {string} $code Currency $code
+             * @param {string} $code unified $currency $code
              * @param {number} $amount Amount to withdraw
              * @param {string} $address Destination wallet $address
              * @param {string} [$tag] Additional tag/memo for currencies that require it

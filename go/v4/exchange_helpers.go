@@ -2545,7 +2545,7 @@ func CallInternalMethod(methodCache *sync.Map, itf interface{}, name2 string, ar
 			ch <- nil
 		}
 
-		ch <- nil
+		// ch <- nil // nught be causing a mem leak
 		close(ch)
 	}()
 	return ch
