@@ -198,7 +198,7 @@ export default class bullish extends Exchange {
                         'v1/wallets/withdrawal': 1, // todo check
                         'v2/users/login': 1, // done
                         'v1/command?commandType=V1TransferAsset': 1, // todo check
-                        'v1/simulate-portfolio-margin': 1, // todo ask what method to use
+                        'v1/simulate-portfolio-margin': 1, // not used
                     },
                 },
             },
@@ -562,7 +562,6 @@ export default class bullish extends Exchange {
             symbol = base + '/' + quote + '-' + datePart;
             expiryDatetime = this.safeString (market, 'expiryDatetime');
         }
-        const margin = this.safeValue (market, 'marginTradingEnabled', false);
         return this.safeMarketStructure ({
             'id': id,
             'symbol': symbol,
@@ -574,7 +573,7 @@ export default class bullish extends Exchange {
             'settleId': settleId,
             'type': type,
             'spot': spot,
-            'margin': margin,
+            'margin': undefined,
             'swap': swap,
             'future': future,
             'option': false,
