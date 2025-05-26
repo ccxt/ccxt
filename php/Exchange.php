@@ -409,7 +409,6 @@ class Exchange {
         'krakenfutures',
         'kucoin',
         'kucoinfutures',
-        'kuna',
         'latoken',
         'lbank',
         'luno',
