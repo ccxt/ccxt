@@ -14,8 +14,8 @@
                     "extraWithdrawFee": "0",
                     "depositConfirm": "1",
                     "withdrawConfirm": "1",
-                    "minDepositAmount": "0.00000453",
-                    "minWithdrawAmount": "0.0004825",
+                    "minDepositAmount": "0.00000912",
+                    "minWithdrawAmount": "0.00045632",
                     "browserUrl": "https://www.blockchain.com/explorer/transactions/btc/",
                     "contractAddress": null,
                     "withdrawStep": "0",
@@ -31,8 +31,8 @@
                     "extraWithdrawFee": "0",
                     "depositConfirm": "1",
                     "withdrawConfirm": "5",
-                    "minDepositAmount": "0.00000096",
-                    "minWithdrawAmount": "0.00001997",
+                    "minDepositAmount": "0.00000009",
+                    "minWithdrawAmount": "0.00001889",
                     "browserUrl": "",
                     "contractAddress": null,
                     "withdrawStep": "0",
@@ -44,12 +44,12 @@
                     "needTag": "false",
                     "withdrawable": "true",
                     "rechargeable": "true",
-                    "withdrawFee": "0.00000676",
+                    "withdrawFee": "0.00000654",
                     "extraWithdrawFee": "0",
                     "depositConfirm": "15",
                     "withdrawConfirm": "15",
-                    "minDepositAmount": "0.00000086",
-                    "minWithdrawAmount": "0.0000965",
+                    "minDepositAmount": "0.00000084",
+                    "minWithdrawAmount": "0.00009126",
                     "browserUrl": "https://bscscan.com/tx/",
                     "contractAddress": "0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c",
                     "withdrawStep": "0",
@@ -68,7 +68,7 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.00000676,
+        "fee": 0.00000654,
         "fees": {},
         "networks": {
             "BTC": {
@@ -81,8 +81,8 @@
                     "extraWithdrawFee": "0",
                     "depositConfirm": "1",
                     "withdrawConfirm": "1",
-                    "minDepositAmount": "0.00000453",
-                    "minWithdrawAmount": "0.0004825",
+                    "minDepositAmount": "0.00000912",
+                    "minWithdrawAmount": "0.00045632",
                     "browserUrl": "https://www.blockchain.com/explorer/transactions/btc/",
                     "contractAddress": null,
                     "withdrawStep": "0",
@@ -93,11 +93,11 @@
                 "network": "BTC",
                 "limits": {
                     "withdraw": {
-                        "min": 0.0004825,
+                        "min": 0.00045632,
                         "max": null
                     },
                     "deposit": {
-                        "min": 0.00000453,
+                        "min": 0.00000912,
                         "max": null
                     }
                 },
@@ -117,8 +117,8 @@
                     "extraWithdrawFee": "0",
                     "depositConfirm": "1",
                     "withdrawConfirm": "5",
-                    "minDepositAmount": "0.00000096",
-                    "minWithdrawAmount": "0.00001997",
+                    "minDepositAmount": "0.00000009",
+                    "minWithdrawAmount": "0.00001889",
                     "browserUrl": "",
                     "contractAddress": null,
                     "withdrawStep": "0",
@@ -129,11 +129,11 @@
                 "network": "LIGHTNING",
                 "limits": {
                     "withdraw": {
-                        "min": 0.00001997,
+                        "min": 0.00001889,
                         "max": null
                     },
                     "deposit": {
-                        "min": 9.6e-7,
+                        "min": 9e-8,
                         "max": null
                     }
                 },
@@ -149,12 +149,12 @@
                     "needTag": "false",
                     "withdrawable": "true",
                     "rechargeable": "true",
-                    "withdrawFee": "0.00000676",
+                    "withdrawFee": "0.00000654",
                     "extraWithdrawFee": "0",
                     "depositConfirm": "15",
                     "withdrawConfirm": "15",
-                    "minDepositAmount": "0.00000086",
-                    "minWithdrawAmount": "0.0000965",
+                    "minDepositAmount": "0.00000084",
+                    "minWithdrawAmount": "0.00009126",
                     "browserUrl": "https://bscscan.com/tx/",
                     "contractAddress": "0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c",
                     "withdrawStep": "0",
@@ -165,18 +165,18 @@
                 "network": "BSC",
                 "limits": {
                     "withdraw": {
-                        "min": 0.0000965,
+                        "min": 0.00009126,
                         "max": null
                     },
                     "deposit": {
-                        "min": 8.6e-7,
+                        "min": 8.4e-7,
                         "max": null
                     }
                 },
                 "active": true,
                 "withdraw": true,
                 "deposit": true,
-                "fee": 0.00000676,
+                "fee": 0.00000654,
                 "precision": 1e-8
             }
         },
@@ -186,11 +186,11 @@
                 "max": null
             },
             "withdraw": {
-                "min": 0.00001997,
+                "min": 0.00001889,
                 "max": null
             },
             "deposit": {
-                "min": 8.6e-7,
+                "min": 9e-8,
                 "max": null
             }
         },
@@ -216,7 +216,7 @@
                     "browserUrl": "https://etherscan.io/tx/",
                     "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7",
                     "withdrawStep": "0",
-                    "withdrawMinScale": "8",
+                    "withdrawMinScale": "6",
                     "congestion": "normal"
                 },
                 {
@@ -233,7 +233,7 @@
                     "browserUrl": "https://tronscan.org/#/transaction/",
                     "contractAddress": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
                     "withdrawStep": "0",
-                    "withdrawMinScale": "8",
+                    "withdrawMinScale": "6",
                     "congestion": "normal"
                 },
                 {
@@ -250,7 +250,7 @@
                     "browserUrl": "https://arbiscan.io/tx/",
                     "contractAddress": "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9",
                     "withdrawStep": "0",
-                    "withdrawMinScale": "8",
+                    "withdrawMinScale": "6",
                     "congestion": "normal"
                 },
                 {
@@ -267,7 +267,24 @@
                     "browserUrl": "https://solscan.io/tx/",
                     "contractAddress": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
                     "withdrawStep": "0",
-                    "withdrawMinScale": "8",
+                    "withdrawMinScale": "6",
+                    "congestion": "normal"
+                },
+                {
+                    "chain": "Kaia",
+                    "needTag": "false",
+                    "withdrawable": "false",
+                    "rechargeable": "true",
+                    "withdrawFee": "1",
+                    "extraWithdrawFee": "0",
+                    "depositConfirm": "20",
+                    "withdrawConfirm": "20",
+                    "minDepositAmount": "0.01",
+                    "minWithdrawAmount": "10",
+                    "browserUrl": "https://scope.klaytn.com/tx/",
+                    "contractAddress": "0xd077a400968890eacc75cdc901f0356c943e4fdb",
+                    "withdrawStep": "0",
+                    "withdrawMinScale": "6",
                     "congestion": "normal"
                 },
                 {
@@ -284,7 +301,7 @@
                     "browserUrl": "https://optimistic.etherscan.io/tx/",
                     "contractAddress": "0x94b008aa00579c1307b0ef2c499ad98a8ce58e58",
                     "withdrawStep": "0",
-                    "withdrawMinScale": "8",
+                    "withdrawMinScale": "6",
                     "congestion": "normal"
                 },
                 {
@@ -313,12 +330,12 @@
                     "extraWithdrawFee": "0",
                     "depositConfirm": "12",
                     "withdrawConfirm": "12",
-                    "minDepositAmount": "0.1",
-                    "minWithdrawAmount": "0.1",
+                    "minDepositAmount": "0.01",
+                    "minWithdrawAmount": "10",
                     "browserUrl": "https://explorer.kava.io/tx/",
                     "contractAddress": "0x919c1c267bc06a7039e03fcc2ef738525769109c",
                     "withdrawStep": "0",
-                    "withdrawMinScale": "8",
+                    "withdrawMinScale": "6",
                     "congestion": "normal"
                 },
                 {
@@ -335,7 +352,7 @@
                     "browserUrl": "https://polygonscan.com/tx/",
                     "contractAddress": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
                     "withdrawStep": "0",
-                    "withdrawMinScale": "8",
+                    "withdrawMinScale": "6",
                     "congestion": "normal"
                 },
                 {
@@ -348,11 +365,11 @@
                     "depositConfirm": "60",
                     "withdrawConfirm": "60",
                     "minDepositAmount": "0.01",
-                    "minWithdrawAmount": "50",
+                    "minWithdrawAmount": "10",
                     "browserUrl": "https://snowtrace.io/tx/",
                     "contractAddress": "0x9702230a8ea53601f5cd2dc00fdbc13d4df4a8c7",
                     "withdrawStep": "0",
-                    "withdrawMinScale": "8",
+                    "withdrawMinScale": "6",
                     "congestion": "normal"
                 },
                 {
@@ -364,12 +381,12 @@
                     "extraWithdrawFee": "0",
                     "depositConfirm": "30",
                     "withdrawConfirm": "30",
-                    "minDepositAmount": "0.001",
+                    "minDepositAmount": "0.01",
                     "minWithdrawAmount": "10",
                     "browserUrl": "https://assethub-polkadot.subscan.io/extrinsic/",
                     "contractAddress": "1984",
                     "withdrawStep": "0",
-                    "withdrawMinScale": "8",
+                    "withdrawMinScale": "6",
                     "congestion": "normal"
                 },
                 {
@@ -386,7 +403,7 @@
                     "browserUrl": "https://aptoscan.com/transaction/",
                     "contractAddress": "0x357b0b74bc833e95a115ad22604854d6b0fca151cecd94111770e5d6ffc9dc2b",
                     "withdrawStep": "0",
-                    "withdrawMinScale": "8",
+                    "withdrawMinScale": "6",
                     "congestion": "normal"
                 },
                 {
@@ -436,7 +453,7 @@
                     "browserUrl": "https://etherscan.io/tx/",
                     "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7",
                     "withdrawStep": "0",
-                    "withdrawMinScale": "8",
+                    "withdrawMinScale": "6",
                     "congestion": "normal"
                 },
                 "id": "ERC20",
@@ -455,7 +472,7 @@
                 "withdraw": true,
                 "deposit": true,
                 "fee": 3,
-                "precision": 1e-8
+                "precision": 0.000001
             },
             "TRC20": {
                 "info": {
@@ -472,7 +489,7 @@
                     "browserUrl": "https://tronscan.org/#/transaction/",
                     "contractAddress": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
                     "withdrawStep": "0",
-                    "withdrawMinScale": "8",
+                    "withdrawMinScale": "6",
                     "congestion": "normal"
                 },
                 "id": "TRC20",
@@ -491,7 +508,7 @@
                 "withdraw": true,
                 "deposit": true,
                 "fee": 1,
-                "precision": 1e-8
+                "precision": 0.000001
             },
             "ARBONE": {
                 "info": {
@@ -508,7 +525,7 @@
                     "browserUrl": "https://arbiscan.io/tx/",
                     "contractAddress": "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9",
                     "withdrawStep": "0",
-                    "withdrawMinScale": "8",
+                    "withdrawMinScale": "6",
                     "congestion": "normal"
                 },
                 "id": "ArbitrumOne",
@@ -527,7 +544,7 @@
                 "withdraw": true,
                 "deposit": true,
                 "fee": 0.2,
-                "precision": 1e-8
+                "precision": 0.000001
             },
             "SOL": {
                 "info": {
@@ -544,7 +561,7 @@
                     "browserUrl": "https://solscan.io/tx/",
                     "contractAddress": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
                     "withdrawStep": "0",
-                    "withdrawMinScale": "8",
+                    "withdrawMinScale": "6",
                     "congestion": "normal"
                 },
                 "id": "SOL",
@@ -563,7 +580,43 @@
                 "withdraw": true,
                 "deposit": true,
                 "fee": 1,
-                "precision": 1e-8
+                "precision": 0.000001
+            },
+            "KAIA": {
+                "info": {
+                    "chain": "Kaia",
+                    "needTag": "false",
+                    "withdrawable": "false",
+                    "rechargeable": "true",
+                    "withdrawFee": "1",
+                    "extraWithdrawFee": "0",
+                    "depositConfirm": "20",
+                    "withdrawConfirm": "20",
+                    "minDepositAmount": "0.01",
+                    "minWithdrawAmount": "10",
+                    "browserUrl": "https://scope.klaytn.com/tx/",
+                    "contractAddress": "0xd077a400968890eacc75cdc901f0356c943e4fdb",
+                    "withdrawStep": "0",
+                    "withdrawMinScale": "6",
+                    "congestion": "normal"
+                },
+                "id": "Kaia",
+                "network": "KAIA",
+                "limits": {
+                    "withdraw": {
+                        "min": 10,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0.01,
+                        "max": null
+                    }
+                },
+                "active": false,
+                "withdraw": false,
+                "deposit": true,
+                "fee": 1,
+                "precision": 0.000001
             },
             "OPTIMISM": {
                 "info": {
@@ -580,7 +633,7 @@
                     "browserUrl": "https://optimistic.etherscan.io/tx/",
                     "contractAddress": "0x94b008aa00579c1307b0ef2c499ad98a8ce58e58",
                     "withdrawStep": "0",
-                    "withdrawMinScale": "8",
+                    "withdrawMinScale": "6",
                     "congestion": "normal"
                 },
                 "id": "Optimism",
@@ -599,7 +652,7 @@
                 "withdraw": true,
                 "deposit": true,
                 "fee": 0.15,
-                "precision": 1e-8
+                "precision": 0.000001
             },
             "BSC": {
                 "info": {
@@ -647,23 +700,23 @@
                     "extraWithdrawFee": "0",
                     "depositConfirm": "12",
                     "withdrawConfirm": "12",
-                    "minDepositAmount": "0.1",
-                    "minWithdrawAmount": "0.1",
+                    "minDepositAmount": "0.01",
+                    "minWithdrawAmount": "10",
                     "browserUrl": "https://explorer.kava.io/tx/",
                     "contractAddress": "0x919c1c267bc06a7039e03fcc2ef738525769109c",
                     "withdrawStep": "0",
-                    "withdrawMinScale": "8",
+                    "withdrawMinScale": "6",
                     "congestion": "normal"
                 },
                 "id": "KAVAEVMToken",
                 "network": "KAVAEVMTOKEN",
                 "limits": {
                     "withdraw": {
-                        "min": 0.1,
+                        "min": 10,
                         "max": null
                     },
                     "deposit": {
-                        "min": 0.1,
+                        "min": 0.01,
                         "max": null
                     }
                 },
@@ -671,7 +724,7 @@
                 "withdraw": true,
                 "deposit": true,
                 "fee": 0.2,
-                "precision": 1e-8
+                "precision": 0.000001
             },
             "MATIC": {
                 "info": {
@@ -688,7 +741,7 @@
                     "browserUrl": "https://polygonscan.com/tx/",
                     "contractAddress": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
                     "withdrawStep": "0",
-                    "withdrawMinScale": "8",
+                    "withdrawMinScale": "6",
                     "congestion": "normal"
                 },
                 "id": "Polygon",
@@ -707,7 +760,7 @@
                 "withdraw": true,
                 "deposit": true,
                 "fee": 0.2,
-                "precision": 1e-8
+                "precision": 0.000001
             },
             "AVAXC-CHAIN": {
                 "info": {
@@ -720,18 +773,18 @@
                     "depositConfirm": "60",
                     "withdrawConfirm": "60",
                     "minDepositAmount": "0.01",
-                    "minWithdrawAmount": "50",
+                    "minWithdrawAmount": "10",
                     "browserUrl": "https://snowtrace.io/tx/",
                     "contractAddress": "0x9702230a8ea53601f5cd2dc00fdbc13d4df4a8c7",
                     "withdrawStep": "0",
-                    "withdrawMinScale": "8",
+                    "withdrawMinScale": "6",
                     "congestion": "normal"
                 },
                 "id": "AVAXC-Chain",
                 "network": "AVAXC-CHAIN",
                 "limits": {
                     "withdraw": {
-                        "min": 50,
+                        "min": 10,
                         "max": null
                     },
                     "deposit": {
@@ -743,7 +796,7 @@
                 "withdraw": true,
                 "deposit": true,
                 "fee": 0.11,
-                "precision": 1e-8
+                "precision": 0.000001
             },
             "POLKADOTASSETHUB": {
                 "info": {
@@ -755,12 +808,12 @@
                     "extraWithdrawFee": "0",
                     "depositConfirm": "30",
                     "withdrawConfirm": "30",
-                    "minDepositAmount": "0.001",
+                    "minDepositAmount": "0.01",
                     "minWithdrawAmount": "10",
                     "browserUrl": "https://assethub-polkadot.subscan.io/extrinsic/",
                     "contractAddress": "1984",
                     "withdrawStep": "0",
-                    "withdrawMinScale": "8",
+                    "withdrawMinScale": "6",
                     "congestion": "normal"
                 },
                 "id": "PolkadotAssetHub",
@@ -771,7 +824,7 @@
                         "max": null
                     },
                     "deposit": {
-                        "min": 0.001,
+                        "min": 0.01,
                         "max": null
                     }
                 },
@@ -779,7 +832,7 @@
                 "withdraw": false,
                 "deposit": true,
                 "fee": 1,
-                "precision": 1e-8
+                "precision": 0.000001
             },
             "APT": {
                 "info": {
@@ -796,7 +849,7 @@
                     "browserUrl": "https://aptoscan.com/transaction/",
                     "contractAddress": "0x357b0b74bc833e95a115ad22604854d6b0fca151cecd94111770e5d6ffc9dc2b",
                     "withdrawStep": "0",
-                    "withdrawMinScale": "8",
+                    "withdrawMinScale": "6",
                     "congestion": "normal"
                 },
                 "id": "Aptos",
@@ -815,7 +868,7 @@
                 "withdraw": true,
                 "deposit": true,
                 "fee": 0.03,
-                "precision": 1e-8
+                "precision": 0.000001
             },
             "TON": {
                 "info": {
@@ -860,11 +913,11 @@
                 "max": null
             },
             "withdraw": {
-                "min": 0.1,
+                "min": 9,
                 "max": null
             },
             "deposit": {
-                "min": 0.001,
+                "min": 0.01,
                 "max": null
             }
         },
@@ -922,7 +975,7 @@
                     "depositConfirm": "3",
                     "withdrawConfirm": "6",
                     "minDepositAmount": "0",
-                    "minWithdrawAmount": "0.09870693",
+                    "minWithdrawAmount": "0.10407993",
                     "browserUrl": "https://blockchair.com/litecoin/transaction/",
                     "contractAddress": null,
                     "withdrawStep": "0",
@@ -955,7 +1008,7 @@
                     "depositConfirm": "3",
                     "withdrawConfirm": "6",
                     "minDepositAmount": "0",
-                    "minWithdrawAmount": "0.09870693",
+                    "minWithdrawAmount": "0.10407993",
                     "browserUrl": "https://blockchair.com/litecoin/transaction/",
                     "contractAddress": null,
                     "withdrawStep": "0",
@@ -966,7 +1019,7 @@
                 "network": "LTC",
                 "limits": {
                     "withdraw": {
-                        "min": 0.09870693,
+                        "min": 0.10407993,
                         "max": null
                     },
                     "deposit": {
@@ -987,7 +1040,7 @@
                 "max": null
             },
             "withdraw": {
-                "min": 0.09870693,
+                "min": 0.10407993,
                 "max": null
             },
             "deposit": {
@@ -1008,12 +1061,12 @@
                     "needTag": "false",
                     "withdrawable": "true",
                     "rechargeable": "true",
-                    "withdrawFee": "0.00050753",
+                    "withdrawFee": "0.00050805",
                     "extraWithdrawFee": "0",
                     "depositConfirm": "12",
                     "withdrawConfirm": "64",
                     "minDepositAmount": "0.0000039",
-                    "minWithdrawAmount": "0.00390403",
+                    "minWithdrawAmount": "0.003908",
                     "browserUrl": "https://etherscan.io/tx/",
                     "contractAddress": null,
                     "withdrawStep": "0",
@@ -1030,7 +1083,7 @@
                     "depositConfirm": "12",
                     "withdrawConfirm": "96",
                     "minDepositAmount": "0.0000039",
-                    "minWithdrawAmount": "0.00390403",
+                    "minWithdrawAmount": "0.003908",
                     "browserUrl": "https://arbiscan.io/tx/",
                     "contractAddress": null,
                     "withdrawStep": "0",
@@ -1047,7 +1100,7 @@
                     "depositConfirm": "50",
                     "withdrawConfirm": "50",
                     "minDepositAmount": "0.0000039",
-                    "minWithdrawAmount": "0.00351363",
+                    "minWithdrawAmount": "0.0035172",
                     "browserUrl": "https://optimistic.etherscan.io/tx/",
                     "contractAddress": null,
                     "withdrawStep": "0",
@@ -1064,7 +1117,7 @@
                     "depositConfirm": "120",
                     "withdrawConfirm": "300",
                     "minDepositAmount": "0.0000039",
-                    "minWithdrawAmount": "0.00390403",
+                    "minWithdrawAmount": "0.003908",
                     "browserUrl": "https://scrollscan.com/tx/",
                     "contractAddress": null,
                     "withdrawStep": "0",
@@ -1080,8 +1133,8 @@
                     "extraWithdrawFee": "0",
                     "depositConfirm": "10",
                     "withdrawConfirm": "10",
-                    "minDepositAmount": "0.0008",
-                    "minWithdrawAmount": "0.001",
+                    "minDepositAmount": "0.0000039",
+                    "minWithdrawAmount": "0.003908",
                     "browserUrl": "https://voyager.online/tx/",
                     "contractAddress": "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
                     "withdrawStep": "0",
@@ -1098,7 +1151,7 @@
                     "depositConfirm": "96",
                     "withdrawConfirm": "96",
                     "minDepositAmount": "0.0000039",
-                    "minWithdrawAmount": "0.00390403",
+                    "minWithdrawAmount": "0.003908",
                     "browserUrl": "https://explorer.zksync.io/tx/",
                     "contractAddress": null,
                     "withdrawStep": "0",
@@ -1110,12 +1163,12 @@
                     "needTag": "false",
                     "withdrawable": "true",
                     "rechargeable": "true",
-                    "withdrawFee": "0.00027329",
+                    "withdrawFee": "0.00027357",
                     "extraWithdrawFee": "0",
                     "depositConfirm": "15",
                     "withdrawConfirm": "15",
                     "minDepositAmount": "0.0000039",
-                    "minWithdrawAmount": "0.00390403",
+                    "minWithdrawAmount": "0.003908",
                     "browserUrl": "https://bscscan.com/tx/",
                     "contractAddress": "0x2170ed0880ac9a755fd29b2688956bd959f933f8",
                     "withdrawStep": "0",
@@ -1131,8 +1184,8 @@
                     "extraWithdrawFee": "0",
                     "depositConfirm": "64",
                     "withdrawConfirm": "96",
-                    "minDepositAmount": "0.00001",
-                    "minWithdrawAmount": "0.005",
+                    "minDepositAmount": "0.0000039",
+                    "minWithdrawAmount": "0.003908",
                     "browserUrl": "https://explorer.morphl2.io/tx/",
                     "contractAddress": null,
                     "withdrawStep": "0",
@@ -1144,12 +1197,12 @@
                     "needTag": "false",
                     "withdrawable": "true",
                     "rechargeable": "true",
-                    "withdrawFee": "0.00118",
+                    "withdrawFee": "0.00117241",
                     "extraWithdrawFee": "0",
                     "depositConfirm": "64",
                     "withdrawConfirm": "96",
                     "minDepositAmount": "0.0000039",
-                    "minWithdrawAmount": "0.00390403",
+                    "minWithdrawAmount": "0.003908",
                     "browserUrl": "https://lineascan.build/tx/",
                     "contractAddress": null,
                     "withdrawStep": "0",
@@ -1166,7 +1219,7 @@
                     "depositConfirm": "30",
                     "withdrawConfirm": "120",
                     "minDepositAmount": "0.0000039",
-                    "minWithdrawAmount": "0.00390403",
+                    "minWithdrawAmount": "0.003908",
                     "browserUrl": "https://basescan.org/tx/",
                     "contractAddress": null,
                     "withdrawStep": "0",
@@ -1194,12 +1247,12 @@
                     "needTag": "false",
                     "withdrawable": "true",
                     "rechargeable": "true",
-                    "withdrawFee": "0.00050753",
+                    "withdrawFee": "0.00050805",
                     "extraWithdrawFee": "0",
                     "depositConfirm": "12",
                     "withdrawConfirm": "64",
                     "minDepositAmount": "0.0000039",
-                    "minWithdrawAmount": "0.00390403",
+                    "minWithdrawAmount": "0.003908",
                     "browserUrl": "https://etherscan.io/tx/",
                     "contractAddress": null,
                     "withdrawStep": "0",
@@ -1210,7 +1263,7 @@
                 "network": "ETH",
                 "limits": {
                     "withdraw": {
-                        "min": 0.00390403,
+                        "min": 0.003908,
                         "max": null
                     },
                     "deposit": {
@@ -1221,7 +1274,7 @@
                 "active": true,
                 "withdraw": true,
                 "deposit": true,
-                "fee": 0.00050753,
+                "fee": 0.00050805,
                 "precision": 1e-8
             },
             "ARBONE": {
@@ -1235,7 +1288,7 @@
                     "depositConfirm": "12",
                     "withdrawConfirm": "96",
                     "minDepositAmount": "0.0000039",
-                    "minWithdrawAmount": "0.00390403",
+                    "minWithdrawAmount": "0.003908",
                     "browserUrl": "https://arbiscan.io/tx/",
                     "contractAddress": null,
                     "withdrawStep": "0",
@@ -1246,7 +1299,7 @@
                 "network": "ARBONE",
                 "limits": {
                     "withdraw": {
-                        "min": 0.00390403,
+                        "min": 0.003908,
                         "max": null
                     },
                     "deposit": {
@@ -1271,7 +1324,7 @@
                     "depositConfirm": "50",
                     "withdrawConfirm": "50",
                     "minDepositAmount": "0.0000039",
-                    "minWithdrawAmount": "0.00351363",
+                    "minWithdrawAmount": "0.0035172",
                     "browserUrl": "https://optimistic.etherscan.io/tx/",
                     "contractAddress": null,
                     "withdrawStep": "0",
@@ -1282,7 +1335,7 @@
                 "network": "OPTIMISM",
                 "limits": {
                     "withdraw": {
-                        "min": 0.00351363,
+                        "min": 0.0035172,
                         "max": null
                     },
                     "deposit": {
@@ -1307,7 +1360,7 @@
                     "depositConfirm": "120",
                     "withdrawConfirm": "300",
                     "minDepositAmount": "0.0000039",
-                    "minWithdrawAmount": "0.00390403",
+                    "minWithdrawAmount": "0.003908",
                     "browserUrl": "https://scrollscan.com/tx/",
                     "contractAddress": null,
                     "withdrawStep": "0",
@@ -1318,7 +1371,7 @@
                 "network": "SCROLL",
                 "limits": {
                     "withdraw": {
-                        "min": 0.00390403,
+                        "min": 0.003908,
                         "max": null
                     },
                     "deposit": {
@@ -1342,8 +1395,8 @@
                     "extraWithdrawFee": "0",
                     "depositConfirm": "10",
                     "withdrawConfirm": "10",
-                    "minDepositAmount": "0.0008",
-                    "minWithdrawAmount": "0.001",
+                    "minDepositAmount": "0.0000039",
+                    "minWithdrawAmount": "0.003908",
                     "browserUrl": "https://voyager.online/tx/",
                     "contractAddress": "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
                     "withdrawStep": "0",
@@ -1354,11 +1407,11 @@
                 "network": "STARKNET",
                 "limits": {
                     "withdraw": {
-                        "min": 0.001,
+                        "min": 0.003908,
                         "max": null
                     },
                     "deposit": {
-                        "min": 0.0008,
+                        "min": 0.0000039,
                         "max": null
                     }
                 },
@@ -1379,7 +1432,7 @@
                     "depositConfirm": "96",
                     "withdrawConfirm": "96",
                     "minDepositAmount": "0.0000039",
-                    "minWithdrawAmount": "0.00390403",
+                    "minWithdrawAmount": "0.003908",
                     "browserUrl": "https://explorer.zksync.io/tx/",
                     "contractAddress": null,
                     "withdrawStep": "0",
@@ -1390,7 +1443,7 @@
                 "network": "ZKSYNC",
                 "limits": {
                     "withdraw": {
-                        "min": 0.00390403,
+                        "min": 0.003908,
                         "max": null
                     },
                     "deposit": {
@@ -1410,12 +1463,12 @@
                     "needTag": "false",
                     "withdrawable": "true",
                     "rechargeable": "true",
-                    "withdrawFee": "0.00027329",
+                    "withdrawFee": "0.00027357",
                     "extraWithdrawFee": "0",
                     "depositConfirm": "15",
                     "withdrawConfirm": "15",
                     "minDepositAmount": "0.0000039",
-                    "minWithdrawAmount": "0.00390403",
+                    "minWithdrawAmount": "0.003908",
                     "browserUrl": "https://bscscan.com/tx/",
                     "contractAddress": "0x2170ed0880ac9a755fd29b2688956bd959f933f8",
                     "withdrawStep": "0",
@@ -1426,7 +1479,7 @@
                 "network": "BSC",
                 "limits": {
                     "withdraw": {
-                        "min": 0.00390403,
+                        "min": 0.003908,
                         "max": null
                     },
                     "deposit": {
@@ -1437,7 +1490,7 @@
                 "active": true,
                 "withdraw": true,
                 "deposit": true,
-                "fee": 0.00027329,
+                "fee": 0.00027357,
                 "precision": 1e-8
             },
             "MORPH": {
@@ -1450,8 +1503,8 @@
                     "extraWithdrawFee": "0",
                     "depositConfirm": "64",
                     "withdrawConfirm": "96",
-                    "minDepositAmount": "0.00001",
-                    "minWithdrawAmount": "0.005",
+                    "minDepositAmount": "0.0000039",
+                    "minWithdrawAmount": "0.003908",
                     "browserUrl": "https://explorer.morphl2.io/tx/",
                     "contractAddress": null,
                     "withdrawStep": "0",
@@ -1462,11 +1515,11 @@
                 "network": "MORPH",
                 "limits": {
                     "withdraw": {
-                        "min": 0.005,
+                        "min": 0.003908,
                         "max": null
                     },
                     "deposit": {
-                        "min": 0.00001,
+                        "min": 0.0000039,
                         "max": null
                     }
                 },
@@ -1482,12 +1535,12 @@
                     "needTag": "false",
                     "withdrawable": "true",
                     "rechargeable": "true",
-                    "withdrawFee": "0.00118",
+                    "withdrawFee": "0.00117241",
                     "extraWithdrawFee": "0",
                     "depositConfirm": "64",
                     "withdrawConfirm": "96",
                     "minDepositAmount": "0.0000039",
-                    "minWithdrawAmount": "0.00390403",
+                    "minWithdrawAmount": "0.003908",
                     "browserUrl": "https://lineascan.build/tx/",
                     "contractAddress": null,
                     "withdrawStep": "0",
@@ -1498,7 +1551,7 @@
                 "network": "LINEA",
                 "limits": {
                     "withdraw": {
-                        "min": 0.00390403,
+                        "min": 0.003908,
                         "max": null
                     },
                     "deposit": {
@@ -1509,7 +1562,7 @@
                 "active": true,
                 "withdraw": true,
                 "deposit": true,
-                "fee": 0.00118,
+                "fee": 0.00117241,
                 "precision": 1e-8
             },
             "BASE": {
@@ -1523,7 +1576,7 @@
                     "depositConfirm": "30",
                     "withdrawConfirm": "120",
                     "minDepositAmount": "0.0000039",
-                    "minWithdrawAmount": "0.00390403",
+                    "minWithdrawAmount": "0.003908",
                     "browserUrl": "https://basescan.org/tx/",
                     "contractAddress": null,
                     "withdrawStep": "0",
@@ -1534,7 +1587,7 @@
                 "network": "BASE",
                 "limits": {
                     "withdraw": {
-                        "min": 0.00390403,
+                        "min": 0.003908,
                         "max": null
                     },
                     "deposit": {
@@ -1555,7 +1608,7 @@
                 "max": null
             },
             "withdraw": {
-                "min": 0.001,
+                "min": 0.0035172,
                 "max": null
             },
             "deposit": {
@@ -1580,12 +1633,12 @@
                     "extraWithdrawFee": "0",
                     "depositConfirm": "30",
                     "withdrawConfirm": "30",
-                    "minDepositAmount": "0.1",
-                    "minWithdrawAmount": "4",
+                    "minDepositAmount": "1.312163",
+                    "minWithdrawAmount": "13.121637",
                     "browserUrl": "https://cardanoscan.io/transaction/",
                     "contractAddress": null,
                     "withdrawStep": "0",
-                    "withdrawMinScale": "8",
+                    "withdrawMinScale": "6",
                     "congestion": "normal"
                 }
             ],
@@ -1594,7 +1647,7 @@
         "id": "ADA",
         "numericId": null,
         "code": "ADA",
-        "precision": 1e-8,
+        "precision": 0.000001,
         "type": "crypto",
         "name": null,
         "active": true,
@@ -1613,23 +1666,23 @@
                     "extraWithdrawFee": "0",
                     "depositConfirm": "30",
                     "withdrawConfirm": "30",
-                    "minDepositAmount": "0.1",
-                    "minWithdrawAmount": "4",
+                    "minDepositAmount": "1.312163",
+                    "minWithdrawAmount": "13.121637",
                     "browserUrl": "https://cardanoscan.io/transaction/",
                     "contractAddress": null,
                     "withdrawStep": "0",
-                    "withdrawMinScale": "8",
+                    "withdrawMinScale": "6",
                     "congestion": "normal"
                 },
                 "id": "Cardano",
                 "network": "ADA",
                 "limits": {
                     "withdraw": {
-                        "min": 4,
+                        "min": 13.121637,
                         "max": null
                     },
                     "deposit": {
-                        "min": 0.1,
+                        "min": 1.312163,
                         "max": null
                     }
                 },
@@ -1637,7 +1690,7 @@
                 "withdraw": true,
                 "deposit": true,
                 "fee": 0.8,
-                "precision": 1e-8
+                "precision": 0.000001
             }
         },
         "limits": {
@@ -1646,11 +1699,11 @@
                 "max": null
             },
             "withdraw": {
-                "min": 4,
+                "min": 13.121637,
                 "max": null
             },
             "deposit": {
-                "min": 0.1,
+                "min": 1.312163,
                 "max": null
             }
         },
@@ -1671,12 +1724,12 @@
                     "extraWithdrawFee": "0",
                     "depositConfirm": "10",
                     "withdrawConfirm": "10",
-                    "minDepositAmount": "0.00392403",
-                    "minWithdrawAmount": "12.61183487",
+                    "minDepositAmount": "0.004273",
+                    "minWithdrawAmount": "13.569535",
                     "browserUrl": "https://bithomp.com/explorer/",
                     "contractAddress": null,
                     "withdrawStep": "0",
-                    "withdrawMinScale": "8",
+                    "withdrawMinScale": "6",
                     "congestion": "normal"
                 }
             ],
@@ -1685,7 +1738,7 @@
         "id": "XRP",
         "numericId": null,
         "code": "XRP",
-        "precision": 1e-8,
+        "precision": 0.000001,
         "type": "crypto",
         "name": null,
         "active": true,
@@ -1704,23 +1757,23 @@
                     "extraWithdrawFee": "0",
                     "depositConfirm": "10",
                     "withdrawConfirm": "10",
-                    "minDepositAmount": "0.00392403",
-                    "minWithdrawAmount": "12.61183487",
+                    "minDepositAmount": "0.004273",
+                    "minWithdrawAmount": "13.569535",
                     "browserUrl": "https://bithomp.com/explorer/",
                     "contractAddress": null,
                     "withdrawStep": "0",
-                    "withdrawMinScale": "8",
+                    "withdrawMinScale": "6",
                     "congestion": "normal"
                 },
                 "id": "XRP",
                 "network": "XRP",
                 "limits": {
                     "withdraw": {
-                        "min": 12.61183487,
+                        "min": 13.569535,
                         "max": null
                     },
                     "deposit": {
-                        "min": 0.00392403,
+                        "min": 0.004273,
                         "max": null
                     }
                 },
@@ -1728,7 +1781,7 @@
                 "withdraw": true,
                 "deposit": true,
                 "fee": 0.2,
-                "precision": 1e-8
+                "precision": 0.000001
             }
         },
         "limits": {
@@ -1737,11 +1790,11 @@
                 "max": null
             },
             "withdraw": {
-                "min": 12.61183487,
+                "min": 13.569535,
                 "max": null
             },
             "deposit": {
-                "min": 0.00392403,
+                "min": 0.004273,
                 "max": null
             }
         },
@@ -1762,12 +1815,12 @@
                     "extraWithdrawFee": "0",
                     "depositConfirm": "50",
                     "withdrawConfirm": "50",
-                    "minDepositAmount": "0.010001",
-                    "minWithdrawAmount": "10.0010001",
+                    "minDepositAmount": "0.010005",
+                    "minWithdrawAmount": "10.005002",
                     "browserUrl": "https://optimistic.etherscan.io/tx/",
                     "contractAddress": "0x0b2c639c533813f4aa9d7837caf62653d097ff85",
                     "withdrawStep": "0",
-                    "withdrawMinScale": "8",
+                    "withdrawMinScale": "6",
                     "congestion": "normal"
                 },
                 {
@@ -1779,12 +1832,12 @@
                     "extraWithdrawFee": "0",
                     "depositConfirm": "60",
                     "withdrawConfirm": "60",
-                    "minDepositAmount": "0.1",
-                    "minWithdrawAmount": "10",
+                    "minDepositAmount": "0.010005",
+                    "minWithdrawAmount": "10.005002",
                     "browserUrl": "https://polygonscan.com/tx/",
                     "contractAddress": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
                     "withdrawStep": "0",
-                    "withdrawMinScale": "8",
+                    "withdrawMinScale": "6",
                     "congestion": "normal"
                 },
                 {
@@ -1792,16 +1845,16 @@
                     "needTag": "false",
                     "withdrawable": "true",
                     "rechargeable": "true",
-                    "withdrawFee": "1.00010002",
+                    "withdrawFee": "1.000501",
                     "extraWithdrawFee": "0",
                     "depositConfirm": "5",
                     "withdrawConfirm": "5",
-                    "minDepositAmount": "0.01",
-                    "minWithdrawAmount": "30",
+                    "minDepositAmount": "0.010005",
+                    "minWithdrawAmount": "10.005002",
                     "browserUrl": "https://solscan.io/tx/",
                     "contractAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
                     "withdrawStep": "0",
-                    "withdrawMinScale": "8",
+                    "withdrawMinScale": "6",
                     "congestion": "normal"
                 },
                 {
@@ -1813,12 +1866,12 @@
                     "extraWithdrawFee": "0",
                     "depositConfirm": "10",
                     "withdrawConfirm": "10",
-                    "minDepositAmount": "0.010001",
-                    "minWithdrawAmount": "10.0010001",
+                    "minDepositAmount": "0.010005",
+                    "minWithdrawAmount": "10.005002",
                     "browserUrl": "https://aptoscan.com/transaction/",
                     "contractAddress": "0xbae207659db88bea0cbead6da0ed00aac12edcdda169e591cd41c94180b46f3b",
                     "withdrawStep": "0",
-                    "withdrawMinScale": "8",
+                    "withdrawMinScale": "6",
                     "congestion": "normal"
                 },
                 {
@@ -1826,16 +1879,16 @@
                     "needTag": "false",
                     "withdrawable": "false",
                     "rechargeable": "true",
-                    "withdrawFee": "0.10741139",
+                    "withdrawFee": "0.123932",
                     "extraWithdrawFee": "0",
                     "depositConfirm": "1",
                     "withdrawConfirm": "64",
-                    "minDepositAmount": "0.10741138",
-                    "minWithdrawAmount": "107.4113856",
+                    "minDepositAmount": "0.123931",
+                    "minWithdrawAmount": "123.931094",
                     "browserUrl": "https://sonicscan.org/tx/",
                     "contractAddress": "0x29219dd400f2bf60e5a23d13be72b486d4038894",
                     "withdrawStep": "0",
-                    "withdrawMinScale": "8",
+                    "withdrawMinScale": "6",
                     "congestion": "normal"
                 },
                 {
@@ -1847,8 +1900,8 @@
                     "extraWithdrawFee": "0",
                     "depositConfirm": "15",
                     "withdrawConfirm": "15",
-                    "minDepositAmount": "0.010001",
-                    "minWithdrawAmount": "10.0010001",
+                    "minDepositAmount": "0.010005",
+                    "minWithdrawAmount": "10.0050025",
                     "browserUrl": "https://bscscan.com/tx/",
                     "contractAddress": "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d",
                     "withdrawStep": "0",
@@ -1860,16 +1913,16 @@
                     "needTag": "false",
                     "withdrawable": "true",
                     "rechargeable": "true",
-                    "withdrawFee": "3.00030004",
+                    "withdrawFee": "3.001501",
                     "extraWithdrawFee": "0",
                     "depositConfirm": "12",
                     "withdrawConfirm": "64",
-                    "minDepositAmount": "0.010001",
-                    "minWithdrawAmount": "10.0010001",
+                    "minDepositAmount": "0.010005",
+                    "minWithdrawAmount": "10.005002",
                     "browserUrl": "https://etherscan.io/tx/",
                     "contractAddress": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
                     "withdrawStep": "0",
-                    "withdrawMinScale": "8",
+                    "withdrawMinScale": "6",
                     "congestion": "normal"
                 },
                 {
@@ -1877,16 +1930,16 @@
                     "needTag": "false",
                     "withdrawable": "true",
                     "rechargeable": "true",
-                    "withdrawFee": "0.10001001",
+                    "withdrawFee": "0.100051",
                     "extraWithdrawFee": "0",
                     "depositConfirm": "50",
                     "withdrawConfirm": "50",
-                    "minDepositAmount": "0.010001",
-                    "minWithdrawAmount": "10.0010001",
+                    "minDepositAmount": "0.010005",
+                    "minWithdrawAmount": "10.005002",
                     "browserUrl": "https://basescan.org/tx/",
                     "contractAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
                     "withdrawStep": "0",
-                    "withdrawMinScale": "8",
+                    "withdrawMinScale": "6",
                     "congestion": "normal"
                 },
                 {
@@ -1894,16 +1947,16 @@
                     "needTag": "false",
                     "withdrawable": "true",
                     "rechargeable": "true",
-                    "withdrawFee": "0.20002001",
+                    "withdrawFee": "0.200101",
                     "extraWithdrawFee": "0",
                     "depositConfirm": "12",
                     "withdrawConfirm": "12",
-                    "minDepositAmount": "0.010001",
-                    "minWithdrawAmount": "10.0010001",
+                    "minDepositAmount": "0.010005",
+                    "minWithdrawAmount": "10.005002",
                     "browserUrl": "https://arbiscan.io/tx/",
                     "contractAddress": "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
                     "withdrawStep": "0",
-                    "withdrawMinScale": "8",
+                    "withdrawMinScale": "6",
                     "congestion": "normal"
                 },
                 {
@@ -1911,16 +1964,16 @@
                     "needTag": "false",
                     "withdrawable": "false",
                     "rechargeable": "true",
-                    "withdrawFee": "1.00010002",
+                    "withdrawFee": "1.000501",
                     "extraWithdrawFee": "0",
                     "depositConfirm": "30",
                     "withdrawConfirm": "30",
-                    "minDepositAmount": "0.001",
-                    "minWithdrawAmount": "10",
+                    "minDepositAmount": "0.010005",
+                    "minWithdrawAmount": "10.005002",
                     "browserUrl": "https://assethub-polkadot.subscan.io/extrinsic/",
                     "contractAddress": "1337",
                     "withdrawStep": "0",
-                    "withdrawMinScale": "8",
+                    "withdrawMinScale": "6",
                     "congestion": "normal"
                 },
                 {
@@ -1928,16 +1981,16 @@
                     "needTag": "false",
                     "withdrawable": "true",
                     "rechargeable": "true",
-                    "withdrawFee": "1.00011",
+                    "withdrawFee": "1.000501",
                     "extraWithdrawFee": "0",
                     "depositConfirm": "60",
                     "withdrawConfirm": "60",
-                    "minDepositAmount": "0.5",
-                    "minWithdrawAmount": "10",
+                    "minDepositAmount": "0.010005",
+                    "minWithdrawAmount": "10.005002",
                     "browserUrl": "https://snowtrace.io/tx/",
                     "contractAddress": "0xb97ef9ef8734c71904d8002f8b6bc66dd9c48a6e",
                     "withdrawStep": "0",
-                    "withdrawMinScale": "8",
+                    "withdrawMinScale": "6",
                     "congestion": "normal"
                 },
                 {
@@ -1949,12 +2002,12 @@
                     "extraWithdrawFee": "0",
                     "depositConfirm": "16",
                     "withdrawConfirm": "16",
-                    "minDepositAmount": "0.01",
-                    "minWithdrawAmount": "200",
+                    "minDepositAmount": "0.010005",
+                    "minWithdrawAmount": "10.005002",
                     "browserUrl": "https://www.mintscan.io/noble/tx/",
                     "contractAddress": null,
                     "withdrawStep": "0",
-                    "withdrawMinScale": "8",
+                    "withdrawMinScale": "6",
                     "congestion": "normal"
                 }
             ],
@@ -1963,7 +2016,7 @@
         "id": "USDC",
         "numericId": null,
         "code": "USDC",
-        "precision": 1e-8,
+        "precision": 0.000001,
         "type": "crypto",
         "name": null,
         "active": true,
@@ -1982,23 +2035,23 @@
                     "extraWithdrawFee": "0",
                     "depositConfirm": "50",
                     "withdrawConfirm": "50",
-                    "minDepositAmount": "0.010001",
-                    "minWithdrawAmount": "10.0010001",
+                    "minDepositAmount": "0.010005",
+                    "minWithdrawAmount": "10.005002",
                     "browserUrl": "https://optimistic.etherscan.io/tx/",
                     "contractAddress": "0x0b2c639c533813f4aa9d7837caf62653d097ff85",
                     "withdrawStep": "0",
-                    "withdrawMinScale": "8",
+                    "withdrawMinScale": "6",
                     "congestion": "normal"
                 },
                 "id": "OPTIMISM",
                 "network": "OPTIMISM",
                 "limits": {
                     "withdraw": {
-                        "min": 10.0010001,
+                        "min": 10.005002,
                         "max": null
                     },
                     "deposit": {
-                        "min": 0.010001,
+                        "min": 0.010005,
                         "max": null
                     }
                 },
@@ -2006,7 +2059,7 @@
                 "withdraw": true,
                 "deposit": true,
                 "fee": 0.1,
-                "precision": 1e-8
+                "precision": 0.000001
             },
             "POLYGON": {
                 "info": {
@@ -2018,23 +2071,23 @@
                     "extraWithdrawFee": "0",
                     "depositConfirm": "60",
                     "withdrawConfirm": "60",
-                    "minDepositAmount": "0.1",
-                    "minWithdrawAmount": "10",
+                    "minDepositAmount": "0.010005",
+                    "minWithdrawAmount": "10.005002",
                     "browserUrl": "https://polygonscan.com/tx/",
                     "contractAddress": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
                     "withdrawStep": "0",
-                    "withdrawMinScale": "8",
+                    "withdrawMinScale": "6",
                     "congestion": "normal"
                 },
                 "id": "POLYGON",
                 "network": "POLYGON",
                 "limits": {
                     "withdraw": {
-                        "min": 10,
+                        "min": 10.005002,
                         "max": null
                     },
                     "deposit": {
-                        "min": 0.1,
+                        "min": 0.010005,
                         "max": null
                     }
                 },
@@ -2042,7 +2095,7 @@
                 "withdraw": true,
                 "deposit": true,
                 "fee": 0.64,
-                "precision": 1e-8
+                "precision": 0.000001
             },
             "SOL": {
                 "info": {
@@ -2050,35 +2103,35 @@
                     "needTag": "false",
                     "withdrawable": "true",
                     "rechargeable": "true",
-                    "withdrawFee": "1.00010002",
+                    "withdrawFee": "1.000501",
                     "extraWithdrawFee": "0",
                     "depositConfirm": "5",
                     "withdrawConfirm": "5",
-                    "minDepositAmount": "0.01",
-                    "minWithdrawAmount": "30",
+                    "minDepositAmount": "0.010005",
+                    "minWithdrawAmount": "10.005002",
                     "browserUrl": "https://solscan.io/tx/",
                     "contractAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
                     "withdrawStep": "0",
-                    "withdrawMinScale": "8",
+                    "withdrawMinScale": "6",
                     "congestion": "normal"
                 },
                 "id": "SOL",
                 "network": "SOL",
                 "limits": {
                     "withdraw": {
-                        "min": 30,
+                        "min": 10.005002,
                         "max": null
                     },
                     "deposit": {
-                        "min": 0.01,
+                        "min": 0.010005,
                         "max": null
                     }
                 },
                 "active": true,
                 "withdraw": true,
                 "deposit": true,
-                "fee": 1.00010002,
-                "precision": 1e-8
+                "fee": 1.000501,
+                "precision": 0.000001
             },
             "APT": {
                 "info": {
@@ -2090,23 +2143,23 @@
                     "extraWithdrawFee": "0",
                     "depositConfirm": "10",
                     "withdrawConfirm": "10",
-                    "minDepositAmount": "0.010001",
-                    "minWithdrawAmount": "10.0010001",
+                    "minDepositAmount": "0.010005",
+                    "minWithdrawAmount": "10.005002",
                     "browserUrl": "https://aptoscan.com/transaction/",
                     "contractAddress": "0xbae207659db88bea0cbead6da0ed00aac12edcdda169e591cd41c94180b46f3b",
                     "withdrawStep": "0",
-                    "withdrawMinScale": "8",
+                    "withdrawMinScale": "6",
                     "congestion": "normal"
                 },
                 "id": "Aptos",
                 "network": "APT",
                 "limits": {
                     "withdraw": {
-                        "min": 10.0010001,
+                        "min": 10.005002,
                         "max": null
                     },
                     "deposit": {
-                        "min": 0.010001,
+                        "min": 0.010005,
                         "max": null
                     }
                 },
@@ -2114,7 +2167,7 @@
                 "withdraw": false,
                 "deposit": true,
                 "fee": 0.03,
-                "precision": 1e-8
+                "precision": 0.000001
             },
             "SONIC": {
                 "info": {
@@ -2122,35 +2175,35 @@
                     "needTag": "false",
                     "withdrawable": "false",
                     "rechargeable": "true",
-                    "withdrawFee": "0.10741139",
+                    "withdrawFee": "0.123932",
                     "extraWithdrawFee": "0",
                     "depositConfirm": "1",
                     "withdrawConfirm": "64",
-                    "minDepositAmount": "0.10741138",
-                    "minWithdrawAmount": "107.4113856",
+                    "minDepositAmount": "0.123931",
+                    "minWithdrawAmount": "123.931094",
                     "browserUrl": "https://sonicscan.org/tx/",
                     "contractAddress": "0x29219dd400f2bf60e5a23d13be72b486d4038894",
                     "withdrawStep": "0",
-                    "withdrawMinScale": "8",
+                    "withdrawMinScale": "6",
                     "congestion": "normal"
                 },
                 "id": "SONIC",
                 "network": "SONIC",
                 "limits": {
                     "withdraw": {
-                        "min": 107.4113856,
+                        "min": 123.931094,
                         "max": null
                     },
                     "deposit": {
-                        "min": 0.10741138,
+                        "min": 0.123931,
                         "max": null
                     }
                 },
                 "active": false,
                 "withdraw": false,
                 "deposit": true,
-                "fee": 0.10741139,
-                "precision": 1e-8
+                "fee": 0.123932,
+                "precision": 0.000001
             },
             "BSC": {
                 "info": {
@@ -2162,8 +2215,8 @@
                     "extraWithdrawFee": "0",
                     "depositConfirm": "15",
                     "withdrawConfirm": "15",
-                    "minDepositAmount": "0.010001",
-                    "minWithdrawAmount": "10.0010001",
+                    "minDepositAmount": "0.010005",
+                    "minWithdrawAmount": "10.0050025",
                     "browserUrl": "https://bscscan.com/tx/",
                     "contractAddress": "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d",
                     "withdrawStep": "0",
@@ -2174,11 +2227,11 @@
                 "network": "BSC",
                 "limits": {
                     "withdraw": {
-                        "min": 10.0010001,
+                        "min": 10.0050025,
                         "max": null
                     },
                     "deposit": {
-                        "min": 0.010001,
+                        "min": 0.010005,
                         "max": null
                     }
                 },
@@ -2194,35 +2247,35 @@
                     "needTag": "false",
                     "withdrawable": "true",
                     "rechargeable": "true",
-                    "withdrawFee": "3.00030004",
+                    "withdrawFee": "3.001501",
                     "extraWithdrawFee": "0",
                     "depositConfirm": "12",
                     "withdrawConfirm": "64",
-                    "minDepositAmount": "0.010001",
-                    "minWithdrawAmount": "10.0010001",
+                    "minDepositAmount": "0.010005",
+                    "minWithdrawAmount": "10.005002",
                     "browserUrl": "https://etherscan.io/tx/",
                     "contractAddress": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
                     "withdrawStep": "0",
-                    "withdrawMinScale": "8",
+                    "withdrawMinScale": "6",
                     "congestion": "normal"
                 },
                 "id": "ERC20",
                 "network": "ERC20",
                 "limits": {
                     "withdraw": {
-                        "min": 10.0010001,
+                        "min": 10.005002,
                         "max": null
                     },
                     "deposit": {
-                        "min": 0.010001,
+                        "min": 0.010005,
                         "max": null
                     }
                 },
                 "active": true,
                 "withdraw": true,
                 "deposit": true,
-                "fee": 3.00030004,
-                "precision": 1e-8
+                "fee": 3.001501,
+                "precision": 0.000001
             },
             "BASE": {
                 "info": {
@@ -2230,35 +2283,35 @@
                     "needTag": "false",
                     "withdrawable": "true",
                     "rechargeable": "true",
-                    "withdrawFee": "0.10001001",
+                    "withdrawFee": "0.100051",
                     "extraWithdrawFee": "0",
                     "depositConfirm": "50",
                     "withdrawConfirm": "50",
-                    "minDepositAmount": "0.010001",
-                    "minWithdrawAmount": "10.0010001",
+                    "minDepositAmount": "0.010005",
+                    "minWithdrawAmount": "10.005002",
                     "browserUrl": "https://basescan.org/tx/",
                     "contractAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
                     "withdrawStep": "0",
-                    "withdrawMinScale": "8",
+                    "withdrawMinScale": "6",
                     "congestion": "normal"
                 },
                 "id": "BASE",
                 "network": "BASE",
                 "limits": {
                     "withdraw": {
-                        "min": 10.0010001,
+                        "min": 10.005002,
                         "max": null
                     },
                     "deposit": {
-                        "min": 0.010001,
+                        "min": 0.010005,
                         "max": null
                     }
                 },
                 "active": true,
                 "withdraw": true,
                 "deposit": true,
-                "fee": 0.10001001,
-                "precision": 1e-8
+                "fee": 0.100051,
+                "precision": 0.000001
             },
             "ARBONE": {
                 "info": {
@@ -2266,35 +2319,35 @@
                     "needTag": "false",
                     "withdrawable": "true",
                     "rechargeable": "true",
-                    "withdrawFee": "0.20002001",
+                    "withdrawFee": "0.200101",
                     "extraWithdrawFee": "0",
                     "depositConfirm": "12",
                     "withdrawConfirm": "12",
-                    "minDepositAmount": "0.010001",
-                    "minWithdrawAmount": "10.0010001",
+                    "minDepositAmount": "0.010005",
+                    "minWithdrawAmount": "10.005002",
                     "browserUrl": "https://arbiscan.io/tx/",
                     "contractAddress": "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
                     "withdrawStep": "0",
-                    "withdrawMinScale": "8",
+                    "withdrawMinScale": "6",
                     "congestion": "normal"
                 },
                 "id": "ArbitrumOne",
                 "network": "ARBONE",
                 "limits": {
                     "withdraw": {
-                        "min": 10.0010001,
+                        "min": 10.005002,
                         "max": null
                     },
                     "deposit": {
-                        "min": 0.010001,
+                        "min": 0.010005,
                         "max": null
                     }
                 },
                 "active": true,
                 "withdraw": true,
                 "deposit": true,
-                "fee": 0.20002001,
-                "precision": 1e-8
+                "fee": 0.200101,
+                "precision": 0.000001
             },
             "POLKADOTASSETHUB": {
                 "info": {
@@ -2302,35 +2355,35 @@
                     "needTag": "false",
                     "withdrawable": "false",
                     "rechargeable": "true",
-                    "withdrawFee": "1.00010002",
+                    "withdrawFee": "1.000501",
                     "extraWithdrawFee": "0",
                     "depositConfirm": "30",
                     "withdrawConfirm": "30",
-                    "minDepositAmount": "0.001",
-                    "minWithdrawAmount": "10",
+                    "minDepositAmount": "0.010005",
+                    "minWithdrawAmount": "10.005002",
                     "browserUrl": "https://assethub-polkadot.subscan.io/extrinsic/",
                     "contractAddress": "1337",
                     "withdrawStep": "0",
-                    "withdrawMinScale": "8",
+                    "withdrawMinScale": "6",
                     "congestion": "normal"
                 },
                 "id": "PolkadotAssetHub",
                 "network": "POLKADOTASSETHUB",
                 "limits": {
                     "withdraw": {
-                        "min": 10,
+                        "min": 10.005002,
                         "max": null
                     },
                     "deposit": {
-                        "min": 0.001,
+                        "min": 0.010005,
                         "max": null
                     }
                 },
                 "active": false,
                 "withdraw": false,
                 "deposit": true,
-                "fee": 1.00010002,
-                "precision": 1e-8
+                "fee": 1.000501,
+                "precision": 0.000001
             },
             "AVAXC-CHAIN": {
                 "info": {
@@ -2338,35 +2391,35 @@
                     "needTag": "false",
                     "withdrawable": "true",
                     "rechargeable": "true",
-                    "withdrawFee": "1.00011",
+                    "withdrawFee": "1.000501",
                     "extraWithdrawFee": "0",
                     "depositConfirm": "60",
                     "withdrawConfirm": "60",
-                    "minDepositAmount": "0.5",
-                    "minWithdrawAmount": "10",
+                    "minDepositAmount": "0.010005",
+                    "minWithdrawAmount": "10.005002",
                     "browserUrl": "https://snowtrace.io/tx/",
                     "contractAddress": "0xb97ef9ef8734c71904d8002f8b6bc66dd9c48a6e",
                     "withdrawStep": "0",
-                    "withdrawMinScale": "8",
+                    "withdrawMinScale": "6",
                     "congestion": "normal"
                 },
                 "id": "AVAXC-Chain",
                 "network": "AVAXC-CHAIN",
                 "limits": {
                     "withdraw": {
-                        "min": 10,
+                        "min": 10.005002,
                         "max": null
                     },
                     "deposit": {
-                        "min": 0.5,
+                        "min": 0.010005,
                         "max": null
                     }
                 },
                 "active": true,
                 "withdraw": true,
                 "deposit": true,
-                "fee": 1.00011,
-                "precision": 1e-8
+                "fee": 1.000501,
+                "precision": 0.000001
             },
             "NOBLE": {
                 "info": {
@@ -2378,23 +2431,23 @@
                     "extraWithdrawFee": "0",
                     "depositConfirm": "16",
                     "withdrawConfirm": "16",
-                    "minDepositAmount": "0.01",
-                    "minWithdrawAmount": "200",
+                    "minDepositAmount": "0.010005",
+                    "minWithdrawAmount": "10.005002",
                     "browserUrl": "https://www.mintscan.io/noble/tx/",
                     "contractAddress": null,
                     "withdrawStep": "0",
-                    "withdrawMinScale": "8",
+                    "withdrawMinScale": "6",
                     "congestion": "normal"
                 },
                 "id": "Noble",
                 "network": "NOBLE",
                 "limits": {
                     "withdraw": {
-                        "min": 200,
+                        "min": 10.005002,
                         "max": null
                     },
                     "deposit": {
-                        "min": 0.01,
+                        "min": 0.010005,
                         "max": null
                     }
                 },
@@ -2402,7 +2455,7 @@
                 "withdraw": false,
                 "deposit": true,
                 "fee": 0,
-                "precision": 1e-8
+                "precision": 0.000001
             }
         },
         "limits": {
@@ -2411,11 +2464,11 @@
                 "max": null
             },
             "withdraw": {
-                "min": 10,
+                "min": 10.005002,
                 "max": null
             },
             "deposit": {
-                "min": 0.001,
+                "min": 0.010005,
                 "max": null
             }
         },
