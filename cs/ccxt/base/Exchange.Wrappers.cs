@@ -1280,7 +1280,6 @@ public class  Kraken: kraken { public Kraken(object args = null) : base(args) { 
 public class  Krakenfutures: krakenfutures { public Krakenfutures(object args = null) : base(args) { } }
 public class  Kucoin: kucoin { public Kucoin(object args = null) : base(args) { } }
 public class  Kucoinfutures: kucoinfutures { public Kucoinfutures(object args = null) : base(args) { } }
-public class  Kuna: kuna { public Kuna(object args = null) : base(args) { } }
 public class  Latoken: latoken { public Latoken(object args = null) : base(args) { } }
 public class  Lbank: lbank { public Lbank(object args = null) : base(args) { } }
 public class  Luno: luno { public Luno(object args = null) : base(args) { } }
