@@ -31,8 +31,8 @@
                         "clientOid": "7ece09fe3646433a99ee93ea49260ceb"
                     },
                     "txid": null,
-                    "timestamp": 1748252644726,
-                    "datetime": "2025-05-26T09:44:04.726Z",
+                    "timestamp": null,
+                    "datetime": null,
                     "network": "SOL",
                     "addressFrom": null,
                     "address": "EBz7xtobD2Rm8aAXH2VHmE2rnePATevbHcWQ3RRo4nqA",

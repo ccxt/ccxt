@@ -2413,8 +2413,6 @@ export default class bitget extends Exchange {
         const fillResponseFromRequest = this.safeBool (withdrawOptions, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
             result['currency'] = code;
-            result['timestamp'] = this.milliseconds ();
-            result['datetime'] = this.iso8601 (this.milliseconds ());
             result['amount'] = amount;
             result['tag'] = tag;
             result['address'] = address;
