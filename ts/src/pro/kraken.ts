@@ -535,6 +535,7 @@ export default class kraken extends krakenRest {
             'info': ticker,
         });
         this.tickers[symbol] = result;
+        this.streamProduce ('tickers', result);
         client.resolve (result, messageHash);
     }
 
@@ -565,6 +566,7 @@ export default class kraken extends krakenRest {
         const parsed = this.parseTrades (trades, market);
         for (let i = 0; i < parsed.length; i++) {
             stored.append (parsed[i]);
+            this.streamProduce ('trades', parsed[i]);
         }
         client.resolve (stored, messageHash);
     }
@@ -618,6 +620,8 @@ export default class kraken extends krakenRest {
                 this.ohlcvs[symbol][timeframe] = stored;
             }
             stored.append (result);
+            const ohlcvs = this.createStreamOHLCV (symbol, timeframe, result);
+            this.streamProduce ('ohlcvs', ohlcvs);
             client.resolve (stored, messageHash);
         }
     }
@@ -1039,6 +1043,7 @@ export default class kraken extends krakenRest {
             orderbook['symbol'] = symbol;
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601 (timestamp);
+            this.streamProduce ('orderbooks', orderbook);
             client.resolve (orderbook, messageHash);
         }
     }
@@ -1225,6 +1230,7 @@ export default class kraken extends krakenRest {
                     stored.append (parsed);
                     const symbol = parsed['symbol'];
                     symbols[symbol] = true;
+                    this.streamProduce ('myTrades', parsed);
                 }
             }
             const name = 'ownTrades';
@@ -1452,6 +1458,7 @@ export default class kraken extends krakenRest {
                         }
                     }
                     stored.append (newOrder);
+                    this.streamProduce ('orders', newOrder);
                     symbols[symbol] = true;
                 }
             }
@@ -1676,6 +1683,7 @@ export default class kraken extends krakenRest {
         const newBalance = this.deepExtend (oldBalance, balance);
         this.balance[type] = this.safeBalance (newBalance);
         const channel = this.safeString (message, 'channel');
+        this.streamProduce ('balances', this.balance[type]);
         client.resolve (this.balance[type], channel);
     }
 
@@ -1761,6 +1769,7 @@ export default class kraken extends krakenRest {
                 } else {
                     exception = new broad[broadKey] (errorMessage);
                 }
+                this.streamProduce ('errors', undefined, exception);
                 client.reject (exception, requestId);
                 return false;
             }
@@ -1769,6 +1778,7 @@ export default class kraken extends krakenRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         if (Array.isArray (message)) {
             const channelId = this.safeString (message, 0);
             const subscription = this.safeValue (client.subscriptions, channelId, {});
