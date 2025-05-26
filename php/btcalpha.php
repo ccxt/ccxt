@@ -209,7 +209,7 @@ class btcalpha extends Exchange {
                         'symbolRequired' => false,
                     ),
                     'fetchOHLCV' => array(
-                        'max' => 720,
+                        'limit' => 720,
                     ),
                 ),
                 'swap' => array(

@@ -962,6 +962,7 @@ class htx(Exchange, ImplicitAPI):
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'include_OS_certificates': False,  # temporarily leave self, remove in future
                 'fetchMarkets': {
                     'types': {
                         'spot': True,
@@ -2172,14 +2173,14 @@ class htx(Exchange, ImplicitAPI):
         ask = None
         askVolume = None
         if 'bid' in ticker:
-            if isinstance(ticker['bid'], list):
+            if ticker['bid'] is not None and isinstance(ticker['bid'], list):
                 bid = self.safe_string(ticker['bid'], 0)
                 bidVolume = self.safe_string(ticker['bid'], 1)
             else:
                 bid = self.safe_string(ticker, 'bid')
                 bidVolume = self.safe_string(ticker, 'bidSize')
         if 'ask' in ticker:
-            if isinstance(ticker['ask'], list):
+            if ticker['ask'] is not None and isinstance(ticker['ask'], list):
                 ask = self.safe_string(ticker['ask'], 0)
                 askVolume = self.safe_string(ticker['ask'], 1)
             else:
@@ -3270,7 +3271,7 @@ class htx(Exchange, ImplicitAPI):
         #                        "withdrawQuotaPerYear": null,
         #                        "withdrawQuotaTotal": null,
         #                        "withdrawFeeType": "fixed",
-        #                        "transactFeeWithdraw": "11.1653",
+        #                        "transactFeeWithdraw": "11.1654",
         #                        "addrWithTag": False,
         #                        "addrDepositTag": False
         #                    }
@@ -3279,9 +3280,8 @@ class htx(Exchange, ImplicitAPI):
         #            }
         #        ]
         #    }
-        #    }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         result: dict = {}
         self.options['networkChainIdsByNames'] = {}
         self.options['networkNamesByChainIds'] = {}
@@ -3289,17 +3289,11 @@ class htx(Exchange, ImplicitAPI):
             entry = data[i]
             currencyId = self.safe_string(entry, 'currency')
             code = self.safe_currency_code(currencyId)
+            assetType = self.safe_string(entry, 'assetType')
+            type = assetType == 'crypto' if '1' else 'fiat'
             self.options['networkChainIdsByNames'][code] = {}
-            chains = self.safe_value(entry, 'chains', [])
+            chains = self.safe_list(entry, 'chains', [])
             networks: dict = {}
-            instStatus = self.safe_string(entry, 'instStatus')
-            currencyActive = instStatus == 'normal'
-            minPrecision = None
-            minDeposit = None
-            minWithdraw = None
-            maxWithdraw = None
-            deposit = False
-            withdraw = False
             for j in range(0, len(chains)):
                 chainEntry = chains[j]
                 uniqueChainId = self.safe_string(chainEntry, 'chain')  # i.e. usdterc20, trc20usdt ...
@@ -3307,66 +3301,53 @@ class htx(Exchange, ImplicitAPI):
                 self.options['networkChainIdsByNames'][code][title] = uniqueChainId
                 self.options['networkNamesByChainIds'][uniqueChainId] = title
                 networkCode = self.network_id_to_code(uniqueChainId)
-                minDeposit = self.safe_number(chainEntry, 'minDepositAmt')
-                minWithdraw = self.safe_number(chainEntry, 'minWithdrawAmt')
-                maxWithdraw = self.safe_number(chainEntry, 'maxWithdrawAmt')
-                withdrawStatus = self.safe_string(chainEntry, 'withdrawStatus')
-                depositStatus = self.safe_string(chainEntry, 'depositStatus')
-                withdrawEnabled = (withdrawStatus == 'allowed')
-                depositEnabled = (depositStatus == 'allowed')
-                withdraw = withdrawEnabled if (withdrawEnabled) else withdraw
-                deposit = depositEnabled if (depositEnabled) else deposit
-                active = withdrawEnabled and depositEnabled
-                precision = self.parse_precision(self.safe_string(chainEntry, 'withdrawPrecision'))
-                if precision is not None:
-                    minPrecision = precision if (minPrecision is None) else Precise.string_min(precision, minPrecision)
-                fee = self.safe_number(chainEntry, 'transactFeeWithdraw')
                 networks[networkCode] = {
                     'info': chainEntry,
                     'id': uniqueChainId,
                     'network': networkCode,
                     'limits': {
                         'deposit': {
-                            'min': minDeposit,
+                            'min': self.safe_number(chainEntry, 'minDepositAmt'),
                             'max': None,
                         },
                         'withdraw': {
-                            'min': minWithdraw,
-                            'max': maxWithdraw,
+                            'min': self.safe_number(chainEntry, 'minWithdrawAmt'),
+                            'max': self.safe_number(chainEntry, 'maxWithdrawAmt'),
                         },
                     },
-                    'active': active,
-                    'deposit': depositEnabled,
-                    'withdraw': withdrawEnabled,
-                    'fee': fee,
-                    'precision': self.parse_number(precision),
+                    'active': None,
+                    'deposit': self.safe_string(chainEntry, 'depositStatus') == 'allowed',
+                    'withdraw': self.safe_string(chainEntry, 'withdrawStatus') == 'allowed',
+                    'fee': self.safe_number(chainEntry, 'transactFeeWithdraw'),
+                    'precision': self.parse_number(self.parse_precision(self.safe_string(chainEntry, 'withdrawPrecision'))),
                 }
-            result[code] = {
+            result[code] = self.safe_currency_structure({
                 'info': entry,
                 'code': code,
                 'id': currencyId,
-                'active': currencyActive,
-                'deposit': deposit,
-                'withdraw': withdraw,
+                'active': self.safe_string(entry, 'instStatus') == 'normal',
+                'deposit': None,
+                'withdraw': None,
                 'fee': None,
                 'name': None,
+                'type': type,
                 'limits': {
                     'amount': {
                         'min': None,
                         'max': None,
                     },
                     'withdraw': {
-                        'min': minWithdraw,
-                        'max': maxWithdraw,
+                        'min': None,
+                        'max': None,
                     },
                     'deposit': {
                         'min': None,
                         'max': None,
                     },
                 },
-                'precision': self.parse_number(minPrecision),
+                'precision': None,
                 'networks': networks,
-            }
+            })
         return result
 
     def network_id_to_code(self, networkId: Str = None, currencyCode: Str = None):
@@ -6941,7 +6922,7 @@ class htx(Exchange, ImplicitAPI):
                 if method != 'POST':
                     request = self.extend(request, query)
                 sortedRequest = self.keysort(request)
-                auth = self.urlencode(sortedRequest)
+                auth = self.urlencode(sortedRequest, True)  # True is a go only requirment
                 # unfortunately, PHP demands double quotes for the escaped newline symbol
                 payload = "\n".join([method, self.hostname, url, auth])  # eslint-disable-line quotes
                 signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
@@ -7007,7 +6988,7 @@ class htx(Exchange, ImplicitAPI):
                 if method != 'POST':
                     sortedQuery = self.keysort(query)
                     request = self.extend(request, sortedQuery)
-                auth = self.urlencode(request).replace('%2c', '%2C')  # in c# it manually needs to be uppercased
+                auth = self.urlencode(request, True).replace('%2c', '%2C')  # in c# it manually needs to be uppercased
                 # unfortunately, PHP demands double quotes for the escaped newline symbol
                 payload = "\n".join([method, hostname, url, auth])  # eslint-disable-line quotes
                 signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')

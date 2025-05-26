@@ -413,66 +413,116 @@ class hollaex extends Exchange {
          */
         $response = $this->publicGetConstants ($params);
         //
-        //     {
-        //         "coins":array(
-        //             "bch":array(
-        //                 "id":4,
-        //                 "fullname":"Bitcoin Cash",
-        //                 "symbol":"bch",
-        //                 "active":true,
-        //                 "verified":true,
-        //                 "allow_deposit":true,
-        //                 "allow_withdrawal":true,
-        //                 "withdrawal_fee":0.0002,
-        //                 "min":0.001,
-        //                 "max":100000,
-        //                 "increment_unit":0.001,
-        //                 "logo":"https://bitholla.s3.ap-northeast-2.amazonaws.com/icon/BCH-hollaex-asset-01.svg",
-        //                 "code":"bch",
-        //                 "is_public":true,
-        //                 "meta":array(),
-        //                 "estimated_price":null,
-        //                 "description":null,
-        //                 "type":"blockchain",
-        //                 "network":null,
-        //                 "standard":null,
-        //                 "issuer":"HollaEx",
-        //                 "withdrawal_fees":null,
-        //                 "created_at":"2019-08-09T10:45:43.367Z",
-        //                 "updated_at":"2021-12-13T03:08:32.372Z",
-        //                 "created_by":1,
-        //                 "owner_id":1
-        //             ),
+        //    {
+        //        "coins" => {
+        //            "usdt" => array(
+        //                "id" => "6",
+        //                "fullname" => "USD Tether",
+        //                "symbol" => "usdt",
+        //                "active" => true,
+        //                "verified" => true,
+        //                "allow_deposit" => true,
+        //                "allow_withdrawal" => true,
+        //                "withdrawal_fee" => "20",
+        //                "min" => "1",
+        //                "max" => "10000000",
+        //                "increment_unit" => "0.0001",
+        //                "logo" => "https://hollaex-resources.s3.ap-southeast-1.amazonaws.com/icons/usdt.svg",
+        //                "code" => "usdt",
+        //                "is_public" => true,
+        //                "meta" => array(
+        //                    "color" => "#27a17a",
+        //                    "website" => "https://tether.to",
+        //                    "explorer" => "https://blockchair.com/tether",
+        //                    "decimal_points" => "6"
+        //                ),
+        //                "estimated_price" => "1",
+        //                "description" => "<p>Tether (USDT) is a stablecoin pegged 1:1 to the US dollar. It is a digital $currency that aims to maintain its value while allowing for fast and secure transfer of funds. It was the first stablecoin, and is the most widely used due stablecoin due to its stability and low volatility compared to other cryptocurrencies. It was launched in 2014 by Tether Limited.</p>",
+        //                "type" => "blockchain",
+        //                "network" => "eth,trx,bnb,matic",
+        //                "standard" => "",
+        //                "issuer" => "HollaEx",
+        //                "withdrawal_fees" => array(
+        //                    "bnb" => array(
+        //                        "value" => "0.8",
+        //                        "active" => true,
+        //                        "symbol" => "usdt"
+        //                    ),
+        //                    "eth" => array(
+        //                        "value" => "1.5",
+        //                        "active" => true,
+        //                        "symbol" => "usdt"
+        //                    ),
+        //                    "trx" => array(
+        //                        "value" => "4",
+        //                        "active" => true,
+        //                        "symbol" => "usdt"
+        //                    ),
+        //                    "matic" => array(
+        //                        "value" => "0.3",
+        //                        "active" => true,
+        //                        "symbol" => "usdt"
+        //                    }
+        //                ),
+        //                "display_name" => null,
+        //                "deposit_fees" => null,
+        //                "is_risky" => false,
+        //                "market_cap" => "144568098696.29",
+        //                "category" => "stable",
+        //                "created_at" => "2019-08-09T10:45:43.367Z",
+        //                "updated_at" => "2025-03-25T17:12:37.970Z",
+        //                "created_by" => "168",
+        //                "owner_id" => "1"
+        //            ),
         //         ),
         //         "network":"https://api.hollaex.network"
         //     }
         //
-        $coins = $this->safe_value($response, 'coins', array());
+        $coins = $this->safe_dict($response, 'coins', array());
         $keys = is_array($coins) ? array_keys($coins) : array();
         $result = array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
             $currency = $coins[$key];
             $id = $this->safe_string($currency, 'symbol');
-            $numericId = $this->safe_integer($currency, 'id');
             $code = $this->safe_currency_code($id);
-            $name = $this->safe_string($currency, 'fullname');
-            $depositEnabled = $this->safe_value($currency, 'allow_deposit');
-            $withdrawEnabled = $this->safe_value($currency, 'allow_withdrawal');
-            $isActive = $this->safe_value($currency, 'active');
-            $active = $isActive && $depositEnabled && $withdrawEnabled;
-            $fee = $this->safe_number($currency, 'withdrawal_fee');
-            $withdrawalLimits = $this->safe_value($currency, 'withdrawal_limits', array());
-            $result[$code] = array(
+            $withdrawalLimits = $this->safe_list($currency, 'withdrawal_limits', array());
+            $rawType = $this->safe_string($currency, 'type');
+            $type = ($rawType === 'blockchain') ? 'crypto' : 'other';
+            $rawNetworks = $this->safe_dict($currency, 'withdrawal_fees', array());
+            $networks = array();
+            $networkIds = is_array($rawNetworks) ? array_keys($rawNetworks) : array();
+            for ($j = 0; $j < count($networkIds); $j++) {
+                $networkId = $networkIds[$j];
+                $networkEntry = $this->safe_dict($rawNetworks, $networkId);
+                $networkCode = $this->network_id_to_code($networkId);
+                $networks[$networkCode] = array(
+                    'id' => $networkId,
+                    'network' => $networkCode,
+                    'active' => $this->safe_bool($networkEntry, 'active'),
+                    'deposit' => null,
+                    'withdraw' => null,
+                    'fee' => $this->safe_number($networkEntry, 'value'),
+                    'precision' => null,
+                    'limits' => array(
+                        'withdraw' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                    ),
+                    'info' => $networkEntry,
+                );
+            }
+            $result[$code] = $this->safe_currency_structure(array(
                 'id' => $id,
-                'numericId' => $numericId,
+                'numericId' => $this->safe_integer($currency, 'id'),
                 'code' => $code,
                 'info' => $currency,
-                'name' => $name,
-                'active' => $active,
-                'deposit' => $depositEnabled,
-                'withdraw' => $withdrawEnabled,
-                'fee' => $fee,
+                'name' => $this->safe_string($currency, 'fullname'),
+                'active' => $this->safe_bool($currency, 'active'),
+                'deposit' => $this->safe_bool($currency, 'allow_deposit'),
+                'withdraw' => $this->safe_bool($currency, 'allow_withdrawal'),
+                'fee' => $this->safe_number($currency, 'withdrawal_fee'),
                 'precision' => $this->safe_number($currency, 'increment_unit'),
                 'limits' => array(
                     'amount' => array(
@@ -484,8 +534,9 @@ class hollaex extends Exchange {
                         'max' => $this->safe_value($withdrawalLimits, 0),
                     ),
                 ),
-                'networks' => array(),
-            );
+                'networks' => $networks,
+                'type' => $type,
+            ));
         }
         return $result;
     }

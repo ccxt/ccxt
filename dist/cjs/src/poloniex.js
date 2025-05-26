@@ -1204,6 +1204,7 @@ class poloniex extends poloniex$1 {
                     'withdraw': withdrawEnabled,
                     'fee': this.parseNumber(feeString),
                     'precision': undefined,
+                    'type': 'crypto',
                     'limits': {
                         'amount': {
                             'min': undefined,

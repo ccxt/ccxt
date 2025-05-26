@@ -1297,6 +1297,7 @@ public partial class binance : Exchange
                 { "sandboxMode", false },
                 { "fetchMargins", true },
                 { "fetchMarkets", new List<object>() {"spot", "linear", "inverse"} },
+                { "loadAllOptions", false },
                 { "fetchCurrencies", true },
                 { "defaultTimeInForce", "GTC" },
                 { "defaultType", "spot" },
@@ -3004,6 +3005,15 @@ public partial class binance : Exchange
         parameters ??= new Dictionary<string, object>();
         object promisesRaw = new List<object>() {};
         object rawFetchMarkets = this.safeList(this.options, "fetchMarkets", new List<object>() {"spot", "linear", "inverse"});
+        // handle loadAllOptions option
+        object loadAllOptions = this.safeBool(this.options, "loadAllOptions", false);
+        if (isTrue(loadAllOptions))
+        {
+            if (!isTrue(this.inArray("option", rawFetchMarkets)))
+            {
+                ((IList<object>)rawFetchMarkets).Add("option");
+            }
+        }
         object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         object fetchMarkets = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(rawFetchMarkets)); postFixIncrement(ref i))

@@ -365,6 +365,7 @@ export default class okx extends Exchange {
                         'account/spot-manual-borrow-repay': 10,
                         'account/set-auto-repay': 4,
                         'account/spot-borrow-repay-history': 4,
+                        'account/move-positions-history': 10,
                         // subaccount
                         'users/subaccount/list': 10,
                         'account/subaccount/balances': 10 / 3,
@@ -502,6 +503,7 @@ export default class okx extends Exchange {
                         'account/fixed-loan/manual-reborrow': 5,
                         'account/fixed-loan/repay-borrowing-order': 5,
                         'account/bills-history-archive': 72000, // 12 req/day
+                        'account/move-positions': 10,
                         // subaccount
                         'users/subaccount/modify-apikey': 10,
                         'asset/subaccount/transfer': 10,
@@ -968,6 +970,13 @@ export default class okx extends Exchange {
                     '70010': BadRequest, // Timestamp parameters need to be in Unix timestamp format in milliseconds.
                     '70013': BadRequest, // endTs needs to be bigger than or equal to beginTs.
                     '70016': BadRequest, // Please specify your instrument settings for at least one instType.
+                    '70060': BadRequest, // The account doesn’t exist or the position side is incorrect. To and from accounts must be under the same main account.
+                    '70061': BadRequest, // To move position, please enter a position that’s opposite to your current side and is smaller than or equal to your current size.
+                    '70062': BadRequest, // account has reached the maximum number of position transfers allowed per day.
+                    '70064': BadRequest, // Position does not exist.
+                    '70065': BadRequest, // Couldn’t move position. Execution price cannot be determined
+                    '70066': BadRequest, // Moving positions isn't supported in spot mode. Switch to any other account mode and try again.
+                    '70067': BadRequest, // Moving positions isn't supported in margin trading.
                     '1009': BadRequest,  // Request message exceeds the maximum frame length
                     '4001': AuthenticationError,  // Login Failed
                     '4002': BadRequest,  // Invalid Request
@@ -1650,7 +1659,6 @@ export default class okx extends Exchange {
                 }
             }
         }
-        const tickSize = this.safeString (market, 'tickSz');
         const fees = this.safeDict2 (this.fees, type, 'trading', {});
         let maxLeverage = this.safeString (market, 'lever', '1');
         maxLeverage = Precise.stringMax (maxLeverage, '1');
@@ -1682,7 +1690,7 @@ export default class okx extends Exchange {
             'created': this.safeInteger (market, 'listTime'),
             'precision': {
                 'amount': this.safeNumber (market, 'lotSz'),
-                'price': this.parseNumber (tickSize),
+                'price': this.safeNumber (market, 'tickSz'),
             },
             'limits': {
                 'leverage': {
@@ -5055,7 +5063,7 @@ export default class okx extends Exchange {
      */
     async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         await this.loadMarkets ();
-        const rawNetwork = this.safeStringUpper (params, 'network');
+        const rawNetwork = this.safeString (params, 'network'); // some networks are like "Dora Vota Mainnet"
         params = this.omit (params, 'network');
         code = this.safeCurrencyCode (code);
         const network = this.networkIdToCode (rawNetwork, code);

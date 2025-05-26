@@ -544,18 +544,69 @@ class whitebit extends whitebit$1 {
     async fetchCurrencies(params = {}) {
         const response = await this.v4PublicGetAssets(params);
         //
-        //      "BTC": {
-        //          "name": "Bitcoin",
-        //          "unified_cryptoasset_id": 1,
-        //          "can_withdraw": true,
-        //          "can_deposit": true,
-        //          "min_withdraw": "0.001",
-        //          "max_withdraw": "2",
-        //          "maker_fee": "0.1",
-        //          "taker_fee": "0.1",
-        //          "min_deposit": "0.0001",
-        //           "max_deposit": "0",
-        //       },
+        // {
+        //   BTC: {
+        //     name: "Bitcoin",
+        //     unified_cryptoasset_id: "1",
+        //     can_withdraw: true,
+        //     can_deposit: true,
+        //     min_withdraw: "0.0003",
+        //     max_withdraw: "0",
+        //     maker_fee: "0.1",
+        //     taker_fee: "0.1",
+        //     min_deposit: "0.0001",
+        //     max_deposit: "0",
+        //     networks: {
+        //         deposits: [ "BTC", ],
+        //         withdraws: [ "BTC", ],
+        //         default: "BTC",
+        //     },
+        //     confirmations: {
+        //         BTC: "2",
+        //     },
+        //     limits: {
+        //         deposit: {
+        //            BTC: { min: "0.0001", },
+        //         },
+        //         withdraw: {
+        //            BTC: { min: "0.0003", },
+        //         },
+        //     },
+        //     currency_precision: "8",
+        //     is_memo: false,
+        //   },
+        //   USD: {
+        //         name: "United States Dollar",
+        //         unified_cryptoasset_id: "6955",
+        //         can_withdraw: true,
+        //         can_deposit: true,
+        //         min_withdraw: "10",
+        //         max_withdraw: "10000",
+        //         maker_fee: "0.1",
+        //         taker_fee: "0.1",
+        //         min_deposit: "10",
+        //         max_deposit: "10000",
+        //         networks: {
+        //           deposits: [ "USD", ],
+        //           withdraws: [ "USD", ],
+        //           default: "USD",
+        //         },
+        //         providers: {
+        //           deposits: [ "ADVCASH", ],
+        //           withdraws: [ "ADVCASH", ],
+        //         },
+        //         limits: {
+        //           deposit: {
+        //             USD: {  max: "10000", min: "10", },
+        //           },
+        //           withdraw: {
+        //             USD: { max: "10000",  min: "10", },
+        //           },
+        //         },
+        //         currency_precision: "2",
+        //         is_memo: false,
+        //   }
+        // }
         //
         const ids = Object.keys(response);
         const result = {};
@@ -568,6 +619,7 @@ class whitebit extends whitebit$1 {
             const canWithdraw = this.safeBool(currency, 'can_withdraw', true);
             const active = canDeposit && canWithdraw;
             const code = this.safeCurrencyCode(id);
+            const hasProvider = ('providers' in currency);
             result[code] = {
                 'id': id,
                 'code': code,
@@ -578,6 +630,7 @@ class whitebit extends whitebit$1 {
                 'withdraw': canWithdraw,
                 'fee': undefined,
                 'networks': undefined,
+                'type': hasProvider ? 'fiat' : 'crypto',
                 'precision': undefined,
                 'limits': {
                     'amount': {

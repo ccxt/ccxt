@@ -212,7 +212,7 @@ class btcalpha extends btcalpha$1 {
                         'symbolRequired': false,
                     },
                     'fetchOHLCV': {
-                        'max': 720,
+                        'limit': 720,
                     },
                 },
                 'swap': {

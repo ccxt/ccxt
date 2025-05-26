@@ -947,6 +947,7 @@ export default class htx extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'include_OS_certificates': false,
                 'fetchMarkets': {
                     'types': {
                         'spot': true,
@@ -2210,7 +2211,7 @@ export default class htx extends Exchange {
         let ask = undefined;
         let askVolume = undefined;
         if ('bid' in ticker) {
-            if (Array.isArray(ticker['bid'])) {
+            if (ticker['bid'] !== undefined && Array.isArray(ticker['bid'])) {
                 bid = this.safeString(ticker['bid'], 0);
                 bidVolume = this.safeString(ticker['bid'], 1);
             }
@@ -2220,7 +2221,7 @@ export default class htx extends Exchange {
             }
         }
         if ('ask' in ticker) {
-            if (Array.isArray(ticker['ask'])) {
+            if (ticker['ask'] !== undefined && Array.isArray(ticker['ask'])) {
                 ask = this.safeString(ticker['ask'], 0);
                 askVolume = this.safeString(ticker['ask'], 1);
             }
@@ -3426,7 +3427,7 @@ export default class htx extends Exchange {
         //                        "withdrawQuotaPerYear": null,
         //                        "withdrawQuotaTotal": null,
         //                        "withdrawFeeType": "fixed",
-        //                        "transactFeeWithdraw": "11.1653",
+        //                        "transactFeeWithdraw": "11.1654",
         //                        "addrWithTag": false,
         //                        "addrDepositTag": false
         //                    }
@@ -3435,9 +3436,8 @@ export default class htx extends Exchange {
         //            }
         //        ]
         //    }
-        //    }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         const result = {};
         this.options['networkChainIdsByNames'] = {};
         this.options['networkNamesByChainIds'] = {};
@@ -3445,17 +3445,11 @@ export default class htx extends Exchange {
             const entry = data[i];
             const currencyId = this.safeString(entry, 'currency');
             const code = this.safeCurrencyCode(currencyId);
+            const assetType = this.safeString(entry, 'assetType');
+            const type = assetType === '1' ? 'crypto' : 'fiat';
             this.options['networkChainIdsByNames'][code] = {};
-            const chains = this.safeValue(entry, 'chains', []);
+            const chains = this.safeList(entry, 'chains', []);
             const networks = {};
-            const instStatus = this.safeString(entry, 'instStatus');
-            const currencyActive = instStatus === 'normal';
-            let minPrecision = undefined;
-            let minDeposit = undefined;
-            let minWithdraw = undefined;
-            let maxWithdraw = undefined;
-            let deposit = false;
-            let withdraw = false;
             for (let j = 0; j < chains.length; j++) {
                 const chainEntry = chains[j];
                 const uniqueChainId = this.safeString(chainEntry, 'chain'); // i.e. usdterc20, trc20usdt ...
@@ -3463,68 +3457,54 @@ export default class htx extends Exchange {
                 this.options['networkChainIdsByNames'][code][title] = uniqueChainId;
                 this.options['networkNamesByChainIds'][uniqueChainId] = title;
                 const networkCode = this.networkIdToCode(uniqueChainId);
-                minDeposit = this.safeNumber(chainEntry, 'minDepositAmt');
-                minWithdraw = this.safeNumber(chainEntry, 'minWithdrawAmt');
-                maxWithdraw = this.safeNumber(chainEntry, 'maxWithdrawAmt');
-                const withdrawStatus = this.safeString(chainEntry, 'withdrawStatus');
-                const depositStatus = this.safeString(chainEntry, 'depositStatus');
-                const withdrawEnabled = (withdrawStatus === 'allowed');
-                const depositEnabled = (depositStatus === 'allowed');
-                withdraw = (withdrawEnabled) ? withdrawEnabled : withdraw;
-                deposit = (depositEnabled) ? depositEnabled : deposit;
-                const active = withdrawEnabled && depositEnabled;
-                const precision = this.parsePrecision(this.safeString(chainEntry, 'withdrawPrecision'));
-                if (precision !== undefined) {
-                    minPrecision = (minPrecision === undefined) ? precision : Precise.stringMin(precision, minPrecision);
-                }
-                const fee = this.safeNumber(chainEntry, 'transactFeeWithdraw');
                 networks[networkCode] = {
                     'info': chainEntry,
                     'id': uniqueChainId,
                     'network': networkCode,
                     'limits': {
                         'deposit': {
-                            'min': minDeposit,
+                            'min': this.safeNumber(chainEntry, 'minDepositAmt'),
                             'max': undefined,
                         },
                         'withdraw': {
-                            'min': minWithdraw,
-                            'max': maxWithdraw,
+                            'min': this.safeNumber(chainEntry, 'minWithdrawAmt'),
+                            'max': this.safeNumber(chainEntry, 'maxWithdrawAmt'),
                         },
                     },
-                    'active': active,
-                    'deposit': depositEnabled,
-                    'withdraw': withdrawEnabled,
-                    'fee': fee,
-                    'precision': this.parseNumber(precision),
+                    'active': undefined,
+                    'deposit': this.safeString(chainEntry, 'depositStatus') === 'allowed',
+                    'withdraw': this.safeString(chainEntry, 'withdrawStatus') === 'allowed',
+                    'fee': this.safeNumber(chainEntry, 'transactFeeWithdraw'),
+                    'precision': this.parseNumber(this.parsePrecision(this.safeString(chainEntry, 'withdrawPrecision'))),
                 };
             }
-            result[code] = {
+            result[code] = this.safeCurrencyStructure({
                 'info': entry,
                 'code': code,
                 'id': currencyId,
-                'active': currencyActive,
-                'deposit': deposit,
-                'withdraw': withdraw,
+                'active': this.safeString(entry, 'instStatus') === 'normal',
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': undefined,
                 'name': undefined,
+                'type': type,
                 'limits': {
                     'amount': {
                         'min': undefined,
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': minWithdraw,
-                        'max': maxWithdraw,
+                        'min': undefined,
+                        'max': undefined,
                     },
                     'deposit': {
                         'min': undefined,
                         'max': undefined,
                     },
                 },
-                'precision': this.parseNumber(minPrecision),
+                'precision': undefined,
                 'networks': networks,
-            };
+            });
         }
         return result;
     }
@@ -7497,7 +7477,7 @@ export default class htx extends Exchange {
                     request = this.extend(request, query);
                 }
                 const sortedRequest = this.keysort(request);
-                let auth = this.urlencode(sortedRequest);
+                let auth = this.urlencode(sortedRequest, true); // true is a go only requirment
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 const payload = [method, this.hostname, url, auth].join("\n"); // eslint-disable-line quotes
                 const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, 'base64');
@@ -7579,7 +7559,7 @@ export default class htx extends Exchange {
                     const sortedQuery = this.keysort(query);
                     request = this.extend(request, sortedQuery);
                 }
-                let auth = this.urlencode(request).replace('%2c', '%2C'); // in c# it manually needs to be uppercased
+                let auth = this.urlencode(request, true).replace('%2c', '%2C'); // in c# it manually needs to be uppercased
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 const payload = [method, hostname, url, auth].join("\n"); // eslint-disable-line quotes
                 const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, 'base64');

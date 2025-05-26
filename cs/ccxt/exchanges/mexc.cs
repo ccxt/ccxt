@@ -911,7 +911,6 @@ public partial class mexc : Exchange
             object currency = getValue(response, i);
             object id = this.safeString(currency, "coin");
             object code = this.safeCurrencyCode(id);
-            object name = this.safeString(currency, "name");
             object networks = new Dictionary<string, object>() {};
             object chains = this.safeValue(currency, "networkList", new List<object>() {});
             for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
@@ -934,13 +933,14 @@ public partial class mexc : Exchange
                             { "max", this.safeString(chain, "withdrawMax") },
                         } },
                     } },
+                    { "contract", this.safeString(chain, "contract") },
                 };
             }
             ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "info", currency },
                 { "id", id },
                 { "code", code },
-                { "name", name },
+                { "name", this.safeString(currency, "name") },
                 { "active", null },
                 { "deposit", null },
                 { "withdraw", null },

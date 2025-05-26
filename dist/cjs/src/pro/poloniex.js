@@ -249,7 +249,9 @@ class poloniex extends poloniex$1 {
                 request['price'] = this.priceToPrecision(symbol, price);
             }
         }
-        return await this.tradeRequest('createOrder', this.extend(request, params));
+        const orders = await this.tradeRequest('createOrder', this.extend(request, params));
+        const order = this.safeDict(orders, 0);
+        return order;
     }
     /**
      * @method
@@ -268,7 +270,9 @@ class poloniex extends poloniex$1 {
             const clientOrderIds = this.safeValue(params, 'clientOrderId', []);
             params['clientOrderIds'] = this.arrayConcat(clientOrderIds, [clientOrderId]);
         }
-        return await this.cancelOrdersWs([id], symbol, params);
+        const orders = await this.cancelOrdersWs([id], symbol, params);
+        const order = this.safeDict(orders, 0);
+        return order;
     }
     /**
      * @method

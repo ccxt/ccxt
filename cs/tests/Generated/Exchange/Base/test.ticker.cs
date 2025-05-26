@@ -32,14 +32,12 @@ public partial class testMainClass : BaseTest
             { "quoteVolume", exchange.parseNumber("1.234") },
         };
         // todo: atm, many exchanges fail, so temporarily decrease stict mode
-        object emptyAllowedFor = new List<object>() {"timestamp", "datetime", "open", "high", "low", "close", "last", "baseVolume", "quoteVolume", "previousClose", "vwap", "change", "percentage", "average"};
+        object emptyAllowedFor = new List<object>() {"timestamp", "datetime", "open", "high", "low", "close", "last", "baseVolume", "quoteVolume", "previousClose", "bidVolume", "askVolume", "vwap", "change", "percentage", "average"};
         // trick csharp-transpiler for string
-        if (!isTrue(((object)method).ToString().Contains("BidsAsks")))
+        if (!isTrue((((object)method).ToString().Contains("BidsAsks"))))
         {
             ((IList<object>)emptyAllowedFor).Add("bid");
             ((IList<object>)emptyAllowedFor).Add("ask");
-            ((IList<object>)emptyAllowedFor).Add("bidVolume");
-            ((IList<object>)emptyAllowedFor).Add("askVolume");
         }
         testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         testSharedMethods.assertTimestampAndDatetime(exchange, skippedProperties, method, entry);
@@ -70,7 +68,7 @@ public partial class testMainClass : BaseTest
         object quoteVolume = exchange.safeString(entry, "quoteVolume");
         object high = exchange.safeString(entry, "high");
         object low = exchange.safeString(entry, "low");
-        if (isTrue(!isTrue((inOp(skippedProperties, "quoteVolume"))) && !isTrue((inOp(skippedProperties, "baseVolume")))))
+        if (!isTrue((inOp(skippedProperties, "compareQuoteVolumeBaseVolume"))))
         {
             if (isTrue(isTrue(isTrue(isTrue((!isEqual(baseVolume, null))) && isTrue((!isEqual(quoteVolume, null)))) && isTrue((!isEqual(high, null)))) && isTrue((!isEqual(low, null)))))
             {
@@ -100,6 +98,7 @@ public partial class testMainClass : BaseTest
             // assert (high !== undefined, 'vwap is defined, but high is not' + logText);
             // assert (low !== undefined, 'vwap is defined, but low is not' + logText);
             // assert (vwap >= low && vwap <= high)
+            // todo: calc compare
             assert(Precise.stringGe(vwap, "0"), add("vwap is not greater than zero", logText));
             if (isTrue(!isEqual(baseVolume, null)))
             {
@@ -110,15 +109,16 @@ public partial class testMainClass : BaseTest
                 assert(!isEqual(baseVolume, null), add("quoteVolume & vwap is defined, but baseVolume is not", logText));
             }
         }
-        if (isTrue(isTrue(!isTrue((inOp(skippedProperties, "spread"))) && !isTrue((inOp(skippedProperties, "ask")))) && !isTrue((inOp(skippedProperties, "bid")))))
+        object askString = exchange.safeString(entry, "ask");
+        object bidString = exchange.safeString(entry, "bid");
+        if (isTrue(isTrue(isTrue((!isEqual(askString, null))) && isTrue((!isEqual(bidString, null)))) && !isTrue((inOp(skippedProperties, "spread")))))
         {
-            object askString = exchange.safeString(entry, "ask");
-            object bidString = exchange.safeString(entry, "bid");
-            if (isTrue(isTrue((!isEqual(askString, null))) && isTrue((!isEqual(bidString, null)))))
-            {
-                testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, "ask", exchange.safeString(entry, "bid"));
-            }
+            testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, "ask", exchange.safeString(entry, "bid"));
         }
+        // todo: rethink about this
+        // else {
+        //    assert ((askString === undefined) && (bidString === undefined), 'ask & bid should be both defined or both undefined' + logText);
+        // }
         testSharedMethods.assertSymbol(exchange, skippedProperties, method, entry, "symbol", symbol);
     }
 

@@ -357,7 +357,7 @@ class hyperliquid extends hyperliquid$1 {
             const id = i;
             const name = this.safeString(data, 'name');
             const code = this.safeCurrencyCode(name);
-            result[code] = {
+            result[code] = this.safeCurrencyStructure({
                 'id': id,
                 'name': name,
                 'code': code,
@@ -368,6 +368,7 @@ class hyperliquid extends hyperliquid$1 {
                 'withdraw': undefined,
                 'networks': undefined,
                 'fee': undefined,
+                'type': 'crypto',
                 'limits': {
                     'amount': {
                         'min': undefined,
@@ -378,7 +379,7 @@ class hyperliquid extends hyperliquid$1 {
                         'max': undefined,
                     },
                 },
-            };
+            });
         }
         return result;
     }
@@ -2262,6 +2263,10 @@ class hyperliquid extends hyperliquid$1 {
     }
     parseOrder(order, market = undefined) {
         //
+        // createOrdersWs error
+        //
+        //  {error: 'Insufficient margin to place order. asset=159'}
+        //
         //  fetchOpenOrders
         //
         //     {
@@ -2352,6 +2357,13 @@ class hyperliquid extends hyperliquid$1 {
         //     "triggerPx": "0.6"
         // }
         //
+        const error = this.safeString(order, 'error');
+        if (error !== undefined) {
+            return this.safeOrder({
+                'info': order,
+                'status': 'rejected',
+            });
+        }
         let entry = this.safeDictN(order, ['order', 'resting', 'filled']);
         if (entry === undefined) {
             entry = order;
@@ -3597,9 +3609,13 @@ class hyperliquid extends hyperliquid$1 {
         // {"status":"ok","response":{"type":"order","data":{"statuses":[{"error":"Insufficient margin to place order. asset=84"}]}}}
         //
         const status = this.safeString(response, 'status', '');
+        const error = this.safeString(response, 'error');
         let message = undefined;
         if (status === 'err') {
             message = this.safeString(response, 'response');
+        }
+        else if (error !== undefined) {
+            message = error;
         }
         else {
             const responsePayload = this.safeDict(response, 'response', {});

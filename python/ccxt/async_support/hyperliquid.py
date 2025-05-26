@@ -369,7 +369,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             id = i
             name = self.safe_string(data, 'name')
             code = self.safe_currency_code(name)
-            result[code] = {
+            result[code] = self.safe_currency_structure({
                 'id': id,
                 'name': name,
                 'code': code,
@@ -380,6 +380,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'withdraw': None,
                 'networks': None,
                 'fee': None,
+                'type': 'crypto',
                 'limits': {
                     'amount': {
                         'min': None,
@@ -390,7 +391,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
-            }
+            })
         return result
 
     async def fetch_markets(self, params={}) -> List[Market]:
@@ -2179,6 +2180,10 @@ class hyperliquid(Exchange, ImplicitAPI):
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
         #
+        # createOrdersWs error
+        #
+        #  {error: 'Insufficient margin to place order. asset=159'}
+        #
         #  fetchOpenOrders
         #
         #     {
@@ -2269,6 +2274,12 @@ class hyperliquid(Exchange, ImplicitAPI):
         #     "triggerPx": "0.6"
         # }
         #
+        error = self.safe_string(order, 'error')
+        if error is not None:
+            return self.safe_order({
+                'info': order,
+                'status': 'rejected',
+            })
         entry = self.safe_dict_n(order, ['order', 'resting', 'filled'])
         if entry is None:
             entry = order
@@ -3444,9 +3455,12 @@ class hyperliquid(Exchange, ImplicitAPI):
         # {"status":"ok","response":{"type":"order","data":{"statuses":[{"error":"Insufficient margin to place order. asset=84"}]}}}
         #
         status = self.safe_string(response, 'status', '')
+        error = self.safe_string(response, 'error')
         message = None
         if status == 'err':
             message = self.safe_string(response, 'response')
+        elif error is not None:
+            message = error
         else:
             responsePayload = self.safe_dict(response, 'response', {})
             data = self.safe_dict(responsePayload, 'data', {})

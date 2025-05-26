@@ -360,6 +360,7 @@ class okx extends Exchange {
                         'account/spot-manual-borrow-repay' => 10,
                         'account/set-auto-repay' => 4,
                         'account/spot-borrow-repay-history' => 4,
+                        'account/move-positions-history' => 10,
                         // subaccount
                         'users/subaccount/list' => 10,
                         'account/subaccount/balances' => 10 / 3,
@@ -497,6 +498,7 @@ class okx extends Exchange {
                         'account/fixed-loan/manual-reborrow' => 5,
                         'account/fixed-loan/repay-borrowing-order' => 5,
                         'account/bills-history-archive' => 72000, // 12 req/day
+                        'account/move-positions' => 10,
                         // subaccount
                         'users/subaccount/modify-apikey' => 10,
                         'asset/subaccount/transfer' => 10,
@@ -964,6 +966,13 @@ class okx extends Exchange {
                     '70010' => '\\ccxt\\BadRequest', // Timestamp parameters need to be in Unix timestamp format in milliseconds.
                     '70013' => '\\ccxt\\BadRequest', // endTs needs to be bigger than or equal to beginTs.
                     '70016' => '\\ccxt\\BadRequest', // Please specify your instrument settings for at least one instType.
+                    '70060' => '\\ccxt\\BadRequest', // The account doesn’t exist or the position side is incorrect. To and from accounts must be under the same main account.
+                    '70061' => '\\ccxt\\BadRequest', // To move position, please enter a position that’s opposite to your current side and is smaller than or equal to your current size.
+                    '70062' => '\\ccxt\\BadRequest', // account has reached the maximum number of position transfers allowed per day.
+                    '70064' => '\\ccxt\\BadRequest', // Position does not exist.
+                    '70065' => '\\ccxt\\BadRequest', // Couldn’t move position. Execution price cannot be determined
+                    '70066' => '\\ccxt\\BadRequest', // Moving positions isn't supported in spot mode. Switch to any other account mode and try again.
+                    '70067' => '\\ccxt\\BadRequest', // Moving positions isn't supported in margin trading.
                     '1009' => '\\ccxt\\BadRequest',  // Request message exceeds the maximum frame length
                     '4001' => '\\ccxt\\AuthenticationError',  // Login Failed
                     '4002' => '\\ccxt\\BadRequest',  // Invalid Request
@@ -1646,7 +1655,6 @@ class okx extends Exchange {
                 }
             }
         }
-        $tickSize = $this->safe_string($market, 'tickSz');
         $fees = $this->safe_dict_2($this->fees, $type, 'trading', array());
         $maxLeverage = $this->safe_string($market, 'lever', '1');
         $maxLeverage = Precise::string_max($maxLeverage, '1');
@@ -1678,7 +1686,7 @@ class okx extends Exchange {
             'created' => $this->safe_integer($market, 'listTime'),
             'precision' => array(
                 'amount' => $this->safe_number($market, 'lotSz'),
-                'price' => $this->parse_number($tickSize),
+                'price' => $this->safe_number($market, 'tickSz'),
             ),
             'limits' => array(
                 'leverage' => array(
@@ -5049,7 +5057,7 @@ class okx extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
          */
         $this->load_markets();
-        $rawNetwork = $this->safe_string_upper($params, 'network');
+        $rawNetwork = $this->safe_string($params, 'network'); // some networks are like "Dora Vota Mainnet"
         $params = $this->omit($params, 'network');
         $code = $this->safe_currency_code($code);
         $network = $this->network_id_to_code($rawNetwork, $code);

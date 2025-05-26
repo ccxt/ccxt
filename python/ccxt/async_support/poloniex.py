@@ -1204,6 +1204,7 @@ class poloniex(Exchange, ImplicitAPI):
                     'withdraw': withdrawEnabled,
                     'fee': self.parse_number(feeString),
                     'precision': None,
+                    'type': 'crypto',
                     'limits': {
                         'amount': {
                             'min': None,

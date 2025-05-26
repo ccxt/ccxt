@@ -308,6 +308,9 @@ class Greeks(TypedDict):
     theta: Num
     vega: Num
     rho: Num
+    vanna: Num
+    volga: Num
+    charm: Num
     bidSize: Num
     askSize: Num
     bidImpliedVolatility: Num

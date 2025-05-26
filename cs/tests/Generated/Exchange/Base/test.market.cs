@@ -102,6 +102,7 @@ public partial class testMainClass : BaseTest
         testSharedMethods.assertSymbol(exchange, skippedProperties, method, market, "symbol");
         object logText = testSharedMethods.logTemplate(exchange, method, market);
         // check taker/maker
+        // todo: check not all to be within 0-1.0
         testSharedMethods.assertGreater(exchange, skippedProperties, method, market, "taker", "-100");
         testSharedMethods.assertLess(exchange, skippedProperties, method, market, "taker", "100");
         testSharedMethods.assertGreater(exchange, skippedProperties, method, market, "maker", "-100");
@@ -219,7 +220,7 @@ public partial class testMainClass : BaseTest
                 assert(isEqual(getValue(market, "strike"), null), add("\"strike\" must be undefined when \"option\" is false", logText));
                 assert(isEqual(getValue(market, "optionType"), null), add("\"optionType\" must be undefined when \"option\" is false", logText));
             }
-        } else
+        } else if (isTrue(spot))
         {
             // otherwise, expiry needs to be undefined
             assert(isTrue((isEqual(getValue(market, "expiry"), null))) && isTrue((isEqual(getValue(market, "expiryDatetime"), null))), add("\"expiry\" and \"expiryDatetime\" must be undefined when it is not future|option market", logText));

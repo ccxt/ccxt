@@ -1110,6 +1110,7 @@ class huobijp(Exchange, ImplicitAPI):
                 'withdraw': withdrawEnabled,
                 'fee': None,  # todo need to fetch from fee endpoint
                 'precision': precision,
+                'networks': None,
                 'limits': {
                     'amount': {
                         'min': precision,

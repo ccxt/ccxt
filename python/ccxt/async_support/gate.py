@@ -1866,7 +1866,7 @@ class gate(Exchange, ImplicitAPI):
                     'code': code,
                     'type': type,
                     'precision': precision,
-                    'limits': self.limits,
+                    'limits': None,
                     'networks': {},
                     'info': [],  # will be filled below
                 }

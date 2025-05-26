@@ -643,145 +643,409 @@
                 "method": "fetchCurrencies",
                 "input": [],
                 "httpResponse": {
-                    "code": 0,
+                    "code": "0",
                     "data": [
                         {
-                            "assetCode": "STX5S",
-                            "assetName": "5X Short STX Token",
-                            "precisionScale": 8,
-                            "nativeScale": 2,
-                            "withdrawalFee": "2.0",
-                            "minWithdrawalAmt": "4.0",
-                            "status": "NoTransaction"
+                            "assetCode": "USDT",
+                            "assetName": "Tether",
+                            "precisionScale": 9,
+                            "nativeScale": 4,
+                            "blockChain": [
+                                {
+                                    "chainName": "Omni",
+                                    "withdrawFee": "30.0",
+                                    "allowDeposit": false,
+                                    "allowWithdraw": false,
+                                    "minDepositAmt": "0.01",
+                                    "minWithdrawal": "60.0",
+                                    "numConfirmations": 3
+                                },
+                                {
+                                    "chainName": "ERC20",
+                                    "withdrawFee": "8.0",
+                                    "allowDeposit": true,
+                                    "allowWithdraw": true,
+                                    "minDepositAmt": "0.01",
+                                    "minWithdrawal": "16.0",
+                                    "numConfirmations": 64
+                                },
+                                {
+                                    "chainName": "TRC20",
+                                    "withdrawFee": "2.0",
+                                    "allowDeposit": true,
+                                    "allowWithdraw": true,
+                                    "minDepositAmt": "0.01",
+                                    "minWithdrawal": "10.0",
+                                    "numConfirmations": 1
+                                },
+                                {
+                                    "chainName": "Solana",
+                                    "withdrawFee": "2.0",
+                                    "allowDeposit": true,
+                                    "allowWithdraw": true,
+                                    "minDepositAmt": "0.01",
+                                    "minWithdrawal": "4.0",
+                                    "numConfirmations": 1
+                                },
+                                {
+                                    "chainName": "arbitrum",
+                                    "withdrawFee": "2.0",
+                                    "allowDeposit": true,
+                                    "allowWithdraw": true,
+                                    "minDepositAmt": "0.01",
+                                    "minWithdrawal": "4.0",
+                                    "numConfirmations": 12
+                                },
+                                {
+                                    "chainName": "BEP20 (BSC)",
+                                    "withdrawFee": "2.0",
+                                    "allowDeposit": true,
+                                    "allowWithdraw": true,
+                                    "minDepositAmt": "0.01",
+                                    "minWithdrawal": "4.0",
+                                    "numConfirmations": 20
+                                },
+                                {
+                                    "chainName": "avalanche C chain",
+                                    "withdrawFee": "1.0",
+                                    "allowDeposit": false,
+                                    "allowWithdraw": false,
+                                    "minDepositAmt": "0.01",
+                                    "minWithdrawal": "2.0",
+                                    "numConfirmations": 20
+                                },
+                                {
+                                    "chainName": "fantom",
+                                    "withdrawFee": "2.0",
+                                    "allowDeposit": false,
+                                    "allowWithdraw": false,
+                                    "minDepositAmt": "0.01",
+                                    "minWithdrawal": "4.0",
+                                    "numConfirmations": 30
+                                },
+                                {
+                                    "chainName": "Polygon",
+                                    "withdrawFee": "2.0",
+                                    "allowDeposit": true,
+                                    "allowWithdraw": true,
+                                    "minDepositAmt": "0.01",
+                                    "minWithdrawal": "4.0",
+                                    "numConfirmations": 32
+                                }
+                            ]
                         }
                     ]
                 },
                 "parsedResponse": {
-                    "STX5S": {
-                        "id": "STX5S",
-                        "code": "STX5S",
+                    "USDT": {
                         "info": {
-                            "assetCode": "STX5S",
-                            "assetName": "5X Short STX Token",
-                            "precisionScale": 8,
-                            "nativeScale": 2,
-                            "withdrawalFee": "2.0",
-                            "minWithdrawalAmt": "4.0",
-                            "status": "NoTransaction"
+                            "assetCode": "USDT",
+                            "assetName": "Tether",
+                            "precisionScale": 9,
+                            "nativeScale": 4,
+                            "blockChain": [
+                                {
+                                    "chainName": "Omni",
+                                    "withdrawFee": "30.0",
+                                    "allowDeposit": false,
+                                    "allowWithdraw": false,
+                                    "minDepositAmt": "0.01",
+                                    "minWithdrawal": "60.0",
+                                    "numConfirmations": 3
+                                },
+                                {
+                                    "chainName": "ERC20",
+                                    "withdrawFee": "8.0",
+                                    "allowDeposit": true,
+                                    "allowWithdraw": true,
+                                    "minDepositAmt": "0.01",
+                                    "minWithdrawal": "16.0",
+                                    "numConfirmations": 64
+                                },
+                                {
+                                    "chainName": "TRC20",
+                                    "withdrawFee": "2.0",
+                                    "allowDeposit": true,
+                                    "allowWithdraw": true,
+                                    "minDepositAmt": "0.01",
+                                    "minWithdrawal": "10.0",
+                                    "numConfirmations": 1
+                                },
+                                {
+                                    "chainName": "Solana",
+                                    "withdrawFee": "2.0",
+                                    "allowDeposit": true,
+                                    "allowWithdraw": true,
+                                    "minDepositAmt": "0.01",
+                                    "minWithdrawal": "4.0",
+                                    "numConfirmations": 1
+                                },
+                                {
+                                    "chainName": "arbitrum",
+                                    "withdrawFee": "2.0",
+                                    "allowDeposit": true,
+                                    "allowWithdraw": true,
+                                    "minDepositAmt": "0.01",
+                                    "minWithdrawal": "4.0",
+                                    "numConfirmations": 12
+                                },
+                                {
+                                    "chainName": "BEP20 (BSC)",
+                                    "withdrawFee": "2.0",
+                                    "allowDeposit": true,
+                                    "allowWithdraw": true,
+                                    "minDepositAmt": "0.01",
+                                    "minWithdrawal": "4.0",
+                                    "numConfirmations": 20
+                                },
+                                {
+                                    "chainName": "avalanche C chain",
+                                    "withdrawFee": "1.0",
+                                    "allowDeposit": false,
+                                    "allowWithdraw": false,
+                                    "minDepositAmt": "0.01",
+                                    "minWithdrawal": "2.0",
+                                    "numConfirmations": 20
+                                },
+                                {
+                                    "chainName": "fantom",
+                                    "withdrawFee": "2.0",
+                                    "allowDeposit": false,
+                                    "allowWithdraw": false,
+                                    "minDepositAmt": "0.01",
+                                    "minWithdrawal": "4.0",
+                                    "numConfirmations": 30
+                                },
+                                {
+                                    "chainName": "Polygon",
+                                    "withdrawFee": "2.0",
+                                    "allowDeposit": true,
+                                    "allowWithdraw": true,
+                                    "minDepositAmt": "0.01",
+                                    "minWithdrawal": "4.0",
+                                    "numConfirmations": 32
+                                }
+                            ]
                         },
+                        "id": "USDT",
+                        "numericId": null,
+                        "code": "USDT",
+                        "precision": 0.0001,
                         "type": null,
-                        "margin": false,
-                        "name": "5X Short STX Token",
-                        "active": false,
-                        "deposit": null,
-                        "withdraw": null,
-                        "fee": 2,
-                        "precision": 1e-8,
+                        "name": "Tether",
+                        "active": true,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": 1,
+                        "fees": {},
+                        "networks": {
+                            "Omni": {
+                                "fee": 30,
+                                "active": false,
+                                "withdraw": false,
+                                "deposit": false,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "amount": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": 60,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0.01,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "ERC20": {
+                                "fee": 8,
+                                "active": true,
+                                "withdraw": true,
+                                "deposit": true,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "amount": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": 16,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0.01,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "TRC20": {
+                                "fee": 2,
+                                "active": true,
+                                "withdraw": true,
+                                "deposit": true,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "amount": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": 10,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0.01,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "Solana": {
+                                "fee": 2,
+                                "active": true,
+                                "withdraw": true,
+                                "deposit": true,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "amount": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": 4,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0.01,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "arbitrum": {
+                                "fee": 2,
+                                "active": true,
+                                "withdraw": true,
+                                "deposit": true,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "amount": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": 4,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0.01,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "BEP20 (BSC)": {
+                                "fee": 2,
+                                "active": true,
+                                "withdraw": true,
+                                "deposit": true,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "amount": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": 4,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0.01,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "avalanche C chain": {
+                                "fee": 1,
+                                "active": false,
+                                "withdraw": false,
+                                "deposit": false,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "amount": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": 2,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0.01,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "fantom": {
+                                "fee": 2,
+                                "active": false,
+                                "withdraw": false,
+                                "deposit": false,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "amount": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": 4,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0.01,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "Polygon": {
+                                "fee": 2,
+                                "active": true,
+                                "withdraw": true,
+                                "deposit": true,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "amount": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": 4,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0.01,
+                                        "max": null
+                                    }
+                                }
+                            }
+                        },
                         "limits": {
                             "amount": {
-                                "min": 1e-8,
+                                "min": null,
                                 "max": null
                             },
                             "withdraw": {
-                                "min": 4,
-                                "max": null
-                            }
-                        },
-                        "networks": {}
-                    }
-                }
-            }
-        ],
-        "fetchMarkets": [
-            {
-                "description": "fetchMarkets",
-                "method": "fetchMarkets",
-                "input": [],
-                "httpResponse": {
-                    "code": 0,
-                    "data": [
-                        {
-                            "symbol": "BCH/USDT",
-                            "displayName": "BCH/USDT",
-                            "baseAsset": "BCH",
-                            "quoteAsset": "USDT",
-                            "status": "Normal",
-                            "minNotional": "5",
-                            "maxNotional": "1000000",
-                            "marginTradable": true,
-                            "commissionType": "Quote",
-                            "commissionReserveRate": "0.001",
-                            "tickSize": "0.01",
-                            "lotSize": "0.001"
-                        }
-                    ]
-                },
-                "parsedResponse": [
-                    {
-                        "id": "BCH/USDT",
-                        "symbol": "BCH/USDT",
-                        "base": "BCH",
-                        "quote": "USDT",
-                        "settle": null,
-                        "baseId": "BCH",
-                        "quoteId": "USDT",
-                        "settleId": null,
-                        "type": "spot",
-                        "spot": true,
-                        "margin": true,
-                        "swap": false,
-                        "future": false,
-                        "option": false,
-                        "active": true,
-                        "contract": false,
-                        "linear": null,
-                        "inverse": null,
-                        "taker": 0.001,
-                        "maker": 0.001,
-                        "contractSize": null,
-                        "expiry": null,
-                        "expiryDatetime": null,
-                        "strike": null,
-                        "optionType": null,
-                        "precision": {
-                            "amount": 0.001,
-                            "price": 0.01
-                        },
-                        "limits": {
-                            "leverage": {
-                                "min": null,
+                                "min": 2,
                                 "max": null
                             },
-                            "amount": {
-                                "min": null,
-                                "max": null
-                            },
-                            "price": {
+                            "deposit": {
                                 "min": 0.01,
                                 "max": null
-                            },
-                            "cost": {
-                                "min": 5,
-                                "max": 1000000
                             }
                         },
-                        "created": null,
-                        "info": {
-                            "symbol": "BCH/USDT",
-                            "displayName": "BCH/USDT",
-                            "baseAsset": "BCH",
-                            "quoteAsset": "USDT",
-                            "status": "Normal",
-                            "minNotional": "5",
-                            "maxNotional": "1000000",
-                            "marginTradable": true,
-                            "commissionType": "Quote",
-                            "commissionReserveRate": "0.001",
-                            "tickSize": "0.01",
-                            "lotSize": "0.001"
-                        }
+                        "margin": null
                     }
-                ]
+                }
             }
         ],
         "fetchFundingRates": [

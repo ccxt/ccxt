@@ -1,11 +1,20 @@
 import Exchange from './abstract/cryptocom.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, Str, Ticker, OrderRequest, Balances, Transaction, OrderBook, Tickers, Strings, Currency, Market, Num, Account, CancellationRequest, Dict, int, TradingFeeInterface, TradingFees, LedgerEntry, DepositAddress, Position } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, Str, Ticker, OrderRequest, Balances, Transaction, OrderBook, Tickers, Strings, Currency, Currencies, Market, Num, Account, CancellationRequest, Dict, int, TradingFeeInterface, TradingFees, LedgerEntry, DepositAddress, Position } from './base/types.js';
 /**
  * @class cryptocom
  * @augments Exchange
  */
 export default class cryptocom extends Exchange {
     describe(): any;
+    /**
+     * @method
+     * @name cryptocom#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-currency-networks
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
+    fetchCurrencies(params?: {}): Promise<Currencies>;
     /**
      * @method
      * @name cryptocom#fetchMarkets

@@ -3,6 +3,15 @@
     "skipKeys": ["to", "from"],
     "outputType": "json",
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.hollaex.com/v2/constants",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchOrderBook": [
             {
                 "description": "Spot fetch order book",

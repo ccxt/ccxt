@@ -654,6 +654,7 @@ class bitteam extends Exchange {
                 $networkIds = is_array($feesByNetworkId) ? array_keys($feesByNetworkId) : array();
                 $networks = array();
                 $networkPrecision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'decimals')));
+                $typeRaw = $this->safe_string($currency, 'type');
                 for ($j = 0; $j < count($networkIds); $j++) {
                     $networkId = $networkIds[$j];
                     $networkCode = $this->network_id_to_code($networkId, $code);
@@ -708,6 +709,7 @@ class bitteam extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'type' => $typeRaw, // 'crypto' or 'fiat'
                     'networks' => $networks,
                 );
             }

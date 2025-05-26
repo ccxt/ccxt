@@ -2,6 +2,880 @@
     "exchange": "bybit",
     "options": {},
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "success",
+                    "result": {
+                        "rows": [
+                            {
+                                "name": "USDT",
+                                "coin": "USDT",
+                                "remainAmount": "50000000000",
+                                "chains": [
+                                    {
+                                        "chainType": "Aptos",
+                                        "confirmation": "1",
+                                        "withdrawFee": "0",
+                                        "depositMin": "0.001",
+                                        "withdrawMin": "0",
+                                        "chain": "APTOS",
+                                        "chainDeposit": "1",
+                                        "chainWithdraw": "1",
+                                        "minAccuracy": "4",
+                                        "withdrawPercentageFee": "0",
+                                        "contractAddress": "0x357b0b74bc833e95a115ad22604854d6b0fca151cecd94111770e5d6ffc9dc2b"
+                                    },
+                                    {
+                                        "chainType": "Arbitrum One",
+                                        "confirmation": "120",
+                                        "withdrawFee": "1",
+                                        "depositMin": "0",
+                                        "withdrawMin": "1",
+                                        "chain": "ARBI",
+                                        "chainDeposit": "1",
+                                        "chainWithdraw": "1",
+                                        "minAccuracy": "4",
+                                        "withdrawPercentageFee": "0",
+                                        "contractAddress": "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9"
+                                    },
+                                    {
+                                        "chainType": "BNB Smart Chain",
+                                        "confirmation": "60",
+                                        "withdrawFee": "1",
+                                        "depositMin": "0",
+                                        "withdrawMin": "10",
+                                        "chain": "BSC",
+                                        "chainDeposit": "1",
+                                        "chainWithdraw": "1",
+                                        "minAccuracy": "4",
+                                        "withdrawPercentageFee": "0",
+                                        "contractAddress": "0x55d398326f99059ff775485246999027b3197955"
+                                    },
+                                    {
+                                        "chainType": "CAVAX",
+                                        "confirmation": "30",
+                                        "withdrawFee": "1",
+                                        "depositMin": "0",
+                                        "withdrawMin": "10",
+                                        "chain": "CAVAX",
+                                        "chainDeposit": "1",
+                                        "chainWithdraw": "0",
+                                        "minAccuracy": "4",
+                                        "withdrawPercentageFee": "0",
+                                        "contractAddress": "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7"
+                                    },
+                                    {
+                                        "chainType": "CELO",
+                                        "confirmation": "10",
+                                        "withdrawFee": "1",
+                                        "depositMin": "0",
+                                        "withdrawMin": "1",
+                                        "chain": "CELO",
+                                        "chainDeposit": "1",
+                                        "chainWithdraw": "1",
+                                        "minAccuracy": "4",
+                                        "withdrawPercentageFee": "0",
+                                        "contractAddress": "0x48065fbBE25f71C9282ddf5e1cD6D6A887483D5e"
+                                    },
+                                    {
+                                        "chainType": "Ethereum",
+                                        "confirmation": "6",
+                                        "withdrawFee": "8",
+                                        "depositMin": "0",
+                                        "withdrawMin": "10",
+                                        "chain": "ETH",
+                                        "chainDeposit": "1",
+                                        "chainWithdraw": "1",
+                                        "minAccuracy": "4",
+                                        "withdrawPercentageFee": "0",
+                                        "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7"
+                                    },
+                                    {
+                                        "chainType": "KAVAEVM",
+                                        "confirmation": "10",
+                                        "withdrawFee": "0.3",
+                                        "depositMin": "0",
+                                        "withdrawMin": "0.3",
+                                        "chain": "KAVAEVM",
+                                        "chainDeposit": "1",
+                                        "chainWithdraw": "1",
+                                        "minAccuracy": "4",
+                                        "withdrawPercentageFee": "0",
+                                        "contractAddress": "0x919c1c267bc06a7039e03fcc2ef738525769109c"
+                                    },
+                                    {
+                                        "chainType": "Mantle Network",
+                                        "confirmation": "100",
+                                        "withdrawFee": "0",
+                                        "depositMin": "0",
+                                        "withdrawMin": "0.3",
+                                        "chain": "MANTLE",
+                                        "chainDeposit": "1",
+                                        "chainWithdraw": "1",
+                                        "minAccuracy": "4",
+                                        "withdrawPercentageFee": "0",
+                                        "contractAddress": "0x201eba5cc46d216ce6dc03f6a759e8e766e956ae"
+                                    },
+                                    {
+                                        "chainType": "Polygon PoS",
+                                        "confirmation": "300",
+                                        "withdrawFee": "1",
+                                        "depositMin": "0",
+                                        "withdrawMin": "1",
+                                        "chain": "MATIC",
+                                        "chainDeposit": "1",
+                                        "chainWithdraw": "1",
+                                        "minAccuracy": "4",
+                                        "withdrawPercentageFee": "0",
+                                        "contractAddress": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f"
+                                    },
+                                    {
+                                        "chainType": "OP Mainnet",
+                                        "confirmation": "30",
+                                        "withdrawFee": "1",
+                                        "depositMin": "0",
+                                        "withdrawMin": "1",
+                                        "chain": "OP",
+                                        "chainDeposit": "1",
+                                        "chainWithdraw": "1",
+                                        "minAccuracy": "4",
+                                        "withdrawPercentageFee": "0",
+                                        "contractAddress": "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58"
+                                    },
+                                    {
+                                        "chainType": "SOL",
+                                        "confirmation": "200",
+                                        "withdrawFee": "1",
+                                        "depositMin": "0",
+                                        "withdrawMin": "10",
+                                        "chain": "SOL",
+                                        "chainDeposit": "1",
+                                        "chainWithdraw": "1",
+                                        "minAccuracy": "4",
+                                        "withdrawPercentageFee": "0",
+                                        "contractAddress": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
+                                    },
+                                    {
+                                        "chainType": "TON",
+                                        "confirmation": "1",
+                                        "withdrawFee": "0.3",
+                                        "depositMin": "0",
+                                        "withdrawMin": "1",
+                                        "chain": "TON",
+                                        "chainDeposit": "1",
+                                        "chainWithdraw": "1",
+                                        "minAccuracy": "4",
+                                        "withdrawPercentageFee": "0",
+                                        "contractAddress": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs"
+                                    },
+                                    {
+                                        "chainType": "TRC20",
+                                        "confirmation": "20",
+                                        "withdrawFee": "1.6",
+                                        "depositMin": "0",
+                                        "withdrawMin": "2.6",
+                                        "chain": "TRX",
+                                        "chainDeposit": "1",
+                                        "chainWithdraw": "1",
+                                        "minAccuracy": "4",
+                                        "withdrawPercentageFee": "0",
+                                        "contractAddress": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+                                    },
+                                    {
+                                        "chainType": "zkSync Lite",
+                                        "confirmation": "",
+                                        "withdrawFee": "0.3",
+                                        "depositMin": "",
+                                        "withdrawMin": "0.3",
+                                        "chain": "ZKSYNC",
+                                        "chainDeposit": "0",
+                                        "chainWithdraw": "0",
+                                        "minAccuracy": "4",
+                                        "withdrawPercentageFee": "0",
+                                        "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    "retExtInfo": {},
+                    "time": "1747308071042"
+                },
+                "parsedResponse": {
+                    "USDT": {
+                        "info": {
+                            "name": "USDT",
+                            "coin": "USDT",
+                            "remainAmount": "50000000000",
+                            "chains": [
+                                {
+                                    "chainType": "Aptos",
+                                    "confirmation": "1",
+                                    "withdrawFee": "0",
+                                    "depositMin": "0.001",
+                                    "withdrawMin": "0",
+                                    "chain": "APTOS",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "1",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "0x357b0b74bc833e95a115ad22604854d6b0fca151cecd94111770e5d6ffc9dc2b"
+                                },
+                                {
+                                    "chainType": "Arbitrum One",
+                                    "confirmation": "120",
+                                    "withdrawFee": "1",
+                                    "depositMin": "0",
+                                    "withdrawMin": "1",
+                                    "chain": "ARBI",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "1",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9"
+                                },
+                                {
+                                    "chainType": "BNB Smart Chain",
+                                    "confirmation": "60",
+                                    "withdrawFee": "1",
+                                    "depositMin": "0",
+                                    "withdrawMin": "10",
+                                    "chain": "BSC",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "1",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "0x55d398326f99059ff775485246999027b3197955"
+                                },
+                                {
+                                    "chainType": "CAVAX",
+                                    "confirmation": "30",
+                                    "withdrawFee": "1",
+                                    "depositMin": "0",
+                                    "withdrawMin": "10",
+                                    "chain": "CAVAX",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "0",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7"
+                                },
+                                {
+                                    "chainType": "CELO",
+                                    "confirmation": "10",
+                                    "withdrawFee": "1",
+                                    "depositMin": "0",
+                                    "withdrawMin": "1",
+                                    "chain": "CELO",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "1",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "0x48065fbBE25f71C9282ddf5e1cD6D6A887483D5e"
+                                },
+                                {
+                                    "chainType": "Ethereum",
+                                    "confirmation": "6",
+                                    "withdrawFee": "8",
+                                    "depositMin": "0",
+                                    "withdrawMin": "10",
+                                    "chain": "ETH",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "1",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7"
+                                },
+                                {
+                                    "chainType": "KAVAEVM",
+                                    "confirmation": "10",
+                                    "withdrawFee": "0.3",
+                                    "depositMin": "0",
+                                    "withdrawMin": "0.3",
+                                    "chain": "KAVAEVM",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "1",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "0x919c1c267bc06a7039e03fcc2ef738525769109c"
+                                },
+                                {
+                                    "chainType": "Mantle Network",
+                                    "confirmation": "100",
+                                    "withdrawFee": "0",
+                                    "depositMin": "0",
+                                    "withdrawMin": "0.3",
+                                    "chain": "MANTLE",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "1",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "0x201eba5cc46d216ce6dc03f6a759e8e766e956ae"
+                                },
+                                {
+                                    "chainType": "Polygon PoS",
+                                    "confirmation": "300",
+                                    "withdrawFee": "1",
+                                    "depositMin": "0",
+                                    "withdrawMin": "1",
+                                    "chain": "MATIC",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "1",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f"
+                                },
+                                {
+                                    "chainType": "OP Mainnet",
+                                    "confirmation": "30",
+                                    "withdrawFee": "1",
+                                    "depositMin": "0",
+                                    "withdrawMin": "1",
+                                    "chain": "OP",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "1",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58"
+                                },
+                                {
+                                    "chainType": "SOL",
+                                    "confirmation": "200",
+                                    "withdrawFee": "1",
+                                    "depositMin": "0",
+                                    "withdrawMin": "10",
+                                    "chain": "SOL",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "1",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
+                                },
+                                {
+                                    "chainType": "TON",
+                                    "confirmation": "1",
+                                    "withdrawFee": "0.3",
+                                    "depositMin": "0",
+                                    "withdrawMin": "1",
+                                    "chain": "TON",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "1",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs"
+                                },
+                                {
+                                    "chainType": "TRC20",
+                                    "confirmation": "20",
+                                    "withdrawFee": "1.6",
+                                    "depositMin": "0",
+                                    "withdrawMin": "2.6",
+                                    "chain": "TRX",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "1",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+                                },
+                                {
+                                    "chainType": "zkSync Lite",
+                                    "confirmation": "",
+                                    "withdrawFee": "0.3",
+                                    "depositMin": "",
+                                    "withdrawMin": "0.3",
+                                    "chain": "ZKSYNC",
+                                    "chainDeposit": "0",
+                                    "chainWithdraw": "0",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7"
+                                }
+                            ]
+                        },
+                        "id": "USDT",
+                        "numericId": null,
+                        "code": "USDT",
+                        "precision": 0.0001,
+                        "type": "crypto",
+                        "name": "USDT",
+                        "active": true,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": 0,
+                        "fees": {},
+                        "networks": {
+                            "APT": {
+                                "info": {
+                                    "chainType": "Aptos",
+                                    "confirmation": "1",
+                                    "withdrawFee": "0",
+                                    "depositMin": "0.001",
+                                    "withdrawMin": "0",
+                                    "chain": "APTOS",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "1",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "0x357b0b74bc833e95a115ad22604854d6b0fca151cecd94111770e5d6ffc9dc2b"
+                                },
+                                "id": "APTOS",
+                                "network": "APT",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 0,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 0,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0.001,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "ARBONE": {
+                                "info": {
+                                    "chainType": "Arbitrum One",
+                                    "confirmation": "120",
+                                    "withdrawFee": "1",
+                                    "depositMin": "0",
+                                    "withdrawMin": "1",
+                                    "chain": "ARBI",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "1",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9"
+                                },
+                                "id": "ARBI",
+                                "network": "ARBONE",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 1,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 1,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "BEP20": {
+                                "info": {
+                                    "chainType": "BNB Smart Chain",
+                                    "confirmation": "60",
+                                    "withdrawFee": "1",
+                                    "depositMin": "0",
+                                    "withdrawMin": "10",
+                                    "chain": "BSC",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "1",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "0x55d398326f99059ff775485246999027b3197955"
+                                },
+                                "id": "BSC",
+                                "network": "BEP20",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 1,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 10,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "AVAXC": {
+                                "info": {
+                                    "chainType": "CAVAX",
+                                    "confirmation": "30",
+                                    "withdrawFee": "1",
+                                    "depositMin": "0",
+                                    "withdrawMin": "10",
+                                    "chain": "CAVAX",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "0",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7"
+                                },
+                                "id": "CAVAX",
+                                "network": "AVAXC",
+                                "active": false,
+                                "deposit": true,
+                                "withdraw": false,
+                                "fee": 1,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 10,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "CELO": {
+                                "info": {
+                                    "chainType": "CELO",
+                                    "confirmation": "10",
+                                    "withdrawFee": "1",
+                                    "depositMin": "0",
+                                    "withdrawMin": "1",
+                                    "chain": "CELO",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "1",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "0x48065fbBE25f71C9282ddf5e1cD6D6A887483D5e"
+                                },
+                                "id": "CELO",
+                                "network": "CELO",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 1,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 1,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "ERC20": {
+                                "info": {
+                                    "chainType": "Ethereum",
+                                    "confirmation": "6",
+                                    "withdrawFee": "8",
+                                    "depositMin": "0",
+                                    "withdrawMin": "10",
+                                    "chain": "ETH",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "1",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7"
+                                },
+                                "id": "ETH",
+                                "network": "ERC20",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 8,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 10,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "KAVAEVM": {
+                                "info": {
+                                    "chainType": "KAVAEVM",
+                                    "confirmation": "10",
+                                    "withdrawFee": "0.3",
+                                    "depositMin": "0",
+                                    "withdrawMin": "0.3",
+                                    "chain": "KAVAEVM",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "1",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "0x919c1c267bc06a7039e03fcc2ef738525769109c"
+                                },
+                                "id": "KAVAEVM",
+                                "network": "KAVAEVM",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 0.3,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 0.3,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "MANTLE": {
+                                "info": {
+                                    "chainType": "Mantle Network",
+                                    "confirmation": "100",
+                                    "withdrawFee": "0",
+                                    "depositMin": "0",
+                                    "withdrawMin": "0.3",
+                                    "chain": "MANTLE",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "1",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "0x201eba5cc46d216ce6dc03f6a759e8e766e956ae"
+                                },
+                                "id": "MANTLE",
+                                "network": "MANTLE",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 0,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 0.3,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "MATIC": {
+                                "info": {
+                                    "chainType": "Polygon PoS",
+                                    "confirmation": "300",
+                                    "withdrawFee": "1",
+                                    "depositMin": "0",
+                                    "withdrawMin": "1",
+                                    "chain": "MATIC",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "1",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f"
+                                },
+                                "id": "MATIC",
+                                "network": "MATIC",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 1,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 1,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "OPTIMISM": {
+                                "info": {
+                                    "chainType": "OP Mainnet",
+                                    "confirmation": "30",
+                                    "withdrawFee": "1",
+                                    "depositMin": "0",
+                                    "withdrawMin": "1",
+                                    "chain": "OP",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "1",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58"
+                                },
+                                "id": "OP",
+                                "network": "OPTIMISM",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 1,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 1,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "SOL": {
+                                "info": {
+                                    "chainType": "SOL",
+                                    "confirmation": "200",
+                                    "withdrawFee": "1",
+                                    "depositMin": "0",
+                                    "withdrawMin": "10",
+                                    "chain": "SOL",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "1",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
+                                },
+                                "id": "SOL",
+                                "network": "SOL",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 1,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 10,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "TON": {
+                                "info": {
+                                    "chainType": "TON",
+                                    "confirmation": "1",
+                                    "withdrawFee": "0.3",
+                                    "depositMin": "0",
+                                    "withdrawMin": "1",
+                                    "chain": "TON",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "1",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs"
+                                },
+                                "id": "TON",
+                                "network": "TON",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 0.3,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 1,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "TRC20": {
+                                "info": {
+                                    "chainType": "TRC20",
+                                    "confirmation": "20",
+                                    "withdrawFee": "1.6",
+                                    "depositMin": "0",
+                                    "withdrawMin": "2.6",
+                                    "chain": "TRX",
+                                    "chainDeposit": "1",
+                                    "chainWithdraw": "1",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+                                },
+                                "id": "TRX",
+                                "network": "TRC20",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 1.6,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 2.6,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "ZKSYNC": {
+                                "info": {
+                                    "chainType": "zkSync Lite",
+                                    "confirmation": "",
+                                    "withdrawFee": "0.3",
+                                    "depositMin": "",
+                                    "withdrawMin": "0.3",
+                                    "chain": "ZKSYNC",
+                                    "chainDeposit": "0",
+                                    "chainWithdraw": "0",
+                                    "minAccuracy": "4",
+                                    "withdrawPercentageFee": "0",
+                                    "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7"
+                                },
+                                "id": "ZKSYNC",
+                                "network": "ZKSYNC",
+                                "active": false,
+                                "deposit": false,
+                                "withdraw": false,
+                                "fee": 0.3,
+                                "precision": 0.0001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 0.3,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            }
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": 0,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": 0,
+                                "max": null
+                            }
+                        }
+                    }
+                }
+            }
+        ],
         "fetchOpenInterest": [
             {
                 "description": "linear OI",
