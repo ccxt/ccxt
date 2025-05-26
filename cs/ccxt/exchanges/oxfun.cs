@@ -598,66 +598,7 @@ public partial class oxfun : Exchange
         //                         "minDeposit": "0.00010",
         //                         "minWithdrawal": "0.00010"
         //                     },
-        //                     {
-        //                         "network": "Arbitrum",
-        //                         "tokenId": "0xba0Dda8762C24dA9487f5FA026a9B64b695A07Ea",
-        //                         "transactionPrecision": "18",
-        //                         "isWithdrawalFeeChargedToUser": true,
-        //                         "canDeposit": true,
-        //                         "canWithdraw": true,
-        //                         "minDeposit": "0.00010",
-        //                         "minWithdrawal": "0.00010"
-        //                     },
-        //                     {
-        //                         "network": "Ethereum",
-        //                         "tokenId": "0xba0Dda8762C24dA9487f5FA026a9B64b695A07Ea",
-        //                         "transactionPrecision": "18",
-        //                         "isWithdrawalFeeChargedToUser": true,
-        //                         "canDeposit": true,
-        //                         "canWithdraw": true,
-        //                         "minDeposit": "0.00010",
-        //                         "minWithdrawal": "0.00010"
-        //                     },
-        //                     {
-        //                         "network": "Arbitrum",
-        //                         "tokenId": "0x78a0A62Fba6Fb21A83FE8a3433d44C73a4017A6f",
-        //                         "transactionPrecision": "18",
-        //                         "isWithdrawalFeeChargedToUser": true,
-        //                         "canDeposit": true,
-        //                         "canWithdraw": false,
-        //                         "minDeposit": "0.00010",
-        //                         "minWithdrawal": "0.00010"
-        //                     },
-        //                     {
-        //                         "network": "Avalanche",
-        //                         "tokenId": "0x78a0A62Fba6Fb21A83FE8a3433d44C73a4017A6f",
-        //                         "transactionPrecision": "18",
-        //                         "isWithdrawalFeeChargedToUser": true,
-        //                         "canDeposit": true,
-        //                         "canWithdraw": false,
-        //                         "minDeposit": "0.00010",
-        //                         "minWithdrawal": "0.00010"
-        //                     },
-        //                     {
-        //                         "network": "Solana",
-        //                         "tokenId": "DV3845GEAVXfwpyVGGgWbqBVCtzHdCXNCGfcdboSEuZz",
-        //                         "transactionPrecision": "8",
-        //                         "isWithdrawalFeeChargedToUser": true,
-        //                         "canDeposit": true,
-        //                         "canWithdraw": true,
-        //                         "minDeposit": "0.00010",
-        //                         "minWithdrawal": "0.00010"
-        //                     },
-        //                     {
-        //                         "network": "Ethereum",
-        //                         "tokenId": "0x78a0A62Fba6Fb21A83FE8a3433d44C73a4017A6f",
-        //                         "transactionPrecision": "18",
-        //                         "isWithdrawalFeeChargedToUser": true,
-        //                         "canDeposit": true,
-        //                         "canWithdraw": false,
-        //                         "minDeposit": "0.00010",
-        //                         "minWithdrawal": "0.00010"
-        //                     }
+        //                     ...
         //                 ]
         //             },
         //             {
@@ -708,84 +649,70 @@ public partial class oxfun : Exchange
             object parts = ((string)fullId).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
             object id = getValue(parts, 0);
             object code = this.safeCurrencyCode(id);
-            object networks = new Dictionary<string, object>() {};
+            if (!isTrue((inOp(result, code))))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+                    { "id", id },
+                    { "code", code },
+                    { "precision", null },
+                    { "type", null },
+                    { "name", null },
+                    { "active", null },
+                    { "deposit", null },
+                    { "withdraw", null },
+                    { "fee", null },
+                    { "limits", new Dictionary<string, object>() {
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
+                    } },
+                    { "networks", new Dictionary<string, object>() {} },
+                    { "info", new List<object>() {} },
+                };
+            }
             object chains = this.safeList(currency, "networkList", new List<object>() {});
-            object currencyMaxPrecision = null;
-            object currencyDepositEnabled = null;
-            object currencyWithdrawEnabled = null;
             for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
             {
                 object chain = getValue(chains, j);
                 object networkId = this.safeString(chain, "network");
                 object networkCode = this.networkIdToCode(networkId);
-                object deposit = this.safeBool(chain, "canDeposit");
-                object withdraw = this.safeBool(chain, "canWithdraw");
-                object active = (isTrue(deposit) && isTrue(withdraw));
-                object minDeposit = this.safeString(chain, "minDeposit");
-                object minWithdrawal = this.safeString(chain, "minWithdrawal");
-                object precision = this.parsePrecision(this.safeString(chain, "transactionPrecision"));
-                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                ((IDictionary<string,object>)getValue(getValue(result, code), "networks"))[(string)networkCode] = new Dictionary<string, object>() {
                     { "id", networkId },
                     { "network", networkCode },
                     { "margin", null },
-                    { "deposit", deposit },
-                    { "withdraw", withdraw },
-                    { "active", active },
+                    { "deposit", this.safeBool(chain, "canDeposit") },
+                    { "withdraw", this.safeBool(chain, "canWithdraw") },
+                    { "active", null },
                     { "fee", null },
-                    { "precision", this.parseNumber(precision) },
+                    { "precision", this.parseNumber(this.parsePrecision(this.safeString(chain, "transactionPrecision"))) },
                     { "limits", new Dictionary<string, object>() {
                         { "deposit", new Dictionary<string, object>() {
-                            { "min", minDeposit },
+                            { "min", this.safeNumber(chain, "minDeposit") },
                             { "max", null },
                         } },
                         { "withdraw", new Dictionary<string, object>() {
-                            { "min", minWithdrawal },
+                            { "min", this.safeNumber(chain, "minWithdrawal") },
                             { "max", null },
                         } },
                     } },
                     { "info", chain },
                 };
-                if (isTrue(isTrue((isEqual(currencyDepositEnabled, null))) || isTrue(deposit)))
-                {
-                    currencyDepositEnabled = deposit;
-                }
-                if (isTrue(isTrue((isEqual(currencyWithdrawEnabled, null))) || isTrue(withdraw)))
-                {
-                    currencyWithdrawEnabled = withdraw;
-                }
-                if (isTrue(isTrue((isEqual(currencyMaxPrecision, null))) || isTrue(Precise.stringGt(currencyMaxPrecision, precision))))
-                {
-                    currencyMaxPrecision = precision;
-                }
             }
-            if (isTrue(inOp(result, code)))
-            {
-                // checking for specific ids as USDC.ARB
-                networks = this.extend(getValue(getValue(result, code), "networks"), networks);
-            }
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
-                { "id", id },
-                { "code", code },
-                { "name", null },
-                { "type", null },
-                { "active", null },
-                { "deposit", currencyDepositEnabled },
-                { "withdraw", currencyWithdrawEnabled },
-                { "fee", null },
-                { "precision", this.parseNumber(currencyMaxPrecision) },
-                { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                } },
-                { "networks", networks },
-                { "info", currency },
-            };
+            object infos = this.safeList(getValue(result, code), "info", new List<object>() {});
+            ((IList<object>)infos).Add(currency);
+            ((IDictionary<string,object>)getValue(result, code))["info"] = infos;
+        }
+        // only after all entries are formed in currencies, restructure each entry
+        object allKeys = new List<object>(((IDictionary<string,object>)result).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(allKeys)); postFixIncrement(ref i))
+        {
+            object code = getValue(allKeys, i);
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(getValue(result, code)); // this is needed after adding network entry
         }
         return result;
     }
