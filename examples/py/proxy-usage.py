@@ -49,8 +49,7 @@ async def example_web_sockets():
     # To ensure your proxy works, uncomment below code and watch the log
     #
     my_ex.verbose = True
-    await my_ex.loadHttpProxyAgent ()
-    await my_ex.watch ('ws://188.34.194.190:9876/') # in the incoming logs, confirm that you  see the proxy IP in "hello" message
+    await my_ex.watch ('ws://188.34.194.190:9876/', 'myip') # in the incoming logs, confirm that you  see the proxy IP in "hello" message
     
     print(await my_ex.watch_ticker('BTC/USDT'))
     await my_ex.close()
