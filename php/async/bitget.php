@@ -2404,7 +2404,7 @@ class bitget extends Exchange {
                 'coin' => $currency['id'],
                 'address' => $address,
                 'chain' => $networkId,
-                'size' => $amount,
+                'size' => $this->currency_to_precision($code, $amount, $networkCode),
                 'transferType' => 'on_chain',
             );
             if ($tag !== null) {
@@ -2429,8 +2429,6 @@ class bitget extends Exchange {
             $fillResponseFromRequest = $this->safe_bool($withdrawOptions, 'fillResponseFromRequest', true);
             if ($fillResponseFromRequest) {
                 $result['currency'] = $code;
-                $result['timestamp'] = $this->milliseconds();
-                $result['datetime'] = $this->iso8601($this->milliseconds());
                 $result['amount'] = $amount;
                 $result['tag'] = $tag;
                 $result['address'] = $address;
