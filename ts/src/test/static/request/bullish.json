@@ -1,0 +1,87 @@
+{
+    "exchange": "bullish",
+    "skipKeys": [],
+    "outputType": "urlencoded",
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "Fetch trades with since and until parameters",
+                "method": "fetchTrades",
+                "url": "https://api.simnext.bullish-test.com/trading-api/v1/history/markets/BTCUSDC/trades?createdAtDatetime[gte]=2025-05-25T20:04:55.000Z&createdAtDatetime[lte]=2025-05-26T20:04:55.000Z",
+                "input": [
+                    "BTC/USDC",
+                    1748203495000,
+                    null,
+                    {
+                        "until": 1748289895000
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "Fetch trades for spot",
+                "method": "fetchTrades",
+                "url": "https://api.simnext.bullish-test.com/trading-api/v1/markets/BTCUSDC/trades",
+                "input": [
+                    "BTC/USDC"
+                ],
+                "output": null
+            },
+            {
+                "description": "Fetch trades for swap",
+                "method": "fetchTrades",
+                "url": "https://api.simnext.bullish-test.com/trading-api/v1/markets/BTC-USDC-PERP/trades",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "Fetch order book for swap",
+                "method": "fetchOrderBook",
+                "url": "https://api.simnext.bullish-test.com/trading-api/v1/markets/BTC-USDC-PERP/orderbook/hybrid",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "output": null
+            },
+            {
+                "description": "Fetch order book for spot",
+                "method": "fetchOrderBook",
+                "url": "https://api.simnext.bullish-test.com/trading-api/v1/markets/BTCUSDC/orderbook/hybrid",
+                "input": [
+                    "BTC/USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "Fetch time",
+                "method": "fetchTime",
+                "url": "https://api.simnext.bullish-test.com/trading-api/v1/time",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "Fetch currencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.simnext.bullish-test.com/trading-api/v1/assets",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "Fetch markets",
+                "method": "fetchMarkets",
+                "url": "https://api.simnext.bullish-test.com/trading-api/v1/markets",
+                "input": []
+            }
+        ]
+    }
+}
