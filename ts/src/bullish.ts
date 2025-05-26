@@ -690,7 +690,7 @@ export default class bullish extends Exchange {
         }
         const until = this.safeInteger (params, 'until');
         if (until !== undefined) {
-            request['createdAtDatetime[lte]'] = until;
+            request['createdAtDatetime[lte]'] = this.iso8601 (until);
             params = this.omit (params, 'until');
         } else if (since !== undefined) {
             request['createdAtDatetime[lte]'] = this.iso8601 (this.sum (since, 7 * 24 * 60 * 60 * 1000)); // for the exchange not to throw an exception if since is younger than 7 days
