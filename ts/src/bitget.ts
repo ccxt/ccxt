@@ -2388,7 +2388,7 @@ export default class bitget extends Exchange {
             'coin': currency['id'],
             'address': address,
             'chain': networkId,
-            'size': amount,
+            'size': this.currencyToPrecision (code, amount, networkCode),
             'transferType': 'on_chain',
         };
         if (tag !== undefined) {
