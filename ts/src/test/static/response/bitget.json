@@ -2,6 +2,55 @@
     "exchange": "bitget",
     "options": {},
     "methods": {
+        "withdraw": [
+            {
+                "description": "with_precision",
+                "method": "withdraw",
+                "input": [
+                    "USDT",
+                    11.123456789,
+                    "EBz7xtobD2Rm8aAXH2VHmE2rnePATevbHcWQ3RRo4nqA",
+                    null,
+                    {
+                        "network": "SOL"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1748252642931",
+                    "data": {
+                        "orderId": "1310832081358508032",
+                        "clientOid": "7ece09fe3646433a99ee93ea49260ceb"
+                    }
+                },
+                "parsedResponse": {
+                    "id": "1310832081358508032",
+                    "info": {
+                        "orderId": "1310832081358508032",
+                        "clientOid": "7ece09fe3646433a99ee93ea49260ceb"
+                    },
+                    "txid": null,
+                    "timestamp": 1748252644726,
+                    "datetime": "2025-05-26T09:44:04.726Z",
+                    "network": "SOL",
+                    "addressFrom": null,
+                    "address": "EBz7xtobD2Rm8aAXH2VHmE2rnePATevbHcWQ3RRo4nqA",
+                    "addressTo": "EBz7xtobD2Rm8aAXH2VHmE2rnePATevbHcWQ3RRo4nqA",
+                    "amount": 11.123456789,
+                    "type": "withdrawal",
+                    "currency": "USDT",
+                    "status": null,
+                    "updated": null,
+                    "tagFrom": null,
+                    "tag": null,
+                    "tagTo": null,
+                    "comment": null,
+                    "internal": null,
+                    "fee": null
+                }
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "fetchCurrencies",
