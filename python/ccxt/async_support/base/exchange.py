@@ -272,7 +272,7 @@ class Exchange(BaseExchange):
             )
             self.socks_proxy_sessions[socksProxy] = aiohttp.ClientSession(loop=self.asyncio_loop, connector=self.aiohttp_socks_connector, trust_env=self.aiohttp_trust_env)
         return self.socks_proxy_sessions[socksProxy]
-        
+
     async def load_markets_helper(self, reload=False, params={}):
         if not reload:
             if self.markets:
