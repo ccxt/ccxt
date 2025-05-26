@@ -538,10 +538,10 @@ export default class bullish extends Exchange {
         let settleId = undefined;
         const type = this.parseMarketType (this.safeString (market, 'marketType'), 'spot');
         let spot: Bool = false;
-        let swap = false;
-        let future = false;
-        let linear: Bool = undefined;
-        let inverse: Bool = undefined;
+        let swap: Bool = false;
+        let future: Bool = false;
+        let linear: Bool = false;
+        let inverse: Bool = false;
         let expiryDatetime: Str = undefined;
         if (type === 'spot') {
             spot = true;
