@@ -2387,7 +2387,7 @@ public partial class bitget : Exchange
             { "coin", getValue(currency, "id") },
             { "address", address },
             { "chain", networkId },
-            { "size", amount },
+            { "size", this.currencyToPrecision(code, amount, networkCode) },
             { "transferType", "on_chain" },
         };
         if (isTrue(!isEqual(tag, null)))
@@ -2414,8 +2414,6 @@ public partial class bitget : Exchange
         if (isTrue(fillResponseFromRequest))
         {
             ((IDictionary<string,object>)result)["currency"] = code;
-            ((IDictionary<string,object>)result)["timestamp"] = this.milliseconds();
-            ((IDictionary<string,object>)result)["datetime"] = this.iso8601(this.milliseconds());
             ((IDictionary<string,object>)result)["amount"] = amount;
             ((IDictionary<string,object>)result)["tag"] = tag;
             ((IDictionary<string,object>)result)["address"] = address;
