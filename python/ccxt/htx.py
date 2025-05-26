@@ -3280,9 +3280,8 @@ class htx(Exchange, ImplicitAPI):
         #            }
         #        ]
         #    }
-        #    }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         result: dict = {}
         self.options['networkChainIdsByNames'] = {}
         self.options['networkNamesByChainIds'] = {}
@@ -3290,19 +3289,11 @@ class htx(Exchange, ImplicitAPI):
             entry = data[i]
             currencyId = self.safe_string(entry, 'currency')
             code = self.safe_currency_code(currencyId)
-            self.options['networkChainIdsByNames'][code] = {}
-            chains = self.safe_value(entry, 'chains', [])
-            networks: dict = {}
-            instStatus = self.safe_string(entry, 'instStatus')
             assetType = self.safe_string(entry, 'assetType')
             type = assetType == 'crypto' if '1' else 'fiat'
-            currencyActive = instStatus == 'normal'
-            minPrecision = None
-            minDeposit = None
-            minWithdraw = None
-            maxWithdraw = None
-            deposit = False
-            withdraw = False
+            self.options['networkChainIdsByNames'][code] = {}
+            chains = self.safe_list(entry, 'chains', [])
+            networks: dict = {}
             for j in range(0, len(chains)):
                 chainEntry = chains[j]
                 uniqueChainId = self.safe_string(chainEntry, 'chain')  # i.e. usdterc20, trc20usdt ...
@@ -3310,47 +3301,33 @@ class htx(Exchange, ImplicitAPI):
                 self.options['networkChainIdsByNames'][code][title] = uniqueChainId
                 self.options['networkNamesByChainIds'][uniqueChainId] = title
                 networkCode = self.network_id_to_code(uniqueChainId)
-                minDeposit = self.safe_number(chainEntry, 'minDepositAmt')
-                minWithdraw = self.safe_number(chainEntry, 'minWithdrawAmt')
-                maxWithdraw = self.safe_number(chainEntry, 'maxWithdrawAmt')
-                withdrawStatus = self.safe_string(chainEntry, 'withdrawStatus')
-                depositStatus = self.safe_string(chainEntry, 'depositStatus')
-                withdrawEnabled = (withdrawStatus == 'allowed')
-                depositEnabled = (depositStatus == 'allowed')
-                withdraw = withdrawEnabled if (withdrawEnabled) else withdraw
-                deposit = depositEnabled if (depositEnabled) else deposit
-                active = withdrawEnabled and depositEnabled
-                precision = self.parse_precision(self.safe_string(chainEntry, 'withdrawPrecision'))
-                if precision is not None:
-                    minPrecision = precision if (minPrecision is None) else Precise.string_min(precision, minPrecision)
-                fee = self.safe_number(chainEntry, 'transactFeeWithdraw')
                 networks[networkCode] = {
                     'info': chainEntry,
                     'id': uniqueChainId,
                     'network': networkCode,
                     'limits': {
                         'deposit': {
-                            'min': minDeposit,
+                            'min': self.safe_number(chainEntry, 'minDepositAmt'),
                             'max': None,
                         },
                         'withdraw': {
-                            'min': minWithdraw,
-                            'max': maxWithdraw,
+                            'min': self.safe_number(chainEntry, 'minWithdrawAmt'),
+                            'max': self.safe_number(chainEntry, 'maxWithdrawAmt'),
                         },
                     },
-                    'active': active,
-                    'deposit': depositEnabled,
-                    'withdraw': withdrawEnabled,
-                    'fee': fee,
-                    'precision': self.parse_number(precision),
+                    'active': None,
+                    'deposit': self.safe_string(chainEntry, 'depositStatus') == 'allowed',
+                    'withdraw': self.safe_string(chainEntry, 'withdrawStatus') == 'allowed',
+                    'fee': self.safe_number(chainEntry, 'transactFeeWithdraw'),
+                    'precision': self.parse_number(self.parse_precision(self.safe_string(chainEntry, 'withdrawPrecision'))),
                 }
-            result[code] = {
+            result[code] = self.safe_currency_structure({
                 'info': entry,
                 'code': code,
                 'id': currencyId,
-                'active': currencyActive,
-                'deposit': deposit,
-                'withdraw': withdraw,
+                'active': self.safe_string(entry, 'instStatus') == 'normal',
+                'deposit': None,
+                'withdraw': None,
                 'fee': None,
                 'name': None,
                 'type': type,
@@ -3360,17 +3337,17 @@ class htx(Exchange, ImplicitAPI):
                         'max': None,
                     },
                     'withdraw': {
-                        'min': minWithdraw,
-                        'max': maxWithdraw,
+                        'min': None,
+                        'max': None,
                     },
                     'deposit': {
                         'min': None,
                         'max': None,
                     },
                 },
-                'precision': self.parse_number(minPrecision),
+                'precision': None,
                 'networks': networks,
-            }
+            })
         return result
 
     def network_id_to_code(self, networkId: Str = None, currencyCode: Str = None):
