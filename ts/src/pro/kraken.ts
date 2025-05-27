@@ -544,29 +544,34 @@ export default class kraken extends krakenRest {
 
     handleTrades (client: Client, message, subscription) {
         //
-        //     [
-        //         0, // channelID
-        //         [ //     price        volume         time             side type misc
-        //             [ "5541.20000", "0.15850568", "1534614057.321596", "s", "l", "" ],
-        //             [ "6060.00000", "0.02455000", "1534614057.324998", "b", "l", "" ],
-        //         ],
-        //         "trade",
-        //         "XBT/USD"
-        //     ]
+        //     {
+        //         "channel": "trade",
+        //         "type": "update",
+        //         "data": [
+        //             {
+        //                 "symbol": "MATIC/USD",
+        //                 "side": "sell",
+        //                 "price": 0.5117,
+        //                 "qty": 40.0,
+        //                 "ord_type": "market",
+        //                 "trade_id": 4665906,
+        //                 "timestamp": "2023-09-25T07:49:37.708706Z"
+        //             }
+        //         ]
+        //     }
         //
-        const wsName = this.safeString (message, 3);
-        const name = this.safeString (message, 2);
-        const market = this.safeValue (this.options['marketsByWsName'], wsName);
-        const symbol = market['symbol'];
-        const messageHash = this.getMessageHash (name, undefined, symbol);
+        const data = this.safeList (message, 'data', []);
+        const trade = data[0];
+        const symbol = this.safeString (trade, 'symbol');
+        const messageHash = this.getMessageHash ('trade', undefined, symbol);
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             stored = new ArrayCache (limit);
             this.trades[symbol] = stored;
         }
-        const trades = this.safeValue (message, 1, []);
-        const parsed = this.parseTrades (trades, market);
+        const market = this.market (symbol);
+        const parsed = this.parseTrades (data, market);
         for (let i = 0; i < parsed.length; i++) {
             stored.append (parsed[i]);
         }
@@ -731,8 +736,8 @@ export default class kraken extends krakenRest {
     /**
      * @method
      * @name kraken#watchTradesForSymbols
-     * @see https://docs.kraken.com/api/docs/websocket-v1/trade
      * @description get the list of most recent trades for a list of symbols
+     * @see https://docs.kraken.com/api/docs/websocket-v2/trade
      * @param {string[]} symbols unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -1743,7 +1748,6 @@ export default class kraken extends krakenRest {
                 // public
                 'book': this.handleOrderBook,
                 'ohlc': this.handleOHLCV,
-                'trade': this.handleTrades,
                 // private
                 'openOrders': this.handleOrders,
                 'ownTrades': this.handleMyTrades,
@@ -1758,6 +1762,7 @@ export default class kraken extends krakenRest {
                 const methods: Dict = {
                     'balances': this.handleBalance,
                     'ticker': this.handleTicker,
+                    'trade': this.handleTrades,
                 };
                 const method = this.safeValue (methods, channel);
                 if (method !== undefined) {
