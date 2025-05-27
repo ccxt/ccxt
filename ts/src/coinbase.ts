@@ -1381,6 +1381,45 @@ export default class coinbase extends Exchange {
     }
 
     async fetchMarketsV3 (params = {}): Promise<Market[]> {
+        let unresolvedContractPromises = [];
+        try {
+            unresolvedContractPromises = [
+                this.fetchFutureMarketsV3 (this.extend (params, { 'product_type': 'FUTURE' })),
+                this.fetchFutureMarketsV3 (this.extend (params, { 'product_type': 'FUTURE', 'contract_expiry_type': 'PERPETUAL' })),
+            ];
+        } catch (e) {
+            unresolvedContractPromises = []; // the sync version of ccxt won't have the promise.all line so the request is made here. Some users can't access perpetual products
+        }
+        let contractPromises = undefined;
+        try {
+            contractPromises = await Promise.all (unresolvedContractPromises); // some users don't have access to contracts
+        } catch (e) {
+            contractPromises = [];
+        }
+        let result = [];
+        const spotMarkets = await this.fetchSpotMarketsV3 (params);
+        const futureMarkets = this.safeList (contractPromises, 0, []);
+        const perpetualMarkets = this.safeList (contractPromises, 1, []);
+        result = spotMarkets;
+        result = this.arrayConcat (result, futureMarkets);
+        result = this.arrayConcat (result, perpetualMarkets);
+        const newMarkets = [];
+        for (let i = 0; i < result.length; i++) {
+            const market = result[i];
+            const info = this.safeValue (market, 'info', {});
+            const realMarketIds = this.safeList (info, 'alias_to', []);
+            const length = realMarketIds.length;
+            if (length > 0) {
+                market['alias'] = realMarketIds[0];
+            } else {
+                market['alias'] = undefined;
+            }
+            newMarkets.push (market);
+        }
+        return newMarkets;
+    }
+
+    async fetchSpotMarketsV3 (params = {}): Promise<Market[]> {
         let usePrivate = false;
         [ usePrivate, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'usePrivate', false);
         const spotUnresolvedPromises = [];
@@ -1460,28 +1499,20 @@ export default class coinbase extends Exchange {
         //        has_promo_fee: false
         //    }
         //
-        let unresolvedContractPromises = [];
-        try {
-            unresolvedContractPromises = [
-                this.v3PublicGetBrokerageMarketProducts (this.extend (params, { 'product_type': 'FUTURE' })),
-                this.v3PublicGetBrokerageMarketProducts (this.extend (params, { 'product_type': 'FUTURE', 'contract_expiry_type': 'PERPETUAL' })),
-            ];
-        } catch (e) {
-            unresolvedContractPromises = []; // the sync version of ccxt won't have the promise.all line so the request is made here. Some users can't access perpetual products
-        }
         const promises = await Promise.all (spotUnresolvedPromises);
-        let contractPromises = undefined;
-        try {
-            contractPromises = await Promise.all (unresolvedContractPromises); // some users don't have access to contracts
-        } catch (e) {
-            contractPromises = [];
-        }
         const spot = this.safeDict (promises, 0, {});
         const fees = this.safeDict (promises, 1, {});
-        const expiringFutures = this.safeDict (contractPromises, 0, {});
-        const perpetualFutures = this.safeDict (contractPromises, 1, {});
-        const expiringFees = this.safeDict (contractPromises, 0, {});
-        const perpetualFees = this.safeDict (contractPromises, 1, {});
+        const feeTier = this.safeDict (fees, 'fee_tier', {});
+        const data = this.safeList (spot, 'products', []);
+        const result = [];
+        for (let i = 0; i < data.length; i++) {
+            result.push (this.parseSpotMarket (data[i], feeTier));
+        }
+        return result;
+    }
+
+    async fetchFutureMarketsV3 (params = {}): Promise<Market[]> {
+        const response = await this.v3PublicGetBrokerageMarketProducts (params);
         //
         //     {
         //         "total_volume": 0,
@@ -1501,36 +1532,13 @@ export default class coinbase extends Exchange {
         //         "coinbase_pro_fees": 0
         //     }
         //
-        const feeTier = this.safeDict (fees, 'fee_tier', {});
-        const expiringFeeTier = this.safeDict (expiringFees, 'fee_tier', {}); // fee tier null?
-        const perpetualFeeTier = this.safeDict (perpetualFees, 'fee_tier', {}); // fee tier null?
-        const data = this.safeList (spot, 'products', []);
         const result = [];
-        for (let i = 0; i < data.length; i++) {
-            result.push (this.parseSpotMarket (data[i], feeTier));
-        }
-        const futureData = this.safeList (expiringFutures, 'products', []);
+        const feeTier = this.safeDict (response, 'fee_tier', {});
+        const futureData = this.safeList (response, 'products', []);
         for (let i = 0; i < futureData.length; i++) {
-            result.push (this.parseContractMarket (futureData[i], expiringFeeTier));
+            result.push (this.parseContractMarket (futureData[i], feeTier));
         }
-        const perpetualData = this.safeList (perpetualFutures, 'products', []);
-        for (let i = 0; i < perpetualData.length; i++) {
-            result.push (this.parseContractMarket (perpetualData[i], perpetualFeeTier));
-        }
-        const newMarkets = [];
-        for (let i = 0; i < result.length; i++) {
-            const market = result[i];
-            const info = this.safeValue (market, 'info', {});
-            const realMarketIds = this.safeList (info, 'alias_to', []);
-            const length = realMarketIds.length;
-            if (length > 0) {
-                market['alias'] = realMarketIds[0];
-            } else {
-                market['alias'] = undefined;
-            }
-            newMarkets.push (market);
-        }
-        return newMarkets;
+        return result;
     }
 
     parseSpotMarket (market, feeTier): MarketInterface {
