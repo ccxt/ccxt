@@ -3,6 +3,67 @@
     "skipKeys": [],
     "outputType": "urlencoded",
     "methods": {
+        "fetchBalance": [
+            {
+                "description": "Fetch balance",
+                "method": "fetchBalance",
+                "url": "https://api.simnext.bullish-test.com/trading-api/v1/accounts/asset?tradingAccountId=111309424211255",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "Fetch deposit address",
+                "method": "fetchDepositAddress",
+                "url": "https://api.simnext.bullish-test.com/trading-api/v1/wallets/deposit-instructions/crypto/USDC",
+                "input": [
+                    "USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "Fetch accounts",
+                "method": "fetchAccounts",
+                "url": "https://api.simnext.bullish-test.com/trading-api/v1/accounts/trading-accounts",
+                "input": [],
+                "output": null
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "Cancel all orders",
+                "method": "cancelAllOrders",
+                "url": "https://api.simnext.bullish-test.com/trading-api/v2/command",
+                "input": [],
+                "output": "{\"tradingAccountId\":\"111309424211255\",\"commandType\":\"V1CancelAllOrders\"}"
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "Cancel order",
+                "method": "cancelOrder",
+                "url": "https://api.simnext.bullish-test.com/trading-api/v2/command",
+                "input": [
+                    "847411698592121857",
+                    "BTC/USDC"
+                ],
+                "output": "{\"symbol\":\"BTCUSDC\",\"tradingAccountId\":\"111309424211255\",\"commandType\":\"V3CancelOrder\",\"orderId\":\"847411698592121857\"}"
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "Fetch order",
+                "method": "fetchOrder",
+                "url": "https://api.simnext.bullish-test.com/trading-api/v2/orders/847411698592121857?tradingAccountId=111309424211255",
+                "input": [
+                    "847411698592121857"
+                ],
+                "output": null
+            }
+        ],
         "createOrder": [
             {
                 "description": "Create order",
