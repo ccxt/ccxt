@@ -286,6 +286,14 @@ class hollaex extends Exchange {
                     'BNB' => 'bnb',
                     'MATIC' => 'matic',
                 ),
+                'networksById' => array(
+                    'eth' => 'ERC20',
+                    'ETH' => 'ERC20',
+                    'ERC20' => 'ERC20',
+                    'trx' => 'TRC20',
+                    'TRX' => 'TRC20',
+                    'TRC20' => 'TRC20',
+                ),
             ),
         ));
     }
