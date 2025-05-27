@@ -879,7 +879,7 @@
                     "datetime": "2024-07-25T10:36:48.505Z",
                     "lastTradeTimestamp": null,
                     "lastUpdateTimestamp": 1721903808521,
-                    "status": "closed",
+                    "status": "canceled",
                     "symbol": "SOL/USD:USDC",
                     "type": "limit",
                     "timeInForce": null,
