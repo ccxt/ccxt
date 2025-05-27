@@ -24,46 +24,34 @@ export default class swyftx extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                /**
-                 * Public API
-                 * Exchange Information, Fee Schedules, and Trading Rules
-                 */
+                // Public
                 'fetchMarkets': true,
                 'fetchCurrencies': true,
-                'fetchTradingLimits': false, 
-                /**
-                 * Market Data
-                 */
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchOrderBook': false, // Swyftx does not expose orderbooks via API, only via UI on Pro
-                'fetchTrades': false, // Swyftx does not expose public trades via API
                 'fetchOHLCV': true,
-                /**
-                 * Private API
-                 * Trading
-                 */
+                'fetchStatus': false, // No public status endpoint, rely on exchange status page
+                'fetchTrades': false, // Swyftx does not expose public trades via API
+                // Private
                 'fetchBalance': true,
-                'fetchAccounts': false,
                 'createOrder': true,
+                'editOrder': true,
                 'cancelOrder': true,
-                'editOrder': false, // TODO
-                /**
-                 * Trading history
-                 */
                 'fetchOrder': true,
-                'fetchOpenOrders': true,
                 'fetchOrders': true,
+                'fetchOpenOrders': true,
+                'fetchClosedOrders': true,
                 'fetchMyTrades': false, // we can try to emulate but the one-to-one order→trade mapping hides partial fills
-                /**
-                 * Funding
-                 */
+                'deposit': false, // TODO
+                'withdraw': false, // TODO
+                // more
                 'fetchDepositAddress': false, // TODO
                 'fetchDeposits': false, // TODO
                 'fetchWithdrawals': false, // TODO
                 'fetchTransactions': false, // TODO
                 'fetchLedger': false, // TODO
-                'withdraw': true,
+                'fetchAccounts': false, // User can only have one account at present
             },
             'timeframes': {
                 '1m': '1m',
@@ -133,6 +121,9 @@ export default class swyftx extends Exchange {
                     ],
                     'delete': [
                         'orders/{orderId}',
+                    ],
+                    'put': [
+                        'orders/{orderUuid}',
                     ],
                 },
             },
@@ -1047,8 +1038,8 @@ export default class swyftx extends Exchange {
 
         return {
             info:        order,
-            id:          order.orderUuid,
-            order:       order.orderUuid,
+            id:          this.safeString(order, 'orderUuid'),
+            order:       this.safeString(order, 'orderUuid'),
             timestamp:   timestamp,
             datetime:    this.iso8601 (timestamp),
             symbol:      ord.symbol,
@@ -1067,7 +1058,7 @@ export default class swyftx extends Exchange {
         const request = {
             'apiKey': this.apiKey,
         };
-        const response = await this.fetch (this.urls['api']['auth'] + '/' + path, 'POST', { 'Content-Type': 'application/json' }, this.json (request));
+        const response = await this.fetch (this.urls['api']['public'] + '/' + path, 'POST', { 'Content-Type': 'application/json' }, this.json (request));
         //
         //     {
         //       "accessToken": "eyJhbGciOiJSUzI1N...",
@@ -1090,7 +1081,23 @@ export default class swyftx extends Exchange {
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined): Promise<Order[]> {
         const orders = await this.fetchOrders (symbol, since, limit);
-        return this.filterByArray (orders, 'status', [ 'open', 'partially_filled' ], false);
+        return this.filterByArray (orders, 'status', [ 'open' ], false);
+    }
+
+    /**
+     * @method
+     * @name swyftx#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @param {string|undefined} symbol unified market symbol of the orders fetched
+     * @param {int|undefined} since the earliest time in ms to fetch orders for
+     * @param {int|undefined} limit the maximum number of order structures to retrieve
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        const orders = await this.fetchOrders (symbol, since, limit, params);
+        // Filter for orders that are 'closed', 'canceled', or 'failed'.
+        return this.filterByArray (orders, 'status', [ 'closed', 'canceled', 'failed' ], false);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -1142,14 +1149,26 @@ export default class swyftx extends Exchange {
         // Parse status
         const statusCode = this.safeString (order, 'status');
         let status = undefined;
-        if (statusCode === '1') {
+        if (statusCode === '1') { // Open
             status = 'open';
-        } else if (statusCode === '2') {
-            status = 'closed';
-        } else if (statusCode === '3') {
+        } else if (statusCode === '2') { // Insufficient Balance Cancelled
             status = 'canceled';
-        } else if (statusCode === '4') {
+        } else if (statusCode === '3') { // Partially filled is still open
+            status = 'open'; 
+        } else if (statusCode === '4') { // Filled
+            status = 'closed';
+        } else if (statusCode === '5') { // Pending can be considered open
+            status = 'open';
+        } else if (statusCode === '6') { // User Cancelled
+            status = 'canceled';
+        } else if (statusCode === '7') { // Order failed for unknown reason
             status = 'failed';
+        } else if (statusCode === '8') { // System Cancelled
+            status = 'canceled';
+        } else if (statusCode === '9') { // Failed due to being below the minimum trade amount
+            status = 'failed';
+        } else if (statusCode === '10') { // Refunded
+            status = 'canceled';
         }
         const timestamp = this.safeInteger (order, 'created_time');
         const lastTradeTimestamp = this.safeInteger (order, 'updated_time');
@@ -1210,6 +1229,59 @@ export default class swyftx extends Exchange {
             'fee': fee,
             'trades': undefined,
         }, market);
+    }
+
+    /**
+     * @method
+     * @name swyftx#editOrder
+     * @description edit a trade order
+     * @see https://docs.swyftx.com.au/#tag/Orders/operation/OrdersController_updateExistingOrder // Hypothetical link, actual API doc was provided in prompt
+     * @param {string} id order id (orderUuid)
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency1 to buy or sell
+     * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency
+     * @param {object} params extra parameters specific to the swyftx api endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+
+        if (type !== 'limit') {
+            throw new NotSupported (this.id + ' editOrder() only supports limit orders');
+        }
+
+        if (price === undefined && amount === undefined) {
+            throw new InvalidOrder (this.id + ' editOrder() requires `price` and/or `amount` to be specified');
+        }
+
+        const requestParams: Dict = {
+            'orderUuid': id,
+        };
+
+        if (price !== undefined) {
+            requestParams['trigger'] = this.priceToPrecision (symbol, price);
+        }
+
+        if (amount !== undefined) {
+            requestParams['quantity'] = this.amountToPrecision (symbol, amount);
+            requestParams['assetQuantity'] = market['base']; // e.g., "BTC"
+        }
+
+        const pathTemplate = 'orders/{orderUuid}';
+        const signedRequest = this.sign (pathTemplate, 'private', 'PUT', this.extend (requestParams, params));
+        const response = await this.fetch (signedRequest['url'], signedRequest['method'], signedRequest['headers'], signedRequest['body']);
+
+        // Expected response: { "orderUuid": "..." }
+        const updatedOrderUuid = this.safeString (response, 'orderUuid');
+        if (!updatedOrderUuid) {
+            throw new ExchangeError (this.id + ' editOrder() failed to update the order. Response: ' + this.json (response));
+        }
+
+        // Fetch the updated order to get full details
+        return await this.fetchOrder (updatedOrderUuid, symbol);
     }
 
     async sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
