@@ -85,7 +85,7 @@ for (let i = 0; i < process.argv.length; i++) {
                             lastParamObject = {}
                         }
                         const key = parsed[0];
-                        const value = parsed[1];
+                        const value = evaluateExpression(parsed[1]);
                         if (key === 'symbol') {
                             symbol = value
                         }
@@ -356,6 +356,14 @@ const printHumanReadable = (exchange, result) => {
 
 //-----------------------------------------------------------------------------
 
+function evaluateExpression(s) {
+    try {
+        return eval('(() => (' + s + ')) ()')
+    } catch (e) {
+        return s
+    }
+}
+
 async function run () {
 
 
@@ -371,11 +379,7 @@ async function run () {
             .map (s => {
                 return (() => {
                     if (s.match(/^\d+$/g)) return s < Number.MAX_SAFE_INTEGER ? Number(s) : s
-                    try {
-                        return eval('(() => (' + s + ')) ()')
-                    } catch (e) {
-                        return s
-                    }
+                    return evaluateExpression(s);
                 })();
             })
 
