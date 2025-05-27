@@ -219,19 +219,7 @@ function createImplicitMethodsGo(){
         const methods = methodNames.map(method=> {
             return [
                 `func (this *${exchange}) ${capitalize(method)} (args ...interface{}) <-chan interface{} {`,
-                `   parameters := GetArg(args, 0, nil)`,
-                `   ch := make(chan interface{})`,
-                `   go func() {`,
-                `       defer close(ch)`,
-                `       defer func() {`,
-                `           if r := recover(); r != nil {`,
-                `               ch <- "panic:" + ToString(r)`,
-                `           }`,
-                `       }()`,
-                `       ch <- (<-this.callEndpoint ("${method}", parameters))`,
-                `       PanicOnError(ch)`,
-                `   }()`,
-                `   return ch`,
+                `   return this.callAsyncEndpoint("${method}", args...)`,
                 `}`,
                 ``,
             ].join('\n')
@@ -243,7 +231,26 @@ function createImplicitMethodsGo(){
             //     ``,
             // ].join('\n')
         });
-       storedGoMethods[exchange] = storedGoMethods[exchange].concat (methods)
+        const reusableMethod = [
+            `func (this *${exchange}) callEndpointAsync(endpointName string, args ...interface{}) <-chan interface{} {`,
+            `   parameters := GetArg(args, 0, nil)`,
+            `   ch := make(chan interface{})`,
+            `   go func() {`,
+            `       defer close(ch)`,
+            `       defer func() {`,
+            `           if r := recover(); r != nil {`,
+            `               ch <- "panic:" + ToString(r)`,
+            `           }`,
+            `       }()`,
+            `       ch <- (<-this.callEndpoint (endpointName, parameters))`,
+            `       PanicOnError(ch)`,
+            `   }()`,
+            `   return ch`,
+            `}`,
+            ``
+        ].join('\n');
+        storedGoMethods[exchange].unshift (reusableMethod);
+        storedGoMethods[exchange] = storedGoMethods[exchange].concat (methods)
     }
 }
 
