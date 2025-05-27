@@ -1,10 +1,10 @@
 name: Go
 on:
   workflow_dispatch:
-  push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
+  # push:
+  #   branches: [ main, master ]
+  # pull_request:
+  #   branches: [ main, master ]
 jobs:
   build:
     runs-on: ubuntu-latest
