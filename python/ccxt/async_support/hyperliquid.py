@@ -185,12 +185,12 @@ class hyperliquid(Exchange, ImplicitAPI):
             },
             'fees': {
                 'swap': {
-                    'taker': self.parse_number('0.00035'),
-                    'maker': self.parse_number('0.0001'),
+                    'taker': self.parse_number('0.00045'),
+                    'maker': self.parse_number('0.00015'),
                 },
                 'spot': {
-                    'taker': self.parse_number('0.00035'),
-                    'maker': self.parse_number('0.0001'),
+                    'taker': self.parse_number('0.0007'),
+                    'maker': self.parse_number('0.0004'),
                 },
             },
             'requiredCredentials': {
