@@ -2533,7 +2533,10 @@ class bitget extends Exchange {
         $status = $this->safe_string($transaction, 'status');
         $tag = $this->safe_string($transaction, 'tag');
         $feeCostString = $this->safe_string($transaction, 'fee');
-        $feeCostAbsString = Precise::string_abs($feeCostString);
+        $feeCostAbsString = null;
+        if ($feeCostString !== null) {
+            $feeCostAbsString = Precise::string_abs($feeCostString);
+        }
         $fee = null;
         $amountString = $this->safe_string($transaction, 'size');
         if ($feeCostAbsString !== null) {
