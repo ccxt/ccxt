@@ -9,6 +9,7 @@ import type { Balances, Currencies, Int, Market, OHLCV, Order, OrderSide, OrderT
  */
 export default class swyftx extends Exchange {
     accessToken: Str;
+
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'swyftx',
@@ -179,11 +180,9 @@ export default class swyftx extends Exchange {
      * @method
      * @name swyftx#fetchMarkets
      * @description retrieves data on all markets for swyftx
-     * @param {object} params extra parameters specific to the exchange api endpoint
      * @returns {[object]} an array of objects representing market data
      */
     async fetchMarkets (): Promise<Market[]> {
-        // First fetch all available assets
         const assetsUrl = this.urls['api']['public'] + '/markets/assets/';
         const assetsResponse = await this.fetch (assetsUrl, 'GET', undefined);
         //
@@ -241,7 +240,9 @@ export default class swyftx extends Exchange {
         const quoteCode = this.safeCurrencyCode (this.safeString (audAsset, 'code'));
         const priceScale = this.safeInteger (audAsset, 'price_scale', 6);
         const pricePrecision = Math.pow (10, -priceScale);
-        for (const baseId in liveRatesResponse) {
+        const liveRatesKeys = Object.keys (liveRatesResponse);
+        for (let i = 0; i < liveRatesKeys.length; i++) {
+            const baseId = liveRatesKeys[i];
             if (baseId === audId) {
                 continue; // Skip AUD/AUD pair
             }
@@ -322,7 +323,6 @@ export default class swyftx extends Exchange {
      * @method
      * @name swyftx#fetchCurrencies
      * @description fetches all available currencies on an exchange
-     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies (): Promise<Currencies> {
@@ -421,17 +421,17 @@ export default class swyftx extends Exchange {
      * @method
      * @name swyftx#fetchTradingFees
      * @description fetch the trading fees for multiple markets
-     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFees (): Promise<TradingFees> {
         await this.loadMarkets ();
-        // Swyftx has a flat fee structure
-        // This should ideally be fetched from their API if available
+        // Swyftx has a flat fee structure unless the user is on Swyftx pro
         const maker = this.parseNumber ('0.006'); // 0.6%
         const taker = this.parseNumber ('0.006'); // 0.6%
         const result: Dict = {};
-        for (const symbol in this.markets) {
+        const marketSymbols = Object.keys (this.markets);
+        for (let i = 0; i < marketSymbols.length; i++) {
+            const symbol = marketSymbols[i];
             result[symbol] = {
                 'info': {
                     'maker': maker,
@@ -488,7 +488,6 @@ export default class swyftx extends Exchange {
      * @name swyftx#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
-     * @param {object} params extra parameters specific to the swyftx api endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     async fetchTicker (symbol: string): Promise<Ticker> {
@@ -531,7 +530,9 @@ export default class swyftx extends Exchange {
         const url = this.urls['api']['public'] + '/live-rates/' + audId + '/';
         const response = await this.fetch (url, 'GET', undefined, params);
         const result: Dict = {};
-        for (const assetId in response) {
+        const assetIds = Object.keys (response);
+        for (let i = 0; i < assetIds.length; i++) {
+            const assetId = assetIds[i];
             if (assetId === audId) {
                 continue; // Skip AUD/AUD
             }
@@ -953,7 +954,6 @@ export default class swyftx extends Exchange {
             query['page'] = page;
         }
         params = this.omit (params, 'page');
-        const url = this.urls['api']['private'] + '/' + path;
         const signed = this.sign (path, 'private', 'GET', this.extend (query, params));
         const response = await this.fetch (signed['url'], signed['method'], signed['headers'], signed['body']);
         //
@@ -990,10 +990,9 @@ export default class swyftx extends Exchange {
      * @description fetches information on an order made by the user
      * @param {string} id the order id (orderUuid)
      * @param {string|undefined} symbol unified symbol of the market the order was made in
-     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async fetchOrder (id: string, symbol: Str = undefined, ): Promise<Order> {
+    async fetchOrder (id: string, symbol: Str = undefined): Promise<Order> {
         await this.loadMarkets ();
         await this.loadAssetMapping ();
         const path = 'orders/byId/' + id;
@@ -1028,28 +1027,27 @@ export default class swyftx extends Exchange {
     }
 
     parseTradeFromOrder (order: any, market: any = undefined) {
-        const ord         = this.parseOrder (order, market);
-        const timestamp   = this.safeInteger (order, 'updated_time');
-        const side        = ord.side;
-        const price       = ord.price;
-        const amount      = ord.amount;     // filled = amount for closed orders
-        const cost        = ord.cost;
-        const fee         = ord.fee;
-
+        const ord = this.parseOrder (order, market);
+        const timestamp = this.safeInteger (order, 'updated_time');
+        const side = ord.side;
+        const price = ord.price;
+        const amount = ord.amount;     // filled = amount for closed orders
+        const cost = ord.cost;
+        const fee = ord.fee;
         return {
-            info:        order,
-            id:          this.safeString(order, 'orderUuid'),
-            order:       this.safeString(order, 'orderUuid'),
-            timestamp:   timestamp,
-            datetime:    this.iso8601 (timestamp),
-            symbol:      ord.symbol,
-            side:        side,
-            price:       price,
-            amount:      amount,
-            cost:        cost,
-            takerOrMaker: undefined,
-            fee:         fee,
-            type:        ord.type, // limit / market
+            'info': order,
+            'id': this.safeString (order, 'orderUuid'),
+            'order': this.safeString (order, 'orderUuid'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': ord.symbol,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'takerOrMaker': undefined,
+            'fee': fee,
+            'type': ord.type, // limit / market
         };
     }
 
@@ -1076,7 +1074,6 @@ export default class swyftx extends Exchange {
      * @param {string|undefined} symbol unified market symbol
      * @param {int|undefined} since the earliest time in ms to fetch open orders for
      * @param {int|undefined} limit the maximum number of open order structures to retrieve
-     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined): Promise<Order[]> {
@@ -1154,7 +1151,7 @@ export default class swyftx extends Exchange {
         } else if (statusCode === '2') { // Insufficient Balance Cancelled
             status = 'canceled';
         } else if (statusCode === '3') { // Partially filled is still open
-            status = 'open'; 
+            status = 'open';
         } else if (statusCode === '4') { // Filled
             status = 'closed';
         } else if (statusCode === '5') { // Pending can be considered open
@@ -1173,7 +1170,6 @@ export default class swyftx extends Exchange {
         const timestamp = this.safeInteger (order, 'created_time');
         const lastTradeTimestamp = this.safeInteger (order, 'updated_time');
         const amount = this.safeString (order, 'amount');
-        const quantity = this.safeString (order, 'quantity');
         const total = this.safeString (order, 'total');
         const rate = this.safeString (order, 'rate');
         const trigger = this.safeString (order, 'trigger');
@@ -1248,38 +1244,30 @@ export default class swyftx extends Exchange {
     async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-
         if (type !== 'limit') {
             throw new NotSupported (this.id + ' editOrder() only supports limit orders');
         }
-
         if (price === undefined && amount === undefined) {
             throw new InvalidOrder (this.id + ' editOrder() requires `price` and/or `amount` to be specified');
         }
-
         const requestParams: Dict = {
             'orderUuid': id,
         };
-
         if (price !== undefined) {
             requestParams['trigger'] = this.priceToPrecision (symbol, price);
         }
-
         if (amount !== undefined) {
             requestParams['quantity'] = this.amountToPrecision (symbol, amount);
             requestParams['assetQuantity'] = market['base']; // e.g., "BTC"
         }
-
         const pathTemplate = 'orders/{orderUuid}';
         const signedRequest = this.sign (pathTemplate, 'private', 'PUT', this.extend (requestParams, params));
         const response = await this.fetch (signedRequest['url'], signedRequest['method'], signedRequest['headers'], signedRequest['body']);
-
         // Expected response: { "orderUuid": "..." }
         const updatedOrderUuid = this.safeString (response, 'orderUuid');
         if (!updatedOrderUuid) {
             throw new ExchangeError (this.id + ' editOrder() failed to update the order. Response: ' + this.json (response));
         }
-
         // Fetch the updated order to get full details
         return await this.fetchOrder (updatedOrderUuid, symbol);
     }
@@ -1341,41 +1329,38 @@ export default class swyftx extends Exchange {
             return false;
         }
         const baseUrl = this.urls['api']['private'];
-        if (!url.startsWith(baseUrl)) {
+        if (!url.startsWith (baseUrl)) {
             return false; // Not an API call for this exchange
         }
-        let path = url.substring(baseUrl.length);
-        const queryIndex = path.indexOf('?');
+        let path = url.substring (baseUrl.length);
+        const queryIndex = path.indexOf ('?');
         if (queryIndex !== -1) {
-            path = path.substring(0, queryIndex);
+            path = path.substring (0, queryIndex);
         }
-
-        if (path.startsWith('/')) {
-            path = path.substring(1);
+        if (path.startsWith ('/')) {
+            path = path.substring (1);
         }
-        if (path.endsWith('/')) {
-            path = path.slice(0, -1);
+        if (path.endsWith ('/')) {
+            path.slice (0, -1);
         }
-
-        const privateApis = this.safeValue(this.api, 'private');
+        const privateApis = this.safeValue (this.api, 'private');
         if (!privateApis) {
             return false;
         }
-        const httpMethod = method.toLowerCase();
-        const methodEndpoints = this.safeValue(privateApis, httpMethod, []) as string[];
-        for (const endpointTemplateInput of methodEndpoints) {
+        const httpMethod = method.toLowerCase ();
+        const methodEndpoints = this.safeValue (privateApis, httpMethod, []) as string[];
+        for (let i = 0; i < methodEndpoints.length; i++) {
+            const endpointTemplateInput = methodEndpoints[i];
             let endpointTemplate = endpointTemplateInput;
-            if (endpointTemplate.startsWith('/')) {
-                endpointTemplate = endpointTemplate.substring(1);
+            if (endpointTemplate.startsWith ('/')) {
+                endpointTemplate = endpointTemplate.substring (1);
             }
-            if (endpointTemplate.endsWith('/')) {
-                endpointTemplate = endpointTemplate.slice(0, -1);
+            if (endpointTemplate.endsWith ('/')) {
+                endpointTemplate.slice (0, -1);
             }
-
-            const regexPattern = '^' + endpointTemplate.replace(/{[^}]+}/g, '[^/]+') + '$';
-            const regex = new RegExp(regexPattern);
-
-            if (regex.test(path)) {
+            const regexPattern = '^' + endpointTemplate.replace (/{[^}]+}/g, '[^/]+') + '$';
+            const regex = new RegExp (regexPattern);
+            if (regex.test (path)) {
                 return true;
             }
         }
