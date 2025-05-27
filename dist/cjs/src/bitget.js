@@ -2538,7 +2538,10 @@ class bitget extends bitget$1 {
         const status = this.safeString(transaction, 'status');
         const tag = this.safeString(transaction, 'tag');
         const feeCostString = this.safeString(transaction, 'fee');
-        const feeCostAbsString = Precise["default"].stringAbs(feeCostString);
+        let feeCostAbsString = undefined;
+        if (feeCostString !== undefined) {
+            feeCostAbsString = Precise["default"].stringAbs(feeCostString);
+        }
         let fee = undefined;
         let amountString = this.safeString(transaction, 'size');
         if (feeCostAbsString !== undefined) {
