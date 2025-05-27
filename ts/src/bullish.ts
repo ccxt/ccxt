@@ -747,7 +747,6 @@ export default class bullish extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.signIn ();
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -979,6 +978,7 @@ export default class bullish extends Exchange {
      */
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
+        // todo handle since and until
         const market = this.market (symbol);
         if (since === undefined) {
             throw new BadRequest (this.id + ' fetchOHLCV() requires a since argument');
@@ -1096,7 +1096,6 @@ export default class bullish extends Exchange {
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        await this.signIn ();
         let market = undefined;
         const request: Dict = {
         };
@@ -1157,11 +1156,11 @@ export default class bullish extends Exchange {
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
+        await this.signIn ();
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        await this.signIn ();
         const request: Dict = {
             'orderId': id,
         };
@@ -1224,7 +1223,6 @@ export default class bullish extends Exchange {
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
-        await this.signIn ();
         const market = this.market (symbol);
         const request: Dict = {
             'commandType': 'V3CreateOrder',
@@ -1256,7 +1254,7 @@ export default class bullish extends Exchange {
             type = 'STOP_LIMIT';
             params = this.omit (params, 'stopPrice');
         }
-        request['type'] = type.toLocaleUpperCase ();
+        request['type'] = type.toUpperCase ();
         const response = await this.privatePostV2Orders (this.extend (request, params));
         //
         //     {
