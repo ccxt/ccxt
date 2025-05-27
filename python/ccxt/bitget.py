@@ -2511,7 +2511,9 @@ class bitget(Exchange, ImplicitAPI):
         status = self.safe_string(transaction, 'status')
         tag = self.safe_string(transaction, 'tag')
         feeCostString = self.safe_string(transaction, 'fee')
-        feeCostAbsString = Precise.string_abs(feeCostString)
+        feeCostAbsString = None
+        if feeCostString is not None:
+            feeCostAbsString = Precise.string_abs(feeCostString)
         fee = None
         amountString = self.safe_string(transaction, 'size')
         if feeCostAbsString is not None:
