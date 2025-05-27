@@ -1,7 +1,7 @@
 
 // ---------------------------------------------------------------------------
 
-import Exchange from './abstract/huobijp.js';
+import Exchange from './abstract/bittrade.js';
 import { AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RequestTimeout, NetworkError, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
@@ -11,14 +11,14 @@ import type { Account, Balances, Currencies, Currency, Dict, Int, Market, Num, O
 // ---------------------------------------------------------------------------
 
 /**
- * @class huobijp
+ * @class bittrade
  * @augments Exchange
  */
-export default class huobijp extends Exchange {
+export default class bittrade extends Exchange {
     describe (): any {
         return this.deepExtend (super.describe (), {
-            'id': 'huobijp',
-            'name': 'Huobi Japan',
+            'id': 'bittrade',
+            'name': 'BitTrade',
             'countries': [ 'JP' ],
             'rateLimit': 100,
             'userAgent': this.userAgents['chrome39'],
@@ -94,10 +94,10 @@ export default class huobijp extends Exchange {
                     'v2Public': 'https://{hostname}',
                     'v2Private': 'https://{hostname}',
                 },
-                'www': 'https://www.huobi.co.jp',
-                'referral': 'https://www.huobi.co.jp/register/?invite_code=znnq3',
-                'doc': 'https://api-doc.huobi.co.jp',
-                'fees': 'https://www.huobi.co.jp/support/fee',
+                'www': 'https://www.bittrade.co.jp',
+                'referral': 'https://www.bittrade.co.jp/register/?invite_code=znnq3',
+                'doc': 'https://api-doc.bittrade.co.jp',
+                'fees': 'https://www.bittrade.co.jp/ja-jp/support/fee',
             },
             'api': {
                 'v2Public': {
@@ -413,7 +413,7 @@ export default class huobijp extends Exchange {
 
     /**
      * @method
-     * @name huobijp#fetchTime
+     * @name bittrade#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
@@ -496,7 +496,7 @@ export default class huobijp extends Exchange {
 
     /**
      * @method
-     * @name huobijp#fetchMarkets
+     * @name bittrade#fetchMarkets
      * @description retrieves data on all markets for huobijp
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
@@ -698,7 +698,7 @@ export default class huobijp extends Exchange {
 
     /**
      * @method
-     * @name huobijp#fetchOrderBook
+     * @name bittrade#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
@@ -749,7 +749,7 @@ export default class huobijp extends Exchange {
 
     /**
      * @method
-     * @name huobijp#fetchTicker
+     * @name bittrade#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -791,7 +791,7 @@ export default class huobijp extends Exchange {
 
     /**
      * @method
-     * @name huobijp#fetchTickers
+     * @name bittrade#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -901,7 +901,7 @@ export default class huobijp extends Exchange {
 
     /**
      * @method
-     * @name huobijp#fetchOrderTrades
+     * @name bittrade#fetchOrderTrades
      * @description fetch all the trades made from a single order
      * @param {string} id order id
      * @param {string} symbol unified market symbol
@@ -921,7 +921,7 @@ export default class huobijp extends Exchange {
 
     /**
      * @method
-     * @name huobijp#fetchMyTrades
+     * @name bittrade#fetchMyTrades
      * @description fetch all trades made by the user
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -950,7 +950,7 @@ export default class huobijp extends Exchange {
 
     /**
      * @method
-     * @name huobijp#fetchTrades
+     * @name bittrade#fetchTrades
      * @description get the list of most recent trades for a particular symbol
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -1030,7 +1030,7 @@ export default class huobijp extends Exchange {
 
     /**
      * @method
-     * @name huobijp#fetchOHLCV
+     * @name bittrade#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
@@ -1068,7 +1068,7 @@ export default class huobijp extends Exchange {
 
     /**
      * @method
-     * @name huobijp#fetchAccounts
+     * @name bittrade#fetchAccounts
      * @description fetch all the accounts associated with a profile
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
@@ -1081,7 +1081,7 @@ export default class huobijp extends Exchange {
 
     /**
      * @method
-     * @name huobijp#fetchCurrencies
+     * @name bittrade#fetchCurrencies
      * @description fetches all available currencies on an exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
@@ -1205,7 +1205,7 @@ export default class huobijp extends Exchange {
 
     /**
      * @method
-     * @name huobijp#fetchBalance
+     * @name bittrade#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
@@ -1255,7 +1255,7 @@ export default class huobijp extends Exchange {
 
     /**
      * @method
-     * @name huobijp#fetchOrder
+     * @name bittrade#fetchOrder
      * @description fetches information on an order made by the user
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
@@ -1274,7 +1274,7 @@ export default class huobijp extends Exchange {
 
     /**
      * @method
-     * @name huobijp#fetchOrders
+     * @name bittrade#fetchOrders
      * @description fetches information on multiple orders made by the user
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
@@ -1288,7 +1288,7 @@ export default class huobijp extends Exchange {
 
     /**
      * @method
-     * @name huobijp#fetchOpenOrders
+     * @name bittrade#fetchOpenOrders
      * @description fetch all unfilled currently open orders
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
@@ -1310,7 +1310,7 @@ export default class huobijp extends Exchange {
 
     /**
      * @method
-     * @name huobijp#fetchClosedOrders
+     * @name bittrade#fetchClosedOrders
      * @description fetches information on multiple closed orders made by the user
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
@@ -1472,7 +1472,7 @@ export default class huobijp extends Exchange {
 
     /**
      * @method
-     * @name huobijp#createMarketBuyOrderWithCost
+     * @name bittrade#createMarketBuyOrderWithCost
      * @description create a market buy order by providing the symbol and cost
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
@@ -1491,7 +1491,7 @@ export default class huobijp extends Exchange {
 
     /**
      * @method
-     * @name huobijp#createOrder
+     * @name bittrade#createOrder
      * @description create a trade order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
@@ -1578,10 +1578,10 @@ export default class huobijp extends Exchange {
 
     /**
      * @method
-     * @name huobijp#cancelOrder
+     * @name bittrade#cancelOrder
      * @description cancels an open order
      * @param {string} id order id
-     * @param {string} symbol not used by huobijp cancelOrder ()
+     * @param {string} symbol not used by bittrade cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -1601,10 +1601,10 @@ export default class huobijp extends Exchange {
 
     /**
      * @method
-     * @name huobijp#cancelOrders
+     * @name bittrade#cancelOrders
      * @description cancel multiple orders
      * @param {string[]} ids order ids
-     * @param {string} symbol not used by huobijp cancelOrders ()
+     * @param {string} symbol not used by bittrade cancelOrders ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -1714,7 +1714,7 @@ export default class huobijp extends Exchange {
 
     /**
      * @method
-     * @name huobijp#cancelAllOrders
+     * @name bittrade#cancelAllOrders
      * @description cancel all open orders
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1784,7 +1784,7 @@ export default class huobijp extends Exchange {
 
     /**
      * @method
-     * @name huobijp#fetchDeposits
+     * @name bittrade#fetchDeposits
      * @description fetch all deposits made to an account
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
@@ -1818,7 +1818,7 @@ export default class huobijp extends Exchange {
 
     /**
      * @method
-     * @name huobijp#fetchWithdrawals
+     * @name bittrade#fetchWithdrawals
      * @description fetch all withdrawals made from an account
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
@@ -1957,7 +1957,7 @@ export default class huobijp extends Exchange {
 
     /**
      * @method
-     * @name huobijp#withdraw
+     * @name bittrade#withdraw
      * @description make a withdrawal
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw

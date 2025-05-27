@@ -1,7 +1,7 @@
 
 // ----------------------------------------------------------------------------
 
-import huobijpRest from '../huobijp.js';
+import bittradeRest from '../bittrade.js';
 import { ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Int, OrderBook, Trade, Ticker, OHLCV, Dict } from '../base/types.js';
@@ -9,7 +9,7 @@ import Client from '../base/ws/Client.js';
 
 // ----------------------------------------------------------------------------
 
-export default class huobijp extends huobijpRest {
+export default class bittrade extends bittradeRest {
     describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -51,7 +51,7 @@ export default class huobijp extends huobijpRest {
 
     /**
      * @method
-     * @name huobijp#watchTicker
+     * @name bittrade#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -115,7 +115,7 @@ export default class huobijp extends huobijpRest {
 
     /**
      * @method
-     * @name huobijp#watchTrades
+     * @name bittrade#watchTrades
      * @description get the list of most recent trades for a particular symbol
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -194,7 +194,7 @@ export default class huobijp extends huobijpRest {
 
     /**
      * @method
-     * @name huobijp#watchOHLCV
+     * @name bittrade#watchOHLCV
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
@@ -270,7 +270,7 @@ export default class huobijp extends huobijpRest {
 
     /**
      * @method
-     * @name huobijp#watchOrderBook
+     * @name bittrade#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
@@ -604,7 +604,7 @@ export default class huobijp extends huobijpRest {
             //
             //           ________________________
             //
-            // sometimes huobijp responds with half of a JSON response like
+            // sometimes bittrade responds with half of a JSON response like
             //
             //     " {"ch":"market.ethbtc.m "
             //
