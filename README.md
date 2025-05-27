@@ -4,7 +4,7 @@
 
 A `JavaScript` / `Python` / `PHP` / `C#` / `Go` library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
 
-### [Install](#install) · [Usage](#usage) · [Manual](https://github.com/ccxt/ccxt/wiki) · [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) · [Examples](https://github.com/ccxt/ccxt/tree/master/examples) · [Contributing](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) · [Social](#social)
+### [Install](#install) · [Usage](#usage) · [Manual](https://github.com/ccxt/ccxt/wiki) · [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) · [Examples](https://github.com/ccxt/ccxt/tree/master/examples) · [Contributing](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) · [Social](#social) · [Disclaimer](#disclaimer)
 
 The **CCXT** library is used to connect and trade with cryptocurrency exchanges and payment processing services worldwide. It provides quick access to market data for storage, analysis, visualization, indicator development, algorithmic trading, strategy backtesting, bot programming, and related software engineering.
 
@@ -664,6 +664,15 @@ Thank you!
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=ccxt/ccxt&type=Date)](https://star-history.com/#ccxt/ccxt&Date)
+
+## Disclaimer
+
+CCXT is not a service nor a server. CCXT is a software. **CCXT is a free open source non-custodian API broker software under MIT license**.
+
+- **Non-custodian** means CCXT is not an intermediary in your trading, it does not hold your money at any point in time, you just install CCXT and use CCXT to talk to exchanges directly.
+- **MIT license** means CCXT is free to use for any purpose, but use at your own risk without any warranties.
+- **API broker** means CCXT is funded with API broker rebates from exchanges' API broker programs and it is an official API broker with many exchanges.
+- **Open source** means anyone is free to use it, to look inside the code and to change everything, including other brokers.
 
 ## Contact Us
 
