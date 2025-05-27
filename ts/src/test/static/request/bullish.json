@@ -3,6 +3,65 @@
     "skipKeys": [],
     "outputType": "urlencoded",
     "methods": {
+        "createOrder": [
+            {
+                "description": "Create order",
+                "method": "createOrder",
+                "url": "https://api.simnext.bullish-test.com/trading-api/v2/orders",
+                "input": [
+                    "BTC/USDC",
+                    "market",
+                    "buy",
+                    1,
+                    100000
+                ],
+                "output": "{\"commandType\":\"V3CreateOrder\",\"symbol\":\"BTCUSDC\",\"side\":\"BUY\",\"quantity\":\"1\",\"tradingAccountId\":\"111309424211255\",\"type\":\"MARKET\",\"timeInForce\":\"GTC\"}"
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "Fetch orders for BTC/USDC",
+                "method": "fetchOrders",
+                "url": "https://api.simnext.bullish-test.com/trading-api/v2/orders?symbol=BTCUSDC&tradingAccountId=111309424211255",
+                "input": [
+                    "BTC/USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "fetch funding rate history for BTC/USDC:USDC",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.simnext.bullish-test.com/trading-api/v1/history/markets/BTC-USDC-PERP/funding-rate",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "Fetch ticker for BTC/USDC",
+                "method": "fetchTicker",
+                "url": "https://api.simnext.bullish-test.com/trading-api/v1/markets/BTCUSDC/tick",
+                "input": [
+                    "BTC/USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "Fetch my trades for BTC/USDC",
+                "method": "fetchMyTrades",
+                "url": "https://api.simnext.bullish-test.com/trading-api/v1/trades?symbol=BTCUSDC&tradingAccountId=111309424211255",
+                "input": [
+                    "BTC/USDC"
+                ],
+                "output": null
+            }
+        ],
         "fetchTrades": [
             {
                 "description": "Fetch trades with since and until parameters",
