@@ -2,6 +2,455 @@
     "exchange": "cex",
     "skipKeys": [],
     "methods": {
+        "fetchBalance": [
+            {
+                "description": "Fetch balance",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "assetId": "5",
+                        "assetSymbol": "USDC",
+                        "availableQuantity": "999673048.0792",
+                        "borrowedQuantity": "0.0000",
+                        "loanedQuantity": "0.0000",
+                        "lockedQuantity": "0.0000",
+                        "publishedAtTimestamp": "1748365121402",
+                        "tradingAccountId": "111309424211255",
+                        "updatedAtDatetime": "2025-05-27T09:51:33.133Z",
+                        "updatedAtTimestamp": "1748339493133"
+                    }
+                ],
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "assetId": "5",
+                            "assetSymbol": "USDC",
+                            "availableQuantity": "999673048.0792",
+                            "borrowedQuantity": "0.0000",
+                            "loanedQuantity": "0.0000",
+                            "lockedQuantity": "0.0000",
+                            "publishedAtTimestamp": "1748365121402",
+                            "tradingAccountId": "111309424211255",
+                            "updatedAtDatetime": "2025-05-27T09:51:33.133Z",
+                            "updatedAtTimestamp": "1748339493133"
+                        }
+                    ],
+                    "USDC": {
+                        "free": 999673048.0792,
+                        "used": 0,
+                        "total": 999673048.0792
+                    },
+                    "free": {
+                        "USDC": 999673048.0792
+                    },
+                    "used": {
+                        "USDC": 0
+                    },
+                    "total": {
+                        "USDC": 999673048.0792
+                    }
+                }
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "Fetch deposit address",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "USDC"
+                ],
+                "httpResponse": "[]",
+                "parsedResponse": {
+                    "info": null,
+                    "currency": "USDC",
+                    "network": null,
+                    "address": null,
+                    "tag": null
+                }
+            }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "Fetch accounts",
+                "method": "fetchAccounts",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "defaultedMarginUSD": "0.0000",
+                        "endCustomerId":"222801149768465",
+                        "fullLiquidationMarginUSD":"0.0000",
+                        "initialMarginUSD":"0.0000",
+                        "isBorrowing":"false",
+                        "isConcentrationRiskEnabled":"true",
+                        "isDefaulted":"false",
+                        "isLending":"false",
+                        "isPrimaryAccount":"true",
+                        "liquidationMarginUSD":"0.0000",
+                        "liquidityAddonUSD":"0.0000",
+                        "makerFee":"0.00000000",
+                        "marginProfile": {
+                            "defaultedMarketRiskMultiplierPct":"50.00",
+                            "fullLiquidationMarketRiskMultiplierPct":"75.00",
+                            "initialMarketRiskMultiplierPct":"200.00",
+                            "liquidationMarketRiskMultiplierPct":"100.00",
+                            "warningMarketRiskMultiplierPct":"150.00"
+                        },
+                        "marketRiskUSD":"0.0000",
+                        "maxInitialLeverage":"1",
+                        "rateLimitToken":"7fc358f0bad4124528318ff415e24f1ad6e530321827162a5e35d8de8dcfc750",
+                        "riskLimitUSD":"0.0000",
+                        "takerFee":"0.00000002",
+                        "totalBorrowedUSD":"0.0000",
+                        "totalCollateralUSD":"0.0000",
+                        "totalLiabilitiesUSD":"0.0000",
+                        "tradeFeeRate": [
+                            {
+                                "feeGroupId":"1",
+                                "makerFee":"0.00000000",
+                                "takerFee":"0.00000000" },
+                            {
+                                "feeGroupId":"2",
+                                "makerFee":"0.00000000",
+                                "takerFee":"0.00000000" },
+                            {
+                                "feeGroupId":"3",
+                                "makerFee":"0.00000000",
+                                "takerFee":"0.00000000" },
+                            {
+                                "feeGroupId":"4",
+                                "makerFee":"0.00000000",
+                                "takerFee":"0.00000000"
+                            },
+                            {
+                                "feeGroupId":"5",
+                                "makerFee":"0.00000000",
+                                "takerFee":"0.00000000"
+                            },
+                            {
+                                "feeGroupId":"6",
+                                "makerFee":"0.00000000",
+                                "takerFee":"0.00000000"
+                            },
+                            {
+                                "feeGroupId":"7",
+                                "makerFee":"0.00000000",
+                                "takerFee":"0.00000000"
+                            },
+                            {
+                                "feeGroupId":"8",
+                                "makerFee":"0.00000000",
+                                "takerFee":"0.00000000"
+                            },
+                            {
+                                "feeGroupId":"9",
+                                "makerFee":null,
+                                "takerFee":"0.00020000"
+                            }
+                        ],
+                        "tradingAccountDescription":null,
+                        "tradingAccountId":"111309424211255",
+                        "tradingAccountName":"Primary Account",
+                        "warningMarginUSD":"0.0000"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "111309424211255",
+                        "type": "trading",
+                        "code": null,
+                        "info": {
+                            "defaultedMarginUSD": "0.0000",
+                            "endCustomerId": "222801149768465",
+                            "fullLiquidationMarginUSD": "0.0000",
+                            "initialMarginUSD": "0.0000",
+                            "isBorrowing": "false",
+                            "isConcentrationRiskEnabled": "true",
+                            "isDefaulted": "false",
+                            "isLending": "false",
+                            "isPrimaryAccount": "true",
+                            "liquidationMarginUSD": "0.0000",
+                            "liquidityAddonUSD": "0.0000",
+                            "makerFee": "0.00000000",
+                            "marginProfile": {
+                                "defaultedMarketRiskMultiplierPct": "50.00",
+                                "fullLiquidationMarketRiskMultiplierPct": "75.00",
+                                "initialMarketRiskMultiplierPct": "200.00",
+                                "liquidationMarketRiskMultiplierPct": "100.00",
+                                "warningMarketRiskMultiplierPct": "150.00"
+                            },
+                            "marketRiskUSD": "0.0000",
+                            "maxInitialLeverage": "1",
+                            "rateLimitToken": "7fc358f0bad4124528318ff415e24f1ad6e530321827162a5e35d8de8dcfc750",
+                            "riskLimitUSD": "0.0000",
+                            "takerFee": "0.00000002",
+                            "totalBorrowedUSD": "0.0000",
+                            "totalCollateralUSD": "0.0000",
+                            "totalLiabilitiesUSD": "0.0000",
+                            "tradeFeeRate": [
+                                {
+                                    "feeGroupId": "1",
+                                    "makerFee": "0.00000000",
+                                    "takerFee": "0.00000000"
+                                },
+                                {
+                                    "feeGroupId": "2",
+                                    "makerFee": "0.00000000",
+                                    "takerFee": "0.00000000"
+                                },
+                                {
+                                    "feeGroupId": "3",
+                                    "makerFee": "0.00000000",
+                                    "takerFee": "0.00000000"
+                                },
+                                {
+                                    "feeGroupId": "4",
+                                    "makerFee": "0.00000000",
+                                    "takerFee": "0.00000000"
+                                },
+                                {
+                                    "feeGroupId": "5",
+                                    "makerFee": "0.00000000",
+                                    "takerFee": "0.00000000"
+                                },
+                                {
+                                    "feeGroupId": "6",
+                                    "makerFee": "0.00000000",
+                                    "takerFee": "0.00000000"
+                                },
+                                {
+                                    "feeGroupId": "7",
+                                    "makerFee": "0.00000000",
+                                    "takerFee": "0.00000000"
+                                },
+                                {
+                                    "feeGroupId": "8",
+                                    "makerFee": "0.00000000",
+                                    "takerFee": "0.00000000"
+                                },
+                                {
+                                    "feeGroupId": "9",
+                                    "makerFee": null,
+                                    "takerFee": "0.00020000"
+                                }
+                            ],
+                            "tradingAccountDescription": null,
+                            "tradingAccountId": "111309424211255",
+                            "tradingAccountName": "Primary Account",
+                            "warningMarginUSD": "0.0000"
+                        }
+                    }
+                ]
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "Cancel all orders",
+                "method": "cancelAllOrders",
+                "input": [],
+                "httpResponse": {
+                    "message": "Command acknowledged - CancelAllOrders",
+                    "requestId": "847514682357448704",
+                    "orderId": null,
+                    "clientOrderId": null
+                },
+                "parsedResponse": {
+                    "id": null,
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "status": null,
+                    "symbol": null,
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "cost": null,
+                    "trades": [],
+                    "fee": {},
+                    "info": {
+                        "message": "Command acknowledged - CancelAllOrders",
+                        "requestId": "847514682357448704",
+                        "orderId": null,
+                        "clientOrderId": null
+                    },
+                    "average": null,
+                    "fees": [
+                        {
+                            "cost": null
+                        }
+                    ],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "Cancel order",
+                "method": "cancelOrder",
+                "input": [
+                    "847411698592121857",
+                    "BTC/USDC"
+                ],
+                "httpResponse": {
+                    "message": "Command acknowledged - CancelOrder",
+                    "requestId": "847496797673227264",
+                    "orderId": "847411698592121857",
+                    "clientOrderId": null
+                },
+                "parsedResponse": {
+                    "id": "847411698592121857",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "status": null,
+                    "symbol": "BTC/USDC",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "cost": null,
+                    "trades": [],
+                    "fee": {},
+                    "info": {
+                        "message": "Command acknowledged - CancelOrder",
+                        "requestId": "847496797673227264",
+                        "orderId": "847411698592121857",
+                        "clientOrderId": null
+                    },
+                    "average": null,
+                    "fees": [
+                        {
+                            "cost": null
+                        }
+                    ],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "Fetch order",
+                "method": "fetchOrder",
+                "input": [
+                    "847411698592121857"
+                ],
+                "httpResponse": {
+                    "allowBorrow": false,
+                    "averageFillPrice": "109645.1357",
+                    "baseFee": "0.000000",
+                    "borrowedBaseQuantity": null,
+                    "borrowedQuantity": null,
+                    "borrowedQuoteQuantity": null,
+                    "clientOrderId": null,
+                    "createdAtDatetime": "2025-05-27T09:51:33.132Z",
+                    "createdAtTimestamp": "1748339493132",
+                    "handle": null,
+                    "isLiquidation": false,
+                    "margin": false,
+                    "orderId": "847411698592121857",
+                    "price": "0.0000",
+                    "publishedAtTimestamp": "1748359401198",
+                    "quantity": "1.00000000",
+                    "quantityFilled": "1.00000000",
+                    "quoteAmount": "109645.1356",
+                    "quoteFee": "0.000000",
+                    "side": "BUY",
+                    "status": "CLOSED",
+                    "statusReason": "Executed",
+                    "statusReasonCode": "6002",
+                    "stopPrice": null,
+                    "symbol": "BTCUSDC",
+                    "timeInForce": "GTC",
+                    "type": "MKT"
+                },
+                "parsedResponse": {
+                    "id": "847411698592121857",
+                    "clientOrderId": null,
+                    "timestamp": 1748339493132,
+                    "datetime": "2025-05-27T09:51:33.132Z",
+                    "lastTradeTimestamp": null,
+                    "status": "closed",
+                    "symbol": "BTC/USDC",
+                    "type": "market",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "side": "BUY",
+                    "price": 109645.1357,
+                    "triggerPrice": null,
+                    "amount": 1,
+                    "filled": 1,
+                    "remaining": 0,
+                    "cost": 109645.1356,
+                    "trades": [],
+                    "fee": {
+                        "cost": 0,
+                        "currency": "USDC"
+                    },
+                    "info": {
+                        "allowBorrow": false,
+                        "averageFillPrice": "109645.1357",
+                        "baseFee": "0.000000",
+                        "borrowedBaseQuantity": null,
+                        "borrowedQuantity": null,
+                        "borrowedQuoteQuantity": null,
+                        "clientOrderId": null,
+                        "createdAtDatetime": "2025-05-27T09:51:33.132Z",
+                        "createdAtTimestamp": "1748339493132",
+                        "handle": null,
+                        "isLiquidation": false,
+                        "margin": false,
+                        "orderId": "847411698592121857",
+                        "price": "0.0000",
+                        "publishedAtTimestamp": "1748359401198",
+                        "quantity": "1.00000000",
+                        "quantityFilled": "1.00000000",
+                        "quoteAmount": "109645.1356",
+                        "quoteFee": "0.000000",
+                        "side": "BUY",
+                        "status": "CLOSED",
+                        "statusReason": "Executed",
+                        "statusReasonCode": "6002",
+                        "stopPrice": null,
+                        "symbol": "BTCUSDC",
+                        "timeInForce": "GTC",
+                        "type": "MKT"
+                    },
+                    "average": 109645.1357,
+                    "fees": [
+                        {
+                            "cost": 0,
+                            "currency": "USDC"
+                        }
+                    ],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
         "createOrder": [
             {
                 "description": "Create order",
