@@ -1156,7 +1156,6 @@ export default class bullish extends Exchange {
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        await this.signIn ();
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1281,7 +1280,6 @@ export default class bullish extends Exchange {
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        await this.signIn ();
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
@@ -1324,7 +1322,6 @@ export default class bullish extends Exchange {
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        await this.signIn ();
         let tradingAccountId: Str = undefined;
         [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'tradingAccountId');
         if (tradingAccountId === undefined) {
@@ -1332,13 +1329,14 @@ export default class bullish extends Exchange {
         }
         const request: Dict = {
             'tradingAccountId': tradingAccountId,
-            'commandType': 'V1CancelAllOrders',
         };
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
             request['commandType'] = 'V1CancelAllOrdersByMarket';
+        } else {
+            request['commandType'] = 'V1CancelAllOrders';
         }
         const response = await this.privatePostV2Command (this.extend (request, params));
         //
@@ -1347,7 +1345,7 @@ export default class bullish extends Exchange {
         //         "requestId": "633900538459062272"
         //     }
         //
-        return this.parseOrders (response, market);
+        return this.parseOrder (response, market);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -1660,7 +1658,6 @@ export default class bullish extends Exchange {
      */
     async fetchAccounts (params = {}): Promise<Account[]> {
         await this.loadMarkets ();
-        await this.signIn ();
         const response = await this.privateGetV1AccountsTradingAccounts (params);
         //
         //     [
@@ -1764,7 +1761,6 @@ export default class bullish extends Exchange {
      */
     async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         await this.loadMarkets ();
-        await this.signIn ();
         const currency = this.currency (code);
         const request: Dict = {
             'symbol': currency['id'],
@@ -1811,7 +1807,6 @@ export default class bullish extends Exchange {
      */
     async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
-        await this.signIn ();
         let tradingAccountId: Str = undefined;
         [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'tradingAccountId');
         if (tradingAccountId === undefined) {
