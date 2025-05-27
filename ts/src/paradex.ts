@@ -1282,7 +1282,11 @@ export default class paradex extends Exchange {
         const price = this.safeString (order, 'price');
         const amount = this.safeString (order, 'size');
         const orderType = this.safeString (order, 'type');
-        const status = this.safeString (order, 'status');
+        const cancelReason = this.safeString (order, 'cancel_reason');
+        let status = this.safeString (order, 'status');
+        if (cancelReason !== undefined) {
+            status = 'canceled';
+        }
         const side = this.safeStringLower (order, 'side');
         const average = this.omitZero (this.safeString (order, 'avg_fill_price'));
         const remaining = this.omitZero (this.safeString (order, 'remaining_size'));
