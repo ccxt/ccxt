@@ -2551,7 +2551,11 @@ public partial class bitget : Exchange
         object status = this.safeString(transaction, "status");
         object tag = this.safeString(transaction, "tag");
         object feeCostString = this.safeString(transaction, "fee");
-        object feeCostAbsString = Precise.stringAbs(feeCostString);
+        object feeCostAbsString = null;
+        if (isTrue(!isEqual(feeCostString, null)))
+        {
+            feeCostAbsString = Precise.stringAbs(feeCostString);
+        }
         object fee = null;
         object amountString = this.safeString(transaction, "size");
         if (isTrue(!isEqual(feeCostAbsString, null)))
