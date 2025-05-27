@@ -868,6 +868,10 @@ public partial class mexc : ccxt.mexc
         object messageHash = add("orderbook:", symbol);
         object subscription = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         object limit = this.safeInteger(subscription, "limit");
+        if (!isTrue((inOp(this.orderbooks, symbol))))
+        {
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
+        }
         object storedOrderBook = getValue(this.orderbooks, symbol);
         object nonce = this.safeInteger(storedOrderBook, "nonce");
         if (isTrue(isEqual(nonce, null)))
