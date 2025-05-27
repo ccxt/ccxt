@@ -166,12 +166,12 @@ public partial class hyperliquid : Exchange
             } },
             { "fees", new Dictionary<string, object>() {
                 { "swap", new Dictionary<string, object>() {
-                    { "taker", this.parseNumber("0.00035") },
-                    { "maker", this.parseNumber("0.0001") },
+                    { "taker", this.parseNumber("0.00045") },
+                    { "maker", this.parseNumber("0.00015") },
                 } },
                 { "spot", new Dictionary<string, object>() {
-                    { "taker", this.parseNumber("0.00035") },
-                    { "maker", this.parseNumber("0.0001") },
+                    { "taker", this.parseNumber("0.0007") },
+                    { "maker", this.parseNumber("0.0004") },
                 } },
             } },
             { "requiredCredentials", new Dictionary<string, object>() {
