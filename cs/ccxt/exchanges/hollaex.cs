@@ -274,6 +274,14 @@ public partial class hollaex : Exchange
                     { "BNB", "bnb" },
                     { "MATIC", "matic" },
                 } },
+                { "networksById", new Dictionary<string, object>() {
+                    { "eth", "ERC20" },
+                    { "ETH", "ERC20" },
+                    { "ERC20", "ERC20" },
+                    { "trx", "TRC20" },
+                    { "TRX", "TRC20" },
+                    { "TRC20", "TRC20" },
+                } },
             } },
         });
     }
