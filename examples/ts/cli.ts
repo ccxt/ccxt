@@ -89,7 +89,6 @@ for (let i = 0; i < process.argv.length; i++) {
                             symbol = value
                         }
                         lastParamObject[key] = value
-                        params.splice(paramIndex, 1)
                     } else {
                         throw new Error ('Invalid usage of --param. Please provide a key=value pair after --param.')
                     }
@@ -99,6 +98,7 @@ for (let i = 0; i < process.argv.length; i++) {
                     }
                     lastParamObject[nextParam] = true
                 }
+                params.splice(paramIndex, 1)
             } else {
                 throw new Error (`Unexpected error by parsing parameters: ${nextParam} is not found in params array.`)
             }
