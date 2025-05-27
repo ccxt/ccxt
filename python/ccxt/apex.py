@@ -232,7 +232,7 @@ class apex(Exchange, ImplicitAPI):
             'options': {
                 'defaultType': 'swap',
                 'defaultSlippage': 0.05,
-                'brokerId': '6956',
+                # 'brokerId': '6956',
             },
             'features': {
                 'default': {
@@ -1336,7 +1336,7 @@ class apex(Exchange, ImplicitAPI):
             'expiration': int(math.floor(timeNow / 1000 + 30 * 24 * 60 * 60)),
             'timeInForce': timeInForce,
             'clientId': clientOrderId,
-            'brokerId': self.safe_string(self.options, 'brokerId', '6956'),
+            # 'brokerId': self.safe_string(self.options, 'brokerId', '6956'),
         }
         request['signature'] = signature
         response = self.privatePostV3Order(self.extend(request, params))

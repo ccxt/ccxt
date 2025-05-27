@@ -1054,7 +1054,7 @@ class bybit(Exchange, ImplicitAPI):
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'loadAllOptions': False,  # load all possible option markets, adds signficant load time
                 'loadExpiredOptions': False,  # loads expired options, to load all possible expired options set loadAllOptions to True
-                'brokerId': 'CCXT',
+                # 'brokerId': 'CCXT',
                 'accountsByType': {
                     'spot': 'SPOT',
                     'margin': 'SPOT',
@@ -8800,10 +8800,10 @@ classic accounts only/ spot not supported*  fetches information on an order made
                 else:
                     url += '?' + self.rawencode(sortedQuery)
                     url += '&sign=' + signature
-        if method == 'POST':
-            brokerId = self.safe_string(self.options, 'brokerId')
-            if brokerId is not None:
-                headers['Referer'] = brokerId
+        # if method == 'POST':
+        #     brokerId = self.safe_string(self.options, 'brokerId')
+        #     if brokerId is not None:
+        #         headers['Referer'] = brokerId
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):

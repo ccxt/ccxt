@@ -120,7 +120,7 @@ class okx(ccxt.async_support.okx):
     def get_url(self, channel: str, access='public'):
         # for context: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url
         isSandbox = self.options['sandboxMode']
-        sandboxSuffix = '?brokerId=9999' if isSandbox else ''
+        sandboxSuffix = '' if isSandbox else ''
         isBusiness = (access == 'business')
         isPublic = (access == 'public')
         url = self.urls['api']['ws']

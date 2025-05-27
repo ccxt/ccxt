@@ -248,7 +248,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                 '1d': 'ONE_DAY',
             },
             'options': {
-                'brokerId': 'nfqkvdjp',
+                # 'brokerId': 'nfqkvdjp',
                 'portfolio': '',  # default portfolio id
                 'withdraw': {
                     'method': 'v1PrivatePostTransfersWithdraw',  # use v1PrivatePostTransfersWithdrawCounterparty for counterparty withdrawals
@@ -1666,11 +1666,11 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         market = self.market(symbol)
         typeId = type.upper()
         triggerPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'stop_price'])
-        clientOrderIdprefix = self.safe_string(self.options, 'brokerId', 'nfqkvdjp')
-        clientOrderId = clientOrderIdprefix + '-' + self.uuid()
-        clientOrderId = clientOrderId[0:17]
+        # clientOrderIdprefix = self.safe_string(self.options, 'brokerId', 'nfqkvdjp')
+        # clientOrderId = clientOrderIdprefix + '-' + self.uuid()
+        # clientOrderId = clientOrderId[0:17]
         request: dict = {
-            'client_order_id': clientOrderId,
+            # 'client_order_id': clientOrderId,
             'side': side.upper(),
             'instrument': market['id'],
             'size': self.amount_to_precision(market['symbol'], amount),

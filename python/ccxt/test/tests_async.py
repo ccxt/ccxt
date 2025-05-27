@@ -1182,17 +1182,17 @@ class testMainClass:
 
     async def test_binance(self):
         exchange = self.init_offline_exchange('binance')
-        spot_id = 'x-TKT5PX2F'
-        swap_id = 'x-cvBPrNm9'
-        inverse_swap_id = 'x-xcKtGhcu'
+        # spot_id = 'x-TKT5PX2F'
+        # swap_id = 'x-cvBPrNm9'
+        # inverse_swap_id = 'x-xcKtGhcu'
         spot_order_request = None
         try:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             spot_order_request = self.urlencoded_to_dict(exchange.last_request_body)
-        client_order_id = spot_order_request['newClientOrderId']
-        spot_id_string = str(spot_id)
-        assert client_order_id.startswith(spot_id_string), 'binance - spot clientOrderId: ' + client_order_id + ' does not start with spotId' + spot_id_string
+        # client_order_id = spot_order_request['newClientOrderId']
+        # spot_id_string = str(spot_id)
+        # assert client_order_id.startswith(spot_id_string), 'binance - spot clientOrderId: ' + client_order_id + ' does not start with spotId' + spot_id_string
         swap_order_request = None
         try:
             await exchange.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000)
@@ -1204,12 +1204,12 @@ class testMainClass:
         except Exception as e:
             swap_inverse_order_request = self.urlencoded_to_dict(exchange.last_request_body)
         # linear swap
-        client_order_id_swap = swap_order_request['newClientOrderId']
-        swap_id_string = str(swap_id)
-        assert client_order_id_swap.startswith(swap_id_string), 'binance - swap clientOrderId: ' + client_order_id_swap + ' does not start with swapId' + swap_id_string
+        # client_order_id_swap = swap_order_request['newClientOrderId']
+        # swap_id_string = str(swap_id)
+        # assert client_order_id_swap.startswith(swap_id_string), 'binance - swap clientOrderId: ' + client_order_id_swap + ' does not start with swapId' + swap_id_string
         # inverse swap
-        client_order_id_inverse = swap_inverse_order_request['newClientOrderId']
-        assert client_order_id_inverse.startswith(inverse_swap_id), 'binance - swap clientOrderIdInverse: ' + client_order_id_inverse + ' does not start with swapId' + inverse_swap_id
+        # client_order_id_inverse = swap_inverse_order_request['newClientOrderId']
+        # assert client_order_id_inverse.startswith(inverse_swap_id), 'binance - swap clientOrderIdInverse: ' + client_order_id_inverse + ' does not start with swapId' + inverse_swap_id
         create_orders_request = None
         try:
             orders = [{
@@ -1238,41 +1238,41 @@ class testMainClass:
 
     async def test_okx(self):
         exchange = self.init_offline_exchange('okx')
-        id = 'e847386590ce4dBC'
+        # id = 'e847386590ce4dBC'
         spot_order_request = None
         try:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             spot_order_request = json_parse(exchange.last_request_body)
         client_order_id = spot_order_request[0]['clOrdId']  # returns order inside array
-        id_string = str(id)
-        assert client_order_id.startswith(id_string), 'okx - spot clientOrderId: ' + client_order_id + ' does not start with id: ' + id_string
-        spot_tag = spot_order_request[0]['tag']
-        assert spot_tag == id, 'okx - id: ' + id + ' different from spot tag: ' + spot_tag
+        # id_string = str(id)
+        # assert client_order_id.startswith(id_string), 'okx - spot clientOrderId: ' + client_order_id + ' does not start with id: ' + id_string
+        # spot_tag = spot_order_request[0]['tag']
+        # assert spot_tag == id, 'okx - id: ' + id + ' different from spot tag: ' + spot_tag
         swap_order_request = None
         try:
             await exchange.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             swap_order_request = json_parse(exchange.last_request_body)
-        client_order_id_swap = swap_order_request[0]['clOrdId']
-        assert client_order_id_swap.startswith(id_string), 'okx - swap clientOrderId: ' + client_order_id_swap + ' does not start with id: ' + id_string
-        swap_tag = swap_order_request[0]['tag']
-        assert swap_tag == id, 'okx - id: ' + id + ' different from swap tag: ' + swap_tag
+        # client_order_id_swap = swap_order_request[0]['clOrdId']
+        # assert client_order_id_swap.startswith(id_string), 'okx - swap clientOrderId: ' + client_order_id_swap + ' does not start with id: ' + id_string
+        # swap_tag = swap_order_request[0]['tag']
+        # assert swap_tag == id, 'okx - id: ' + id + ' different from swap tag: ' + swap_tag
         if not is_sync():
             await close(exchange)
         return True
 
     async def test_cryptocom(self):
         exchange = self.init_offline_exchange('cryptocom')
-        id = 'CCXT'
+        # id = 'CCXT'
         await exchange.load_markets()
         request = None
         try:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             request = json_parse(exchange.last_request_body)
-        broker_id = request['params']['broker_id']
-        assert broker_id == id, 'cryptocom - id: ' + id + ' different from  broker_id: ' + broker_id
+        # broker_id = request['params']['broker_id']
+        # assert broker_id == id, 'cryptocom - id: ' + id + ' different from  broker_id: ' + broker_id
         if not is_sync():
             await close(exchange)
         return True
@@ -1280,14 +1280,14 @@ class testMainClass:
     async def test_bybit(self):
         exchange = self.init_offline_exchange('bybit')
         req_headers = None
-        id = 'CCXT'
-        assert exchange.options['brokerId'] == id, 'id not in options'
+        # id = 'CCXT'
+        # assert exchange.options['brokerId'] == id, 'id not in options'
         try:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             # we expect an error here, we're only interested in the headers
             req_headers = exchange.last_request_headers
-        assert req_headers['Referer'] == id, 'bybit - id: ' + id + ' not in headers.'
+        # assert req_headers['Referer'] == id, 'bybit - id: ' + id + ' not in headers.'
         if not is_sync():
             await close(exchange)
         return True
@@ -1295,17 +1295,17 @@ class testMainClass:
     async def test_kucoin(self):
         exchange = self.init_offline_exchange('kucoin')
         req_headers = None
-        spot_id = exchange.options['partner']['spot']['id']
-        spot_key = exchange.options['partner']['spot']['key']
-        assert spot_id == 'ccxt', 'kucoin - id: ' + spot_id + ' not in options'
-        assert spot_key == '9e58cc35-5b5e-4133-92ec-166e3f077cb8', 'kucoin - key: ' + spot_key + ' not in options.'
+        # spot_id = exchange.options['partner']['spot']['id']
+        # spot_key = exchange.options['partner']['spot']['key']
+        # assert spot_id == 'ccxt', 'kucoin - id: ' + spot_id + ' not in options'
+        # assert spot_key == '9e58cc35-5b5e-4133-92ec-166e3f077cb8', 'kucoin - key: ' + spot_key + ' not in options.'
         try:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             # we expect an error here, we're only interested in the headers
             req_headers = exchange.last_request_headers
-        id = 'ccxt'
-        assert req_headers['KC-API-PARTNER'] == id, 'kucoin - id: ' + id + ' not in headers.'
+        # id = 'ccxt'
+        # assert req_headers['KC-API-PARTNER'] == id, 'kucoin - id: ' + id + ' not in headers.'
         if not is_sync():
             await close(exchange)
         return True
@@ -1313,16 +1313,16 @@ class testMainClass:
     async def test_kucoinfutures(self):
         exchange = self.init_offline_exchange('kucoinfutures')
         req_headers = None
-        id = 'ccxtfutures'
+        # id = 'ccxtfutures'
         future_id = exchange.options['partner']['future']['id']
         future_key = exchange.options['partner']['future']['key']
-        assert future_id == id, 'kucoinfutures - id: ' + future_id + ' not in options.'
-        assert future_key == '1b327198-f30c-4f14-a0ac-918871282f15', 'kucoinfutures - key: ' + future_key + ' not in options.'
+        # assert future_id == id, 'kucoinfutures - id: ' + future_id + ' not in options.'
+        # assert future_key == '1b327198-f30c-4f14-a0ac-918871282f15', 'kucoinfutures - key: ' + future_key + ' not in options.'
         try:
             await exchange.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             req_headers = exchange.last_request_headers
-        assert req_headers['KC-API-PARTNER'] == id, 'kucoinfutures - id: ' + id + ' not in headers.'
+        # assert req_headers['KC-API-PARTNER'] == id, 'kucoinfutures - id: ' + id + ' not in headers.'
         if not is_sync():
             await close(exchange)
         return True
@@ -1330,13 +1330,13 @@ class testMainClass:
     async def test_bitget(self):
         exchange = self.init_offline_exchange('bitget')
         req_headers = None
-        id = 'p4sve'
-        assert exchange.options['broker'] == id, 'bitget - id: ' + id + ' not in options'
+        # id = 'p4sve'
+        # assert exchange.options['broker'] == id, 'bitget - id: ' + id + ' not in options'
         try:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             req_headers = exchange.last_request_headers
-        assert req_headers['X-CHANNEL-API-CODE'] == id, 'bitget - id: ' + id + ' not in headers.'
+        # assert req_headers['X-CHANNEL-API-CODE'] == id, 'bitget - id: ' + id + ' not in headers.'
         if not is_sync():
             await close(exchange)
         return True
@@ -1344,14 +1344,14 @@ class testMainClass:
     async def test_mexc(self):
         exchange = self.init_offline_exchange('mexc')
         req_headers = None
-        id = 'CCXT'
+        # id = 'CCXT'
         assert exchange.options['broker'] == id, 'mexc - id: ' + id + ' not in options'
         await exchange.load_markets()
         try:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             req_headers = exchange.last_request_headers
-        assert req_headers['source'] == id, 'mexc - id: ' + id + ' not in headers.'
+        # assert req_headers['source'] == id, 'mexc - id: ' + id + ' not in headers.'
         if not is_sync():
             await close(exchange)
         return True
@@ -1359,15 +1359,15 @@ class testMainClass:
     async def test_htx(self):
         exchange = self.init_offline_exchange('htx')
         # spot test
-        id = 'AA03022abc'
+        # id = 'AA03022abc'
         spot_order_request = None
         try:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             spot_order_request = json_parse(exchange.last_request_body)
-        client_order_id = spot_order_request['client-order-id']
-        id_string = str(id)
-        assert client_order_id.startswith(id_string), 'htx - spot clientOrderId ' + client_order_id + ' does not start with id: ' + id_string
+        # client_order_id = spot_order_request['client-order-id']
+        # id_string = str(id)
+        # assert client_order_id.startswith(id_string), 'htx - spot clientOrderId ' + client_order_id + ' does not start with id: ' + id_string
         # swap test
         swap_order_request = None
         try:
@@ -1379,10 +1379,10 @@ class testMainClass:
             await exchange.create_order('BTC/USD:BTC', 'limit', 'buy', 1, 20000)
         except Exception as e:
             swap_inverse_order_request = json_parse(exchange.last_request_body)
-        client_order_id_swap = swap_order_request['channel_code']
-        assert client_order_id_swap.startswith(id_string), 'htx - swap channel_code ' + client_order_id_swap + ' does not start with id: ' + id_string
-        client_order_id_inverse = swap_inverse_order_request['channel_code']
-        assert client_order_id_inverse.startswith(id_string), 'htx - swap inverse channel_code ' + client_order_id_inverse + ' does not start with id: ' + id_string
+        # client_order_id_swap = swap_order_request['channel_code']
+        # assert client_order_id_swap.startswith(id_string), 'htx - swap channel_code ' + client_order_id_swap + ' does not start with id: ' + id_string
+        # client_order_id_inverse = swap_inverse_order_request['channel_code']
+        # assert client_order_id_inverse.startswith(id_string), 'htx - swap inverse channel_code ' + client_order_id_inverse + ' does not start with id: ' + id_string
         if not is_sync():
             await close(exchange)
         return True
@@ -1390,15 +1390,15 @@ class testMainClass:
     async def test_woo(self):
         exchange = self.init_offline_exchange('woo')
         # spot test
-        id = 'bc830de7-50f3-460b-9ee0-f430f83f9dad'
+        # id = 'bc830de7-50f3-460b-9ee0-f430f83f9dad'
         spot_order_request = None
         try:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             spot_order_request = self.urlencoded_to_dict(exchange.last_request_body)
-        broker_id = spot_order_request['broker_id']
-        id_string = str(id)
-        assert broker_id.startswith(id_string), 'woo - broker_id: ' + broker_id + ' does not start with id: ' + id_string
+        # broker_id = spot_order_request['broker_id']
+        # id_string = str(id)
+        # assert broker_id.startswith(id_string), 'woo - broker_id: ' + broker_id + ' does not start with id: ' + id_string
         # swap test
         stop_order_request = None
         try:
@@ -1407,8 +1407,8 @@ class testMainClass:
             })
         except Exception as e:
             stop_order_request = json_parse(exchange.last_request_body)
-        client_order_id_stop = stop_order_request['brokerId']
-        assert client_order_id_stop.startswith(id_string), 'woo - brokerId: ' + client_order_id_stop + ' does not start with id: ' + id_string
+        # client_order_id_stop = stop_order_request['brokerId']
+        # assert client_order_id_stop.startswith(id_string), 'woo - brokerId: ' + client_order_id_stop + ' does not start with id: ' + id_string
         if not is_sync():
             await close(exchange)
         return True
@@ -1416,30 +1416,30 @@ class testMainClass:
     async def test_bitmart(self):
         exchange = self.init_offline_exchange('bitmart')
         req_headers = None
-        id = 'CCXTxBitmart000'
-        assert exchange.options['brokerId'] == id, 'bitmart - id: ' + id + ' not in options'
+        # id = 'CCXTxBitmart000'
+        # assert exchange.options['brokerId'] == id, 'bitmart - id: ' + id + ' not in options'
         await exchange.load_markets()
         try:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             req_headers = exchange.last_request_headers
-        assert req_headers['X-BM-BROKER-ID'] == id, 'bitmart - id: ' + id + ' not in headers'
+        # assert req_headers['X-BM-BROKER-ID'] == id, 'bitmart - id: ' + id + ' not in headers'
         if not is_sync():
             await close(exchange)
         return True
 
     async def test_coinex(self):
         exchange = self.init_offline_exchange('coinex')
-        id = 'x-167673045'
-        assert exchange.options['brokerId'] == id, 'coinex - id: ' + id + ' not in options'
+        # id = 'x-167673045'
+        # assert exchange.options['brokerId'] == id, 'coinex - id: ' + id + ' not in options'
         spot_order_request = None
         try:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             spot_order_request = json_parse(exchange.last_request_body)
-        client_order_id = spot_order_request['client_id']
-        id_string = str(id)
-        assert client_order_id.startswith(id_string), 'coinex - clientOrderId: ' + client_order_id + ' does not start with id: ' + id_string
+        # client_order_id = spot_order_request['client_id']
+        # id_string = str(id)
+        # assert client_order_id.startswith(id_string), 'coinex - clientOrderId: ' + client_order_id + ' does not start with id: ' + id_string
         if not is_sync():
             await close(exchange)
         return True
@@ -1447,58 +1447,58 @@ class testMainClass:
     async def test_bingx(self):
         exchange = self.init_offline_exchange('bingx')
         req_headers = None
-        id = 'CCXT'
-        assert exchange.options['broker'] == id, 'bingx - id: ' + id + ' not in options'
+        # id = 'CCXT'
+        # assert exchange.options['broker'] == id, 'bingx - id: ' + id + ' not in options'
         try:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             # we expect an error here, we're only interested in the headers
             req_headers = exchange.last_request_headers
-        assert req_headers['X-SOURCE-KEY'] == id, 'bingx - id: ' + id + ' not in headers.'
+        # assert req_headers['X-SOURCE-KEY'] == id, 'bingx - id: ' + id + ' not in headers.'
         if not is_sync():
             await close(exchange)
         return True
 
     async def test_phemex(self):
         exchange = self.init_offline_exchange('phemex')
-        id = 'CCXT123456'
+        # id = 'CCXT123456'
         request = None
         try:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             request = json_parse(exchange.last_request_body)
-        client_order_id = request['clOrdID']
-        id_string = str(id)
-        assert client_order_id.startswith(id_string), 'phemex - clOrdID: ' + client_order_id + ' does not start with id: ' + id_string
+        # client_order_id = request['clOrdID']
+        # id_string = str(id)
+        # assert client_order_id.startswith(id_string), 'phemex - clOrdID: ' + client_order_id + ' does not start with id: ' + id_string
         if not is_sync():
             await close(exchange)
         return True
 
     async def test_blofin(self):
         exchange = self.init_offline_exchange('blofin')
-        id = 'ec6dd3a7dd982d0b'
+        # id = 'ec6dd3a7dd982d0b'
         request = None
         try:
             await exchange.create_order('LTC/USDT:USDT', 'market', 'buy', 1)
         except Exception as e:
             request = json_parse(exchange.last_request_body)
-        broker_id = request['brokerId']
-        id_string = str(id)
-        assert broker_id.startswith(id_string), 'blofin - brokerId: ' + broker_id + ' does not start with id: ' + id_string
+        # broker_id = request['brokerId']
+        # id_string = str(id)
+        # assert broker_id.startswith(id_string), 'blofin - brokerId: ' + broker_id + ' does not start with id: ' + id_string
         if not is_sync():
             await close(exchange)
         return True
 
     async def test_hyperliquid(self):
         exchange = self.init_offline_exchange('hyperliquid')
-        id = '1'
+        # id = '1'
         request = None
         try:
             await exchange.create_order('SOL/USDC:USDC', 'limit', 'buy', 1, 100)
         except Exception as e:
             request = json_parse(exchange.last_request_body)
-        broker_id = str((request['action']['brokerCode']))
-        assert broker_id == id, 'hyperliquid - brokerId: ' + broker_id + ' does not start with id: ' + id
+        # broker_id = str((request['action']['brokerCode']))
+        # assert broker_id == id, 'hyperliquid - brokerId: ' + broker_id + ' does not start with id: ' + id
         if not is_sync():
             await close(exchange)
         return True
@@ -1506,30 +1506,30 @@ class testMainClass:
     async def test_coinbaseinternational(self):
         exchange = self.init_offline_exchange('coinbaseinternational')
         exchange.options['portfolio'] = 'random'
-        id = 'nfqkvdjp'
+        # id = 'nfqkvdjp'
         assert exchange.options['brokerId'] == id, 'id not in options'
         request = None
         try:
             await exchange.create_order('BTC/USDC:USDC', 'limit', 'buy', 1, 20000)
         except Exception as e:
             request = json_parse(exchange.last_request_body)
-        client_order_id = request['client_order_id']
-        assert client_order_id.startswith(str(id)), 'clientOrderId does not start with id'
+        # client_order_id = request['client_order_id']
+        # assert client_order_id.startswith(str(id)), 'clientOrderId does not start with id'
         if not is_sync():
             await close(exchange)
         return True
 
     async def test_coinbase_advanced(self):
         exchange = self.init_offline_exchange('coinbase')
-        id = 'ccxt'
+        # id = 'ccxt'
         assert exchange.options['brokerId'] == id, 'id not in options'
         request = None
         try:
             await exchange.create_order('BTC/USDC', 'limit', 'buy', 1, 20000)
         except Exception as e:
             request = json_parse(exchange.last_request_body)
-        client_order_id = request['client_order_id']
-        assert client_order_id.startswith(str(id)), 'clientOrderId does not start with id'
+        # client_order_id = request['client_order_id']
+        # assert client_order_id.startswith(str(id)), 'clientOrderId does not start with id'
         if not is_sync():
             await close(exchange)
         return True
@@ -1537,15 +1537,15 @@ class testMainClass:
     async def test_woofi_pro(self):
         exchange = self.init_offline_exchange('woofipro')
         exchange.secret = 'secretsecretsecretsecretsecretsecretsecrets'
-        id = 'CCXT'
+        # id = 'CCXT'
         await exchange.load_markets()
         request = None
         try:
             await exchange.create_order('BTC/USDC:USDC', 'limit', 'buy', 1, 20000)
         except Exception as e:
             request = json_parse(exchange.last_request_body)
-        broker_id = request['order_tag']
-        assert broker_id == id, 'woofipro - id: ' + id + ' different from  broker_id: ' + broker_id
+        # broker_id = request['order_tag']
+        # assert broker_id == id, 'woofipro - id: ' + id + ' different from  broker_id: ' + broker_id
         if not is_sync():
             await close(exchange)
         return True
@@ -1553,7 +1553,7 @@ class testMainClass:
     async def test_oxfun(self):
         exchange = self.init_offline_exchange('oxfun')
         exchange.secret = 'secretsecretsecretsecretsecretsecretsecrets'
-        id = 1000
+        # id = 1000
         await exchange.load_markets()
         request = None
         try:
@@ -1562,27 +1562,27 @@ class testMainClass:
             request = json_parse(exchange.last_request_body)
         orders = request['orders']
         first = orders[0]
-        broker_id = first['source']
-        assert broker_id == id, 'oxfun - id: ' + str(id) + ' different from  broker_id: ' + str(broker_id)
+        # broker_id = first['source']
+        # assert broker_id == id, 'oxfun - id: ' + str(id) + ' different from  broker_id: ' + str(broker_id)
         return True
 
     async def test_xt(self):
         exchange = self.init_offline_exchange('xt')
-        id = 'CCXT'
+        # id = 'CCXT'
         spot_order_request = None
         try:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             spot_order_request = json_parse(exchange.last_request_body)
-        spot_media = spot_order_request['media']
-        assert spot_media == id, 'xt - id: ' + id + ' different from swap tag: ' + spot_media
+        # spot_media = spot_order_request['media']
+        # assert spot_media == id, 'xt - id: ' + id + ' different from swap tag: ' + spot_media
         swap_order_request = None
         try:
             await exchange.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             swap_order_request = json_parse(exchange.last_request_body)
-        swap_media = swap_order_request['clientMedia']
-        assert swap_media == id, 'xt - id: ' + id + ' different from swap tag: ' + swap_media
+        # swap_media = swap_order_request['clientMedia']
+        # assert swap_media == id, 'xt - id: ' + id + ' different from swap tag: ' + swap_media
         if not is_sync():
             await close(exchange)
         return True
@@ -1596,7 +1596,7 @@ class testMainClass:
             'endpoint_addr': '0xbbee07b3e8121227afcfe1e2b82772246226128e',
             'book_addrs': ['0x0000000000000000000000000000000000000000', '0x70e5911371472e406f1291c621d1c8f207764d73', '0xf03f457a30e598d5020164a339727ef40f2b8fbc', '0x1c6281a78aa0ed88949c319cba5f0f0de2ce8353', '0xfe653438a1a4a7f56e727509c341d60a7b54fa91', '0xb6304e9a6ca241376a5fc9294daa8fca65ddcdcd', '0x01ec802ae0ab1b2cc4f028b9fe6eb954aef06ed1', '0x0000000000000000000000000000000000000000', '0x9c52d5c4df5a68955ad088a781b4ab364a861e9e', '0x0000000000000000000000000000000000000000', '0x2a3bcda1bb3ef649f3571c96c597c3d2b25edc79', '0x0000000000000000000000000000000000000000', '0x0492ff9807f82856781488015ef7aa5526c0edd6', '0x0000000000000000000000000000000000000000', '0xea884c82418ebc21cd080b8f40ecc4d06a6a6883', '0x0000000000000000000000000000000000000000', '0x5ecf68f983253a818ca8c17a56a4f2fb48d6ec6b', '0x0000000000000000000000000000000000000000', '0xba3f57a977f099905531f7c2f294aad7b56ed254', '0x0000000000000000000000000000000000000000', '0x0ac8c26d207d0c6aabb3644fea18f530c4d6fc8e', '0x0000000000000000000000000000000000000000', '0x8bd80ad7630b3864bed66cf28f548143ea43dc3b', '0x0000000000000000000000000000000000000000', '0x045391227fc4b2cdd27b95f066864225afc9314e', '0x0000000000000000000000000000000000000000', '0x7d512bef2e6cfd7e7f5f6b2f8027e3728eb7b6c3', '0x0000000000000000000000000000000000000000', '0x678a6c5003b56b5e9a81559e9a0df880407c796f', '0x0000000000000000000000000000000000000000', '0x14b5a17208fa98843cc602b3f74e31c95ded3567', '0xe442a89a07b3888ab10579fbb2824aeceff3a282', '0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000000', '0xac28ac205275d7c2d6877bea8657cebe04fd9ae9', '0x0000000000000000000000000000000000000000', '0xed811409bfea901e75cb19ba347c08a154e860c9', '0x0000000000000000000000000000000000000000', '0x0f7afcb1612b305626cff84f84e4169ba2d0f12c', '0x0000000000000000000000000000000000000000', '0xe4b8d903db2ce2d3891ef04cfc3ac56330c1b0c3', '0x5f44362bad629846b7455ad9d36bbc3759a3ef62', '0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000000', '0xa64e04ed4b223a71e524dc7ebb7f28e422ccfdde', '0x0000000000000000000000000000000000000000', '0x2ee573caab73c1d8cf0ca6bd3589b67de79628a4', '0x0000000000000000000000000000000000000000', '0x01bb96883a8a478d4410387d4aaf11067edc2c74', '0x0000000000000000000000000000000000000000', '0xe7ed0c559d905436a867cddf07e06921d572363c', '0x0000000000000000000000000000000000000000', '0xa94f9e3433c92a5cd1925494811a67b1943557d9', '0x0000000000000000000000000000000000000000', '0xa63de7f89ba1270b85f3dcc193ff1a1390a7c7c7', '0x0000000000000000000000000000000000000000', '0xc8b0b37dffe3a711a076dc86dd617cc203f36121', '0x0000000000000000000000000000000000000000', '0x646df48947ff785fe609969ff634e7be9d1c34cd', '0x0000000000000000000000000000000000000000', '0x42582b404b0bec4a266631a0e178840b107a0c69', '0x0000000000000000000000000000000000000000', '0x36a94bc3edb1b629d1413091e22dc65fa050f17f', '0x0000000000000000000000000000000000000000', '0xb398d00b5a336f0ad33cfb352fd7646171cec442', '0x0000000000000000000000000000000000000000', '0xb4bc3b00de98e1c0498699379f6607b1f00bd5a1', '0x0000000000000000000000000000000000000000', '0xfe8b7baf68952bac2c04f386223d2013c1b4c601', '0x0000000000000000000000000000000000000000', '0x9c8764ec71f175c97c6c2fd558eb6546fcdbea32', '0x0000000000000000000000000000000000000000', '0x94d31188982c8eccf243e555b22dc57de1dba4e1', '0x0000000000000000000000000000000000000000', '0x407c5e2fadd7555be927c028bc358daa907c797a', '0x0000000000000000000000000000000000000000', '0x7e97da2dbbbdd7fb313cf9dc0581ac7cec999c70', '0x0000000000000000000000000000000000000000', '0x7f8d2662f64dd468c423805f98a6579ad59b28fa', '0x0000000000000000000000000000000000000000', '0x3398adf63fed17cbadd6080a1fb771e6a2a55958', '0x0000000000000000000000000000000000000000', '0xba8910a1d7ab62129729047d453091a1e6356170', '0x0000000000000000000000000000000000000000', '0xdc054bce222fe725da0f17abcef38253bd8bb745', '0x0000000000000000000000000000000000000000', '0xca21693467d0a5ea9e10a5a7c5044b9b3837e694', '0x0000000000000000000000000000000000000000', '0xe0b02de2139256dbae55cf350094b882fbe629ea', '0x0000000000000000000000000000000000000000', '0x02c38368a6f53858aab5a3a8d91d73eb59edf9b9', '0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000000', '0xfe8c4778843c3cb047ffe7c0c0154a724c05cab9', '0x0000000000000000000000000000000000000000', '0xe2e88862d9b7379e21c82fc4aec8d71bddbcdb4b', '0x0000000000000000000000000000000000000000', '0xbbaff9e73b30f9cea5c01481f12de75050947fd6', '0x0000000000000000000000000000000000000000', '0xa20f6f381fe0fec5a1035d37ebf8890726377ab9', '0x0000000000000000000000000000000000000000', '0xbad68032d012bf35d3a2a177b242e86684027ed0', '0x0000000000000000000000000000000000000000', '0x0e61ca37f0c67e8a8794e45e264970a2a23a513c', '0x0000000000000000000000000000000000000000', '0xa77b7048e378c5270b15918449ededf87c3a3db3', '0x0000000000000000000000000000000000000000', '0x15afca1e6f02b556fa6551021b3493a1e4a7f44f'],
         }
-        id = 5930043274845996
+        # id = 5930043274845996
         await exchange.load_markets()
         request = None
         try:
@@ -1604,8 +1604,8 @@ class testMainClass:
         except Exception as e:
             request = json_parse(exchange.last_request_body)
         order = request['place_order']
-        broker_id = order['id']
-        assert broker_id == id, 'vertex - id: ' + str(id) + ' different from  broker_id: ' + str(broker_id)
+        # broker_id = order['id']
+        # assert broker_id == id, 'vertex - id: ' + str(id) + ' different from  broker_id: ' + str(broker_id)
         if not is_sync():
             await close(exchange)
         return True
@@ -1640,14 +1640,14 @@ class testMainClass:
             'liquidation_fee': '0.2',
         }
         req_headers = None
-        id = 'CCXT'
+        # id = 'CCXT'
         assert exchange.options['broker'] == id, 'paradex - id: ' + id + ' not in options'
         await exchange.load_markets()
         try:
             await exchange.create_order('BTC/USD:USDC', 'limit', 'buy', 1, 20000)
         except Exception as e:
             req_headers = exchange.last_request_headers
-        assert req_headers['PARADEX-PARTNER'] == id, 'paradex - id: ' + id + ' not in headers'
+        # assert req_headers['PARADEX-PARTNER'] == id, 'paradex - id: ' + id + ' not in headers'
         if not is_sync():
             await close(exchange)
         return True
@@ -1655,13 +1655,13 @@ class testMainClass:
     async def test_hashkey(self):
         exchange = self.init_offline_exchange('hashkey')
         req_headers = None
-        id = '10000700011'
+        # id = '10000700011'
         try:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             # we expect an error here, we're only interested in the headers
             req_headers = exchange.last_request_headers
-        assert req_headers['INPUT-SOURCE'] == id, 'hashkey - id: ' + id + ' not in headers.'
+        # assert req_headers['INPUT-SOURCE'] == id, 'hashkey - id: ' + id + ' not in headers.'
         if not is_sync():
             await close(exchange)
         return True
@@ -1669,13 +1669,13 @@ class testMainClass:
     async def test_coincatch(self):
         exchange = self.init_offline_exchange('coincatch')
         req_headers = None
-        id = '47cfy'
+        # id = '47cfy'
         try:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             # we expect an error here, we're only interested in the headers
             req_headers = exchange.last_request_headers
-        assert req_headers['X-CHANNEL-API-CODE'] == id, 'coincatch - id: ' + id + ' not in headers.'
+        # assert req_headers['X-CHANNEL-API-CODE'] == id, 'coincatch - id: ' + id + ' not in headers.'
         if not is_sync():
             await close(exchange)
         return True
@@ -1688,8 +1688,8 @@ class testMainClass:
         except Exception as e:
             # we expect an error here, we're only interested in the headers
             req_headers = exchange.last_request_headers
-        id = 'ccxt'
-        assert req_headers['X-DEFX-SOURCE'] == id, 'defx - id: ' + id + ' not in headers.'
+        # id = 'ccxt'
+        # assert req_headers['X-DEFX-SOURCE'] == id, 'defx - id: ' + id + ' not in headers.'
         if not is_sync():
             await close(exchange)
         return True
@@ -1701,15 +1701,15 @@ class testMainClass:
             await exchange.create_order('BTC/USDT', 'limit', 'sell', 1, 20000)
         except Exception as e:
             request = json_parse(exchange.last_request_body)
-        tag = 'ccxt'
-        assert request['tag'] == tag, 'cryptomus - tag: ' + tag + ' not in request.'
+        # tag = 'ccxt'
+        # assert request['tag'] == tag, 'cryptomus - tag: ' + tag + ' not in request.'
         if not is_sync():
             await close(exchange)
         return True
 
     async def test_derive(self):
         exchange = self.init_offline_exchange('derive')
-        id = '0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749'
+        # id = '0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749'
         assert exchange.options['id'] == id, 'derive - id: ' + id + ' not in options'
         request = None
         try:
@@ -1723,7 +1723,7 @@ class testMainClass:
             await exchange.create_order('LBTC/USDC', 'limit', 'sell', 0.01, 3000, params)
         except Exception as e:
             request = json_parse(exchange.last_request_body)
-        assert request['referral_code'] == id, 'derive - referral_code: ' + id + ' not in request.'
+        # assert request['referral_code'] == id, 'derive - referral_code: ' + id + ' not in request.'
         if not is_sync():
             await close(exchange)
         return True

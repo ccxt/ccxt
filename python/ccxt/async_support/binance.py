@@ -5038,11 +5038,12 @@ class binance(Exchange, ImplicitAPI):
             else:
                 raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market')
         if clientOrderId is None:
-            broker = self.safe_dict(self.options, 'broker')
-            if broker is not None:
-                brokerId = self.safe_string(broker, 'spot')
-                if brokerId is not None:
-                    request['newClientOrderId'] = brokerId + self.uuid22()
+            pass
+            # broker = self.safe_dict(self.options, 'broker')
+            # if broker is not None:
+            #     brokerId = self.safe_string(broker, 'spot')
+            #     if brokerId is not None:
+            #         request['newClientOrderId'] = brokerId + self.uuid22()
         else:
             request['newClientOrderId'] = clientOrderId
         request['newOrderRespType'] = self.safe_value(self.options['newOrderRespType'], type, 'RESULT')  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
@@ -6135,13 +6136,14 @@ class binance(Exchange, ImplicitAPI):
                     raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market')
         clientOrderIdRequest = 'newClientStrategyId' if isPortfolioMarginConditional else 'newClientOrderId'
         if clientOrderId is None:
-            broker = self.safe_dict(self.options, 'broker', {})
-            defaultId = 'x-xcKtGhcu' if (market['contract']) else 'x-TKT5PX2F'
-            idMarketType = 'spot'
-            if market['contract']:
-                idMarketType = 'swap' if (market['swap'] and market['linear']) else 'inverse'
-            brokerId = self.safe_string(broker, idMarketType, defaultId)
-            request[clientOrderIdRequest] = brokerId + self.uuid22()
+            pass
+            # broker = self.safe_dict(self.options, 'broker', {})
+            # defaultId = 'x-xcKtGhcu' if (market['contract']) else 'x-TKT5PX2F'
+            # idMarketType = 'spot'
+            # if market['contract']:
+            #     idMarketType = 'swap' if (market['swap'] and market['linear']) else 'inverse'
+            # brokerId = self.safe_string(broker, idMarketType, defaultId)
+            # request[clientOrderIdRequest] = brokerId + self.uuid22()
         else:
             request[clientOrderIdRequest] = clientOrderId
         postOnly = None
@@ -11153,13 +11155,13 @@ class binance(Exchange, ImplicitAPI):
             if method == 'POST' and ((path == 'order') or (path == 'sor/order')):
                 # inject in implicit API calls
                 newClientOrderId = self.safe_string(params, 'newClientOrderId')
-                if newClientOrderId is None:
-                    isSpotOrMargin = (api.find('sapi') > -1 or api == 'private')
-                    marketType = 'spot' if isSpotOrMargin else 'future'
-                    defaultId = 'x-xcKtGhcu' if (not isSpotOrMargin) else 'x-TKT5PX2F'
-                    broker = self.safe_dict(self.options, 'broker', {})
-                    brokerId = self.safe_string(broker, marketType, defaultId)
-                    params['newClientOrderId'] = brokerId + self.uuid22()
+                # if newClientOrderId is None:
+                #     isSpotOrMargin = (api.find('sapi') > -1 or api == 'private')
+                #     marketType = 'spot' if isSpotOrMargin else 'future'
+                #     defaultId = 'x-xcKtGhcu' if (not isSpotOrMargin) else 'x-TKT5PX2F'
+                #     broker = self.safe_dict(self.options, 'broker', {})
+                #     brokerId = self.safe_string(broker, marketType, defaultId)
+                #     params['newClientOrderId'] = brokerId + self.uuid22()
             query = None
             # handle batchOrders
             if (path == 'batchOrders') and ((method == 'POST') or (method == 'PUT')):
@@ -11171,12 +11173,12 @@ class binance(Exchange, ImplicitAPI):
                     for i in range(0, len(batchOrders)):
                         batchOrder = batchOrders[i]
                         newClientOrderId = self.safe_string(batchOrder, 'newClientOrderId')
-                        if newClientOrderId is None:
-                            defaultId = 'x-xcKtGhcu'  # batchOrders can not be spot or margin
-                            broker = self.safe_dict(self.options, 'broker', {})
-                            brokerId = self.safe_string(broker, 'future', defaultId)
-                            newClientOrderId = brokerId + self.uuid22()
-                            batchOrder['newClientOrderId'] = newClientOrderId
+                        # if newClientOrderId is None:
+                        #     defaultId = 'x-xcKtGhcu'  # batchOrders can not be spot or margin
+                        #     broker = self.safe_dict(self.options, 'broker', {})
+                        #     brokerId = self.safe_string(broker, 'future', defaultId)
+                        #     newClientOrderId = brokerId + self.uuid22()
+                        #     batchOrder['newClientOrderId'] = newClientOrderId
                         checkedBatchOrders.append(batchOrder)
                 queryBatch = (self.json(checkedBatchOrders))
                 params['batchOrders'] = queryBatch

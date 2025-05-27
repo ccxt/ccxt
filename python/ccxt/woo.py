@@ -320,7 +320,7 @@ class woo(Exchange, ImplicitAPI):
                 'transfer': {
                     'fillResponseFromRequest': True,
                 },
-                'brokerId': 'bc830de7-50f3-460b-9ee0-f430f83f9dad',
+                # 'brokerId': 'bc830de7-50f3-460b-9ee0-f430f83f9dad',
             },
             'features': {
                 'default': {
@@ -2575,14 +2575,14 @@ class woo(Exchange, ImplicitAPI):
             self.check_required_credentials()
             if method == 'POST' and (path == 'algo/order' or path == 'order'):
                 isSandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
-                if not isSandboxMode:
-                    applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad'
-                    brokerId = self.safe_string(self.options, 'brokerId', applicationId)
-                    isTrigger = path.find('algo') > -1
-                    if isTrigger:
-                        params['brokerId'] = brokerId
-                    else:
-                        params['broker_id'] = brokerId
+                # if not isSandboxMode:
+                #     applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad'
+                #     brokerId = self.safe_string(self.options, 'brokerId', applicationId)
+                #     isTrigger = path.find('algo') > -1
+                #     if isTrigger:
+                #         params['brokerId'] = brokerId
+                #     else:
+                #         params['broker_id'] = brokerId
                 params = self.keysort(params)
             auth = ''
             ts = str(self.nonce())

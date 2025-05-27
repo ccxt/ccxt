@@ -328,7 +328,7 @@ class vertex(Exchange, ImplicitAPI):
                 'defaultType': 'swap',
                 'sandboxMode': False,
                 'timeDifference': 0,  # the difference between system clock and exchange server clock
-                'brokerId': 5930043274845996,
+                # 'brokerId': 5930043274845996,
             },
             'features': {
                 'default': {
@@ -1785,7 +1785,7 @@ class vertex(Exchange, ImplicitAPI):
                     'nonce': order['nonce'],
                 },
                 'signature': self.build_create_order_sig(order, chainId, verifyingContractAddress),
-                'id': self.safe_integer(self.options, 'brokerId', 5930043274845996),
+                # 'id': self.safe_integer(self.options, 'brokerId', 5930043274845996),
             },
         }
         params = self.omit(params, ['timeInForce', 'reduceOnly', 'postOnly', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice'])
@@ -1897,7 +1897,7 @@ class vertex(Exchange, ImplicitAPI):
                         'nonce': order['nonce'],
                     },
                     'signature': self.build_create_order_sig(order, chainId, verifyingContractAddressOrder),
-                    'id': self.safe_integer(self.options, 'brokerId', 5930043274845996),
+                    # 'id': self.safe_integer(self.options, 'brokerId', 5930043274845996),
                 },
             },
         }

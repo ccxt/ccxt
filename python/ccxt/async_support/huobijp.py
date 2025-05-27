@@ -1421,9 +1421,10 @@ class huobijp(Exchange, ImplicitAPI):
         }
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client-order-id')  # must be 64 chars max and unique within 24 hours
         if clientOrderId is None:
-            broker = self.safe_value(self.options, 'broker', {})
-            brokerId = self.safe_string(broker, 'id')
-            request['client-order-id'] = brokerId + self.uuid()
+            pass
+            # broker = self.safe_value(self.options, 'broker', {})
+            # brokerId = self.safe_string(broker, 'id')
+            # request['client-order-id'] = brokerId + self.uuid()
         else:
             request['client-order-id'] = clientOrderId
         params = self.omit(params, ['clientOrderId', 'client-order-id'])

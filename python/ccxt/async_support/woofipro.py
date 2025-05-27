@@ -304,7 +304,7 @@ class woofipro(Exchange, ImplicitAPI):
             },
             'options': {
                 'sandboxMode': False,
-                'brokerId': 'CCXT',
+                # 'brokerId': 'CCXT',
                 'verifyingContractAddress': '0x6F7a338F2aA472838dEFD3283eB360d4Dff5D203',
             },
             'features': {
@@ -2383,7 +2383,7 @@ class woofipro(Exchange, ImplicitAPI):
             ],
         }
         withdrawRequest: dict = {
-            'brokerId': self.safe_string(self.options, 'keyBrokerId', 'woofi_pro'),
+            # 'brokerId': self.safe_string(self.options, 'keyBrokerId', 'woofi_pro'),
             'chainId': self.parse_to_int(chainId),
             'receiver': address,
             'token': code,
@@ -2672,14 +2672,14 @@ class woofipro(Exchange, ImplicitAPI):
             self.check_required_credentials()
             if (method == 'POST' or method == 'PUT') and (path == 'algo/order' or path == 'order' or path == 'batch-order'):
                 isSandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
-                if not isSandboxMode:
-                    brokerId = self.safe_string(self.options, 'brokerId', 'CCXT')
-                    if path == 'batch-order':
-                        ordersList = self.safe_list(params, 'orders', [])
-                        for i in range(0, len(ordersList)):
-                            params['orders'][i]['order_tag'] = brokerId
-                    else:
-                        params['order_tag'] = brokerId
+                # if not isSandboxMode:
+                #     brokerId = self.safe_string(self.options, 'brokerId', 'CCXT')
+                #     if path == 'batch-order':
+                #         ordersList = self.safe_list(params, 'orders', [])
+                #         for i in range(0, len(ordersList)):
+                #             params['orders'][i]['order_tag'] = brokerId
+                #     else:
+                #         params['order_tag'] = brokerId
                 params = self.keysort(params)
             auth = ''
             ts = str(self.nonce())

@@ -409,7 +409,7 @@ class blofin(Exchange, ImplicitAPI):
             },
             'precisionMode': TICK_SIZE,
             'options': {
-                'brokerId': 'ec6dd3a7dd982d0b',
+                # 'brokerId': 'ec6dd3a7dd982d0b',
                 'accountsByType': {
                     'swap': 'futures',
                     'funding': 'funding',
@@ -1140,7 +1140,7 @@ class blofin(Exchange, ImplicitAPI):
             'side': side,
             'orderType': type,
             'size': self.amount_to_precision(symbol, amount),
-            'brokerId': self.safe_string(self.options, 'brokerId', 'ec6dd3a7dd982d0b'),
+            # 'brokerId': self.safe_string(self.options, 'brokerId', 'ec6dd3a7dd982d0b'),
         }
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('createOrder', params, 'cross')
@@ -1385,7 +1385,7 @@ class blofin(Exchange, ImplicitAPI):
             'instId': market['id'],
             'side': side,
             'positionSide': positionSide,
-            'brokerId': self.safe_string(self.options, 'brokerId', 'ec6dd3a7dd982d0b'),
+            # 'brokerId': self.safe_string(self.options, 'brokerId', 'ec6dd3a7dd982d0b'),
         }
         if amount is not None:
             request['size'] = self.amount_to_precision(symbol, amount)

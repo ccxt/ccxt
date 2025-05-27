@@ -587,7 +587,7 @@ class phemex(Exchange, ImplicitAPI):
                 },
             },
             'options': {
-                'brokerId': 'CCXT123456',  # updated from CCXT to CCXT123456
+                # 'brokerId': 'CCXT123456',  # updated from CCXT to CCXT123456
                 'x-phemex-request-expiry': 60,  # in seconds
                 'createOrderByQuoteRequiresPrice': True,
                 'networks': {
@@ -2591,9 +2591,10 @@ class phemex(Exchange, ImplicitAPI):
         takeProfit = self.safe_value(params, 'takeProfit')
         takeProfitDefined = (takeProfit is not None)
         if clientOrderId is None:
-            brokerId = self.safe_string(self.options, 'brokerId', 'CCXT123456')
-            if brokerId is not None:
-                request['clOrdID'] = brokerId + self.uuid16()
+            pass
+            # brokerId = self.safe_string(self.options, 'brokerId', 'CCXT123456')
+            # if brokerId is not None:
+            #     request['clOrdID'] = brokerId + self.uuid16()
         else:
             request['clOrdID'] = clientOrderId
             params = self.omit(params, ['clOrdID', 'clientOrderId'])
@@ -4308,10 +4309,10 @@ class phemex(Exchange, ImplicitAPI):
             payload = ''
             if method == 'POST':
                 isOrderPlacement = (path == 'g-orders') or (path == 'spot/orders') or (path == 'orders')
-                if isOrderPlacement:
-                    if self.safe_string(params, 'clOrdID') is None:
-                        id = self.safe_string(self.options, 'brokerId', 'CCXT123456')
-                        params['clOrdID'] = id + self.uuid16()
+                # if isOrderPlacement:
+                #     if self.safe_string(params, 'clOrdID') is None:
+                #         id = self.safe_string(self.options, 'brokerId', 'CCXT123456')
+                #         params['clOrdID'] = id + self.uuid16()
                 payload = self.json(params)
                 body = payload
                 headers['Content-Type'] = 'application/json'

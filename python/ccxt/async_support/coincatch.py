@@ -287,7 +287,7 @@ class coincatch(Exchange, ImplicitAPI):
                 },
             },
             'options': {
-                'brokerId': '47cfy',
+                # 'brokerId': '47cfy',
                 'createMarketBuyOrderRequiresPrice': True,  # for spot orders only
                 'timeframes': {
                     'spot': {
@@ -5162,7 +5162,7 @@ class coincatch(Exchange, ImplicitAPI):
                 'ACCESS-TIMESTAMP': timestamp,
                 'ACCESS-PASSPHRASE': self.password,
                 'Content-Type': 'application/json',
-                'X-CHANNEL-API-CODE': self.safe_string(self.options, 'brokerId', '47cfy'),
+                # 'X-CHANNEL-API-CODE': self.safe_string(self.options, 'brokerId', '47cfy'),
             }
         url = self.urls['api'][api] + endpoint
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

@@ -1934,14 +1934,14 @@ class bitmex(Exchange, ImplicitAPI):
         if reduceOnly is not None:
             if (not market['swap']) and (not market['future']):
                 raise InvalidOrder(self.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap and future markets only')
-        brokerId = self.safe_string(self.options, 'brokerId', 'CCXT')
+        # brokerId = self.safe_string(self.options, 'brokerId', 'CCXT')
         qty = self.parse_to_int(self.amount_to_precision(symbol, amount))
         request: dict = {
             'symbol': market['id'],
             'side': self.capitalize(side),
             'orderQty': qty,  # lot size multiplied by the number of contracts
             'ordType': orderType,
-            'text': brokerId,
+            # 'text': brokerId,
         }
         # support for unified trigger format
         triggerPrice = self.safe_number_n(params, ['triggerPrice', 'stopPx', 'stopPrice'])
@@ -2027,8 +2027,8 @@ class bitmex(Exchange, ImplicitAPI):
             request['orderQty'] = qty
         if price is not None:
             request['price'] = price
-        brokerId = self.safe_string(self.options, 'brokerId', 'CCXT')
-        request['text'] = brokerId
+        # brokerId = self.safe_string(self.options, 'brokerId', 'CCXT')
+        # request['text'] = brokerId
         response = self.privatePutOrder(self.extend(request, params))
         return self.parse_order(response)
 

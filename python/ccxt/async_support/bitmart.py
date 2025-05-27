@@ -729,7 +729,7 @@ class bitmart(Exchange, ImplicitAPI):
                     'swap': 'swap',
                 },
                 'createMarketBuyOrderRequiresPrice': True,
-                'brokerId': 'CCXTxBitmart000',
+                # 'brokerId': 'CCXTxBitmart000',
             },
             'features': {
                 'default': {
@@ -5301,11 +5301,11 @@ class bitmart(Exchange, ImplicitAPI):
         if api == 'private':
             self.check_required_credentials()
             timestamp = str(self.nonce())
-            brokerId = self.safe_string(self.options, 'brokerId', 'CCXTxBitmart000')
+            # brokerId = self.safe_string(self.options, 'brokerId', 'CCXTxBitmart000')
             headers = {
                 'X-BM-KEY': self.apiKey,
                 'X-BM-TIMESTAMP': timestamp,
-                'X-BM-BROKER-ID': brokerId,
+                # 'X-BM-BROKER-ID': brokerId,
                 'Content-Type': 'application/json',
             }
             if not getOrDelete:

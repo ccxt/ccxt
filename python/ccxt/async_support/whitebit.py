@@ -315,7 +315,7 @@ class whitebit(Exchange, ImplicitAPI):
                     'BEP20': 'BSC',
                 },
                 'defaultType': 'spot',
-                'brokerId': 'ccxt',
+                # 'brokerId': 'ccxt',
             },
             'features': {
                 'default': {
@@ -1454,9 +1454,10 @@ class whitebit(Exchange, ImplicitAPI):
             request['amount'] = self.amount_to_precision(symbol, amount)
         clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
         if clientOrderId is None:
-            brokerId = self.safe_string(self.options, 'brokerId')
-            if brokerId is not None:
-                request['clientOrderId'] = brokerId + self.uuid16()
+            pass
+            # brokerId = self.safe_string(self.options, 'brokerId')
+            # if brokerId is not None:
+            #     request['clientOrderId'] = brokerId + self.uuid16()
         else:
             request['clientOrderId'] = clientOrderId
             params = self.omit(params, ['clientOrderId'])

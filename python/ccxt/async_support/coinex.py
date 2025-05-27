@@ -457,7 +457,7 @@ class coinex(Exchange, ImplicitAPI):
                 },
             },
             'options': {
-                'brokerId': 'x-167673045',
+                # 'brokerId': 'x-167673045',
                 'createMarketBuyOrderRequiresPrice': True,
                 'defaultType': 'spot',  # spot, swap, margin
                 'defaultSubType': 'linear',  # linear, inverse
@@ -2124,9 +2124,10 @@ class coinex(Exchange, ImplicitAPI):
             'market': market['id'],
         }
         if clientOrderId is None:
-            defaultId = 'x-167673045'
-            brokerId = self.safe_string(self.options, 'brokerId', defaultId)
-            request['client_id'] = brokerId + '-' + self.uuid16()
+            pass
+            # defaultId = 'x-167673045'
+            # brokerId = self.safe_string(self.options, 'brokerId', defaultId)
+            # request['client_id'] = brokerId + '-' + self.uuid16()
         else:
             request['client_id'] = clientOrderId
         if (stopLossPrice is None) and (takeProfitPrice is None):
@@ -5691,10 +5692,10 @@ class coinex(Exchange, ImplicitAPI):
                 # POST /perpetual/v1/order/put_stop_limit - Place stop limit orders
                 # POST /perpetual/v1/order/put_stop_market - Place stop market orders
                 clientOrderId = self.safe_string(params, 'client_id')
-                if clientOrderId is None:
-                    defaultId = 'x-167673045'
-                    brokerId = self.safe_value(self.options, 'brokerId', defaultId)
-                    query['client_id'] = brokerId + '_' + self.uuid16()
+                # if clientOrderId is None:
+                #     defaultId = 'x-167673045'
+                #     brokerId = self.safe_value(self.options, 'brokerId', defaultId)
+                #     query['client_id'] = brokerId + '_' + self.uuid16()
         if requestUrl == 'perpetualPrivate':
             self.check_required_credentials()
             query = self.extend({

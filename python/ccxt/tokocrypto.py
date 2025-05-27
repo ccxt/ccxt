@@ -1710,11 +1710,12 @@ class tokocrypto(Exchange, ImplicitAPI):
         elif side == 'sell':
             request['side'] = 1
         if clientOrderId is None:
-            broker = self.safe_value(self.options, 'broker')
-            if broker is not None:
-                brokerId = self.safe_string(broker, 'marketType')
-                if brokerId is not None:
-                    request['clientId'] = brokerId + self.uuid22()
+            pass
+            # broker = self.safe_value(self.options, 'broker')
+            # if broker is not None:
+            #     brokerId = self.safe_string(broker, 'marketType')
+            #     if brokerId is not None:
+            #         request['clientId'] = brokerId + self.uuid22()
         else:
             request['clientId'] = clientOrderId
         # additional required fields depending on the order type

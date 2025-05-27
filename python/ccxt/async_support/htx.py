@@ -5097,9 +5097,10 @@ class htx(Exchange, ImplicitAPI):
         request['type'] = side + '-' + orderType
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client-order-id')  # must be 64 chars max and unique within 24 hours
         if clientOrderId is None:
-            broker = self.safe_value(self.options, 'broker', {})
-            brokerId = self.safe_string(broker, 'id')
-            request['client-order-id'] = brokerId + self.uuid()
+            pass
+            # broker = self.safe_value(self.options, 'broker', {})
+            # brokerId = self.safe_string(broker, 'id')
+            # request['client-order-id'] = brokerId + self.uuid()
         else:
             request['client-order-id'] = clientOrderId
         if marginMode == 'cross':
@@ -5221,9 +5222,9 @@ class htx(Exchange, ImplicitAPI):
                 request['offset'] = 'close'
             else:
                 request['offset'] = 'open'
-        broker = self.safe_value(self.options, 'broker', {})
-        brokerId = self.safe_string(broker, 'id')
-        request['channel_code'] = brokerId
+        # broker = self.safe_value(self.options, 'broker', {})
+        # brokerId = self.safe_string(broker, 'id')
+        # request['channel_code'] = brokerId
         params = self.omit(params, ['reduceOnly', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate', 'timeInForce', 'leverage', 'trailingPercent', 'trailingTriggerPrice', 'hedged'])
         return self.extend(request, params)
 
