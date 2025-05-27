@@ -183,7 +183,7 @@ export default class Client {
         return result
     }
 
-    log (... args: any[]) {
+    log (...args: any[]) {
         console.log (... args)
         // console.dir (args, { depth: null })
     }
