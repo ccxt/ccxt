@@ -216,21 +216,6 @@ function createImplicitMethodsGo(){
         const exchange = exchanges[index];
         const methodNames = storedCamelCaseMethods[exchange];
 
-        const methods = methodNames.map(method=> {
-            return [
-                `func (this *${exchange}) ${capitalize(method)} (args ...interface{}) <-chan interface{} {`,
-                `   return this.callAsyncEndpoint("${method}", args...)`,
-                `}`,
-                ``,
-            ].join('\n')
-            // return [
-            //     `${IDEN}func (this *${exchange}) ${capitalize(method)} (args ...interface{}) <-chan interface{} {`,
-            //     `${IDEN}${IDEN}parameters := GetArg(args, 0, nil)`,
-            //     `${IDEN}${IDEN}return this.callEndpoint ("${method}", parameters);`,
-            //     `${IDEN}}`,
-            //     ``,
-            // ].join('\n')
-        });
         const reusableMethod = [
             `func (this *${exchange}) callEndpointAsync(endpointName string, args ...interface{}) <-chan interface{} {`,
             `   parameters := GetArg(args, 0, nil)`,
@@ -249,7 +234,23 @@ function createImplicitMethodsGo(){
             `}`,
             ``
         ].join('\n');
-        storedGoMethods[exchange].unshift (reusableMethod);
+
+        const methods = methodNames.map(method=> {
+            return [
+                `func (this *${exchange}) ${capitalize(method)} (args ...interface{}) <-chan interface{} {`,
+                `   return this.callAsyncEndpoint("${method}", args...)`,
+                `}`,
+                ``,
+            ].join('\n')
+            // return [
+            //     `${IDEN}func (this *${exchange}) ${capitalize(method)} (args ...interface{}) <-chan interface{} {`,
+            //     `${IDEN}${IDEN}parameters := GetArg(args, 0, nil)`,
+            //     `${IDEN}${IDEN}return this.callEndpoint ("${method}", parameters);`,
+            //     `${IDEN}}`,
+            //     ``,
+            // ].join('\n')
+        });
+        methods.unshift (reusableMethod);
         storedGoMethods[exchange] = storedGoMethods[exchange].concat (methods)
     }
 }
