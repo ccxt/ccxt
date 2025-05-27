@@ -1,0 +1,238 @@
+{
+    "exchange": "cex",
+    "skipKeys": [],
+    "methods": {
+        "createOrder": [
+            {
+                "description": "Create order",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDC",
+                    "market",
+                    "buy",
+                    1,
+                    100000
+                ],
+                "httpResponse": {
+                    "message": "Command acknowledged - CreateOrder",
+                    "requestId": "847411698592121856",
+                    "orderId": "847411698592121857",
+                    "clientOrderId":null
+                },
+                "parsedResponse": {
+                    "id": "847411698592121857",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "status": null,
+                    "symbol": "BTC/USDC",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "cost": null,
+                    "trades": [],
+                    "fee": {},
+                    "info": {
+                        "message": "Command acknowledged - CreateOrder",
+                        "requestId": "847411698592121856",
+                        "orderId": "847411698592121857",
+                        "clientOrderId": null
+                    },
+                    "average": null,
+                    "fees": [
+                        {
+                            "cost": null
+                        }
+                    ],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "Fetch orders for BTC/USDC",
+                "method": "fetchOrders",
+                "input": [
+                    "BTC/USDC"
+                ],
+                "httpResponse": [
+                    {
+                        "allowBorrow": false,
+                        "averageFillPrice": null,
+                        "baseFee": "0.000000",
+                        "borrowedBaseQuantity": null,
+                        "borrowedQuantity": null,
+                        "borrowedQuoteQuantity": null,
+                        "clientOrderId": null,
+                        "createdAtDatetime": "2025-05-22T21:16:34.592Z",
+                        "createdAtTimestamp": "1747948594592",
+                        "handle": null,
+                        "isLiquidation": false,
+                        "margin": false,
+                        "orderId": "845772151437393921",
+                        "price": "110000.0000",
+                        "publishedAtTimestamp": "1748336531294",
+                        "quantity": "1.00000000",
+                        "quantityFilled": "0.00000000",
+                        "quoteAmount": null,
+                        "quoteFee": "0.000000",
+                        "side": "SELL",
+                        "status": "OPEN",
+                        "statusReason": "Open",
+                        "statusReasonCode": "6001",
+                        "stopPrice": "100000.0000",
+                        "symbol": "BTCUSDC",
+                        "timeInForce": "GTC",
+                        "type": "STOP_LIMIT"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "845772151437393921",
+                        "clientOrderId": null,
+                        "timestamp": 1747948594592,
+                        "datetime": "2025-05-22T21:16:34.592Z",
+                        "lastTradeTimestamp": null,
+                        "status": "open",
+                        "symbol": "BTC/USDC",
+                        "type": "STOP_LIMIT",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "side": "SELL",
+                        "price": 110000,
+                        "triggerPrice": 100000,
+                        "amount": 1,
+                        "filled": 0,
+                        "remaining": 1,
+                        "cost": 0,
+                        "trades": [],
+                        "fee": {
+                            "cost": 0,
+                            "currency": "USDC"
+                        },
+                        "info": {
+                            "allowBorrow": false,
+                            "averageFillPrice": null,
+                            "baseFee": "0.000000",
+                            "borrowedBaseQuantity": null,
+                            "borrowedQuantity": null,
+                            "borrowedQuoteQuantity": null,
+                            "clientOrderId": null,
+                            "createdAtDatetime": "2025-05-22T21:16:34.592Z",
+                            "createdAtTimestamp": "1747948594592",
+                            "handle": null,
+                            "isLiquidation": false,
+                            "margin": false,
+                            "orderId": "845772151437393921",
+                            "price": "110000.0000",
+                            "publishedAtTimestamp": "1748336531294",
+                            "quantity": "1.00000000",
+                            "quantityFilled": "0.00000000",
+                            "quoteAmount": null,
+                            "quoteFee": "0.000000",
+                            "side": "SELL",
+                            "status": "OPEN",
+                            "statusReason": "Open",
+                            "statusReasonCode": "6001",
+                            "stopPrice": "100000.0000",
+                            "symbol": "BTCUSDC",
+                            "timeInForce": "GTC",
+                            "type": "STOP_LIMIT"
+                        },
+                        "average": null,
+                        "fees": [
+                            {
+                                "cost": 0,
+                                "currency": "USDC"
+                            }
+                        ],
+                        "lastUpdateTimestamp": null,
+                        "reduceOnly": null,
+                        "stopPrice": 100000,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "Fetch my trades for BTC/USDC",
+                "method": "fetchMyTrades",
+                "input": [
+                    "BTC/USDC"
+                ],
+                "httpResponse": [
+                    {
+                        "baseFee": "0.00000000",
+                        "createdAtDatetime": "2025-05-23T11:47:05.588Z",
+                        "createdAtTimestamp": "1748000825588",
+                        "handle": null,
+                        "isTaker": false,
+                        "orderId": "845771590952550401",
+                        "price": "110000.0000",
+                        "publishedAtTimestamp": "1748333695182",
+                        "quantity": "1.00000000",
+                        "quoteAmount": "110000.0000",
+                        "quoteFee": "0.0000",
+                        "side": "BUY",
+                        "symbol": "BTCUSDC",
+                        "tradeId": "100182000000516287"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "baseFee": "0.00000000",
+                            "createdAtDatetime": "2025-05-23T11:47:05.588Z",
+                            "createdAtTimestamp": "1748000825588",
+                            "handle": null,
+                            "isTaker": false,
+                            "orderId": "845771590952550401",
+                            "price": "110000.0000",
+                            "publishedAtTimestamp": "1748333695182",
+                            "quantity": "1.00000000",
+                            "quoteAmount": "110000.0000",
+                            "quoteFee": "0.0000",
+                            "side": "BUY",
+                            "symbol": "BTCUSDC",
+                            "tradeId": "100182000000516287"
+                        },
+                        "timestamp": 1748000825588,
+                        "datetime": "2025-05-23T11:47:05.588Z",
+                        "symbol": "BTC/USDC",
+                        "id": "BTCUSDC",
+                        "order": "100182000000516287",
+                        "type": null,
+                        "takerOrMaker": "maker",
+                        "side": "BUY",
+                        "price": 110000,
+                        "amount": 1,
+                        "cost": 110000,
+                        "fee": {
+                            "currency": "USDC",
+                            "cost": 0
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDC",
+                                "cost": 0
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}
