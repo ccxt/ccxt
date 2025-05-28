@@ -2,6 +2,96 @@
     "exchange": "poloniex",
     "skipKeys": [],
     "methods": {
+        "createDepositAddress": [
+            {
+                "description": "create BTC",
+                "method": "createDepositAddress",
+                "input": [
+                    "BTC",
+                    {
+                        "network": "BTC"
+                    }
+                ],
+                "httpResponse": {
+                    "address": "1Dg3szYQXyCrNEZo4tThewzSBE8fdkYRMn"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "address": "1Dg3szYQXyCrNEZo4tThewzSBE8fdkYRMn"
+                    },
+                    "currency": "BTC",
+                    "network": "BTC",
+                    "address": "1Dg3szYQXyCrNEZo4tThewzSBE8fdkYRMn",
+                    "tag": null
+                }
+            },
+            {
+                "description": "create ETH",
+                "method": "createDepositAddress",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "httpResponse": {
+                    "address": "0xd60fbe593482c1e9cd3175e304a26355689a1a55"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "address": "0xd60fbe593482c1e9cd3175e304a26355689a1a55"
+                    },
+                    "currency": "USDT",
+                    "network": "ERC20",
+                    "address": "0xd60fbe593482c1e9cd3175e304a26355689a1a55",
+                    "tag": null
+                }
+            },
+            {
+                "description": "create ERC20",
+                "method": "createDepositAddress",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ERC20"
+                    }
+                ],
+                "httpResponse": {
+                    "address": "0xd60fbe593482c1e9cd3175e304a26355689a1a55"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "address": "0xd60fbe593482c1e9cd3175e304a26355689a1a55"
+                    },
+                    "currency": "USDT",
+                    "network": "ERC20",
+                    "address": "0xd60fbe593482c1e9cd3175e304a26355689a1a55",
+                    "tag": null
+                }
+            },
+            {
+                "description": "create TRC20",
+                "method": "createDepositAddress",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "TRC20"
+                    }
+                ],
+                "httpResponse": {
+                    "address": "TMgp3onz9UzHShHjwHWUPspefxNqBZ5hiC"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "address": "TMgp3onz9UzHShHjwHWUPspefxNqBZ5hiC"
+                    },
+                    "currency": "USDT",
+                    "network": "TRC20",
+                    "address": "TMgp3onz9UzHShHjwHWUPspefxNqBZ5hiC",
+                    "tag": null
+                }
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "fetchCurrencies",

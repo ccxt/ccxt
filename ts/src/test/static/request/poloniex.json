@@ -6,6 +6,56 @@
     ],
     "outputType": "json",
     "methods": {
+        "createDepositAddress": [
+            {
+                "description": "create BTC",
+                "method": "createDepositAddress",
+                "url": "https://api.poloniex.com/wallets/address",
+                "input": [
+                    "BTC",
+                    {
+                        "network": "BTC"
+                    }
+                ],
+                "output": "{\"currency\":\"BTC\"}"
+            },
+            {
+                "description": "create ETH",
+                "method": "createDepositAddress",
+                "url": "https://api.poloniex.com/wallets/address",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "output": "{\"currency\":\"USDTETH\"}"
+            },
+            {
+                "description": "create ERC20",
+                "method": "createDepositAddress",
+                "url": "https://api.poloniex.com/wallets/address",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ERC20"
+                    }
+                ],
+                "output": "{\"currency\":\"USDTETH\"}"
+            },
+            {
+                "description": "create TRC20",
+                "method": "createDepositAddress",
+                "url": "https://api.poloniex.com/wallets/address",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "TRC20"
+                    }
+                ],
+                "output": "{\"currency\":\"USDTTRON\"}"
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "fetchCurrencies",
