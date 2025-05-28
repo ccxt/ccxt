@@ -4,44 +4,415 @@
     "methods": {
         "fetchCurrencies": [
             {
-                "description": "fetch Currencies",
+                "description": "fetchCurrencies",
                 "method": "fetchCurrencies",
                 "input": [],
                 "httpResponse": [
                     {
-                        "product_id": "0",
-                        "ticker_id": null,
-                        "market_type": null,
-                        "name": "USDC",
-                        "symbol": "USDC",
-                        "maker_fee": null,
-                        "taker_fee": null,
+                        "product_id": "31",
+                        "ticker_id": "USDT_USDC",
+                        "market_type": "spot",
+                        "name": "Tether USD",
+                        "symbol": "USDT",
+                        "maker_fee": "0.0",
+                        "taker_fee": "0.0002",
+                        "can_withdraw": true,
+                        "can_deposit": true
+                    },
+                    {
+                        "product_id": "41",
+                        "ticker_id": "VRTX_USDC",
+                        "market_type": "spot",
+                        "name": "Vertex",
+                        "symbol": "VRTX",
+                        "maker_fee": "0.0",
+                        "taker_fee": "0.0002",
+                        "can_withdraw": true,
+                        "can_deposit": true
+                    },
+                    {
+                        "product_id": "1",
+                        "ticker_id": "WBTC_USDC",
+                        "market_type": "spot",
+                        "name": "Wrapped BTC",
+                        "symbol": "WBTC",
+                        "maker_fee": "0.0",
+                        "taker_fee": "0.0002",
+                        "can_withdraw": true,
+                        "can_deposit": true
+                    },
+                    {
+                        "product_id": "3",
+                        "ticker_id": "WETH_USDC",
+                        "market_type": "spot",
+                        "name": "Wrapped Ether",
+                        "symbol": "WETH",
+                        "maker_fee": "0.0",
+                        "taker_fee": "0.0002",
+                        "can_withdraw": true,
+                        "can_deposit": true
+                    },
+                    {
+                        "product_id": "104",
+                        "ticker_id": "WIF-PERP_USDC",
+                        "market_type": "perp",
+                        "name": "dogwifhat Perp",
+                        "symbol": "WIF-PERP",
+                        "maker_fee": "0.0",
+                        "taker_fee": "0.0002",
+                        "can_withdraw": false,
+                        "can_deposit": false
+                    },
+                    {
+                        "product_id": "76",
+                        "ticker_id": "WLD-PERP_USDC",
+                        "market_type": "perp",
+                        "name": "Worldcoin Perp",
+                        "symbol": "WLD-PERP",
+                        "maker_fee": "0.0",
+                        "taker_fee": "0.0002",
+                        "can_withdraw": false,
+                        "can_deposit": false
+                    },
+                    {
+                        "product_id": "10",
+                        "ticker_id": "XRP-PERP_USDC",
+                        "market_type": "perp",
+                        "name": "XRP Perp",
+                        "symbol": "XRP-PERP",
+                        "maker_fee": "0.0",
+                        "taker_fee": "0.0002",
+                        "can_withdraw": false,
+                        "can_deposit": false
+                    },
+                    {
+                        "product_id": "132",
+                        "ticker_id": "ZRO-PERP_USDC",
+                        "market_type": "perp",
+                        "name": "LayerZero Perp",
+                        "symbol": "ZRO-PERP",
+                        "maker_fee": "0.0",
+                        "taker_fee": "0.0002",
+                        "can_withdraw": false,
+                        "can_deposit": false
+                    },
+                    {
+                        "product_id": "149",
+                        "ticker_id": "wstETH_USDC",
+                        "market_type": "spot",
+                        "name": "Wrapped liquid staked Ether 2.0",
+                        "symbol": "wstETH",
+                        "maker_fee": "0.0",
+                        "taker_fee": "0.0002",
                         "can_withdraw": true,
                         "can_deposit": true
                     }
                 ],
                 "parsedResponse": {
                     "USDC": {
-                        "id": "0",
-                        "name": "USDC",
-                        "code": "USDC",
-                        "precision": null,
                         "info": {
                             "product_id": "0",
                             "ticker_id": null,
                             "market_type": null,
-                            "name": "USDC",
+                            "name": "USD Coin",
                             "symbol": "USDC",
                             "maker_fee": null,
                             "taker_fee": null,
                             "can_withdraw": true,
                             "can_deposit": true
                         },
+                        "id": "0",
+                        "numericId": null,
+                        "code": "USDC",
+                        "precision": null,
+                        "type": null,
+                        "name": "USDC",
                         "active": null,
                         "deposit": true,
                         "withdraw": true,
-                        "networks": null,
                         "fee": null,
+                        "fees": {},
+                        "networks": null,
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    },
+                    "ARB": {
+                        "info": {
+                            "product_id": "5",
+                            "ticker_id": "ARB_USDC",
+                            "market_type": "spot",
+                            "name": "Arbitrum",
+                            "symbol": "ARB",
+                            "maker_fee": "0.0",
+                            "taker_fee": "0.0002",
+                            "can_withdraw": true,
+                            "can_deposit": true
+                        },
+                        "id": "5",
+                        "numericId": null,
+                        "code": "ARB",
+                        "precision": null,
+                        "type": null,
+                        "name": "ARB",
+                        "active": null,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": null,
+                        "fees": {},
+                        "networks": null,
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    },
+                    "HARRISWIN": {
+                        "info": {
+                            "product_id": "125",
+                            "ticker_id": "HARRISWIN_USDC",
+                            "market_type": "spot",
+                            "name": "HARRIS",
+                            "symbol": "HARRISWIN",
+                            "maker_fee": "0.0",
+                            "taker_fee": "0.0002",
+                            "can_withdraw": true,
+                            "can_deposit": true
+                        },
+                        "id": "125",
+                        "numericId": null,
+                        "code": "HARRISWIN",
+                        "precision": null,
+                        "type": null,
+                        "name": "HARRISWIN",
+                        "active": null,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": null,
+                        "fees": {},
+                        "networks": null,
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    },
+                    "TRUMPWIN": {
+                        "info": {
+                            "product_id": "121",
+                            "ticker_id": "TRUMPWIN_USDC",
+                            "market_type": "spot",
+                            "name": "TRUMP",
+                            "symbol": "TRUMPWIN",
+                            "maker_fee": "0.0",
+                            "taker_fee": "0.0002",
+                            "can_withdraw": true,
+                            "can_deposit": true
+                        },
+                        "id": "121",
+                        "numericId": null,
+                        "code": "TRUMPWIN",
+                        "precision": null,
+                        "type": null,
+                        "name": "TRUMPWIN",
+                        "active": null,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": null,
+                        "fees": {},
+                        "networks": null,
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    },
+                    "USDT": {
+                        "info": {
+                            "product_id": "31",
+                            "ticker_id": "USDT_USDC",
+                            "market_type": "spot",
+                            "name": "Tether USD",
+                            "symbol": "USDT",
+                            "maker_fee": "0.0",
+                            "taker_fee": "0.0002",
+                            "can_withdraw": true,
+                            "can_deposit": true
+                        },
+                        "id": "31",
+                        "numericId": null,
+                        "code": "USDT",
+                        "precision": null,
+                        "type": null,
+                        "name": "USDT",
+                        "active": null,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": null,
+                        "fees": {},
+                        "networks": null,
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    },
+                    "VRTX": {
+                        "info": {
+                            "product_id": "41",
+                            "ticker_id": "VRTX_USDC",
+                            "market_type": "spot",
+                            "name": "Vertex",
+                            "symbol": "VRTX",
+                            "maker_fee": "0.0",
+                            "taker_fee": "0.0002",
+                            "can_withdraw": true,
+                            "can_deposit": true
+                        },
+                        "id": "41",
+                        "numericId": null,
+                        "code": "VRTX",
+                        "precision": null,
+                        "type": null,
+                        "name": "VRTX",
+                        "active": null,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": null,
+                        "fees": {},
+                        "networks": null,
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    },
+                    "WBTC": {
+                        "info": {
+                            "product_id": "1",
+                            "ticker_id": "WBTC_USDC",
+                            "market_type": "spot",
+                            "name": "Wrapped BTC",
+                            "symbol": "WBTC",
+                            "maker_fee": "0.0",
+                            "taker_fee": "0.0002",
+                            "can_withdraw": true,
+                            "can_deposit": true
+                        },
+                        "id": "1",
+                        "numericId": null,
+                        "code": "WBTC",
+                        "precision": null,
+                        "type": null,
+                        "name": "WBTC",
+                        "active": null,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": null,
+                        "fees": {},
+                        "networks": null,
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    },
+                    "WETH": {
+                        "info": {
+                            "product_id": "3",
+                            "ticker_id": "WETH_USDC",
+                            "market_type": "spot",
+                            "name": "Wrapped Ether",
+                            "symbol": "WETH",
+                            "maker_fee": "0.0",
+                            "taker_fee": "0.0002",
+                            "can_withdraw": true,
+                            "can_deposit": true
+                        },
+                        "id": "3",
+                        "numericId": null,
+                        "code": "WETH",
+                        "precision": null,
+                        "type": null,
+                        "name": "WETH",
+                        "active": null,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": null,
+                        "fees": {},
+                        "networks": null,
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    },
+                    "WSTETH": {
+                        "info": {
+                            "product_id": "149",
+                            "ticker_id": "wstETH_USDC",
+                            "market_type": "spot",
+                            "name": "Wrapped liquid staked Ether 2.0",
+                            "symbol": "wstETH",
+                            "maker_fee": "0.0",
+                            "taker_fee": "0.0002",
+                            "can_withdraw": true,
+                            "can_deposit": true
+                        },
+                        "id": "149",
+                        "numericId": null,
+                        "code": "WSTETH",
+                        "precision": null,
+                        "type": null,
+                        "name": "wstETH",
+                        "active": null,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": null,
+                        "fees": {},
+                        "networks": null,
                         "limits": {
                             "amount": {
                                 "min": null,
