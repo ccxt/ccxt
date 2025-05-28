@@ -9,10 +9,11 @@
   },
   "parser": "@typescript-eslint/parser",
   "plugins": ["@typescript-eslint"],
-  "extends": ["eslint:recommended", "airbnb-base", "plugin:import/typescript", "plugin:jsdoc/recommended-typescript-error"],
+  "extends": ["eslint:recommended", "airbnb-base", "plugin:import/typescript"],
   "ignorePatterns": ["base/functions/*", "static_dependencies/*", "pro/bridge/*", "abstract/*"],
   "rules": {
     "import/no-unresolved":"off", // tmp until typescript decides to properly resolve names
+    "jsdoc/require-param-description": "off",
     "import/named": "off",
     "strict": "off",
     "semi": "error",
@@ -26,6 +27,7 @@
         "exports": "always-multiline",
         "functions": "never"
     }],
+    "no-use-before-define":"off",
     "import/extensions": "off",
     "brace-style": ["error", "1tbs"],
     "multiline-comment-style": ["error", "separate-lines"],

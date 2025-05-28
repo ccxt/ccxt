@@ -1,9 +1,8 @@
 import ansi from 'ansicolor';
 import { Command } from 'commander';
 import ololog from 'ololog';
-import readline from 'readline';
 import { parseMethodArgs, printHumanReadable, printSavedCommand, printUsage, loadSettingsAndCreateExchange, collectKeyValue, handleDebug, handleStaticTests, askForArgv } from './helpers.js';
-import { checkCache, saveCommand } from './cache.js';
+import { checkCache } from './cache.js';
 
 let ccxt;
 let local = false;
@@ -28,6 +27,8 @@ process.on ('unhandledRejection', (e) => {
 });
 
 //-----------------------------------------------------------------------------
+
+const version = 'v0.0.1';
 
 interface CLIOptions {
     verbose?: boolean;
@@ -61,38 +62,56 @@ interface CLIOptions {
 const commandToShow = local ? 'node ./cli' : 'ccxt';
 const program = new Command ();
 
+program.addHelpText ('after', `
+    Examples:
+      $ ccxt binance fetchTrades "BTC/USDT"
+      $ ccxt bybit fetchOHLCV "BTC/USDT" 15m 1722161166529 20 --param until=1722161166530
+      $ ccxt okx fetchTrades "BTC/USDT" --sandbox
+      $ ccxt binance fetchBalance --swap
+      $ BINANCE_APIKEY=abc123 BINANCE_SECRET=def456 ccxt binance createOrder BTC/USDT market buy 0.01
+      $ ccxt history
+
+    Notes:
+        - Provide apiKeys by setting them as environment variables eg: BINANCE_APIKEY="XXX"
+        - Provide apikeys and other settings by adding them to ~/.ccxt/config.json
+    `);
+
 //-----------------------------------------------------------------------------
-//  [ processPath, , exchangeId, methodName, ...params ] = process.argv.filter ((x) => !x.startsWith ('--'));
 
 program
-    .option ('--verbose')
+    .version (version)
+    .usage ('exchangeId methodName arg1 argN [options]')
+    .description ('CCXT CLI tool');
+
+program
+    .option ('--verbose', 'enables the verbose mode')
     .option ('--debug')
-    .option ('--poll')
+    .option ('--poll', 'will repeat the call continously')
     .option ('--no-send')
-    .option ('--no-load-markets')
+    .option ('--no-load-markets', 'skips markets loading')
     .option ('--details')
-    .option ('--no-table')
+    .option ('--no-table', 'does not prettify the results')
     .option ('--table')
     .option ('--iso8601')
     .option ('--cors')
-    .option ('--cache-markets')
-    .option ('--testnet')
-    .option ('--sandbox')
-    .option ('--signIn')
-    .option ('--spot')
-    .option ('--swap')
-    .option ('--future')
-    .option ('--option')
+    .option ('--cache-markets', 'forces markets caching')
+    .option ('--testnet', 'enables the sandbox mode')
+    .option ('--sandbox', 'enables the sandbox mode')
+    .option ('--signIn', 'calls the signIn() method if available')
+    .option ('--spot', 'sets defaultType as spot')
+    .option ('--swap', 'sets defaultType as swap')
+    .option ('--future', 'sets defaultType as future')
+    .option ('--option', 'sets defaultType as option')
     .option ('--request')
     .option ('--response')
     .option ('--static')
-    .option ('--raw')
-    .option ('--no-keys')
-    .option ('--i')
-    .option ('--history')
+    .option ('--raw', 'keeps the output pristine without extra logs or formatting')
+    .option ('--no-keys', 'does not set any apiKeys even if detected')
+    .option ('--i', 'iteractive mode, keeps the session opened')
+    .option ('--history', 'prints the history of executed commands')
     .option ('--name <description>', 'Description of static test')
     .option ('--param <keyValue>', 'Pass key=value pair', collectKeyValue, {})
-    .argument ('<inputs...>', 'exchangeId method args');
+    .argument ('<inputs...>', 'exchangeId methodName arg1 arg2 argN');
 
 let inputArgs = process.argv;
 
@@ -125,7 +144,7 @@ async function run () {
     checkCache ();
     const iMode = cliOptions.i;
 
-    while (true) {
+    while (true) { // main loop, used for the interactive mode
         if (cliOptions.history) {
             printSavedCommand (cliOptions);
         }
@@ -150,44 +169,17 @@ async function run () {
             printHumanReadable (exchange, exchange[methodName], cliOptions);
         }
 
-        const isWsMethod = methodName.startsWith ('watch');
-        let start = exchange.milliseconds ();
-        let end = exchange.milliseconds ();
         let i = 0;
+        const isWsMethod = methodName.startsWith ('watch');
         try {
-            const args = parseMethodArgs (exchange, params, methodName, cliOptions);
+            while (true) { // inner loop used for watchX calls and --poll
+                await executeCCXTCommand (exchange, params, methodName, cliOptions, i);
+                i++;
 
-            if (!cliOptions.raw || cliOptions.details) {
-                const methodArgsPrint = JSON.stringify (args);
-                log (exchange.id + '.' + methodName, '(' + methodArgsPrint.substring (1, methodArgsPrint.length - 1) + ')');
+                if (!isWsMethod && !cliOptions.poll) {
+                    break;
+                }
             }
-
-            const result = await exchange[methodName] (...args);
-            end = exchange.milliseconds ();
-            if (!isWsMethod && !cliOptions.raw) {
-                log (
-                    exchange.iso8601 (end),
-                    'iteration',
-                    i++,
-                    'passed in',
-                    end - start,
-                    'ms\n'
-                );
-            }
-            printHumanReadable (exchange, result, cliOptions);
-            if (!isWsMethod && !cliOptions.raw) {
-                log (
-                    exchange.iso8601 (end),
-                    'iteration',
-                    i,
-                    'passed in',
-                    end - start,
-                    'ms\n'
-                );
-            }
-            start = end;
-
-            handleStaticTests (cliOptions, exchange, methodName, args, result);
         } catch (e) {
             if (e instanceof ExchangeError) {
                 log.red (e.constructor.name, e.message);
@@ -199,9 +191,7 @@ async function run () {
             throw e;
         }
 
-        handleDebug (cliOptions);
-
-        if (!cliOptions.poll && !isWsMethod && !iMode) {
+        if (!iMode) {
             exchange.close ();
             break;
         }
@@ -216,6 +206,49 @@ async function run () {
         [ exchangeId, methodName, ...params ] = program.args;
     }
 }
+// ----------------------------------------------------------------------------
+
+async function executeCCXTCommand (exchange, params, methodName, cliOptions, i) {
+    const isWsMethod = methodName.startsWith ('watch');
+    let start = exchange.milliseconds ();
+    let end = exchange.milliseconds ();
+    const args = parseMethodArgs (exchange, params, methodName, cliOptions);
+
+    if (!cliOptions.raw || cliOptions.details) {
+        const methodArgsPrint = JSON.stringify (args);
+        log (exchange.id + '.' + methodName, '(' + methodArgsPrint.substring (1, methodArgsPrint.length - 1) + ')');
+    }
+
+    const result = await exchange[methodName] (...args);
+    end = exchange.milliseconds ();
+    if (!isWsMethod && !cliOptions.raw) {
+        log (
+            exchange.iso8601 (end),
+            'iteration',
+            i++,
+            'passed in',
+            end - start,
+            'ms\n'
+        );
+    }
+    printHumanReadable (exchange, result, cliOptions);
+    if (!isWsMethod && !cliOptions.raw) {
+        log (
+            exchange.iso8601 (end),
+            'iteration',
+            i,
+            'passed in',
+            end - start,
+            'ms\n'
+        );
+    }
+    start = end;
+
+    handleStaticTests (cliOptions, exchange, methodName, args, result);
+
+    handleDebug (cliOptions);
+}
+
 //-----------------------------------------------------------------------------
 run ();
 
