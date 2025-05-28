@@ -6,6 +6,15 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.poloniex.com/currencies?includeMultiChainCurrencies=true",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchPositions": [
             {
                 "description": "linear",
