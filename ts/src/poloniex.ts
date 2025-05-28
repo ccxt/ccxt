@@ -1162,105 +1162,106 @@ export default class poloniex extends Exchange {
         const response = await this.publicGetCurrencies (this.extend (params, { 'includeMultiChainCurrencies': true }));
         //
         //     [
-        //         {
-        //             "1CR": {
-        //                 "id": 1,
-        //                 "name": "1CRedit",
-        //                 "description": "BTC Clone",
-        //                 "type": "address",
-        //                 "withdrawalFee": "0.01000000",
-        //                 "minConf": 10000,
-        //                 "depositAddress": null,
-        //                 "blockchain": "1CR",
-        //                 "delisted": false,
-        //                 "tradingState": "NORMAL",
-        //                 "walletState": "DISABLED",
-        //                 "walletDepositState": "DISABLED",
-        //                 "walletWithdrawalState": "DISABLED",
-        //                 "parentChain": null,
-        //                 "isMultiChain": false,
-        //                 "isChildChain": false,
-        //                 "childChains": []
-        //             }
-        //         }
+        //      {
+        //        "USDT": {
+        //           "id": 214,
+        //           "name": "Tether USD",
+        //           "description": "Sweep to Main Account",
+        //           "type": "address",
+        //           "withdrawalFee": "0.00000000",
+        //           "minConf": 2,
+        //           "depositAddress": null,
+        //           "blockchain": "OMNI",
+        //           "delisted": false,
+        //           "tradingState": "NORMAL",
+        //           "walletState": "DISABLED",
+        //           "walletDepositState": "DISABLED",
+        //           "walletWithdrawalState": "DISABLED",
+        //           "supportCollateral": true,
+        //           "supportBorrow": true,
+        //           "parentChain": null,
+        //           "isMultiChain": true,
+        //           "isChildChain": false,
+        //           "childChains": [
+        //             "USDTBSC",
+        //             "USDTETH",
+        //             "USDTSOL",
+        //             "USDTTRON"
+        //           ]
+        //        }
+        //      },
+        //      ...
+        //      {
+        //        "USDTBSC": {
+        //              "id": 582,
+        //              "name": "Binance-Peg BSC-USD",
+        //              "description": "Sweep to Main Account",
+        //              "type": "address",
+        //              "withdrawalFee": "0.00000000",
+        //              "minConf": 15,
+        //              "depositAddress": null,
+        //              "blockchain": "BSC",
+        //              "delisted": false,
+        //              "tradingState": "OFFLINE",
+        //              "walletState": "ENABLED",
+        //              "walletDepositState": "ENABLED",
+        //              "walletWithdrawalState": "DISABLED",
+        //              "supportCollateral": false,
+        //              "supportBorrow": false,
+        //              "parentChain": "USDT",
+        //              "isMultiChain": true,
+        //              "isChildChain": true,
+        //              "childChains": []
+        //        }
+        //      },
+        //      ...
         //     ]
         //
         const result: Dict = {};
+        // poloniex has a complicated structure of currencies, so we handle them differently
+        // at first, turn the response into a normal dictionary
+        const currenciesDict = {};
         for (let i = 0; i < response.length; i++) {
-            const item = this.safeValue (response, i);
+            const item = this.safeDict (response, i);
             const ids = Object.keys (item);
-            const id = this.safeValue (ids, 0);
-            const currency = this.safeValue (item, id);
+            const id = this.safeString (ids, 0);
+            currenciesDict[id] = item[id];
+        }
+        const keys = Object.keys (currenciesDict);
+        for (let i = 0; i < keys.length; i++) {
+            const id = keys[i];
+            const entry = currenciesDict[id];
             const code = this.safeCurrencyCode (id);
-            const name = this.safeString (currency, 'name');
-            const networkId = this.safeString (currency, 'blockchain');
-            let networkCode = undefined;
-            if (networkId !== undefined) {
-                networkCode = this.networkIdToCode (networkId, code);
+            // skip childChains, as they are collected in parentChain loop
+            if (this.safeBool (entry, 'isChildChain')) {
+                continue;
             }
-            const delisted = this.safeValue (currency, 'delisted');
-            const walletEnabled = this.safeString (currency, 'walletState') === 'ENABLED';
-            const depositEnabled = this.safeString (currency, 'walletDepositState') === 'ENABLED';
-            const withdrawEnabled = this.safeString (currency, 'walletWithdrawalState') === 'ENABLED';
-            const active = !delisted && walletEnabled && depositEnabled && withdrawEnabled;
-            const numericId = this.safeInteger (currency, 'id');
-            const feeString = this.safeString (currency, 'withdrawalFee');
-            const parentChain = this.safeValue (currency, 'parentChain');
-            const noParentChain = parentChain === undefined;
-            if (this.safeValue (result, code) === undefined) {
-                result[code] = {
-                    'id': id,
-                    'code': code,
-                    'info': undefined,
-                    'name': name,
-                    'active': active,
-                    'deposit': depositEnabled,
-                    'withdraw': withdrawEnabled,
-                    'fee': this.parseNumber (feeString),
-                    'precision': undefined,
-                    'type': 'crypto',
-                    'limits': {
-                        'amount': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'deposit': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'withdraw': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                    },
-                };
+            const allChainEntries = [];
+            allChainEntries.push (entry);
+            const childChains = this.safeList (entry, 'childChains', []);
+            if (childChains !== undefined) {
+                for (let j = 0; j < childChains.length; j++) {
+                    const childChainId = childChains[j];
+                    const childNetworkEntry = this.safeDict (currenciesDict, childChainId);
+                    allChainEntries.push (childNetworkEntry);
+                }
             }
-            let minFeeString = this.safeString (result[code], 'fee');
-            if (feeString !== undefined) {
-                minFeeString = (minFeeString === undefined) ? feeString : Precise.stringMin (feeString, minFeeString);
-            }
-            let depositAvailable = this.safeValue (result[code], 'deposit');
-            depositAvailable = (depositEnabled) ? depositEnabled : depositAvailable;
-            let withdrawAvailable = this.safeValue (result[code], 'withdraw');
-            withdrawAvailable = (withdrawEnabled) ? withdrawEnabled : withdrawAvailable;
-            const networks = this.safeValue (result[code], 'networks', {});
-            if (networkCode !== undefined) {
+            const networks: Dict = {};
+            for (let j = 0; j < allChainEntries.length; j++) {
+                const chainEntry = allChainEntries[j];
+                const networkId = this.safeString (chainEntry, 'blockchain');
+                const networkCode = this.networkIdToCode (networkId);
                 networks[networkCode] = {
-                    'info': currency,
-                    'id': networkId,
+                    'info': chainEntry,
+                    'id': id, // not networkId, but currency id & network junction
+                    'numericId': this.safeInteger (chainEntry, 'id'),
                     'network': networkCode,
-                    'currencyId': id,
-                    'numericId': numericId,
-                    'deposit': depositEnabled,
-                    'withdraw': withdrawEnabled,
-                    'active': active,
-                    'fee': this.parseNumber (feeString),
+                    'active': this.safeBool (chainEntry, 'walletState'),
+                    'deposit': this.safeBool (chainEntry, 'walletDepositState'),
+                    'withdraw': this.safeBool (chainEntry, 'walletWithdrawalState'),
+                    'fee': this.safeNumber (chainEntry, 'withdrawalFee'),
                     'precision': undefined,
                     'limits': {
-                        'amount': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
                         'withdraw': {
                             'min': undefined,
                             'max': undefined,
@@ -1272,20 +1273,34 @@ export default class poloniex extends Exchange {
                     },
                 };
             }
-            result[code]['networks'] = networks;
-            const info = this.safeValue (result[code], 'info', []);
-            const rawInfo: Dict = {};
-            rawInfo[id] = currency;
-            info.push (rawInfo);
-            result[code]['info'] = info;
-            if (noParentChain) {
-                result[code]['id'] = id;
-                result[code]['name'] = name;
-            }
-            result[code]['active'] = depositAvailable && withdrawAvailable;
-            result[code]['deposit'] = depositAvailable;
-            result[code]['withdraw'] = withdrawAvailable;
-            result[code]['fee'] = this.parseNumber (minFeeString);
+            result[code] = this.safeCurrencyStructure ({
+                'info': entry,
+                'code': code,
+                'id': id,
+                'numericId': this.safeInteger (entry, 'id'),
+                'type': 'crypto',
+                'name': this.safeString (entry, 'name'),
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
+                'fee': undefined,
+                'precision': undefined,
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'networks': networks,
+            });
         }
         return result;
     }
