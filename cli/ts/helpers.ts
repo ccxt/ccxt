@@ -5,6 +5,7 @@ import fs from 'fs';
 import path from 'path';
 import asTable from 'as-table';
 import { Agent } from 'https';
+import readline from 'readline';
 import { getCacheDirectory } from './cache.js';
 
 let add_static_result;
@@ -495,6 +496,33 @@ function collectKeyValue (value: string, previous: Record<string, string>) {
     return { ...previous, [key]: val };
 }
 
+/**
+ *
+ * @param prompt
+ */
+function askForArgv (prompt: string): Promise<string[]> {
+    const rl = readline.createInterface ({
+        'input': process.stdin,
+        'output': process.stdout,
+    });
+
+    return new Promise ((resolve) => {
+        rl.question (prompt, (input) => {
+            rl.close ();
+
+            const regex = /[^\s"]+|"([^"]*)"/g;
+            const args: string[] = [ 'node', 'script' ];
+            let match;
+
+            while ((match = regex.exec (input)) !== null) {
+                args.push (match[1] ? match[1] : match[0]);
+            }
+
+            resolve (args);
+        });
+    });
+}
+
 export {
     createRequestTemplate,
     createResponseTemplate,
@@ -511,4 +539,5 @@ export {
     injectMissingUndefined,
     handleDebug,
     handleStaticTests,
+    askForArgv,
 };

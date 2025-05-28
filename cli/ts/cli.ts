@@ -1,7 +1,8 @@
 import ansi from 'ansicolor';
 import { Command } from 'commander';
 import ololog from 'ololog';
-import { parseMethodArgs, printHumanReadable, printSavedCommand, printUsage, loadSettingsAndCreateExchange, collectKeyValue, handleDebug, handleStaticTests } from './helpers.js';
+import readline from 'readline';
+import { parseMethodArgs, printHumanReadable, printSavedCommand, printUsage, loadSettingsAndCreateExchange, collectKeyValue, handleDebug, handleStaticTests, askForArgv } from './helpers.js';
 import { checkCache, saveCommand } from './cache.js';
 
 let ccxt;
@@ -93,11 +94,13 @@ program
     .option ('--param <keyValue>', 'Pass key=value pair', collectKeyValue, {})
     .argument ('<inputs...>', 'exchangeId method args');
 
-program.parse (process.argv);
+let inputArgs = process.argv;
 
-const cliOptions = program.opts () as CLIOptions;
+program.parse (inputArgs);
 
-const [ exchangeId, methodName, ...params ] = program.args;
+let cliOptions = program.opts () as CLIOptions;
+
+let [ exchangeId, methodName, ...params ] = program.args;
 
 //-----------------------------------------------------------------------------
 
@@ -120,39 +123,37 @@ if (!exchangeId && !cliOptions.history) {
  */
 async function run () {
     checkCache ();
-
-    if (cliOptions.history) {
-        printSavedCommand (cliOptions);
-        process.exit ();
-    }
-
-    if (!exchangeId) {
-        printUsage (commandToShow);
-        process.exit ();
-    }
-
-    const exchange = await loadSettingsAndCreateExchange (exchangeId, cliOptions);
-
-    if (!methodName) {
-        log (exchange);
-        process.exit (0);
-    }
-
-    if (exchange[methodName] === undefined) {
-        log.red (exchange.id + '.' + methodName + ': no such property');
-        process.exit (0);
-    }
-
-    if (typeof exchange[methodName] !== 'function') {
-        printHumanReadable (exchange, exchange[methodName], cliOptions);
-    }
-
-    const isWsMethod = methodName.startsWith ('watch');
-    let start = exchange.milliseconds ();
-    let end = exchange.milliseconds ();
-    let i = 0;
+    const iMode = cliOptions.i;
 
     while (true) {
+        if (cliOptions.history) {
+            printSavedCommand (cliOptions);
+        }
+
+        if (!exchangeId) {
+            printUsage (commandToShow);
+        }
+
+        const exchange = await loadSettingsAndCreateExchange (exchangeId, cliOptions);
+
+        if (!methodName) {
+            log (exchange);
+            process.exit (0);
+        }
+
+        if (exchange[methodName] === undefined) {
+            log.red (exchange.id + '.' + methodName + ': no such property');
+            process.exit (0);
+        }
+
+        if (typeof exchange[methodName] !== 'function') {
+            printHumanReadable (exchange, exchange[methodName], cliOptions);
+        }
+
+        const isWsMethod = methodName.startsWith ('watch');
+        let start = exchange.milliseconds ();
+        let end = exchange.milliseconds ();
+        let i = 0;
         try {
             const args = parseMethodArgs (exchange, params, methodName, cliOptions);
 
@@ -200,11 +201,20 @@ async function run () {
 
         handleDebug (cliOptions);
 
-        if (!cliOptions.poll && !isWsMethod && !cliOptions.i) {
+        if (!cliOptions.poll && !isWsMethod && !iMode) {
+            exchange.close ();
             break;
         }
+
+        inputArgs = await askForArgv ('[command]: ');
+
+        // reparse args using the user input
+        program.parse (inputArgs);
+
+        cliOptions = program.opts () as CLIOptions;
+
+        [ exchangeId, methodName, ...params ] = program.args;
     }
-    exchange.close ();
 }
 //-----------------------------------------------------------------------------
 run ();
