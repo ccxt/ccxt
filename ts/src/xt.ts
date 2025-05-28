@@ -2955,7 +2955,7 @@ export default class xt extends Exchange {
         let response = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params);
         [ subType, params ] = this.handleSubTypeAndParams ('fetchOrdersByStatus', market, params);
-        const trigger = this.safeValue (params, 'stop');
+        const trigger = this.safeBool2 (params, 'stop', 'trigger');
         const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
         if (status === 'open') {
             if (trigger || stopLossTakeProfit) {
@@ -2987,7 +2987,7 @@ export default class xt extends Exchange {
             }
         }
         if (trigger) {
-            params = this.omit (params, 'stop');
+            params = this.omit (params, [ 'stop', 'trigger' ]);
             if (subType === 'inverse') {
                 response = await this.privateInverseGetFutureTradeV1EntrustPlanList (this.extend (request, params));
             } else {
@@ -3201,9 +3201,13 @@ export default class xt extends Exchange {
         //         }
         //     }
         //
-        const isSpotOpenOrders = ((status === 'open') && (subType === undefined));
-        const data = this.safeValue (response, 'result', {});
-        const orders = isSpotOpenOrders ? this.safeValue (response, 'result', []) : this.safeValue (data, 'items', []);
+        let orders = [];
+        const resultDict = this.safeDict (response, 'result');
+        if (resultDict !== undefined) {
+            orders = this.safeList (resultDict, 'items', []);
+        } else {
+            orders = this.safeList (response, 'result');
+        }
         return this.parseOrders (orders, market, since, limit);
     }
 
