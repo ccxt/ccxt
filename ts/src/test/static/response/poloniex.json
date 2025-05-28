@@ -132,7 +132,7 @@
                         "address": "0xe55fbe593113c1e9ed3175e304a27555689a5e22"
                     },
                     "currency": "ETH",
-                    "network": null,
+                    "network": "ETH",
                     "address": "0xe55fbe593113c1e9ed3175e304a27555689a5e22",
                     "tag": null
                 }
