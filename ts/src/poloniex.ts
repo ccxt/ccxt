@@ -1263,8 +1263,8 @@ export default class poloniex extends Exchange {
                     'numericId': this.safeInteger (chainEntry, 'id'),
                     'network': networkCode,
                     'active': this.safeBool (chainEntry, 'walletState'),
-                    'deposit': this.safeBool (chainEntry, 'walletDepositState'),
-                    'withdraw': this.safeBool (chainEntry, 'walletWithdrawalState'),
+                    'deposit': this.safeString (chainEntry, 'walletDepositState') === 'ENABLED',
+                    'withdraw': this.safeString (chainEntry, 'walletWithdrawalState') === 'ENABLED',
                     'fee': this.safeNumber (chainEntry, 'withdrawalFee'),
                     'precision': undefined,
                     'limits': {
