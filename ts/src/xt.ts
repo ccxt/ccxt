@@ -2944,11 +2944,17 @@ export default class xt extends Exchange {
 
     async fetchOrdersByStatus (status, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {};
+        let request = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
         }
         let type = undefined;
         let subType = undefined;
@@ -2960,7 +2966,7 @@ export default class xt extends Exchange {
         if (status === 'open') {
             if (trigger || stopLossTakeProfit) {
                 request['state'] = 'NOT_TRIGGERED';
-            } else if (subType !== undefined) {
+            } else if (type === 'swap') {
                 request['state'] = 'NEW';
             }
         } else if (status === 'closed') {
@@ -3016,6 +3022,7 @@ export default class xt extends Exchange {
                     request['startTime'] = since;
                 }
                 if (limit !== undefined) {
+                    request = this.omit (request, 'size');
                     request['limit'] = limit;
                 }
                 response = await this.privateSpotGetHistoryOrder (this.extend (request, params));
