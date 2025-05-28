@@ -1848,7 +1848,7 @@ func  (this *woo) FetchOrders(optionalArgs ...interface{}) <- chan interface{} {
             if IsTrue(!IsEqual(limit, nil)) {
                 AddElementToObject(request, "size", limit)
             } else {
-                AddElementToObject(request, "size", 500)
+                AddElementToObject(request, "size", Ternary(IsTrue(trailing), 50, 500))
             }
             if IsTrue(trigger) {
                 AddElementToObject(request, "algoType", "stop")
