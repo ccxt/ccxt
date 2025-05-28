@@ -2794,6 +2794,7 @@ export default class poloniex extends Exchange {
             'tag': tag,
         } as DepositAddress;
     }
+
     /**
      * @method
      * @name poloniex#transfer
