@@ -2758,7 +2758,7 @@ export default class poloniex extends Exchange {
             // we need to know the network to find out the currency-junction
             throw new ArgumentsRequired (this.id + ' fetchDepositAddress requires a network parameter for ' + code + '.');
         }
-        let exchangeNetworkId:Str = undefined;
+        let exchangeNetworkId = undefined;
         networkCode = this.networkIdToCode (networkCode, code);
         const networkEntry = this.safeDict (currency['networks'], networkCode);
         if (networkEntry !== undefined) {
