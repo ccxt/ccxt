@@ -195,7 +195,7 @@
             {
                 "description": "Swap trailing orders",
                 "method": "fetchOrders",
-                "url": "https://api.staging.woox.io/v3/algo/orders?algoType=TRAILING_STOP&symbol=PERP_BTC_USDT&size=500",
+                "url": "https://api.staging.woox.io/v3/algo/orders?algoType=TRAILING_STOP&symbol=PERP_BTC_USDT&size=50",
                 "input": [
                     "BTC/USDT:USDT",
                     null,
@@ -655,6 +655,20 @@
             }
         ],
         "fetchOpenOrders": [
+            {
+                "description": "fetch trailing spot orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.woox.io/v3/algo/orders?algoType=TRAILING_STOP&size=50&status=INCOMPLETE",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "trailing": true
+                    }
+                ],
+                "output": null
+            },
             {
                 "description": "open orders",
                 "method": "fetchOpenOrders",

@@ -1580,7 +1580,7 @@ export default class woo extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit;
         } else {
-            request['size'] = 500;
+            request['size'] = trailing ? 50 : 500;
         }
         if (trigger) {
             request['algoType'] = 'stop';
