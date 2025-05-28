@@ -2861,22 +2861,12 @@ export default class poloniex extends Exchange {
     async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request: Dict = {
-            'currency': currency['id'],
-            'amount': amount,
-            'address': address,
-        };
+        const [ request, extraParams, currency, networkEntry ] = this.prepareRequestForDepositAddress (code, params);
+        params = extraParams;
+        request['amount'] = this.currencyToPrecision (code, amount);
+        request['address'] = address;
         if (tag !== undefined) {
             request['paymentId'] = tag;
-        }
-        const networks = this.safeValue (this.options, 'networks', {});
-        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
-        if (network !== undefined) {
-            request['currency'] = request['currency'] + network; // when network the currency need to be changed to currency+network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
-            params = this.omit (params, 'network');
         }
         const response = await this.privatePostWalletsWithdraw (this.extend (request, params));
         //
@@ -2886,7 +2876,11 @@ export default class poloniex extends Exchange {
         //         "withdrawalNumber": 13449869
         //     }
         //
-        return this.parseTransaction (response, currency);
+        const withdrawResponse = {
+            'response': response,
+            'withdrawNetworkEntry': networkEntry,
+        };
+        return this.parseTransaction (withdrawResponse, currency);
     }
 
     async fetchTransactionsHelper (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -3221,6 +3215,10 @@ export default class poloniex extends Exchange {
         //         "withdrawalRequestsId": 33485231
         //     }
         //
+        // if it's being parsed from "withdraw()" method, get the original response
+        if ('withdrawNetworkEntry' in transaction) {
+            transaction = transaction['response'];
+        }
         const timestamp = this.safeTimestamp (transaction, 'timestamp');
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId);
