@@ -308,6 +308,11 @@ export default class poloniex extends Exchange {
                     'BEP20': 'BSC',
                     'ERC20': 'ETH',
                     'TRC20': 'TRON',
+                    'TRX': 'TRON',
+                },
+                'networksById': {
+                    'TRX': 'TRC20',
+                    'TRON': 'TRC20',
                 },
                 'limits': {
                     'cost': {
@@ -1237,7 +1242,6 @@ export default class poloniex extends Exchange {
                 continue;
             }
             const allChainEntries = [];
-            allChainEntries.push (entry);
             const childChains = this.safeList (entry, 'childChains', []);
             if (childChains !== undefined) {
                 for (let j = 0; j < childChains.length; j++) {
@@ -1246,14 +1250,16 @@ export default class poloniex extends Exchange {
                     allChainEntries.push (childNetworkEntry);
                 }
             }
+            allChainEntries.push (entry);
             const networks: Dict = {};
             for (let j = 0; j < allChainEntries.length; j++) {
                 const chainEntry = allChainEntries[j];
-                const networkId = this.safeString (chainEntry, 'blockchain');
-                const networkCode = this.networkIdToCode (networkId);
+                const networkName = this.safeString (chainEntry, 'blockchain');
+                const networkCode = this.networkIdToCode (networkName);
+                const specialNetworkId = this.safeString (childChains, j, id); // in case it's primary chain, defeault to ID
                 networks[networkCode] = {
                     'info': chainEntry,
-                    'id': id, // not networkId, but currency id & network junction
+                    'id': specialNetworkId, // we need this for deposit/withdrawal, instead of friendly name
                     'numericId': this.safeInteger (chainEntry, 'id'),
                     'network': networkCode,
                     'active': this.safeBool (chainEntry, 'walletState'),
@@ -2703,44 +2709,15 @@ export default class poloniex extends Exchange {
      */
     async createDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request: Dict = {
-            'currency': currency['id'],
-        };
-        const networks = this.safeValue (this.options, 'networks', {});
-        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
-        if (network !== undefined) {
-            request['currency'] = request['currency'] + network; // when network the currency need to be changed to currency+network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
-            params = this.omit (params, 'network');
-        } else {
-            if (currency['id'] === 'USDT') {
-                throw new ArgumentsRequired (this.id + ' createDepositAddress requires a network parameter for ' + code + '.');
-            }
-        }
+        const [ request, extraParams, currency, networkEntry ] = this.prepareRequestForDepositAddress (code, params);
+        params = extraParams;
         const response = await this.privatePostWalletsAddress (this.extend (request, params));
         //
         //     {
         //         "address" : "0xfxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxf"
         //     }
         //
-        let address = this.safeString (response, 'address');
-        let tag: Str = undefined;
-        this.checkAddress (address);
-        if (currency !== undefined) {
-            const depositAddress = this.safeString (currency['info'], 'depositAddress');
-            if (depositAddress !== undefined) {
-                tag = address;
-                address = depositAddress;
-            }
-        }
-        return {
-            'currency': code,
-            'address': address,
-            'tag': tag,
-            'network': network,
-            'info': response,
-        } as DepositAddress;
+        return this.parseDepositAddressSpecial (response, currency, networkEntry);
     }
 
     /**
@@ -2754,32 +2731,56 @@ export default class poloniex extends Exchange {
      */
     async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request: Dict = {
-            'currency': currency['id'],
-        };
-        const networks = this.safeValue (this.options, 'networks', {});
-        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
-        if (network !== undefined) {
-            request['currency'] = request['currency'] + network; // when network the currency need to be changed to currency+network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
-            params = this.omit (params, 'network');
-        } else {
-            if (currency['id'] === 'USDT') {
-                throw new ArgumentsRequired (this.id + ' fetchDepositAddress requires a network parameter for ' + code + '.');
-            }
-        }
+        const [ request, extraParams, currency, networkEntry ] = this.prepareRequestForDepositAddress (code, params);
+        params = extraParams;
         const response = await this.privateGetWalletsAddresses (this.extend (request, params));
         //
         //     {
         //         "USDTTRON" : "Txxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxp"
         //     }
         //
-        let address = this.safeString (response, request['currency']);
+        const keys = Object.keys (response);
+        const length = keys.length;
+        if (length < 1) {
+            throw new ExchangeError (this.id + ' fetchDepositAddress() returned an empty response, you might need to try "createDepositAddress" at first and then use "fetchDepositAddress"');
+        }
+        return this.parseDepositAddressSpecial (response, currency, networkEntry);
+    }
+
+    prepareRequestForDepositAddress (code: string, params: Dict = {}): any {
+        if (!(code in this.currencies)) {
+            throw new BadSymbol (this.id + ' fetchDepositAddress(): can not recognize ' + code + ' currency, you might try using unified currency-code and add provide specific "network" parameter, like: fetchDepositAddress("USDT", { "network": "TRC20" })');
+        }
+        const currency = this.currency (code);
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode === undefined) {
+            // we need to know the network to find out the currency-junction
+            throw new ArgumentsRequired (this.id + ' fetchDepositAddress requires a network parameter for ' + code + '.');
+        }
+        let exchangeNetworkId:Str = undefined;
+        networkCode = this.networkIdToCode (networkCode, code);
+        const networkEntry = this.safeDict (currency['networks'], networkCode);
+        if (networkEntry !== undefined) {
+            exchangeNetworkId = networkEntry['id'];
+        } else {
+            exchangeNetworkId = networkCode;
+        }
+        const request = {
+            'currency': exchangeNetworkId,
+        };
+        return [ request, params, currency, networkEntry ];
+    }
+
+    parseDepositAddressSpecial (response, currency, networkEntry): DepositAddress {
+        let address = this.safeString (response, 'address');
+        if (address === undefined) {
+            address = this.safeString (response, networkEntry['id']);
+        }
         let tag: Str = undefined;
         this.checkAddress (address);
-        if (currency !== undefined) {
-            const depositAddress = this.safeString (currency['info'], 'depositAddress');
+        if (networkEntry !== undefined) {
+            const depositAddress = this.safeString (networkEntry['info'], 'depositAddress');
             if (depositAddress !== undefined) {
                 tag = address;
                 address = depositAddress;
@@ -2787,13 +2788,12 @@ export default class poloniex extends Exchange {
         }
         return {
             'info': response,
-            'currency': code,
-            'network': network,
+            'currency': currency['code'],
+            'network': this.safeString (networkEntry, 'network'),
             'address': address,
             'tag': tag,
         } as DepositAddress;
     }
-
     /**
      * @method
      * @name poloniex#transfer
