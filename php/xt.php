@@ -2945,17 +2945,23 @@ class xt extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
+        if ($limit !== null) {
+            $request['size'] = $limit;
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
         $type = null;
         $subType = null;
         $response = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchOrdersByStatus', $market, $params);
         list($subType, $params) = $this->handle_sub_type_and_params('fetchOrdersByStatus', $market, $params);
-        $trigger = $this->safe_value($params, 'stop');
+        $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
         if ($status === 'open') {
             if ($trigger || $stopLossTakeProfit) {
                 $request['state'] = 'NOT_TRIGGERED';
-            } elseif ($subType !== null) {
+            } elseif ($type === 'swap') {
                 $request['state'] = 'NEW';
             }
         } elseif ($status === 'closed') {
@@ -2982,7 +2988,7 @@ class xt extends Exchange {
             }
         }
         if ($trigger) {
-            $params = $this->omit($params, 'stop');
+            $params = $this->omit($params, array( 'stop', 'trigger' ));
             if ($subType === 'inverse') {
                 $response = $this->privateInverseGetFutureTradeV1EntrustPlanList ($this->extend($request, $params));
             } else {
@@ -3011,6 +3017,7 @@ class xt extends Exchange {
                     $request['startTime'] = $since;
                 }
                 if ($limit !== null) {
+                    $request = $this->omit($request, 'size');
                     $request['limit'] = $limit;
                 }
                 $response = $this->privateSpotGetHistoryOrder ($this->extend($request, $params));
@@ -3196,9 +3203,13 @@ class xt extends Exchange {
         //         }
         //     }
         //
-        $isSpotOpenOrders = (($status === 'open') && ($subType === null));
-        $data = $this->safe_value($response, 'result', array());
-        $orders = $isSpotOpenOrders ? $this->safe_value($response, 'result', array()) : $this->safe_value($data, 'items', array());
+        $orders = array();
+        $resultDict = $this->safe_dict($response, 'result');
+        if ($resultDict !== null) {
+            $orders = $this->safe_list($resultDict, 'items', array());
+        } else {
+            $orders = $this->safe_list($response, 'result');
+        }
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
