@@ -6,6 +6,23 @@
     ],
     "outputType": "json",
     "methods": {
+        "withdraw": [
+            {
+                "description": "withdraw USDT on ETH",
+                "method": "withdraw",
+                "url": "https://api.poloniex.com/wallets/withdraw",
+                "input": [
+                    "USDT",
+                    5,
+                    "0x2a1cd2a93eac9403203ab118a4e7d90916ae3356",
+                    null,
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "output": "{\"currency\":\"USDTETH\",\"amount\":\"5\",\"address\":\"0x2a1cd2a93eac9403203ab118a4e7d90916ae3356\"}"
+            }
+        ],
         "fetchDepositAddress": [
             {
                 "description": "fetchDepositAddress ETH on ETH",

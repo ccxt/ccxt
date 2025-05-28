@@ -2,6 +2,52 @@
     "exchange": "poloniex",
     "skipKeys": [],
     "methods": {
+        "withdraw": [
+            {
+                "description": "withdraw USDT on ETH",
+                "method": "withdraw",
+                "input": [
+                    "USDT",
+                    5,
+                    "0x2a1cd2a93eac9403203ab118a4e7d90916ae3356",
+                    null,
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "httpResponse": {
+                    "withdrawalRequestsId": 18514179
+                },
+                "parsedResponse": {
+                    "info": {
+                        "withdrawalRequestsId": 18514179
+                    },
+                    "id": "18514179",
+                    "currency": null,
+                    "amount": null,
+                    "network": null,
+                    "address": null,
+                    "addressTo": null,
+                    "addressFrom": null,
+                    "tag": null,
+                    "tagTo": null,
+                    "tagFrom": null,
+                    "status": "pending",
+                    "type": "withdrawal",
+                    "updated": null,
+                    "txid": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "comment": null,
+                    "internal": null,
+                    "fee": {
+                        "currency": null,
+                        "cost": null,
+                        "rate": null
+                    }
+                }
+            }
+        ],
         "fetchDepositAddress": [
             {
                 "description": "fetchDepositAddress ETH on ETH",
