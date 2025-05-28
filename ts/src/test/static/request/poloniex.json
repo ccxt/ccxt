@@ -6,7 +6,81 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchDepositAddress": [
+            {
+                "description": "fetchDepositAddress ETH on ETH",
+                "method": "fetchDepositAddress",
+                "url": "https://api.poloniex.com/wallets/addresses?currency=ETH",
+                "input": [
+                    "ETH",
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchDepositAddress USDT on TRC20",
+                "method": "fetchDepositAddress",
+                "url": "https://api.poloniex.com/wallets/addresses?currency=USDTTRON",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "TRC20"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchDepositAddress USDT on ERC20",
+                "method": "fetchDepositAddress",
+                "url": "https://api.poloniex.com/wallets/addresses?currency=USDTETH",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ERC20"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchDepositAddress USDT on ETH",
+                "method": "fetchDepositAddress",
+                "url": "https://api.poloniex.com/wallets/addresses?currency=USDTETH",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchDepositAddress BTC on BTC",
+                "method": "fetchDepositAddress",
+                "url": "https://api.poloniex.com/wallets/addresses?currency=BTC",
+                "input": [
+                    "BTC",
+                    {
+                        "network": "BTC"
+                    }
+                ],
+                "output": null
+            }
+        ],
         "createDepositAddress": [
+            {
+                "description": "create ETH on ETH",
+                "method": "createDepositAddress",
+                "url": "https://api.poloniex.com/wallets/address",
+                "input": [
+                    "ETH",
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "output": "{\"currency\":\"ETH\"}"
+            },
             {
                 "description": "create BTC",
                 "method": "createDepositAddress",

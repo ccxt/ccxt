@@ -1255,7 +1255,7 @@ export default class poloniex extends Exchange {
             for (let j = 0; j < allChainEntries.length; j++) {
                 const chainEntry = allChainEntries[j];
                 const networkName = this.safeString (chainEntry, 'blockchain');
-                const networkCode = this.networkIdToCode (networkName);
+                const networkCode = this.networkIdToCode (networkName, code);
                 const specialNetworkId = this.safeString (childChains, j, id); // in case it's primary chain, defeault to ID
                 networks[networkCode] = {
                     'info': chainEntry,
