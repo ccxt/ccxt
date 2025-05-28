@@ -2944,23 +2944,29 @@ export default class xt extends Exchange {
 
     async fetchOrdersByStatus (status, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {};
+        let request = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
         }
         let type = undefined;
         let subType = undefined;
         let response = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params);
         [ subType, params ] = this.handleSubTypeAndParams ('fetchOrdersByStatus', market, params);
-        const trigger = this.safeValue (params, 'stop');
+        const trigger = this.safeBool2 (params, 'stop', 'trigger');
         const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
         if (status === 'open') {
             if (trigger || stopLossTakeProfit) {
                 request['state'] = 'NOT_TRIGGERED';
-            } else if (subType !== undefined) {
+            } else if (type === 'swap') {
                 request['state'] = 'NEW';
             }
         } else if (status === 'closed') {
@@ -2987,7 +2993,7 @@ export default class xt extends Exchange {
             }
         }
         if (trigger) {
-            params = this.omit (params, 'stop');
+            params = this.omit (params, [ 'stop', 'trigger' ]);
             if (subType === 'inverse') {
                 response = await this.privateInverseGetFutureTradeV1EntrustPlanList (this.extend (request, params));
             } else {
@@ -3016,6 +3022,7 @@ export default class xt extends Exchange {
                     request['startTime'] = since;
                 }
                 if (limit !== undefined) {
+                    request = this.omit (request, 'size');
                     request['limit'] = limit;
                 }
                 response = await this.privateSpotGetHistoryOrder (this.extend (request, params));
@@ -3201,9 +3208,13 @@ export default class xt extends Exchange {
         //         }
         //     }
         //
-        const isSpotOpenOrders = ((status === 'open') && (subType === undefined));
-        const data = this.safeValue (response, 'result', {});
-        const orders = isSpotOpenOrders ? this.safeValue (response, 'result', []) : this.safeValue (data, 'items', []);
+        let orders = [];
+        const resultDict = this.safeDict (response, 'result');
+        if (resultDict !== undefined) {
+            orders = this.safeList (resultDict, 'items', []);
+        } else {
+            orders = this.safeList (response, 'result');
+        }
         return this.parseOrders (orders, market, since, limit);
     }
 
