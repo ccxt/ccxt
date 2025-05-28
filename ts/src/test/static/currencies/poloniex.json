@@ -307,7 +307,7 @@
                     "name": "USDT on ETH",
                     "description": "Sweep to Main Account",
                     "type": "address",
-                    "withdrawalFee": "0.72625100",
+                    "withdrawalFee": "1.15250200",
                     "minConf": 64,
                     "depositAddress": null,
                     "blockchain": "ETH",
@@ -329,7 +329,7 @@
                 "active": null,
                 "deposit": null,
                 "withdraw": null,
-                "fee": 0.726251,
+                "fee": 1.152502,
                 "precision": null,
                 "limits": {
                     "withdraw": {
@@ -628,7 +628,7 @@
             "name": "Ethereum",
             "description": "Sweep to Main Account",
             "type": "address",
-            "withdrawalFee": "0.00009091",
+            "withdrawalFee": "0.00014328",
             "minConf": 64,
             "depositAddress": null,
             "blockchain": "ETH",
@@ -741,13 +741,13 @@
                     }
                 }
             },
-            "ERC20": {
+            "ETH": {
                 "info": {
                     "id": 267,
                     "name": "Ethereum",
                     "description": "Sweep to Main Account",
                     "type": "address",
-                    "withdrawalFee": "0.00009091",
+                    "withdrawalFee": "0.00014328",
                     "minConf": 64,
                     "depositAddress": null,
                     "blockchain": "ETH",
@@ -768,11 +768,11 @@
                 },
                 "id": "ETH",
                 "numericId": 267,
-                "network": "ERC20",
+                "network": "ETH",
                 "active": null,
                 "deposit": null,
                 "withdraw": null,
-                "fee": 0.00009091,
+                "fee": 0.00014328,
                 "precision": null,
                 "limits": {
                     "withdraw": {
@@ -989,7 +989,7 @@
             "name": "USD Coin",
             "description": "Sweep to Main Account",
             "type": "address",
-            "withdrawalFee": "1.14136600",
+            "withdrawalFee": "1.81125600",
             "minConf": 64,
             "depositAddress": null,
             "blockchain": "ETH",
@@ -1150,7 +1150,7 @@
                     "name": "USD Coin",
                     "description": "Sweep to Main Account",
                     "type": "address",
-                    "withdrawalFee": "1.14136600",
+                    "withdrawalFee": "1.81125600",
                     "minConf": 64,
                     "depositAddress": null,
                     "blockchain": "ETH",
@@ -1176,7 +1176,7 @@
                 "active": null,
                 "deposit": null,
                 "withdraw": null,
-                "fee": 1.141366,
+                "fee": 1.811256,
                 "precision": null,
                 "limits": {
                     "withdraw": {
