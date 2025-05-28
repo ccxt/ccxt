@@ -656,6 +656,20 @@
         ],
         "fetchOpenOrders": [
             {
+                "description": "fetch trailing spot orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.woox.io/v3/algo/orders?algoType=TRAILING_STOP&size=50&status=INCOMPLETE",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "trailing": true
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "open orders",
                 "method": "fetchOpenOrders",
                 "url": "https://api.staging.woox.io/v1/orders?size=500&status=INCOMPLETE",
