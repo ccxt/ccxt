@@ -2,6 +2,230 @@
     "exchange": "poloniex",
     "skipKeys": [],
     "methods": {
+        "fetchDepositAddress": [
+            {
+                "description": "fetchDepositAddress ETH on ETH",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "ETH",
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "httpResponse": {
+                    "ETH": "0xe55fbe593113c1e9ed3175e304a27555689a5e22"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "ETH": "0xe55fbe593113c1e9ed3175e304a27555689a5e22"
+                    },
+                    "currency": "ETH",
+                    "network": "ETH",
+                    "address": "0xe55fbe593113c1e9ed3175e304a27555689a5e22",
+                    "tag": null
+                }
+            },
+            {
+                "description": "fetchDepositAddress USDT on TRC20",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "TRC20"
+                    }
+                ],
+                "httpResponse": {
+                    "USDTTRON": "TXae5onz4UzHXwHjwHWUPxrwfxNqBZ5efD"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "USDTTRON": "TXae5onz4UzHXwHjwHWUPxrwfxNqBZ5efD"
+                    },
+                    "currency": "USDT",
+                    "network": "TRC20",
+                    "address": "TXae5onz4UzHXwHjwHWUPxrwfxNqBZ5efD",
+                    "tag": null
+                }
+            },
+            {
+                "description": "fetchDepositAddress USDT on ERC20",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ERC20"
+                    }
+                ],
+                "httpResponse": {
+                    "USDTETH": "0xe55fbe593113c1e9ed3175e304a27555689a5e22"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "USDTETH": "0xe55fbe593113c1e9ed3175e304a27555689a5e22"
+                    },
+                    "currency": "USDT",
+                    "network": "ERC20",
+                    "address": "0xe55fbe593113c1e9ed3175e304a27555689a5e22",
+                    "tag": null
+                }
+            },
+            {
+                "description": "fetchDepositAddress USDT on ETH",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "httpResponse": {
+                    "USDTETH": "0xe55fbe593113c1e9ed3175e304a27555689a5e22"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "USDTETH": "0xe55fbe593113c1e9ed3175e304a27555689a5e22"
+                    },
+                    "currency": "USDT",
+                    "network": "ERC20",
+                    "address": "0xe55fbe593113c1e9ed3175e304a27555689a5e22",
+                    "tag": null
+                }
+            },
+            {
+                "description": "fetchDepositAddress BTC on BTC",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "BTC",
+                    {
+                        "network": "BTC"
+                    }
+                ],
+                "httpResponse": {
+                    "BTC": "1Da5szYQXyWxNEZo4tThewzKRi5fdkYPla"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "BTC": "1Da5szYQXyWxNEZo4tThewzKRi5fdkYPla"
+                    },
+                    "currency": "BTC",
+                    "network": "BTC",
+                    "address": "1Da5szYQXyWxNEZo4tThewzKRi5fdkYPla",
+                    "tag": null
+                }
+            }
+        ],
+        "createDepositAddress": [
+            {
+                "description": "create ETH on ETH",
+                "method": "createDepositAddress",
+                "input": [
+                    "ETH",
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "httpResponse": {
+                    "address": "0xe55fbe593113c1e9ed3175e304a27555689a5e22"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "address": "0xe55fbe593113c1e9ed3175e304a27555689a5e22"
+                    },
+                    "currency": "ETH",
+                    "network": null,
+                    "address": "0xe55fbe593113c1e9ed3175e304a27555689a5e22",
+                    "tag": null
+                }
+            },
+            {
+                "description": "create BTC",
+                "method": "createDepositAddress",
+                "input": [
+                    "BTC",
+                    {
+                        "network": "BTC"
+                    }
+                ],
+                "httpResponse": {
+                    "address": "1Da5szYQXyWxNEZo4tThewzKRi5fdkYPla"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "address": "1Da5szYQXyWxNEZo4tThewzKRi5fdkYPla"
+                    },
+                    "currency": "BTC",
+                    "network": "BTC",
+                    "address": "1Da5szYQXyWxNEZo4tThewzKRi5fdkYPla",
+                    "tag": null
+                }
+            },
+            {
+                "description": "create ETH",
+                "method": "createDepositAddress",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "httpResponse": {
+                    "address": "0xe55fbe593113c1e9ed3175e304a27555689a5e22"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "address": "0xe55fbe593113c1e9ed3175e304a27555689a5e22"
+                    },
+                    "currency": "USDT",
+                    "network": "ERC20",
+                    "address": "0xe55fbe593113c1e9ed3175e304a27555689a5e22",
+                    "tag": null
+                }
+            },
+            {
+                "description": "create ERC20",
+                "method": "createDepositAddress",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ERC20"
+                    }
+                ],
+                "httpResponse": {
+                    "address": "0xe55fbe593113c1e9ed3175e304a27555689a5e22"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "address": "0xe55fbe593113c1e9ed3175e304a27555689a5e22"
+                    },
+                    "currency": "USDT",
+                    "network": "ERC20",
+                    "address": "0xe55fbe593113c1e9ed3175e304a27555689a5e22",
+                    "tag": null
+                }
+            },
+            {
+                "description": "create TRC20",
+                "method": "createDepositAddress",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "TRC20"
+                    }
+                ],
+                "httpResponse": {
+                    "address": "TXae5onz4UzHXwHjwHWUPxrwfxNqBZ5efD"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "address": "TXae5onz4UzHXwHjwHWUPxrwfxNqBZ5efD"
+                    },
+                    "currency": "USDT",
+                    "network": "TRC20",
+                    "address": "TXae5onz4UzHXwHjwHWUPxrwfxNqBZ5efD",
+                    "tag": null
+                }
+            }
+        ],
         "withdraw": [
             {
                 "description": "withdraw USDT on ETH",
