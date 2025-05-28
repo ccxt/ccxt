@@ -3089,6 +3089,14 @@ public partial class xt : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["size"] = limit;
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["startTime"] = since;
+        }
         object type = null;
         object subType = null;
         object response = null;
@@ -3098,14 +3106,14 @@ public partial class xt : Exchange
         var subTypeparametersVariable = this.handleSubTypeAndParams("fetchOrdersByStatus", market, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        object trigger = this.safeValue(parameters, "stop");
+        object trigger = this.safeBool2(parameters, "stop", "trigger");
         object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
         if (isTrue(isEqual(status, "open")))
         {
             if (isTrue(isTrue(trigger) || isTrue(stopLossTakeProfit)))
             {
                 ((IDictionary<string,object>)request)["state"] = "NOT_TRIGGERED";
-            } else if (isTrue(!isEqual(subType, null)))
+            } else if (isTrue(isEqual(type, "swap")))
             {
                 ((IDictionary<string,object>)request)["state"] = "NEW";
             }
@@ -3144,7 +3152,7 @@ public partial class xt : Exchange
         }
         if (isTrue(trigger))
         {
-            parameters = this.omit(parameters, "stop");
+            parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
             if (isTrue(isEqual(subType, "inverse")))
             {
                 response = await this.privateInverseGetFutureTradeV1EntrustPlanList(this.extend(request, parameters));
@@ -3187,6 +3195,7 @@ public partial class xt : Exchange
                 }
                 if (isTrue(!isEqual(limit, null)))
                 {
+                    request = this.omit(request, "size");
                     ((IDictionary<string,object>)request)["limit"] = limit;
                 }
                 response = await this.privateSpotGetHistoryOrder(this.extend(request, parameters));
@@ -3373,9 +3382,15 @@ public partial class xt : Exchange
         //         }
         //     }
         //
-        object isSpotOpenOrders = (isTrue((isEqual(status, "open"))) && isTrue((isEqual(subType, null))));
-        object data = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object orders = ((bool) isTrue(isSpotOpenOrders)) ? this.safeValue(response, "result", new List<object>() {}) : this.safeValue(data, "items", new List<object>() {});
+        object orders = new List<object>() {};
+        object resultDict = this.safeDict(response, "result");
+        if (isTrue(!isEqual(resultDict, null)))
+        {
+            orders = this.safeList(resultDict, "items", new List<object>() {});
+        } else
+        {
+            orders = this.safeList(response, "result");
+        }
         return this.parseOrders(orders, market, since, limit);
     }
 
