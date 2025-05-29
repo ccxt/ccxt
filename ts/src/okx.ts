@@ -6283,7 +6283,7 @@ export default class okx extends Exchange {
         const nextFundingRate = this.safeNumber (contract, 'nextFundingRate');
         const fundingTime = this.safeInteger (contract, 'fundingTime');
         const fundingTimeString = this.safeString (contract, 'fundingTime');
-        const nextFundingTimeString = this.safeString (contract, 'nextFundingRate');
+        const nextFundingTimeString = this.safeString (contract, 'nextFundingTime');
         const millisecondsInterval = Precise.stringSub (nextFundingTimeString, fundingTimeString);
         // https://www.okx.com/support/hc/en-us/articles/360053909272-Ⅸ-Introduction-to-perpetual-swap-funding-fee
         // > The current interest is 0.
