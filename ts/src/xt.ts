@@ -950,8 +950,8 @@ export default class xt extends Exchange {
                 'active': undefined,
                 'fee': undefined,
                 'precision': this.parseNumber (this.parsePrecision (this.safeString (entry, 'maxPrecision'))),
-                'deposit': undefined,
-                'withdraw': undefined,
+                'deposit': this.safeString (entry, 'depositStatus') === '1',
+                'withdraw': this.safeString (entry, 'withdrawStatus') === '1',
                 'networks': networks,
                 'type': type,
                 'limits': {
