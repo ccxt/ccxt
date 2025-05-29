@@ -699,8 +699,8 @@ export default class kraken extends krakenRest {
     /**
      * @method
      * @name kraken#watchBidsAsks
-     * @see https://docs.kraken.com/api/docs/websocket-v1/spread
      * @description watches best bid & ask for symbols
+     * @see https://docs.kraken.com/api/docs/websocket-v2/ticker
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -722,7 +722,7 @@ export default class kraken extends krakenRest {
      * @method
      * @name kraken#watchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://docs.kraken.com/api/docs/websocket-v1/trade
+     * @see https://docs.kraken.com/api/docs/websocket-v2/trade
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -758,7 +758,7 @@ export default class kraken extends krakenRest {
      * @method
      * @name kraken#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.kraken.com/api/docs/websocket-v1/book
+     * @see https://docs.kraken.com/api/docs/websocket-v2/book
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -772,7 +772,7 @@ export default class kraken extends krakenRest {
      * @method
      * @name kraken#watchOrderBookForSymbols
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.kraken.com/api/docs/websocket-v1/book
+     * @see https://docs.kraken.com/api/docs/websocket-v2/book
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -782,7 +782,7 @@ export default class kraken extends krakenRest {
         const request: Dict = {};
         if (limit !== undefined) {
             if (this.inArray (limit, [ 10, 25, 100, 500, 1000 ])) {
-                request['subscription'] = {
+                request['params'] = {
                     'depth': limit, // default 10, valid options 10, 25, 100, 500, 1000
                 };
             } else {
@@ -878,139 +878,121 @@ export default class kraken extends krakenRest {
         //
         // first message (snapshot)
         //
-        //     [
-        //         1234, // channelID
+        // {
+        //     "channel": "book",
+        //     "type": "snapshot",
+        //     "data": [
         //         {
-        //             "as": [
-        //                 [ "5541.30000", "2.50700000", "1534614248.123678" ],
-        //                 [ "5541.80000", "0.33000000", "1534614098.345543" ],
-        //                 [ "5542.70000", "0.64700000", "1534614244.654432" ]
+        //             "symbol": "MATIC/USD",
+        //             "bids": [
+        //                 {
+        //                     "price": 0.5666,
+        //                     "qty": 4831.75496356
+        //                 },
+        //                 {
+        //                     "price": 0.5665,
+        //                     "qty": 6658.22734739
+        //                 }
         //             ],
-        //             "bs": [
-        //                 [ "5541.20000", "1.52900000", "1534614248.765567" ],
-        //                 [ "5539.90000", "0.30000000", "1534614241.769870" ],
-        //                 [ "5539.50000", "5.00000000", "1534613831.243486" ]
-        //             ]
-        //         },
-        //         "book-10",
-        //         "XBT/USD"
+        //             "asks": [
+        //                 {
+        //                     "price": 0.5668,
+        //                     "qty": 4410.79769741
+        //                 },
+        //                 {
+        //                     "price": 0.5669,
+        //                     "qty": 4655.40412487
+        //                 }
+        //             ],
+        //             "checksum": 2439117997
+        //         }
         //     ]
+        // }
         //
         // subsequent updates
         //
-        //     [
-        //         1234,
-        //         { // optional
-        //             "a": [
-        //                 [ "5541.30000", "2.50700000", "1534614248.456738" ],
-        //                 [ "5542.50000", "0.40100000", "1534614248.456738" ]
-        //             ]
-        //         },
-        //         { // optional
-        //             "b": [
-        //                 [ "5541.30000", "0.00000000", "1534614335.345903" ]
-        //             ]
-        //         },
-        //         "book-10",
-        //         "XBT/USD"
+        // {
+        //     "channel": "book",
+        //     "type": "update",
+        //     "data": [
+        //         {
+        //             "symbol": "MATIC/USD",
+        //             "bids": [
+        //                 {
+        //                     "price": 0.5657,
+        //                     "qty": 1098.3947558
+        //                 }
+        //             ],
+        //             "asks": [],
+        //             "checksum": 2114181697,
+        //             "timestamp": "2023-10-06T17:35:55.440295Z"
+        //         }
         //     ]
+        // }
         //
-        const messageLength = message.length;
-        const wsName = message[messageLength - 1];
-        const bookDepthString = message[messageLength - 2];
-        const parts = bookDepthString.split ('-');
-        const depth = this.safeInteger (parts, 1, 10);
-        const market = this.safeValue (this.options['marketsByWsName'], wsName);
-        const symbol = market['symbol'];
+        const type = this.safeString (message, 'type');
+        const data = this.safeList (message, 'data', []);
+        const first = this.safeDict (data, 0, {});
+        const symbol = this.safeString (first, 'symbol');
         let timestamp = undefined;
+        let datetime = undefined;
         const messageHash = this.getMessageHash ('orderbook', undefined, symbol);
-        // if this is a snapshot
-        if ('as' in message[1]) {
-            // todo get depth from marketsByWsName
-            this.orderbooks[symbol] = this.orderBook ({}, depth);
-            const orderbook = this.orderbooks[symbol];
-            const sides: Dict = {
-                'as': 'asks',
-                'bs': 'bids',
-            };
-            const keys = Object.keys (sides);
-            for (let i = 0; i < keys.length; i++) {
-                const key = keys[i];
-                const side = sides[key];
-                const bookside = orderbook[side];
-                const deltas = this.safeValue (message[1], key, []);
-                timestamp = this.customHandleDeltas (bookside, deltas, timestamp);
-            }
-            orderbook['symbol'] = symbol;
-            orderbook['timestamp'] = timestamp;
-            orderbook['datetime'] = this.iso8601 (timestamp);
-            client.resolve (orderbook, messageHash);
-        } else {
-            const orderbook = this.orderbooks[symbol];
-            // else, if this is an orderbook update
-            let a = undefined;
-            let b = undefined;
-            let c = undefined;
-            if (messageLength === 5) {
-                a = this.safeValue (message[1], 'a', []);
-                b = this.safeValue (message[2], 'b', []);
-                c = this.safeInteger (message[1], 'c');
-                c = this.safeInteger (message[2], 'c', c);
-            } else {
-                c = this.safeInteger (message[1], 'c');
-                if ('a' in message[1]) {
-                    a = this.safeValue (message[1], 'a', []);
-                } else {
-                    b = this.safeValue (message[1], 'b', []);
-                }
-            }
-            const storedAsks = orderbook['asks'];
-            const storedBids = orderbook['bids'];
-            let example = undefined;
-            if (a !== undefined) {
-                timestamp = this.customHandleDeltas (storedAsks, a, timestamp);
-                example = this.safeValue (a, 0);
-            }
-            if (b !== undefined) {
-                timestamp = this.customHandleDeltas (storedBids, b, timestamp);
-                example = this.safeValue (b, 0);
-            }
-            // don't remove this line or I will poop on your face
-            orderbook.limit ();
-            const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
-            if (checksum) {
-                const priceString = this.safeString (example, 0);
-                const amountString = this.safeString (example, 1);
-                const priceParts = priceString.split ('.');
-                const amountParts = amountString.split ('.');
-                const priceLength = priceParts[1].length - 0;
-                const amountLength = amountParts[1].length - 0;
-                const payloadArray = [];
-                if (c !== undefined) {
-                    for (let i = 0; i < 10; i++) {
-                        const formatted = this.formatNumber (storedAsks[i][0], priceLength) + this.formatNumber (storedAsks[i][1], amountLength);
-                        payloadArray.push (formatted);
-                    }
-                    for (let i = 0; i < 10; i++) {
-                        const formatted = this.formatNumber (storedBids[i][0], priceLength) + this.formatNumber (storedBids[i][1], amountLength);
-                        payloadArray.push (formatted);
-                    }
-                }
-                const payload = payloadArray.join ('');
-                const localChecksum = this.crc32 (payload, false);
-                if (localChecksum !== c) {
-                    const error = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
-                    delete client.subscriptions[messageHash];
-                    delete this.orderbooks[symbol];
-                    client.reject (error, messageHash);
-                    return;
-                }
-            }
-            orderbook['symbol'] = symbol;
-            orderbook['timestamp'] = timestamp;
-            orderbook['datetime'] = this.iso8601 (timestamp);
-            client.resolve (orderbook, messageHash);
+        if (type === 'update') {
+            datetime = this.safeString (first, 'timestamp');
+            timestamp = this.parse8601 (datetime);
         }
+        const a = this.safeValue (first, 'asks', []);
+        const b = this.safeValue (first, 'bids', []);
+        const c = this.safeInteger (first, 'checksum');
+        const depth = a.length;
+        this.orderbooks[symbol] = this.orderBook ({}, depth);
+        const orderbook = this.orderbooks[symbol];
+        orderbook['asks'] = a;
+        orderbook['bids'] = b;
+        orderbook['timestamp'] = timestamp;
+        orderbook['datetime'] = datetime;
+        orderbook['symbol'] = symbol;
+        const storedAsks = orderbook['asks'];
+        const storedBids = orderbook['bids'];
+        let example = undefined;
+        if (a !== undefined) {
+            example = this.safeValue (a, 0);
+        }
+        if (b !== undefined) {
+            example = this.safeValue (b, 0);
+        }
+        // don't remove this line or I will poop on your face
+        orderbook.limit ();
+        const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
+        if (checksum) {
+            const priceString = this.safeString (example, 'price');
+            const amountString = this.safeString (example, 'qty');
+            const priceParts = priceString.split ('.');
+            const amountParts = amountString.split ('.');
+            const priceLength = priceParts[1].length - 0;
+            const amountLength = amountParts[1].length - 0;
+            const payloadArray = [];
+            if (c !== undefined) {
+                for (let i = 0; i < 10; i++) {
+                    const formatted = this.formatNumber (storedAsks[i], priceLength) + this.formatNumber (storedAsks[i], amountLength);
+                    payloadArray.push (formatted);
+                }
+                for (let i = 0; i < 10; i++) {
+                    const formatted = this.formatNumber (storedBids[i], priceLength) + this.formatNumber (storedBids[i], amountLength);
+                    payloadArray.push (formatted);
+                }
+            }
+            const payload = payloadArray.join ('');
+            const localChecksum = this.crc32 (payload, false);
+            if (localChecksum !== c) {
+                const error = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
+                delete client.subscriptions[messageHash];
+                delete this.orderbooks[symbol];
+                client.reject (error, messageHash);
+                return;
+            }
+        }
+        client.resolve (orderbook, messageHash);
     }
 
     formatNumber (n, length) {
@@ -1029,18 +1011,6 @@ export default class kraken extends krakenRest {
         } else {
             return joined;
         }
-    }
-
-    customHandleDeltas (bookside, deltas, timestamp = undefined) {
-        for (let j = 0; j < deltas.length; j++) {
-            const delta = deltas[j];
-            const price = this.parseNumber (delta[0]);
-            const amount = this.parseNumber (delta[1]);
-            const oldTimestamp = timestamp ? timestamp : 0;
-            timestamp = Math.max (oldTimestamp, this.parseToInt (parseFloat (delta[2]) * 1000));
-            bookside.store (price, amount);
-        }
-        return timestamp;
     }
 
     handleSystemStatus (client: Client, message) {
@@ -1746,7 +1716,6 @@ export default class kraken extends krakenRest {
             const name = this.safeString (info, 'name');
             const methods: Dict = {
                 // public
-                'book': this.handleOrderBook,
                 'ohlc': this.handleOHLCV,
                 // private
                 'openOrders': this.handleOrders,
@@ -1761,6 +1730,7 @@ export default class kraken extends krakenRest {
             if (channel !== undefined) {
                 const methods: Dict = {
                     'balances': this.handleBalance,
+                    'book': this.handleOrderBook,
                     'ticker': this.handleTicker,
                     'trade': this.handleTrades,
                 };
