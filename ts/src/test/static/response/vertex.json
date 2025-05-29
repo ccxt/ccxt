@@ -4,44 +4,47 @@
     "methods": {
         "fetchCurrencies": [
             {
-                "description": "fetch Currencies",
+                "description": "fetchCurrencies",
                 "method": "fetchCurrencies",
                 "input": [],
                 "httpResponse": [
                     {
-                        "product_id": "0",
-                        "ticker_id": null,
-                        "market_type": null,
-                        "name": "USDC",
-                        "symbol": "USDC",
-                        "maker_fee": null,
-                        "taker_fee": null,
+                        "product_id": "31",
+                        "ticker_id": "USDT_USDC",
+                        "market_type": "spot",
+                        "name": "Tether USD",
+                        "symbol": "USDT",
+                        "maker_fee": "0.0",
+                        "taker_fee": "0.0002",
                         "can_withdraw": true,
                         "can_deposit": true
                     }
                 ],
                 "parsedResponse": {
-                    "USDC": {
-                        "id": "0",
-                        "name": "USDC",
-                        "code": "USDC",
-                        "precision": null,
+                    "USDT": {
                         "info": {
-                            "product_id": "0",
-                            "ticker_id": null,
-                            "market_type": null,
-                            "name": "USDC",
-                            "symbol": "USDC",
-                            "maker_fee": null,
-                            "taker_fee": null,
+                            "product_id": "31",
+                            "ticker_id": "USDT_USDC",
+                            "market_type": "spot",
+                            "name": "Tether USD",
+                            "symbol": "USDT",
+                            "maker_fee": "0.0",
+                            "taker_fee": "0.0002",
                             "can_withdraw": true,
                             "can_deposit": true
                         },
+                        "id": "31",
+                        "numericId": null,
+                        "code": "USDT",
+                        "precision": null,
+                        "type": null,
+                        "name": "USDT",
                         "active": null,
                         "deposit": true,
                         "withdraw": true,
-                        "networks": null,
                         "fee": null,
+                        "fees": {},
+                        "networks": null,
                         "limits": {
                             "amount": {
                                 "min": null,
