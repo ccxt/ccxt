@@ -452,11 +452,10 @@ class vertex extends Exchange {
             if (($tickerId !== null) && (mb_strpos($tickerId, 'PERP') > 0)) {
                 continue;
             }
-            $id = $this->safe_string($data, 'product_id');
             $name = $this->safe_string($data, 'symbol');
             $code = $this->safe_currency_code($name);
-            $result[$code] = array(
-                'id' => $id,
+            $result[$code] = $this->safe_currency_structure(array(
+                'id' => $this->safe_string($data, 'product_id'),
                 'name' => $name,
                 'code' => $code,
                 'precision' => null,
@@ -476,7 +475,7 @@ class vertex extends Exchange {
                         'max' => null,
                     ),
                 ),
-            );
+            ));
         }
         return $result;
     }
