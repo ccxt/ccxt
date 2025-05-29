@@ -1,7 +1,7 @@
 import ansi from 'ansicolor';
 import { Command } from 'commander';
 import ololog from 'ololog';
-import { parseMethodArgs, printHumanReadable, printSavedCommand, printUsage, loadSettingsAndCreateExchange, collectKeyValue, handleDebug, handleStaticTests, askForArgv } from './helpers.js';
+import { parseMethodArgs, printHumanReadable, printSavedCommand, printUsage, loadSettingsAndCreateExchange, collectKeyValue, handleDebug, handleStaticTests, askForArgv, printMethodUsage } from './helpers.js';
 import { checkCache } from './cache.js';
 
 let ccxt;
@@ -80,7 +80,7 @@ program.addHelpText ('after', `
 
 program
     .version (version)
-    .usage ('exchangeId methodName arg1 argN [options]')
+    .usage ('exchangeId methodName arg1 arg2 argN [options]')
     .description ('CCXT CLI tool');
 
 program
@@ -147,16 +147,22 @@ async function run () {
     while (true) { // main loop, used for the interactive mode
         if (cliOptions.history) {
             printSavedCommand (cliOptions);
+            process.exit (0);
         }
 
-        if (!exchangeId) {
-            printUsage (commandToShow);
-        }
-
-        const exchange = await loadSettingsAndCreateExchange (exchangeId, cliOptions);
+        // if (!exchangeId) {
+        //     printUsage (commandToShow);
+        // }
 
         if (!methodName) {
-            log (exchange);
+            process.exit (0);
+        }
+
+        const exchange = await loadSettingsAndCreateExchange (exchangeId, cliOptions, params.length === 0);
+
+        if (params.length === 0) {
+            // print method usage
+            printMethodUsage (exchange, methodName);
             process.exit (0);
         }
 

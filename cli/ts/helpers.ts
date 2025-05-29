@@ -345,7 +345,7 @@ function parseMethodArgs (exchange, params, methodName, cliOptions): any[] {
                 return s;
             }
         }) ());
-    if (cliOptions.param) {
+    if (Object.keys (cliOptions.param).length > 0) {
         // params were provided like --param a=b
         args.push (cliOptions.param);
     }
@@ -358,7 +358,7 @@ function parseMethodArgs (exchange, params, methodName, cliOptions): any[] {
  * @param exchangeId
  * @param cliOptions
  */
-async function loadSettingsAndCreateExchange (exchangeId, cliOptions) {
+async function loadSettingsAndCreateExchange (exchangeId, cliOptions, printUsageOnly = false) {
     let exchange;
     let allSettings;
     if (cliOptions.history) {
@@ -433,7 +433,7 @@ async function loadSettingsAndCreateExchange (exchangeId, cliOptions) {
     }
 
     const no_load_markets = cliOptions.noSend ? true : cliOptions.noLoadMarkets;
-    if (!no_load_markets) {
+    if (!no_load_markets && !printUsageOnly) {
         await handleMarketsLoading (exchange, cliOptions.cacheMarkets);
     }
 
@@ -523,6 +523,111 @@ function askForArgv (prompt: string): Promise<string[]> {
     });
 }
 
+function printMethodUsage (exchange, methodName) {
+    const method = exchange[methodName];
+
+    if (typeof method !== 'function') {
+        log.red (`\n❌ Method "${methodName}" not found on exchange "${exchange.id || 'unknown'}".`);
+        return;
+    }
+
+    const { requiredArgs, optionalArgs, error } = getArgsWithOptionality (method);
+
+    if (error) {
+        log.warn (`\n⚠️ Unable to introspect parameters for "${methodName}" (possibly native or transpiled).`);
+        return;
+    }
+
+    log (`\nMethod: ${methodName}`);
+
+    const usage = requiredArgs.map ((a) => `<${a}>`).concat (optionalArgs.map ((a) => `[${a}]`)).join (' ');
+    log (`Usage:\n  ${exchange.id} ${methodName} ${usage}\n`);
+
+    log ('Arguments:');
+    const printArg = (arg, required) => {
+        const tag = required ? 'required' : 'optional';
+        const info = paramInfoMap[arg] || {};
+        const desc = info.description || '(no description available)';
+        const ex = info.example ? `e.g., ${info.example}` : '';
+        log (`  - ${arg.padEnd (12)} (${tag}) — ${desc} ${ex}`);
+    };
+
+    requiredArgs.forEach ((arg) => printArg (arg, true));
+    optionalArgs.forEach ((arg) => printArg (arg, false));
+}
+
+function getArgsWithOptionality (func) {
+    const funcStr = func.toString ();
+
+    if (funcStr.includes ('[native code]') || funcStr.length < 20) {
+        return { 'requiredArgs': [], 'optionalArgs': [], 'error': true };
+    }
+
+    // Strip comments
+    const cleaned = funcStr.replace (/\/\*[\s\S]*?\*\/|\/\/.*$/gm, '');
+    const argsMatch = cleaned.match (/^[\s\S]*?\(([^)]*)\)/);
+    if (!argsMatch) return { 'requiredArgs': [], 'optionalArgs': [], 'error': true };
+
+    const rawArgs = argsMatch[1]
+        .split (',')
+        .map ((a) => a.trim ())
+        .filter (Boolean);
+
+    const requiredArgs = [];
+    const optionalArgs = [];
+
+    rawArgs.forEach ((arg, index) => {
+        const isOptional = arg.includes ('=') || index >= func.length;
+        const name = arg.split ('=')[0].trim ();
+        if (isOptional) {
+            optionalArgs.push (name);
+        } else {
+            requiredArgs.push (name);
+        }
+    });
+
+    return { requiredArgs, optionalArgs, 'error': false };
+}
+
+const paramInfoMap = {
+    'symbol': {
+        'description': 'Market symbol',
+        'example': 'BTC/USDT',
+    },
+    'since': {
+        'description': 'Unix timestamp (ms) to fetch data from',
+        'example': '1672531200000',
+    },
+    'limit': {
+        'description': 'Number of results to return',
+        'example': '100',
+    },
+    'timeframe': {
+        'description': 'Candlestick interval',
+        'example': '1h',
+    },
+    'params': {
+        'description': 'Extra parameters for the exchange',
+        'example': '{ "recvWindow": 5000 }',
+    },
+    'id': {
+        'description': 'The ID of the order to fetch or cancel',
+        'example': '1234567890',
+    },
+    'orderIds': {
+        'description': 'Array of order IDs',
+        'example': '[ "12345", "67890" ]',
+    },
+    'price': {
+        'description': 'Price per unit of asset',
+        'example': '26000.50',
+    },
+    'side': {
+        'description': 'order side',
+        'example': 'buy or sell',
+    },
+};
+
 export {
     createRequestTemplate,
     createResponseTemplate,
@@ -540,4 +645,5 @@ export {
     handleDebug,
     handleStaticTests,
     askForArgv,
+    printMethodUsage,
 };
