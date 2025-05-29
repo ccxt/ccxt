@@ -2,7 +2,7 @@ import ansi from 'ansicolor';
 import { Command } from 'commander';
 import ololog from 'ololog';
 import { parseMethodArgs, printHumanReadable, printSavedCommand, printUsage, loadSettingsAndCreateExchange, collectKeyValue, handleDebug, handleStaticTests, askForArgv, printMethodUsage } from './helpers.js';
-import { checkCache, getCacheDirectory } from './cache.js';
+import { checkCache, getCacheDirectory, saveCommand } from './cache.js';
 
 let ccxt;
 let local = false;
@@ -127,7 +127,7 @@ exchanges.forEach ((exchange) => {
 
 program
     .command ('explain <methodName>')
-    .description ('Explain how a method is used, eg: "ccxt explain createOrder"')
+    .description ('Explain how a method is used, eg: "explain createOrder"')
     .action ((method) => {
         printMethodUsage (method);
         process.exit (0);
@@ -144,6 +144,8 @@ program
 let inputArgs = process.argv;
 
 program.parse (inputArgs);
+
+saveCommand (process.argv);
 
 let cliOptions = program.opts () as CLIOptions;
 
@@ -173,26 +175,11 @@ async function run () {
     const iMode = cliOptions.i;
 
     while (true) { // main loop, used for the interactive mode
-        // if (cliOptions.history) {
-        //     printSavedCommand (cliOptions);
-        //     process.exit (0);
-        // }
-
-        // if (!exchangeId) {
-        //     printUsage (commandToShow);
-        // }
-
         if (!methodName) {
             process.exit (0);
         }
 
         const exchange = await loadSettingsAndCreateExchange (exchangeId, cliOptions, params.length === 0);
-
-        // if (params.length === 0) {
-        //     // print method usage
-        //     printMethodUsage (exchange, methodName);
-        //     process.exit (0);
-        // }
 
         if (exchange[methodName] === undefined) {
             log.red (exchange.id + '.' + methodName + ': no such property');
@@ -242,7 +229,7 @@ async function run () {
 }
 // ----------------------------------------------------------------------------
 
-async function executeCCXTCommand (exchange, params, methodName, cliOptions, i) {
+async function executeCCXTCommand (exchange, params:any, methodName: string, cliOptions: any, i: number) {
     const isWsMethod = methodName.startsWith ('watch');
     let start = exchange.milliseconds ();
     let end = exchange.milliseconds ();
