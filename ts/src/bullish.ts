@@ -980,11 +980,15 @@ export default class bullish extends Exchange {
         await this.loadMarkets ();
         // todo handle since and until
         const market = this.market (symbol);
-        if (since === undefined) {
-            throw new BadRequest (this.id + ' fetchOHLCV() requires a since argument');
-        }
         let until: Int = undefined;
         [ until, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'until');
+        if (until === undefined) {
+            until = this.milliseconds ();
+        }
+        if (since === undefined) {
+            const duration = this.parseTimeframe (timeframe);
+            since = until - (duration * 1000 * 1000);
+        }
         timeframe = this.safeString (this.timeframes, timeframe, timeframe);
         const request: Dict = {
             'symbol': market['id'],
