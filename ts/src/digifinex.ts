@@ -506,7 +506,7 @@ export default class digifinex extends Exchange {
         //         "code":200
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const currency = data[i];
@@ -710,8 +710,8 @@ export default class digifinex extends Exchange {
         //         ]
         //     }
         //
-        const spotData = this.safeValue (spotMarkets, 'symbol_list', []);
-        const swapData = this.safeValue (swapMarkets, 'data', []);
+        const spotData = this.safeList (spotMarkets, 'symbol_list', []);
+        const swapData = this.safeList (swapMarkets, 'data', []);
         const response = this.arrayConcat (spotData, swapData);
         const result = [];
         for (let i = 0; i < response.length; i++) {
@@ -744,9 +744,9 @@ export default class digifinex extends Exchange {
             if (swap) {
                 type = 'swap';
                 symbol = base + '/' + quote + ':' + settle;
-                isInverse = this.safeValue (market, 'is_inverse');
+                isInverse = this.safeBool (market, 'is_inverse');
                 isLinear = (!isInverse) ? true : false;
-                const isTrading = this.safeValue (market, 'isTrading');
+                const isTrading = this.safeBool (market, 'isTrading');
                 if (isTrading) {
                     isAllowed = 1;
                 }
@@ -821,7 +821,7 @@ export default class digifinex extends Exchange {
         //         "code":0
         //     }
         //
-        const markets = this.safeValue (response, 'data', []);
+        const markets = this.safeList (response, 'data', []);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -985,7 +985,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         const balanceRequest = (marketType === 'swap') ? 'data' : 'list';
-        const balances = this.safeValue (response, balanceRequest, []);
+        const balances = this.safeList (response, balanceRequest, []);
         return this.parseBalance (balances);
     }
 
@@ -1057,7 +1057,7 @@ export default class digifinex extends Exchange {
         let timestamp = undefined;
         let orderBook = undefined;
         if (marketType === 'swap') {
-            orderBook = this.safeValue (response, 'data', {});
+            orderBook = this.safeDict (response, 'data', {});
             timestamp = this.safeInteger (orderBook, 'timestamp');
         } else {
             orderBook = response;
@@ -1142,7 +1142,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         const result: Dict = {};
-        const tickers = this.safeValue2 (response, 'ticker', 'data', []);
+        const tickers = this.safeList2 (response, 'ticker', 'data', []);
         const date = this.safeInteger (response, 'date');
         for (let i = 0; i < tickers.length; i++) {
             const rawTicker = this.extend ({
@@ -1223,8 +1223,8 @@ export default class digifinex extends Exchange {
         //     }
         //
         const date = this.safeInteger (response, 'date');
-        const tickers = this.safeValue (response, 'ticker', []);
-        const data = this.safeValue (response, 'data', {});
+        const tickers = this.safeList (response, 'ticker', []);
+        const data = this.safeDict (response, 'data', {});
         const firstTicker = this.safeValue (tickers, 0, {});
         let result = undefined;
         if (market['swap']) {
@@ -1415,7 +1415,7 @@ export default class digifinex extends Exchange {
             if (type === undefined) {
                 type = 'limit';
             }
-            const isMaker = this.safeValue (trade, 'is_maker');
+            const isMaker = this.safeBool (trade, 'is_maker');
             takerOrMaker = isMaker ? 'maker' : 'taker';
         }
         let fee = undefined;
@@ -1684,8 +1684,8 @@ export default class digifinex extends Exchange {
         //
         let candles = undefined;
         if (market['swap']) {
-            const data = this.safeValue (response, 'data', {});
-            candles = this.safeValue (data, 'candles', []);
+            const data = this.safeDict (response, 'data', {});
+            candles = this.safeList (data, 'candles', []);
         } else {
             candles = this.safeValue (response, 'data', []);
         }
@@ -1829,9 +1829,9 @@ export default class digifinex extends Exchange {
         //
         let data = [];
         if (market['swap']) {
-            data = this.safeValue (response, 'data', []);
+            data = this.safeList (response, 'data', []);
         } else {
-            data = this.safeValue (response, 'order_ids', []);
+            data = this.safeList (response, 'order_ids', []);
         }
         const result = [];
         for (let i = 0; i < orders.length; i++) {
@@ -2037,7 +2037,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         if ((marketType === 'spot') || (marketType === 'margin')) {
-            const canceledOrders = this.safeValue (response, 'success', []);
+            const canceledOrders = this.safeList (response, 'success', []);
             const numCanceledOrders = canceledOrders.length;
             if (numCanceledOrders !== 1) {
                 throw new OrderNotFound (this.id + ' cancelOrder() ' + id + ' not found');
@@ -2804,10 +2804,10 @@ export default class digifinex extends Exchange {
         //
         let ledger = undefined;
         if (marketType === 'swap') {
-            ledger = this.safeValue (response, 'data', []);
+            ledger = this.safeList (response, 'data', []);
         } else {
             const data = this.safeValue (response, 'data', {});
-            ledger = this.safeValue (data, 'finance', []);
+            ledger = this.safeList (data, 'finance', []);
         }
         return this.parseLedger (ledger, currency, since, limit);
     }
@@ -2862,7 +2862,7 @@ export default class digifinex extends Exchange {
         //         "code":200
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const addresses = this.parseDepositAddresses (data, [ currency['code'] ]);
         const address = this.safeValue (addresses, code);
         if (address === undefined) {
@@ -3206,7 +3206,7 @@ export default class digifinex extends Exchange {
         //         "unrealized_pnl": "-0.049158102631998504"
         //     }
         //
-        const rows = this.safeValue (response, 'positions');
+        const rows = this.safeList (response, 'positions', []);
         const interest = this.parseBorrowInterests (rows, market);
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
@@ -3275,7 +3275,7 @@ export default class digifinex extends Exchange {
         //         "equity": 45.133305540922
         //     }
         //
-        const data = this.safeValue (response, 'list', []);
+        const data = this.safeList (response, 'list', []);
         let result = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
@@ -3315,7 +3315,7 @@ export default class digifinex extends Exchange {
         //         "equity": 45.133305540922
         //     }
         //
-        const result = this.safeValue (response, 'list', []);
+        const result = this.safeList (response, 'list', []);
         return this.parseBorrowRates (result, 'currency');
     }
 
@@ -3501,8 +3501,8 @@ export default class digifinex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
-        const result = this.safeValue (data, 'funding_rates', []);
+        const data = this.safeDict (response, 'data', {});
+        const result = this.safeList (data, 'funding_rates', []);
         const rates = [];
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];
@@ -3550,7 +3550,7 @@ export default class digifinex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseTradingFee (data, market);
     }
 
@@ -3674,7 +3674,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         const positionRequest = (marketType === 'swap') ? 'data' : 'positions';
-        const positions = this.safeValue (response, positionRequest, []);
+        const positions = this.safeList (response, positionRequest, []);
         const result = [];
         for (let i = 0; i < positions.length; i++) {
             result.push (this.parsePosition (positions[i], market));
@@ -3764,7 +3764,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         const dataRequest = (marketType === 'swap') ? 'data' : 'positions';
-        const data = this.safeValue (response, dataRequest, []);
+        const data = this.safeList (response, dataRequest, []);
         const position = this.parsePosition (data[0], market);
         if (marketType === 'swap') {
             return position;
@@ -4003,7 +4003,7 @@ export default class digifinex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         symbols = this.marketSymbols (symbols);
         return this.parseLeverageTiers (data, symbols, 'instrument_id');
     }
@@ -4054,7 +4054,7 @@ export default class digifinex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseMarketLeverageTiers (data, market);
     }
 
@@ -4084,7 +4084,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         const tiers = [];
-        const brackets = this.safeValue (info, 'open_max_limits', {});
+        const brackets = this.safeDict (info, 'open_max_limits', {});
         for (let i = 0; i < brackets.length; i++) {
             const tier = brackets[i];
             const marketId = this.safeString (info, 'instrument_id');
@@ -4302,7 +4302,7 @@ export default class digifinex extends Exchange {
         //
         const code = this.safeInteger (response, 'code');
         const status = (code === 0) ? 'ok' : 'failed';
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.extend (this.parseMarginModification (data, market), {
             'status': status,
         });
