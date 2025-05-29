@@ -851,24 +851,21 @@ public partial class kraken : Exchange
                     code = this.safeCurrencyCode(id);
                 }
             }
-            object precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "decimals")));
-            // assumes all currencies are active except those listed above
-            object active = isEqual(this.safeString(currency, "status"), "enabled");
             object isFiat = isGreaterThanOrEqual(getIndexOf(code, ".HOLD"), 0);
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "code", code },
                 { "info", currency },
                 { "name", this.safeString(currency, "altname") },
-                { "active", active },
+                { "active", isEqual(this.safeString(currency, "status"), "enabled") },
                 { "type", ((bool) isTrue(isFiat)) ? "fiat" : "crypto" },
                 { "deposit", null },
                 { "withdraw", null },
                 { "fee", null },
-                { "precision", precision },
+                { "precision", this.parseNumber(this.parsePrecision(this.safeString(currency, "decimals"))) },
                 { "limits", new Dictionary<string, object>() {
                     { "amount", new Dictionary<string, object>() {
-                        { "min", precision },
+                        { "min", null },
                         { "max", null },
                     } },
                     { "withdraw", new Dictionary<string, object>() {
@@ -877,7 +874,7 @@ public partial class kraken : Exchange
                     } },
                 } },
                 { "networks", new Dictionary<string, object>() {} },
-            };
+            });
         }
         return result;
     }
