@@ -924,9 +924,11 @@ export default class woo extends Exchange {
                 const networkId = keys[j];
                 const tokenEntry = this.safeDict (tokensByNetworkId, networkId, {});
                 const networkEntry = this.safeDict (chainsByNetworkId, networkId, {});
-                const networkCode = this.networkIdToCode (networkId);
+                const networkCode = this.networkIdToCode (networkId, code);
+                const specialNetworkId = this.safeString (tokenEntry, 'token');
                 resultingNetworks[networkCode] = {
                     'id': networkId,
+                    'currencyNetworkId': specialNetworkId, // exchange uses special crrency-ids (coin + network junction)
                     'network': networkCode,
                     'active': undefined,
                     'deposit': this.safeString (networkEntry, 'allow_deposit') === '1',
@@ -2188,12 +2190,16 @@ export default class woo extends Exchange {
         // this method is TODO because of networks unification
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const networkCodeDefault = this.defaultNetworkCodeForCurrency (code);
-        const networkCode = this.safeString (params, 'network', networkCodeDefault);
-        params = this.omit (params, 'network');
-        const codeForExchange = networkCode + '_' + currency['code'];
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        networkCode = this.networkIdToCode (networkCode, code);
+        const networkEntry = this.safeDict (currency['networks'], networkCode);
+        if (networkEntry === undefined) {
+            const supportedNetworks = Object.keys (currency['networks']);
+            throw new BadRequest (this.id + ' fetchDepositAddress() can not determine a network code, please provide unified "network" param, one from the following: ' + this.json (supportedNetworks));
+        }
         const request: Dict = {
-            'token': codeForExchange,
+            'token': this.safeString (networkEntry, 'currencyNetworkId'),
         };
         const response = await this.v1PrivateGetAssetDeposit (this.extend (request, params));
         // {
@@ -2201,15 +2207,18 @@ export default class woo extends Exchange {
         //     "address": "3Jmtjx5544T4smrit9Eroe4PCrRkpDeKjP",
         //     "extra": ''
         // }
-        const tag = this.safeString (response, 'extra');
-        const address = this.safeString (response, 'address');
+        return this.parseDepositAddress (response, currency);
+    }
+
+    parseDepositAddress (depositEntry: any, currency?: Currency): DepositAddress {
+        const address = this.safeString (depositEntry, 'address');
         this.checkAddress (address);
         return {
-            'info': response,
-            'currency': code,
-            'network': networkCode,
+            'info': depositEntry,
+            'currency': this.safeString (currency, 'code'),
+            'network': undefined,
             'address': address,
-            'tag': tag,
+            'tag': this.safeString (depositEntry, 'extra'),
         } as DepositAddress;
     }
 
