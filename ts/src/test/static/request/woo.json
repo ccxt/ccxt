@@ -445,14 +445,6 @@
                     }
                 ],
                 "output": null
-            },
-            {
-                "description": "fetch usdt address",
-                "method": "fetchDepositAddress",
-                "url": "https://api.woox.io/v1/asset/deposit?token=ETH_USDT",
-                "input": [
-                    "USDT"
-                ]
             }
         ],
         "fetchOHLCV": [

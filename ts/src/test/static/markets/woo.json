@@ -170,7 +170,7 @@
             "price_range": "0.1",
             "price_scope": null,
             "created_time": "1574926883.000",
-            "updated_time": "1748528495.000",
+            "updated_time": "1748530158.000",
             "is_stable": "0",
             "is_trading": "1",
             "precisions": [
@@ -363,7 +363,7 @@
             "price_range": "0.1",
             "price_scope": null,
             "created_time": "1574926883.000",
-            "updated_time": "1748528165.000",
+            "updated_time": "1748537653.000",
             "is_stable": "0",
             "is_trading": "1",
             "precisions": [
@@ -459,7 +459,7 @@
             "price_range": "0.1",
             "price_scope": "0",
             "created_time": "1656648647.000",
-            "updated_time": "1748505809.000",
+            "updated_time": "1748532857.000",
             "is_stable": "0",
             "is_trading": "1",
             "precisions": [
@@ -849,7 +849,7 @@
             "price_range": "0.01",
             "price_scope": "0.6",
             "created_time": "1647838759.000",
-            "updated_time": "1748528495.000",
+            "updated_time": "1748530158.000",
             "is_stable": "0",
             "is_trading": "1",
             "precisions": [
@@ -951,7 +951,7 @@
             "price_range": "0.03",
             "price_scope": "0.6",
             "created_time": "1647838758.000",
-            "updated_time": "1748528165.000",
+            "updated_time": "1748537653.000",
             "is_stable": "0",
             "is_trading": "1",
             "precisions": [
@@ -1153,7 +1153,7 @@
             "price_range": "0.03",
             "price_scope": "0.6",
             "created_time": "1647838758.000",
-            "updated_time": "1748505809.000",
+            "updated_time": "1748532857.000",
             "is_stable": "0",
             "is_trading": "1",
             "precisions": [

@@ -86,6 +86,7 @@
         "networks": {
             "BTC": {
                 "id": "BTC",
+                "currencyNetworkId": "BTC",
                 "network": "BTC",
                 "active": true,
                 "deposit": true,
@@ -129,6 +130,7 @@
             },
             "BEP20": {
                 "id": "BSC",
+                "currencyNetworkId": "BSC_BTCB",
                 "network": "BEP20",
                 "active": true,
                 "deposit": true,
@@ -172,6 +174,7 @@
             },
             "MERLIN": {
                 "id": "MERLIN",
+                "currencyNetworkId": "MERLIN_BTC",
                 "network": "MERLIN",
                 "active": false,
                 "deposit": true,
@@ -444,6 +447,7 @@
         "networks": {
             "ERC20": {
                 "id": "ETH",
+                "currencyNetworkId": "ETH_USDT",
                 "network": "ERC20",
                 "active": true,
                 "deposit": true,
@@ -487,6 +491,7 @@
             },
             "TRC20": {
                 "id": "TRX",
+                "currencyNetworkId": "TRON_USDT",
                 "network": "TRC20",
                 "active": true,
                 "deposit": true,
@@ -530,6 +535,7 @@
             },
             "ARB": {
                 "id": "Arbitrum",
+                "currencyNetworkId": "ARB_USDT",
                 "network": "ARB",
                 "active": true,
                 "deposit": true,
@@ -573,6 +579,7 @@
             },
             "AVAXC": {
                 "id": "AVAXC",
+                "currencyNetworkId": "AVAXC_USDT",
                 "network": "AVAXC",
                 "active": true,
                 "deposit": true,
@@ -616,6 +623,7 @@
             },
             "BEP20": {
                 "id": "BSC",
+                "currencyNetworkId": "BSC_USDT",
                 "network": "BEP20",
                 "active": true,
                 "deposit": true,
@@ -659,6 +667,7 @@
             },
             "MATIC": {
                 "id": "MATIC",
+                "currencyNetworkId": "MATIC_USDT",
                 "network": "MATIC",
                 "active": true,
                 "deposit": true,
@@ -702,6 +711,7 @@
             },
             "OP": {
                 "id": "OP",
+                "currencyNetworkId": "OP_USDT",
                 "network": "OP",
                 "active": true,
                 "deposit": true,
@@ -745,6 +755,7 @@
             },
             "SOL": {
                 "id": "SOL",
+                "currencyNetworkId": "SOL_USDT",
                 "network": "SOL",
                 "active": true,
                 "deposit": true,
@@ -788,6 +799,7 @@
             },
             "TON": {
                 "id": "TON",
+                "currencyNetworkId": "TON_USDT",
                 "network": "TON",
                 "active": true,
                 "deposit": true,
@@ -884,6 +896,7 @@
         "networks": {
             "LTC": {
                 "id": "LTC",
+                "currencyNetworkId": "LTC",
                 "network": "LTC",
                 "active": true,
                 "deposit": true,
@@ -1066,9 +1079,10 @@
         "fee": 0.0001,
         "fees": {},
         "networks": {
-            "ERC20": {
+            "ETH": {
                 "id": "ETH",
-                "network": "ERC20",
+                "currencyNetworkId": "ETH",
+                "network": "ETH",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
@@ -1111,6 +1125,7 @@
             },
             "BASE": {
                 "id": "BASE",
+                "currencyNetworkId": "BASE_ETH",
                 "network": "BASE",
                 "active": true,
                 "deposit": true,
@@ -1154,6 +1169,7 @@
             },
             "BEP20": {
                 "id": "BSC",
+                "currencyNetworkId": "BSC_ETH",
                 "network": "BEP20",
                 "active": true,
                 "deposit": true,
@@ -1197,6 +1213,7 @@
             },
             "ARB": {
                 "id": "Arbitrum",
+                "currencyNetworkId": "ETH-AETH",
                 "network": "ARB",
                 "active": true,
                 "deposit": true,
@@ -1240,6 +1257,7 @@
             },
             "OP": {
                 "id": "OP",
+                "currencyNetworkId": "OP_ETH",
                 "network": "OP",
                 "active": true,
                 "deposit": true,
@@ -1336,6 +1354,7 @@
         "networks": {
             "ADA": {
                 "id": "ADA",
+                "currencyNetworkId": "ADA",
                 "network": "ADA",
                 "active": true,
                 "deposit": true,
@@ -1432,6 +1451,7 @@
         "networks": {
             "XRP": {
                 "id": "XRP",
+                "currencyNetworkId": "XRP",
                 "network": "XRP",
                 "active": true,
                 "deposit": true,
@@ -1748,6 +1768,7 @@
         "networks": {
             "ERC20": {
                 "id": "ETH",
+                "currencyNetworkId": "ETH_USDC",
                 "network": "ERC20",
                 "active": true,
                 "deposit": true,
@@ -1791,6 +1812,7 @@
             },
             "Arbitrum (Bridged)": {
                 "id": "Arbitrum (Bridged)",
+                "currencyNetworkId": "ARB_USDC",
                 "network": "Arbitrum (Bridged)",
                 "active": false,
                 "deposit": true,
@@ -1834,6 +1856,7 @@
             },
             "Arbitrum (Native)": {
                 "id": "Arbitrum (Native)",
+                "currencyNetworkId": "ARB_USDCNATIVE",
                 "network": "Arbitrum (Native)",
                 "active": true,
                 "deposit": true,
@@ -1877,6 +1900,7 @@
             },
             "C-Chain (Native)": {
                 "id": "C-Chain (Native)",
+                "currencyNetworkId": "AVAXC_USDC2",
                 "network": "C-Chain (Native)",
                 "active": true,
                 "deposit": true,
@@ -1920,6 +1944,7 @@
             },
             "BEP20": {
                 "id": "BSC",
+                "currencyNetworkId": "BSC_USDC",
                 "network": "BEP20",
                 "active": true,
                 "deposit": true,
@@ -1963,6 +1988,7 @@
             },
             "MATIC_BRIDGED": {
                 "id": "MATIC_BRIDGED",
+                "currencyNetworkId": "MATIC_USDC",
                 "network": "MATIC_BRIDGED",
                 "active": false,
                 "deposit": true,
@@ -2006,6 +2032,7 @@
             },
             "MATIC_NATIVE": {
                 "id": "MATIC_NATIVE",
+                "currencyNetworkId": "MATIC_USDCNATIVE",
                 "network": "MATIC_NATIVE",
                 "active": true,
                 "deposit": true,
@@ -2049,6 +2076,7 @@
             },
             "OP_BRIDGED": {
                 "id": "OP_BRIDGED",
+                "currencyNetworkId": "OP_USDC",
                 "network": "OP_BRIDGED",
                 "active": false,
                 "deposit": true,
@@ -2092,6 +2120,7 @@
             },
             "OP_NATIVE": {
                 "id": "OP_NATIVE",
+                "currencyNetworkId": "OP_USDC_NATIVE",
                 "network": "OP_NATIVE",
                 "active": true,
                 "deposit": true,
@@ -2135,6 +2164,7 @@
             },
             "SOL": {
                 "id": "SOL",
+                "currencyNetworkId": "SOL_USDC",
                 "network": "SOL",
                 "active": true,
                 "deposit": true,
@@ -2178,6 +2208,7 @@
             },
             "BASE": {
                 "id": "BASE",
+                "currencyNetworkId": "BASE_USDC",
                 "network": "BASE",
                 "active": true,
                 "deposit": true,
