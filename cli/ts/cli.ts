@@ -2,7 +2,7 @@ import ansi from 'ansicolor';
 import { Command } from 'commander';
 import ololog from 'ololog';
 import { parseMethodArgs, printHumanReadable, printSavedCommand, printUsage, loadSettingsAndCreateExchange, collectKeyValue, handleDebug, handleStaticTests, askForArgv, printMethodUsage } from './helpers.js';
-import { checkCache } from './cache.js';
+import { checkCache, getCacheDirectory } from './cache.js';
 
 let ccxt;
 let local = false;
@@ -41,7 +41,7 @@ interface CLIOptions {
     table?: boolean;
     iso8601?: boolean;
     cors?: boolean;
-    cacheMarkets?: boolean;
+    refreshMarkets?: boolean;
     testnet?: boolean;
     sandbox?: boolean;
     signIn?: boolean;
@@ -59,27 +59,31 @@ interface CLIOptions {
     name?: string;
     param?: any;
 }
+
+const exchanges = Object.keys (ccxt.exchanges) as string[];
 const commandToShow = local ? 'node ./cli' : 'ccxt';
 const program = new Command ();
 
 program.addHelpText ('after', `
-    Examples:
-      $ ccxt binance fetchTrades "BTC/USDT"
-      $ ccxt bybit fetchOHLCV "BTC/USDT" 15m 1722161166529 20 --param until=1722161166530
-      $ ccxt okx fetchTrades "BTC/USDT" --sandbox
-      $ ccxt binance fetchBalance --swap
-      $ BINANCE_APIKEY=abc123 BINANCE_SECRET=def456 ccxt binance createOrder BTC/USDT market buy 0.01
-      $ ccxt history
+Examples:
+  $ ccxt binance fetchTrades "BTC/USDT"
+  $ ccxt explain createOrder
+  $ ccxt bybit fetchOHLCV "BTC/USDT" 15m 1722161166529 20 --param until=1722161166530
+  $ ccxt okx fetchTrades "BTC/USDT" --sandbox
+  $ ccxt binance fetchBalance --swap
+  $ BINANCE_APIKEY=abc123 BINANCE_SECRET=def456 ccxt binance createOrder BTC/USDT market buy 0.01
+  $ ccxt history
 
-    Notes:
-        - Provide apiKeys by setting them as environment variables eg: BINANCE_APIKEY="XXX"
-        - Provide apikeys and other settings by adding them to ~/.ccxt/config.json
+Notes:
+    - Provide apiKeys by setting them as environment variables eg: BINANCE_APIKEY="XXX"
+    - Provide apikeys and other settings by adding them to ${getCacheDirectory ()}/config.json
     `);
 
 //-----------------------------------------------------------------------------
 
 program
     .version (version)
+    .name ('ccxt')
     .usage ('exchangeId methodName arg1 arg2 argN [options]')
     .description ('CCXT CLI tool');
 
@@ -110,8 +114,32 @@ program
     .option ('--i', 'iteractive mode, keeps the session opened')
     .option ('--history', 'prints the history of executed commands')
     .option ('--name <description>', 'Description of static test')
-    .option ('--param <keyValue>', 'Pass key=value pair', collectKeyValue, {})
-    .argument ('<inputs...>', 'exchangeId methodName arg1 arg2 argN');
+    .option ('--param <keyValue>', 'Pass key=value pair', collectKeyValue, {});
+
+program
+    .command ('<exchangeId> <methodName> [args...]') // this command is only for the docs
+    .description ('Executes a ccxt call, eg: binance createOrder "BTC/USDT" market buy 0.1');
+
+exchanges.forEach ((exchange) => {
+    program
+        .command (exchange + ' <methodName> [args...]', { 'hidden': true });
+});
+
+program
+    .command ('explain <methodName>')
+    .description ('Explain how a method is used, eg: "ccxt explain createOrder"')
+    .action ((method) => {
+        printMethodUsage (method);
+        process.exit (0);
+    });
+
+program
+    .command ('history')
+    .description ('Display a list of the previously executed commands')
+    .action (() => {
+        printSavedCommand ({});
+        process.exit (0);
+    });
 
 let inputArgs = process.argv;
 
@@ -145,10 +173,10 @@ async function run () {
     const iMode = cliOptions.i;
 
     while (true) { // main loop, used for the interactive mode
-        if (cliOptions.history) {
-            printSavedCommand (cliOptions);
-            process.exit (0);
-        }
+        // if (cliOptions.history) {
+        //     printSavedCommand (cliOptions);
+        //     process.exit (0);
+        // }
 
         // if (!exchangeId) {
         //     printUsage (commandToShow);
@@ -160,11 +188,11 @@ async function run () {
 
         const exchange = await loadSettingsAndCreateExchange (exchangeId, cliOptions, params.length === 0);
 
-        if (params.length === 0) {
-            // print method usage
-            printMethodUsage (exchange, methodName);
-            process.exit (0);
-        }
+        // if (params.length === 0) {
+        //     // print method usage
+        //     printMethodUsage (exchange, methodName);
+        //     process.exit (0);
+        // }
 
         if (exchange[methodName] === undefined) {
             log.red (exchange.id + '.' + methodName + ': no such property');

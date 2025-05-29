@@ -6,7 +6,7 @@ import path from 'path';
 import asTable from 'as-table';
 import { Agent } from 'https';
 import readline from 'readline';
-import { getCacheDirectory } from './cache.js';
+import { getCacheDirectory, loadConfigFile } from './cache.js';
 
 let add_static_result;
 
@@ -260,9 +260,11 @@ const printHumanReadable = (exchange, result, cliOptions) => {
  * @param exchange
  * @param forceCache
  */
-async function handleMarketsLoading (exchange: ccxt.Exchange, forceCache = false) {
+async function handleMarketsLoading (exchange: ccxt.Exchange, forceRefresh = false) {
     const cachePath = getCacheDirectory ();
+    const cacheConfig = loadConfigFile ();
     const marketsPath = path.join (cachePath, 'markets', exchange.id + '.json');
+    const currenciesPath = path.join (cachePath, 'currencies', exchange.id + '.json');
     // console.log (marketsPath);
     // try {
     //     await fsPromises.access (marketsPath, fs.constants.R_OK);
@@ -280,20 +282,23 @@ async function handleMarketsLoading (exchange: ccxt.Exchange, forceCache = false
             const stats = fs.statSync (marketsPath);
             const now = new Date ().getTime ();
             const diff = now - stats.mtime.getTime ();
-            if (diff > 3 * 24 * 60 * 60 * 1000) { // diff > 3 days
+            if (diff > cacheConfig.refreshMarketsTimeout || forceRefresh) {
                 await exchange.loadMarkets ();
-                if (forceCache) {
-                    await fsPromises.writeFile (marketsPath, jsonStringify (exchange.markets));
-                }
+                await fsPromises.writeFile (marketsPath, jsonStringify (exchange.markets));
+                await fsPromises.writeFile (currenciesPath, jsonStringify (exchange.currencies));
             } else {
                 exchange.markets = JSON.parse (
                     fs.readFileSync (marketsPath).toString ()
+                );
+                exchange.currrencies = JSON.parse (
+                    fs.readFileSync (currenciesPath).toString ()
                 );
             }
         } else {
             // create file and save markets
             await exchange.loadMarkets ();
             await fsPromises.writeFile (marketsPath, jsonStringify (exchange.markets));
+            await fsPromises.writeFile (currenciesPath, jsonStringify (exchange.currencies));
         }
     } catch (e) {
         log.red ('loadMarkets:', e);
@@ -434,7 +439,7 @@ async function loadSettingsAndCreateExchange (exchangeId, cliOptions, printUsage
 
     const no_load_markets = cliOptions.noSend ? true : cliOptions.noLoadMarkets;
     if (!no_load_markets && !printUsageOnly) {
-        await handleMarketsLoading (exchange, cliOptions.cacheMarkets);
+        await handleMarketsLoading (exchange, cliOptions.refreshMarkets);
     }
 
     if (cliOptions.signIn && exchange.has.signIn) {
@@ -523,11 +528,12 @@ function askForArgv (prompt: string): Promise<string[]> {
     });
 }
 
-function printMethodUsage (exchange, methodName) {
+function printMethodUsage (methodName: string) {
+    const exchange = new ccxt.Exchange ();
     const method = exchange[methodName];
 
     if (typeof method !== 'function') {
-        log.red (`\n❌ Method "${methodName}" not found on exchange "${exchange.id || 'unknown'}".`);
+        log.red (`\n❌ Method "${methodName}" not found.`);
         return;
     }
 
@@ -541,7 +547,7 @@ function printMethodUsage (exchange, methodName) {
     log (`\nMethod: ${methodName}`);
 
     const usage = requiredArgs.map ((a) => `<${a}>`).concat (optionalArgs.map ((a) => `[${a}]`)).join (' ');
-    log (`Usage:\n  ${exchange.id} ${methodName} ${usage}\n`);
+    log (`Usage:\n  binance ${methodName} ${usage}\n`);
 
     log ('Arguments:');
     const printArg = (arg, required) => {

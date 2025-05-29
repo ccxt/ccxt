@@ -4,9 +4,21 @@ import path from 'path';
 import ansi from 'ansicolor';
 import ololog from 'ololog';
 import os from 'os';
+import { config } from 'process';
 
 ansi.nice;
 const log = ololog.configure ({ 'locate': false }).unlimited;
+
+const defaultConfig = {
+    'refreshMarketsTimeout': 24 * 60 * 60 * 1000, // 1 day in ms
+    'sampleExchangeId': {
+        'apiKey': 'your apiKey here',
+        'secret': 'your secret here',
+        'options': {
+            'customOptionKey': 'customOptionValue',
+        },
+    },
+};
 
 /**
  *
@@ -22,10 +34,23 @@ function getCacheDirectory () {
     }
 }
 
+function loadConfigFile () {
+    const cachePath = getCacheDirectory ();
+    const configFilePath = path.join (cachePath, 'config.json');
+    if (!fs.existsSync (configFilePath)) {
+        fs.writeFileSync (configFilePath, JSON.stringify (defaultConfig, null, 2));
+        return defaultConfig;
+    }
+
+    const configContent = JSON.parse (fs.readFileSync (configFilePath).toString ());
+    return configContent;
+}
+
 /**
  *
  */
 function checkCache () {
+    loadConfigFile ();
     const cachePath = getCacheDirectory ();
     const marketsPath = path.join (cachePath, 'markets');
     if (!fs.existsSync (cachePath)) {
@@ -78,4 +103,5 @@ export {
     checkCache,
     getCacheDirectory,
     saveCommand,
+    loadConfigFile,
 };
