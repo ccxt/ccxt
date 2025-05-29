@@ -608,6 +608,8 @@
         ],
         "fetchCurrencies": [
             {
+                "disabled": true,
+                "disabledReason": "multiple urls called",
                 "description": "fetchCurrencies",
                 "method": "fetchCurrencies",
                 "url": "https://api.woox.io/v1/public/token",
