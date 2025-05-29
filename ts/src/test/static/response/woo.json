@@ -3,6 +3,138 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchDepositAddress": [
+            {
+                "description": "fetchDepositAddress USDT on ETH",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "address": "0x841e314BB4E4D41392E27B4b04634B5bE73366Da",
+                    "extra": ""
+                },
+                "parsedResponse": {
+                    "info": {
+                        "success": true,
+                        "address": "0x841e314BB4E4D41392E27B4b04634B5bE73366Da",
+                        "extra": ""
+                    },
+                    "currency": "USDT",
+                    "network": null,
+                    "address": "0x841e314BB4E4D41392E27B4b04634B5bE73366Da",
+                    "tag": null
+                }
+            },
+            {
+                "description": "fetchDepositAddress USDT on ERC20",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ERC20"
+                    }
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "address": "0x841e314BB4E4D41392E27B4b04634B5bE73366Da",
+                    "extra": ""
+                },
+                "parsedResponse": {
+                    "info": {
+                        "success": true,
+                        "address": "0x841e314BB4E4D41392E27B4b04634B5bE73366Da",
+                        "extra": ""
+                    },
+                    "currency": "USDT",
+                    "network": null,
+                    "address": "0x841e314BB4E4D41392E27B4b04634B5bE73366Da",
+                    "tag": null
+                }
+            },
+            {
+                "description": "fetchDepositAddress ETH on ERC20",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "ETH",
+                    {
+                        "network": "ERC20"
+                    }
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "address": "0x841e314BB4E4D41392E27B4b04634B5bE73366Da",
+                    "extra": ""
+                },
+                "parsedResponse": {
+                    "info": {
+                        "success": true,
+                        "address": "0x841e314BB4E4D41392E27B4b04634B5bE73366Da",
+                        "extra": ""
+                    },
+                    "currency": "ETH",
+                    "network": null,
+                    "address": "0x841e314BB4E4D41392E27B4b04634B5bE73366Da",
+                    "tag": null
+                }
+            },
+            {
+                "description": "fetchDepositAddress ETH on ETH",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "ETH",
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "address": "0x841e314BB4E4D41392E27B4b04634B5bE73366Da",
+                    "extra": ""
+                },
+                "parsedResponse": {
+                    "info": {
+                        "success": true,
+                        "address": "0x841e314BB4E4D41392E27B4b04634B5bE73366Da",
+                        "extra": ""
+                    },
+                    "currency": "ETH",
+                    "network": null,
+                    "address": "0x841e314BB4E4D41392E27B4b04634B5bE73366Da",
+                    "tag": null
+                }
+            },
+            {
+                "description": "fetchDepositAddress BTC on BTC",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "BTC",
+                    {
+                        "network": "BTC"
+                    }
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "address": "1MNS1epZFL1tgzXQB3ZJkkYDF5sqEcJAcw",
+                    "extra": ""
+                },
+                "parsedResponse": {
+                    "info": {
+                        "success": true,
+                        "address": "1MNS1epZFL1tgzXQB3ZJkkYDF5sqEcJAcw",
+                        "extra": ""
+                    },
+                    "currency": "BTC",
+                    "network": null,
+                    "address": "1MNS1epZFL1tgzXQB3ZJkkYDF5sqEcJAcw",
+                    "tag": null
+                }
+            }
+        ],
         "fetchMyTrades": [
             {
                 "description": "Spot trades",
