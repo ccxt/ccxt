@@ -3,6 +3,38 @@
     "skipKeys": [],
     "outputType": "urlencoded",
     "methods": {
+        "withdraw": [
+            {
+                "description": "withdraw USDT on ETH",
+                "method": "withdraw",
+                "url": "https://api.woox.io/v1/asset/withdraw",
+                "input": [
+                    "USDT",
+                    10,
+                    "0x0000000000000000000000000000000000000000",
+                    null,
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "output": "address=0x0000000000000000000000000000000000000000&amount=10&token=ETH_USDT"
+            },
+            {
+                "description": "withdraw USDT on ERC20",
+                "method": "withdraw",
+                "url": "https://api.woox.io/v1/asset/withdraw",
+                "input": [
+                    "USDT",
+                    10,
+                    "0x0000000000000000000000000000000000000000",
+                    null,
+                    {
+                        "network": "ERC20"
+                    }
+                ],
+                "output": "address=0x0000000000000000000000000000000000000000&amount=10&token=ETH_USDT"
+            }
+        ],
         "createOrder": [
             {
                 "description": "spot limit buy",

@@ -3,6 +3,92 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "withdraw": [
+            {
+                "description": "withdraw USDT on ERC20",
+                "method": "withdraw",
+                "input": [
+                    "USDT",
+                    10,
+                    "0x0000000000000000000000000000000000000000",
+                    null,
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "httpResponse": {
+                    "withdraw_id": "25052918110800327",
+                    "success": true
+                },
+                "parsedResponse": {
+                    "info": {
+                        "withdraw_id": "25052918110800327",
+                        "success": true
+                    },
+                    "id": "25052918110800327",
+                    "txid": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "address": null,
+                    "addressFrom": null,
+                    "addressTo": null,
+                    "tag": null,
+                    "tagFrom": null,
+                    "tagTo": null,
+                    "type": null,
+                    "amount": null,
+                    "currency": "USDT",
+                    "status": null,
+                    "updated": null,
+                    "comment": null,
+                    "internal": null,
+                    "fee": null,
+                    "network": null
+                }
+            },
+            {
+                "description": "withdraw USDT on ETH",
+                "method": "withdraw",
+                "input": [
+                    "USDT",
+                    10,
+                    "0x0000000000000000000000000000000000000000",
+                    null,
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "httpResponse": {
+                    "withdraw_id": "25052917354800318",
+                    "success": true
+                },
+                "parsedResponse": {
+                    "info": {
+                        "withdraw_id": "25052917354800318",
+                        "success": true
+                    },
+                    "id": "25052917354800318",
+                    "txid": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "address": null,
+                    "addressFrom": null,
+                    "addressTo": null,
+                    "tag": null,
+                    "tagFrom": null,
+                    "tagTo": null,
+                    "type": null,
+                    "amount": null,
+                    "currency": "USDT",
+                    "status": null,
+                    "updated": null,
+                    "comment": null,
+                    "internal": null,
+                    "fee": null,
+                    "network": null
+                }
+            }
+        ],
         "fetchDepositAddress": [
             {
                 "description": "fetchDepositAddress USDT on ETH",
