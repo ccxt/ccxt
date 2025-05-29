@@ -2217,7 +2217,7 @@ export default class woo extends Exchange {
         return [ currentyNetworkId, params ];
     }
 
-    parseDepositAddress (depositEntry: any, currency?: Currency): DepositAddress {
+    parseDepositAddress (depositEntry, currency: Currency = undefined): DepositAddress {
         const address = this.safeString (depositEntry, 'address');
         this.checkAddress (address);
         return {
