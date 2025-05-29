@@ -627,7 +627,7 @@ export default class whitebit extends Exchange {
             const networkLimits = this.safeDict (currency, 'limits', {});
             const depositLimits = this.safeDict (networkLimits, 'deposit', {});
             const withdrawLimits = this.safeDict (networkLimits, 'withdraw', {});
-            const allNetworks = depositsNetworks.concat (withdrawsNetworks);
+            const allNetworks = this.arrayConcat (depositsNetworks, withdrawsNetworks);
             for (let j = 0; j < allNetworks.length; j++) {
                 const networkId = allNetworks[j];
                 const networkCode = this.networkIdToCode (networkId);
