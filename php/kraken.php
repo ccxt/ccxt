@@ -855,24 +855,21 @@ class kraken extends Exchange {
                     $code = $this->safe_currency_code($id);
                 }
             }
-            $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'decimals')));
-            // assumes all $currencies are $active except those listed above
-            $active = $this->safe_string($currency, 'status') === 'enabled';
             $isFiat = mb_strpos($code, '.HOLD') !== false;
-            $result[$code] = array(
+            $result[$code] = $this->safe_currency_structure(array(
                 'id' => $id,
                 'code' => $code,
                 'info' => $currency,
                 'name' => $this->safe_string($currency, 'altname'),
-                'active' => $active,
+                'active' => $this->safe_string($currency, 'status') === 'enabled',
                 'type' => $isFiat ? 'fiat' : 'crypto',
                 'deposit' => null,
                 'withdraw' => null,
                 'fee' => null,
-                'precision' => $precision,
+                'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'decimals'))),
                 'limits' => array(
                     'amount' => array(
-                        'min' => $precision,
+                        'min' => null,
                         'max' => null,
                     ),
                     'withdraw' => array(
@@ -881,7 +878,7 @@ class kraken extends Exchange {
                     ),
                 ),
                 'networks' => array(),
-            );
+            ));
         }
         return $result;
     }
