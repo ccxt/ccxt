@@ -6382,7 +6382,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [funding rates structure]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}
      */
-    async fetchFundingRates (symbols: Strings, params = {}): Promise<FundingRates> {
+    async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, 'swap', true);
         const request: Dict = { 'instId': 'ANY' };
