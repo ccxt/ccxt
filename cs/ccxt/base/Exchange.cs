@@ -463,7 +463,7 @@ public partial class Exchange
             this.options.TryAdd("fetched_currencies_for_fetch_markets", currencies);
         }
         var markets = await this.fetchMarkets();
-        this.tempdatas.TryRemove("fetched_currencies_for_fetch_markets", out _);
+        this.options.TryRemove("fetched_currencies_for_fetch_markets", out _);
         return this.setMarkets(markets, currencies);
     }
 
