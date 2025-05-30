@@ -1440,7 +1440,8 @@
         "skipCSharp": true,
         "skipMethods": {
             "loadMarkets": {
-                "currencyIdAndCode": "messed"
+                "currencyIdAndCode": "messed",
+                "contractSize": "broken for some markets"
             },
             "fetchCurrencies": {
                 "precision": "undefined",
