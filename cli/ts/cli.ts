@@ -3,6 +3,7 @@ import { Command } from 'commander';
 import ololog from 'ololog';
 import { parseMethodArgs, printHumanReadable, printSavedCommand, printUsage, loadSettingsAndCreateExchange, collectKeyValue, handleDebug, handleStaticTests, askForArgv, printMethodUsage } from './helpers.js';
 import { checkCache, getCacheDirectory, saveCommand } from './cache.js';
+import { pro } from '../../ts/ccxt.js';
 
 let ccxt;
 let local = false;
@@ -63,6 +64,11 @@ interface CLIOptions {
 const exchanges = Object.keys (ccxt.exchanges) as string[];
 const commandToShow = local ? 'node ./cli' : 'ccxt';
 const program = new Command ();
+
+if (typeof program.addHelpText !== 'function') {
+    console.warn ('You might need to run `npm i` at first');
+    process.exit (1);
+}
 
 program.addHelpText ('after', `
 Examples:
