@@ -841,53 +841,31 @@ public partial class xt : Exchange
             object entry = getValue(currenciesData, i);
             object currencyId = this.safeString(entry, "currency");
             object code = this.safeCurrencyCode(currencyId);
-            object minPrecision = this.parseNumber(this.parsePrecision(this.safeString(entry, "maxPrecision")));
             object networkEntry = this.safeValue(chainsDataIndexed, currencyId, new Dictionary<string, object>() {});
             object rawNetworks = this.safeValue(networkEntry, "supportChains", new List<object>() {});
             object networks = new Dictionary<string, object>() {};
-            object minWithdrawString = null;
-            object minWithdrawFeeString = null;
-            object active = false;
-            object deposit = false;
-            object withdraw = false;
             for (object j = 0; isLessThan(j, getArrayLength(rawNetworks)); postFixIncrement(ref j))
             {
                 object rawNetwork = getValue(rawNetworks, j);
                 object networkId = this.safeString(rawNetwork, "chain");
-                object network = this.networkIdToCode(networkId);
-                object depositEnabled = this.safeValue(rawNetwork, "depositEnabled");
-                deposit = ((bool) isTrue((depositEnabled))) ? depositEnabled : deposit;
-                object withdrawEnabled = this.safeValue(rawNetwork, "withdrawEnabled");
-                withdraw = ((bool) isTrue((withdrawEnabled))) ? withdrawEnabled : withdraw;
-                object networkActive = isTrue(depositEnabled) && isTrue(withdrawEnabled);
-                active = ((bool) isTrue((networkActive))) ? networkActive : active;
-                object withdrawFeeString = this.safeString(rawNetwork, "withdrawFeeAmount");
-                if (isTrue(!isEqual(withdrawFeeString, null)))
-                {
-                    minWithdrawFeeString = ((bool) isTrue((isEqual(minWithdrawFeeString, null)))) ? withdrawFeeString : Precise.stringMin(withdrawFeeString, minWithdrawFeeString);
-                }
-                object minNetworkWithdrawString = this.safeString(rawNetwork, "withdrawMinAmount");
-                if (isTrue(!isEqual(minNetworkWithdrawString, null)))
-                {
-                    minWithdrawString = ((bool) isTrue((isEqual(minWithdrawString, null)))) ? minNetworkWithdrawString : Precise.stringMin(minNetworkWithdrawString, minWithdrawString);
-                }
-                ((IDictionary<string,object>)networks)[(string)network] = new Dictionary<string, object>() {
+                object networkCode = this.networkIdToCode(networkId, code);
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                     { "info", rawNetwork },
                     { "id", networkId },
-                    { "network", network },
+                    { "network", networkCode },
                     { "name", null },
-                    { "active", networkActive },
-                    { "fee", this.parseNumber(withdrawFeeString) },
-                    { "precision", minPrecision },
-                    { "deposit", depositEnabled },
-                    { "withdraw", withdrawEnabled },
+                    { "active", null },
+                    { "fee", this.safeNumber(rawNetwork, "withdrawFeeAmount") },
+                    { "precision", null },
+                    { "deposit", this.safeBool(rawNetwork, "depositEnabled") },
+                    { "withdraw", this.safeBool(rawNetwork, "withdrawEnabled") },
                     { "limits", new Dictionary<string, object>() {
                         { "amount", new Dictionary<string, object>() {
                             { "min", null },
                             { "max", null },
                         } },
                         { "withdraw", new Dictionary<string, object>() {
-                            { "min", this.parseNumber(minNetworkWithdrawString) },
+                            { "min", this.safeNumber(rawNetwork, "withdrawMinAmount") },
                             { "max", null },
                         } },
                         { "deposit", new Dictionary<string, object>() {
@@ -906,16 +884,16 @@ public partial class xt : Exchange
             {
                 type = "other";
             }
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "info", entry },
                 { "id", currencyId },
                 { "code", code },
                 { "name", this.safeString(entry, "fullName") },
-                { "active", active },
-                { "fee", this.parseNumber(minWithdrawFeeString) },
-                { "precision", minPrecision },
-                { "deposit", deposit },
-                { "withdraw", withdraw },
+                { "active", null },
+                { "fee", null },
+                { "precision", this.parseNumber(this.parsePrecision(this.safeString(entry, "maxPrecision"))) },
+                { "deposit", isEqual(this.safeString(entry, "depositStatus"), "1") },
+                { "withdraw", isEqual(this.safeString(entry, "withdrawStatus"), "1") },
                 { "networks", networks },
                 { "type", type },
                 { "limits", new Dictionary<string, object>() {
@@ -924,7 +902,7 @@ public partial class xt : Exchange
                         { "max", null },
                     } },
                     { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.parseNumber(minWithdrawString) },
+                        { "min", null },
                         { "max", null },
                     } },
                     { "deposit", new Dictionary<string, object>() {
@@ -932,7 +910,7 @@ public partial class xt : Exchange
                         { "max", null },
                     } },
                 } },
-            };
+            });
         }
         return result;
     }
