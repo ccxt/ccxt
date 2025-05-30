@@ -362,7 +362,6 @@ export default class Exchange {
     symbols: string[] = undefined;
     ids: string[] = undefined;
     currencies: Currencies = {};
-    tempdatas: Dictionary<any> = {};
 
     baseCurrencies = undefined
     quoteCurrencies = undefined
@@ -1014,10 +1013,10 @@ export default class Exchange {
         // only call if exchange API provides endpoint (true), thus avoid emulated versions ('emulated')
         if (this.has['fetchCurrencies'] === true) {
             currencies = await this.fetchCurrencies ()
-            this.tempdatas['fetched_currencies'] = currencies;
+            this.options['fetched_currencies_for_fetch_markets'] = currencies;
         }
         const markets = await this.fetchMarkets (params)
-        delete this.tempdatas['fetched_currencies'];
+        delete this.options['fetched_currencies_for_fetch_markets'];
         return this.setMarkets (markets, currencies)
     }
 
