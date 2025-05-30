@@ -93,6 +93,23 @@ function injectMissingUndefined (fn, args) {
 
 /**
  *
+ * @param path
+ * @param content
+ */
+async function writeFile (path, content) {
+    try {
+        await fsPromises.writeFile (path, content);
+    } catch (error) {
+        if (error.code === 'ENOENT') {
+            await fsPromises.mkdir (path.dirname (), { recursive: true });
+            await fsPromises.writeFile (path, content);
+        }
+    }
+}
+
+
+/**
+ *
  * @param exchange
  * @param methodName
  * @param args
@@ -343,28 +360,17 @@ async function handleMarketsLoading (
             const diff = now - stats.mtime.getTime ();
             if (diff > cacheConfig.refreshMarketsTimeout || forceRefresh) {
                 await exchange.loadMarkets ();
-                await fsPromises.writeFile (
-                    marketsPath,
-                    jsonStringify (exchange.markets)
-                );
-                await fsPromises.writeFile (
-                    currenciesPath,
-                    jsonStringify (exchange.currencies)
-                );
+                await writeFile (marketsPath, jsonStringify (exchange.markets));
+                await writeFile (currenciesPath, jsonStringify (exchange.currencies));
             } else {
                 exchange.markets = JSON.parse (fs.readFileSync (marketsPath).toString ());
-                exchange.currrencies = JSON.parse (
-                    fs.readFileSync (currenciesPath).toString ()
-                );
+                exchange.currencies = JSON.parse (fs.readFileSync (currenciesPath).toString ());
             }
         } else {
             // create file and save markets
             await exchange.loadMarkets ();
-            await fsPromises.writeFile (marketsPath, jsonStringify (exchange.markets));
-            await fsPromises.writeFile (
-                currenciesPath,
-                jsonStringify (exchange.currencies)
-            );
+            await writeFile (marketsPath, jsonStringify (exchange.markets));
+            await writeFile (currenciesPath, jsonStringify (exchange.currencies));
         }
     } catch (e) {
         log.red ('loadMarkets:', e);
