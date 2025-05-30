@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.4.85'
+__version__ = '4.4.86'
 
 # ----------------------------------------------------------------------------
 
@@ -107,6 +107,7 @@ from ccxt.bitrue import bitrue                                        # noqa: F4
 from ccxt.bitso import bitso                                          # noqa: F401
 from ccxt.bitstamp import bitstamp                                    # noqa: F401
 from ccxt.bitteam import bitteam                                      # noqa: F401
+from ccxt.bittrade import bittrade                                    # noqa: F401
 from ccxt.bitvavo import bitvavo                                      # noqa: F401
 from ccxt.blockchaincom import blockchaincom                          # noqa: F401
 from ccxt.blofin import blofin                                        # noqa: F401
@@ -147,7 +148,6 @@ from ccxt.hitbtc import hitbtc                                        # noqa: F4
 from ccxt.hollaex import hollaex                                      # noqa: F401
 from ccxt.htx import htx                                              # noqa: F401
 from ccxt.huobi import huobi                                          # noqa: F401
-from ccxt.huobijp import huobijp                                      # noqa: F401
 from ccxt.hyperliquid import hyperliquid                              # noqa: F401
 from ccxt.independentreserve import independentreserve                # noqa: F401
 from ccxt.indodax import indodax                                      # noqa: F401
@@ -155,7 +155,6 @@ from ccxt.kraken import kraken                                        # noqa: F4
 from ccxt.krakenfutures import krakenfutures                          # noqa: F401
 from ccxt.kucoin import kucoin                                        # noqa: F401
 from ccxt.kucoinfutures import kucoinfutures                          # noqa: F401
-from ccxt.kuna import kuna                                            # noqa: F401
 from ccxt.latoken import latoken                                      # noqa: F401
 from ccxt.lbank import lbank                                          # noqa: F401
 from ccxt.luno import luno                                            # noqa: F401
@@ -214,6 +213,7 @@ exchanges = [
     'bitso',
     'bitstamp',
     'bitteam',
+    'bittrade',
     'bitvavo',
     'blockchaincom',
     'blofin',
@@ -254,7 +254,6 @@ exchanges = [
     'hollaex',
     'htx',
     'huobi',
-    'huobijp',
     'hyperliquid',
     'independentreserve',
     'indodax',
@@ -262,7 +261,6 @@ exchanges = [
     'krakenfutures',
     'kucoin',
     'kucoinfutures',
-    'kuna',
     'latoken',
     'lbank',
     'luno',

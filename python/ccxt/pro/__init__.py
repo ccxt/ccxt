@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.4.85'
+__version__ = '4.4.86'
 
 # ----------------------------------------------------------------------------
 
@@ -84,6 +84,66 @@ from ccxt.base.errors import error_hierarchy                          # noqa: F4
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 from ccxt.pro.alpaca import alpaca                                        # noqa: F401
 from ccxt.pro.apex import apex                                            # noqa: F401
 from ccxt.pro.ascendex import ascendex                                    # noqa: F401
@@ -101,6 +161,7 @@ from ccxt.pro.bitmex import bitmex                                        # noqa
 from ccxt.pro.bitopro import bitopro                                      # noqa: F401
 from ccxt.pro.bitrue import bitrue                                        # noqa: F401
 from ccxt.pro.bitstamp import bitstamp                                    # noqa: F401
+from ccxt.pro.bittrade import bittrade                                    # noqa: F401
 from ccxt.pro.bitvavo import bitvavo                                      # noqa: F401
 from ccxt.pro.blockchaincom import blockchaincom                          # noqa: F401
 from ccxt.pro.blofin import blofin                                        # noqa: F401
@@ -127,7 +188,6 @@ from ccxt.pro.hitbtc import hitbtc                                        # noqa
 from ccxt.pro.hollaex import hollaex                                      # noqa: F401
 from ccxt.pro.htx import htx                                              # noqa: F401
 from ccxt.pro.huobi import huobi                                          # noqa: F401
-from ccxt.pro.huobijp import huobijp                                      # noqa: F401
 from ccxt.pro.hyperliquid import hyperliquid                              # noqa: F401
 from ccxt.pro.independentreserve import independentreserve                # noqa: F401
 from ccxt.pro.kraken import kraken                                        # noqa: F401
@@ -174,6 +234,7 @@ exchanges = [
     'bitopro',
     'bitrue',
     'bitstamp',
+    'bittrade',
     'bitvavo',
     'blockchaincom',
     'blofin',
@@ -200,7 +261,6 @@ exchanges = [
     'hollaex',
     'htx',
     'huobi',
-    'huobijp',
     'hyperliquid',
     'independentreserve',
     'kraken',

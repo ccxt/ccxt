@@ -855,24 +855,21 @@ class kraken extends kraken$1 {
                     code = this.safeCurrencyCode(id);
                 }
             }
-            const precision = this.parseNumber(this.parsePrecision(this.safeString(currency, 'decimals')));
-            // assumes all currencies are active except those listed above
-            const active = this.safeString(currency, 'status') === 'enabled';
             const isFiat = code.indexOf('.HOLD') >= 0;
-            result[code] = {
+            result[code] = this.safeCurrencyStructure({
                 'id': id,
                 'code': code,
                 'info': currency,
                 'name': this.safeString(currency, 'altname'),
-                'active': active,
+                'active': this.safeString(currency, 'status') === 'enabled',
                 'type': isFiat ? 'fiat' : 'crypto',
                 'deposit': undefined,
                 'withdraw': undefined,
                 'fee': undefined,
-                'precision': precision,
+                'precision': this.parseNumber(this.parsePrecision(this.safeString(currency, 'decimals'))),
                 'limits': {
                     'amount': {
-                        'min': precision,
+                        'min': undefined,
                         'max': undefined,
                     },
                     'withdraw': {
@@ -881,7 +878,7 @@ class kraken extends kraken$1 {
                     },
                 },
                 'networks': {},
-            };
+            });
         }
         return result;
     }

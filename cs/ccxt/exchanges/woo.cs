@@ -1679,7 +1679,7 @@ public partial class woo : Exchange
             ((IDictionary<string,object>)request)["size"] = limit;
         } else
         {
-            ((IDictionary<string,object>)request)["size"] = 500;
+            ((IDictionary<string,object>)request)["size"] = ((bool) isTrue(trailing)) ? 50 : 500;
         }
         if (isTrue(trigger))
         {

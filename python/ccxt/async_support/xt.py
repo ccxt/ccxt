@@ -2850,17 +2850,21 @@ class xt(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
+        if limit is not None:
+            request['size'] = limit
+        if since is not None:
+            request['startTime'] = since
         type = None
         subType = None
         response = None
         type, params = self.handle_market_type_and_params('fetchOrdersByStatus', market, params)
         subType, params = self.handle_sub_type_and_params('fetchOrdersByStatus', market, params)
-        trigger = self.safe_value(params, 'stop')
+        trigger = self.safe_bool_2(params, 'stop', 'trigger')
         stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
         if status == 'open':
             if trigger or stopLossTakeProfit:
                 request['state'] = 'NOT_TRIGGERED'
-            elif subType is not None:
+            elif type == 'swap':
                 request['state'] = 'NEW'
         elif status == 'closed':
             if trigger or stopLossTakeProfit:
@@ -2880,7 +2884,7 @@ class xt(Exchange, ImplicitAPI):
             if limit is not None:
                 request['size'] = limit
         if trigger:
-            params = self.omit(params, 'stop')
+            params = self.omit(params, ['stop', 'trigger'])
             if subType == 'inverse':
                 response = await self.privateInverseGetFutureTradeV1EntrustPlanList(self.extend(request, params))
             else:
@@ -2905,6 +2909,7 @@ class xt(Exchange, ImplicitAPI):
                 if since is not None:
                     request['startTime'] = since
                 if limit is not None:
+                    request = self.omit(request, 'size')
                     request['limit'] = limit
                 response = await self.privateSpotGetHistoryOrder(self.extend(request, params))
             else:
@@ -3087,9 +3092,12 @@ class xt(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        isSpotOpenOrders = ((status == 'open') and (subType is None))
-        data = self.safe_value(response, 'result', {})
-        orders = self.safe_value(response, 'result', []) if isSpotOpenOrders else self.safe_value(data, 'items', [])
+        orders = []
+        resultDict = self.safe_dict(response, 'result')
+        if resultDict is not None:
+            orders = self.safe_list(resultDict, 'items', [])
+        else:
+            orders = self.safe_list(response, 'result')
         return self.parse_orders(orders, market, since, limit)
 
     async def fetch_open_orders(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):

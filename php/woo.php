@@ -1574,7 +1574,7 @@ class woo extends Exchange {
         if ($limit !== null) {
             $request['size'] = $limit;
         } else {
-            $request['size'] = 500;
+            $request['size'] = $trailing ? 50 : 500;
         }
         if ($trigger) {
             $request['algoType'] = 'stop';

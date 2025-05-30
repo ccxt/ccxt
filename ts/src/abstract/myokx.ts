@@ -168,6 +168,7 @@ interface okx {
     privateGetAccountSpotManualBorrowRepay (params?: {}): Promise<implicitReturnType>;
     privateGetAccountSetAutoRepay (params?: {}): Promise<implicitReturnType>;
     privateGetAccountSpotBorrowRepayHistory (params?: {}): Promise<implicitReturnType>;
+    privateGetAccountMovePositionsHistory (params?: {}): Promise<implicitReturnType>;
     privateGetUsersSubaccountList (params?: {}): Promise<implicitReturnType>;
     privateGetAccountSubaccountBalances (params?: {}): Promise<implicitReturnType>;
     privateGetAssetSubaccountBalances (params?: {}): Promise<implicitReturnType>;
@@ -291,6 +292,7 @@ interface okx {
     privatePostAccountFixedLoanManualReborrow (params?: {}): Promise<implicitReturnType>;
     privatePostAccountFixedLoanRepayBorrowingOrder (params?: {}): Promise<implicitReturnType>;
     privatePostAccountBillsHistoryArchive (params?: {}): Promise<implicitReturnType>;
+    privatePostAccountMovePositions (params?: {}): Promise<implicitReturnType>;
     privatePostUsersSubaccountModifyApikey (params?: {}): Promise<implicitReturnType>;
     privatePostAssetSubaccountTransfer (params?: {}): Promise<implicitReturnType>;
     privatePostUsersSubaccountSetTransferOut (params?: {}): Promise<implicitReturnType>;
