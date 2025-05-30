@@ -270,19 +270,9 @@ func (this *Exchange) LoadMarkets(params ...interface{}) <-chan interface{} {
 			return
 		}
 
-		var currencies interface{} = nil
-		var defaultParams = map[string]interface{}{}
-		hasFetchCurrencies := this.Has["fetchCurrencies"]
-		if IsBool(hasFetchCurrencies) && IsTrue(hasFetchCurrencies) {
-			currencies = <-this.DerivedExchange.FetchCurrencies(defaultParams)
-		}
-
-		markets := <-this.DerivedExchange.FetchMarkets(defaultParams)
-		PanicOnError(markets)
-
 		// Lock only for writing
 		this.marketsMutex.Lock()
-		result := this.SetMarkets(markets, currencies)
+		result := <-this.DerivedExchange.loadMarketsHelperTranspiled(defaultParams)
 		this.marketsMutex.Unlock()
 
 		ch <- result

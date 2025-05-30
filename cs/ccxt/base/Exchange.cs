@@ -455,14 +455,7 @@ public partial class Exchange
             return this.markets;
         }
 
-        object currencies = null;
-        var has = this.has as dict;
-        if (has["fetchCurrencies"] != null)
-        {
-            currencies = await this.fetchCurrencies();
-        }
-        var markets = await this.fetchMarkets();
-        return this.setMarkets(markets, currencies);
+        return await this.loadMarketsHelperTranspiled(parameters);
     }
 
     public virtual Task<object> loadMarkets(object reload2 = null, object parameters2 = null)

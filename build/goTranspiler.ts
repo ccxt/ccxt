@@ -146,7 +146,8 @@ const VIRTUAL_BASE_METHODS: any = {
     "setSandboxMode": false,
     "safeCurrencyCode": false,
     "parseConversion": false,
-    "sign": false
+    "sign": false,
+    "loadMarketsHelperTranspiled": false
 }
 
 class NewTranspiler {

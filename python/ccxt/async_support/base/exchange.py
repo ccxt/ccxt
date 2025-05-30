@@ -279,11 +279,7 @@ class Exchange(BaseExchange):
                 if not self.markets_by_id:
                     return self.set_markets(self.markets)
                 return self.markets
-        currencies = None
-        if self.has['fetchCurrencies'] is True:
-            currencies = await self.fetch_currencies()
-        markets = await self.fetch_markets(params)
-        return self.set_markets(markets, currencies)
+        return await self.load_markets_helper_transpiled(params)
 
 
     async def load_markets(self, reload=False, params={}):

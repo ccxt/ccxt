@@ -246,12 +246,7 @@ class Exchange extends \ccxt\Exchange {
                 }
                 return $this->markets;
             }
-            $currencies = null;
-            if (array_key_exists('fetchCurrencies', $this->has) && $this->has['fetchCurrencies'] === true) {
-                $currencies = React\Async\await($this->fetch_currencies());
-            }
-            $markets = React\Async\await($this->fetch_markets($params));
-            return $this->set_markets ($markets, $currencies);
+            return React\Async\await($this->load_markets_helper_transpiled($params));
         }) ();
     }
 

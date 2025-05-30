@@ -1009,13 +1009,7 @@ export default class Exchange {
             }
             return this.markets
         }
-        let currencies = undefined
-        // only call if exchange API provides endpoint (true), thus avoid emulated versions ('emulated')
-        if (this.has['fetchCurrencies'] === true) {
-            currencies = await this.fetchCurrencies ()
-        }
-        const markets = await this.fetchMarkets (params)
-        return this.setMarkets (markets, currencies)
+        return await this.loadMarketsHelperTranspiled (params);
     }
 
     /**
@@ -1997,6 +1991,18 @@ export default class Exchange {
                 'cost': { 'min': undefined, 'max': undefined },
             },
         };
+    }
+
+    async loadMarketsHelperTranspiled (params: any) {
+        let currencies = undefined
+        // only call if exchange API provides endpoint (true), thus avoid emulated versions ('emulated')
+        if (this.has['fetchCurrencies'] === true) {
+            currencies = await this.fetchCurrencies ()
+        }
+        this.options['currencies_data_for_fetch_markets'] = currencies;
+        const markets = await this.fetchMarkets (params);
+        this.options['currencies_data_for_fetch_markets'] = undefined;
+        return this.setMarkets (markets, currencies);
     }
 
     safeBoolN (dictionaryOrList, keys: IndexType[], defaultValue: boolean = undefined): boolean | undefined {
