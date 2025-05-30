@@ -163,7 +163,6 @@ class Exchange {
     public $codes = null;
     public $ids = null;
     public $currencies = array();
-    public $tempdatas = array();
     public $base_currencies = null;
     public $quote_currencies = null;
     public $balance = array();
@@ -1622,10 +1621,10 @@ class Exchange {
         $currencies = null;
         if (array_key_exists('fetchCurrencies', $this->has) && $this->has['fetchCurrencies'] === true) {
             $currencies = $this->fetch_currencies();
-            $this->tempdatas['fetched_currencies'] = $currencies;
+            $this->options['fetched_currencies_for_fetch_markets'] = $currencies;
         }
         $markets = $this->fetch_markets($params);
-        unset($this->tempdatas['fetched_currencies']);
+        unset($this->options['fetched_currencies_for_fetch_markets']);
         return $this->set_markets($markets, $currencies);
     }
 
