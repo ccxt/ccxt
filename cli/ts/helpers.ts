@@ -439,7 +439,7 @@ async function loadSettingsAndCreateExchange (
     printUsageOnly = false
 ) {
     let exchange;
-    let allSettings;
+    let allSettings = {};
     if (cliOptions.history) {
         return;
     }
