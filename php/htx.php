@@ -4470,6 +4470,8 @@ class htx extends Exchange {
         $request = array();
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchOpenOrders', $market, $params, 'linear');
         $response = null;
         if ($marketType === 'spot') {
             if ($symbol !== null) {
@@ -4497,18 +4499,18 @@ class htx extends Exchange {
             $params = $this->omit($params, 'account-id');
             $response = $this->spotPrivateGetV1OrderOpenOrders ($this->extend($request, $params));
         } else {
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
+            if ($symbol !== null) {
+                // throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
+                $request['contract_code'] = $market['id'];
             }
             if ($limit !== null) {
                 $request['page_size'] = $limit;
             }
-            $request['contract_code'] = $market['id'];
             $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
             $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
             $trailing = $this->safe_bool($params, 'trailing', false);
             $params = $this->omit($params, array( 'stop', 'stopLossTakeProfit', 'trailing', 'trigger' ));
-            if ($market['linear']) {
+            if ($subType === 'linear') {
                 $marginMode = null;
                 list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOpenOrders', $params);
                 $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
@@ -4533,8 +4535,8 @@ class htx extends Exchange {
                         $response = $this->contractPrivatePostLinearSwapApiV1SwapCrossOpenorders ($this->extend($request, $params));
                     }
                 }
-            } elseif ($market['inverse']) {
-                if ($market['swap']) {
+            } elseif ($subType === 'inverse') {
+                if ($marketType === 'swap') {
                     if ($trigger) {
                         $response = $this->contractPrivatePostSwapApiV1SwapTriggerOpenorders ($this->extend($request, $params));
                     } elseif ($stopLossTakeProfit) {
@@ -4544,8 +4546,8 @@ class htx extends Exchange {
                     } else {
                         $response = $this->contractPrivatePostSwapApiV1SwapOpenorders ($this->extend($request, $params));
                     }
-                } elseif ($market['future']) {
-                    $request['symbol'] = $market['settleId'];
+                } elseif ($marketType === 'future') {
+                    $request['symbol'] = $this->safe_string($market, 'settleId', 'usdt');
                     if ($trigger) {
                         $response = $this->contractPrivatePostApiV1ContractTriggerOpenorders ($this->extend($request, $params));
                     } elseif ($stopLossTakeProfit) {
