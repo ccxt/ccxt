@@ -1,4 +1,3 @@
-
 import ololog from 'ololog';
 import ansi from 'ansicolor';
 import fs from 'fs';
@@ -11,7 +10,8 @@ import { getCacheDirectory, loadConfigFile } from './cache.js';
 let add_static_result;
 
 try {
-    add_static_result = (await import ('../../js/static-tests.js')).add_static_result;
+    add_static_result = (await import ('../../js/static-tests.js'))
+        .add_static_result;
 } catch (e) {
     // noop
 }
@@ -50,9 +50,10 @@ function jsonStringify (obj: any, indent = undefined) {
  * @param fn
  */
 function countAllParams (fn) {
-    const fnStr = fn.toString ()
-        .replace (/\/\/.*$/mg, '')
-        .replace (/\/\*[\s\S]*?\*\//mg, '')
+    const fnStr = fn
+        .toString ()
+        .replace (/\/\/.*$/gm, '')
+        .replace (/\/\*[\s\S]*?\*\//gm, '')
         .replace (/\s+/g, '');
 
     const match = fnStr.match (/^[^(]*\(([^)]*)\)/);
@@ -69,9 +70,14 @@ function countAllParams (fn) {
  */
 function injectMissingUndefined (fn, args) {
     const fnParams = countAllParams (fn);
-    const argsContainsParams = args.find ((arg) => arg && typeof arg === 'object' && !Array.isArray (arg) && Object.keys (arg).length > 0);
+    const argsContainsParams = args.find (
+        (arg) => arg
+      && typeof arg === 'object'
+      && !Array.isArray (arg)
+      && Object.keys (arg).length > 0
+    );
     if (argsContainsParams && fnParams !== args.length) {
-        // populate the missing params with undefined
+    // populate the missing params with undefined
         const missingParams = fnParams - args.length;
         const paramsObj = args[args.length - 1];
         args.pop ();
@@ -100,7 +106,13 @@ function createRequestTemplate (exchange, methodName, args, result) {
         'input': args,
         'output': exchange.last_request_body ?? undefined,
     };
-    log ('Report: (paste inside static/request/' + exchange.id + '.json ->' + methodName + ')');
+    log (
+        'Report: (paste inside static/request/'
+      + exchange.id
+      + '.json ->'
+      + methodName
+      + ')'
+    );
     log.green ('-------------------------------------------');
     log (JSON.stringify (final, null, 2));
     log.green ('-------------------------------------------');
@@ -128,7 +140,13 @@ function createResponseTemplate (exchange, methodName, args, result) {
         'httpResponse': exchange.parseJson (exchange.last_http_response),
         'parsedResponse': result,
     };
-    log ('Report: (paste inside static/response/' + exchange.id + '.json ->' + methodName + ')');
+    log (
+        'Report: (paste inside static/response/'
+      + exchange.id
+      + '.json ->'
+      + methodName
+      + ')'
+    );
     log.green ('-------------------------------------------');
     log (jsonStringify (final, 2));
     log.green ('-------------------------------------------');
@@ -156,32 +174,56 @@ function printSupportedExchanges () {
  */
 function printUsage (commandToShow) {
     log ('This is an example of a basic command-line interface to all exchanges');
-    log ('Usage:', commandToShow, ('id' as any).green, ('method' as any).yellow, ('"param1" param2 "param3" param4 ...' as any).blue);
+    log (
+        'Usage:',
+        commandToShow,
+        ('id' as any).green,
+        ('method' as any).yellow,
+        ('"param1" param2 "param3" param4 ...' as any).blue
+    );
     log ('Examples:');
     log (commandToShow, 'okcoin fetchOHLCV BTC/USD 15m');
     log (commandToShow, 'bitfinex fetchBalance');
     log (commandToShow, 'kraken fetchOrderBook ETH/BTC');
-    log ('node', process.argv[1], 'binance fetchTrades BTC/USDC undefined undefined --param until=1746988377067');
+    log (
+        'node',
+        process.argv[1],
+        'binance fetchTrades BTC/USDC undefined undefined --param until=1746988377067'
+    );
     printSupportedExchanges ();
     log ('Supported options:');
     log ('--verbose         Print verbose output');
     log ('--debug           Print debugging output');
     log ('--i               Enables an interactive mode (keeps CLI open)');
     log ('--poll            Repeat continuously in rate-limited mode');
-    log ('--no-send         Print the request but do not actually send it to the exchange (sets verbose and load-markets)');
+    log (
+        '--no-send         Print the request but do not actually send it to the exchange (sets verbose and load-markets)'
+    );
     log ('--no-load-markets Do not pre-load markets (for debugging)');
     log ('--details         Print detailed fetch responses');
     log ('--no-table        Do not print the fetch response as a table');
     log ('--table           Print the fetch response as a table');
     log ('--iso8601         Print timestamps as ISO8601 datetimes');
-    log ('--param key=value Set a custom key=value pair for the last method\'s argument. Can be repeated multiple times');
-    log ('                  NOTE: don\'t forget to fill up missed arguments with "undefined" before last options parameter');
+    log (
+        "--param key=value Set a custom key=value pair for the last method's argument. Can be repeated multiple times"
+    );
+    log (
+        '                  NOTE: don\'t forget to fill up missed arguments with "undefined" before last options parameter'
+    );
     log ('--cors            use CORS proxy for debugging');
     log ('--sign-in         Call signIn() if any');
-    log ('--sandbox         Use the exchange sandbox if available, same as --testnet');
-    log ('--testnet         Use the exchange testnet if available, same as --sandbox');
-    log ('--test            Use the exchange testnet if available, same as --sandbox');
-    log ('--cache-markets   Cache the loaded markets in the .cache folder in the current directory');
+    log (
+        '--sandbox         Use the exchange sandbox if available, same as --testnet'
+    );
+    log (
+        '--testnet         Use the exchange testnet if available, same as --sandbox'
+    );
+    log (
+        '--test            Use the exchange testnet if available, same as --sandbox'
+    );
+    log (
+        '--cache-markets   Cache the loaded markets in the .cache folder in the current directory'
+    );
 }
 
 //-----------------------------------------------------------------------------
@@ -197,25 +239,29 @@ function printSavedCommand (cliOptions) {
     const historyPath = path.join (cachePath, 'history');
     const historyFile = path.join (historyPath, 'commands.json');
     const list = JSON.parse (fs.readFileSync (historyFile).toString ()) || [];
-    printHumanReadable ('', list, cliOptions);
+    const listWithIds = [];
+    for (let i = 0; i < list.length; i++) {
+        listWithIds.push ({ 'index': i + 1, 'command': list[i] });
+    }
+    printHumanReadable ('', listWithIds, cliOptions, true);
 }
 
 //-----------------------------------------------------------------------------
 
-const printHumanReadable = (exchange, result, cliOptions) => {
+const printHumanReadable = (exchange, result, cliOptions, useTable = false) => {
     if (cliOptions.raw) {
         return log (jsonStringify (result));
     }
-    if (cliOptions.table && Array.isArray (result)) {
+    if (cliOptions.table && Array.isArray (result) || useTable) {
         result = Object.values (result);
-        const arrayOfObjects = (typeof result[0] === 'object');
+        const arrayOfObjects = typeof result[0] === 'object';
         if (cliOptions.details) {
             result.forEach ((object) => {
                 if (arrayOfObjects) log ('-------------------------------------------');
                 log (object);
             });
         }
-        if (arrayOfObjects || cliOptions.table && Array.isArray (result)) {
+        if (arrayOfObjects || (cliOptions.table && Array.isArray (result))) {
             const configuredAsTable = (asTable as any).configure ({
                 'delimiter': (' | ' as any).lightGray.dim,
                 'right': true,
@@ -229,22 +275,28 @@ const printHumanReadable = (exchange, result, cliOptions) => {
                     return String (x);
                 },
             });
-            log (result.length > 0 ? configuredAsTable (result.map ((rawElement) => {
-                const element = { ...rawElement };
-                const keys = Object.keys (element);
-                delete element['info'];
-                keys.forEach ((key) => {
-                    if (!cliOptions.iso8601) return element[key];
-                    try {
-                        const iso8601 = exchange.iso8601 (element[key]);
-                        if (iso8601.match (/^20[0-9]{2}[-]?/)) element[key] = iso8601;
-                        else throw new Error ('wrong date');
-                    } catch (e) {
-                        return element[key];
-                    }
-                });
-                return element;
-            })) : result);
+            log (
+                result.length > 0
+                    ? configuredAsTable (
+                        result.map ((rawElement) => {
+                            const element = { ...rawElement };
+                            const keys = Object.keys (element);
+                            delete element['info'];
+                            keys.forEach ((key) => {
+                                if (!cliOptions.iso8601) return element[key];
+                                try {
+                                    const iso8601 = exchange.iso8601 (element[key]);
+                                    if (iso8601.match (/^20[0-9]{2}[-]?/)) element[key] = iso8601;
+                                    else throw new Error ('wrong date');
+                                } catch (e) {
+                                    return element[key];
+                                }
+                            });
+                            return element;
+                        })
+                    )
+                    : result
+            );
             log (result.length, 'objects');
         } else {
             console.dir (result, { 'depth': null });
@@ -260,11 +312,18 @@ const printHumanReadable = (exchange, result, cliOptions) => {
  * @param exchange
  * @param forceCache
  */
-async function handleMarketsLoading (exchange: ccxt.Exchange, forceRefresh = false) {
+async function handleMarketsLoading (
+    exchange: ccxt.Exchange,
+    forceRefresh = false
+) {
     const cachePath = getCacheDirectory ();
     const cacheConfig = loadConfigFile ();
     const marketsPath = path.join (cachePath, 'markets', exchange.id + '.json');
-    const currenciesPath = path.join (cachePath, 'currencies', exchange.id + '.json');
+    const currenciesPath = path.join (
+        cachePath,
+        'currencies',
+        exchange.id + '.json'
+    );
     // console.log (marketsPath);
     // try {
     //     await fsPromises.access (marketsPath, fs.constants.R_OK);
@@ -284,12 +343,16 @@ async function handleMarketsLoading (exchange: ccxt.Exchange, forceRefresh = fal
             const diff = now - stats.mtime.getTime ();
             if (diff > cacheConfig.refreshMarketsTimeout || forceRefresh) {
                 await exchange.loadMarkets ();
-                await fsPromises.writeFile (marketsPath, jsonStringify (exchange.markets));
-                await fsPromises.writeFile (currenciesPath, jsonStringify (exchange.currencies));
-            } else {
-                exchange.markets = JSON.parse (
-                    fs.readFileSync (marketsPath).toString ()
+                await fsPromises.writeFile (
+                    marketsPath,
+                    jsonStringify (exchange.markets)
                 );
+                await fsPromises.writeFile (
+                    currenciesPath,
+                    jsonStringify (exchange.currencies)
+                );
+            } else {
+                exchange.markets = JSON.parse (fs.readFileSync (marketsPath).toString ());
                 exchange.currrencies = JSON.parse (
                     fs.readFileSync (currenciesPath).toString ()
                 );
@@ -298,11 +361,14 @@ async function handleMarketsLoading (exchange: ccxt.Exchange, forceRefresh = fal
             // create file and save markets
             await exchange.loadMarkets ();
             await fsPromises.writeFile (marketsPath, jsonStringify (exchange.markets));
-            await fsPromises.writeFile (currenciesPath, jsonStringify (exchange.currencies));
+            await fsPromises.writeFile (
+                currenciesPath,
+                jsonStringify (exchange.currencies)
+            );
         }
     } catch (e) {
         log.red ('loadMarkets:', e);
-        // error loading/cacheing markets
+    // error loading/cacheing markets
     }
 }
 
@@ -341,7 +407,11 @@ function setNoSend (exchange: ccxt.Exchange) {
  */
 function parseMethodArgs (exchange, params, methodName, cliOptions): any[] {
     let args = params
-        .map ((s) => (s.match (/^[0-9]{4}[-][0-9]{2}[-][0-9]{2}[T\s]?[0-9]{2}[:][0-9]{2}[:][0-9]{2}/g) ? exchange.parse8601 (s) : s))
+        .map ((s) => (s.match (
+            /^[0-9]{4}[-][0-9]{2}[-][0-9]{2}[T\s]?[0-9]{2}[:][0-9]{2}[:][0-9]{2}/g
+        )
+            ? exchange.parse8601 (s)
+            : s))
         .map ((s) => (() => {
             if (s.match (/^\d+$/g)) return s < Number.MAX_SAFE_INTEGER ? Number (s) : s;
             try {
@@ -351,7 +421,7 @@ function parseMethodArgs (exchange, params, methodName, cliOptions): any[] {
             }
         }) ());
     if (Object.keys (cliOptions.param).length > 0) {
-        // params were provided like --param a=b
+    // params were provided like --param a=b
         args.push (cliOptions.param);
     }
     args = injectMissingUndefined (exchange[methodName], args);
@@ -363,7 +433,11 @@ function parseMethodArgs (exchange, params, methodName, cliOptions): any[] {
  * @param exchangeId
  * @param cliOptions
  */
-async function loadSettingsAndCreateExchange (exchangeId, cliOptions, printUsageOnly = false) {
+async function loadSettingsAndCreateExchange (
+    exchangeId,
+    cliOptions,
+    printUsageOnly = false
+) {
     let exchange;
     let allSettings;
     if (cliOptions.history) {
@@ -387,9 +461,9 @@ async function loadSettingsAndCreateExchange (exchangeId, cliOptions, printUsage
 
     try {
         if ((ccxt.pro as any).exchanges.includes (exchangeId)) {
-            exchange = new (ccxt.pro)[exchangeId] ({ timeout, httpsAgent, ...settings });
+            exchange = new ccxt.pro[exchangeId] ({ timeout, httpsAgent, ...settings });
         } else {
-            exchange = new (ccxt)[exchangeId] ({ timeout, httpsAgent, ...settings });
+            exchange = new ccxt[exchangeId] ({ timeout, httpsAgent, ...settings });
         }
         if (exchange === undefined) {
             process.exit ();
@@ -404,15 +478,24 @@ async function loadSettingsAndCreateExchange (exchangeId, cliOptions, printUsage
             exchange.options['defaultType'] = 'option';
         }
         if (cliOptions.keys) {
-        // check auth keys in env var
+            // check auth keys in env var
             const requiredCredentials = exchange.requiredCredentials;
-            for (const [ credential, isRequired ] of Object.entries (requiredCredentials)) {
+            for (const [ credential, isRequired ] of Object.entries (
+                requiredCredentials
+            )) {
                 if (isRequired && exchange[credential] === undefined) {
-                    const credentialEnvName = (exchangeId + '_' + credential).toUpperCase (); // example: KRAKEN_APIKEY
+                    const credentialEnvName = (
+                        exchangeId
+            + '_'
+            + credential
+                    ).toUpperCase (); // example: KRAKEN_APIKEY
                     let credentialValue = process.env[credentialEnvName];
                     if (credentialValue) {
                         if (credentialValue.indexOf ('---BEGIN') > -1) {
-                            credentialValue = (credentialValue as any).replaceAll ('\\n', '\n');
+                            credentialValue = (credentialValue as any).replaceAll (
+                                '\\n',
+                                '\n'
+                            );
                         }
                         exchange[credential] = credentialValue;
                     }
@@ -496,7 +579,9 @@ function handleStaticTests (cliOptions, exchange, methodName, args, result) {
 function collectKeyValue (value: string, previous: Record<string, string>) {
     const [ key, val ] = value.split ('=');
     if (!key || val === undefined) {
-        throw new Error (`Invalid --param value: '${value}'. Must be in key=value format.`);
+        throw new Error (
+            `Invalid --param value: '${value}'. Must be in key=value format.`
+        );
     }
     return { ...previous, [key]: val };
 }
@@ -540,13 +625,18 @@ function printMethodUsage (methodName: string) {
     const { requiredArgs, optionalArgs, error } = getArgsWithOptionality (method);
 
     if (error) {
-        log.warn (`\n⚠️ Unable to introspect parameters for "${methodName}" (possibly native or transpiled).`);
+        log.warn (
+            `\n⚠️ Unable to introspect parameters for "${methodName}" (possibly native or transpiled).`
+        );
         return;
     }
 
     log (`\nMethod: ${methodName}`);
 
-    const usage = requiredArgs.map ((a) => `<${a}>`).concat (optionalArgs.map ((a) => `[${a}]`)).join (' ');
+    const usage = requiredArgs
+        .map ((a) => `<${a}>`)
+        .concat (optionalArgs.map ((a) => `[${a}]`))
+        .join (' ');
     log (`Usage:\n  binance ${methodName} ${usage}\n`);
 
     log ('Arguments:');

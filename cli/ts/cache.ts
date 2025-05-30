@@ -4,7 +4,6 @@ import path from 'path';
 import ansi from 'ansicolor';
 import ololog from 'ololog';
 import os from 'os';
-import { config } from 'process';
 
 ansi.nice;
 const log = ololog.configure ({ 'locate': false }).unlimited;
@@ -76,7 +75,9 @@ function checkCache () {
  *
  * @param command
  */
-function saveCommand (command: string) {
+function saveCommand (cm: string[]) {
+    const commands = cm.slice (2);
+    const command = commands.join (' ');
     const cachePath = getCacheDirectory ();
     const historyPath = path.join (cachePath, 'history');
     if (!fs.existsSync (historyPath)) {
