@@ -66,7 +66,7 @@
     "pre-transpile-pr": "npm run export-exchanges && npm run tsBuild && npm run emitAPI && npm run check-js-syntax",
     "post-transpile": "npm run check-python-syntax && npm run check-php-syntax",
     "cli.ts": "tsx ./cli/ts/cli.ts",
-    "cli.js": "node ./js/cli/cli.js",
+    "cli.js": "node ./cli/js/cli.js",
     "cli.py": "python3 ./examples/py/cli.py",
     "cli.php": "php ./examples/php/cli.php",
     "cli.cs": "dotnet run --project \"./cs/cli/cli.csproj\"",
