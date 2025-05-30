@@ -34,7 +34,6 @@ type Exchange struct {
 	Markets_by_id       map[string]interface{}
 	Currencies_by_id    map[string]interface{}
 	Currencies          map[string]interface{}
-	Tempdatas           map[string]interface{}
 	RequiredCredentials map[string]interface{}
 	HttpExceptions      map[string]interface{}
 	MarketsById         map[string]interface{}
@@ -276,13 +275,13 @@ func (this *Exchange) LoadMarkets(params ...interface{}) <-chan interface{} {
 		hasFetchCurrencies := this.Has["fetchCurrencies"]
 		if IsBool(hasFetchCurrencies) && IsTrue(hasFetchCurrencies) {
 			currencies = <-this.DerivedExchange.FetchCurrencies(defaultParams)
-			this.Tempdatas["fetched_currencies"] = currencies
+			this.Options["fetched_currencies_for_fetch_markets"] = currencies
 		}
 
 		markets := <-this.DerivedExchange.FetchMarkets(defaultParams)
 		PanicOnError(markets)
 
-		delete(this.Tempdatas, "fetched_currencies")
+		delete(this.Options, "fetched_currencies_for_fetch_markets")
 
 		// Lock only for writing
 		this.marketsMutex.Lock()
