@@ -4475,6 +4475,8 @@ export default class htx extends Exchange {
         const request: Dict = {};
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchOpenOrders', market, params, 'linear');
         let response = undefined;
         if (marketType === 'spot') {
             if (symbol !== undefined) {
@@ -4502,18 +4504,18 @@ export default class htx extends Exchange {
             params = this.omit (params, 'account-id');
             response = await this.spotPrivateGetV1OrderOpenOrders (this.extend (request, params));
         } else {
-            if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
+            if (symbol !== undefined) {
+                // throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
+                request['contract_code'] = market['id'];
             }
             if (limit !== undefined) {
                 request['page_size'] = limit;
             }
-            request['contract_code'] = market['id'];
             const trigger = this.safeBool2 (params, 'stop', 'trigger');
             const stopLossTakeProfit = this.safeValue (params, 'stopLossTakeProfit');
             const trailing = this.safeBool (params, 'trailing', false);
             params = this.omit (params, [ 'stop', 'stopLossTakeProfit', 'trailing', 'trigger' ]);
-            if (market['linear']) {
+            if (subType === 'linear') {
                 let marginMode = undefined;
                 [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOpenOrders', params);
                 marginMode = (marginMode === undefined) ? 'cross' : marginMode;
@@ -4538,8 +4540,8 @@ export default class htx extends Exchange {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapCrossOpenorders (this.extend (request, params));
                     }
                 }
-            } else if (market['inverse']) {
-                if (market['swap']) {
+            } else if (subType === 'inverse') {
+                if (marketType === 'swap') {
                     if (trigger) {
                         response = await this.contractPrivatePostSwapApiV1SwapTriggerOpenorders (this.extend (request, params));
                     } else if (stopLossTakeProfit) {
@@ -4549,8 +4551,8 @@ export default class htx extends Exchange {
                     } else {
                         response = await this.contractPrivatePostSwapApiV1SwapOpenorders (this.extend (request, params));
                     }
-                } else if (market['future']) {
-                    request['symbol'] = market['settleId'];
+                } else if (marketType === 'future') {
+                    request['symbol'] = this.safeString (market, 'settleId', 'usdt');
                     if (trigger) {
                         response = await this.contractPrivatePostApiV1ContractTriggerOpenorders (this.extend (request, params));
                     } else if (stopLossTakeProfit) {
