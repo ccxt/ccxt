@@ -4286,6 +4286,8 @@ class htx(Exchange, ImplicitAPI):
         request: dict = {}
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchOpenOrders', market, params)
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchOpenOrders', market, params, 'linear')
         response = None
         if marketType == 'spot':
             if symbol is not None:
@@ -4307,16 +4309,16 @@ class htx(Exchange, ImplicitAPI):
             params = self.omit(params, 'account-id')
             response = self.spotPrivateGetV1OrderOpenOrders(self.extend(request, params))
         else:
-            if symbol is None:
-                raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
+            if symbol is not None:
+                # raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
+                request['contract_code'] = market['id']
             if limit is not None:
                 request['page_size'] = limit
-            request['contract_code'] = market['id']
             trigger = self.safe_bool_2(params, 'stop', 'trigger')
             stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
             trailing = self.safe_bool(params, 'trailing', False)
             params = self.omit(params, ['stop', 'stopLossTakeProfit', 'trailing', 'trigger'])
-            if market['linear']:
+            if subType == 'linear':
                 marginMode = None
                 marginMode, params = self.handle_margin_mode_and_params('fetchOpenOrders', params)
                 marginMode = 'cross' if (marginMode is None) else marginMode
@@ -4338,8 +4340,8 @@ class htx(Exchange, ImplicitAPI):
                         response = self.contractPrivatePostLinearSwapApiV1SwapCrossTrackOpenorders(self.extend(request, params))
                     else:
                         response = self.contractPrivatePostLinearSwapApiV1SwapCrossOpenorders(self.extend(request, params))
-            elif market['inverse']:
-                if market['swap']:
+            elif subType == 'inverse':
+                if marketType == 'swap':
                     if trigger:
                         response = self.contractPrivatePostSwapApiV1SwapTriggerOpenorders(self.extend(request, params))
                     elif stopLossTakeProfit:
@@ -4348,8 +4350,8 @@ class htx(Exchange, ImplicitAPI):
                         response = self.contractPrivatePostSwapApiV1SwapTrackOpenorders(self.extend(request, params))
                     else:
                         response = self.contractPrivatePostSwapApiV1SwapOpenorders(self.extend(request, params))
-                elif market['future']:
-                    request['symbol'] = market['settleId']
+                elif marketType == 'future':
+                    request['symbol'] = self.safe_string(market, 'settleId', 'usdt')
                     if trigger:
                         response = self.contractPrivatePostApiV1ContractTriggerOpenorders(self.extend(request, params))
                     elif stopLossTakeProfit:
