@@ -70,7 +70,6 @@ public partial class Exchange
 
     public object markets { get; set; } = null;
     public object currencies { get; set; } = null;
-    public ConcurrentDictionary<string, object> tempdatas { get; set; } = new ConcurrentDictionary<string, object>();
     public object fees { get; set; } = new dict();
     public object requiredCredentials { get; set; } = new dict();
     public object timeframes { get; set; } = new dict();
