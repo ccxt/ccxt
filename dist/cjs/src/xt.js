@@ -897,50 +897,30 @@ class xt extends xt$1 {
             const entry = currenciesData[i];
             const currencyId = this.safeString(entry, 'currency');
             const code = this.safeCurrencyCode(currencyId);
-            const minPrecision = this.parseNumber(this.parsePrecision(this.safeString(entry, 'maxPrecision')));
             const networkEntry = this.safeValue(chainsDataIndexed, currencyId, {});
             const rawNetworks = this.safeValue(networkEntry, 'supportChains', []);
             const networks = {};
-            let minWithdrawString = undefined;
-            let minWithdrawFeeString = undefined;
-            let active = false;
-            let deposit = false;
-            let withdraw = false;
             for (let j = 0; j < rawNetworks.length; j++) {
                 const rawNetwork = rawNetworks[j];
                 const networkId = this.safeString(rawNetwork, 'chain');
-                const network = this.networkIdToCode(networkId);
-                const depositEnabled = this.safeValue(rawNetwork, 'depositEnabled');
-                deposit = (depositEnabled) ? depositEnabled : deposit;
-                const withdrawEnabled = this.safeValue(rawNetwork, 'withdrawEnabled');
-                withdraw = (withdrawEnabled) ? withdrawEnabled : withdraw;
-                const networkActive = depositEnabled && withdrawEnabled;
-                active = (networkActive) ? networkActive : active;
-                const withdrawFeeString = this.safeString(rawNetwork, 'withdrawFeeAmount');
-                if (withdrawFeeString !== undefined) {
-                    minWithdrawFeeString = (minWithdrawFeeString === undefined) ? withdrawFeeString : Precise["default"].stringMin(withdrawFeeString, minWithdrawFeeString);
-                }
-                const minNetworkWithdrawString = this.safeString(rawNetwork, 'withdrawMinAmount');
-                if (minNetworkWithdrawString !== undefined) {
-                    minWithdrawString = (minWithdrawString === undefined) ? minNetworkWithdrawString : Precise["default"].stringMin(minNetworkWithdrawString, minWithdrawString);
-                }
-                networks[network] = {
+                const networkCode = this.networkIdToCode(networkId, code);
+                networks[networkCode] = {
                     'info': rawNetwork,
                     'id': networkId,
-                    'network': network,
+                    'network': networkCode,
                     'name': undefined,
-                    'active': networkActive,
-                    'fee': this.parseNumber(withdrawFeeString),
-                    'precision': minPrecision,
-                    'deposit': depositEnabled,
-                    'withdraw': withdrawEnabled,
+                    'active': undefined,
+                    'fee': this.safeNumber(rawNetwork, 'withdrawFeeAmount'),
+                    'precision': undefined,
+                    'deposit': this.safeBool(rawNetwork, 'depositEnabled'),
+                    'withdraw': this.safeBool(rawNetwork, 'withdrawEnabled'),
                     'limits': {
                         'amount': {
                             'min': undefined,
                             'max': undefined,
                         },
                         'withdraw': {
-                            'min': this.parseNumber(minNetworkWithdrawString),
+                            'min': this.safeNumber(rawNetwork, 'withdrawMinAmount'),
                             'max': undefined,
                         },
                         'deposit': {
@@ -958,16 +938,16 @@ class xt extends xt$1 {
             else {
                 type = 'other';
             }
-            result[code] = {
+            result[code] = this.safeCurrencyStructure({
                 'info': entry,
                 'id': currencyId,
                 'code': code,
                 'name': this.safeString(entry, 'fullName'),
-                'active': active,
-                'fee': this.parseNumber(minWithdrawFeeString),
-                'precision': minPrecision,
-                'deposit': deposit,
-                'withdraw': withdraw,
+                'active': undefined,
+                'fee': undefined,
+                'precision': this.parseNumber(this.parsePrecision(this.safeString(entry, 'maxPrecision'))),
+                'deposit': this.safeString(entry, 'depositStatus') === '1',
+                'withdraw': this.safeString(entry, 'withdrawStatus') === '1',
                 'networks': networks,
                 'type': type,
                 'limits': {
@@ -976,7 +956,7 @@ class xt extends xt$1 {
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': this.parseNumber(minWithdrawString),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'deposit': {
@@ -984,7 +964,7 @@ class xt extends xt$1 {
                         'max': undefined,
                     },
                 },
-            };
+            });
         }
         return result;
     }
