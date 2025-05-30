@@ -912,48 +912,30 @@ class xt(Exchange, ImplicitAPI):
             entry = currenciesData[i]
             currencyId = self.safe_string(entry, 'currency')
             code = self.safe_currency_code(currencyId)
-            minPrecision = self.parse_number(self.parse_precision(self.safe_string(entry, 'maxPrecision')))
             networkEntry = self.safe_value(chainsDataIndexed, currencyId, {})
             rawNetworks = self.safe_value(networkEntry, 'supportChains', [])
             networks = {}
-            minWithdrawString = None
-            minWithdrawFeeString = None
-            active = False
-            deposit = False
-            withdraw = False
             for j in range(0, len(rawNetworks)):
                 rawNetwork = rawNetworks[j]
                 networkId = self.safe_string(rawNetwork, 'chain')
-                network = self.network_id_to_code(networkId)
-                depositEnabled = self.safe_value(rawNetwork, 'depositEnabled')
-                deposit = depositEnabled if (depositEnabled) else deposit
-                withdrawEnabled = self.safe_value(rawNetwork, 'withdrawEnabled')
-                withdraw = withdrawEnabled if (withdrawEnabled) else withdraw
-                networkActive = depositEnabled and withdrawEnabled
-                active = networkActive if (networkActive) else active
-                withdrawFeeString = self.safe_string(rawNetwork, 'withdrawFeeAmount')
-                if withdrawFeeString is not None:
-                    minWithdrawFeeString = withdrawFeeString if (minWithdrawFeeString is None) else Precise.string_min(withdrawFeeString, minWithdrawFeeString)
-                minNetworkWithdrawString = self.safe_string(rawNetwork, 'withdrawMinAmount')
-                if minNetworkWithdrawString is not None:
-                    minWithdrawString = minNetworkWithdrawString if (minWithdrawString is None) else Precise.string_min(minNetworkWithdrawString, minWithdrawString)
-                networks[network] = {
+                networkCode = self.network_id_to_code(networkId, code)
+                networks[networkCode] = {
                     'info': rawNetwork,
                     'id': networkId,
-                    'network': network,
+                    'network': networkCode,
                     'name': None,
-                    'active': networkActive,
-                    'fee': self.parse_number(withdrawFeeString),
-                    'precision': minPrecision,
-                    'deposit': depositEnabled,
-                    'withdraw': withdrawEnabled,
+                    'active': None,
+                    'fee': self.safe_number(rawNetwork, 'withdrawFeeAmount'),
+                    'precision': None,
+                    'deposit': self.safe_bool(rawNetwork, 'depositEnabled'),
+                    'withdraw': self.safe_bool(rawNetwork, 'withdrawEnabled'),
                     'limits': {
                         'amount': {
                             'min': None,
                             'max': None,
                         },
                         'withdraw': {
-                            'min': self.parse_number(minNetworkWithdrawString),
+                            'min': self.safe_number(rawNetwork, 'withdrawMinAmount'),
                             'max': None,
                         },
                         'deposit': {
@@ -968,16 +950,16 @@ class xt(Exchange, ImplicitAPI):
                 type = 'crypto'
             else:
                 type = 'other'
-            result[code] = {
+            result[code] = self.safe_currency_structure({
                 'info': entry,
                 'id': currencyId,
                 'code': code,
                 'name': self.safe_string(entry, 'fullName'),
-                'active': active,
-                'fee': self.parse_number(minWithdrawFeeString),
-                'precision': minPrecision,
-                'deposit': deposit,
-                'withdraw': withdraw,
+                'active': None,
+                'fee': None,
+                'precision': self.parse_number(self.parse_precision(self.safe_string(entry, 'maxPrecision'))),
+                'deposit': self.safe_string(entry, 'depositStatus') == '1',
+                'withdraw': self.safe_string(entry, 'withdrawStatus') == '1',
                 'networks': networks,
                 'type': type,
                 'limits': {
@@ -986,7 +968,7 @@ class xt(Exchange, ImplicitAPI):
                         'max': None,
                     },
                     'withdraw': {
-                        'min': self.parse_number(minWithdrawString),
+                        'min': None,
                         'max': None,
                     },
                     'deposit': {
@@ -994,7 +976,7 @@ class xt(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
-            }
+            })
         return result
 
     async def fetch_markets(self, params={}) -> List[Market]:
