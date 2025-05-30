@@ -1466,10 +1466,6 @@ export default class coinbase extends Exchange {
                 this.v3PublicGetBrokerageMarketProducts (this.extend (params, { 'product_type': 'FUTURE' })),
                 this.v3PublicGetBrokerageMarketProducts (this.extend (params, { 'product_type': 'FUTURE', 'contract_expiry_type': 'PERPETUAL' })),
             ];
-            if (this.checkRequiredCredentials (false)) {
-                unresolvedContractPromises.push (this.extend (params, { 'product_type': 'FUTURE' }));
-                unresolvedContractPromises.push (this.extend (params, { 'product_type': 'FUTURE', 'contract_expiry_type': 'PERPETUAL' }));
-            }
         } catch (e) {
             unresolvedContractPromises = []; // the sync version of ccxt won't have the promise.all line so the request is made here. Some users can't access perpetual products
         }
@@ -1484,8 +1480,8 @@ export default class coinbase extends Exchange {
         const fees = this.safeDict (promises, 1, {});
         const expiringFutures = this.safeDict (contractPromises, 0, {});
         const perpetualFutures = this.safeDict (contractPromises, 1, {});
-        const expiringFees = this.safeDict (contractPromises, 2, {});
-        const perpetualFees = this.safeDict (contractPromises, 3, {});
+        const expiringFees = this.safeDict (contractPromises, 0, {});
+        const perpetualFees = this.safeDict (contractPromises, 1, {});
         //
         //     {
         //         "total_volume": 0,

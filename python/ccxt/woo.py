@@ -1511,7 +1511,7 @@ class woo(Exchange, ImplicitAPI):
         if limit is not None:
             request['size'] = limit
         else:
-            request['size'] = 500
+            request['size'] = 50 if trailing else 500
         if trigger:
             request['algoType'] = 'stop'
         elif trailing:

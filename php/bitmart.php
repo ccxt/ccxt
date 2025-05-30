@@ -2362,7 +2362,7 @@ class bitmart extends Exchange {
                 $code = $this->safe_currency_code($currencyId);
                 $account = $this->account();
                 $account['free'] = $this->safe_string_2($balance, 'available', 'available_balance');
-                $account['used'] = $this->safe_string_2($balance, 'frozen', 'frozen_balance');
+                $account['used'] = $this->safe_string_n($balance, array( 'unAvailable', 'frozen', 'frozen_balance' ));
                 $result[$code] = $account;
             }
             return $this->safe_balance($result);

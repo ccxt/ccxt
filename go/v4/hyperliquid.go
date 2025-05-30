@@ -174,12 +174,12 @@ func  (this *hyperliquid) Describe() interface{}  {
         },
         "fees": map[string]interface{} {
             "swap": map[string]interface{} {
-                "taker": this.ParseNumber("0.00035"),
-                "maker": this.ParseNumber("0.0001"),
+                "taker": this.ParseNumber("0.00045"),
+                "maker": this.ParseNumber("0.00015"),
             },
             "spot": map[string]interface{} {
-                "taker": this.ParseNumber("0.00035"),
-                "maker": this.ParseNumber("0.0001"),
+                "taker": this.ParseNumber("0.0007"),
+                "maker": this.ParseNumber("0.0004"),
             },
         },
         "requiredCredentials": map[string]interface{} {

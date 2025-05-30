@@ -1540,6 +1540,26 @@ public partial class okx
         return new FundingRate(res);
     }
     /// <summary>
+    /// fetches the current funding rates for multiple symbols
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a dictionary of [funding rates structure]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}.</returns>
+    public async Task<FundingRates> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchFundingRates(symbols, parameters);
+        return new FundingRates(res);
+    }
+    /// <summary>
     /// fetch the history of funding payments paid and received on this account
     /// </summary>
     /// <remarks>

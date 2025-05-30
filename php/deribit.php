@@ -632,18 +632,17 @@ class deribit extends Exchange {
         //      "testnet" => true
         //    }
         //
-        $data = $this->safe_value($response, 'result', array());
+        $data = $this->safe_list($response, 'result', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $currency = $data[$i];
             $currencyId = $this->safe_string($currency, 'currency');
             $code = $this->safe_currency_code($currencyId);
-            $name = $this->safe_string($currency, 'currency_long');
-            $result[$code] = array(
+            $result[$code] = $this->safe_currency_structure(array(
                 'info' => $currency,
                 'code' => $code,
                 'id' => $currencyId,
-                'name' => $name,
+                'name' => $this->safe_string($currency, 'currency_long'),
                 'active' => null,
                 'deposit' => null,
                 'withdraw' => null,
@@ -665,7 +664,7 @@ class deribit extends Exchange {
                     ),
                 ),
                 'networks' => null,
-            );
+            ));
         }
         return $result;
     }

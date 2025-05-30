@@ -6,6 +6,15 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchFundingRates": [
+            {
+                "description": "fetch funding rates",
+                "method": "fetchFundingRates",
+                "url": "https://www.okx.com/api/v5/public/funding-rate?instId=ANY",
+                "input": [],
+                "output": null
+            }
+        ],
         "createOrder": [
             {
                 "description": "Spot limit buy order",
