@@ -1618,6 +1618,38 @@ func (this *Okx) FetchFundingRate(symbol string, options ...FetchFundingRateOpti
 }
 /**
  * @method
+ * @name okx#fetchFundingRates
+ * @description fetches the current funding rates for multiple symbols
+ * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate
+ * @param {string[]} symbols unified market symbols
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a dictionary of [funding rates structure]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}
+ */
+func (this *Okx) FetchFundingRates(options ...FetchFundingRatesOptions) (FundingRates, error) {
+
+    opts := FetchFundingRatesOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var symbols interface{} = nil
+    if opts.Symbols != nil {
+        symbols = *opts.Symbols
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.FetchFundingRates(symbols, params)
+    if IsError(res) {
+        return FundingRates{}, CreateReturnError(res)
+    }
+    return NewFundingRates(res), nil
+}
+/**
+ * @method
  * @name okx#fetchFundingHistory
  * @description fetch the history of funding payments paid and received on this account
  * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-3-months
