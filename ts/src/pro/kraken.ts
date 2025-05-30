@@ -878,108 +878,112 @@ export default class kraken extends krakenRest {
         //
         // first message (snapshot)
         //
-        // {
-        //     "channel": "book",
-        //     "type": "snapshot",
-        //     "data": [
-        //         {
-        //             "symbol": "MATIC/USD",
-        //             "bids": [
-        //                 {
-        //                     "price": 0.5666,
-        //                     "qty": 4831.75496356
-        //                 },
-        //                 {
-        //                     "price": 0.5665,
-        //                     "qty": 6658.22734739
-        //                 }
-        //             ],
-        //             "asks": [
-        //                 {
-        //                     "price": 0.5668,
-        //                     "qty": 4410.79769741
-        //                 },
-        //                 {
-        //                     "price": 0.5669,
-        //                     "qty": 4655.40412487
-        //                 }
-        //             ],
-        //             "checksum": 2439117997
-        //         }
-        //     ]
-        // }
+        //     {
+        //         "channel": "book",
+        //         "type": "snapshot",
+        //         "data": [
+        //             {
+        //                 "symbol": "MATIC/USD",
+        //                 "bids": [
+        //                     {
+        //                         "price": 0.5666,
+        //                         "qty": 4831.75496356
+        //                     },
+        //                     {
+        //                         "price": 0.5665,
+        //                         "qty": 6658.22734739
+        //                     }
+        //                 ],
+        //                 "asks": [
+        //                     {
+        //                         "price": 0.5668,
+        //                         "qty": 4410.79769741
+        //                     },
+        //                     {
+        //                         "price": 0.5669,
+        //                         "qty": 4655.40412487
+        //                     }
+        //                 ],
+        //                 "checksum": 2439117997
+        //             }
+        //         ]
+        //     }
         //
         // subsequent updates
         //
-        // {
-        //     "channel": "book",
-        //     "type": "update",
-        //     "data": [
-        //         {
-        //             "symbol": "MATIC/USD",
-        //             "bids": [
-        //                 {
-        //                     "price": 0.5657,
-        //                     "qty": 1098.3947558
-        //                 }
-        //             ],
-        //             "asks": [],
-        //             "checksum": 2114181697,
-        //             "timestamp": "2023-10-06T17:35:55.440295Z"
-        //         }
-        //     ]
-        // }
+        //     {
+        //         "channel": "book",
+        //         "type": "update",
+        //         "data": [
+        //             {
+        //                 "symbol": "MATIC/USD",
+        //                 "bids": [
+        //                     {
+        //                         "price": 0.5657,
+        //                         "qty": 1098.3947558
+        //                     }
+        //                 ],
+        //                 "asks": [],
+        //                 "checksum": 2114181697,
+        //                 "timestamp": "2023-10-06T17:35:55.440295Z"
+        //             }
+        //         ]
+        //     }
         //
         const type = this.safeString (message, 'type');
         const data = this.safeList (message, 'data', []);
         const first = this.safeDict (data, 0, {});
         const symbol = this.safeString (first, 'symbol');
-        let timestamp = undefined;
-        let datetime = undefined;
-        const messageHash = this.getMessageHash ('orderbook', undefined, symbol);
-        if (type === 'update') {
-            datetime = this.safeString (first, 'timestamp');
-            timestamp = this.parse8601 (datetime);
-        }
         const a = this.safeValue (first, 'asks', []);
         const b = this.safeValue (first, 'bids', []);
         const c = this.safeInteger (first, 'checksum');
-        const depth = a.length;
-        this.orderbooks[symbol] = this.orderBook ({}, depth);
-        const orderbook = this.orderbooks[symbol];
-        orderbook['asks'] = a;
-        orderbook['bids'] = b;
-        orderbook['timestamp'] = timestamp;
-        orderbook['datetime'] = datetime;
-        orderbook['symbol'] = symbol;
-        const storedAsks = orderbook['asks'];
-        const storedBids = orderbook['bids'];
-        let example = undefined;
-        if (a !== undefined) {
-            example = this.safeValue (a, 0);
+        const messageHash = this.getMessageHash ('orderbook', undefined, symbol);
+        let orderbook = undefined;
+        if (type === 'update') {
+            orderbook = this.orderbooks[symbol];
+            const storedAsks = orderbook['asks'];
+            const storedBids = orderbook['bids'];
+            if (a !== undefined) {
+                this.customHandleDeltas (storedAsks, a);
+            }
+            if (b !== undefined) {
+                this.customHandleDeltas (storedBids, b);
+            }
+            orderbook.limit ();
+            const datetime = this.safeString (first, 'timestamp');
+            orderbook['symbol'] = symbol;
+            orderbook['timestamp'] = this.parse8601 (datetime);
+            orderbook['datetime'] = datetime;
+        } else {
+            // snapshot
+            const depth = a.length;
+            this.orderbooks[symbol] = this.orderBook ({}, depth);
+            orderbook = this.orderbooks[symbol];
+            const keys = [ 'asks', 'bids' ];
+            for (let i = 0; i < keys.length; i++) {
+                const key = keys[i];
+                const bookside = orderbook[key];
+                const deltas = this.safeValue (first, key, []);
+                if (deltas.length > 0) {
+                    this.customHandleDeltas (bookside, deltas);
+                }
+            }
+            orderbook['symbol'] = symbol;
         }
-        if (b !== undefined) {
-            example = this.safeValue (b, 0);
-        }
-        // don't remove this line or I will poop on your face
-        orderbook.limit ();
+        // TODO: checksum do I need to use storedAsks and storedBids instead of a and b, depending on whether it's an update or a snapshot?
         const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
         if (checksum) {
-            const priceString = this.safeString (example, 'price');
-            const amountString = this.safeString (example, 'qty');
-            const priceParts = priceString.split ('.');
-            const amountParts = amountString.split ('.');
-            const priceLength = priceParts[1].length - 0;
-            const amountLength = amountParts[1].length - 0;
             const payloadArray = [];
             if (c !== undefined) {
                 for (let i = 0; i < 10; i++) {
-                    const formatted = this.formatNumber (storedAsks[i], priceLength) + this.formatNumber (storedAsks[i], amountLength);
-                    payloadArray.push (formatted);
+                    const currentAsk = this.safeDict (a, i, {});
+                    const formattedAsk = this.formatNumber (currentAsk);
+                    payloadArray.push (formattedAsk);
                 }
                 for (let i = 0; i < 10; i++) {
-                    const formatted = this.formatNumber (storedBids[i], priceLength) + this.formatNumber (storedBids[i], amountLength);
-                    payloadArray.push (formatted);
+                    const currentBid = this.safeDict (b, i, {});
+                    const formattedBid = this.formatNumber (currentBid);
+                    payloadArray.push (formattedBid);
                 }
             }
             const payload = payloadArray.join ('');
@@ -995,22 +999,47 @@ export default class kraken extends krakenRest {
         client.resolve (orderbook, messageHash);
     }
 
-    formatNumber (n, length) {
-        const stringNumber = this.numberToString (n);
-        const parts = stringNumber.split ('.');
-        const integer = this.safeString (parts, 0);
-        const decimals = this.safeString (parts, 1, '');
-        const paddedDecimals = decimals.padEnd (length, '0');
-        const joined = integer + paddedDecimals;
+    customHandleDeltas (bookside, deltas) {
+        for (let j = 0; j < deltas.length; j++) {
+            const delta = deltas[j];
+            const price = this.safeNumber (delta, 'price');
+            const amount = this.safeNumber (delta, 'qty');
+            if (amount === 0) {
+                // TODO: if amount is 0, remove the object from the book, populate the bookside with the correct sorted depth
+                bookside.splice (j, 1);
+            } else {
+                // TODO: insert at the correct index, asks sorted by price from low to high, bids sorted by price from high to low
+                bookside.store (price, amount);
+            }
+        }
+    }
+
+    formatNumber (data) {
+        const price = this.safeString (data, 'price');
+        const amount = this.safeString (data, 'qty');
+        const priceParts = price.split ('.');
+        const amountParts = amount.split ('.');
+        const priceInteger = this.safeString (priceParts, 0);
+        const priceDecimals = this.safeString (priceParts, 1, '');
+        const amountInteger = this.safeString (amountParts, 0);
+        const amountDecimals = this.safeString (amountParts, 1, '');
+        let joinedPrice = priceInteger + priceDecimals;
+        let joinedAmount = amountInteger + amountDecimals;
         let i = 0;
-        while (joined[i] === '0') {
+        while (joinedPrice[i] === '0') {
             i += 1;
         }
         if (i > 0) {
-            return joined.slice (i);
-        } else {
-            return joined;
+            joinedPrice = joinedPrice.slice (i);
         }
+        let j = 0;
+        while (joinedAmount[j] === '0') {
+            j += 1;
+        }
+        if (j > 0) {
+            joinedAmount = joinedAmount.slice (j);
+        }
+        return joinedPrice + joinedAmount;
     }
 
     handleSystemStatus (client: Client, message) {
