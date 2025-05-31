@@ -335,6 +335,11 @@ export default class Exchange {
     throttler = undefined
     enableRateLimit: boolean = undefined;
 
+    // rate limiter properties
+    rateLimiterAlgorithm: string = 'leakyBucket';  // rollingWindow or leakyBucket
+    maxLimiterRequests: Num = 1000;
+    rollingWindowSize: Num = 60000;
+
     httpExceptions = undefined
 
     limits: {
@@ -2852,8 +2857,11 @@ export default class Exchange {
             'delay': 0.001,
             'capacity': 1,
             'cost': 1,
-            'maxCapacity': 1000,
+            'maxLimiterRequests': this.maxLimiterRequests,
             'refillRate': refillRate,
+            'algorithm': this.rateLimiterAlgorithm,
+            'windowSize': this.rollingWindowSize,
+            'maxWeight': this.rollingWindowSize / this.rateLimit,   // ms_of_window / ms_of_rate_limit
         };
         const existingBucket = (this.tokenBucket === undefined) ? {} : this.tokenBucket;
         this.tokenBucket = this.extend (defaultBucket, existingBucket);
