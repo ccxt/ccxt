@@ -1,4 +1,5 @@
 package ccxt
+
 import (
 	"crypto/rand"
 	"encoding/hex"
@@ -12,7 +13,8 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"sync""time"
+	"sync"
+	"time"
 )
 
 type Exchange struct {
@@ -244,16 +246,15 @@ func (this *Exchange) InitThrottler() {
 	this.Throttler = NewThrottler(this.TokenBucket)
 }
 
-
-/**
- * @method
- * @name Exchange#loadMarkets
- * @description Loads and prepares the markets for trading.
- * @param {boolean} param.reload - If true, the markets will be reloaded from the exchange.
- * @param {object} params - Additional exchange-specific parameters for the request.
- * @throws An error if the markets cannot be loaded or prepared.
-
- */
+/*
+*
+  - @method
+  - @name Exchange#loadMarkets
+  - @description Loads and prepares the markets for trading.
+  - @param {boolean} param.reload - If true, the markets will be reloaded from the exchange.
+  - @param {object} params - Additional exchange-specific parameters for the request.
+  - @throws An error if the markets cannot be loaded or prepared.
+*/
 func (this *Exchange) LoadMarkets(params ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
 
@@ -265,7 +266,7 @@ func (this *Exchange) LoadMarkets(params ...interface{}) <-chan interface{} {
 			}
 		}()
 		reload := GetArg(params, 0, false).(bool)
-		params := GetArg(params, 1, map[string]interface{} {})
+		params := GetArg(params, 1, map[string]interface{}{})
 		this.WarmUpCache()
 		if !reload {
 			if this.Markets != nil && len(this.Markets) > 0 {
