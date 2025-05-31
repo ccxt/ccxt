@@ -11,7 +11,8 @@ import (
 	"reflect"
 	"regexp"
 	"strconv"
-	"strings" "sync" "time"
+	"strings"
+	"sync""time"
 )
 
 type Exchange struct {
@@ -251,6 +252,7 @@ func (this *Exchange) InitThrottler() {
  * @param {boolean} param.reload - If true, the markets will be reloaded from the exchange.
  * @param {object} params - Additional exchange-specific parameters for the request.
  * @throws An error if the markets cannot be loaded or prepared.
+
  */
 func (this *Exchange) LoadMarkets(params ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
