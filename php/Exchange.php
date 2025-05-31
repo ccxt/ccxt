@@ -1619,8 +1619,10 @@ class Exchange {
         $currencies = null;
         if (array_key_exists('fetchCurrencies', $this->has) && $this->has['fetchCurrencies'] === true) {
             $currencies = $this->fetch_currencies();
+            $this->options['fetched_currencies_for_fetch_markets'] = $currencies;
         }
         $markets = $this->fetch_markets($params);
+        unset($this->options['fetched_currencies_for_fetch_markets']);
         return $this->set_markets($markets, $currencies);
     }
 
