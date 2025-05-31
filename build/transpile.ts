@@ -145,7 +145,7 @@ class Transpiler {
             [ /\.removeRepeatedElementsFromArray/g, '.remove_repeated_elements_from_array'],
             [ /\.initThrottler /g, '.init_throttler'],
             [ /\.randNumber /g, '.rand_number'],
-            [ /\'use strict\';?\s+/g, '' ],
+            [ /'use strict';?\s+/g, '' ],
             [ /\.call\s*\(this, /g, '(' ],
             [ /this\.[a-zA-Z0-9_]+ \(/g, this.trimmedUnCamelCase.bind(this) ],
             [ /super\.[a-zA-Z0-9_]+ \(/g, this.trimmedUnCamelCase.bind(this) ],
@@ -158,10 +158,10 @@ class Transpiler {
     getPythonRegexes () {
 
         return [
-            [ /Array\.isArray\s*\(([^\)]+)\)/g, 'isinstance($1, list)' ],
-            [ /Number\.isInteger\s*\(([^\)]+)\)/g, 'isinstance($1, int)' ],
-            [ /([^\(\s]+)\s+instanceof\s+String/g, 'isinstance($1, str)' ],
-            [ /([^\(\s]+)\s+instanceof\s+([^\)\s]+)/g, 'isinstance($1, $2)' ],
+            [ /Array\.isArray\s*\(([^)]+)\)/g, 'isinstance($1, list)' ],
+            [ /Number\.isInteger\s*\(([^)]+)\)/g, 'isinstance($1, int)' ],
+            [ /([^(\s]+)\s+instanceof\s+String/g, 'isinstance($1, str)' ],
+            [ /([^(\s]+)\s+instanceof\s+([^)\s]+)/g, 'isinstance($1, $2)' ],
 
             // convert javascript primitive types to python ones
             [ /(^\s+(?:let|const|var)\s+\w+:\s+)string/mg, '$1str' ],
@@ -170,26 +170,26 @@ class Transpiler {
             // [ /(^\s+(?:let|const|var)\s+\w+:\s+)Number/mg, '$1float' ], // remove from now
             [ /(^\s+(?:let|const|var)\s+\w+:\s+)any/mg, '$1Any' ], // remove from now
 
-            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2] is None' ],
-            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'undefined\'/g, '$1[$2] is not None' ],
-            [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'undefined\'/g, '$1 is None' ],
-            [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'undefined\'/g, '$1 is not None' ],
-            [ /typeof\s+(.+?)\s+\=\=\=?\s+\'undefined\'/g, '$1 is None' ],
-            [ /typeof\s+(.+?)\s+\!\=\=?\s+\'undefined\'/g, '$1 is not None' ],
+            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)])\s+===?\s+'undefined'/g, '$1[$2] is None' ],
+            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)])\s+!==?\s+'undefined'/g, '$1[$2] is not None' ],
+            [ /typeof\s+([^\s]+)\s+===?\s+'undefined'/g, '$1 is None' ],
+            [ /typeof\s+([^\s]+)\s+!==?\s+'undefined'/g, '$1 is not None' ],
+            [ /typeof\s+(.+?)\s+===?\s+'undefined'/g, '$1 is None' ],
+            [ /typeof\s+(.+?)\s+!==?\s+'undefined'/g, '$1 is not None' ],
 
-            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'number\'/g, "isinstance($1[$2], numbers.Real)" ],
-            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'number\'/g, "(not isinstance($1[$2], numbers.Real))" ],
-            [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'number\'/g, "isinstance($1, numbers.Real)" ],
-            [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'boolean\'/g, "isinstance($1, bool)" ],
-            [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'number\'/g, "(not isinstance($1, numbers.Real))" ],
-            [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'boolean\'/g, "(not isinstance($1, bool))" ],
+            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)])\s+===?\s+'number'/g, "isinstance($1[$2], numbers.Real)" ],
+            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)])\s+!==?\s+'number'/g, "(not isinstance($1[$2], numbers.Real))" ],
+            [ /typeof\s+([^\s]+)\s+===?\s+'number'/g, "isinstance($1, numbers.Real)" ],
+            [ /typeof\s+([^\s]+)\s+===?\s+'boolean'/g, "isinstance($1, bool)" ],
+            [ /typeof\s+([^\s]+)\s+!==?\s+'number'/g, "(not isinstance($1, numbers.Real))" ],
+            [ /typeof\s+([^\s]+)\s+!==?\s+'boolean'/g, "(not isinstance($1, bool))" ],
 
-            [ /([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+undefined/g, '$1[$2] is None' ],
-            [ /([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+undefined/g, '$1[$2] is not None' ],
-            [ /([^\s]+)\s+\=\=\=?\s+undefined/g, '$1 is None' ],
-            [ /([^\s]+)\s+\!\=\=?\s+undefined/g, '$1 is not None' ],
-            [ /(.+?)\s+\=\=\=?\s+undefined/g, '$1 is None' ],
-            [ /(.+?)\s+\!\=\=?\s+undefined/g, '$1 is not None' ],
+            [ /([^\s\[]+)(?:\s|\[(.+?)])\s+===?\s+undefined/g, '$1[$2] is None' ],
+            [ /([^\s\[]+)(?:\s|\[(.+?)])\s+!==?\s+undefined/g, '$1[$2] is not None' ],
+            [ /([^\s]+)\s+===?\s+undefined/g, '$1 is None' ],
+            [ /([^\s]+)\s+!==?\s+undefined/g, '$1 is not None' ],
+            [ /(.+?)\s+===?\s+undefined/g, '$1 is None' ],
+            [ /(.+?)\s+!==?\s+undefined/g, '$1 is not None' ],
             //
             // too broad, have to rewrite these cause they don't work
             //
@@ -198,34 +198,34 @@ class Transpiler {
             // [ /([^\s]+)\s+\=\=\=?\s+false/g, 'isinstance($1, bool) and ($1 is False)' ],
             // [ /([^\s]+)\s+\!\=\=?\s+false/g, 'isinstance($1, bool) and ($1 is not False)' ],
 
-            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'string\'/g, 'isinstance($1[$2], str)' ],
-            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'string\'/g, 'not isinstance($1[$2], str)' ],
-            [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'string\'/g, 'isinstance($1, str)' ],
-            [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'string\'/g, 'not isinstance($1, str)' ],
+            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)])\s+===?\s+'string'/g, 'isinstance($1[$2], str)' ],
+            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)])\s+!==?\s+'string'/g, 'not isinstance($1[$2], str)' ],
+            [ /typeof\s+([^\s]+)\s+===?\s+'string'/g, 'isinstance($1, str)' ],
+            [ /typeof\s+([^\s]+)\s+!==?\s+'string'/g, 'not isinstance($1, str)' ],
 
-            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'object\'/g, 'isinstance($1[$2], dict)' ],
-            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'object\'/g, 'not isinstance($1[$2], dict)' ],
-            [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'object\'/g, 'isinstance($1, dict)' ],
-            [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'object\'/g, 'not isinstance($1, dict)' ],
-            [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'function\'/g, 'callable($1)' ],
-            [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'function\'/g, 'not callable($1)' ],
+            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)])\s+===?\s+'object'/g, 'isinstance($1[$2], dict)' ],
+            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)])\s+!==?\s+'object'/g, 'not isinstance($1[$2], dict)' ],
+            [ /typeof\s+([^\s]+)\s+===?\s+'object'/g, 'isinstance($1, dict)' ],
+            [ /typeof\s+([^\s]+)\s+!==?\s+'object'/g, 'not isinstance($1, dict)' ],
+            [ /typeof\s+([^\s]+)\s+===?\s+'function'/g, 'callable($1)' ],
+            [ /typeof\s+([^\s]+)\s+!==?\s+'function'/g, 'not callable($1)' ],
 
             [ /undefined/g, 'None' ],
-            [ /\=\=\=?/g, '==' ],
-            [ /\!\=\=?/g, '!=' ],
+            [ /===?/g, '==' ],
+            [ /!==?/g, '!=' ],
             [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
             [ /\.shift\s*\(\)/g, '.pop(0)' ],
-            // beware of .reverse() in python, because opposed to JS, python does in-place, so 
-            // only cases like `x = x.reverse ()` should be transpiled, which will resul as 
+            // beware of .reverse() in python, because opposed to JS, python does in-place, so
+            // only cases like `x = x.reverse ()` should be transpiled, which will resul as
             // `x.reverse()` in python. otherwise, if transpiling `x = y.reverse()`, then the
             // left side `x = `will be removed and only `y.reverse()` will end up in python
-            [ /\s+(\w+)\s\=\s(.*?)\.reverse\s\(/g, '$2.reverse(' ], 
+            [ /\s+(\w+)\s\=\s(.*?)\.reverse\s\(/g, '$2.reverse(' ],
             [ /Number\.MAX_SAFE_INTEGER/g, 'float(\'inf\')'],
             [ /function\s*(\w+\s*\([^)]+\))\s*{/g, 'def $1:'],
             // [ /\.replaceAll\s*\(([^)]+)\)/g, '.replace($1)' ], // still not a part of the standard
             [ /replaceAll\s*/g, 'replace'],
             [ /assert\s*\((.+)\);/g, 'assert $1'],
-            [ /Promise\.all\s*\(([^\)]+)\)/g, 'asyncio.gather(*$1)' ],
+            [ /Promise\.all\s*\(([^)]+)\)/g, 'asyncio.gather(*$1)' ],
             [ /Precise\.stringAdd\s/g, 'Precise.string_add' ],
             [ /Precise\.stringMul\s/g, 'Precise.string_mul' ],
             [ /Precise\.stringDiv\s/g, 'Precise.string_div' ],
@@ -251,42 +251,42 @@ class Transpiler {
             // [ /this\.urlencode\s/g, '_urlencode.urlencode ' ], // use self.urlencode instead
             [ /([a-zA-Z0-9_]+) in this(:?[^.])/g, 'hasattr(self, $1)$2' ],
             // [ /this\[[a-zA-Z0-9_]+\]/g, 'getattr(self, $1)' ],
-            [ /this\[([a-zA-Z0-9_]+)\] = (.*?);/g, 'setattr(self, $1, $2)' ],
+            [ /this\[([a-zA-Z0-9_]+)] = (.*?);/g, 'setattr(self, $1, $2)' ],
             [ /this\./g, 'self.' ],
-            [ /([^a-zA-Z\'])this([^a-zA-Z])/g, '$1self$2' ],
-            [ /\[\s*([^\]]+)\s\]\s=/g, '$1 =' ],
-            [ /((?:let|const|var) \w+\: )([0-9a-zA-Z]+)\[\]/, '$1List[$2]' ],  // typed variable with list type
-            [ /((?:let|const|var) \w+\: )([0-9a-zA-Z]+)\[\]\[\]/, '$1List[List[$2]]' ],  // typed variables with double list type
-            [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1$2' ],
-            [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}\s\=\s([^\;]+)/g, '$1$2 = (lambda $2: ($2))(**$3)' ],
+            [ /([^a-zA-Z'])this([^a-zA-Z])/g, '$1self$2' ],
+            [ /\[\s*([^\]]+)\s]\s=/g, '$1 =' ],
+            [ /((?:let|const|var) \w+: )([0-9a-zA-Z]+)\[]/, '$1List[$2]' ],  // typed variable with list type
+            [ /((?:let|const|var) \w+: )([0-9a-zA-Z]+)\[]\[]/, '$1List[List[$2]]' ],  // typed variables with double list type
+            [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s]/g, '$1$2' ],
+            [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^}]+)\s}\s=\s([^;]+)/g, '$1$2 = (lambda $2: ($2))(**$3)' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s/g, '$1' ],
             [ /Object\.keys\s*\((.*)\)\.length/g, '$1' ],
             [ /Object\.keys\s*\((.*)\)/g, 'list($1.keys())' ],
             [ /Object\.values\s*\((.*)\)/g, 'list($1.values())' ],
-            [ /\[([^\]]+)\]\.join\s*\(([^\)]+)\)/g, "$2.join([$1])" ],
-            [ /hash\s*\(([^,]+)\, \'(sha[0-9])\'/g, "hash($1, '$2'" ],
-            [ /hmac\s*\(([^,]+)\, ([^,]+)\, \'(md5)\'/g, 'hmac($1, $2, hashlib.$3' ],
-            [ /hmac\s*\(([^,]+)\, ([^,]+)\, \'(sha[0-9]+)\'/g, 'hmac($1, $2, hashlib.$3' ],
+            [ /\[([^\]]+)]\.join\s*\(([^)]+)\)/g, "$2.join([$1])" ],
+            [ /hash\s*\(([^,]+), '(sha[0-9])'/g, "hash($1, '$2'" ],
+            [ /hmac\s*\(([^,]+), ([^,]+), '(md5)'/g, 'hmac($1, $2, hashlib.$3' ],
+            [ /hmac\s*\(([^,]+), ([^,]+), '(sha[0-9]+)'/g, 'hmac($1, $2, hashlib.$3' ],
             [ /throw new ([\S]+) \((.*)\)/g, 'raise $1($2)'],
             [ /throw ([\S]+)/g, 'raise $1'],
             [ /try {/g, 'try:'],
-            [ /\}\s+catch \(([\S]+)\) {/g, 'except Exception as $1:'],
-            [ /([\s\(])extend(\s)/g, '$1self.extend$2' ],
-            [ /\} else if/g, 'elif' ],
+            [ /}\s+catch \(([\S]+)\) {/g, 'except Exception as $1:'],
+            [ /([\s(])extend(\s)/g, '$1self.extend$2' ],
+            [ /} else if/g, 'elif' ],
             [ /else if/g, 'elif' ],
             [ /if\s+\((.*)\)\s+\{/g, 'if $1:' ],
             [ /if\s+\((.*)\)\s*[\n]/g, "if $1:\n" ],
-            [ /\}\s*else\s*\{/g, 'else:' ],
+            [ /}\s*else\s*\{/g, 'else:' ],
             [ /else\s*[\n]/g, "else:\n" ],
-            [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(?:\<=|\>=|<|>)\s*(.*)\.length\s*\;[^\)]+\)\s*{/g, 'for $1 in range($2, len($3)):'],
-            [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(?:\<=|\>=|<|>)\s*(.*)\s*\;[^\)]+\)\s*{/g, 'for $1 in range($2, $3):'],
+            [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^;\s]+\s*);[^<>=]+(?:<=|>=|<|>)\s*(.*)\.length\s*;[^)]+\)\s*{/g, 'for $1 in range($2, len($3)):'],
+            [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^;\s]+\s*);[^<>=]+(?:<=|>=|<|>)\s*(.*)\s*;[^)]+\)\s*{/g, 'for $1 in range($2, $3):'],
             [ /\s\|\|\s/g, ' or ' ],
-            [ /\s\&\&\s/g, ' and ' ],
-            [ /\!([^\s\='"])/g, 'not $1'],
+            [ /\s&&\s/g, ' and ' ],
+            [ /!([^\s='"])/g, 'not $1'],
             [ /\.push\s*\(([\s\S]+?)\);/g, '.append($1);' ],
             [ /^(\s*}\s*$)+/gm, '' ],
-            [ /\;(\s+?\/\/.+?)/g, '$1' ],
-            [ /\;$/gm, '' ],
+            [ /;(\s+?\/\/.+?)/g, '$1' ],
+            [ /;$/gm, '' ],
             [ /\.toUpperCase\s*/g, '.upper' ],
             [ /\.toLowerCase\s*/g, '.lower' ],
             [ /\.startsWith\s*/g, '.startswith' ],
@@ -298,19 +298,19 @@ class Transpiler {
             // [ /([^\(\s]+)\.includes\s+\(([^\)]+)\)/g, '$2 in $1' ],
             // [ /\'%([^\']+)\'\.sprintf\s*\(([^\)]+)\)/g, "'{:$1}'.format($2)" ],
             [ /([^\s]+)\.toFixed\s*\(([0-9]+)\)/g, "format($1, '.$2f')" ],
-            [ /([^\s]+)\.toFixed\s*\(([^\)]+)\)/g, "format($1, '.' + str($2) + 'f')" ],
+            [ /([^\s]+)\.toFixed\s*\(([^)]+)\)/g, "format($1, '.' + str($2) + 'f')" ],
             [ /parseFloat\s*/g, 'float'],
             [ /parseInt\s*/g, 'int'],
-            [ /self\[([^\]+]+)\]/g, 'getattr(self, $1)' ],
-            [ /Math\.floor\s*\(([^\)]+)\)/g, 'int(math.floor($1))' ],
-            [ /Math\.abs\s*\(([^\)]+)\)/g, 'abs($1)' ],
-            [ /Math\.pow\s*\(([^\)]+)\)/g, 'math.pow($1)' ],
-            [ /Math\.round\s*\(([^\)]+)\)/g, 'int(round($1))' ],
-            [ /Math\.ceil\s*\(([^\)]+)\)/g, 'int(math.ceil($1))' ],
+            [ /self\[([^\]+]+)]/g, 'getattr(self, $1)' ],
+            [ /Math\.floor\s*\(([^)]+)\)/g, 'int(math.floor($1))' ],
+            [ /Math\.abs\s*\(([^)]+)\)/g, 'abs($1)' ],
+            [ /Math\.pow\s*\(([^)]+)\)/g, 'math.pow($1)' ],
+            [ /Math\.round\s*\(([^)]+)\)/g, 'int(round($1))' ],
+            [ /Math\.ceil\s*\(([^)]+)\)/g, 'int(math.ceil($1))' ],
             [ /Math\.log/g, 'math.log' ],
-            [ /([a-zA-Z0-9_\.]*\([^\)]+\)|[^\s]+)\s+\?\s*([^\:]+)\s+\:\s*([^\n]+)/g, '$2 if $1 else $3'],
-            [ /([^\s]+)\.slice \(([^\,\)]+)\,\s?([^\)]+)\)/g, '$1[$2:$3]' ],
-            [ /([^\s]+)\.slice \(([^\)\:]+)\)/g, '$1[$2:]' ],
+            [ /([a-zA-Z0-9_.]*\([^)]+\)|[^\s]+)\s+\?\s*([^:]+)\s+:\s*([^\n]+)/g, '$2 if $1 else $3'],
+            [ /([^\s]+)\.slice \(([^,)]+),\s?([^)]+)\)/g, '$1[$2:$3]' ],
+            [ /([^\s]+)\.slice \(([^):]+)\)/g, '$1[$2:]' ],
             [ /([^\s(:]+)\.length/g, 'len($1)' ],
             [ /(^|\s)\/\//g, '$1#' ],
             [ /([^\n\s]) #/g, '$1  #' ],   // PEP8 E261
@@ -319,38 +319,38 @@ class Transpiler {
             [ /(\s|\()false/g, '$1False'],
             [ /([^\s]+\s*\(\))\.toString\s+\(\)/g, 'str($1)' ],
             [ /([^\s]+)\.toString \(\)/g, 'str($1)' ],
-            [ /([^\s]+)\.join\s*\(\s*([^\)\[\]]+?)\s*\)/g, '$2.join($1)' ],
+            [ /([^\s]+)\.join\s*\(\s*([^)\[\]]+?)\s*\)/g, '$2.join($1)' ],
             [ /Math\.(max|min)\s/g, '$1' ],
             [ / = new /g, ' = ' ], // python does not have a 'new' keyword
             [ /console\.log\s/g, 'print' ],
             [ /process\.exit\s+/g, 'sys.exit' ],
             [ /(while \(.*\)) {/, '$1\:' ], // While loops replace bracket with :
-            [ /([^:+=\/\*\s-]+) \(/g, '$1(' ], // PEP8 E225 remove whitespaces before left ( round bracket
+            [ /([^:+=\/*\s-]+) \(/g, '$1(' ], // PEP8 E225 remove whitespaces before left ( round bracket
             [ /\sand\(/g, ' and (' ],
             [ /\sor\(/g, ' or (' ],
             [ /\snot\(/g, ' not (' ],
             [ /\[ /g, '[' ],              // PEP8 E201 remove whitespaces after left [ square bracket
             [ /\{ /g, '{' ],              // PEP8 E201 remove whitespaces after left { bracket
-            [ /(?<=[^\s#]) \]/g, ']' ],    // PEP8 E202 remove whitespaces before right ] square bracket
-            [ /(?<=[^\s#]) \}/g, '}' ],    // PEP8 E202 remove whitespaces before right } bracket
-            [ /([^a-z\_])(elif|if|or|else)\(/g, '$1$2 \(' ], // a correction for PEP8 E225 side-effect for compound and ternary conditionals
-            [ /\!\=\sTrue/g, 'is not True' ], // a correction for PEP8 E712, it likes "is not True", not "!= True"
-            [ /\=\=\sTrue/g, 'is True' ], // a correction for PEP8 E712, it likes "is True", not "== True"
+            [ /(?<=[^\s#]) ]/g, ']' ],    // PEP8 E202 remove whitespaces before right ] square bracket
+            [ /(?<=[^\s#]) }/g, '}' ],    // PEP8 E202 remove whitespaces before right } bracket
+            [ /([^a-z_])(elif|if|or|else)\(/g, '$1$2 \(' ], // a correction for PEP8 E225 side-effect for compound and ternary conditionals
+            [ /!=\sTrue/g, 'is not True' ], // a correction for PEP8 E712, it likes "is not True", not "!= True"
+            [ /==\sTrue/g, 'is True' ], // a correction for PEP8 E712, it likes "is True", not "== True"
             [ /\sdelete\s/g, ' del ' ],
             [ /(?<!#.+)null/, 'None' ],
             [ /\/\*\*/, '\"\"\"' ], // Doc strings
             [ / \*\//, '\"\"\"' ], // Doc strings
-            [ /\[([^\[\]]*)\]\{@link (.*)\}/g, '`$1 <$2>`' ], // docstring item with link
+            [ /\[([^\[\]]*)]\{@link (.*)}/g, '`$1 <$2>`' ], // docstring item with link
             [ /\s+\* @method/g, '' ], // docstring @method
             [ /(\s+) \* @description (.*)/g, '$1$2' ], // docstring description
             [ /\s+\* @name .*/g, '' ], // docstring @name
             [ /(\s+)  \* @see( .*)/g, '$1$2' ], // docstring @see
-            [ /(\s+ \* @(param|returns) {[^}]*)string(\[\])?([^}]*}.*)/g, '$1str$3$4' ], // docstring type conversion
-            [ /(\s+ \* @(param|returns) {[^}]*)object(\[\])?([^}]*}.*)/g, '$1dict$3$4' ], // docstring type conversion
-            [ /(\s+) \* @returns ([^\{])/g, '$1:returns: $2' ], // docstring return
-            [ /(\s+) \* @returns \{(.+)\}/g, '$1:returns $2:' ], // docstring return
-            [ /(\s+ \* @param \{[\]\[\|a-zA-Z]+\} )([a-zA-Z0-9_-]+)\.([a-zA-Z0-9_-]+) (.*)/g, '$1$2[\'$3\'] $4' ], // docstring params.anything
-            [ /(\s+) \* @([a-z]+) \{([\]\[a-zA-Z\|]+)\} ([a-zA-Z0-9_\-\.\[\]\']+)/g, '$1:$2 $3 $4:' ], // docstring param
+            [ /(\s+ \* @(param|returns) {[^}]*)string(\[])?([^}]*}.*)/g, '$1str$3$4' ], // docstring type conversion
+            [ /(\s+ \* @(param|returns) {[^}]*)object(\[])?([^}]*}.*)/g, '$1dict$3$4' ], // docstring type conversion
+            [ /(\s+) \* @returns ([^{])/g, '$1:returns: $2' ], // docstring return
+            [ /(\s+) \* @returns \{(.+)}/g, '$1:returns $2:' ], // docstring return
+            [ /(\s+ \* @param \{[\]\[|a-zA-Z]+} )([a-zA-Z0-9_-]+)\.([a-zA-Z0-9_-]+) (.*)/g, '$1$2[\'$3\'] $4' ], // docstring params.anything
+            [ /(\s+) \* @([a-z]+) \{([\]\[a-zA-Z|]+)} ([a-zA-Z0-9_\-.\[\]']+)/g, '$1:$2 $3 $4:' ], // docstring param
         ])
     }
 
@@ -397,61 +397,61 @@ class Transpiler {
             // That is done at the very last regex steps.
             // All of that is a workaround for PHP-arrays vs dictionaries vs url-imploded params in other langs.
             //
-            [ /\{([\]\[\|a-zA-Z0-9_-]+?)\}/g, '~$1~' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
-            [ /\[([^\]\[]*)\]\{(@link .*)\}/g, '~$2 $1~' ], // docstring item with link
+            [ /\{([\]\[|a-zA-Z0-9_-]+?)}/g, '~$1~' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
+            [ /\[([^\]\[]*)]\{(@link .*)}/g, '~$2 $1~' ], // docstring item with link
             [ /\s+\* @method/g, '' ], // docstring @method
             [ /(\s+)\* @description (.*)/g, '$1\* $2' ], // docstring description
             [ /\s+\* @name .*/g, '' ], // docstring @name
             [ /(\s+)\* @returns/g, '$1\* @return' ], // docstring return
-            [ /\!Array\.isArray\s*\(([^\)]+)\)/g, "gettype($1) !== 'array' || array_keys($1) !== array_keys(array_keys($1))" ],
-            [ /Array\.isArray\s*\(([^\)]+)\)/g, "gettype($1) === 'array' && array_keys($1) === array_keys(array_keys($1))" ],
-            [ /Number\.isInteger\s*\(([^\)]+)\)/g, "is_int($1)" ],
-            [ /([^\(\s]+)\s+instanceof\s+String/g, 'is_string($1)' ],
+            [ /!Array\.isArray\s*\(([^)]+)\)/g, "gettype($1) !== 'array' || array_keys($1) !== array_keys(array_keys($1))" ],
+            [ /Array\.isArray\s*\(([^)]+)\)/g, "gettype($1) === 'array' && array_keys($1) === array_keys(array_keys($1))" ],
+            [ /Number\.isInteger\s*\(([^)]+)\)/g, "is_int($1)" ],
+            [ /([^(\s]+)\s+instanceof\s+String/g, 'is_string($1)' ],
             // we want to remove type hinting variable lines
-            [ /^\s+(?:let|const|var)\s+\w+:\s+(?:Str|Int|Num|SubType|MarketType|string|number|Dict|any(?:\[\])*);\n/mg, '' ],
-            [ /(^|[^a-zA-Z0-9_])(let|const|var)(\s+\w+):\s+(?:Str|Int|Num|Bool|Market|Currency|string|number|Dict|any(?:\[\])*)(\s+=\s+[\w+\{}])/g, '$1$2$3$4' ],
+            [ /^\s+(?:let|const|var)\s+\w+:\s+(?:Str|Int|Num|SubType|MarketType|string|number|Dict|any(?:\[])*);\n/mg, '' ],
+            [ /(^|[^a-zA-Z0-9_])(let|const|var)(\s+\w+):\s+(?:Str|Int|Num|Bool|Market|Currency|string|number|Dict|any(?:\[])*)(\s+=\s+[\w+{}])/g, '$1$2$3$4' ],
 
-            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2] === null' ],
-            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'undefined\'/g, '$1[$2] !== null' ],
-            [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'undefined\'/g, '$1 === null' ],
-            [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'undefined\'/g, '$1 !== null' ],
-            [ /typeof\s+(.+?)\s+\=\=\=?\s+\'undefined\'/g, '$1 === null' ],
-            [ /typeof\s+(.+?)\s+\!\=\=?\s+\'undefined\'/g, '$1 !== null' ],
+            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)])\s+===?\s+'undefined'/g, '$1[$2] === null' ],
+            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)])\s+!==?\s+'undefined'/g, '$1[$2] !== null' ],
+            [ /typeof\s+([^\s]+)\s+===?\s+'undefined'/g, '$1 === null' ],
+            [ /typeof\s+([^\s]+)\s+!==?\s+'undefined'/g, '$1 !== null' ],
+            [ /typeof\s+(.+?)\s+===?\s+'undefined'/g, '$1 === null' ],
+            [ /typeof\s+(.+?)\s+!==?\s+'undefined'/g, '$1 !== null' ],
 
-            [ /([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+undefined/g, '$1[$2] === null' ],
-            [ /([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+undefined/g, '$1[$2] !== null' ],
-            [ /([^\s]+)\s+\=\=\=?\s+undefined/g, '$1 === null' ],
-            [ /([^\s]+)\s+\!\=\=?\s+undefined/g, '$1 !== null' ],
-            [ /(.+?)\s+\=\=\=?\s+undefined/g, '$1 === null' ],
-            [ /(.+?)\s+\!\=\=?\s+undefined/g, '$1 !== null' ],
+            [ /([^\s\[]+)(?:\s|\[(.+?)])\s+===?\s+undefined/g, '$1[$2] === null' ],
+            [ /([^\s\[]+)(?:\s|\[(.+?)])\s+!==?\s+undefined/g, '$1[$2] !== null' ],
+            [ /([^\s]+)\s+===?\s+undefined/g, '$1 === null' ],
+            [ /([^\s]+)\s+!==?\s+undefined/g, '$1 !== null' ],
+            [ /(.+?)\s+===?\s+undefined/g, '$1 === null' ],
+            [ /(.+?)\s+!==?\s+undefined/g, '$1 !== null' ],
 
-            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'string\'/g, "gettype($1[$2]) === 'string'" ],
-            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'string\'/g, "gettype($1[$2]) !== 'string'" ],
-            [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'string\'/g, "gettype($1) === 'string'" ],
-            [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'string\'/g, "gettype($1) !== 'string'" ],
+            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)])\s+===?\s+'string'/g, "gettype($1[$2]) === 'string'" ],
+            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)])\s+!==?\s+'string'/g, "gettype($1[$2]) !== 'string'" ],
+            [ /typeof\s+([^\s]+)\s+===?\s+'string'/g, "gettype($1) === 'string'" ],
+            [ /typeof\s+([^\s]+)\s+!==?\s+'string'/g, "gettype($1) !== 'string'" ],
 
-            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'object\'/g, "gettype($1[$2]) === 'array'" ],
-            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'object\'/g, "gettype($1[$2]) !== 'array'" ],
-            [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'object\'/g, "gettype($1) === 'array'" ],
-            [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'object\'/g, "gettype($1) !== 'array'" ],
-            [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'function\'/g, "is_callable($1)" ],
-            [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'boolean\'/g, "is_bool($1)" ],
-            [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'function\'/g, "!is_callable($1)" ],
-            [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'boolean\'/g, "!is_bool($1)" ],
+            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)])\s+===?\s+'object'/g, "gettype($1[$2]) === 'array'" ],
+            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)])\s+!==?\s+'object'/g, "gettype($1[$2]) !== 'array'" ],
+            [ /typeof\s+([^\s]+)\s+===?\s+'object'/g, "gettype($1) === 'array'" ],
+            [ /typeof\s+([^\s]+)\s+!==?\s+'object'/g, "gettype($1) !== 'array'" ],
+            [ /typeof\s+([^\s]+)\s+===?\s+'function'/g, "is_callable($1)" ],
+            [ /typeof\s+([^\s]+)\s+===?\s+'boolean'/g, "is_bool($1)" ],
+            [ /typeof\s+([^\s]+)\s+!==?\s+'function'/g, "!is_callable($1)" ],
+            [ /typeof\s+([^\s]+)\s+!==?\s+'boolean'/g, "!is_bool($1)" ],
 
-            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'number\'/g, "(is_float($1[$2]) || is_int($1[$2]))" ], // same as above but for number
-            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'number\'/g, "!(is_float($1[$2]) || is_int($1[$2]))" ],
-            [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'number\'/g, "(is_float($1) || is_int($1))" ],
-            [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'number\'/g, "!(is_float($1) || is_int($1))" ],
+            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)])\s+===?\s+'number'/g, "(is_float($1[$2]) || is_int($1[$2]))" ], // same as above but for number
+            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)])\s+!==?\s+'number'/g, "!(is_float($1[$2]) || is_int($1[$2]))" ],
+            [ /typeof\s+([^\s]+)\s+===?\s+'number'/g, "(is_float($1) || is_int($1))" ],
+            [ /typeof\s+([^\s]+)\s+!==?\s+'number'/g, "!(is_float($1) || is_int($1))" ],
 
             [ /undefined/g, 'null' ],
-            [ /\} else if/g, '} elseif' ],
+            [ /} else if/g, '} elseif' ],
             [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
             [ /this\.stringToBase64\s/g, 'base64_encode' ],
             [ /this\.binaryToBase16\s/g, 'bin2hex' ],
             [ /this\.base64ToBinary\s/g, 'base64_decode' ],
             [ /this\.base64ToString\s/g, 'base64_decode' ],
-            [ /Promise\.all\s*\(([^\)]+)\)/g, 'Promise\\all($1)' ],
+            [ /Promise\.all\s*\(([^)]+)\)/g, 'Promise\\all($1)' ],
             // deepExtend is commented for PHP because it does not overwrite linear arrays
             // a proper \ccxt\Exchange::deep_extend() base method is implemented instead
             // [ /this\.deepExtend\s/g, 'array_replace_recursive'],
@@ -486,14 +486,14 @@ class Transpiler {
             [ /this\./g, '$this->' ],
             [ / this;/g, ' $this;' ],
             [ /([^'])this_\./g, '$1$this_->' ],
-            [ /([^'])\{\}/g, '$1array()' ],
-            [ /([^'])\[\](?!')/g, '$1array()' ],
+            [ /([^'])\{}/g, '$1array()' ],
+            [ /([^'])\[](?!')/g, '$1array()' ],
 
         // add {}-array syntax conversions up to 20 levels deep on the same line
-        ]).concat ([ ... Array (20) ].map (x => [ /\{([^\n\}]+)\}/g, 'array($1)' ] )).concat ([
-            [ /\[\s*([^\]]+)\s\]\s=/g, 'list($1) =' ],
-            [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1list($2)' ],
-            [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}/g, '$1array_values(list($2))' ],
+        ]).concat ([ ... Array (20) ].map (x => [ /\{([^\n}]+)}/g, 'array($1)' ] )).concat ([
+            [ /\[\s*([^\]]+)\s]\s=/g, 'list($1) =' ],
+            [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s]/g, '$1list($2)' ],
+            [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^}]+)\s}/g, '$1array_values(list($2))' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s/g, '$1' ],
             [ /Object\.keys\s*\((.*)\)\.length/g, '$1' ],
             [ /Object\.keys\s*\((.*)\)/g, 'is_array($1) ? array_keys($1) : array()' ],
@@ -502,68 +502,68 @@ class Transpiler {
             [ /([^\s]+)\.toString \(\)/g, '(string) $1' ],
             [ /throw new Error \((.*)\)/g, 'throw new \\Exception($1)' ],
             [ /throw new ([\S]+) \((.*)\)/g, 'throw new $1($2)' ],
-            [ /throw ([\S]+)\;/g, 'throw $$$1;' ],
+            [ /throw ([\S]+);/g, 'throw $$$1;' ],
             [ '([^a-z]+) (' + Object.keys (errors).join ('|') + ')([^\\s])', "$1 '\\\\ccxt\\\\$2'$3" ],
-            [ /\}\s+catch \(([\S]+)\) {/g, '} catch (Exception $$$1) {' ],
-            [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(\<=|\>=|<|>)\s*(.*)\.length\s*\;([^\)]+)\)\s*{/g, 'for ($1 = $2; $1 $3 count($4);$5) {' ],
-            [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(\<=|\>=|<|>)\s*(.*)\s*\;([^\)]+)\)\s*{/g, 'for ($1 = $2; $1 $3 $4;$5) {' ],
-            [ /([^\s]+)\.length\;/g, 'count($1);' ],
-            [ /\.push\s*\(([\s\S]+?)\)\;/g, '[] = $1;' ],
+            [ /}\s+catch \(([\S]+)\) {/g, '} catch (Exception $$$1) {' ],
+            [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^;\s]+\s*);[^<>=]+(<=|>=|<|>)\s*(.*)\.length\s*;([^)]+)\)\s*{/g, 'for ($1 = $2; $1 $3 count($4);$5) {' ],
+            [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^;\s]+\s*);[^<>=]+(<=|>=|<|>)\s*(.*)\s*;([^)]+)\)\s*{/g, 'for ($1 = $2; $1 $3 $4;$5) {' ],
+            [ /([^\s]+)\.length;/g, 'count($1);' ],
+            [ /\.push\s*\(([\s\S]+?)\);/g, '[] = $1;' ],
             [ /\sawait\s+([^;]+);/g, ' Async\\await($1);' ],
-            [ /([\S])\: /g, '$1 => ' ],
+            [ /([\S]): /g, '$1 => ' ],
             [/\$this->ws\./g, '$this->ws->'], // ws method fix
 
 
         // add {}-array syntax conversions up to 20 levels deep
-        ]).concat ([ ... Array (20) ].map (x => [ /\{([^\{]+?)\}([^\s])/g, 'array($1)$2' ])).concat ([
+        ]).concat ([ ... Array (20) ].map (x => [ /\{([^{]+?)}([^\s])/g, 'array($1)$2' ])).concat ([
 
-            [ /\[\s*([^\]]+?)\s*\]\.join\s*\(\s*([^\)]+?)\s*\)/g, "implode($2, array($1))" ],
+            [ /\[\s*([^\]]+?)\s*]\.join\s*\(\s*([^)]+?)\s*\)/g, "implode($2, array($1))" ],
 
         // add []-array syntax conversions up to 20 levels deep
-        ]).concat ([ ... Array (20) ].map (x => [ /\[(\s[^\]]+?\s)\]/g, 'array($1)' ])).concat ([
+        ]).concat ([ ... Array (20) ].map (x => [ /\[(\s[^\]]+?\s)]/g, 'array($1)' ])).concat ([
 
             [ /(\b)String(\b)/g, "$1'strval'$2"],
             [ /JSON\.stringify/g, 'json_encode' ],
-            [ /JSON\.parse\s+\(([^\)]+)\)/g, 'json_decode($1, $$as_associative_array = true)' ],
+            [ /JSON\.parse\s+\(([^)]+)\)/g, 'json_decode($1, $$as_associative_array = true)' ],
             // [ /\'([^\']+)\'\.sprintf\s*\(([^\)]+)\)/g, "sprintf ('$1', $2)" ],
             [ /([^\s]+)\.toFixed\s*\(([0-9]+)\)/g, "sprintf('%.$2f', $1)" ],
-            [ /([^\s]+)\.toFixed\s*\(([^\)]+)\)/g, "sprintf('%.' . $2 . 'f', $1)" ],
+            [ /([^\s]+)\.toFixed\s*\(([^)]+)\)/g, "sprintf('%.' . $2 . 'f', $1)" ],
             [ /parseFloat\s/g, 'floatval'],
             [ /parseInt\s/g, 'intval'],
             [ / \+ (?!\d)/g, ' . ' ],
-            [ / \+\= (?!\d)/g, ' .= ' ],
-            [ /([^\s\(]+(?:\s*\(.+\))?)\.toUpperCase\s*\(\)/g, 'strtoupper($1)' ],
-            [ /([^\s\(]+(?:\s*\(.+\))?)\.toLowerCase\s*\(\)/g, 'strtolower($1)' ],
-            [ /([^\s\(]+(?:\s*\(.+\))?)\.trim\s*\(\)/g, 'trim($1)' ],
-            [ /([^\s\(]+(?:\s*\(.+\))?)\.replaceAll\s*\(([^)]+)\)/g, 'str_replace($2, $1)' ],
-            [ /([^\s\(]+(?:\s*\(.+\))?)\.replace\s*\(([^)]+)\)/g, 'str_replace($2, $1)' ],
-            [ /this\[([^\]+]+)\]/g, '$$this->$$$1' ],
-            [ /([^\s\(]+).slice \(([^\)\:,]+)\)/g, 'mb_substr($1, $2)' ],
-            [ /([^\s\(]+).slice \(([^\,\)]+)\,\s*([^\)]+)\)/g, 'mb_substr($1, $2, $3 - $2)' ],
-            [ /([^\s\(]+).split \(('[^']*'|[^\,]+?)\)/g, 'explode($2, $1)' ],
-            [ /([^\s\(]+).startsWith \(('[^']*'|[^\,]+?)\)/g, 'str_starts_with($1, $2)' ],
-            [ /([^\s\(]+).endsWith \(('[^']*'|[^\,]+?)\)/g, 'str_ends_with($1, $2)' ],
-            [ /([^\s\(]+)\.length/g, 'strlen($1)' ],
-            [ /Math\.floor\s*\(([^\)]+)\)/g, '(int) floor($1)' ],
-            [ /Math\.abs\s*\(([^\)]+)\)/g, 'abs($1)' ],
-            [ /Math\.round\s*\(([^\)]+)\)/g, '(int) round($1)' ],
-            [ /Math\.ceil\s*\(([^\)]+)\)/g, '(int) ceil($1)' ],
-            [ /Math\.pow\s*\(([^\)]+)\)/g, 'pow($1)' ],
+            [ / \+= (?!\d)/g, ' .= ' ],
+            [ /([^\s(]+(?:\s*\(.+\))?)\.toUpperCase\s*\(\)/g, 'strtoupper($1)' ],
+            [ /([^\s(]+(?:\s*\(.+\))?)\.toLowerCase\s*\(\)/g, 'strtolower($1)' ],
+            [ /([^\s(]+(?:\s*\(.+\))?)\.trim\s*\(\)/g, 'trim($1)' ],
+            [ /([^\s(]+(?:\s*\(.+\))?)\.replaceAll\s*\(([^)]+)\)/g, 'str_replace($2, $1)' ],
+            [ /([^\s(]+(?:\s*\(.+\))?)\.replace\s*\(([^)]+)\)/g, 'str_replace($2, $1)' ],
+            [ /this\[([^\]+]+)]/g, '$$this->$$$1' ],
+            [ /([^\s(]+).slice \(([^):,]+)\)/g, 'mb_substr($1, $2)' ],
+            [ /([^\s(]+).slice \(([^,)]+),\s*([^)]+)\)/g, 'mb_substr($1, $2, $3 - $2)' ],
+            [ /([^\s(]+).split \(('[^']*'|[^,]+?)\)/g, 'explode($2, $1)' ],
+            [ /([^\s(]+).startsWith \(('[^']*'|[^,]+?)\)/g, 'str_starts_with($1, $2)' ],
+            [ /([^\s(]+).endsWith \(('[^']*'|[^,]+?)\)/g, 'str_ends_with($1, $2)' ],
+            [ /([^\s(]+)\.length/g, 'strlen($1)' ],
+            [ /Math\.floor\s*\(([^)]+)\)/g, '(int) floor($1)' ],
+            [ /Math\.abs\s*\(([^)]+)\)/g, 'abs($1)' ],
+            [ /Math\.round\s*\(([^)]+)\)/g, '(int) round($1)' ],
+            [ /Math\.ceil\s*\(([^)]+)\)/g, '(int) ceil($1)' ],
+            [ /Math\.pow\s*\(([^)]+)\)/g, 'pow($1)' ],
             [ /Math\.log/g, 'log' ],
-            [ /([^\(\s]+)\s+%\s+([^\s\,\;\)]+)/g, 'fmod($1, $2)' ],
-            [ /\(([^\s\(]+)\.indexOf\s*\(([^\)]+)\)\s*\>\=\s*0\)/g, '(mb_strpos($1, $2) !== false)' ],
-            [ /([^\s\(]+)\.indexOf\s*\(([^\)]+)\)\s*\>\=\s*0/g, 'mb_strpos($1, $2) !== false' ],
-            [ /([^\s\(]+)\.indexOf\s*\(([^\)]+)\)\s*\<\s*0/g, 'mb_strpos($1, $2) === false' ],
-            [ /([^\s\(]+)\.indexOf\s*\(([^\)]+)\)/g, 'mb_strpos($1, $2)' ],
-            [ /\(([^\s\(]+)\sin\s([^\)]+)\)/g, '(is_array($2) && array_key_exists($1, $2))' ],
-            [ /([^\s]+)\.join\s*\(\s*([^\)]+?)\s*\)/g, 'implode($2, $1)' ],
+            [ /([^(\s]+)\s+%\s+([^\s,;)]+)/g, 'fmod($1, $2)' ],
+            [ /\(([^\s(]+)\.indexOf\s*\(([^)]+)\)\s*>=\s*0\)/g, '(mb_strpos($1, $2) !== false)' ],
+            [ /([^\s(]+)\.indexOf\s*\(([^)]+)\)\s*>=\s*0/g, 'mb_strpos($1, $2) !== false' ],
+            [ /([^\s(]+)\.indexOf\s*\(([^)]+)\)\s*<\s*0/g, 'mb_strpos($1, $2) === false' ],
+            [ /([^\s(]+)\.indexOf\s*\(([^)]+)\)/g, 'mb_strpos($1, $2)' ],
+            [ /\(([^\s(]+)\sin\s([^)]+)\)/g, '(is_array($2) && array_key_exists($1, $2))' ],
+            [ /([^\s]+)\.join\s*\(\s*([^)]+?)\s*\)/g, 'implode($2, $1)' ],
             [ 'new ccxt\\.', 'new \\ccxt\\' ], // a special case for test_exchange_datetime_functions.php (and for other files, maybe)
             [ /Math\.(max|min)/g, '$1' ],
             [ /console\.log/g, 'var_dump'],
             [ /process\.exit/g, 'exit'],
             [ /super\./g, 'parent::'],
-            [ /\sdelete\s([^\n]+)\;/g, ' unset($1);' ],
-            [ /\~([\]\[\|@\.\s+\:\/#()\-a-zA-Z0-9_-]+?)\~/g, '{$1}' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
+            [ /\sdelete\s([^\n]+);/g, ' unset($1);' ],
+            [ /~([\]\[|@.\s+:\/#()\-a-zA-Z0-9_-]+?)~/g, '{$1}' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
             [ /(\s+ \* @(param|return) {[^}]*)array\(\)([^}]*}.*)/g, '$1[]$3' ], // docstring type conversion
             [ /(\s+ \* @(param|return) {[^}]*)object([^}]*}.*)/g, '$1array$3' ], // docstring type conversion
         ])
@@ -830,7 +830,7 @@ class Transpiler {
             'Num': /: (?:List\[)?Num =/,
             'Option': /-> Option:/,
             'OptionChain': /-> OptionChain:/,
-            'Order': /-> (?:List\[)?Order\]?:/,
+            'Order': /-> (?:List\[)?Order]?:/,
             'OrderBook': /-> OrderBook:/,
             'OrderRequest': /: (?:List\[)?OrderRequest/,
             'CancellationRequest': /: (?:List\[)?CancellationRequest/,
@@ -931,7 +931,7 @@ class Transpiler {
         let indentation = '                ' // 16 spaces
         for (let i = 0; i < capabilities.length; i++) {
             const capability = capabilities[i]
-            const match = capability.match (/(\s+)\'(.+)\': (.+)$/)
+            const match = capability.match (/(\s+)'(.+)': (.+)$/)
             if (match) {
                 indentation = match[1]
                 const feature = match[2]
@@ -1062,13 +1062,13 @@ class Transpiler {
             python3Body += '\n        pass'
         }
 
-        python3Body = python3Body.replace (/\'([абвгдеёжзийклмнопрстуфхцчшщъыьэюя服务端忙碌]+)\'/gm, "u'$1'")
+        python3Body = python3Body.replace (/'([абвгдеёжзийклмнопрстуфхцчшщъыьэюя服务端忙碌]+)'/gm, "u'$1'")
 
         // special case for Python OrderedDicts
-        let orderedDictRegex = /\.ordered\s+\(\{([^\}]+)\}\)/g
+        let orderedDictRegex = /\.ordered\s+\(\{([^}]+)}\)/g
         let orderedDictMatches = undefined
         while (orderedDictMatches = orderedDictRegex.exec (python3Body)) {
-            let replaced = orderedDictMatches[1].replace (/^(\s+)([^\:]+)\:\s*([^\,]+)\,$/gm, '$1($2, $3),')
+            let replaced = orderedDictMatches[1].replace (/^(\s+)([^:]+):\s*([^,]+),$/gm, '$1($2, $3),')
             python3Body = python3Body.replace (orderedDictRegex, '\.ordered([' + replaced + '])')
         }
 
@@ -1106,7 +1106,7 @@ class Transpiler {
     transpileJavaScriptToPHP ({ js, variables }: any, async = false) {
 
         // match all local variables (let, const or var)
-        let localVariablesRegex = /(?:^|[^a-zA-Z0-9_])(?:let|const|var)\s+(?:\[([^\]]+)\]|([a-zA-Z0-9_]+))/g // local variables
+        let localVariablesRegex = /(?:^|[^a-zA-Z0-9_])(?:let|const|var)\s+(?:\[([^\]]+)]|([a-zA-Z0-9_]+))/g // local variables
 
         let allVariables = (variables || []).map ((x:any) => x); // clone the array
         // process the variables created in destructuring assignments as well
@@ -1636,7 +1636,7 @@ class Transpiler {
                     'Dictionary<any>': 'array',
                     'Dict': 'array',
                 }
-                const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRate|IsolatedBorrowRate|FundingRates|FundingRate|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|LongShortRatio|Position|BorrowInterest)( \| undefined)?$|\w+\[\]/
+                const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRate|IsolatedBorrowRate|FundingRates|FundingRate|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|LongShortRatio|Position|BorrowInterest)( \| undefined)?$|\w+\[]/
 
                 phpArgs = argsArray.map (x => {
                     const parts = x.split (':')
@@ -1666,7 +1666,7 @@ class Transpiler {
                     }
                 }).join (', ').trim ()
                     .replace (/undefined/g, 'null')
-                    .replace (/\{\}/g, 'array ()')
+                    .replace (/\{}/g, 'array ()')
                 phpArgs = phpArgs.length ? (phpArgs) : ''
                 let syncPhpReturnType = ''
                 let asyncPhpReturnType = ''
@@ -1844,7 +1844,7 @@ class Transpiler {
     exportTypeScriptClassNames (file: string, classes: any) {
         log.bright.cyan ('Exporting TypeScript class names →', file.yellow)
 
-        const regex = /\/[\n]{2}(?:    export class [^\s]+ extends [^\s]+ \{\}[\r]?[\n])+/
+        const regex = /\/[\n]{2}(?:    export class [^\s]+ extends [^\s]+ \{}[\r]?[\n])+/
         const replacement = "/\n\n" + Object.keys (classes).map (className => {
             const baseClass = classes[className].replace (/ccxt\.[a-z0-9_]+/, 'Exchange')
             return '    export class ' + className + ' extends ' + baseClass + " {}"
@@ -1856,7 +1856,7 @@ class Transpiler {
     exportTypeScriptExchangeIds (file: string, classes: any) {
         log.bright.cyan ('Exporting TypeScript exchange ids →', file.yellow)
 
-        const regex = /\/[\n]{2}    export type ExchangeId =\n(?:        \| \'[a-z0-9_]+\'[\r]?[\n])+/
+        const regex = /\/[\n]{2}    export type ExchangeId =\n(?:        \| '[a-z0-9_]+'[\r]?[\n])+/
         const replacement = "/\n\n    export type ExchangeId =\n" + Object.keys (classes).map (className => {
             return "        | '" + className + "'"
         }).join ("\n") + "\n"
@@ -1959,7 +1959,7 @@ class Transpiler {
                 const phpErrors = intellisense (errorHierarchy, 'Exception', phpMakeErrorClassFile)
                 const phpBodyIntellisense = phpErrors.join ("\n") + "\n\n"
                 log.bright.cyan (message, phpFilename.yellow)
-                const phpRegex = /require_once PATH_TO_CCXT \. \'BaseError\.php\'\;\n(?:require_once PATH_TO_CCXT[^\n]+\n)+\n/m
+                const phpRegex = /require_once PATH_TO_CCXT \. 'BaseError\.php';\n(?:require_once PATH_TO_CCXT[^\n]+\n)+\n/m
                 replaceInFile (phpFilename, phpRegex, phpBodyIntellisense)
             }
         }
@@ -1975,7 +1975,7 @@ class Transpiler {
         let js = fs.readFileSync (jsFile).toString ()
 
         js = this.regexAll (js, [
-            [ /\'use strict\';?\s+/g, '' ],
+            [ /'use strict';?\s+/g, '' ],
             [ /[^\n]+from[^\n]+\n/g, '' ],
             [ /^export default[^\n]+\n/g, '' ],
             [/^const\s+{.*}\s+=.*$/gm, ''],
@@ -2199,7 +2199,7 @@ class Transpiler {
         let ts = fs.readFileSync (files.tsFile).toString ()
 
         ts = this.regexAll (ts, [
-            [ /\'use strict\';?\s+/g, '' ],
+            [ /'use strict';?\s+/g, '' ],
             [ /[^\n]+require[^\n]+\n/g, '' ],
         ])
 
@@ -2312,9 +2312,9 @@ class Transpiler {
                 let newContent = head + cont;
                 newContent = newContent.
                     replace (/use ccxt\\(async\\|)abstract\\testMainClass as baseMainTestClass;/g, '').
-                    replace(/\->wallet_address/g, '->walletAddress').
-                    replace(/\->private_key/g, '->privateKey').
-                    replace(/\->api_key/g, '->apiKey').
+                    replace(/->wallet_address/g, '->walletAddress').
+                    replace(/->private_key/g, '->privateKey').
+                    replace(/->api_key/g, '->apiKey').
                     replace (/class testMainClass/, '#[\\AllowDynamicProperties]\nclass testMainClass');
                 newContent = snakeCaseFunctions (newContent);
                 newContent = this.phpReplaceException (newContent);
@@ -2421,7 +2421,7 @@ class Transpiler {
 
         // apply regex to every file
         allFiles = allFiles.map( file => this.regexAll (file, [
-            [ /\'use strict\';?\s+/g, '' ],
+            [ /'use strict';?\s+/g, '' ],
             [ /\/\* eslint-disable \*\/\n*/g, '' ],
             // [ /[^\n]+from[^\n]+\n/g, '' ],
             // [ /export default\s+[^\n]+;*\n*/g, '' ],
@@ -2449,10 +2449,10 @@ class Transpiler {
 
         const phpFixes = (str: string) => {
             str = str.
-                replace (/\$exchange\[\$method\]/g, '$exchange->$method').
-                replace (/\$test_shared_methods\->/g, '').
+                replace (/\$exchange\[\$method]/g, '$exchange->$method').
+                replace (/\$test_shared_methods->/g, '').
                 replace (/TICK_SIZE/g, '\\ccxt\\TICK_SIZE').
-                replace (/Precise\->/g, 'Precise::').
+                replace (/Precise->/g, 'Precise::').
                 replace (/function equals(.*?)\{/g, '').
                 replace (/\$ccxt->/g, '\\ccxt\\');
             str = this.phpReplaceException (str);
@@ -2741,13 +2741,13 @@ class Transpiler {
 
         // start iteration through examples folder
         const allTsExamplesFiles = fs.readdirSync (examplesFolders.ts).filter((f) => f.endsWith('.ts'));
-        for (const filenameWithExtenstion of allTsExamplesFiles) {
-            const tsFile = path.join (examplesFolders.ts, filenameWithExtenstion)
+        for (const filenameWithExtension of allTsExamplesFiles) {
+            const tsFile = path.join (examplesFolders.ts, filenameWithExtension)
             let tsContent = fs.readFileSync (tsFile).toString ()
             if (tsContent.indexOf (transpileFlagPhrase) > -1) {
                 const isCcxtPro = tsContent.indexOf ('ccxt.pro') > -1;
                 log.magenta ('Transpiling from', tsFile.yellow)
-                const fileName = filenameWithExtenstion.replace ('.ts', '')
+                const fileName = filenameWithExtension.replace ('.ts', '')
                 // temporary: avoid console.log with + (plos) because it may break in python.
                 if (tsContent.match ('console\.log \((.*?)\\+(.*?)\);')){
                     throw new Error ('console.log with +(plus) detected in ' + tsFile + '. Please use commas or string interpolation.');
@@ -2768,22 +2768,22 @@ class Transpiler {
                         // cases like: exchange = new ccxt.binance ()
                         //[ / ccxt\.(.?)\(/g, 'ccxt.' + '$2\(' ],
                         // cases like: exchange = new ccxt['name' or name] ()
-                        [ /ccxt\[(.*?)\]/g, 'getattr(ccxt, $1)'],
+                        [ /ccxt\[(.*?)]/g, 'getattr(ccxt, $1)'],
                         // cases like: exchange = new ccxt.pro['name' or name] ()
-                        [ /ccxt.pro\[(.*?)\]/g, 'getattr(ccxt, $1)'],
+                        [ /ccxt.pro\[(.*?)]/g, 'getattr(ccxt, $1)'],
                     ]);
                 };
                 const fixPhp = (body: string)=> {
                     const regexes = [
-                        [ /\$console\->log/g, 'var_dump' ],
+                        [ /\$console->log/g, 'var_dump' ],
                         // cases like: exchange = new ccxt.pro.huobi ()
                         [  /new \$ccxt->pro->/g, 'new \\ccxt\\pro\\' ],
                         // cases like: exchange = new ccxt.huobi ()
                         [ /new \$ccxt->/g, 'new \\ccxt\\async\\' ],
                         // cases like: exchange = new ccxt['huobi' or varname] ()
-                        [ /(\s*)(\$\w+)\s*=\s*new\s+\$ccxt\[([^\]]*)\]\(([^\]]*)\)/g, '$1$exchange_class = \'\\ccxt\\async\\\\\'.$3;$1$2 = new $exchange_class($4)' ],
+                        [ /(\s*)(\$\w+)\s*=\s*new\s+\$ccxt\[([^\]]*)]\(([^\]]*)\)/g, '$1$exchange_class = \'\\ccxt\\async\\\\\'.$3;$1$2 = new $exchange_class($4)' ],
                         // cases like: exchange = new ccxt.pro['huobi' or varname] ()
-                        [ /(\s*)(\$\w+)\s*=\s*new\s+\$ccxt\\async\\pro\[([^\]]*)\]\(([^\]]*)\)/g, '$1$exchange_class = \'\\ccxt\\pro\\\\\'.$3;$1$2 = new $exchange_class($4)' ],
+                        [ /(\s*)(\$\w+)\s*=\s*new\s+\$ccxt\\async\\pro\[([^\]]*)]\(([^\]]*)\)/g, '$1$exchange_class = \'\\ccxt\\pro\\\\\'.$3;$1$2 = new $exchange_class($4)' ],
                         // fix cases like: async\pro->kucoin
                         [ /async\\pro->/g, 'pro\\' ],
                     ];
@@ -2803,10 +2803,10 @@ class Transpiler {
                     finalBodies.pyAsync = finalBodies.pyAsync.replace (funcBodyRegex, function (wholeMatch: string, innerMatch: string){
                         // find inited exchanges
                         // case 1: inited with getattr
-                        let matches = [ ... innerMatch.matchAll(/(\w*?) \= getattr\(ccxt,\s*(.*?)\)/g)];
+                        let matches = [ ... innerMatch.matchAll(/(\w*?) = getattr\(ccxt,\s*(.*?)\)/g)];
                         if (matches.length === 0) {
                             // case 2: inited with direct call
-                            matches = [ ... innerMatch.matchAll(/(\w*?) \= ccxt\.(.*?)\(/g)];
+                            matches = [ ... innerMatch.matchAll(/(\w*?) = ccxt\.(.*?)\(/g)];
                         }
                         let matchedBody = innerMatch;
                         // add `await exchange.close()` to instantiated variables
