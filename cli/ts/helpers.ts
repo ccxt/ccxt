@@ -363,8 +363,9 @@ async function handleMarketsLoading (
                 await writeFile (marketsPath, jsonStringify (exchange.markets));
                 await writeFile (currenciesPath, jsonStringify (exchange.currencies));
             } else {
-                exchange.markets = JSON.parse (fs.readFileSync (marketsPath).toString ());
                 exchange.currencies = JSON.parse (fs.readFileSync (currenciesPath).toString ());
+                const markets = JSON.parse (fs.readFileSync (marketsPath).toString ());
+                exchange.setMarkets (markets);
             }
         } else {
             // create file and save markets
