@@ -4688,7 +4688,6 @@ export default class binance extends Exchange {
         //             "closeTime": 1677097200000
         //         }
         //     ]
-
         if (market === undefined && (option || linear || inverse)) {
             market = {
                 'inverse': inverse,
