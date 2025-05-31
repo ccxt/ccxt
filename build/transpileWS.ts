@@ -8,9 +8,6 @@ import ccxt from '../js/ccxt.js';
 import ansi  from 'ansicolor'
 import {
     replaceInFile,
-    copyFile,
-    overwriteFile,
-    createFolder,
     createFolderRecursively,
 } from './fsLocal.js';
 import Exchange from '../js/src/base/Exchange.js';
@@ -115,7 +112,7 @@ class CCXTProTranspiler extends Transpiler {
         ]
     }
 
-    sortExchangeCapabilities (code) {
+    sortExchangeCapabilities (code: string): string | false {
         return false
     }
 
@@ -250,7 +247,7 @@ class CCXTProTranspiler extends Transpiler {
             }
         }
 
-        const classes = this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, child || exchanges.length)
+        const classes = this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, child || !!exchanges.length)
 
         if (transpilingSingleExchange) {
             return;
@@ -274,7 +271,7 @@ class CCXTProTranspiler extends Transpiler {
         log.bright.green ('Transpiled successfully.')
     }
 
-    
+
     afterTranspileClass (result, contents) {
         // if same class import (like binanceWS extending binanceRest)
         if (result.baseClass === result.className + 'Rest') {
@@ -337,5 +334,5 @@ if (isMainEntry(import.meta.url)) { // called directly like `node module`
 }
 
 // ============================================================================
-
+// noinspection JSUnusedGlobalSymbols
 export default CCXTProTranspiler
