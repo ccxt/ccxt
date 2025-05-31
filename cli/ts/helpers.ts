@@ -96,13 +96,13 @@ function injectMissingUndefined (fn, args) {
  * @param path
  * @param content
  */
-async function writeFile (path, content) {
+async function writeFile (filePath, content) {
     try {
-        await fsPromises.writeFile (path, content);
+        await fsPromises.writeFile (filePath, content);
     } catch (error) {
         if (error.code === 'ENOENT') {
-            await fsPromises.mkdir (path.dirname (), { recursive: true });
-            await fsPromises.writeFile (path, content);
+            await fsPromises.mkdir (path.dirname (filePath), { recursive: true });
+            await fsPromises.writeFile (filePath, content);
         }
     }
 }
