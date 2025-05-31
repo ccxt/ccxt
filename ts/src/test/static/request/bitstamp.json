@@ -228,6 +228,73 @@
                 "input": [
                     "BTC/USDT"
                 ]
+            },
+            {
+                "description": "fetchOHLCV with limit",
+                "method": "fetchOHLCV",
+                "url": "https://www.bitstamp.net/api/v2/ohlc/btcusdt/?step=3600&limit=4",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  null,
+                  4
+                ]
+            },
+            {
+                "description": "fetchOHLCV with until",
+                "method": "fetchOHLCV",
+                "url": "https://www.bitstamp.net/api/v2/ohlc/btcusdt/?step=3600&limit=1000&start=1735945199&end=1735948800",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  null,
+                  null,
+                  {
+                    "until": 1735948800000
+                  }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with since, and until",
+                "method": "fetchOHLCV",
+                "url": "https://www.bitstamp.net/api/v2/ohlc/btcusdt/?step=3600&start=1735862400&end=1735948800&limit=1000",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  1735862400000,
+                  null,
+                  {
+                    "until": 1735948800000
+                  }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with limit and until",
+                "method": "fetchOHLCV",
+                "url": "https://www.bitstamp.net/api/v2/ohlc/btcusdt/?step=3600&end=1735948800&start=1735934399&limit=4",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  null,
+                  4,
+                  {
+                    "until": 1735948800000
+                  }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with since, limit and until",
+                "method": "fetchOHLCV",
+                "url": "https://www.bitstamp.net/api/v2/ohlc/btcusdt/?step=3600&start=1735862400&end=1735876799&limit=4",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  1735862400000,
+                  4,
+                  {
+                    "until": 1735948800000
+                  }
+                ]
             }
         ],
         "transfer": [
