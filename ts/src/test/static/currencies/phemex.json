@@ -1,6 +1,5 @@
 {
     "BTC": {
-        "id": "BTC",
         "info": {
             "currency": "BTC",
             "name": "Bitcoin",
@@ -16,13 +15,18 @@
             "stableCoin": "0",
             "assetsPrecision": "8"
         },
+        "id": "BTC",
+        "numericId": null,
         "code": "BTC",
+        "precision": 1e-8,
+        "type": "crypto",
         "name": "Bitcoin",
         "active": true,
         "deposit": null,
         "withdraw": null,
         "fee": null,
-        "precision": 1e-8,
+        "fees": {},
+        "networks": null,
         "limits": {
             "amount": {
                 "min": 1e-8,
@@ -33,11 +37,9 @@
                 "max": null
             }
         },
-        "valueScale": 8,
-        "networks": {}
+        "valueScale": 8
     },
     "USDT": {
-        "id": "USDT",
         "info": {
             "currency": "USDT",
             "name": "TetherUS",
@@ -53,22 +55,31 @@
             "stableCoin": "1",
             "assetsPrecision": "8"
         },
+        "id": "USDT",
+        "numericId": null,
         "code": "USDT",
+        "precision": 1e-8,
+        "type": "crypto",
         "name": "TetherUS",
         "active": true,
-        "precision": 1e-8,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": null,
         "limits": {
             "amount": {
                 "min": 1e-8,
                 "max": 50000000000
             },
-            "withdraw": {}
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         },
-        "valueScale": 8,
-        "networks": {}
+        "valueScale": 8
     },
     "USD": {
-        "id": "USD",
         "info": {
             "currency": "USD",
             "name": "USD",
@@ -84,22 +95,31 @@
             "stableCoin": "0",
             "assetsPrecision": "2"
         },
+        "id": "USD",
+        "numericId": null,
         "code": "USD",
+        "precision": 0.0001,
+        "type": "crypto",
         "name": "USD",
         "active": true,
-        "precision": 0.0001,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": null,
         "limits": {
             "amount": {
                 "min": 0.0001,
                 "max": 500000000000000
             },
-            "withdraw": {}
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         },
-        "valueScale": 4,
-        "networks": {}
+        "valueScale": 4
     },
     "LTC": {
-        "id": "LTC",
         "info": {
             "currency": "LTC",
             "name": "Litecoin",
@@ -115,22 +135,31 @@
             "stableCoin": "0",
             "assetsPrecision": "8"
         },
+        "id": "LTC",
+        "numericId": null,
         "code": "LTC",
+        "precision": 1e-8,
+        "type": "crypto",
         "name": "Litecoin",
         "active": true,
-        "precision": 1e-8,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": null,
         "limits": {
             "amount": {
                 "min": 1e-8,
                 "max": 50000000000
             },
-            "withdraw": {}
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         },
-        "valueScale": 8,
-        "networks": {}
+        "valueScale": 8
     },
     "ETH": {
-        "id": "ETH",
         "info": {
             "currency": "ETH",
             "name": "Ethereum",
@@ -146,22 +175,31 @@
             "stableCoin": "0",
             "assetsPrecision": "8"
         },
+        "id": "ETH",
+        "numericId": null,
         "code": "ETH",
+        "precision": 1e-8,
+        "type": "crypto",
         "name": "Ethereum",
         "active": true,
-        "precision": 1e-8,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": null,
         "limits": {
             "amount": {
                 "min": 1e-8,
                 "max": 50000000000
             },
-            "withdraw": {}
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         },
-        "valueScale": 8,
-        "networks": {}
+        "valueScale": 8
     },
     "ADA": {
-        "id": "ADA",
         "info": {
             "currency": "ADA",
             "name": "Cardano",
@@ -173,29 +211,38 @@
             "status": "Listed",
             "displayCurrency": "ADA",
             "inAssetsDisplay": "1",
-            "perpetual": "0",
+            "perpetual": "1",
             "stableCoin": "0",
             "assetsPrecision": "8"
         },
+        "id": "ADA",
+        "numericId": null,
         "code": "ADA",
+        "precision": 1e-8,
+        "type": "crypto",
         "name": "Cardano",
         "active": true,
-        "precision": 1e-8,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": null,
         "limits": {
             "amount": {
                 "min": 1e-8,
                 "max": 50000000000
             },
-            "withdraw": {}
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         },
-        "valueScale": 8,
-        "networks": {}
+        "valueScale": 8
     },
     "XRP": {
-        "id": "XRP",
         "info": {
             "currency": "XRP",
-            "name": "Ripple",
+            "name": "XRP",
             "code": "5",
             "valueScale": "8",
             "minValueEv": "1",
@@ -204,26 +251,35 @@
             "status": "Listed",
             "displayCurrency": "XRP",
             "inAssetsDisplay": "1",
-            "perpetual": "0",
+            "perpetual": "1",
             "stableCoin": "0",
             "assetsPrecision": "8"
         },
+        "id": "XRP",
+        "numericId": null,
         "code": "XRP",
-        "name": "Ripple",
-        "active": true,
         "precision": 1e-8,
+        "type": "crypto",
+        "name": "XRP",
+        "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": null,
         "limits": {
             "amount": {
                 "min": 1e-8,
                 "max": 50000000000
             },
-            "withdraw": {}
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         },
-        "valueScale": 8,
-        "networks": {}
+        "valueScale": 8
     },
     "USDC": {
-        "id": "USDC",
         "info": {
             "currency": "USDC",
             "name": "USD Coin",
@@ -235,26 +291,35 @@
             "status": "Listed",
             "displayCurrency": "USDC",
             "inAssetsDisplay": "1",
-            "perpetual": "0",
-            "stableCoin": "0",
+            "perpetual": "2",
+            "stableCoin": "1",
             "assetsPrecision": "6"
         },
+        "id": "USDC",
+        "numericId": null,
         "code": "USDC",
+        "precision": 1e-8,
+        "type": "crypto",
         "name": "USD Coin",
         "active": true,
-        "precision": 1e-8,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": null,
         "limits": {
             "amount": {
                 "min": 1e-8,
                 "max": 50000000000
             },
-            "withdraw": {}
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         },
-        "valueScale": 8,
-        "networks": {}
+        "valueScale": 8
     },
     "SOL": {
-        "id": "SOL",
         "info": {
             "currency": "SOL",
             "name": "Solana",
@@ -266,22 +331,32 @@
             "status": "Listed",
             "displayCurrency": "SOL",
             "inAssetsDisplay": "1",
-            "perpetual": "0",
+            "perpetual": "1",
             "stableCoin": "0",
             "assetsPrecision": "8"
         },
+        "id": "SOL",
+        "numericId": null,
         "code": "SOL",
+        "precision": 1e-8,
+        "type": "crypto",
         "name": "Solana",
         "active": true,
-        "precision": 1e-8,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": null,
         "limits": {
             "amount": {
                 "min": 1e-8,
                 "max": 50000000000
             },
-            "withdraw": {}
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         },
-        "valueScale": 8,
-        "networks": {}
+        "valueScale": 8
     }
 }
