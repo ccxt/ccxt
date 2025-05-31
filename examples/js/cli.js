@@ -99,6 +99,7 @@ for (let i = 0; i < process.argv.length; i++) {
                         lastParamObject = {}
                     }
                     lastParamObject[nextParam] = true
+                    params.splice(paramIndex, 1)
                 }
             } else {
                 throw new Error (`Unexpected error by parsing parameters: ${nextParam} is not found in params array.`)
