@@ -944,10 +944,10 @@ export default class kraken extends krakenRest {
             const storedAsks = orderbook['asks'];
             const storedBids = orderbook['bids'];
             if (a !== undefined) {
-                this.customHandleDeltas (storedAsks, a);
+                this.customHandleDeltas (storedAsks, a, 'asks');
             }
             if (b !== undefined) {
-                this.customHandleDeltas (storedBids, b);
+                this.customHandleDeltas (storedBids, b, 'bids');
             }
             orderbook.limit ();
             const datetime = this.safeString (first, 'timestamp');
@@ -965,23 +965,25 @@ export default class kraken extends krakenRest {
                 const bookside = orderbook[key];
                 const deltas = this.safeValue (first, key, []);
                 if (deltas.length > 0) {
-                    this.customHandleDeltas (bookside, deltas);
+                    this.customHandleDeltas (bookside, deltas, key);
                 }
             }
             orderbook['symbol'] = symbol;
         }
-        // TODO: checksum do I need to use storedAsks and storedBids instead of a and b, depending on whether it's an update or a snapshot?
+        // TODO: checksum get it working properly
         const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
         if (checksum) {
             const payloadArray = [];
             if (c !== undefined) {
+                const checkAsks = (type === 'update') ? orderbook['asks'] : a;
+                const checkBids = (type === 'update') ? orderbook['bids'] : b;
                 for (let i = 0; i < 10; i++) {
-                    const currentAsk = this.safeDict (a, i, {});
+                    const currentAsk = this.safeDict (checkAsks, i, {});
                     const formattedAsk = this.formatNumber (currentAsk);
                     payloadArray.push (formattedAsk);
                 }
                 for (let i = 0; i < 10; i++) {
-                    const currentBid = this.safeDict (b, i, {});
+                    const currentBid = this.safeDict (checkBids, i, {});
                     const formattedBid = this.formatNumber (currentBid);
                     payloadArray.push (formattedBid);
                 }
@@ -999,24 +1001,26 @@ export default class kraken extends krakenRest {
         client.resolve (orderbook, messageHash);
     }
 
-    customHandleDeltas (bookside, deltas) {
+    customHandleDeltas (bookside, deltas, key) {
+        const sortOrder = (key === 'bids') ? true : false;
         for (let j = 0; j < deltas.length; j++) {
             const delta = deltas[j];
             const price = this.safeNumber (delta, 'price');
             const amount = this.safeNumber (delta, 'qty');
             if (amount === 0) {
-                // TODO: if amount is 0, remove the object from the book, populate the bookside with the correct sorted depth
-                bookside.splice (j, 1);
+                const index = bookside.findIndex ((x: Int) => x[0] === price);
+                bookside.splice (index, 1);
             } else {
-                // TODO: insert at the correct index, asks sorted by price from low to high, bids sorted by price from high to low
                 bookside.store (price, amount);
             }
+            bookside = this.sortBy (bookside, 0, sortOrder);
+            bookside.slice (0, 9);
         }
     }
 
     formatNumber (data) {
-        const price = this.safeString (data, 'price');
-        const amount = this.safeString (data, 'qty');
+        const price = this.safeString2 (data, 'price', 0);
+        const amount = this.safeString2 (data, 'qty', 1);
         const priceParts = price.split ('.');
         const amountParts = amount.split ('.');
         const priceInteger = this.safeString (priceParts, 0);
