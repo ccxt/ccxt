@@ -3156,6 +3156,12 @@ export default class cryptocom extends Exchange {
         return this.milliseconds ();
     }
 
+    requestId () {
+        const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
+        this.options['requestId'] = requestId;
+        return requestId.toString ();
+    }
+
     paramsToString (object, level) {
         const maxLevel = 3;
         if (level >= maxLevel) {
