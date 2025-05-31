@@ -336,11 +336,7 @@ async function handleMarketsLoading (
     const cachePath = getCacheDirectory ();
     const cacheConfig = loadConfigFile ();
     const marketsPath = path.join (cachePath, 'markets', exchange.id + '.json');
-    const currenciesPath = path.join (
-        cachePath,
-        'currencies',
-        exchange.id + '.json'
-    );
+    const currenciesPath = path.join (cachePath, 'currencies', exchange.id + '.json');
     // console.log (marketsPath);
     // try {
     //     await fsPromises.access (marketsPath, fs.constants.R_OK);
