@@ -1898,6 +1898,26 @@ public partial class okx
         return new OpenInterest(res);
     }
     /// <summary>
+    /// Retrieves the open interests of some currencies
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.okx.com/docs-v5/en/#rest-api-public-data-get-open-interest"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : exchange specific parameters
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an dictionary of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}.</returns>
+    public async Task<OpenInterests> FetchOpenInterests(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOpenInterests(symbols, parameters);
+        return new OpenInterests(res);
+    }
+    /// <summary>
     /// Retrieves the open interest history of a currency
     /// </summary>
     /// <remarks>
