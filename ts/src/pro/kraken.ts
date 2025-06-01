@@ -975,15 +975,15 @@ export default class kraken extends krakenRest {
         if (checksum) {
             const payloadArray = [];
             if (c !== undefined) {
-                const checkAsks = (type === 'update') ? orderbook['asks'] : a;
-                const checkBids = (type === 'update') ? orderbook['bids'] : b;
+                const checkAsks = orderbook['asks'];
+                const checkBids = orderbook['bids'];
                 for (let i = 0; i < 10; i++) {
-                    const currentAsk = this.safeDict (checkAsks, i, {});
+                    const currentAsk = this.safeValue (checkAsks, i, {});
                     const formattedAsk = this.formatNumber (currentAsk);
                     payloadArray.push (formattedAsk);
                 }
                 for (let i = 0; i < 10; i++) {
-                    const currentBid = this.safeDict (checkBids, i, {});
+                    const currentBid = this.safeValue (checkBids, i, {});
                     const formattedBid = this.formatNumber (currentBid);
                     payloadArray.push (formattedBid);
                 }
@@ -1019,8 +1019,8 @@ export default class kraken extends krakenRest {
     }
 
     formatNumber (data) {
-        const price = this.safeString2 (data, 'price', 0);
-        const amount = this.safeString2 (data, 'qty', 1);
+        const price = this.safeString (data, 0);
+        const amount = this.safeString (data, 1);
         const priceParts = price.split ('.');
         const amountParts = amount.split ('.');
         const priceInteger = this.safeString (priceParts, 0);
