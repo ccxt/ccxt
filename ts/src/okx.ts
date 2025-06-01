@@ -7443,12 +7443,20 @@ export default class okx extends Exchange {
      * @returns {object} an dictionary of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
      */
     async fetchOpenInterests (symbols: Strings = undefined, params = {}): Promise<OpenInterests> {
-        const instType = this.safeString (params, 'instType', 'SWAP');
-        if (instType !== 'SWAP' && instType !== 'FUTURES' && instType !== 'OPTION') {
-            throw new BadRequest (this.id + ' fetchOpenInterests() requires instType to be one of: SWAP, FUTURES, OPTION');
-        }
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, true);
+        symbols = this.marketSymbols (symbols, undefined, true, true);
+        let market = undefined;
+        if (symbols !== undefined) {
+            market = this.market (symbols[0]);
+        }
+        let marketType = undefined;
+        [ marketType, params ] = this.handleSubTypeAndParams ('fetchOpenInterests', market, params, 'swap');
+        let instType = 'SWAP';
+        if (marketType === 'future') {
+            instType = 'FUTURES';
+        } else if (instType === 'option') {
+            instType = 'OPTION';
+        }
         const request: Dict = { 'instType': instType };
         const uly = this.safeString (params, 'uly');
         if (uly !== undefined) {

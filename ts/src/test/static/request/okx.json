@@ -8,6 +8,13 @@
     "methods": {
         "fetchOpenInterests": [
             {
+                "description": "fetchOpenInterests",
+                "method": "fetchOpenInterests",
+                "url": "https://www.okx.com/api/v5/public/open-interest?instType=SWAP",
+                "input": [],
+                "output": null
+            },
+            {
                 "description": "fetch open interests for swap",
                 "method": "fetchOpenInterests",
                 "url": "https://www.okx.com/api/v5/public/open-interest?instType=SWAP",
