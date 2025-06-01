@@ -5300,7 +5300,6 @@ public partial class binance : Exchange
         {
             uppercaseType = "LIMIT_MAKER";
         }
-        ((IDictionary<string,object>)request)["type"] = uppercaseType;
         object triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice");
         if (isTrue(!isEqual(triggerPrice, null)))
         {
@@ -5312,6 +5311,7 @@ public partial class binance : Exchange
                 uppercaseType = "STOP_LOSS_LIMIT";
             }
         }
+        ((IDictionary<string,object>)request)["type"] = uppercaseType;
         object validOrderTypes = this.safeList(getValue(market, "info"), "orderTypes");
         if (!isTrue(this.inArray(uppercaseType, validOrderTypes)))
         {
