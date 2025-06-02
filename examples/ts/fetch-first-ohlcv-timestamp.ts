@@ -3,10 +3,14 @@ import ccxt from '../../js/ccxt.js';
 
 // AUTO-TRANSPILE //
 
-// This function tries to fetch the first OHLCV bar timestamp for a given symbol on an exchange,
-// by looking for the earliest available bar in daily resolution, and then in minute resolution inside that "first day" of chart
 
-async function fetchFirstBarTimestamp (exchange:any, symbol: string, useMinuteTimeframe = true) {
+/**
+ - This function tries to fetch the "listing time" of a symbol by fetching the earliest available bar in daily resolution.
+ - Top-tier exchanges also support fetching smaller timeframes (eg. 1 minute) even several years back, so for those exchanges you can also use `useMinuteTimeframe = true` argument to get the timestamp rounded to the earliest minute bar (instead of daily bar timestamp).
+*/
+
+
+async function fetchFirstBarTimestamp (exchange:any, symbol: string, useMinuteTimeframe = false) {
     // set some constants
     const MS_IN_DAY = 86400000;
     const MINUTES_IN_DAY = 1440;
