@@ -17,6 +17,9 @@ public partial class Exchange
     public string userAgent { get; set; }
     public bool verbose { get; set; } = true;
     public bool enableRateLimit { get; set; } = true;
+    public string rateLimiterAlgorithm {get; set; } = "leakyBucket";  // rollingWindow or leakyBucket
+    public int maxLimiterRequests {get; set; } = 1000;
+    public int rollingWindowSize {get; set; } = 60000;
     public long lastRestRequestTimestamp { get; set; } = 0;
     public string url { get; set; } = "";
 

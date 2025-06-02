@@ -11,15 +11,19 @@ class Throttler:
             'delay': 0.001,
             'cost': 1.0,
             'tokens': 0,
-            'maxCapacity': 2000,
+            'maxLimiterRequests': 2000,
             'capacity': 1.0,
-            # maxWeight should be set in config parameter for rolling window algorithm
+            'algorithm': 'leakyBucket',
+            'rateLimit': 0,
+            'windowSize': 60000.0,
+            'maxWeight': 0
         }
         self.config.update(config)
         self.queue = collections.deque()
         self.running = False
+        self.timestamps = []
 
-    async def looper(self):
+    async def leaky_bucket_loop(self):
         last_timestamp = time() * 1000
         while self.running:
             future, cost = self.queue[0]
@@ -40,10 +44,37 @@ class Throttler:
                 last_timestamp = now
                 self.config['tokens'] = min(self.config['tokens'] + elapsed * self.config['refillRate'], self.config['capacity'])
 
+    async def rolling_window_loop(self):
+        while self.running:
+            future, cost = self.queue[0]
+            cost = self.config['cost'] if cost is None else cost
+            now = time() * 1000
+            self.timestamps = [t for t in self.timestamps if now - t['timestamp'] < self.config['windowSize']]
+            total_cost = sum(t['cost'] for t in self.timestamps)
+            if total_cost + cost <= self.config['maxWeight']:
+                self.timestamps.append({'timestamp': now, 'cost': cost})
+                if not future.done():
+                    future.set_result(None)
+                self.queue.popleft()
+                # context switch
+                await asyncio.sleep(0)
+                if not self.queue:
+                    self.running = False
+            else:
+                wait_time = (self.timestamps[0]['timestamp'] + self.config['windowSize']) - now
+                if wait_time > 0:
+                    await asyncio.sleep(wait_time / 1000)
+
+    async def looper(self):
+        if self.config.get('rateLimiterAlogorithm', 'leakyBucket') == 'leakyBucket':
+            await self.leaky_bucket_loop()
+        else:
+            await self.rolling_window_loop()
+
     def __call__(self, cost=None):
         future = asyncio.Future()
-        if len(self.queue) > self.config['maxCapacity']:
-            raise RuntimeError('throttle queue is over maxCapacity (' + str(int(self.config['maxCapacity'])) + '), see https://github.com/ccxt/ccxt/issues/11645#issuecomment-1195695526')
+        if len(self.queue) > self.config['maxLimiterRequests']:
+            raise RuntimeError('throttle queue is over maxLimiterRequests (' + str(int(self.config['maxLimiterRequests'])) + '), see https://github.com/ccxt/ccxt/issues/11645#issuecomment-1195695526')
         self.queue.append((future, cost))
         if not self.running:
             self.running = True

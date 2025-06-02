@@ -53,6 +53,9 @@ type Exchange struct {
 	Verbose             bool
 	UserAgent           string
 	EnableRateLimit     bool
+	RateLimiterAlgorithm	string  // rollingWindow or leakyBucket
+    MaxLimiterRequests	int
+    RollingWindowSize	int
 	Url                 string
 	Hostname            string
 	BaseCurrencies      map[string]interface{}
