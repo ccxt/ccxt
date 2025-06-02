@@ -7189,6 +7189,60 @@ export default class Exchange {
         return [ maxEntriesPerRequest, params ];
     }
 
+    async fetchFirstBarUsingOHLCV (symbol: string, useMinuteResolution = true) {
+        // set some constants
+        const MS_IN_DAY = 86400000;
+        const MINUTES_IN_DAY = 1440;
+        const MINIMUM_TIME_BOUNDARY = 1230768000000; // 2009-01-01 (bitcoin created year)
+        // get market features
+        const market = this.market (symbol);
+        const marketType = this.safeString (market, 'type');
+        const features = this.safeDict (this.features, marketType, {});
+        const ohlcv = this.safeDict (features, 'fetchOHLCV');
+        if (ohlcv === undefined) {
+            throw new NotSupported (this.id + ' fetchOHLCV() is not supported for ' + marketType + ' markets'); 
+        }
+        const limit = this.safeInteger (ohlcv, 'limit');
+        const fetchParams = { 'maxRetriesOnFailure': 3 };
+        // start loop
+        let currentSince = this.milliseconds() - MS_IN_DAY * (limit - 1);
+        let foundStartTime = 0;
+        while (true) {
+            currentSince = Math.max (currentSince, MINIMUM_TIME_BOUNDARY);
+            const dailyBars = await this.fetchOHLCV(symbol, '1d', currentSince, limit, fetchParams);
+            if (dailyBars.length <= 0) {
+                break; // if no days returned, then probably start date was passed
+            }
+            foundStartTime = dailyBars[0][0];
+            currentSince = currentSince - MS_IN_DAY * (limit - 1); // shift 'since' one step back
+            if (dailyBars.length === 1) {
+                // in some cases, some exchanges might still return first bar of chart when endtime overlaps previous day
+                break;
+            }
+        }
+
+        // if no need for minute resolution, return found time
+        if (!useMinuteResolution) {
+            return foundStartTime;
+        }
+
+        const maxIteration = Math.ceil (MINUTES_IN_DAY / limit);
+        const allPromises = [];
+        for (let i = 0; i < maxIteration; i++) {
+            const currentSince = foundStartTime + i * limit * 60 * 1000;
+            allPromises.push(this.fetchOHLCV (symbol, '1m', currentSince, limit, fetchParams));
+        }
+        const allResponses = await Promise.all(allPromises);
+        // find earliest bar
+        for (let i = 0; i < allResponses.length; i++) {
+            const response = allResponses[i];
+            if (response.length > 0) {
+                foundStartTime = Math.min (foundStartTime, response[0][0]);
+            }
+        }
+        return foundStartTime;
+    }
+
     async fetchPaginatedCallDynamic (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}, maxEntriesPerRequest: Int = undefined, removeRepeated = true): Promise<any> {
         let maxCalls = undefined;
         [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', 10);
