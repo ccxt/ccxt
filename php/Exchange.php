@@ -76,6 +76,8 @@ class Exchange {
     public $curl_close = false;
 
     public $id = null;
+    public $type = null;
+    public $defaultType = null;
 
     public $validateServerSsl = true;
     public $validateClientSsl = false;
