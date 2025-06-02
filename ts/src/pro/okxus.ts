@@ -10,11 +10,11 @@ export default class okxus extends okx {
         return this.deepExtend (super.describe (), {
             'id': 'okxus',
             'name': 'OKX (US)',
-            'hostname': 'app.okx.com',
+            'hostname': 'us.okx.com',
             'urls': {
                 'api': {
                     'rest': 'https://{hostname}',
-                    'ws': 'wss://wsapp.okx.com:8443/ws/v5',
+                    'ws': 'wss://wsus.okx.com:8443/ws/v5',
                 },
                 'www': 'https://app.okx.com',
                 'doc': 'https://app.okx.com/docs-v5/en/#overview',
@@ -24,7 +24,7 @@ export default class okxus extends okx {
                     'discount': 0.2,
                 },
                 'test': {
-                    'ws': 'wss://wseeapap.okx.com:8443/ws/v5',
+                    'ws': 'wss://wsuspap.okx.com:8443/ws/v5',
                 },
             },
             'has': {
