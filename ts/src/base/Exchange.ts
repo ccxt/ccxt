@@ -4783,15 +4783,15 @@ export default class Exchange {
             const cost = this.calculateRateLimiterCost (api, method, path, params, config);
             await this.throttle (cost);
         }
+        let retries = undefined;
+        [ retries, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailure', 0);
+        let retryDelay = undefined;
+        [ retryDelay, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailureDelay', 0);
         this.lastRestRequestTimestamp = this.milliseconds ();
         const request = this.sign (path, api, method, params, headers, body);
         this.last_request_headers = request['headers'];
         this.last_request_body = request['body'];
         this.last_request_url = request['url'];
-        let retries = undefined;
-        [ retries, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailure', 0);
-        let retryDelay = undefined;
-        [ retryDelay, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailureDelay', 0);
         for (let i = 0; i < retries + 1; i++) {
             try {
                 return await this.fetch (request['url'], request['method'], request['headers'], request['body']);
@@ -7200,44 +7200,47 @@ export default class Exchange {
         const features = this.safeDict (this.features, marketType, {});
         const ohlcv = this.safeDict (features, 'fetchOHLCV');
         if (ohlcv === undefined) {
-            throw new NotSupported (this.id + ' fetchOHLCV() is not supported for ' + marketType + ' markets'); 
+            throw new NotSupported (this.id + ' fetchOHLCV() is not supported for ' + marketType + ' markets');
         }
         const limit = this.safeInteger (ohlcv, 'limit');
         const fetchParams = { 'maxRetriesOnFailure': 3 };
         // start loop
-        let currentSince = this.milliseconds() - MS_IN_DAY * (limit - 1);
+        let currentSince = this.milliseconds () - MS_IN_DAY * (limit - 1);
         let foundStartTime = 0;
+        // eslint-disable-next-line
         while (true) {
             currentSince = Math.max (currentSince, MINIMUM_TIME_BOUNDARY);
-            const dailyBars = await this.fetchOHLCV(symbol, '1d', currentSince, limit, fetchParams);
+            const dailyBars = await this.fetchOHLCV (symbol, '1d', currentSince, limit, fetchParams);
             if (dailyBars.length <= 0) {
                 break; // if no days returned, then probably start date was passed
             }
-            foundStartTime = dailyBars[0][0];
-            currentSince = currentSince - MS_IN_DAY * (limit - 1); // shift 'since' one step back
+            const firstTs = dailyBars[0][0];
+            if (firstTs === foundStartTime) {
+                // if the first timestamp is equal to the last-fetched timestamp, then break here, because some exchanges still return initial bar even if since is much ahead to listing time
+                break;
+            }
+            foundStartTime = firstTs;
+            currentSince = foundStartTime - MS_IN_DAY * (limit - 1); // shift 'since' one step back
             if (dailyBars.length === 1) {
                 // in some cases, some exchanges might still return first bar of chart when endtime overlaps previous day
                 break;
             }
         }
-
-        // if no need for minute resolution, return found time
-        if (!useMinuteResolution) {
-            return foundStartTime;
-        }
-
-        const maxIteration = Math.ceil (MINUTES_IN_DAY / limit);
-        const allPromises = [];
-        for (let i = 0; i < maxIteration; i++) {
-            const currentSince = foundStartTime + i * limit * 60 * 1000;
-            allPromises.push(this.fetchOHLCV (symbol, '1m', currentSince, limit, fetchParams));
-        }
-        const allResponses = await Promise.all(allPromises);
-        // find earliest bar
-        for (let i = 0; i < allResponses.length; i++) {
-            const response = allResponses[i];
-            if (response.length > 0) {
-                foundStartTime = Math.min (foundStartTime, response[0][0]);
+        // if minute resolution needed
+        if (useMinuteResolution) {
+            const maxIteration = Math.ceil (MINUTES_IN_DAY / limit);
+            const allPromises = [];
+            for (let i = 0; i < maxIteration; i++) {
+                currentSince = foundStartTime + i * limit * 60 * 1000;
+                allPromises.push (this.fetchOHLCV (symbol, '1m', currentSince, limit, fetchParams));
+            }
+            const allResponses = await Promise.all (allPromises);
+            // find earliest bar
+            for (let i = 0; i < allResponses.length; i++) {
+                const response = allResponses[i];
+                if (response.length > 0) {
+                    foundStartTime = response[0][0];
+                }
             }
         }
         return foundStartTime;
