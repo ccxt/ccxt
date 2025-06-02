@@ -12,9 +12,9 @@ import ccxt from '../../js/ccxt.js';
 
 async function fetchFirstBarTimestamp (exchange:any, symbol: string, useMinuteTimeframe = false) {
     // set some constants
-    const MS_IN_DAY = 86400000;
-    const MINUTES_IN_DAY = 1440;
-    const MINIMUM_TIME_BOUNDARY = 1230768000000; // 2009-01-01 (bitcoin created year)
+    const millisecondsPerDay = 86400000;
+    const minutesPerDay = 1440;
+    const minimumTimestamp = 1230768000000; // 2009-01-01 (bitcoin created year)
     // get market features
     const market = exchange.market (symbol);
     const marketType = exchange.safeString (market, 'type');
@@ -29,11 +29,11 @@ async function fetchFirstBarTimestamp (exchange:any, symbol: string, useMinuteTi
     const limit = exchange.safeInteger (ohlcv, 'limit');
     const fetchParams = { 'maxRetriesOnFailure': 3 };
     // start loop
-    let currentSince = exchange.milliseconds () - MS_IN_DAY * (limit - 1);
+    let currentSince = exchange.milliseconds () - millisecondsPerDay * (limit - 1);
     let foundStartTime = 0;
     // eslint-disable-next-line
     while (true) {
-        currentSince = Math.max (currentSince, MINIMUM_TIME_BOUNDARY);
+        currentSince = Math.max (currentSince, minimumTimestamp);
         const dailyBars = await exchange.fetchOHLCV (symbol, '1d', currentSince, limit, fetchParams);
         if (dailyBars.length <= 0) {
             break; // if no days returned, then probably start date was passed
@@ -44,7 +44,7 @@ async function fetchFirstBarTimestamp (exchange:any, symbol: string, useMinuteTi
             break;
         }
         foundStartTime = firstTs;
-        currentSince = foundStartTime - MS_IN_DAY * (limit - 1); // shift 'since' one step back
+        currentSince = foundStartTime - millisecondsPerDay * (limit - 1); // shift 'since' one step back
         if (dailyBars.length === 1) {
             // in some cases, some exchanges might still return first bar of chart when endtime overlaps previous day
             break;
@@ -52,7 +52,7 @@ async function fetchFirstBarTimestamp (exchange:any, symbol: string, useMinuteTi
     }
     // if minute resolution needed
     if (useMinuteTimeframe) {
-        const maxIteration = Math.ceil (MINUTES_IN_DAY / limit);
+        const maxIteration = Math.ceil (minutesPerDay / limit);
         const allPromises = [];
         for (let i = 0; i < maxIteration; i++) {
             currentSince = foundStartTime + i * limit * 60 * 1000;
