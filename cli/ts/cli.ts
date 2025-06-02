@@ -166,7 +166,7 @@ saveCommand (process.argv);
 
 let cliOptions = program.opts () as CLIOptions;
 
-console.log (cliOptions);
+// console.log (cliOptions);
 
 let [ exchangeId, methodName, ...params ] = program.args;
 
