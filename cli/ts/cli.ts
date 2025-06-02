@@ -3,7 +3,6 @@ import { Command } from 'commander';
 import ololog from 'ololog';
 import { parseMethodArgs, printHumanReadable, printSavedCommand, printUsage, loadSettingsAndCreateExchange, collectKeyValue, handleDebug, handleStaticTests, askForArgv, printMethodUsage } from './helpers.js';
 import { checkCache, getCacheDirectory, saveCommand } from './cache.js';
-import { pro } from '../../ts/ccxt.js';
 
 let ccxt;
 let local = false;
@@ -155,7 +154,7 @@ saveCommand (process.argv);
 
 let cliOptions = program.opts () as CLIOptions;
 
-// console.log (cliOptions);
+console.log (cliOptions);
 
 let [ exchangeId, methodName, ...params ] = program.args;
 

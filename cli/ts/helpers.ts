@@ -585,7 +585,7 @@ function collectKeyValue (value: string, previous: Record<string, string>) {
             `Invalid --param value: '${value}'. Must be in key=value format.`
         );
     }
-    return { ...previous, [key]: val };
+    return { ...previous, [key]: parseValue (val) };
 }
 
 /**
@@ -726,6 +726,15 @@ const paramInfoMap = {
     },
 };
 
+function parseValue (value: string): any {
+    if (value === 'true') return true;
+    if (value === 'false') return false;
+    if (value === 'null') return null;
+    if (value === 'undefined') return undefined;
+    if (!Number.isNaN (Number (value))) return Number (value);
+    return value;
+}
+
 export {
     createRequestTemplate,
     createResponseTemplate,
@@ -744,4 +753,5 @@ export {
     handleStaticTests,
     askForArgv,
     printMethodUsage,
+    parseValue,
 };
