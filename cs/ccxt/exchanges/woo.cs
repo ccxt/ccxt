@@ -289,6 +289,11 @@ public partial class woo : Exchange
                     { "TRC20", "TRON" },
                     { "ERC20", "ETH" },
                     { "BEP20", "BSC" },
+                    { "ARB", "Arbitrum" },
+                } },
+                { "networksById", new Dictionary<string, object>() {
+                    { "TRX", "TRC20" },
+                    { "TRON", "TRC20" },
                 } },
                 { "defaultNetworkCodeForCurrencies", new Dictionary<string, object>() {} },
                 { "transfer", new Dictionary<string, object>() {
@@ -836,33 +841,45 @@ public partial class woo : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object result = new Dictionary<string, object>() {};
-        object tokenResponse = await this.v1PublicGetToken(parameters);
+        object tokenResponsePromise = this.v1PublicGetToken(parameters);
         //
-        // {
-        //     "rows": [
+        //    {
+        //      "rows": [
         //         {
         //             "token": "ETH_USDT",
         //             "fullname": "Tether",
-        //             "decimals": 6,
+        //             "network": "ETH",
+        //             "decimals": "6",
+        //             "delisted": false,
         //             "balance_token": "USDT",
-        //             "created_time": "0",
-        //             "updated_time": "0"
+        //             "created_time": "1710123398",
+        //             "updated_time": "1746528481",
+        //             "can_collateral": true,
+        //             "can_short": true
         //         },
         //         {
         //             "token": "BSC_USDT",
         //             "fullname": "Tether",
-        //             "decimals": 18,
+        //             "network": "BSC",
+        //             "decimals": "18",
+        //             "delisted": false,
         //             "balance_token": "USDT",
-        //             "created_time": "0",
-        //             "updated_time": "0"
+        //             "created_time": "1710123395",
+        //             "updated_time": "1746528601",
+        //             "can_collateral": true,
+        //             "can_short": true
         //         },
         //         {
-        //             "token": "ZEC",
-        //             "fullname": "ZCash",
-        //             "decimals": 8,
-        //             "balance_token": "ZEC",
-        //             "created_time": "0",
-        //             "updated_time": "0"
+        //             "token": "ALGO",
+        //             "fullname": "Algorand",
+        //             "network": "ALGO",
+        //             "decimals": "6",
+        //             "delisted": false,
+        //             "balance_token": "ALGO",
+        //             "created_time": "1710123394",
+        //             "updated_time": "1723087518",
+        //             "can_collateral": true,
+        //             "can_short": true
         //         },
         //         ...
         //     ],
@@ -870,62 +887,70 @@ public partial class woo : Exchange
         // }
         //
         // only make one request for currrencies...
-        // const tokenNetworkResponse = await this.v1PublicGetTokenNetwork (params);
+        object tokenNetworkResponsePromise = this.v1PublicGetTokenNetwork(parameters);
         //
         // {
         //     "rows": [
         //         {
         //             "protocol": "ERC20",
+        //             "network": "ETH",
         //             "token": "USDT",
-        //             "name": "Ethereum",
-        //             "minimum_withdrawal": 30,
-        //             "withdrawal_fee": 25,
-        //             "allow_deposit": 1,
-        //             "allow_withdraw": 1
+        //             "name": "Ethereum (ERC20)",
+        //             "minimum_withdrawal": "10.00000000",
+        //             "withdrawal_fee": "2.00000000",
+        //             "allow_deposit": "1",
+        //             "allow_withdraw": "1"
         //         },
         //         {
         //             "protocol": "TRC20",
+        //             "network": "TRX",
         //             "token": "USDT",
-        //             "name": "Tron",
-        //             "minimum_withdrawal": 30,
-        //             "withdrawal_fee": 1,
-        //             "allow_deposit": 1,
-        //             "allow_withdraw": 1
+        //             "name": "Tron (TRC20)",
+        //             "minimum_withdrawal": "10.00000000",
+        //             "withdrawal_fee": "4.50000000",
+        //             "allow_deposit": "1",
+        //             "allow_withdraw": "1"
         //         },
         //         ...
         //     ],
         //     "success": true
         // }
         //
+        var tokenResponsetokenNetworkResponseVariable = await promiseAll(new List<object>() {tokenResponsePromise, tokenNetworkResponsePromise});
+        var tokenResponse = ((IList<object>) tokenResponsetokenNetworkResponseVariable)[0];
+        var tokenNetworkResponse = ((IList<object>) tokenResponsetokenNetworkResponseVariable)[1];
         object tokenRows = this.safeList(tokenResponse, "rows", new List<object>() {});
-        object networksByCurrencyId = this.groupBy(tokenRows, "balance_token");
-        object currencyIds = new List<object>(((IDictionary<string,object>)networksByCurrencyId).Keys);
+        object tokenNetworkRows = this.safeList(tokenNetworkResponse, "rows", new List<object>() {});
+        object networksById = this.groupBy(tokenNetworkRows, "token");
+        object tokensById = this.groupBy(tokenRows, "balance_token");
+        object currencyIds = new List<object>(((IDictionary<string,object>)tokensById).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
         {
             object currencyId = getValue(currencyIds, i);
-            object networks = getValue(networksByCurrencyId, currencyId);
             object code = this.safeCurrencyCode(currencyId);
-            object name = null;
-            object minPrecision = null;
+            object tokensByNetworkId = this.indexBy(getValue(tokensById, currencyId), "network");
+            object chainsByNetworkId = this.indexBy(getValue(networksById, currencyId), "network");
+            object keys = new List<object>(((IDictionary<string,object>)chainsByNetworkId).Keys);
             object resultingNetworks = new Dictionary<string, object>() {};
-            for (object j = 0; isLessThan(j, getArrayLength(networks)); postFixIncrement(ref j))
+            for (object j = 0; isLessThan(j, getArrayLength(keys)); postFixIncrement(ref j))
             {
-                object network = getValue(networks, j);
-                name = this.safeString(network, "fullname");
-                object networkId = this.safeString(network, "token");
-                object splitted = ((string)networkId).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
-                object unifiedNetwork = getValue(splitted, 0);
-                object precision = this.parsePrecision(this.safeString(network, "decimals"));
-                if (isTrue(!isEqual(precision, null)))
-                {
-                    minPrecision = ((bool) isTrue((isEqual(minPrecision, null)))) ? precision : Precise.stringMin(precision, minPrecision);
-                }
-                ((IDictionary<string,object>)resultingNetworks)[(string)unifiedNetwork] = new Dictionary<string, object>() {
+                object networkId = getValue(keys, j);
+                object tokenEntry = this.safeDict(tokensByNetworkId, networkId, new Dictionary<string, object>() {});
+                object networkEntry = this.safeDict(chainsByNetworkId, networkId, new Dictionary<string, object>() {});
+                object networkCode = this.networkIdToCode(networkId, code);
+                object specialNetworkId = this.safeString(tokenEntry, "token");
+                ((IDictionary<string,object>)resultingNetworks)[(string)networkCode] = new Dictionary<string, object>() {
                     { "id", networkId },
-                    { "network", unifiedNetwork },
+                    { "currencyNetworkId", specialNetworkId },
+                    { "network", networkCode },
+                    { "active", null },
+                    { "deposit", isEqual(this.safeString(networkEntry, "allow_deposit"), "1") },
+                    { "withdraw", isEqual(this.safeString(networkEntry, "allow_withdraw"), "1") },
+                    { "fee", this.safeNumber(networkEntry, "withdrawal_fee") },
+                    { "precision", this.parseNumber(this.parsePrecision(this.safeString(tokenEntry, "decimals"))) },
                     { "limits", new Dictionary<string, object>() {
                         { "withdraw", new Dictionary<string, object>() {
-                            { "min", null },
+                            { "min", this.safeNumber(networkEntry, "minimum_withdrawal") },
                             { "max", null },
                         } },
                         { "deposit", new Dictionary<string, object>() {
@@ -933,19 +958,14 @@ public partial class woo : Exchange
                             { "max", null },
                         } },
                     } },
-                    { "active", null },
-                    { "deposit", null },
-                    { "withdraw", null },
-                    { "fee", null },
-                    { "precision", this.parseNumber(precision) },
-                    { "info", network },
+                    { "info", new List<object>() {networkEntry, tokenEntry} },
                 };
             }
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", currencyId },
-                { "name", name },
+                { "name", null },
                 { "code", code },
-                { "precision", this.parseNumber(minPrecision) },
+                { "precision", null },
                 { "active", null },
                 { "fee", null },
                 { "networks", resultingNetworks },
@@ -962,8 +982,8 @@ public partial class woo : Exchange
                         { "max", null },
                     } },
                 } },
-                { "info", networks },
-            };
+                { "info", new List<object>() {tokensByNetworkId, chainsByNetworkId} },
+            });
         }
         return result;
     }
@@ -2274,12 +2294,12 @@ public partial class woo : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
-        object networkCodeDefault = this.defaultNetworkCodeForCurrency(code);
-        object networkCode = this.safeString(parameters, "network", networkCodeDefault);
-        parameters = this.omit(parameters, "network");
-        object codeForExchange = add(add(networkCode, "_"), getValue(currency, "code"));
+        object specialNetworkId = null;
+        var specialNetworkIdparametersVariable = this.getDedicatedNetworkId(currency, parameters);
+        specialNetworkId = ((IList<object>)specialNetworkIdparametersVariable)[0];
+        parameters = ((IList<object>)specialNetworkIdparametersVariable)[1];
         object request = new Dictionary<string, object>() {
-            { "token", codeForExchange },
+            { "token", specialNetworkId },
         };
         object response = await this.v1PrivateGetAssetDeposit(this.extend(request, parameters));
         // {
@@ -2287,15 +2307,36 @@ public partial class woo : Exchange
         //     "address": "3Jmtjx5544T4smrit9Eroe4PCrRkpDeKjP",
         //     "extra": ''
         // }
-        object tag = this.safeString(response, "extra");
-        object address = this.safeString(response, "address");
+        return this.parseDepositAddress(response, currency);
+    }
+
+    public virtual object getDedicatedNetworkId(object currency, object parameters)
+    {
+        object networkCode = null;
+        var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
+        networkCode = ((IList<object>)networkCodeparametersVariable)[0];
+        parameters = ((IList<object>)networkCodeparametersVariable)[1];
+        networkCode = this.networkIdToCode(networkCode, getValue(currency, "code"));
+        object networkEntry = this.safeDict(getValue(currency, "networks"), networkCode);
+        if (isTrue(isEqual(networkEntry, null)))
+        {
+            object supportedNetworks = new List<object>(((IDictionary<string,object>)getValue(currency, "networks")).Keys);
+            throw new BadRequest ((string)add(add(this.id, "  can not determine a network code, please provide unified \"network\" param, one from the following: "), this.json(supportedNetworks))) ;
+        }
+        object currentyNetworkId = this.safeString(networkEntry, "currencyNetworkId");
+        return new List<object>() {currentyNetworkId, parameters};
+    }
+
+    public override object parseDepositAddress(object depositEntry, object currency = null)
+    {
+        object address = this.safeString(depositEntry, "address");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
-            { "info", response },
-            { "currency", code },
-            { "network", networkCode },
+            { "info", depositEntry },
+            { "currency", this.safeString(currency, "code") },
+            { "network", null },
             { "address", address },
-            { "tag", tag },
+            { "tag", this.safeString(depositEntry, "extra") },
         };
     }
 
@@ -2754,17 +2795,11 @@ public partial class woo : Exchange
         {
             ((IDictionary<string,object>)request)["extra"] = tag;
         }
-        object networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
-        object currencyNetworks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
-        object network = this.safeStringUpper(parameters, "network");
-        object networkId = this.safeString(networks, network, network);
-        object coinNetwork = this.safeDict(currencyNetworks, networkId, new Dictionary<string, object>() {});
-        object coinNetworkId = this.safeString(coinNetwork, "id");
-        if (isTrue(isEqual(coinNetworkId, null)))
-        {
-            throw new BadRequest ((string)add(this.id, " withdraw() require network parameter")) ;
-        }
-        ((IDictionary<string,object>)request)["token"] = coinNetworkId;
+        object specialNetworkId = null;
+        var specialNetworkIdparametersVariable = this.getDedicatedNetworkId(currency, parameters);
+        specialNetworkId = ((IList<object>)specialNetworkIdparametersVariable)[0];
+        parameters = ((IList<object>)specialNetworkIdparametersVariable)[1];
+        ((IDictionary<string,object>)request)["token"] = specialNetworkId;
         object response = await this.v1PrivatePostAssetWithdraw(this.extend(request, parameters));
         //
         //     {
