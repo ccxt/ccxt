@@ -5,11 +5,12 @@
 
 from ccxt.async_support.binance import binance
 from ccxt.abstract.binancecoinm import ImplicitAPI
+from ccxt.base.types import Any
 
 
 class binancecoinm(binance, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(binancecoinm, self).describe(), {
             'id': 'binancecoinm',
             'name': 'Binance COIN-M',

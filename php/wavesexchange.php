@@ -10,7 +10,7 @@ use ccxt\abstract\wavesexchange as Exchange;
 
 class wavesexchange extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'wavesexchange',
             'name' => 'Waves.Exchange',

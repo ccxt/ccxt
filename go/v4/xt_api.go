@@ -1143,6 +1143,22 @@ func (this *xt) PrivateSpotDeleteOrderOrderId (args ...interface{}) <-chan inter
    return ch
 }
 
+func (this *xt) PrivateSpotPutOrderOrderId (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privateSpotPutOrderOrderId", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
 func (this *xt) PrivateLinearGetFutureTradeV1EntrustPlanDetail (args ...interface{}) <-chan interface{} {
    parameters := GetArg(args, 0, nil)
    ch := make(chan interface{})
@@ -1607,6 +1623,22 @@ func (this *xt) PrivateLinearPostFutureTradeV1OrderCreateBatch (args ...interfac
    return ch
 }
 
+func (this *xt) PrivateLinearPostFutureTradeV1OrderUpdate (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privateLinearPostFutureTradeV1OrderUpdate", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
 func (this *xt) PrivateLinearPostFutureUserV1AccountOpen (args ...interface{}) <-chan interface{} {
    parameters := GetArg(args, 0, nil)
    ch := make(chan interface{})
@@ -1714,6 +1746,22 @@ func (this *xt) PrivateLinearPostFutureUserV1UserCollectionCancel (args ...inter
            }
        }()
        ch <- (<-this.callEndpoint ("privateLinearPostFutureUserV1UserCollectionCancel", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *xt) PrivateLinearPostFutureUserV1PositionChangeType (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privateLinearPostFutureUserV1PositionChangeType", parameters))
        PanicOnError(ch)
    }()
    return ch
@@ -2178,6 +2226,22 @@ func (this *xt) PrivateInversePostFutureTradeV1OrderCreateBatch (args ...interfa
            }
        }()
        ch <- (<-this.callEndpoint ("privateInversePostFutureTradeV1OrderCreateBatch", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *xt) PrivateInversePostFutureTradeV1OrderUpdate (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privateInversePostFutureTradeV1OrderUpdate", parameters))
        PanicOnError(ch)
    }()
    return ch

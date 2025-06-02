@@ -58,6 +58,18 @@ func (this *Exchange) GetOptions() map[string]interface{} {
 	return this.Options
 }
 
+func (this *Exchange) GetHostname() string {
+	return this.Hostname
+}
+
+func (this *Exchange) GetUrls() interface{} {
+	return this.Urls
+}
+
+func (this *Exchange) GetApi() map[string]interface{} {
+	return this.Api
+}
+
 func (this *Exchange) GetCurrencies() map[string]interface{} {
 	return this.Currencies
 }

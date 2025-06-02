@@ -47,7 +47,7 @@ export default class xt extends Exchange {
                 'createOrder': true,
                 'createPostOnlyOrder': false,
                 'createReduceOnlyOrder': true,
-                'editOrder': false,
+                'editOrder': true,
                 'fetchAccounts': false,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
@@ -117,7 +117,7 @@ export default class xt extends Exchange {
                 'repayMargin': false,
                 'setLeverage': true,
                 'setMargin': false,
-                'setMarginMode': false,
+                'setMarginMode': true,
                 'setPositionMode': false,
                 'signIn': false,
                 'transfer': true,
@@ -234,6 +234,9 @@ export default class xt extends Exchange {
                             'open-order': 1,
                             'order/{orderId}': 1,
                         },
+                        'put': {
+                            'order/{orderId}': 1,
+                        },
                     },
                     'linear': {
                         'get': {
@@ -268,6 +271,7 @@ export default class xt extends Exchange {
                             'future/trade/v1/order/cancel-all': 1,
                             'future/trade/v1/order/create': 1,
                             'future/trade/v1/order/create-batch': 1,
+                            'future/trade/v1/order/update': 1,
                             'future/user/v1/account/open': 1,
                             'future/user/v1/position/adjust-leverage': 1,
                             'future/user/v1/position/auto-margin': 1,
@@ -275,6 +279,7 @@ export default class xt extends Exchange {
                             'future/user/v1/position/margin': 1,
                             'future/user/v1/user/collection/add': 1,
                             'future/user/v1/user/collection/cancel': 1,
+                            'future/user/v1/position/change-type': 1,
                         },
                     },
                     'inverse': {
@@ -310,6 +315,7 @@ export default class xt extends Exchange {
                             'future/trade/v1/order/cancel-all': 1,
                             'future/trade/v1/order/create': 1,
                             'future/trade/v1/order/create-batch': 1,
+                            'future/trade/v1/order/update': 1,
                             'future/user/v1/account/open': 1,
                             'future/user/v1/position/adjust-leverage': 1,
                             'future/user/v1/position/auto-margin': 1,
@@ -519,11 +525,13 @@ export default class xt extends Exchange {
                     'TRANSFER_011': PermissionDenied,
                     'TRANSFER_012': PermissionDenied,
                     'symbol_not_support_trading_via_api': BadSymbol,
-                    'open_order_min_nominal_value_limit': InvalidOrder, // {"returnCode":1,"msgInfo":"failure","error":{"code":"open_order_min_nominal_value_limit","msg":"Exceeds the minimum notional value of a single order"},"result":null}
+                    'open_order_min_nominal_value_limit': InvalidOrder,
+                    'insufficient_balance': InsufficientFunds,
                 },
                 'broad': {
                     'The symbol does not support trading via API': BadSymbol,
-                    'Exceeds the minimum notional value of a single order': InvalidOrder, // {"returnCode":1,"msgInfo":"failure","error":{"code":"open_order_min_nominal_value_limit","msg":"Exceeds the minimum notional value of a single order"},"result":null}
+                    'Exceeds the minimum notional value of a single order': InvalidOrder,
+                    'insufficient balance': InsufficientFunds,
                 },
             },
             'timeframes': {
@@ -892,50 +900,30 @@ export default class xt extends Exchange {
             const entry = currenciesData[i];
             const currencyId = this.safeString(entry, 'currency');
             const code = this.safeCurrencyCode(currencyId);
-            const minPrecision = this.parseNumber(this.parsePrecision(this.safeString(entry, 'maxPrecision')));
             const networkEntry = this.safeValue(chainsDataIndexed, currencyId, {});
             const rawNetworks = this.safeValue(networkEntry, 'supportChains', []);
             const networks = {};
-            let minWithdrawString = undefined;
-            let minWithdrawFeeString = undefined;
-            let active = false;
-            let deposit = false;
-            let withdraw = false;
             for (let j = 0; j < rawNetworks.length; j++) {
                 const rawNetwork = rawNetworks[j];
                 const networkId = this.safeString(rawNetwork, 'chain');
-                const network = this.networkIdToCode(networkId);
-                const depositEnabled = this.safeValue(rawNetwork, 'depositEnabled');
-                deposit = (depositEnabled) ? depositEnabled : deposit;
-                const withdrawEnabled = this.safeValue(rawNetwork, 'withdrawEnabled');
-                withdraw = (withdrawEnabled) ? withdrawEnabled : withdraw;
-                const networkActive = depositEnabled && withdrawEnabled;
-                active = (networkActive) ? networkActive : active;
-                const withdrawFeeString = this.safeString(rawNetwork, 'withdrawFeeAmount');
-                if (withdrawFeeString !== undefined) {
-                    minWithdrawFeeString = (minWithdrawFeeString === undefined) ? withdrawFeeString : Precise.stringMin(withdrawFeeString, minWithdrawFeeString);
-                }
-                const minNetworkWithdrawString = this.safeString(rawNetwork, 'withdrawMinAmount');
-                if (minNetworkWithdrawString !== undefined) {
-                    minWithdrawString = (minWithdrawString === undefined) ? minNetworkWithdrawString : Precise.stringMin(minNetworkWithdrawString, minWithdrawString);
-                }
-                networks[network] = {
+                const networkCode = this.networkIdToCode(networkId, code);
+                networks[networkCode] = {
                     'info': rawNetwork,
                     'id': networkId,
-                    'network': network,
+                    'network': networkCode,
                     'name': undefined,
-                    'active': networkActive,
-                    'fee': this.parseNumber(withdrawFeeString),
-                    'precision': minPrecision,
-                    'deposit': depositEnabled,
-                    'withdraw': withdrawEnabled,
+                    'active': undefined,
+                    'fee': this.safeNumber(rawNetwork, 'withdrawFeeAmount'),
+                    'precision': undefined,
+                    'deposit': this.safeBool(rawNetwork, 'depositEnabled'),
+                    'withdraw': this.safeBool(rawNetwork, 'withdrawEnabled'),
                     'limits': {
                         'amount': {
                             'min': undefined,
                             'max': undefined,
                         },
                         'withdraw': {
-                            'min': this.parseNumber(minNetworkWithdrawString),
+                            'min': this.safeNumber(rawNetwork, 'withdrawMinAmount'),
                             'max': undefined,
                         },
                         'deposit': {
@@ -945,24 +933,33 @@ export default class xt extends Exchange {
                     },
                 };
             }
-            result[code] = {
+            const typeRaw = this.safeString(entry, 'type');
+            let type = undefined;
+            if (typeRaw === 'FT') {
+                type = 'crypto';
+            }
+            else {
+                type = 'other';
+            }
+            result[code] = this.safeCurrencyStructure({
                 'info': entry,
                 'id': currencyId,
                 'code': code,
                 'name': this.safeString(entry, 'fullName'),
-                'active': active,
-                'fee': this.parseNumber(minWithdrawFeeString),
-                'precision': minPrecision,
-                'deposit': deposit,
-                'withdraw': withdraw,
+                'active': undefined,
+                'fee': undefined,
+                'precision': this.parseNumber(this.parsePrecision(this.safeString(entry, 'maxPrecision'))),
+                'deposit': this.safeString(entry, 'depositStatus') === '1',
+                'withdraw': this.safeString(entry, 'withdrawStatus') === '1',
                 'networks': networks,
+                'type': type,
                 'limits': {
                     'amount': {
                         'min': undefined,
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': this.parseNumber(minWithdrawString),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'deposit': {
@@ -970,7 +967,7 @@ export default class xt extends Exchange {
                         'max': undefined,
                     },
                 },
-            };
+            });
         }
         return result;
     }
@@ -1397,10 +1394,17 @@ export default class xt extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate', false);
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 1000);
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1411,6 +1415,14 @@ export default class xt extends Exchange {
         }
         if (limit !== undefined) {
             request['limit'] = limit;
+        }
+        else {
+            request['limit'] = 1000;
+        }
+        const until = this.safeInteger(params, 'until');
+        params = this.omit(params, ['until']);
+        if (until !== undefined) {
+            request['endTime'] = until;
         }
         let response = undefined;
         if (market['linear']) {
@@ -2936,24 +2948,30 @@ export default class xt extends Exchange {
     }
     async fetchOrdersByStatus(status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
-        const request = {};
+        let request = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['symbol'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
         }
         let type = undefined;
         let subType = undefined;
         let response = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchOrdersByStatus', market, params);
         [subType, params] = this.handleSubTypeAndParams('fetchOrdersByStatus', market, params);
-        const trigger = this.safeValue(params, 'stop');
+        const trigger = this.safeBool2(params, 'stop', 'trigger');
         const stopLossTakeProfit = this.safeValue(params, 'stopLossTakeProfit');
         if (status === 'open') {
             if (trigger || stopLossTakeProfit) {
                 request['state'] = 'NOT_TRIGGERED';
             }
-            else if (subType !== undefined) {
+            else if (type === 'swap') {
                 request['state'] = 'NEW';
             }
         }
@@ -2985,7 +3003,7 @@ export default class xt extends Exchange {
             }
         }
         if (trigger) {
-            params = this.omit(params, 'stop');
+            params = this.omit(params, ['stop', 'trigger']);
             if (subType === 'inverse') {
                 response = await this.privateInverseGetFutureTradeV1EntrustPlanList(this.extend(request, params));
             }
@@ -3020,6 +3038,7 @@ export default class xt extends Exchange {
                     request['startTime'] = since;
                 }
                 if (limit !== undefined) {
+                    request = this.omit(request, 'size');
                     request['limit'] = limit;
                 }
                 response = await this.privateSpotGetHistoryOrder(this.extend(request, params));
@@ -3206,9 +3225,14 @@ export default class xt extends Exchange {
         //         }
         //     }
         //
-        const isSpotOpenOrders = ((status === 'open') && (subType === undefined));
-        const data = this.safeValue(response, 'result', {});
-        const orders = isSpotOpenOrders ? this.safeValue(response, 'result', []) : this.safeValue(data, 'items', []);
+        let orders = [];
+        const resultDict = this.safeDict(response, 'result');
+        if (resultDict !== undefined) {
+            orders = this.safeList(resultDict, 'items', []);
+        }
+        else {
+            orders = this.safeList(response, 'result');
+        }
         return this.parseOrders(orders, market, since, limit);
     }
     /**
@@ -3494,7 +3518,7 @@ export default class xt extends Exchange {
         //         "cancelId": "208322474307982720"
         //     }
         //
-        // swap and future: createOrder, cancelOrder
+        // swap and future: createOrder, cancelOrder, editOrder
         //
         //     {
         //         "returnCode": 0,
@@ -3599,6 +3623,14 @@ export default class xt extends Exchange {
         //         "createdTime": 1681273420039
         //     }
         //
+        // spot editOrder
+        //
+        //     {
+        //         "orderId": "484203027161892224",
+        //         "modifyId": "484203544105344000",
+        //         "clientModifyId": null
+        //     }
+        //
         const marketId = this.safeString(order, 'symbol');
         const marketType = ('result' in order) || ('positionSide' in order) ? 'contract' : 'spot';
         market = this.safeMarket(marketId, market, undefined, marketType);
@@ -3612,7 +3644,7 @@ export default class xt extends Exchange {
         return this.safeOrder({
             'info': order,
             'id': this.safeStringN(order, ['orderId', 'result', 'cancelId', 'entrustId', 'profitId']),
-            'clientOrderId': this.safeString(order, 'clientOrderId'),
+            'clientOrderId': this.safeString2(order, 'clientOrderId', 'clientModifyId'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': lastUpdatedTimestamp,
@@ -4840,6 +4872,161 @@ export default class xt extends Exchange {
             'status': undefined,
         };
     }
+    /**
+     * @method
+     * @name xt#setMarginMode
+     * @description set margin mode to 'cross' or 'isolated'
+     * @see https://doc.xt.com/#futures_userchangePositionType
+     * @param {string} marginMode 'cross' or 'isolated'
+     * @param {string} [symbol] required
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.positionSide] *required* "long" or "short"
+     * @returns {object} response from the exchange
+     */
+    async setMarginMode(marginMode, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired(this.id + ' setMarginMode() requires a symbol argument');
+        }
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (market['spot']) {
+            throw new BadSymbol(this.id + ' setMarginMode() supports contract markets only');
+        }
+        marginMode = marginMode.toLowerCase();
+        if (marginMode !== 'isolated' && marginMode !== 'cross') {
+            throw new BadRequest(this.id + ' setMarginMode() marginMode argument should be isolated or cross');
+        }
+        if (marginMode === 'cross') {
+            marginMode = 'CROSSED';
+        }
+        else {
+            marginMode = 'ISOLATED';
+        }
+        const posSide = this.safeStringUpper(params, 'positionSide');
+        if (posSide === undefined) {
+            throw new ArgumentsRequired(this.id + ' setMarginMode() requires a positionSide parameter, either "LONG" or "SHORT"');
+        }
+        const request = {
+            'positionType': marginMode,
+            'positionSide': posSide,
+            'symbol': market['id'],
+        };
+        const response = await this.privateLinearPostFutureUserV1PositionChangeType(this.extend(request, params));
+        //
+        // {
+        //     "error": {
+        //       "code": "",
+        //       "msg": ""
+        //     },
+        //     "msgInfo": "",
+        //     "result": {},
+        //     "returnCode": 0
+        // }
+        //
+        return response; // unify return type
+    }
+    /**
+     * @method
+     * @name xt#editOrder
+     * @description cancels an order and places a new order
+     * @see https://doc.xt.com/#orderorderUpdate
+     * @see https://doc.xt.com/#futures_orderupdate
+     * @see https://doc.xt.com/#futures_entrustupdateProfit
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of the currency you want to trade in units of the base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.stopLoss] price to set a stop-loss on an open position
+     * @param {float} [params.takeProfit] price to set a take-profit on an open position
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        if (amount === undefined) {
+            throw new ArgumentsRequired(this.id + ' editOrder() requires an amount argument');
+        }
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {};
+        const stopLoss = this.safeNumber2(params, 'stopLoss', 'triggerStopPrice');
+        const takeProfit = this.safeNumber2(params, 'takeProfit', 'triggerProfitPrice');
+        params = this.omit(params, ['stopLoss', 'takeProfit']);
+        const isStopLoss = (stopLoss !== undefined);
+        const isTakeProfit = (takeProfit !== undefined);
+        if (isStopLoss || isTakeProfit) {
+            request['profitId'] = id;
+        }
+        else {
+            request['orderId'] = id;
+            request['price'] = this.priceToPrecision(symbol, price);
+        }
+        let response = undefined;
+        if (market['swap']) {
+            if (isStopLoss) {
+                request['triggerStopPrice'] = this.priceToPrecision(symbol, stopLoss);
+            }
+            else if (takeProfit !== undefined) {
+                request['triggerProfitPrice'] = this.priceToPrecision(symbol, takeProfit);
+            }
+            else {
+                request['origQty'] = this.amountToPrecision(symbol, amount);
+            }
+            let subType = undefined;
+            [subType, params] = this.handleSubTypeAndParams('editOrder', market, params);
+            if (subType === 'inverse') {
+                if (isStopLoss || isTakeProfit) {
+                    response = await this.privateInversePostFutureTradeV1EntrustUpdateProfitStop(this.extend(request, params));
+                }
+                else {
+                    response = await this.privateInversePostFutureTradeV1OrderUpdate(this.extend(request, params));
+                    //
+                    //     {
+                    //         "returnCode": 0,
+                    //         "msgInfo": "success",
+                    //         "error": null,
+                    //         "result": "483869474947826752"
+                    //     }
+                    //
+                }
+            }
+            else {
+                if (isStopLoss || isTakeProfit) {
+                    response = await this.privateLinearPostFutureTradeV1EntrustUpdateProfitStop(this.extend(request, params));
+                }
+                else {
+                    response = await this.privateLinearPostFutureTradeV1OrderUpdate(this.extend(request, params));
+                    //
+                    //     {
+                    //         "returnCode": 0,
+                    //         "msgInfo": "success",
+                    //         "error": null,
+                    //         "result": "483869474947826752"
+                    //     }
+                    //
+                }
+            }
+        }
+        else {
+            request['quantity'] = this.amountToPrecision(symbol, amount);
+            response = await this.privateSpotPutOrderOrderId(this.extend(request, params));
+            //
+            //     {
+            //         "rc": 0,
+            //         "mc": "SUCCESS",
+            //         "ma": [],
+            //         "result": {
+            //             "orderId": "484203027161892224",
+            //             "modifyId": "484203544105344000",
+            //             "clientModifyId": null
+            //         }
+            //     }
+            //
+        }
+        const result = (market['swap']) ? response : this.safeDict(response, 'result', {});
+        return this.parseOrder(result, market);
+    }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         //
         // spot: error
@@ -4889,6 +5076,9 @@ export default class xt extends Exchange {
         //         "ma": [],
         //         "result": {}
         //     }
+        //
+        // {"returnCode":1,"msgInfo":"failure","error":{"code":"insufficient_balance","msg":"insufficient balance","args":[]},"result":null}
+        //
         //
         const status = this.safeStringUpper2(response, 'msgInfo', 'mc');
         if (status !== undefined && status !== 'SUCCESS') {
@@ -4941,7 +5131,10 @@ export default class xt extends Exchange {
                     body['media'] = id;
                 }
             }
-            const isUndefinedBody = ((method === 'GET') || (path === 'order/{orderId}') || (path === 'ws-token'));
+            let isUndefinedBody = ((method === 'GET') || (path === 'order/{orderId}') || (path === 'ws-token'));
+            if ((method === 'PUT') && (endpoint === 'spot')) {
+                isUndefinedBody = false;
+            }
             body = isUndefinedBody ? undefined : this.json(body);
             let payloadString = undefined;
             if ((endpoint === 'spot') || (endpoint === 'user')) {

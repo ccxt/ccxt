@@ -34,6 +34,7 @@ interface Exchange {
     v4PublicGetAssets (params?: {}): Promise<implicitReturnType>;
     v4PublicGetCollateralMarkets (params?: {}): Promise<implicitReturnType>;
     v4PublicGetFee (params?: {}): Promise<implicitReturnType>;
+    v4PublicGetOrderbookDepthMarket (params?: {}): Promise<implicitReturnType>;
     v4PublicGetOrderbookMarket (params?: {}): Promise<implicitReturnType>;
     v4PublicGetTicker (params?: {}): Promise<implicitReturnType>;
     v4PublicGetTradesMarket (params?: {}): Promise<implicitReturnType>;
@@ -42,12 +43,14 @@ interface Exchange {
     v4PublicGetMarkets (params?: {}): Promise<implicitReturnType>;
     v4PublicGetFutures (params?: {}): Promise<implicitReturnType>;
     v4PublicGetPlatformStatus (params?: {}): Promise<implicitReturnType>;
+    v4PublicGetMiningPool (params?: {}): Promise<implicitReturnType>;
     v4PrivatePostCollateralAccountBalance (params?: {}): Promise<implicitReturnType>;
     v4PrivatePostCollateralAccountBalanceSummary (params?: {}): Promise<implicitReturnType>;
     v4PrivatePostCollateralAccountPositionsHistory (params?: {}): Promise<implicitReturnType>;
     v4PrivatePostCollateralAccountLeverage (params?: {}): Promise<implicitReturnType>;
     v4PrivatePostCollateralAccountPositionsOpen (params?: {}): Promise<implicitReturnType>;
     v4PrivatePostCollateralAccountSummary (params?: {}): Promise<implicitReturnType>;
+    v4PrivatePostCollateralAccountFundingHistory (params?: {}): Promise<implicitReturnType>;
     v4PrivatePostMainAccountAddress (params?: {}): Promise<implicitReturnType>;
     v4PrivatePostMainAccountBalance (params?: {}): Promise<implicitReturnType>;
     v4PrivatePostMainAccountCreateNewAddress (params?: {}): Promise<implicitReturnType>;
@@ -74,6 +77,7 @@ interface Exchange {
     v4PrivatePostOrderCollateralMarket (params?: {}): Promise<implicitReturnType>;
     v4PrivatePostOrderCollateralStopLimit (params?: {}): Promise<implicitReturnType>;
     v4PrivatePostOrderCollateralTriggerMarket (params?: {}): Promise<implicitReturnType>;
+    v4PrivatePostOrderCollateralBulk (params?: {}): Promise<implicitReturnType>;
     v4PrivatePostOrderNew (params?: {}): Promise<implicitReturnType>;
     v4PrivatePostOrderMarket (params?: {}): Promise<implicitReturnType>;
     v4PrivatePostOrderStockMarket (params?: {}): Promise<implicitReturnType>;
@@ -85,6 +89,7 @@ interface Exchange {
     v4PrivatePostOrderKillSwitchStatus (params?: {}): Promise<implicitReturnType>;
     v4PrivatePostOrderBulk (params?: {}): Promise<implicitReturnType>;
     v4PrivatePostOrderModify (params?: {}): Promise<implicitReturnType>;
+    v4PrivatePostOrderConditionalCancel (params?: {}): Promise<implicitReturnType>;
     v4PrivatePostOrders (params?: {}): Promise<implicitReturnType>;
     v4PrivatePostOcoOrders (params?: {}): Promise<implicitReturnType>;
     v4PrivatePostOrderCollateralOco (params?: {}): Promise<implicitReturnType>;
@@ -103,6 +108,17 @@ interface Exchange {
     v4PrivatePostSubAccountUnblock (params?: {}): Promise<implicitReturnType>;
     v4PrivatePostSubAccountBalances (params?: {}): Promise<implicitReturnType>;
     v4PrivatePostSubAccountTransferHistory (params?: {}): Promise<implicitReturnType>;
+    v4PrivatePostSubAccountApiKeyCreate (params?: {}): Promise<implicitReturnType>;
+    v4PrivatePostSubAccountApiKeyEdit (params?: {}): Promise<implicitReturnType>;
+    v4PrivatePostSubAccountApiKeyDelete (params?: {}): Promise<implicitReturnType>;
+    v4PrivatePostSubAccountApiKeyList (params?: {}): Promise<implicitReturnType>;
+    v4PrivatePostSubAccountApiKeyReset (params?: {}): Promise<implicitReturnType>;
+    v4PrivatePostSubAccountApiKeyIpAddressList (params?: {}): Promise<implicitReturnType>;
+    v4PrivatePostSubAccountApiKeyIpAddressCreate (params?: {}): Promise<implicitReturnType>;
+    v4PrivatePostSubAccountApiKeyIpAddressDelete (params?: {}): Promise<implicitReturnType>;
+    v4PrivatePostMiningRewards (params?: {}): Promise<implicitReturnType>;
+    v4PrivatePostMarketFee (params?: {}): Promise<implicitReturnType>;
+    v4PrivatePostConditionalOrders (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 

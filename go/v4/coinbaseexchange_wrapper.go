@@ -20,6 +20,21 @@ func NewCoinbaseexchange(userConfig map[string]interface{}) Coinbaseexchange {
 
 /**
  * @method
+ * @name coinbaseexchange#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getcurrencies
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Coinbaseexchange) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name coinbaseexchange#fetchMarkets
  * @description retrieves data on all markets for coinbaseexchange
  * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproducts
@@ -863,7 +878,7 @@ func (this *Coinbaseexchange) FetchWithdrawals(options ...FetchWithdrawalsOption
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
  */
-func (this *Coinbaseexchange) CreateDepositAddress(code string, options ...CreateDepositAddressOptions) (map[string]interface{}, error) {
+func (this *Coinbaseexchange) CreateDepositAddress(code string, options ...CreateDepositAddressOptions) (DepositAddress, error) {
 
     opts := CreateDepositAddressOptionsStruct{}
 
@@ -877,7 +892,7 @@ func (this *Coinbaseexchange) CreateDepositAddress(code string, options ...Creat
     }
     res := <- this.Core.CreateDepositAddress(code, params)
     if IsError(res) {
-        return map[string]interface{}{}, CreateReturnError(res)
+        return DepositAddress{}, CreateReturnError(res)
     }
-    return res.(map[string]interface{}), nil
+    return NewDepositAddress(res), nil
 }

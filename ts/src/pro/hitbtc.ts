@@ -12,7 +12,7 @@ import { AuthenticationError, ExchangeError, NotSupported } from '../base/errors
 //  ---------------------------------------------------------------------------
 
 export default class hitbtc extends hitbtcRest {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,

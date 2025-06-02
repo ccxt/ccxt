@@ -15,12 +15,12 @@ use ccxt\OrderNotFound;
 use ccxt\NotSupported;
 use ccxt\ExchangeNotAvailable;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class kraken extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'kraken',
             'name' => 'Kraken',
@@ -230,13 +230,13 @@ class kraken extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
+                // about X & Z prefixes and .S & .M suffixes, see comment under fetchCurrencies
                 'LUNA' => 'LUNC',
                 'LUNA2' => 'LUNA',
                 'REPV2' => 'REP',
                 'REP' => 'REPV1',
                 'UST' => 'USTC',
                 'XBT' => 'BTC',
-                'XBT.M' => 'BTC.M', // https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
                 'XDG' => 'DOGE',
             ),
             'options' => array(
@@ -787,9 +787,48 @@ class kraken extends Exchange {
             //     {
             //         "error" => array(),
             //         "result" => array(
-            //             "BCH" => array(
+            //             "ATOM" => array(
             //                 "aclass" => "currency",
-            //                 "altname" => "BCH",
+            //                 "altname" => "ATOM",
+            //                 "collateral_value" => "0.7",
+            //                 "decimals" => 8,
+            //                 "display_decimals" => 6,
+            //                 "margin_rate" => 0.02,
+            //                 "status" => "enabled",
+            //             ),
+            //             "ATOM.S" => array(
+            //                 "aclass" => "currency",
+            //                 "altname" => "ATOM.S",
+            //                 "decimals" => 8,
+            //                 "display_decimals" => 6,
+            //                 "status" => "enabled",
+            //             ),
+            //             "XXBT" => array(
+            //                 "aclass" => "currency",
+            //                 "altname" => "XBT",
+            //                 "decimals" => 10,
+            //                 "display_decimals" => 5,
+            //                 "margin_rate" => 0.01,
+            //                 "status" => "enabled",
+            //             ),
+            //             "XETH" => array(
+            //                 "aclass" => "currency",
+            //                 "altname" => "ETH",
+            //                 "decimals" => 10,
+            //                 "display_decimals" => 5
+            //                 "margin_rate" => 0.02,
+            //                 "status" => "enabled",
+            //             ),
+            //             "XBT.M" => array(
+            //                 "aclass" => "currency",
+            //                 "altname" => "XBT.M",
+            //                 "decimals" => 10,
+            //                 "display_decimals" => 5
+            //                 "status" => "enabled",
+            //             ),
+            //             "ETH.M" => array(
+            //                 "aclass" => "currency",
+            //                 "altname" => "ETH.M",
             //                 "decimals" => 10,
             //                 "display_decimals" => 5
             //                 "status" => "enabled",
@@ -808,23 +847,44 @@ class kraken extends Exchange {
                 // see => https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
                 // to add support for multiple withdrawal/deposit methods and
                 // differentiated fees for each particular method
+                //
+                // Notes about abbreviations:
+                // Z and X prefixes => https://support.kraken.com/hc/en-us/articles/360001206766-Bitcoin-$currency-$code-XBT-vs-BTC
+                // S and M suffixes => https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
+                //
                 $code = $this->safe_currency_code($id);
-                $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'decimals')));
-                // assumes all $currencies are $active except those listed above
-                $active = $this->safe_string($currency, 'status') === 'enabled';
-                $result[$code] = array(
+                // the below can not be reliable done in `safeCurrencyCode`, so we have to do it here
+                if (mb_strpos($id, '.') === false) {
+                    $altName = $this->safe_string($currency, 'altname');
+                    // handle cases like below:
+                    //
+                    //  $id   | altname
+                    // ---------------
+                    // XXBT  |  XBT
+                    // ZUSD  |  USD
+                    if ($id !== $altName && (str_starts_with($id, 'X') || str_starts_with($id, 'Z'))) {
+                        $code = $this->safe_currency_code($altName);
+                        // also, add map in commonCurrencies:
+                        $this->commonCurrencies[$id] = $code;
+                    } else {
+                        $code = $this->safe_currency_code($id);
+                    }
+                }
+                $isFiat = mb_strpos($code, '.HOLD') !== false;
+                $result[$code] = $this->safe_currency_structure(array(
                     'id' => $id,
                     'code' => $code,
                     'info' => $currency,
                     'name' => $this->safe_string($currency, 'altname'),
-                    'active' => $active,
+                    'active' => $this->safe_string($currency, 'status') === 'enabled',
+                    'type' => $isFiat ? 'fiat' : 'crypto',
                     'deposit' => null,
                     'withdraw' => null,
                     'fee' => null,
-                    'precision' => $precision,
+                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'decimals'))),
                     'limits' => array(
                         'amount' => array(
-                            'min' => $precision,
+                            'min' => null,
                             'max' => null,
                         ),
                         'withdraw' => array(
@@ -833,10 +893,24 @@ class kraken extends Exchange {
                         ),
                     ),
                     'networks' => array(),
-                );
+                ));
             }
             return $result;
         }) ();
+    }
+
+    public function safe_currency_code(?string $currencyId, ?array $currency = null): ?string {
+        if ($currencyId === null) {
+            return $currencyId;
+        }
+        if (mb_strpos($currencyId, '.') > 0) {
+            // if ID contains .M, .S or .F, then it can't contain X or Z prefix. in such case, ID equals to ALTNAME
+            $parts = explode('.', $currencyId);
+            $firstPart = $this->safe_string($parts, 0);
+            $secondPart = $this->safe_string($parts, 1);
+            return parent::safe_currency_code($firstPart, $currency) . '.' . $secondPart;
+        }
+        return parent::safe_currency_code($currencyId, $currency);
     }
 
     public function fetch_trading_fee(string $symbol, $params = array ()): PromiseInterface {
@@ -1002,9 +1076,9 @@ class kraken extends Exchange {
             'high' => $this->safe_string($high, 1),
             'low' => $this->safe_string($low, 1),
             'bid' => $this->safe_string($bid, 0),
-            'bidVolume' => null,
+            'bidVolume' => $this->safe_string($bid, 2),
             'ask' => $this->safe_string($ask, 0),
-            'askVolume' => null,
+            'askVolume' => $this->safe_string($ask, 2),
             'vwap' => $vwap,
             'open' => $this->safe_string($ticker, 'o'),
             'close' => $last,
@@ -1569,8 +1643,10 @@ class kraken extends Exchange {
              */
             Async\await($this->load_markets());
             // only buy orders are supported by the endpoint
-            $params['cost'] = $cost;
-            return Async\await($this->create_order($symbol, 'market', $side, $cost, null, $params));
+            $req = array(
+                'cost' => $cost,
+            );
+            return Async\await($this->create_order($symbol, 'market', $side, $cost, null, $this->extend($req, $params)));
         }) ();
     }
 
@@ -1625,6 +1701,8 @@ class kraken extends Exchange {
                 'volume' => $this->amount_to_precision($symbol, $amount),
             );
             $orderRequest = $this->order_request('createOrder', $symbol, $type, $request, $amount, $price, $params);
+            $flags = $this->safe_string($orderRequest[0], 'oflags', '');
+            $isUsingCost = mb_strpos($flags, 'viqc') > -1;
             $response = Async\await($this->privatePostAddOrder ($this->extend($orderRequest[0], $orderRequest[1])));
             //
             //     {
@@ -1636,6 +1714,10 @@ class kraken extends Exchange {
             //     }
             //
             $result = $this->safe_dict($response, 'result');
+            $result['usingCost'] = $isUsingCost;
+            // it's impossible to know if the order was created using cost or base currency
+            // becuase kraken only returns something like this => array( order => 'buy 10.00000000 LTCUSD @ market' )
+            // this usingCost flag is used to help the parsing but omited from the order
             return $this->parse_order($result);
         }) ();
     }
@@ -1732,22 +1814,15 @@ class kraken extends Exchange {
         //     }
         //
         //  ws - createOrder
-        //    {
-        //        "descr" => 'sell 0.00010000 XBTUSDT @ market',
-        //        "event" => 'addOrderStatus',
-        //        "reqid" => 1,
-        //        "status" => 'ok',
-        //        "txid" => 'OAVXZH-XIE54-JCYYDG'
-        //    }
+        //     {
+        //         "order_id" => "OXM2QD-EALR2-YBAVEU"
+        //     }
+        //
         //  ws - editOrder
-        //    {
-        //        "descr" => "order edited $price = 9000.00000000",
-        //        "event" => "editOrderStatus",
-        //        "originaltxid" => "O65KZW-J4AW3-VFS74A",
-        //        "reqid" => 3,
-        //        "status" => "ok",
-        //        "txid" => "OTI672-HJFAO-XOIPPK"
-        //    }
+        //     {
+        //         "amend_id" => "TJSMEH-AA67V-YUSQ6O",
+        //         "order_id" => "OXM2QD-EALR2-YBAVEU"
+        //     }
         //
         //  {
         //      "error" => array(),
@@ -1815,6 +1890,8 @@ class kraken extends Exchange {
         //         "oflags" => "fciq"
         //     }
         //
+        $isUsingCost = $this->safe_bool($order, 'usingCost', false);
+        $order = $this->omit($order, 'usingCost');
         $description = $this->safe_dict($order, 'descr', array());
         $orderDescriptionObj = $this->safe_dict($order, 'descr'); // can be null
         $orderDescription = null;
@@ -1828,11 +1905,16 @@ class kraken extends Exchange {
         $marketId = null;
         $price = null;
         $amount = null;
+        $cost = null;
         $triggerPrice = null;
         if ($orderDescription !== null) {
             $parts = explode(' ', $orderDescription);
             $side = $this->safe_string($parts, 0);
-            $amount = $this->safe_string($parts, 1);
+            if (!$isUsingCost) {
+                $amount = $this->safe_string($parts, 1);
+            } else {
+                $cost = $this->safe_string($parts, 1);
+            }
             $marketId = $this->safe_string($parts, 2);
             $part4 = $this->safe_string($parts, 4);
             $part5 = $this->safe_string($parts, 5);
@@ -1866,15 +1948,13 @@ class kraken extends Exchange {
         // kraken truncates the $cost in the api response so we will ignore it and calculate it from $average & $filled
         // $cost = $this->safe_string($order, 'cost');
         $price = $this->safe_string($description, 'price', $price);
-        // when type = trailling stop returns $price = '+50.0000%'
-        if (($price !== null) && str_ends_with($price, '%')) {
+        // when type = trailing stop returns $price = '+50.0000%'
+        if (($price !== null) && (str_ends_with($price, '%') || Precise::string_equals($price, '0.00000') || Precise::string_equals($price, '0'))) {
             $price = null; // this is not the $price we want
         }
-        if (($price === null) || Precise::string_equals($price, '0')) {
+        if ($price === null) {
             $price = $this->safe_string($description, 'price2');
-        }
-        if (($price === null) || Precise::string_equals($price, '0')) {
-            $price = $this->safe_string($order, 'price', $price);
+            $price = $this->safe_string_2($order, 'limitprice', 'price', $price);
         }
         $flags = $this->safe_string($order, 'oflags', '');
         $isPostOnly = mb_strpos($flags, 'post') > -1;
@@ -1895,7 +1975,7 @@ class kraken extends Exchange {
             }
         }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $id = $this->safe_string_n($order, array( 'id', 'txid', 'amend_id' ));
+        $id = $this->safe_string_n($order, array( 'id', 'txid', 'order_id', 'amend_id' ));
         if (($id === null) || (str_starts_with($id, '['))) {
             $txid = $this->safe_list($order, 'txid');
             $id = $this->safe_string($txid, 0);
@@ -1959,7 +2039,7 @@ class kraken extends Exchange {
             'triggerPrice' => $triggerPrice,
             'takeProfitPrice' => $takeProfitPrice,
             'stopLossPrice' => $stopLossPrice,
-            'cost' => null,
+            'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
             'average' => $average,
@@ -2932,7 +3012,7 @@ class kraken extends Exchange {
         }) ();
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
@@ -3058,7 +3138,7 @@ class kraken extends Exchange {
         return $data;
     }
 
-    public function create_deposit_address(string $code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * create a currency deposit address
@@ -3246,7 +3326,7 @@ class kraken extends Exchange {
         }) ();
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions

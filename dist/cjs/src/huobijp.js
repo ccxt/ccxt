@@ -1140,6 +1140,7 @@ class huobijp extends huobijp$1 {
                 'withdraw': withdrawEnabled,
                 'fee': undefined,
                 'precision': precision,
+                'networks': undefined,
                 'limits': {
                     'amount': {
                         'min': precision,

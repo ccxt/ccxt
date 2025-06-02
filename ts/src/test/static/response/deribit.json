@@ -2,6 +2,804 @@
     "exchange": "deribit",
     "skipKeys": [],
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": {
+                    "jsonrpc": "2.0",
+                    "result": [
+                        {
+                            "currency": "XRP",
+                            "min_withdrawal_fee": "0.0001",
+                            "withdrawal_fee": "0.0001",
+                            "fee_precision": "4",
+                            "coin_type": "XRP",
+                            "withdrawal_priorities": [],
+                            "apr": "0.0",
+                            "min_confirmations": "1",
+                            "currency_long": "XRP",
+                            "in_cross_collateral_pool": false
+                        },
+                        {
+                            "currency": "USYC",
+                            "min_withdrawal_fee": "0.0001",
+                            "withdrawal_fee": "0.2269",
+                            "fee_precision": "4",
+                            "coin_type": "USYC",
+                            "withdrawal_priorities": [],
+                            "apr": "0.0",
+                            "min_confirmations": "1",
+                            "currency_long": "USYC",
+                            "in_cross_collateral_pool": true
+                        },
+                        {
+                            "currency": "USDT",
+                            "min_withdrawal_fee": "0.0001",
+                            "withdrawal_fee": "0.3699",
+                            "fee_precision": "4",
+                            "coin_type": "USDT",
+                            "withdrawal_priorities": [],
+                            "apr": "0.0",
+                            "min_confirmations": "1",
+                            "currency_long": "Tether",
+                            "in_cross_collateral_pool": true
+                        },
+                        {
+                            "currency": "USDE",
+                            "min_withdrawal_fee": "0.0001",
+                            "withdrawal_fee": "0.3702",
+                            "fee_precision": "4",
+                            "coin_type": "USDE",
+                            "withdrawal_priorities": [],
+                            "apr": "5.0",
+                            "min_confirmations": "1",
+                            "currency_long": "Ethena USDe",
+                            "in_cross_collateral_pool": true
+                        },
+                        {
+                            "currency": "USDC",
+                            "min_withdrawal_fee": "10.0",
+                            "withdrawal_fee": "10.0",
+                            "fee_precision": "4",
+                            "coin_type": "USDC",
+                            "withdrawal_priorities": [],
+                            "apr": "0.0",
+                            "min_confirmations": "50",
+                            "currency_long": "USD Coin",
+                            "in_cross_collateral_pool": true
+                        },
+                        {
+                            "currency": "STETH",
+                            "min_withdrawal_fee": "0.0001",
+                            "withdrawal_fee": "0.0001",
+                            "fee_precision": "4",
+                            "coin_type": "STETH",
+                            "withdrawal_priorities": [],
+                            "apr": "2.8318571428571424",
+                            "min_confirmations": "1",
+                            "currency_long": "Staked ETH",
+                            "in_cross_collateral_pool": true
+                        },
+                        {
+                            "currency": "SOL",
+                            "min_withdrawal_fee": "0.0001",
+                            "withdrawal_fee": "0.0001",
+                            "fee_precision": "4",
+                            "coin_type": "SOL",
+                            "withdrawal_priorities": [],
+                            "apr": "0.0",
+                            "min_confirmations": "1",
+                            "currency_long": "Solana",
+                            "in_cross_collateral_pool": true
+                        },
+                        {
+                            "currency": "PAXG",
+                            "min_withdrawal_fee": "0.0001",
+                            "withdrawal_fee": "0.0001",
+                            "fee_precision": "4",
+                            "coin_type": "PAXG",
+                            "withdrawal_priorities": [],
+                            "apr": "0.0",
+                            "min_confirmations": "1",
+                            "currency_long": "Pax Gold",
+                            "in_cross_collateral_pool": true
+                        },
+                        {
+                            "currency": "MATIC",
+                            "min_withdrawal_fee": "0.0001",
+                            "withdrawal_fee": "1.5938",
+                            "fee_precision": "4",
+                            "coin_type": "MATIC",
+                            "withdrawal_priorities": [],
+                            "apr": "0.0",
+                            "min_confirmations": "1",
+                            "currency_long": "Matic Ethereum Token",
+                            "in_cross_collateral_pool": false
+                        },
+                        {
+                            "currency": "EURR",
+                            "min_withdrawal_fee": "0.0001",
+                            "withdrawal_fee": "0.0006",
+                            "fee_precision": "4",
+                            "coin_type": "EURR",
+                            "withdrawal_priorities": [],
+                            "apr": "0.0",
+                            "min_confirmations": "1",
+                            "currency_long": "StablR Euro",
+                            "in_cross_collateral_pool": false
+                        },
+                        {
+                            "currency": "ETHW",
+                            "min_withdrawal_fee": "0.0001",
+                            "withdrawal_fee": "0.0012",
+                            "fee_precision": "4",
+                            "coin_type": "ETHW",
+                            "withdrawal_priorities": [],
+                            "apr": "0.0",
+                            "min_confirmations": "1",
+                            "currency_long": "Ethereum POW",
+                            "in_cross_collateral_pool": false
+                        },
+                        {
+                            "currency": "ETH",
+                            "min_withdrawal_fee": "0.0001",
+                            "withdrawal_fee": "0.0001",
+                            "fee_precision": "4",
+                            "coin_type": "ETH",
+                            "withdrawal_priorities": [],
+                            "apr": "0.0",
+                            "min_confirmations": "50",
+                            "currency_long": "Ethereum",
+                            "in_cross_collateral_pool": true
+                        },
+                        {
+                            "currency": "BUIDL",
+                            "min_withdrawal_fee": "0.0001",
+                            "withdrawal_fee": "0.247",
+                            "fee_precision": "4",
+                            "coin_type": "BUIDL",
+                            "withdrawal_priorities": [],
+                            "apr": "0.0",
+                            "min_confirmations": "1",
+                            "currency_long": "BUIDL",
+                            "in_cross_collateral_pool": true
+                        },
+                        {
+                            "currency": "BTC",
+                            "min_withdrawal_fee": "1.0e-5",
+                            "withdrawal_fee": "1.0e-5",
+                            "fee_precision": "5",
+                            "coin_type": "BTC",
+                            "withdrawal_priorities": [],
+                            "apr": "0.0",
+                            "min_confirmations": "1",
+                            "currency_long": "Bitcoin",
+                            "in_cross_collateral_pool": true
+                        },
+                        {
+                            "currency": "BNB",
+                            "min_withdrawal_fee": "0.0001",
+                            "withdrawal_fee": "0.0006",
+                            "fee_precision": "4",
+                            "coin_type": "BNB",
+                            "withdrawal_priorities": [],
+                            "apr": "0.0",
+                            "min_confirmations": "1",
+                            "currency_long": "Binance Coin",
+                            "in_cross_collateral_pool": false
+                        }
+                    ],
+                    "usIn": "1747672061293631",
+                    "usOut": "1747672061293757",
+                    "usDiff": "126",
+                    "testnet": false
+                },
+                "parsedResponse": {
+                    "XRP": {
+                        "info": {
+                            "currency": "XRP",
+                            "min_withdrawal_fee": "0.0001",
+                            "withdrawal_fee": "0.0001",
+                            "fee_precision": "4",
+                            "coin_type": "XRP",
+                            "withdrawal_priorities": [],
+                            "apr": "0.0",
+                            "min_confirmations": "1",
+                            "currency_long": "XRP",
+                            "in_cross_collateral_pool": false
+                        },
+                        "id": "XRP",
+                        "numericId": null,
+                        "code": "XRP",
+                        "precision": 0.0001,
+                        "type": "crypto",
+                        "name": "XRP",
+                        "active": null,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": 0.0001,
+                        "fees": {},
+                        "networks": null,
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    },
+                    "USYC": {
+                        "info": {
+                            "currency": "USYC",
+                            "min_withdrawal_fee": "0.0001",
+                            "withdrawal_fee": "0.2269",
+                            "fee_precision": "4",
+                            "coin_type": "USYC",
+                            "withdrawal_priorities": [],
+                            "apr": "0.0",
+                            "min_confirmations": "1",
+                            "currency_long": "USYC",
+                            "in_cross_collateral_pool": true
+                        },
+                        "id": "USYC",
+                        "numericId": null,
+                        "code": "USYC",
+                        "precision": 0.0001,
+                        "type": "crypto",
+                        "name": "USYC",
+                        "active": null,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": 0.2269,
+                        "fees": {},
+                        "networks": null,
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    },
+                    "USDT": {
+                        "info": {
+                            "currency": "USDT",
+                            "min_withdrawal_fee": "0.0001",
+                            "withdrawal_fee": "0.3699",
+                            "fee_precision": "4",
+                            "coin_type": "USDT",
+                            "withdrawal_priorities": [],
+                            "apr": "0.0",
+                            "min_confirmations": "1",
+                            "currency_long": "Tether",
+                            "in_cross_collateral_pool": true
+                        },
+                        "id": "USDT",
+                        "numericId": null,
+                        "code": "USDT",
+                        "precision": 0.0001,
+                        "type": "crypto",
+                        "name": "Tether",
+                        "active": null,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": 0.3699,
+                        "fees": {},
+                        "networks": null,
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    },
+                    "USDE": {
+                        "info": {
+                            "currency": "USDE",
+                            "min_withdrawal_fee": "0.0001",
+                            "withdrawal_fee": "0.3702",
+                            "fee_precision": "4",
+                            "coin_type": "USDE",
+                            "withdrawal_priorities": [],
+                            "apr": "5.0",
+                            "min_confirmations": "1",
+                            "currency_long": "Ethena USDe",
+                            "in_cross_collateral_pool": true
+                        },
+                        "id": "USDE",
+                        "numericId": null,
+                        "code": "USDE",
+                        "precision": 0.0001,
+                        "type": "crypto",
+                        "name": "Ethena USDe",
+                        "active": null,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": 0.3702,
+                        "fees": {},
+                        "networks": null,
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    },
+                    "USDC": {
+                        "info": {
+                            "currency": "USDC",
+                            "min_withdrawal_fee": "10.0",
+                            "withdrawal_fee": "10.0",
+                            "fee_precision": "4",
+                            "coin_type": "USDC",
+                            "withdrawal_priorities": [],
+                            "apr": "0.0",
+                            "min_confirmations": "50",
+                            "currency_long": "USD Coin",
+                            "in_cross_collateral_pool": true
+                        },
+                        "id": "USDC",
+                        "numericId": null,
+                        "code": "USDC",
+                        "precision": 0.0001,
+                        "type": "crypto",
+                        "name": "USD Coin",
+                        "active": null,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": 10,
+                        "fees": {},
+                        "networks": null,
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    },
+                    "STETH": {
+                        "info": {
+                            "currency": "STETH",
+                            "min_withdrawal_fee": "0.0001",
+                            "withdrawal_fee": "0.0001",
+                            "fee_precision": "4",
+                            "coin_type": "STETH",
+                            "withdrawal_priorities": [],
+                            "apr": "2.8318571428571424",
+                            "min_confirmations": "1",
+                            "currency_long": "Staked ETH",
+                            "in_cross_collateral_pool": true
+                        },
+                        "id": "STETH",
+                        "numericId": null,
+                        "code": "STETH",
+                        "precision": 0.0001,
+                        "type": "crypto",
+                        "name": "Staked ETH",
+                        "active": null,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": 0.0001,
+                        "fees": {},
+                        "networks": null,
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    },
+                    "SOL": {
+                        "info": {
+                            "currency": "SOL",
+                            "min_withdrawal_fee": "0.0001",
+                            "withdrawal_fee": "0.0001",
+                            "fee_precision": "4",
+                            "coin_type": "SOL",
+                            "withdrawal_priorities": [],
+                            "apr": "0.0",
+                            "min_confirmations": "1",
+                            "currency_long": "Solana",
+                            "in_cross_collateral_pool": true
+                        },
+                        "id": "SOL",
+                        "numericId": null,
+                        "code": "SOL",
+                        "precision": 0.0001,
+                        "type": "crypto",
+                        "name": "Solana",
+                        "active": null,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": 0.0001,
+                        "fees": {},
+                        "networks": null,
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    },
+                    "PAXG": {
+                        "info": {
+                            "currency": "PAXG",
+                            "min_withdrawal_fee": "0.0001",
+                            "withdrawal_fee": "0.0001",
+                            "fee_precision": "4",
+                            "coin_type": "PAXG",
+                            "withdrawal_priorities": [],
+                            "apr": "0.0",
+                            "min_confirmations": "1",
+                            "currency_long": "Pax Gold",
+                            "in_cross_collateral_pool": true
+                        },
+                        "id": "PAXG",
+                        "numericId": null,
+                        "code": "PAXG",
+                        "precision": 0.0001,
+                        "type": "crypto",
+                        "name": "Pax Gold",
+                        "active": null,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": 0.0001,
+                        "fees": {},
+                        "networks": null,
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    },
+                    "MATIC": {
+                        "info": {
+                            "currency": "MATIC",
+                            "min_withdrawal_fee": "0.0001",
+                            "withdrawal_fee": "1.5938",
+                            "fee_precision": "4",
+                            "coin_type": "MATIC",
+                            "withdrawal_priorities": [],
+                            "apr": "0.0",
+                            "min_confirmations": "1",
+                            "currency_long": "Matic Ethereum Token",
+                            "in_cross_collateral_pool": false
+                        },
+                        "id": "MATIC",
+                        "numericId": null,
+                        "code": "MATIC",
+                        "precision": 0.0001,
+                        "type": "crypto",
+                        "name": "Matic Ethereum Token",
+                        "active": null,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": 1.5938,
+                        "fees": {},
+                        "networks": null,
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    },
+                    "EURR": {
+                        "info": {
+                            "currency": "EURR",
+                            "min_withdrawal_fee": "0.0001",
+                            "withdrawal_fee": "0.0006",
+                            "fee_precision": "4",
+                            "coin_type": "EURR",
+                            "withdrawal_priorities": [],
+                            "apr": "0.0",
+                            "min_confirmations": "1",
+                            "currency_long": "StablR Euro",
+                            "in_cross_collateral_pool": false
+                        },
+                        "id": "EURR",
+                        "numericId": null,
+                        "code": "EURR",
+                        "precision": 0.0001,
+                        "type": "crypto",
+                        "name": "StablR Euro",
+                        "active": null,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": 0.0006,
+                        "fees": {},
+                        "networks": null,
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    },
+                    "ETHW": {
+                        "info": {
+                            "currency": "ETHW",
+                            "min_withdrawal_fee": "0.0001",
+                            "withdrawal_fee": "0.0012",
+                            "fee_precision": "4",
+                            "coin_type": "ETHW",
+                            "withdrawal_priorities": [],
+                            "apr": "0.0",
+                            "min_confirmations": "1",
+                            "currency_long": "Ethereum POW",
+                            "in_cross_collateral_pool": false
+                        },
+                        "id": "ETHW",
+                        "numericId": null,
+                        "code": "ETHW",
+                        "precision": 0.0001,
+                        "type": "crypto",
+                        "name": "Ethereum POW",
+                        "active": null,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": 0.0012,
+                        "fees": {},
+                        "networks": null,
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    },
+                    "ETH": {
+                        "info": {
+                            "currency": "ETH",
+                            "min_withdrawal_fee": "0.0001",
+                            "withdrawal_fee": "0.0001",
+                            "fee_precision": "4",
+                            "coin_type": "ETH",
+                            "withdrawal_priorities": [],
+                            "apr": "0.0",
+                            "min_confirmations": "50",
+                            "currency_long": "Ethereum",
+                            "in_cross_collateral_pool": true
+                        },
+                        "id": "ETH",
+                        "numericId": null,
+                        "code": "ETH",
+                        "precision": 0.0001,
+                        "type": "crypto",
+                        "name": "Ethereum",
+                        "active": null,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": 0.0001,
+                        "fees": {},
+                        "networks": null,
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    },
+                    "BUIDL": {
+                        "info": {
+                            "currency": "BUIDL",
+                            "min_withdrawal_fee": "0.0001",
+                            "withdrawal_fee": "0.247",
+                            "fee_precision": "4",
+                            "coin_type": "BUIDL",
+                            "withdrawal_priorities": [],
+                            "apr": "0.0",
+                            "min_confirmations": "1",
+                            "currency_long": "BUIDL",
+                            "in_cross_collateral_pool": true
+                        },
+                        "id": "BUIDL",
+                        "numericId": null,
+                        "code": "BUIDL",
+                        "precision": 0.0001,
+                        "type": "crypto",
+                        "name": "BUIDL",
+                        "active": null,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": 0.247,
+                        "fees": {},
+                        "networks": null,
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    },
+                    "BTC": {
+                        "info": {
+                            "currency": "BTC",
+                            "min_withdrawal_fee": "1.0e-5",
+                            "withdrawal_fee": "1.0e-5",
+                            "fee_precision": "5",
+                            "coin_type": "BTC",
+                            "withdrawal_priorities": [],
+                            "apr": "0.0",
+                            "min_confirmations": "1",
+                            "currency_long": "Bitcoin",
+                            "in_cross_collateral_pool": true
+                        },
+                        "id": "BTC",
+                        "numericId": null,
+                        "code": "BTC",
+                        "precision": 0.00001,
+                        "type": "crypto",
+                        "name": "Bitcoin",
+                        "active": null,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": 0.00001,
+                        "fees": {},
+                        "networks": null,
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    },
+                    "BNB": {
+                        "info": {
+                            "currency": "BNB",
+                            "min_withdrawal_fee": "0.0001",
+                            "withdrawal_fee": "0.0006",
+                            "fee_precision": "4",
+                            "coin_type": "BNB",
+                            "withdrawal_priorities": [],
+                            "apr": "0.0",
+                            "min_confirmations": "1",
+                            "currency_long": "Binance Coin",
+                            "in_cross_collateral_pool": false
+                        },
+                        "id": "BNB",
+                        "numericId": null,
+                        "code": "BNB",
+                        "precision": 0.0001,
+                        "type": "crypto",
+                        "name": "Binance Coin",
+                        "active": null,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": 0.0006,
+                        "fees": {},
+                        "networks": null,
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    }
+                }
+            }
+        ],
         "fetchBalance": [
             {
                 "description": "fetch balance",
@@ -1980,7 +2778,7 @@
         ],
         "fetchTrades": [
             {
-                "description": "public spot trades",
+                "description": "spot public trades",
                 "method": "fetchTrades",
                 "input": [
                     "BTC/USDT",
@@ -1990,55 +2788,58 @@
                 "httpResponse": {
                     "jsonrpc": "2.0",
                     "result": {
-                        "has_more": true,
                         "trades": [
                             {
-                                "trade_id": "BTC_USDT-1097032",
-                                "contracts": "1.0",
-                                "instrument_name": "BTC_USDT",
-                                "tick_direction": "3",
-                                "trade_seq": "53466",
-                                "mark_price": "73147.6867",
-                                "index_price": "73147.6867",
-                                "direction": "sell",
+                                "timestamp": "1747671492355",
+                                "price": "104727.0",
                                 "amount": "0.0001",
-                                "price": "73260.86",
-                                "timestamp": "1710326420359"
+                                "direction": "buy",
+                                "index_price": "104714.5558",
+                                "instrument_name": "BTC_USDT",
+                                "trade_seq": "627847",
+                                "mark_price": "104714.5558",
+                                "tick_direction": "1",
+                                "contracts": "1.0",
+                                "trade_id": "BTC_USDT-9013382"
                             }
-                        ]
+                        ],
+                        "has_more": true
                     },
-                    "usIn": "1710327659195248",
-                    "usOut": "1710327659195489",
-                    "usDiff": "241",
+                    "usIn": "1747671689381427",
+                    "usOut": "1747671689382337",
+                    "usDiff": "910",
                     "testnet": false
                 },
                 "parsedResponse": [
                     {
-                        "id": "BTC_USDT-1097032",
+                        "id": "BTC_USDT-9013382",
                         "info": {
-                            "trade_id": "BTC_USDT-1097032",
-                            "contracts": "1.0",
-                            "instrument_name": "BTC_USDT",
-                            "tick_direction": "3",
-                            "trade_seq": "53466",
-                            "mark_price": "73147.6867",
-                            "index_price": "73147.6867",
-                            "direction": "sell",
+                            "timestamp": "1747671492355",
+                            "price": "104727.0",
                             "amount": "0.0001",
-                            "price": "73260.86",
-                            "timestamp": "1710326420359"
+                            "direction": "buy",
+                            "index_price": "104714.5558",
+                            "instrument_name": "BTC_USDT",
+                            "trade_seq": "627847",
+                            "mark_price": "104714.5558",
+                            "tick_direction": "1",
+                            "contracts": "1.0",
+                            "trade_id": "BTC_USDT-9013382"
                         },
-                        "timestamp": 1710326420359,
-                        "datetime": "2024-03-13T10:40:20.359Z",
+                        "timestamp": 1747671492355,
+                        "datetime": "2025-05-19T16:18:12.355Z",
                         "symbol": "BTC/USDT",
                         "order": null,
                         "type": null,
-                        "side": "sell",
+                        "side": "buy",
                         "takerOrMaker": null,
-                        "price": 73260.86,
+                        "price": 104727,
                         "amount": 0.0001,
-                        "cost": 1.364985341e-9,
-                        "fee": {"cost": null, "currency": null },
+                        "cost": 10.4727,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
                         "fees": []
                     }
                 ]

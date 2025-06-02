@@ -35,6 +35,21 @@ func (this *Hitbtc) FetchMarkets(params ...interface{}) ([]MarketInterface, erro
 }
 /**
  * @method
+ * @name hitbtc#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://api.hitbtc.com/#currencies
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Hitbtc) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name hitbtc#createDepositAddress
  * @description create a currency deposit address
  * @see https://api.hitbtc.com/#generate-deposit-crypto-address
@@ -42,7 +57,7 @@ func (this *Hitbtc) FetchMarkets(params ...interface{}) ([]MarketInterface, erro
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
  */
-func (this *Hitbtc) CreateDepositAddress(code string, options ...CreateDepositAddressOptions) (map[string]interface{}, error) {
+func (this *Hitbtc) CreateDepositAddress(code string, options ...CreateDepositAddressOptions) (DepositAddress, error) {
 
     opts := CreateDepositAddressOptionsStruct{}
 
@@ -56,9 +71,9 @@ func (this *Hitbtc) CreateDepositAddress(code string, options ...CreateDepositAd
     }
     res := <- this.Core.CreateDepositAddress(code, params)
     if IsError(res) {
-        return map[string]interface{}{}, CreateReturnError(res)
+        return DepositAddress{}, CreateReturnError(res)
     }
-    return res.(map[string]interface{}), nil
+    return NewDepositAddress(res), nil
 }
 /**
  * @method

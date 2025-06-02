@@ -455,11 +455,10 @@ public partial class vertex : Exchange
             {
                 continue;
             }
-            object id = this.safeString(data, "product_id");
             object name = this.safeString(data, "symbol");
             object code = this.safeCurrencyCode(name);
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
-                { "id", id },
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
+                { "id", this.safeString(data, "product_id") },
                 { "name", name },
                 { "code", code },
                 { "precision", null },
@@ -479,7 +478,7 @@ public partial class vertex : Exchange
                         { "max", null },
                     } },
                 } },
-            };
+            });
         }
         return result;
     }
@@ -643,7 +642,7 @@ public partial class vertex : Exchange
         parameters ??= new Dictionary<string, object>();
         object response = await this.v1GatewayGetTime(parameters);
         // 1717481623452
-        return this.parseNumber(response);
+        return this.parseToInt(response);
     }
 
     /**
@@ -1628,7 +1627,7 @@ public partial class vertex : Exchange
         {
             marketId = add(((string)marketId).Replace((string)"-PERP", (string)""), ":USDC");
         }
-        market = this.market(marketId);
+        market = this.safeMarket(marketId, market);
         object last = this.safeString(ticker, "last_price");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", getValue(market, "symbol") },

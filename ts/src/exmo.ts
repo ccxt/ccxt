@@ -15,7 +15,7 @@ import type { Dict, Int, Order, OrderSide, OrderType, Trade, OrderBook, OHLCV, B
  * @augments Exchange
  */
 export default class exmo extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'exmo',
             'name': 'EXMO',

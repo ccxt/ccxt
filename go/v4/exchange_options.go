@@ -349,6 +349,7 @@ func (this *Exchange) initializeProperties(extendedProperties map[string]interfa
 	this.UserAgents = SafeValue(extendedProperties, "userAgents", map[string]interface{}{}).(map[string]interface{})
 	this.UserAgent = SafeString(extendedProperties, "userAgent", "").(string)
 	this.Timeout = SafeInteger(extendedProperties, "timeout", 10000).(int64)
+	this.MAX_VALUE = SafeFloat(extendedProperties, "MAX_VALUE", 1.7976931348623157e+308).(float64) // math.MaxFloat64
 	this.Id = SafeString(extendedProperties, "id", "").(string)
 	this.Alias = SafeValue(extendedProperties, "alias", false).(bool)
 

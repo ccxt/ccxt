@@ -15,7 +15,7 @@ import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, Orde
  * @augments Exchange
  */
 export default class okcoin extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'okcoin',
             'name': 'OKCoin',
@@ -37,6 +37,10 @@ export default class okcoin extends Exchange {
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
+                'createPostOnlyOrder': true,
+                'createReduceOnlyOrder': true,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
                 'createStopOrder': true,
                 'createTriggerOrder': true,
                 'fetchBalance': true,
@@ -692,7 +696,7 @@ export default class okcoin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         const response = await this.publicGetPublicTime (params);
         //
         // {
@@ -827,48 +831,30 @@ export default class okcoin extends Exchange {
             return undefined;
         } else {
             const response = await this.privateGetAssetCurrencies (params);
-            const data = this.safeValue (response, 'data', []);
+            const data = this.safeList (response, 'data', []);
             const result: Dict = {};
             const dataByCurrencyId = this.groupBy (data, 'ccy');
             const currencyIds = Object.keys (dataByCurrencyId);
             for (let i = 0; i < currencyIds.length; i++) {
                 const currencyId = currencyIds[i];
-                const currency = this.safeCurrency (currencyId);
-                const code = currency['code'];
+                const code = this.safeCurrencyCode (currencyId);
                 const chains = dataByCurrencyId[currencyId];
                 const networks: Dict = {};
-                let currencyActive = false;
-                let depositEnabled = false;
-                let withdrawEnabled = false;
-                let maxPrecision = undefined;
                 for (let j = 0; j < chains.length; j++) {
                     const chain = chains[j];
-                    const canDeposit = this.safeValue (chain, 'canDep');
-                    depositEnabled = (canDeposit) ? canDeposit : depositEnabled;
-                    const canWithdraw = this.safeValue (chain, 'canWd');
-                    withdrawEnabled = (canWithdraw) ? canWithdraw : withdrawEnabled;
-                    const canInternal = this.safeValue (chain, 'canInternal');
-                    const active = (canDeposit && canWithdraw && canInternal) ? true : false;
-                    currencyActive = (active) ? active : currencyActive;
                     const networkId = this.safeString (chain, 'chain');
                     if ((networkId !== undefined) && (networkId.indexOf ('-') >= 0)) {
                         const parts = networkId.split ('-');
                         const chainPart = this.safeString (parts, 1, networkId);
                         const networkCode = this.networkIdToCode (chainPart);
-                        const precision = this.parsePrecision (this.safeString (chain, 'wdTickSz'));
-                        if (maxPrecision === undefined) {
-                            maxPrecision = precision;
-                        } else {
-                            maxPrecision = Precise.stringMin (maxPrecision, precision);
-                        }
                         networks[networkCode] = {
                             'id': networkId,
                             'network': networkCode,
-                            'active': active,
-                            'deposit': canDeposit,
-                            'withdraw': canWithdraw,
+                            'active': undefined,
+                            'deposit': this.safeBool (chain, 'canDep'),
+                            'withdraw': this.safeBool (chain, 'canWd'),
                             'fee': this.safeNumber (chain, 'minFee'),
-                            'precision': this.parseNumber (precision),
+                            'precision': this.parseNumber (this.parsePrecision (this.safeString (chain, 'wdTickSz'))),
                             'limits': {
                                 'withdraw': {
                                     'min': this.safeNumber (chain, 'minWd'),
@@ -880,16 +866,16 @@ export default class okcoin extends Exchange {
                     }
                 }
                 const firstChain = this.safeValue (chains, 0);
-                result[code] = {
+                result[code] = this.safeCurrencyStructure ({
                     'info': chains,
                     'code': code,
                     'id': currencyId,
                     'name': this.safeString (firstChain, 'name'),
-                    'active': currencyActive,
-                    'deposit': depositEnabled,
-                    'withdraw': withdrawEnabled,
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': undefined,
                     'fee': undefined,
-                    'precision': this.parseNumber (maxPrecision),
+                    'precision': undefined,
                     'limits': {
                         'amount': {
                             'min': undefined,
@@ -897,7 +883,7 @@ export default class okcoin extends Exchange {
                         },
                     },
                     'networks': networks,
-                };
+                });
             }
             return result;
         }

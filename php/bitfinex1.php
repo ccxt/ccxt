@@ -10,7 +10,7 @@ use ccxt\abstract\bitfinex1 as Exchange;
 
 class bitfinex1 extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitfinex1',
             'name' => 'Bitfinex',
@@ -1446,7 +1446,7 @@ class bitfinex1 extends Exchange {
         throw new NotSupported($this->id . ' ' . $code . ' not supported for withdrawal');
     }
 
-    public function create_deposit_address(string $code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()): array {
         /**
          * create a currency deposit address
          *

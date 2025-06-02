@@ -10,7 +10,7 @@ use ccxt\abstract\lbank as Exchange;
 
 class lbank extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'lbank',
             'name' => 'LBank',
@@ -368,7 +368,7 @@ class lbank extends Exchange {
         ));
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          *
@@ -876,7 +876,7 @@ class lbank extends Exchange {
         if ($market['swap']) {
             return $this->parse_order_book($orderbook, $market['symbol'], $timestamp, 'bids', 'asks', 'price', 'volume');
         }
-        return $this->parse_order_book($orderbook, $market['symbol'], $timestamp);
+        return $this->parse_order_book($orderbook, $market['symbol'], $timestamp, 'bids', 'asks', 1, 0);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {

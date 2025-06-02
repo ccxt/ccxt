@@ -6,7 +6,7 @@ import (
 	j "encoding/json"
 	"errors"
 	"fmt"
-	"math"
+	random2 "math/rand"
 	"net/http"
 	"net/url"
 	"reflect"
@@ -44,6 +44,7 @@ type Exchange struct {
 	Urls                interface{}
 	UserAgents          map[string]interface{}
 	Timeout             int64
+	MAX_VALUE           float64
 	RateLimit           float64
 	TokenBucket         map[string]interface{}
 	Throttler           Throttler
@@ -95,7 +96,7 @@ type Exchange struct {
 	PrivateKey    string
 	WalletAddress string
 
-	httpClient  *http.Client
+	httpClient *http.Client
 
 	HttpProxy            interface{}
 	HttpsProxy           interface{}
@@ -163,11 +164,12 @@ const PAD_WITH_ZERO int = 6
 
 func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConfig map[string]interface{}, itf interface{}) {
 	// this = &Exchange{}
-	// var properties = this.describe()
+	var describeValues = this.Describe()
 	if userConfig == nil {
 		userConfig = map[string]interface{}{}
 	}
-	var extendedProperties = this.DeepExtend(exchangeConfig, userConfig)
+	var extendedProperties = this.DeepExtend(describeValues, exchangeConfig)
+	extendedProperties = this.DeepExtend(extendedProperties, userConfig)
 	this.Itf = itf
 	// this.id = SafeString(extendedProperties, "id", "").(string)
 	// this.Id = this.id333
@@ -181,12 +183,7 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 	// afterNs := time.Now().UnixNano()
 	// fmt.Println("Warmup cache took: ", afterNs-beforeNs)
 
-	this.InitRestRateLimiter()
 	this.AfterConstruct()
-
-	if (this.Markets != nil) && (len(this.Markets) > 0) {
-		this.SetMarkets(this.Markets, nil)
-	}
 
 	this.transformApiNew(this.Api)
 	transport := &http.Transport{}
@@ -194,6 +191,10 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 	this.httpClient = &http.Client{
 		Timeout:   30 * time.Second,
 		Transport: transport,
+	}
+
+	if IsTrue(IsTrue(this.SafeBool(userConfig, "sandbox")) || IsTrue(this.SafeBool(userConfig, "testnet"))) {
+		this.SetSandboxMode(true)
 	}
 
 	// fmt.Println(this.TransformedApi)
@@ -207,26 +208,6 @@ func NewExchange() IExchange {
 	exchange := &Exchange{}
 	exchange.Init(map[string]interface{}{})
 	return exchange
-}
-
-func (this *Exchange) InitRestRateLimiter() {
-	if this.RateLimit == -1 {
-		panic("this.RateLimit is not set")
-	}
-
-	refillRate := math.MaxFloat64
-	if this.RateLimit > 0 {
-		refillRate = 1 / this.RateLimit
-	}
-	this.TokenBucket = map[string]interface{}{
-		"delay":       0.001,
-		"capacity":    1,
-		"cost":        1,
-		"maxCapacity": 1000,
-		"refillRate":  refillRate,
-	}
-
-	this.Throttler = NewThrottler(this.TokenBucket)
 }
 
 func (this *Exchange) WarmUpCache() {
@@ -261,6 +242,19 @@ func (this *Exchange) WarmUpCache() {
 	}
 }
 
+func (this *Exchange) InitThrottler() {
+	this.Throttler = NewThrottler(this.TokenBucket)
+}
+
+/*
+*
+  - @method
+  - @name Exchange#loadMarkets
+  - @description Loads and prepares the markets for trading.
+  - @param {boolean} param.reload - If true, the markets will be reloaded from the exchange.
+  - @param {object} params - Additional exchange-specific parameters for the request.
+  - @throws An error if the markets cannot be loaded or prepared.
+*/
 func (this *Exchange) LoadMarkets(params ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
 
@@ -271,28 +265,31 @@ func (this *Exchange) LoadMarkets(params ...interface{}) <-chan interface{} {
 				ch <- "panic:" + ToString(r)
 			}
 		}()
+		reload := GetArg(params, 0, false).(bool)
+		params := GetArg(params, 1, map[string]interface{}{})
 		this.WarmUpCache()
-		if this.Markets != nil && len(this.Markets) > 0 {
-			if this.Markets_by_id == nil && len(this.Markets) > 0 {
-				// Only lock when writing
-				this.marketsMutex.Lock()
-				result := this.SetMarkets(this.Markets, nil)
-				this.marketsMutex.Unlock()
-				ch <- result
+		if !reload {
+			if this.Markets != nil && len(this.Markets) > 0 {
+				if this.Markets_by_id == nil && len(this.Markets) > 0 {
+					// Only lock when writing
+					this.marketsMutex.Lock()
+					result := this.SetMarkets(this.Markets, nil)
+					this.marketsMutex.Unlock()
+					ch <- result
+					return
+				}
+				ch <- this.Markets
 				return
 			}
-			ch <- this.Markets
-			return
 		}
 
 		var currencies interface{} = nil
-		var defaultParams = map[string]interface{}{}
 		hasFetchCurrencies := this.Has["fetchCurrencies"]
 		if IsBool(hasFetchCurrencies) && IsTrue(hasFetchCurrencies) {
-			currencies = <-this.DerivedExchange.FetchCurrencies(defaultParams)
+			currencies = <-this.DerivedExchange.FetchCurrencies(params)
 		}
 
-		markets := <-this.DerivedExchange.FetchMarkets(defaultParams)
+		markets := <-this.DerivedExchange.FetchMarkets(params)
 		PanicOnError(markets)
 
 		// Lock only for writing
@@ -416,10 +413,15 @@ func (this *Exchange) callEndpoint(endpoint2 interface{}, parameters interface{}
 			res := <-this.Fetch2(path, api, method, parameters, map[string]interface{}{}, nil, map[string]interface{}{"cost": cost})
 			PanicOnError(res)
 			ch <- res
+		} else {
+			ch <- nil
 		}
-		ch <- nil
 	}()
 	return ch
+}
+
+func (this *Exchange) ConvertToBigInt(data interface{}) interface{} {
+	return ParseInt(data)
 }
 
 // error related functions
@@ -522,6 +524,14 @@ func (this *Exchange) ParseNumber(v interface{}, a ...interface{}) interface{} {
 
 func (this *Exchange) ValueIsDefined(v interface{}) bool {
 	return v != nil
+}
+
+func (this *Exchange) CreateSafeDictionary() interface{} {
+	return map[string]interface{}{}
+}
+
+func (this *Exchange) ConvertToSafeDictionary(data interface{}) interface{} {
+	return data
 }
 
 func (this *Exchange) callDynamically(name2 interface{}, args ...interface{}) <-chan interface{} {
@@ -872,6 +882,26 @@ func (this *Exchange) callInternal(name2 string, args ...interface{}) <-chan int
 	return ch
 }
 
+func (this *Exchange) BinaryLength(binary interface{}) int {
+	return this.binaryLength(binary)
+}
+
+func (this *Exchange) binaryLength(binary interface{}) int {
+	var length int
+
+	// Handle different types for the length parameter
+	switch v := binary.(type) {
+	case []byte:
+		length = len(v)
+	case string:
+		length = len(v)
+	default:
+		panic(fmt.Sprintf("unsupported binary: %v", reflect.TypeOf(binary)))
+	}
+
+	return length
+}
+
 func (this *Exchange) RandomBytes(length interface{}) string {
 	var byteLength int
 
@@ -1082,6 +1112,37 @@ func (this *Exchange) StarknetSign(a interface{}, b interface{}) interface{} {
 	return nil // to do
 }
 
+func (this *Exchange) GetZKContractSignatureObj(seed interface{}, params interface{}) <-chan interface{} {
+	ch := make(chan interface{})
+
+	go func() {
+		defer close(ch)
+		defer func() {
+			if r := recover(); r != nil {
+				ch <- "panic:" + ToString(r)
+			}
+		}()
+
+		ch <- "panic:" + "Apex currently does not support create order in Go language"
+	}()
+	return ch
+}
+func (this *Exchange) GetZKTransferSignatureObj(seed interface{}, params interface{}) <-chan interface{} {
+	ch := make(chan interface{})
+
+	go func() {
+		defer close(ch)
+		defer func() {
+			if r := recover(); r != nil {
+				ch <- "panic:" + ToString(r)
+			}
+		}()
+
+		ch <- "panic:" + "Apex currently does not support transfer asset in Go language"
+	}()
+	return ch
+}
+
 func (this *Exchange) ExtendExchangeOptions(options2 interface{}) {
 	options := options2.(map[string]interface{})
 	extended := this.Extend(this.Options, options)
@@ -1090,6 +1151,31 @@ func (this *Exchange) ExtendExchangeOptions(options2 interface{}) {
 
 // func (this *Exchange) Init(userConfig map[string]interface{}) {
 // }
+
+func (this *Exchange) RandNumber(size interface{}) int64 {
+	// Try casting interface{} to int
+	intSize, ok := size.(int)
+	if !ok {
+		fmt.Println("Invalid size type; expected int")
+		return 0
+	}
+
+	random2.Seed(time.Now().UnixNano())
+	number := ""
+
+	for i := 0; i < intSize; i++ {
+		digit := random2.Intn(10) // Random digit 0-9
+		number += strconv.Itoa(digit)
+	}
+
+	result, err := strconv.ParseInt(number, 10, 64)
+	if err != nil {
+		fmt.Println("Error converting string to int64:", err)
+		return 0
+	}
+
+	return result
+}
 
 func (this *Exchange) UpdateProxySettings() {
 	proxyUrl := this.CheckProxyUrlSettings(nil, nil, nil, nil)

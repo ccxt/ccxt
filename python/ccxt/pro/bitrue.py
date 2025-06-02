@@ -5,14 +5,14 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCacheBySymbolById
-from ccxt.base.types import Balances, Int, Order, OrderBook, Str
+from ccxt.base.types import Any, Balances, Int, Order, OrderBook, Str
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 
 
 class bitrue(ccxt.async_support.bitrue):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(bitrue, self).describe(), {
             'has': {
                 'ws': True,

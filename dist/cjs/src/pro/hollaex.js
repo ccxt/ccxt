@@ -592,11 +592,11 @@ class hollaex extends hollaex$1 {
     }
     onError(client, error) {
         this.options['ws-expires'] = undefined;
-        this.onError(client, error);
+        super.onError(client, error);
     }
     onClose(client, error) {
         this.options['ws-expires'] = undefined;
-        this.onClose(client, error);
+        super.onClose(client, error);
     }
 }
 

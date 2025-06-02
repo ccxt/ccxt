@@ -10,12 +10,12 @@ use ccxt\async\abstract\btcturk as Exchange;
 use ccxt\ExchangeError;
 use ccxt\BadRequest;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class btcturk extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'btcturk',
             'name' => 'BTCTurk',
@@ -246,7 +246,7 @@ class btcturk extends Exchange {
             //                            "minPrice" => "0.0000000000001",
             //                            "maxPrice" => "10000000",
             //                            "tickSize" => "10",
-            //                            "minExchangeValue" => "99.91",
+            //                            "minExchangeValue" => "99.92",
             //                            "minAmount" => null,
             //                            "maxAmount" => null
             //                        }

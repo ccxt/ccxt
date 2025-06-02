@@ -20,6 +20,20 @@ func NewAscendex(userConfig map[string]interface{}) Ascendex {
 
 /**
  * @method
+ * @name ascendex#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Ascendex) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name ascendex#fetchMarkets
  * @description retrieves data on all markets for ascendex
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -27,6 +41,20 @@ func NewAscendex(userConfig map[string]interface{}) Ascendex {
  */
 func (this *Ascendex) FetchMarkets(params ...interface{}) ([]MarketInterface, error) {
     res := <- this.Core.FetchMarkets(params...)
+    if IsError(res) {
+        return nil, CreateReturnError(res)
+    }
+    return NewMarketInterfaceArray(res), nil
+}
+func (this *Ascendex) FetchSpotMarkets(params ...interface{}) ([]MarketInterface, error) {
+    res := <- this.Core.FetchSpotMarkets(params...)
+    if IsError(res) {
+        return nil, CreateReturnError(res)
+    }
+    return NewMarketInterfaceArray(res), nil
+}
+func (this *Ascendex) FetchContractMarkets(params ...interface{}) ([]MarketInterface, error) {
+    res := <- this.Core.FetchContractMarkets(params...)
     if IsError(res) {
         return nil, CreateReturnError(res)
     }
@@ -337,7 +365,7 @@ func (this *Ascendex) CreateOrders(orders []OrderRequest, options ...CreateOrder
     if opts.Params != nil {
         params = *opts.Params
     }
-    res := <- this.Core.CreateOrders(orders, params)
+    res := <- this.Core.CreateOrders(ConvertOrderRequestListToArray(orders), params)
     if IsError(res) {
         return nil, CreateReturnError(res)
     }

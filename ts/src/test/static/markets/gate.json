@@ -1,57 +1,82 @@
 {
     "BTC/USDT": {
         "id": "BTC_USDT",
+        "lowercaseId": null,
         "symbol": "BTC/USDT",
         "base": "BTC",
         "quote": "USDT",
+        "settle": null,
         "baseId": "BTC",
         "quoteId": "USDT",
-        "active": true,
+        "settleId": null,
         "type": "spot",
         "spot": true,
+        "margin": true,
         "swap": false,
         "future": false,
         "option": false,
-        "margin": true,
+        "index": null,
+        "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.002,
+        "maker": 0.002,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.00001,
             "price": 0.1
         },
         "limits": {
-            "amount": {
-                "min": 0.00001
-            },
-            "price": {},
-            "cost": {
-                "min": 1,
-                "max": 20000000
-            },
             "leverage": {
                 "min": 1,
-                "max": 10
+                "max": 20
+            },
+            "amount": {
+                "min": 0.00001,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 3,
+                "max": 5000000
             }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "id": "BTC_USDT",
             "base": "BTC",
             "quote": "USDT",
-            "leverage": "10",
+            "leverage": "20",
             "min_base_amount": "0.00001",
-            "min_quote_amount": "1",
-            "max_quote_amount": "20000000",
+            "min_quote_amount": "3",
+            "max_quote_amount": "5000000",
             "status": "1",
+            "base_name": "Bitcoin",
+            "quote_name": "Tether",
             "fee": "0.2",
+            "max_base_amount": "100",
             "amount_precision": "5",
             "precision": "1",
             "trade_status": "tradable",
             "sell_start": "0",
-            "buy_start": "0"
+            "buy_start": "0",
+            "type": "normal"
         },
         "tierBased": true,
         "percentage": true,
-        "taker": 0.002,
-        "maker": 0.002,
         "feeSide": "get",
         "tiers": {
             "maker": [
@@ -198,57 +223,82 @@
     },
     "ETH/USDT": {
         "id": "ETH_USDT",
+        "lowercaseId": null,
         "symbol": "ETH/USDT",
         "base": "ETH",
         "quote": "USDT",
+        "settle": null,
         "baseId": "ETH",
         "quoteId": "USDT",
-        "active": true,
+        "settleId": null,
         "type": "spot",
         "spot": true,
+        "margin": true,
         "swap": false,
         "future": false,
         "option": false,
-        "margin": true,
+        "index": null,
+        "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.002,
+        "maker": 0.002,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.0001,
             "price": 0.01
         },
         "limits": {
-            "amount": {
-                "min": 0.001
-            },
-            "price": {},
-            "cost": {
-                "min": 1,
-                "max": 20000000
-            },
             "leverage": {
                 "min": 1,
-                "max": 10
+                "max": 20
+            },
+            "amount": {
+                "min": 0.001,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 3,
+                "max": 5000000
             }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "id": "ETH_USDT",
             "base": "ETH",
             "quote": "USDT",
-            "leverage": "10",
+            "leverage": "20",
             "min_base_amount": "0.001",
-            "min_quote_amount": "1",
-            "max_quote_amount": "20000000",
+            "min_quote_amount": "3",
+            "max_quote_amount": "5000000",
             "status": "1",
+            "base_name": "Ethereum",
+            "quote_name": "Tether",
             "fee": "0.2",
+            "max_base_amount": "1000",
             "amount_precision": "4",
             "precision": "2",
             "trade_status": "tradable",
             "sell_start": "0",
-            "buy_start": "0"
+            "buy_start": "0",
+            "type": "normal"
         },
         "tierBased": true,
         "percentage": true,
-        "taker": 0.002,
-        "maker": 0.002,
         "feeSide": "get",
         "tiers": {
             "maker": [
@@ -395,57 +445,81 @@
     },
     "ADA/USDT": {
         "id": "ADA_USDT",
+        "lowercaseId": null,
         "symbol": "ADA/USDT",
         "base": "ADA",
         "quote": "USDT",
+        "settle": null,
         "baseId": "ADA",
         "quoteId": "USDT",
-        "active": true,
+        "settleId": null,
         "type": "spot",
         "spot": true,
+        "margin": true,
         "swap": false,
         "future": false,
         "option": false,
-        "margin": true,
+        "index": null,
+        "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.002,
+        "maker": 0.002,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
-            "amount": 0.001,
-            "price": 0.00001
+            "amount": 0.01,
+            "price": 0.0001
         },
         "limits": {
-            "amount": {
-                "min": 0.001
-            },
-            "price": {},
-            "cost": {
-                "min": 1,
-                "max": 40000
-            },
             "leverage": {
                 "min": 1,
-                "max": 3
+                "max": 20
+            },
+            "amount": {
+                "min": 0.01,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 3,
+                "max": 5000000
             }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "id": "ADA_USDT",
             "base": "ADA",
             "quote": "USDT",
-            "leverage": "3",
-            "min_base_amount": "20",
-            "min_quote_amount": "1",
-            "max_quote_amount": "40000",
+            "leverage": "20",
+            "min_base_amount": "0.01",
+            "min_quote_amount": "3",
+            "max_quote_amount": "5000000",
             "status": "1",
+            "base_name": "Cardano",
+            "quote_name": "Tether",
             "fee": "0.2",
-            "amount_precision": "3",
-            "precision": "5",
+            "amount_precision": "2",
+            "precision": "4",
             "trade_status": "tradable",
             "sell_start": "0",
-            "buy_start": "0"
+            "buy_start": "0",
+            "type": "normal"
         },
         "tierBased": true,
         "percentage": true,
-        "taker": 0.002,
-        "maker": 0.002,
         "feeSide": "get",
         "tiers": {
             "maker": [
@@ -592,57 +666,81 @@
     },
     "LTC/USDT": {
         "id": "LTC_USDT",
+        "lowercaseId": null,
         "symbol": "LTC/USDT",
         "base": "LTC",
         "quote": "USDT",
+        "settle": null,
         "baseId": "LTC",
         "quoteId": "USDT",
-        "active": true,
+        "settleId": null,
         "type": "spot",
         "spot": true,
+        "margin": true,
         "swap": false,
         "future": false,
         "option": false,
-        "margin": true,
+        "index": null,
+        "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.002,
+        "maker": 0.002,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.0001,
             "price": 0.01
         },
         "limits": {
-            "amount": {
-                "min": 0.003
-            },
-            "price": {},
-            "cost": {
-                "min": 1,
-                "max": 40000
-            },
             "leverage": {
                 "min": 1,
                 "max": 10
+            },
+            "amount": {
+                "min": 0.0001,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 3,
+                "max": 5000000
             }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "id": "LTC_USDT",
             "base": "LTC",
             "quote": "USDT",
             "leverage": "10",
-            "min_base_amount": "0.003",
-            "min_quote_amount": "1",
-            "max_quote_amount": "40000",
+            "min_base_amount": "0.0001",
+            "min_quote_amount": "3",
+            "max_quote_amount": "5000000",
             "status": "1",
+            "base_name": "Litecoin",
+            "quote_name": "Tether",
             "fee": "0.2",
             "amount_precision": "4",
             "precision": "2",
             "trade_status": "tradable",
             "sell_start": "0",
-            "buy_start": "0"
+            "buy_start": "0",
+            "type": "normal"
         },
         "tierBased": true,
         "percentage": true,
-        "taker": 0.002,
-        "maker": 0.002,
         "feeSide": "get",
         "tiers": {
             "maker": [
@@ -789,57 +887,81 @@
     },
     "XRP/USDT": {
         "id": "XRP_USDT",
+        "lowercaseId": null,
         "symbol": "XRP/USDT",
         "base": "XRP",
         "quote": "USDT",
+        "settle": null,
         "baseId": "XRP",
         "quoteId": "USDT",
-        "active": true,
+        "settleId": null,
         "type": "spot",
         "spot": true,
+        "margin": true,
         "swap": false,
         "future": false,
         "option": false,
-        "margin": true,
+        "index": null,
+        "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.002,
+        "maker": 0.002,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.001,
-            "price": 0.00001
+            "price": 0.001
         },
         "limits": {
-            "amount": {
-                "min": 0.001
-            },
-            "price": {},
-            "cost": {
-                "min": 1,
-                "max": 1000000
-            },
             "leverage": {
                 "min": 1,
-                "max": 10
+                "max": 20
+            },
+            "amount": {
+                "min": 0.001,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 3,
+                "max": 5000000
             }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "id": "XRP_USDT",
             "base": "XRP",
             "quote": "USDT",
-            "leverage": "10",
-            "min_base_amount": "2",
-            "min_quote_amount": "1",
-            "max_quote_amount": "1000000",
+            "leverage": "20",
+            "min_base_amount": "0.001",
+            "min_quote_amount": "3",
+            "max_quote_amount": "5000000",
             "status": "1",
+            "base_name": "XRP",
+            "quote_name": "Tether",
             "fee": "0.2",
             "amount_precision": "3",
-            "precision": "5",
+            "precision": "3",
             "trade_status": "tradable",
             "sell_start": "0",
-            "buy_start": "0"
+            "buy_start": "0",
+            "type": "normal"
         },
         "tierBased": true,
         "percentage": true,
-        "taker": 0.002,
-        "maker": 0.002,
         "feeSide": "get",
         "tiers": {
             "maker": [
@@ -986,57 +1108,81 @@
     },
     "DOGE/USDT": {
         "id": "DOGE_USDT",
+        "lowercaseId": null,
         "symbol": "DOGE/USDT",
         "base": "DOGE",
         "quote": "USDT",
+        "settle": null,
         "baseId": "DOGE",
         "quoteId": "USDT",
-        "active": true,
+        "settleId": null,
         "type": "spot",
         "spot": true,
+        "margin": true,
         "swap": false,
         "future": false,
         "option": false,
-        "margin": true,
+        "index": null,
+        "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.002,
+        "maker": 0.002,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.01,
-            "price": 0.000001
+            "price": 0.00001
         },
         "limits": {
-            "amount": {
-                "min": 0.01
-            },
-            "price": {},
-            "cost": {
-                "min": 1,
-                "max": 40000
-            },
             "leverage": {
                 "min": 1,
-                "max": 10
+                "max": 20
+            },
+            "amount": {
+                "min": 0.01,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 3,
+                "max": 5000000
             }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "id": "DOGE_USDT",
             "base": "DOGE",
             "quote": "USDT",
-            "leverage": "10",
-            "min_base_amount": "10",
-            "min_quote_amount": "1",
-            "max_quote_amount": "40000",
+            "leverage": "20",
+            "min_base_amount": "0.01",
+            "min_quote_amount": "3",
+            "max_quote_amount": "5000000",
             "status": "1",
+            "base_name": "DogeCoin",
+            "quote_name": "Tether",
             "fee": "0.2",
             "amount_precision": "2",
-            "precision": "6",
+            "precision": "5",
             "trade_status": "tradable",
             "sell_start": "0",
-            "buy_start": "0"
+            "buy_start": "0",
+            "type": "normal"
         },
         "tierBased": true,
         "percentage": true,
-        "taker": 0.002,
-        "maker": 0.002,
         "feeSide": "get",
         "tiers": {
             "maker": [
@@ -1183,57 +1329,81 @@
     },
     "TRX/USDT": {
         "id": "TRX_USDT",
+        "lowercaseId": null,
         "symbol": "TRX/USDT",
         "base": "TRX",
         "quote": "USDT",
+        "settle": null,
         "baseId": "TRX",
         "quoteId": "USDT",
-        "active": true,
+        "settleId": null,
         "type": "spot",
         "spot": true,
+        "margin": true,
         "swap": false,
         "future": false,
         "option": false,
-        "margin": true,
+        "index": null,
+        "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.002,
+        "maker": 0.002,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.01,
             "price": 0.00001
         },
         "limits": {
-            "amount": {
-                "min": 0.01
-            },
-            "price": {},
-            "cost": {
-                "min": 1,
-                "max": 40000
-            },
             "leverage": {
                 "min": 1,
-                "max": 5
+                "max": 20
+            },
+            "amount": {
+                "min": 0.01,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 3,
+                "max": 5000000
             }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "id": "TRX_USDT",
             "base": "TRX",
             "quote": "USDT",
-            "leverage": "5",
-            "min_base_amount": "50",
-            "min_quote_amount": "1",
-            "max_quote_amount": "40000",
+            "leverage": "20",
+            "min_base_amount": "0.01",
+            "min_quote_amount": "3",
+            "max_quote_amount": "5000000",
             "status": "1",
+            "base_name": "TRON",
+            "quote_name": "Tether",
             "fee": "0.2",
             "amount_precision": "2",
             "precision": "5",
             "trade_status": "tradable",
             "sell_start": "0",
-            "buy_start": "0"
+            "buy_start": "0",
+            "type": "normal"
         },
         "tierBased": true,
         "percentage": true,
-        "taker": 0.002,
-        "maker": 0.002,
         "feeSide": "get",
         "tiers": {
             "maker": [
@@ -1380,90 +1550,109 @@
     },
     "BTC/USDT:USDT": {
         "id": "BTC_USDT",
+        "lowercaseId": null,
         "symbol": "BTC/USDT:USDT",
         "base": "BTC",
         "quote": "USDT",
+        "settle": "USDT",
         "baseId": "BTC",
         "quoteId": "USDT",
-        "active": true,
+        "settleId": "usdt",
         "type": "swap",
-        "linear": true,
-        "inverse": false,
         "spot": false,
+        "margin": false,
         "swap": true,
         "future": false,
         "option": false,
-        "margin": false,
+        "index": null,
+        "active": true,
         "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0000075,
+        "maker": -0.000001,
         "contractSize": 0.0001,
-        "settle": "USDT",
-        "settleId": "usdt",
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 1,
             "price": 0.1
         },
         "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 125
+            },
             "amount": {
                 "min": 1,
                 "max": 1000000
             },
             "price": {
-                "min": 17220.495,
-                "max": 51661.485
+                "min": 99778.785,
+                "max": 110281.815
             },
-            "cost": {},
-            "leverage": {
-                "min": 1,
-                "max": 125
+            "cost": {
+                "min": null,
+                "max": null
             }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
-            "funding_rate_indicative": "0.0001",
+            "funding_rate_indicative": "0.000032",
             "mark_price_round": "0.01",
             "funding_offset": "0",
             "in_delisting": false,
             "risk_limit_base": "1000000",
             "interest_rate": "0.0003",
-            "index_price": "34437.94",
+            "index_price": "105070.74",
             "order_price_round": "0.1",
             "order_size_min": "1",
             "ref_rebate_rate": "0.2",
             "name": "BTC_USDT",
             "ref_discount_rate": "0",
-            "order_price_deviate": "0.5",
+            "order_price_deviate": "0.05",
             "maintenance_rate": "0.004",
             "mark_type": "index",
             "funding_interval": "28800",
             "type": "direct",
-            "risk_limit_step": "1000000",
+            "risk_limit_step": "1499000000",
             "enable_bonus": true,
             "enable_credit": true,
             "leverage_min": "1",
-            "funding_rate": "0.0001",
-            "last_price": "34436.1",
-            "mark_price": "34440.99",
+            "funding_rate": "0.000032",
+            "last_price": "105012.5",
+            "mark_price": "105030.3",
             "order_size_max": "1000000",
-            "funding_next_apply": "1698796800",
-            "short_users": "3219",
-            "config_change_time": "1694678514",
-            "create_time": "0",
-            "trade_size": "241162230941",
-            "position_size": "180669006",
-            "long_users": "3960",
+            "funding_next_apply": "1747756800",
+            "short_users": "12638",
+            "config_change_time": "1747732645",
+            "create_time": "1574035200",
+            "trade_size": "340304959635",
+            "position_size": "311718712",
+            "long_users": "7982",
             "quanto_multiplier": "0.0001",
-            "funding_impact_value": "60000",
+            "funding_impact_value": "30000",
             "leverage_max": "125",
-            "risk_limit_max": "30000000",
-            "maker_fee_rate": "-0.000152",
+            "cross_leverage_default": "10",
+            "risk_limit_max": "1500000000",
+            "maker_fee_rate": "-0.0001",
             "taker_fee_rate": "0.00075",
             "orders_limit": "100",
-            "trade_id": "235430907",
-            "orderbook_id": "52142346005"
+            "trade_id": "507074516",
+            "orderbook_id": "82530455729",
+            "funding_cap_ratio": "0.75",
+            "voucher_leverage": "2",
+            "is_pre_market": false
         },
         "tierBased": true,
         "percentage": true,
-        "taker": 0.0000075,
-        "maker": -0.00000152,
         "feeSide": "get",
         "tiers": {
             "maker": [
@@ -1610,51 +1799,68 @@
     },
     "BTC/USD:BTC": {
         "id": "BTC_USD",
+        "lowercaseId": null,
         "symbol": "BTC/USD:BTC",
         "base": "BTC",
         "quote": "USD",
+        "settle": "BTC",
         "baseId": "BTC",
         "quoteId": "USD",
-        "active": true,
+        "settleId": "btc",
         "type": "swap",
-        "linear": false,
-        "inverse": true,
         "spot": false,
+        "margin": false,
         "swap": true,
         "future": false,
         "option": false,
-        "margin": false,
+        "index": null,
+        "active": true,
         "contract": true,
-        "contractSize": 0,
-        "settle": "BTC",
-        "settleId": "btc",
+        "linear": false,
+        "inverse": true,
+        "subType": "inverse",
+        "taker": 0.0000075,
+        "maker": -0.000002,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 1,
             "price": 0.1
         },
         "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 100
+            },
             "amount": {
                 "min": 1,
                 "max": 1000000
             },
             "price": {
-                "min": 17219.11,
-                "max": 51657.33
+                "min": 52565.685,
+                "max": 157697.055
             },
-            "cost": {},
-            "leverage": {
-                "min": 1,
-                "max": 100
+            "cost": {
+                "min": null,
+                "max": null
             }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "funding_rate_indicative": "0.0001",
             "mark_price_round": "0.01",
             "funding_offset": "0",
             "in_delisting": false,
-            "risk_limit_base": "100",
+            "risk_limit_base": "3",
             "interest_rate": "0.0003",
-            "index_price": "34435.17",
+            "index_price": "105124.52",
             "order_price_round": "0.1",
             "order_size_min": "1",
             "ref_rebate_rate": "0.2",
@@ -1665,35 +1871,37 @@
             "mark_type": "index",
             "funding_interval": "28800",
             "type": "inverse",
-            "risk_limit_step": "100",
+            "risk_limit_step": "2497",
             "enable_bonus": false,
             "enable_credit": true,
             "leverage_min": "1",
             "funding_rate": "0.0001",
-            "last_price": "34422.4",
-            "mark_price": "34438.22",
+            "last_price": "104946.8",
+            "mark_price": "105131.37",
             "order_size_max": "1000000",
-            "funding_next_apply": "1698796800",
-            "short_users": "181",
-            "config_change_time": "1692326979",
-            "create_time": "0",
-            "trade_size": "56110490038",
-            "position_size": "7587476",
-            "long_users": "314",
+            "funding_next_apply": "1747756800",
+            "short_users": "270",
+            "config_change_time": "1732783287",
+            "create_time": "1545235200",
+            "trade_size": "60405719446",
+            "position_size": "11481949",
+            "long_users": "413",
             "quanto_multiplier": "0",
-            "funding_impact_value": "1",
+            "funding_impact_value": "0.5",
             "leverage_max": "100",
-            "risk_limit_max": "800",
+            "cross_leverage_default": "10",
+            "risk_limit_max": "2500",
             "maker_fee_rate": "-0.0002",
             "taker_fee_rate": "0.00075",
             "orders_limit": "50",
-            "trade_id": "40642030",
-            "orderbook_id": "4238942830"
+            "trade_id": "46587029",
+            "orderbook_id": "4945114914",
+            "funding_cap_ratio": "0.75",
+            "voucher_leverage": "0",
+            "is_pre_market": false
         },
         "tierBased": true,
         "percentage": true,
-        "taker": 0.0000075,
-        "maker": -0.000002,
         "feeSide": "get",
         "tiers": {
             "maker": [
@@ -1840,90 +2048,109 @@
     },
     "ETH/USDT:USDT": {
         "id": "ETH_USDT",
+        "lowercaseId": null,
         "symbol": "ETH/USDT:USDT",
         "base": "ETH",
         "quote": "USDT",
+        "settle": "USDT",
         "baseId": "ETH",
         "quoteId": "USDT",
-        "active": true,
+        "settleId": "usdt",
         "type": "swap",
-        "linear": true,
-        "inverse": false,
         "spot": false,
+        "margin": false,
         "swap": true,
         "future": false,
         "option": false,
-        "margin": false,
+        "index": null,
+        "active": true,
         "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0000075,
+        "maker": -0.000001,
         "contractSize": 0.01,
-        "settle": "USDT",
-        "settleId": "usdt",
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 1,
             "price": 0.05
         },
         "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 125
+            },
             "amount": {
                 "min": 1,
                 "max": 1000000
             },
             "price": {
-                "min": 901.82,
-                "max": 2705.46
+                "min": 2383.683,
+                "max": 2634.597
             },
-            "cost": {},
-            "leverage": {
-                "min": 1,
-                "max": 100
+            "cost": {
+                "min": null,
+                "max": null
             }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
-            "funding_rate_indicative": "0.0001",
+            "funding_rate_indicative": "0.000084",
             "mark_price_round": "0.01",
             "funding_offset": "0",
             "in_delisting": false,
-            "risk_limit_base": "1000000",
+            "risk_limit_base": "200000",
             "interest_rate": "0.0003",
-            "index_price": "1803.48",
+            "index_price": "2510.32",
             "order_price_round": "0.05",
             "order_size_min": "1",
             "ref_rebate_rate": "0.2",
             "name": "ETH_USDT",
             "ref_discount_rate": "0",
-            "order_price_deviate": "0.5",
-            "maintenance_rate": "0.005",
+            "order_price_deviate": "0.05",
+            "maintenance_rate": "0.004",
             "mark_type": "index",
             "funding_interval": "28800",
             "type": "direct",
-            "risk_limit_step": "1000000",
+            "risk_limit_step": "1499800000",
             "enable_bonus": true,
             "enable_credit": true,
             "leverage_min": "1",
-            "funding_rate": "0.0001",
-            "last_price": "1803.3",
-            "mark_price": "1803.64",
+            "funding_rate": "0.000084",
+            "last_price": "2509",
+            "mark_price": "2509.14",
             "order_size_max": "1000000",
-            "funding_next_apply": "1698796800",
-            "short_users": "1874",
-            "config_change_time": "1682318747",
-            "create_time": "0",
-            "trade_size": "41910615245",
-            "position_size": "25626993",
-            "long_users": "3182",
+            "funding_next_apply": "1747756800",
+            "short_users": "7021",
+            "config_change_time": "1747732645",
+            "create_time": "1574208000",
+            "trade_size": "63521647628",
+            "position_size": "83725056",
+            "long_users": "9321",
             "quanto_multiplier": "0.01",
             "funding_impact_value": "20000",
-            "leverage_max": "100",
-            "risk_limit_max": "30000000",
-            "maker_fee_rate": "-0.0001368",
+            "leverage_max": "125",
+            "cross_leverage_default": "10",
+            "risk_limit_max": "1500000000",
+            "maker_fee_rate": "-0.0001",
             "taker_fee_rate": "0.00075",
             "orders_limit": "100",
-            "trade_id": "246845039",
-            "orderbook_id": "44963942785"
+            "trade_id": "463233282",
+            "orderbook_id": "68985346621",
+            "funding_cap_ratio": "0.75",
+            "voucher_leverage": "2",
+            "is_pre_market": false
         },
         "tierBased": true,
         "percentage": true,
-        "taker": 0.0000075,
-        "maker": -0.000001368,
         "feeSide": "get",
         "tiers": {
             "maker": [
@@ -2070,90 +2297,109 @@
     },
     "LTC/USDT:USDT": {
         "id": "LTC_USDT",
+        "lowercaseId": null,
         "symbol": "LTC/USDT:USDT",
         "base": "LTC",
         "quote": "USDT",
+        "settle": "USDT",
         "baseId": "LTC",
         "quoteId": "USDT",
-        "active": true,
+        "settleId": "usdt",
         "type": "swap",
-        "linear": true,
-        "inverse": false,
         "spot": false,
+        "margin": false,
         "swap": true,
         "future": false,
         "option": false,
-        "margin": false,
+        "index": null,
+        "active": true,
         "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0000075,
+        "maker": -0.000001,
         "contractSize": 0.1,
-        "settle": "USDT",
-        "settleId": "usdt",
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 1,
             "price": 0.01
         },
         "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 75
+            },
             "amount": {
                 "min": 1,
                 "max": 1000000
             },
             "price": {
-                "min": 34.445,
-                "max": 103.335
+                "min": 83.61,
+                "max": 102.19
             },
-            "cost": {},
-            "leverage": {
-                "min": 1,
-                "max": 50
+            "cost": {
+                "min": null,
+                "max": null
             }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "funding_rate_indicative": "0.0001",
             "mark_price_round": "0.01",
             "funding_offset": "0",
             "in_delisting": false,
-            "risk_limit_base": "500000",
+            "risk_limit_base": "50000",
             "interest_rate": "0.0003",
-            "index_price": "68.89",
+            "index_price": "92.94",
             "order_price_round": "0.01",
             "order_size_min": "1",
             "ref_rebate_rate": "0.2",
             "name": "LTC_USDT",
             "ref_discount_rate": "0",
-            "order_price_deviate": "0.5",
-            "maintenance_rate": "0.01",
+            "order_price_deviate": "0.1",
+            "maintenance_rate": "0.0066",
             "mark_type": "index",
             "funding_interval": "28800",
             "type": "direct",
-            "risk_limit_step": "500000",
+            "risk_limit_step": "49950000",
             "enable_bonus": true,
             "enable_credit": true,
             "leverage_min": "1",
             "funding_rate": "0.0001",
-            "last_price": "68.96",
-            "mark_price": "68.89",
+            "last_price": "92.9",
+            "mark_price": "92.9",
             "order_size_max": "1000000",
-            "funding_next_apply": "1698796800",
-            "short_users": "174",
-            "config_change_time": "1697166184",
-            "create_time": "0",
-            "trade_size": "1869176296",
-            "position_size": "611023",
-            "long_users": "610",
+            "funding_next_apply": "1747756800",
+            "short_users": "406",
+            "config_change_time": "1746773263",
+            "create_time": "1577404800",
+            "trade_size": "2778409274",
+            "position_size": "1220312",
+            "long_users": "1206",
             "quanto_multiplier": "0.1",
-            "funding_impact_value": "5000",
-            "leverage_max": "50",
-            "risk_limit_max": "5000000",
-            "maker_fee_rate": "-0.000152",
+            "funding_impact_value": "10000",
+            "leverage_max": "75",
+            "cross_leverage_default": "10",
+            "risk_limit_max": "50000000",
+            "maker_fee_rate": "-0.0001",
             "taker_fee_rate": "0.00075",
             "orders_limit": "100",
-            "trade_id": "27828634",
-            "orderbook_id": "8106617652"
+            "trade_id": "47554677",
+            "orderbook_id": "11442331606",
+            "funding_cap_ratio": "0.75",
+            "voucher_leverage": "2",
+            "is_pre_market": false
         },
         "tierBased": true,
         "percentage": true,
-        "taker": 0.0000075,
-        "maker": -0.00000152,
         "feeSide": "get",
         "tiers": {
             "maker": [
@@ -2300,90 +2546,109 @@
     },
     "ADA/USDT:USDT": {
         "id": "ADA_USDT",
+        "lowercaseId": null,
         "symbol": "ADA/USDT:USDT",
         "base": "ADA",
         "quote": "USDT",
+        "settle": "USDT",
         "baseId": "ADA",
         "quoteId": "USDT",
-        "active": true,
+        "settleId": "usdt",
         "type": "swap",
-        "linear": true,
-        "inverse": false,
         "spot": false,
+        "margin": false,
         "swap": true,
         "future": false,
         "option": false,
-        "margin": false,
+        "index": null,
+        "active": true,
         "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0000075,
+        "maker": -0.000001,
         "contractSize": 10,
-        "settle": "USDT",
-        "settleId": "usdt",
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 1,
-            "price": 0.00001
+            "price": 0.0001
         },
         "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 75
+            },
             "amount": {
                 "min": 1,
                 "max": 1000000
             },
             "price": {
-                "min": 0.204652,
-                "max": 0.380068
+                "min": 0.65448,
+                "max": 0.79992
             },
-            "cost": {},
-            "leverage": {
-                "min": 1,
-                "max": 50
+            "cost": {
+                "min": null,
+                "max": null
             }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
-            "funding_rate_indicative": "0.0001",
-            "mark_price_round": "0.00001",
+            "funding_rate_indicative": "0.000077",
+            "mark_price_round": "0.0001",
             "funding_offset": "0",
             "in_delisting": false,
-            "risk_limit_base": "500000",
+            "risk_limit_base": "50000",
             "interest_rate": "0.0003",
-            "index_price": "0.29242",
-            "order_price_round": "0.00001",
+            "index_price": "0.72779",
+            "order_price_round": "0.0001",
             "order_size_min": "1",
             "ref_rebate_rate": "0.2",
             "name": "ADA_USDT",
             "ref_discount_rate": "0",
-            "order_price_deviate": "0.3",
-            "maintenance_rate": "0.01",
+            "order_price_deviate": "0.1",
+            "maintenance_rate": "0.0066",
             "mark_type": "index",
             "funding_interval": "28800",
             "type": "direct",
-            "risk_limit_step": "500000",
+            "risk_limit_step": "99950000",
             "enable_bonus": true,
             "enable_credit": true,
             "leverage_min": "1",
-            "funding_rate": "0.0001",
-            "last_price": "0.29264",
-            "mark_price": "0.29236",
+            "funding_rate": "0.000077",
+            "last_price": "0.7271",
+            "mark_price": "0.7272",
             "order_size_max": "1000000",
-            "funding_next_apply": "1698796800",
-            "short_users": "98",
-            "config_change_time": "1698462187",
-            "create_time": "0",
-            "trade_size": "582596919",
-            "position_size": "586274",
-            "long_users": "353",
+            "funding_next_apply": "1747756800",
+            "short_users": "327",
+            "config_change_time": "1746773287",
+            "create_time": "1604880000",
+            "trade_size": "1787902859",
+            "position_size": "8170656",
+            "long_users": "1158",
             "quanto_multiplier": "10",
-            "funding_impact_value": "5000",
-            "leverage_max": "50",
-            "risk_limit_max": "5000000",
-            "maker_fee_rate": "-0.000152",
+            "funding_impact_value": "10000",
+            "leverage_max": "75",
+            "cross_leverage_default": "10",
+            "risk_limit_max": "100000000",
+            "maker_fee_rate": "-0.0001",
             "taker_fee_rate": "0.00075",
             "orders_limit": "100",
-            "trade_id": "9801555",
-            "orderbook_id": "7184411269"
+            "trade_id": "25833397",
+            "orderbook_id": "11106669338",
+            "funding_cap_ratio": "0.75",
+            "voucher_leverage": "2",
+            "is_pre_market": false
         },
         "tierBased": true,
         "percentage": true,
-        "taker": 0.0000075,
-        "maker": -0.00000152,
         "feeSide": "get",
         "tiers": {
             "maker": [
@@ -2530,90 +2795,109 @@
     },
     "XRP/USDT:USDT": {
         "id": "XRP_USDT",
+        "lowercaseId": null,
         "symbol": "XRP/USDT:USDT",
         "base": "XRP",
         "quote": "USDT",
+        "settle": "USDT",
         "baseId": "XRP",
         "quoteId": "USDT",
-        "active": true,
+        "settleId": "usdt",
         "type": "swap",
-        "linear": true,
-        "inverse": false,
         "spot": false,
+        "margin": false,
         "swap": true,
         "future": false,
         "option": false,
-        "margin": false,
+        "index": null,
+        "active": true,
         "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0000075,
+        "maker": -0.000001,
         "contractSize": 10,
-        "settle": "USDT",
-        "settleId": "usdt",
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 1,
             "price": 0.0001
         },
         "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 75
+            },
             "amount": {
                 "min": 1,
                 "max": 1000000
             },
             "price": {
-                "min": 0.30005,
-                "max": 0.90015
+                "min": 2.10411,
+                "max": 2.57169
             },
-            "cost": {},
-            "leverage": {
-                "min": 1,
-                "max": 50
+            "cost": {
+                "min": null,
+                "max": null
             }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
-            "funding_rate_indicative": "0.0001",
+            "funding_rate_indicative": "0.000005",
             "mark_price_round": "0.0001",
             "funding_offset": "0",
             "in_delisting": false,
-            "risk_limit_base": "500000",
+            "risk_limit_base": "100000",
             "interest_rate": "0.0003",
-            "index_price": "0.6003",
+            "index_price": "2.3392",
             "order_price_round": "0.0001",
             "order_size_min": "1",
             "ref_rebate_rate": "0.2",
             "name": "XRP_USDT",
             "ref_discount_rate": "0",
-            "order_price_deviate": "0.5",
-            "maintenance_rate": "0.01",
+            "order_price_deviate": "0.1",
+            "maintenance_rate": "0.0066",
             "mark_type": "index",
             "funding_interval": "28800",
             "type": "direct",
-            "risk_limit_step": "500000",
+            "risk_limit_step": "99900000",
             "enable_bonus": true,
             "enable_credit": true,
             "leverage_min": "1",
-            "funding_rate": "0.0001",
-            "last_price": "0.6002",
-            "mark_price": "0.6001",
+            "funding_rate": "0.000005",
+            "last_price": "2.3377",
+            "mark_price": "2.3379",
             "order_size_max": "1000000",
-            "funding_next_apply": "1698796800",
-            "short_users": "187",
-            "config_change_time": "1697684584",
-            "create_time": "0",
-            "trade_size": "2250637901",
-            "position_size": "1303045",
-            "long_users": "804",
+            "funding_next_apply": "1747756800",
+            "short_users": "634",
+            "config_change_time": "1746773287",
+            "create_time": "1577404800",
+            "trade_size": "4771620999",
+            "position_size": "14345216",
+            "long_users": "1949",
             "quanto_multiplier": "10",
-            "funding_impact_value": "5000",
-            "leverage_max": "50",
-            "risk_limit_max": "5000000",
-            "maker_fee_rate": "-0.000152",
+            "funding_impact_value": "10000",
+            "leverage_max": "75",
+            "cross_leverage_default": "10",
+            "risk_limit_max": "100000000",
+            "maker_fee_rate": "-0.0001",
             "taker_fee_rate": "0.00075",
             "orders_limit": "100",
-            "trade_id": "22846075",
-            "orderbook_id": "9313679914"
+            "trade_id": "70126652",
+            "orderbook_id": "16921888962",
+            "funding_cap_ratio": "0.75",
+            "voucher_leverage": "2",
+            "is_pre_market": false
         },
         "tierBased": true,
         "percentage": true,
-        "taker": 0.0000075,
-        "maker": -0.00000152,
         "feeSide": "get",
         "tiers": {
             "maker": [
@@ -2760,90 +3044,109 @@
     },
     "DOGE/USDT:USDT": {
         "id": "DOGE_USDT",
+        "lowercaseId": null,
         "symbol": "DOGE/USDT:USDT",
         "base": "DOGE",
         "quote": "USDT",
+        "settle": "USDT",
         "baseId": "DOGE",
         "quoteId": "USDT",
-        "active": true,
+        "settleId": "usdt",
         "type": "swap",
-        "linear": true,
-        "inverse": false,
         "spot": false,
+        "margin": false,
         "swap": true,
         "future": false,
         "option": false,
-        "margin": false,
+        "index": null,
+        "active": true,
         "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0000075,
+        "maker": -0.000001,
         "contractSize": 10,
-        "settle": "USDT",
-        "settleId": "usdt",
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 1,
             "price": 0.00001
         },
         "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 100
+            },
             "amount": {
                 "min": 1,
                 "max": 1000000
             },
             "price": {
-                "min": 0.033895,
-                "max": 0.101685
+                "min": 0.197892,
+                "max": 0.241868
             },
-            "cost": {},
-            "leverage": {
-                "min": 1,
-                "max": 50
+            "cost": {
+                "min": null,
+                "max": null
             }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
-            "funding_rate_indicative": "0.0001",
+            "funding_rate_indicative": "-0.000103",
             "mark_price_round": "0.00001",
             "funding_offset": "0",
             "in_delisting": false,
-            "risk_limit_base": "500000",
+            "risk_limit_base": "10000",
             "interest_rate": "0.0003",
-            "index_price": "0.067792",
+            "index_price": "0.220023",
             "order_price_round": "0.00001",
             "order_size_min": "1",
             "ref_rebate_rate": "0.2",
             "name": "DOGE_USDT",
             "ref_discount_rate": "0",
-            "order_price_deviate": "0.5",
-            "maintenance_rate": "0.01",
+            "order_price_deviate": "0.1",
+            "maintenance_rate": "0.005",
             "mark_type": "index",
             "funding_interval": "28800",
             "type": "direct",
-            "risk_limit_step": "500000",
+            "risk_limit_step": "99990000",
             "enable_bonus": true,
             "enable_credit": true,
             "leverage_min": "1",
-            "funding_rate": "0.0001",
-            "last_price": "0.0678",
-            "mark_price": "0.06779",
+            "funding_rate": "-0.000103",
+            "last_price": "0.21988",
+            "mark_price": "0.21988",
             "order_size_max": "1000000",
-            "funding_next_apply": "1698796800",
-            "short_users": "237",
-            "config_change_time": "1697252583",
-            "create_time": "0",
-            "trade_size": "19785940760",
-            "position_size": "9167017",
-            "long_users": "1108",
+            "funding_next_apply": "1747756800",
+            "short_users": "1019",
+            "config_change_time": "1746773287",
+            "create_time": "1594166400",
+            "trade_size": "42074218620",
+            "position_size": "177239136",
+            "long_users": "2968",
             "quanto_multiplier": "10",
-            "funding_impact_value": "5000",
-            "leverage_max": "50",
-            "risk_limit_max": "5000000",
-            "maker_fee_rate": "-0.000152",
+            "funding_impact_value": "10000",
+            "leverage_max": "100",
+            "cross_leverage_default": "10",
+            "risk_limit_max": "100000000",
+            "maker_fee_rate": "-0.0001",
             "taker_fee_rate": "0.00075",
             "orders_limit": "100",
-            "trade_id": "57634547",
-            "orderbook_id": "19759400317"
+            "trade_id": "147773763",
+            "orderbook_id": "30066411938",
+            "funding_cap_ratio": "0.75",
+            "voucher_leverage": "2",
+            "is_pre_market": false
         },
         "tierBased": true,
         "percentage": true,
-        "taker": 0.0000075,
-        "maker": -0.00000152,
         "feeSide": "get",
         "tiers": {
             "maker": [
@@ -2990,90 +3293,109 @@
     },
     "TRX/USDT:USDT": {
         "id": "TRX_USDT",
+        "lowercaseId": null,
         "symbol": "TRX/USDT:USDT",
         "base": "TRX",
         "quote": "USDT",
+        "settle": "USDT",
         "baseId": "TRX",
         "quoteId": "USDT",
-        "active": true,
+        "settleId": "usdt",
         "type": "swap",
-        "linear": true,
-        "inverse": false,
         "spot": false,
+        "margin": false,
         "swap": true,
         "future": false,
         "option": false,
-        "margin": false,
+        "index": null,
+        "active": true,
         "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0000075,
+        "maker": -0.000001,
         "contractSize": 100,
-        "settle": "USDT",
-        "settleId": "usdt",
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 1,
             "price": 0.00001
         },
         "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 75
+            },
             "amount": {
                 "min": 1,
                 "max": 1000000
             },
             "price": {
-                "min": 0.067501,
-                "max": 0.125359
+                "min": 0.24498,
+                "max": 0.29942
             },
-            "cost": {},
-            "leverage": {
-                "min": 1,
-                "max": 20
+            "cost": {
+                "min": null,
+                "max": null
             }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "funding_rate_indicative": "0.0001",
             "mark_price_round": "0.00001",
             "funding_offset": "0",
             "in_delisting": false,
-            "risk_limit_base": "500000",
+            "risk_limit_base": "50000",
             "interest_rate": "0.0003",
-            "index_price": "0.096417",
+            "index_price": "0.27219",
             "order_price_round": "0.00001",
             "order_size_min": "1",
             "ref_rebate_rate": "0.2",
             "name": "TRX_USDT",
             "ref_discount_rate": "0",
-            "order_price_deviate": "0.3",
-            "maintenance_rate": "0.025",
+            "order_price_deviate": "0.1",
+            "maintenance_rate": "0.0066",
             "mark_type": "index",
             "funding_interval": "28800",
             "type": "direct",
-            "risk_limit_step": "500000",
+            "risk_limit_step": "19950000",
             "enable_bonus": true,
             "enable_credit": true,
             "leverage_min": "1",
             "funding_rate": "0.0001",
-            "last_price": "0.09634",
-            "mark_price": "0.09643",
+            "last_price": "0.27224",
+            "mark_price": "0.2722",
             "order_size_max": "1000000",
-            "funding_next_apply": "1698796800",
-            "short_users": "106",
-            "config_change_time": "1695783784",
-            "create_time": "0",
-            "trade_size": "277481285",
-            "position_size": "51603",
-            "long_users": "126",
+            "funding_next_apply": "1747756800",
+            "short_users": "186",
+            "config_change_time": "1747628830",
+            "create_time": "1577404800",
+            "trade_size": "322524918",
+            "position_size": "201227",
+            "long_users": "350",
             "quanto_multiplier": "100",
-            "funding_impact_value": "5000",
-            "leverage_max": "20",
-            "risk_limit_max": "5000000",
-            "maker_fee_rate": "-0.000152",
+            "funding_impact_value": "10000",
+            "leverage_max": "75",
+            "cross_leverage_default": "10",
+            "risk_limit_max": "20000000",
+            "maker_fee_rate": "-0.0001",
             "taker_fee_rate": "0.00075",
             "orders_limit": "100",
-            "trade_id": "4357457",
-            "orderbook_id": "3732186055"
+            "trade_id": "6741426",
+            "orderbook_id": "4874882682",
+            "funding_cap_ratio": "0.75",
+            "voucher_leverage": "0",
+            "is_pre_market": false
         },
         "tierBased": true,
         "percentage": true,
-        "taker": 0.0000075,
-        "maker": -0.00000152,
         "feeSide": "get",
         "tiers": {
             "maker": [

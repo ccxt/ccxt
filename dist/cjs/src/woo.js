@@ -559,6 +559,7 @@ class woo extends woo$1 {
         let symbol = base + '/' + quote;
         let contractSize = undefined;
         let linear = undefined;
+        let inverse = undefined;
         let margin = true;
         const contract = swap;
         if (contract) {
@@ -568,7 +569,9 @@ class woo extends woo$1 {
             symbol = base + '/' + quote + ':' + settle;
             contractSize = this.parseNumber('1');
             linear = true;
+            inverse = false;
         }
+        const active = this.safeString(market, 'is_trading') === '1';
         return {
             'id': marketId,
             'symbol': symbol,
@@ -584,10 +587,10 @@ class woo extends woo$1 {
             'swap': swap,
             'future': false,
             'option': false,
-            'active': this.safeString(market, 'is_trading') === '1',
+            'active': active,
             'contract': contract,
             'linear': linear,
-            'inverse': undefined,
+            'inverse': inverse,
             'contractSize': contractSize,
             'expiry': undefined,
             'expiryDatetime': undefined,
@@ -928,6 +931,7 @@ class woo extends woo$1 {
                 'networks': resultingNetworks,
                 'deposit': undefined,
                 'withdraw': undefined,
+                'type': 'crypto',
                 'limits': {
                     'deposit': {
                         'min': undefined,
@@ -1576,7 +1580,7 @@ class woo extends woo$1 {
             request['size'] = limit;
         }
         else {
-            request['size'] = 500;
+            request['size'] = trailing ? 50 : 500;
         }
         if (trigger) {
             request['algoType'] = 'stop';

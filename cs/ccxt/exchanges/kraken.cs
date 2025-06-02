@@ -191,7 +191,6 @@ public partial class kraken : Exchange
                 { "REP", "REPV1" },
                 { "UST", "USTC" },
                 { "XBT", "BTC" },
-                { "XBT.M", "BTC.M" },
                 { "XDG", "DOGE" },
             } },
             { "options", new Dictionary<string, object>() {
@@ -765,9 +764,48 @@ public partial class kraken : Exchange
         //     {
         //         "error": [],
         //         "result": {
-        //             "BCH": {
+        //             "ATOM": {
         //                 "aclass": "currency",
-        //                 "altname": "BCH",
+        //                 "altname": "ATOM",
+        //                 "collateral_value": "0.7",
+        //                 "decimals": 8,
+        //                 "display_decimals": 6,
+        //                 "margin_rate": 0.02,
+        //                 "status": "enabled",
+        //             },
+        //             "ATOM.S": {
+        //                 "aclass": "currency",
+        //                 "altname": "ATOM.S",
+        //                 "decimals": 8,
+        //                 "display_decimals": 6,
+        //                 "status": "enabled",
+        //             },
+        //             "XXBT": {
+        //                 "aclass": "currency",
+        //                 "altname": "XBT",
+        //                 "decimals": 10,
+        //                 "display_decimals": 5,
+        //                 "margin_rate": 0.01,
+        //                 "status": "enabled",
+        //             },
+        //             "XETH": {
+        //                 "aclass": "currency",
+        //                 "altname": "ETH",
+        //                 "decimals": 10,
+        //                 "display_decimals": 5
+        //                 "margin_rate": 0.02,
+        //                 "status": "enabled",
+        //             },
+        //             "XBT.M": {
+        //                 "aclass": "currency",
+        //                 "altname": "XBT.M",
+        //                 "decimals": 10,
+        //                 "display_decimals": 5
+        //                 "status": "enabled",
+        //             },
+        //             "ETH.M": {
+        //                 "aclass": "currency",
+        //                 "altname": "ETH.M",
         //                 "decimals": 10,
         //                 "display_decimals": 5
         //                 "status": "enabled",
@@ -787,23 +825,47 @@ public partial class kraken : Exchange
             // see: https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
+            //
+            // Notes about abbreviations:
+            // Z and X prefixes: https://support.kraken.com/hc/en-us/articles/360001206766-Bitcoin-currency-code-XBT-vs-BTC
+            // S and M suffixes: https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
+            //
             object code = this.safeCurrencyCode(id);
-            object precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "decimals")));
-            // assumes all currencies are active except those listed above
-            object active = isEqual(this.safeString(currency, "status"), "enabled");
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            // the below can not be reliable done in `safeCurrencyCode`, so we have to do it here
+            if (isTrue(isLessThan(getIndexOf(id, "."), 0)))
+            {
+                object altName = this.safeString(currency, "altname");
+                // handle cases like below:
+                //
+                //  id   | altname
+                // ---------------
+                // XXBT  |  XBT
+                // ZUSD  |  USD
+                if (isTrue(isTrue(!isEqual(id, altName)) && isTrue((isTrue(((string)id).StartsWith(((string)"X"))) || isTrue(((string)id).StartsWith(((string)"Z")))))))
+                {
+                    code = this.safeCurrencyCode(altName);
+                    // also, add map in commonCurrencies:
+                    ((IDictionary<string,object>)this.commonCurrencies)[(string)id] = code;
+                } else
+                {
+                    code = this.safeCurrencyCode(id);
+                }
+            }
+            object isFiat = isGreaterThanOrEqual(getIndexOf(code, ".HOLD"), 0);
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "code", code },
                 { "info", currency },
                 { "name", this.safeString(currency, "altname") },
-                { "active", active },
+                { "active", isEqual(this.safeString(currency, "status"), "enabled") },
+                { "type", ((bool) isTrue(isFiat)) ? "fiat" : "crypto" },
                 { "deposit", null },
                 { "withdraw", null },
                 { "fee", null },
-                { "precision", precision },
+                { "precision", this.parseNumber(this.parsePrecision(this.safeString(currency, "decimals"))) },
                 { "limits", new Dictionary<string, object>() {
                     { "amount", new Dictionary<string, object>() {
-                        { "min", precision },
+                        { "min", null },
                         { "max", null },
                     } },
                     { "withdraw", new Dictionary<string, object>() {
@@ -812,9 +874,26 @@ public partial class kraken : Exchange
                     } },
                 } },
                 { "networks", new Dictionary<string, object>() {} },
-            };
+            });
         }
         return result;
+    }
+
+    public override object safeCurrencyCode(object currencyId, object currency = null)
+    {
+        if (isTrue(isEqual(currencyId, null)))
+        {
+            return currencyId;
+        }
+        if (isTrue(isGreaterThan(getIndexOf(currencyId, "."), 0)))
+        {
+            // if ID contains .M, .S or .F, then it can't contain X or Z prefix. in such case, ID equals to ALTNAME
+            object parts = ((string)currencyId).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+            object firstPart = this.safeString(parts, 0);
+            object secondPart = this.safeString(parts, 1);
+            return add(add(base.safeCurrencyCode(firstPart, currency), "."), secondPart);
+        }
+        return base.safeCurrencyCode(currencyId, currency);
     }
 
     /**
@@ -989,9 +1068,9 @@ public partial class kraken : Exchange
             { "high", this.safeString(high, 1) },
             { "low", this.safeString(low, 1) },
             { "bid", this.safeString(bid, 0) },
-            { "bidVolume", null },
+            { "bidVolume", this.safeString(bid, 2) },
             { "ask", this.safeString(ask, 0) },
-            { "askVolume", null },
+            { "askVolume", this.safeString(ask, 2) },
             { "vwap", vwap },
             { "open", this.safeString(ticker, "o") },
             { "close", last },
@@ -1588,8 +1667,10 @@ public partial class kraken : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         // only buy orders are supported by the endpoint
-        ((IDictionary<string,object>)parameters)["cost"] = cost;
-        return await this.createOrder(symbol, "market", side, cost, null, parameters);
+        object req = new Dictionary<string, object>() {
+            { "cost", cost },
+        };
+        return await this.createOrder(symbol, "market", side, cost, null, this.extend(req, parameters));
     }
 
     /**
@@ -1644,6 +1725,8 @@ public partial class kraken : Exchange
             { "volume", this.amountToPrecision(symbol, amount) },
         };
         object orderRequest = this.orderRequest("createOrder", symbol, type, request, amount, price, parameters);
+        object flags = this.safeString(getValue(orderRequest, 0), "oflags", "");
+        object isUsingCost = isGreaterThan(getIndexOf(flags, "viqc"), -1);
         object response = await this.privatePostAddOrder(this.extend(getValue(orderRequest, 0), getValue(orderRequest, 1)));
         //
         //     {
@@ -1655,6 +1738,10 @@ public partial class kraken : Exchange
         //     }
         //
         object result = this.safeDict(response, "result");
+        ((IDictionary<string,object>)result)["usingCost"] = isUsingCost;
+        // it's impossible to know if the order was created using cost or base currency
+        // becuase kraken only returns something like this: { order: 'buy 10.00000000 LTCUSD @ market' }
+        // this usingCost flag is used to help the parsing but omited from the order
         return this.parseOrder(result);
     }
 
@@ -1760,22 +1847,15 @@ public partial class kraken : Exchange
         //     }
         //
         //  ws - createOrder
-        //    {
-        //        "descr": 'sell 0.00010000 XBTUSDT @ market',
-        //        "event": 'addOrderStatus',
-        //        "reqid": 1,
-        //        "status": 'ok',
-        //        "txid": 'OAVXZH-XIE54-JCYYDG'
-        //    }
+        //     {
+        //         "order_id": "OXM2QD-EALR2-YBAVEU"
+        //     }
+        //
         //  ws - editOrder
-        //    {
-        //        "descr": "order edited price = 9000.00000000",
-        //        "event": "editOrderStatus",
-        //        "originaltxid": "O65KZW-J4AW3-VFS74A",
-        //        "reqid": 3,
-        //        "status": "ok",
-        //        "txid": "OTI672-HJFAO-XOIPPK"
-        //    }
+        //     {
+        //         "amend_id": "TJSMEH-AA67V-YUSQ6O",
+        //         "order_id": "OXM2QD-EALR2-YBAVEU"
+        //     }
         //
         //  {
         //      "error": [],
@@ -1843,6 +1923,8 @@ public partial class kraken : Exchange
         //         "oflags": "fciq"
         //     }
         //
+        object isUsingCost = this.safeBool(order, "usingCost", false);
+        order = this.omit(order, "usingCost");
         object description = this.safeDict(order, "descr", new Dictionary<string, object>() {});
         object orderDescriptionObj = this.safeDict(order, "descr"); // can be null
         object orderDescription = null;
@@ -1858,12 +1940,19 @@ public partial class kraken : Exchange
         object marketId = null;
         object price = null;
         object amount = null;
+        object cost = null;
         object triggerPrice = null;
         if (isTrue(!isEqual(orderDescription, null)))
         {
             object parts = ((string)orderDescription).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
             side = this.safeString(parts, 0);
-            amount = this.safeString(parts, 1);
+            if (!isTrue(isUsingCost))
+            {
+                amount = this.safeString(parts, 1);
+            } else
+            {
+                cost = this.safeString(parts, 1);
+            }
             marketId = this.safeString(parts, 2);
             object part4 = this.safeString(parts, 4);
             object part5 = this.safeString(parts, 5);
@@ -1903,18 +1992,15 @@ public partial class kraken : Exchange
         // kraken truncates the cost in the api response so we will ignore it and calculate it from average & filled
         // const cost = this.safeString (order, 'cost');
         price = this.safeString(description, "price", price);
-        // when type = trailling stop returns price = '+50.0000%'
-        if (isTrue(isTrue((!isEqual(price, null))) && isTrue(((string)price).EndsWith(((string)"%")))))
+        // when type = trailing stop returns price = '+50.0000%'
+        if (isTrue(isTrue((!isEqual(price, null))) && isTrue((isTrue(isTrue(((string)price).EndsWith(((string)"%"))) || isTrue(Precise.stringEquals(price, "0.00000"))) || isTrue(Precise.stringEquals(price, "0"))))))
         {
             price = null; // this is not the price we want
         }
-        if (isTrue(isTrue((isEqual(price, null))) || isTrue(Precise.stringEquals(price, "0"))))
+        if (isTrue(isEqual(price, null)))
         {
             price = this.safeString(description, "price2");
-        }
-        if (isTrue(isTrue((isEqual(price, null))) || isTrue(Precise.stringEquals(price, "0"))))
-        {
-            price = this.safeString(order, "price", price);
+            price = this.safeString2(order, "limitprice", "price", price);
         }
         object flags = this.safeString(order, "oflags", "");
         object isPostOnly = isGreaterThan(getIndexOf(flags, "post"), -1);
@@ -1939,7 +2025,7 @@ public partial class kraken : Exchange
             }
         }
         object status = this.parseOrderStatus(this.safeString(order, "status"));
-        object id = this.safeStringN(order, new List<object>() {"id", "txid", "amend_id"});
+        object id = this.safeStringN(order, new List<object>() {"id", "txid", "order_id", "amend_id"});
         if (isTrue(isTrue((isEqual(id, null))) || isTrue((((string)id).StartsWith(((string)"["))))))
         {
             object txid = this.safeList(order, "txid");
@@ -2019,7 +2105,7 @@ public partial class kraken : Exchange
             { "triggerPrice", triggerPrice },
             { "takeProfitPrice", takeProfitPrice },
             { "stopLossPrice", stopLossPrice },
-            { "cost", null },
+            { "cost", cost },
             { "amount", amount },
             { "filled", filled },
             { "average", average },

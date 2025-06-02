@@ -7,11 +7,11 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use ccxt\async\abstract\binanceusdm as binance;
-use React\Async;
+use \React\Async;
 
 class binanceusdm extends binance {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'binanceusdm',
             'name' => 'Binance USDⓈ-M',
@@ -36,7 +36,7 @@ class binanceusdm extends binance {
                 'fetchMarkets' => array( 'linear' ),
                 'defaultSubType' => 'linear',
                 // https://www.binance.com/en/support/faq/360033162192
-                // tier amount, maintenance margin, initial margin
+                // tier amount, maintenance margin, initial margin,
                 'leverageBrackets' => null,
                 'marginTypes' => array(),
                 'marginModes' => array(),

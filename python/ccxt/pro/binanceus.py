@@ -4,13 +4,14 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.pro.binance import binance
+from ccxt.base.types import Any
 
 import ccxt.async_support.binanceus as binanceusRest
 
 
 class binanceus(binance):
 
-    def describe(self):
+    def describe(self) -> Any:
         # eslint-disable-next-line new-cap
         restInstance = binanceusRest()
         restDescribe = restInstance.describe()
@@ -30,7 +31,7 @@ class binanceus(binance):
                     'web': 'https://www.binance.us',
                     'sapi': 'https://api.binance.us/sapi/v1',
                     'wapi': 'https://api.binance.us/wapi/v3',
-                    'public': 'https://api.binance.us/api/v1',
+                    'public': 'https://api.binance.us/api/v3',
                     'private': 'https://api.binance.us/api/v3',
                     'v3': 'https://api.binance.us/api/v3',
                     'v1': 'https://api.binance.us/api/v1',

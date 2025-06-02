@@ -10,7 +10,7 @@ use ccxt\abstract\coinone as Exchange;
 
 class coinone extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coinone',
             'name' => 'CoinOne',
@@ -294,18 +294,16 @@ class coinone extends Exchange {
         for ($i = 0; $i < count($currencies); $i++) {
             $entry = $currencies[$i];
             $id = $this->safe_string($entry, 'symbol');
-            $name = $this->safe_string($entry, 'name');
             $code = $this->safe_currency_code($id);
-            $withdrawStatus = $this->safe_string($entry, 'withdraw_status', '');
-            $depositStatus = $this->safe_string($entry, 'deposit_status', '');
-            $isWithdrawEnabled = $withdrawStatus === 'normal';
-            $isDepositEnabled = $depositStatus === 'normal';
-            $result[$code] = array(
+            $isWithdrawEnabled = $this->safe_string($entry, 'withdraw_status', '') === 'normal';
+            $isDepositEnabled = $this->safe_string($entry, 'deposit_status', '') === 'normal';
+            $type = ($code !== 'KRW') ? 'crypto' : 'fiat';
+            $result[$code] = $this->safe_currency_structure(array(
                 'id' => $id,
                 'code' => $code,
                 'info' => $entry,
-                'name' => $name,
-                'active' => $isWithdrawEnabled && $isDepositEnabled,
+                'name' => $this->safe_string($entry, 'name'),
+                'active' => null,
                 'deposit' => $isDepositEnabled,
                 'withdraw' => $isWithdrawEnabled,
                 'fee' => $this->safe_number($entry, 'withdrawal_fee'),
@@ -321,7 +319,8 @@ class coinone extends Exchange {
                     ),
                 ),
                 'networks' => array(),
-            );
+                'type' => $type,
+            ));
         }
         return $result;
     }

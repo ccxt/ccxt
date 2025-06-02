@@ -269,7 +269,7 @@ public partial class bitbns : Exchange
                 { "swap", false },
                 { "future", false },
                 { "option", false },
-                { "active", null },
+                { "active", this.safeBool(market, "active") },
                 { "contract", false },
                 { "linear", null },
                 { "inverse", null },

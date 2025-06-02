@@ -162,7 +162,6 @@ func getValueFromList(list interface{}, keys []interface{}, defVal interface{}) 
 	return defVal
 }
 
-
 func SafeValueN(obj interface{}, keys []interface{}, defaultValue ...interface{}) interface{} {
 	var defVal interface{} = nil
 	if len(defaultValue) > 0 {
@@ -299,6 +298,9 @@ func SafeIntegerN(obj interface{}, keys []interface{}, defaultValue interface{})
 	case string:
 		if i, err := strconv.ParseInt(v, 10, 64); err == nil {
 			return i
+		}
+		if f, err := strconv.ParseFloat(v, 64); err == nil {
+			return int64(f)
 		}
 	default:
 		return defaultValue

@@ -6,9 +6,8 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.woo import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Bool, Conversion, Currencies, Currency, DepositAddress, Int, LedgerEntry, Leverage, MarginModification, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, FundingRate, FundingRates, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Any, Balances, Bool, Conversion, Currencies, Currency, DepositAddress, Int, LedgerEntry, Leverage, MarginModification, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, FundingRate, FundingRates, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
-from typing import Any
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -24,7 +23,7 @@ from ccxt.base.precise import Precise
 
 class woo(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(woo, self).describe(), {
             'id': 'woo',
             'name': 'WOO X',
@@ -484,7 +483,7 @@ class woo(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def fetch_time(self, params={}):
+    async def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -564,6 +563,7 @@ class woo(Exchange, ImplicitAPI):
         symbol = base + '/' + quote
         contractSize: Num = None
         linear: Bool = None
+        inverse: Bool = None
         margin = True
         contract = swap
         if contract:
@@ -573,6 +573,8 @@ class woo(Exchange, ImplicitAPI):
             symbol = base + '/' + quote + ':' + settle
             contractSize = self.parse_number('1')
             linear = True
+            inverse = False
+        active = self.safe_string(market, 'is_trading') == '1'
         return {
             'id': marketId,
             'symbol': symbol,
@@ -588,10 +590,10 @@ class woo(Exchange, ImplicitAPI):
             'swap': swap,
             'future': False,
             'option': False,
-            'active': self.safe_string(market, 'is_trading') == '1',
+            'active': active,
             'contract': contract,
             'linear': linear,
-            'inverse': None,
+            'inverse': inverse,
             'contractSize': contractSize,
             'expiry': None,
             'expiryDatetime': None,
@@ -925,6 +927,7 @@ class woo(Exchange, ImplicitAPI):
                 'networks': resultingNetworks,
                 'deposit': None,
                 'withdraw': None,
+                'type': 'crypto',
                 'limits': {
                     'deposit': {
                         'min': None,
@@ -1508,7 +1511,7 @@ class woo(Exchange, ImplicitAPI):
         if limit is not None:
             request['size'] = limit
         else:
-            request['size'] = 500
+            request['size'] = 50 if trailing else 500
         if trigger:
             request['algoType'] = 'stop'
         elif trailing:
@@ -3162,7 +3165,7 @@ class woo(Exchange, ImplicitAPI):
         #
         return self.parse_position(response, market)
 
-    async def fetch_positions(self, symbols: Strings = None, params={}):
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         await self.load_markets()
         response = await self.v3PrivateGetPositions(params)
         #

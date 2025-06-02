@@ -18,7 +18,7 @@ class coinbaseinternational extends coinbaseinternational$1 {
             'id': 'coinbaseinternational',
             'name': 'Coinbase International',
             'countries': ['US'],
-            'certified': true,
+            'certified': false,
             'pro': true,
             'rateLimit': 100,
             'version': 'v1',
@@ -801,6 +801,7 @@ class coinbaseinternational extends coinbaseinternational$1 {
             'currency': code,
             'tag': tag,
             'address': address,
+            'network': undefined,
             'info': response,
         };
     }

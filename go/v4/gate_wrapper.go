@@ -82,6 +82,21 @@ func (this *Gate) FetchOptionUnderlyings() ([]map[string]interface{}, error) {
 }
 /**
  * @method
+ * @name gate#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-currencies-details
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Gate) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name gate#fetchFundingRate
  * @description fetch the current funding rate
  * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-contract
@@ -156,6 +171,32 @@ func (this *Gate) FetchNetworkDepositAddress(code string, options ...FetchNetwor
         return map[string]interface{}{}, CreateReturnError(res)
     }
     return res.(map[string]interface{}), nil
+}
+/**
+ * @method
+ * @name gate#fetchDepositAddressesByNetwork
+ * @description fetch a dictionary of addresses for a currency, indexed by network
+ * @param {string} code unified currency code of the currency for the deposit address
+ * @param {object} [params] extra parameters specific to the api endpoint
+ * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by the network
+ */
+func (this *Gate) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+
+    opts := FetchDepositAddressesByNetworkOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.FetchDepositAddressesByNetwork(code, params)
+    if IsError(res) {
+        return nil, CreateReturnError(res)
+    }
+    return NewDepositAddressArray(res), nil
 }
 /**
  * @method
@@ -926,7 +967,7 @@ func (this *Gate) CreateOrders(orders []OrderRequest, options ...CreateOrdersOpt
     if opts.Params != nil {
         params = *opts.Params
     }
-    res := <- this.Core.CreateOrders(orders, params)
+    res := <- this.Core.CreateOrders(ConvertOrderRequestListToArray(orders), params)
     if IsError(res) {
         return nil, CreateReturnError(res)
     }

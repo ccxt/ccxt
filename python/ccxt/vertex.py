@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.vertex import ImplicitAPI
-from ccxt.base.types import Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction
+from ccxt.base.types import Any, Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -22,7 +22,7 @@ from ccxt.base.precise import Precise
 
 class vertex(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(vertex, self).describe(), {
             'id': 'vertex',
             'name': 'Vertex',
@@ -457,11 +457,10 @@ class vertex(Exchange, ImplicitAPI):
             tickerId = self.safe_string(data, 'ticker_id')
             if (tickerId is not None) and (tickerId.find('PERP') > 0):
                 continue
-            id = self.safe_string(data, 'product_id')
             name = self.safe_string(data, 'symbol')
             code = self.safe_currency_code(name)
-            result[code] = {
-                'id': id,
+            result[code] = self.safe_currency_structure({
+                'id': self.safe_string(data, 'product_id'),
                 'name': name,
                 'code': code,
                 'precision': None,
@@ -481,7 +480,7 @@ class vertex(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
-            }
+            })
         return result
 
     def parse_market(self, market) -> Market:
@@ -622,7 +621,7 @@ class vertex(Exchange, ImplicitAPI):
             result.append(self.parse_market(rawMarket))
         return result
 
-    def fetch_time(self, params={}):
+    def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -630,7 +629,7 @@ class vertex(Exchange, ImplicitAPI):
         """
         response = self.v1GatewayGetTime(params)
         # 1717481623452
-        return self.parse_number(response)
+        return self.parse_to_int(response)
 
     def fetch_status(self, params={}):
         """
@@ -1523,7 +1522,7 @@ class vertex(Exchange, ImplicitAPI):
         marketId = base + '/' + quote
         if base.find('PERP') > 0:
             marketId = marketId.replace('-PERP', '') + ':USDC'
-        market = self.market(marketId)
+        market = self.safe_market(marketId, market)
         last = self.safe_string(ticker, 'last_price')
         return self.safe_ticker({
             'symbol': market['symbol'],
@@ -2859,7 +2858,7 @@ class vertex(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    def fetch_positions(self, symbols: Strings = None, params={}):
+    def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open positions
 

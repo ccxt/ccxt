@@ -175,18 +175,39 @@ func GetValue(collection interface{}, key interface{}) interface{} {
 			}
 			return nil
 		case []interface{}:
+			if keyNum >= len(v) {
+				return nil
+			}
 			return v[keyNum]
 		case []string:
+			if keyNum >= len(v) {
+				return nil
+			}
 			return v[keyNum]
 		case []int64:
+			if keyNum >= len(v) {
+				return nil
+			}
 			return v[keyNum]
 		case []float64:
+			if keyNum >= len(v) {
+				return nil
+			}
 			return v[keyNum]
 		case []bool:
+			if keyNum >= len(v) {
+				return nil
+			}
 			return v[keyNum]
 		case []int:
+			if keyNum >= len(v) {
+				return nil
+			}
 			return v[keyNum]
 		case string:
+			if keyNum >= len(v) {
+				return nil
+			}
 			return string(v[keyNum])
 		}
 	}
@@ -1016,8 +1037,8 @@ func IsObject(v interface{}) bool {
 	}
 	kind := reflect.TypeOf(v).Kind()
 	switch kind {
-	case reflect.Array, reflect.Chan, reflect.Func, reflect.Interface,
-		reflect.Map, reflect.Ptr, reflect.Slice, reflect.Struct, reflect.UnsafePointer:
+	case reflect.Chan, reflect.Func, reflect.Interface, // reflect.Array,  reflect.Slice
+		reflect.Map, reflect.Ptr, reflect.Struct, reflect.UnsafePointer:
 		return true
 	default:
 		return false
@@ -1053,6 +1074,12 @@ func ToUpper(v interface{}) string {
 func MathFloor(v interface{}) float64 {
 	if num, ok := v.(float64); ok {
 		return math.Floor(num)
+	}
+	if num, ok := v.(int); ok {
+		return math.Floor(float64(num))
+	}
+	if num, ok := v.(int64); ok {
+		return math.Floor(float64(num))
 	}
 	return 0
 }
@@ -1816,6 +1843,38 @@ func mathMin(a, b interface{}) interface{} {
 	// }
 }
 
+func MathPow(base interface{}, exp interface{}) float64 {
+	baseFloat, baseOk := base.(float64)
+	expFloat, expOk := exp.(float64)
+	if baseOk && expOk {
+		return math.Pow(baseFloat, expFloat)
+	}
+	return 0
+}
+
+func MathAbs(v interface{}) float64 {
+	switch n := v.(type) {
+	case float64:
+		return math.Abs(n)
+	case float32:
+		return math.Abs(float64(n))
+	case int:
+		return math.Abs(float64(n))
+	case int64:
+		return math.Abs(float64(n))
+	case int32:
+		return math.Abs(float64(n))
+	case int16:
+		return math.Abs(float64(n))
+	case int8:
+		return math.Abs(float64(n))
+	case uint, uint64, uint32, uint16, uint8:
+		return float64(reflect.ValueOf(n).Uint()) // no need for Abs on unsigned values
+	default:
+		return 0
+	}
+}
+
 func MathMax(a, b interface{}) interface{} {
 	return mathMax(a, b)
 }
@@ -2486,7 +2545,7 @@ func CallInternalMethod(methodCache *sync.Map, itf interface{}, name2 string, ar
 			ch <- nil
 		}
 
-		ch <- nil
+		// ch <- nil // nught be causing a mem leak
 		close(ch)
 	}()
 	return ch

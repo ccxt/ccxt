@@ -14,7 +14,7 @@ import type { Balances, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderB
  * @augments Exchange
  */
 export default class onetrading extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'onetrading',
             'name': 'One Trading',
@@ -372,7 +372,7 @@ export default class onetrading extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         const response = await this.publicGetTime (params);
         //
         //     {
@@ -396,9 +396,12 @@ export default class onetrading extends Exchange {
         //
         //     [
         //         {
-        //             "code":"BEST",
-        //             "precision":8
-        //         }
+        //             "code": "USDT",
+        //             "precision": 6,
+        //             "unified_cryptoasset_id": 825,
+        //             "name": "Tether USDt",
+        //             "collateral_percentage": 0
+        //         },
         //     ]
         //
         const result: Dict = {};
@@ -406,11 +409,11 @@ export default class onetrading extends Exchange {
             const currency = response[i];
             const id = this.safeString (currency, 'code');
             const code = this.safeCurrencyCode (id);
-            result[code] = {
+            result[code] = this.safeCurrencyStructure ({
                 'id': id,
                 'code': code,
-                'name': undefined,
-                'info': currency, // the original payload
+                'name': this.safeString (currency, 'name'),
+                'info': currency,
                 'active': undefined,
                 'fee': undefined,
                 'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'precision'))),
@@ -421,7 +424,7 @@ export default class onetrading extends Exchange {
                     'withdraw': { 'min': undefined, 'max': undefined },
                 },
                 'networks': {},
-            };
+            });
         }
         return result;
     }

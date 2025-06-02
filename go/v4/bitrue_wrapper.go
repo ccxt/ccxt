@@ -50,6 +50,20 @@ func (this *Bitrue) FetchTime(params ...interface{}) ( int64, error) {
 }
 /**
  * @method
+ * @name bitrue#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Bitrue) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name bitrue#fetchMarkets
  * @description retrieves data on all markets for bitrue
  * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
@@ -159,6 +173,7 @@ func (this *Bitrue) FetchTicker(symbol string, options ...FetchTickerOptions) (T
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
  * @param {int} [limit] the maximum amount of candles to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] the latest time in ms to fetch transfers for
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *Bitrue) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OHLCV, error) {

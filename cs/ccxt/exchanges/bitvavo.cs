@@ -321,6 +321,8 @@ public partial class bitvavo : Exchange
                     { "ERC20", "ETH" },
                     { "TRC20", "TRX" },
                 } },
+                { "operatorId", null },
+                { "fiatCurrencies", new List<object>() {"EUR"} },
             } },
             { "precisionMode", SIGNIFICANT_DIGITS },
             { "commonCurrencies", new Dictionary<string, object>() {
@@ -548,26 +550,26 @@ public partial class bitvavo : Exchange
         //         },
         //     ]
         //
+        object fiatCurrencies = this.safeList(this.options, "fiatCurrencies", new List<object>() {});
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(currencies)); postFixIncrement(ref i))
         {
             object currency = getValue(currencies, i);
             object id = this.safeString(currency, "symbol");
             object code = this.safeCurrencyCode(id);
+            object isFiat = this.inArray(code, fiatCurrencies);
             object networks = new Dictionary<string, object>() {};
-            object networksArray = this.safeValue(currency, "networks", new List<object>() {});
-            object networksLength = getArrayLength(networksArray);
-            object isOneNetwork = (isEqual(networksLength, 1));
-            object deposit = (isEqual(this.safeValue(currency, "depositStatus"), "OK"));
-            object withdrawal = (isEqual(this.safeValue(currency, "withdrawalStatus"), "OK"));
+            object networksArray = this.safeList(currency, "networks", new List<object>() {});
+            object deposit = isEqual(this.safeString(currency, "depositStatus"), "OK");
+            object withdrawal = isEqual(this.safeString(currency, "withdrawalStatus"), "OK");
             object active = isTrue(deposit) && isTrue(withdrawal);
             object withdrawFee = this.safeNumber(currency, "withdrawalFee");
             object precision = this.safeInteger(currency, "decimals", 8);
             object minWithdraw = this.safeNumber(currency, "withdrawalMinAmount");
-            // absolutely all of them have 1 network atm - ETH. So, we can reliably assign that inside networks
-            if (isTrue(isOneNetwork))
+            // btw, absolutely all of them have 1 network atm
+            for (object j = 0; isLessThan(j, getArrayLength(networksArray)); postFixIncrement(ref j))
             {
-                object networkId = getValue(networksArray, 0);
+                object networkId = getValue(networksArray, j);
                 object networkCode = this.networkIdToCode(networkId);
                 ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                     { "info", currency },
@@ -586,7 +588,7 @@ public partial class bitvavo : Exchange
                     } },
                 };
             }
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "info", currency },
                 { "id", id },
                 { "code", code },
@@ -597,6 +599,7 @@ public partial class bitvavo : Exchange
                 { "networks", networks },
                 { "fee", withdrawFee },
                 { "precision", precision },
+                { "type", ((bool) isTrue(isFiat)) ? "fiat" : "crypto" },
                 { "limits", new Dictionary<string, object>() {
                     { "amount", new Dictionary<string, object>() {
                         { "min", null },
@@ -611,7 +614,7 @@ public partial class bitvavo : Exchange
                         { "max", null },
                     } },
                 } },
-            };
+            });
         }
         // set currencies here to avoid calling publicGetAssets twice
         this.currencies = this.deepExtend(this.currencies, result);
@@ -1237,6 +1240,14 @@ public partial class bitvavo : Exchange
         {
             ((IDictionary<string,object>)request)["postOnly"] = true;
         }
+        object operatorId = null;
+        var operatorIdparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "operatorId");
+        operatorId = ((IList<object>)operatorIdparametersVariable)[0];
+        parameters = ((IList<object>)operatorIdparametersVariable)[1];
+        if (isTrue(!isEqual(operatorId, null)))
+        {
+            ((IDictionary<string,object>)request)["operatorId"] = this.parseToInt(operatorId);
+        }
         return this.extend(request, parameters);
     }
 
@@ -1348,6 +1359,14 @@ public partial class bitvavo : Exchange
         {
             ((IDictionary<string,object>)request)["orderId"] = id;
         }
+        object operatorId = null;
+        var operatorIdparametersVariable = this.handleOptionAndParams(parameters, "editOrder", "operatorId");
+        operatorId = ((IList<object>)operatorIdparametersVariable)[0];
+        parameters = ((IList<object>)operatorIdparametersVariable)[1];
+        if (isTrue(!isEqual(operatorId, null)))
+        {
+            ((IDictionary<string,object>)request)["operatorId"] = this.parseToInt(operatorId);
+        }
         ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
         return request;
     }
@@ -1391,6 +1410,14 @@ public partial class bitvavo : Exchange
         if (isTrue(isEqual(clientOrderId, null)))
         {
             ((IDictionary<string,object>)request)["orderId"] = id;
+        }
+        object operatorId = null;
+        var operatorIdparametersVariable = this.handleOptionAndParams(parameters, "cancelOrder", "operatorId");
+        operatorId = ((IList<object>)operatorIdparametersVariable)[0];
+        parameters = ((IList<object>)operatorIdparametersVariable)[1];
+        if (isTrue(!isEqual(operatorId, null)))
+        {
+            ((IDictionary<string,object>)request)["operatorId"] = this.parseToInt(operatorId);
         }
         return this.extend(request, parameters);
     }

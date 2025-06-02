@@ -574,6 +574,12 @@ public partial class bybit
     /// object : exchange specific parameters for the bitmex api endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.method</term>
+    /// <description>
+    /// string : exchange specific method, supported: liquidation, allLiquidation
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}.</returns>

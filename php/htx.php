@@ -10,7 +10,7 @@ use ccxt\abstract\htx as Exchange;
 
 class htx extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'htx',
             'name' => 'HTX',
@@ -888,6 +888,7 @@ class htx extends Exchange {
                     '1041' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1041,"err_msg":"The order amount exceeds the limit (170000Cont), please modify and order again.","ts":1643802784940)
                     '1047' => '\\ccxt\\InsufficientFunds', // array("status":"error","err_code":1047,"err_msg":"Insufficient margin available.","ts":1643802672652)
                     '1048' => '\\ccxt\\InsufficientFunds',  // array("status":"error","err_code":1048,"err_msg":"Insufficient close amount available.","ts":1652772408864)
+                    '1061' => '\\ccxt\\OrderNotFound', // array("status":"ok","data":array("errors":[array("order_id":"1349442392365359104","err_code":1061,"err_msg":"The order does not exist.")],"successes":""),"ts":1741773744526)
                     '1051' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1051,"err_msg":"No orders to cancel.","ts":1652552125876)
                     '1066' => '\\ccxt\\BadSymbol', // array("status":"error","err_code":1066,"err_msg":"The symbol field cannot be empty. Please re-enter.","ts":1640550819147)
                     '1067' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1067,"err_msg":"The client_order_id field is invalid. Please re-enter.","ts":1643802119413)
@@ -940,6 +941,7 @@ class htx extends Exchange {
             ),
             'precisionMode' => TICK_SIZE,
             'options' => array(
+                'include_OS_certificates' => false, // temporarily leave this, remove in future
                 'fetchMarkets' => array(
                     'types' => array(
                         'spot' => true,
@@ -1592,7 +1594,7 @@ class htx extends Exchange {
         );
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          *
@@ -2196,7 +2198,7 @@ class htx extends Exchange {
         $ask = null;
         $askVolume = null;
         if (is_array($ticker) && array_key_exists('bid', $ticker)) {
-            if (gettype($ticker['bid']) === 'array' && array_keys($ticker['bid']) === array_keys(array_keys($ticker['bid']))) {
+            if ($ticker['bid'] !== null && gettype($ticker['bid']) === 'array' && array_keys($ticker['bid']) === array_keys(array_keys($ticker['bid']))) {
                 $bid = $this->safe_string($ticker['bid'], 0);
                 $bidVolume = $this->safe_string($ticker['bid'], 1);
             } else {
@@ -2205,7 +2207,7 @@ class htx extends Exchange {
             }
         }
         if (is_array($ticker) && array_key_exists('ask', $ticker)) {
-            if (gettype($ticker['ask']) === 'array' && array_keys($ticker['ask']) === array_keys(array_keys($ticker['ask']))) {
+            if ($ticker['ask'] !== null && gettype($ticker['ask']) === 'array' && array_keys($ticker['ask']) === array_keys(array_keys($ticker['ask']))) {
                 $ask = $this->safe_string($ticker['ask'], 0);
                 $askVolume = $this->safe_string($ticker['ask'], 1);
             } else {
@@ -3380,7 +3382,7 @@ class htx extends Exchange {
         //                        "withdrawQuotaPerYear" => null,
         //                        "withdrawQuotaTotal" => null,
         //                        "withdrawFeeType" => "fixed",
-        //                        "transactFeeWithdraw" => "11.1653",
+        //                        "transactFeeWithdraw" => "11.1654",
         //                        "addrWithTag" => false,
         //                        "addrDepositTag" => false
         //                    }
@@ -3389,9 +3391,8 @@ class htx extends Exchange {
         //            }
         //        )
         //    }
-        //    }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         $result = array();
         $this->options['networkChainIdsByNames'] = array();
         $this->options['networkNamesByChainIds'] = array();
@@ -3399,17 +3400,11 @@ class htx extends Exchange {
             $entry = $data[$i];
             $currencyId = $this->safe_string($entry, 'currency');
             $code = $this->safe_currency_code($currencyId);
+            $assetType = $this->safe_string($entry, 'assetType');
+            $type = $assetType === '1' ? 'crypto' : 'fiat';
             $this->options['networkChainIdsByNames'][$code] = array();
-            $chains = $this->safe_value($entry, 'chains', array());
+            $chains = $this->safe_list($entry, 'chains', array());
             $networks = array();
-            $instStatus = $this->safe_string($entry, 'instStatus');
-            $currencyActive = $instStatus === 'normal';
-            $minPrecision = null;
-            $minDeposit = null;
-            $minWithdraw = null;
-            $maxWithdraw = null;
-            $deposit = false;
-            $withdraw = false;
             for ($j = 0; $j < count($chains); $j++) {
                 $chainEntry = $chains[$j];
                 $uniqueChainId = $this->safe_string($chainEntry, 'chain'); // $i->e. usdterc20, trc20usdt ...
@@ -3417,68 +3412,54 @@ class htx extends Exchange {
                 $this->options['networkChainIdsByNames'][$code][$title] = $uniqueChainId;
                 $this->options['networkNamesByChainIds'][$uniqueChainId] = $title;
                 $networkCode = $this->network_id_to_code($uniqueChainId);
-                $minDeposit = $this->safe_number($chainEntry, 'minDepositAmt');
-                $minWithdraw = $this->safe_number($chainEntry, 'minWithdrawAmt');
-                $maxWithdraw = $this->safe_number($chainEntry, 'maxWithdrawAmt');
-                $withdrawStatus = $this->safe_string($chainEntry, 'withdrawStatus');
-                $depositStatus = $this->safe_string($chainEntry, 'depositStatus');
-                $withdrawEnabled = ($withdrawStatus === 'allowed');
-                $depositEnabled = ($depositStatus === 'allowed');
-                $withdraw = ($withdrawEnabled) ? $withdrawEnabled : $withdraw;
-                $deposit = ($depositEnabled) ? $depositEnabled : $deposit;
-                $active = $withdrawEnabled && $depositEnabled;
-                $precision = $this->parse_precision($this->safe_string($chainEntry, 'withdrawPrecision'));
-                if ($precision !== null) {
-                    $minPrecision = ($minPrecision === null) ? $precision : Precise::string_min($precision, $minPrecision);
-                }
-                $fee = $this->safe_number($chainEntry, 'transactFeeWithdraw');
                 $networks[$networkCode] = array(
                     'info' => $chainEntry,
                     'id' => $uniqueChainId,
                     'network' => $networkCode,
                     'limits' => array(
                         'deposit' => array(
-                            'min' => $minDeposit,
+                            'min' => $this->safe_number($chainEntry, 'minDepositAmt'),
                             'max' => null,
                         ),
                         'withdraw' => array(
-                            'min' => $minWithdraw,
-                            'max' => $maxWithdraw,
+                            'min' => $this->safe_number($chainEntry, 'minWithdrawAmt'),
+                            'max' => $this->safe_number($chainEntry, 'maxWithdrawAmt'),
                         ),
                     ),
-                    'active' => $active,
-                    'deposit' => $depositEnabled,
-                    'withdraw' => $withdrawEnabled,
-                    'fee' => $fee,
-                    'precision' => $this->parse_number($precision),
+                    'active' => null,
+                    'deposit' => $this->safe_string($chainEntry, 'depositStatus') === 'allowed',
+                    'withdraw' => $this->safe_string($chainEntry, 'withdrawStatus') === 'allowed',
+                    'fee' => $this->safe_number($chainEntry, 'transactFeeWithdraw'),
+                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($chainEntry, 'withdrawPrecision'))),
                 );
             }
-            $result[$code] = array(
+            $result[$code] = $this->safe_currency_structure(array(
                 'info' => $entry,
                 'code' => $code,
                 'id' => $currencyId,
-                'active' => $currencyActive,
-                'deposit' => $deposit,
-                'withdraw' => $withdraw,
+                'active' => $this->safe_string($entry, 'instStatus') === 'normal',
+                'deposit' => null,
+                'withdraw' => null,
                 'fee' => null,
                 'name' => null,
+                'type' => $type,
                 'limits' => array(
                     'amount' => array(
                         'min' => null,
                         'max' => null,
                     ),
                     'withdraw' => array(
-                        'min' => $minWithdraw,
-                        'max' => $maxWithdraw,
+                        'min' => null,
+                        'max' => null,
                     ),
                     'deposit' => array(
                         'min' => null,
                         'max' => null,
                     ),
                 ),
-                'precision' => $this->parse_number($minPrecision),
+                'precision' => null,
                 'networks' => $networks,
-            );
+            ));
         }
         return $result;
     }
@@ -4489,6 +4470,8 @@ class htx extends Exchange {
         $request = array();
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchOpenOrders', $market, $params, 'linear');
         $response = null;
         if ($marketType === 'spot') {
             if ($symbol !== null) {
@@ -4516,18 +4499,18 @@ class htx extends Exchange {
             $params = $this->omit($params, 'account-id');
             $response = $this->spotPrivateGetV1OrderOpenOrders ($this->extend($request, $params));
         } else {
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
+            if ($symbol !== null) {
+                // throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
+                $request['contract_code'] = $market['id'];
             }
             if ($limit !== null) {
                 $request['page_size'] = $limit;
             }
-            $request['contract_code'] = $market['id'];
             $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
             $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
             $trailing = $this->safe_bool($params, 'trailing', false);
             $params = $this->omit($params, array( 'stop', 'stopLossTakeProfit', 'trailing', 'trigger' ));
-            if ($market['linear']) {
+            if ($subType === 'linear') {
                 $marginMode = null;
                 list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOpenOrders', $params);
                 $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
@@ -4552,8 +4535,8 @@ class htx extends Exchange {
                         $response = $this->contractPrivatePostLinearSwapApiV1SwapCrossOpenorders ($this->extend($request, $params));
                     }
                 }
-            } elseif ($market['inverse']) {
-                if ($market['swap']) {
+            } elseif ($subType === 'inverse') {
+                if ($marketType === 'swap') {
                     if ($trigger) {
                         $response = $this->contractPrivatePostSwapApiV1SwapTriggerOpenorders ($this->extend($request, $params));
                     } elseif ($stopLossTakeProfit) {
@@ -4563,8 +4546,8 @@ class htx extends Exchange {
                     } else {
                         $response = $this->contractPrivatePostSwapApiV1SwapOpenorders ($this->extend($request, $params));
                     }
-                } elseif ($market['future']) {
-                    $request['symbol'] = $market['settleId'];
+                } elseif ($marketType === 'future') {
+                    $request['symbol'] = $this->safe_string($market, 'settleId', 'usdt');
                     if ($trigger) {
                         $response = $this->contractPrivatePostApiV1ContractTriggerOpenorders ($this->extend($request, $params));
                     } elseif ($stopLossTakeProfit) {
@@ -7111,27 +7094,31 @@ class htx extends Exchange {
          * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-a-batch-of-funding-rate
          * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-a-batch-of-funding-rate
          *
-         * @param {string[]|null} $symbols list of unified market $symbols
+         * @param {string[]|null} $symbols list of unified $market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rate structures~, indexed by market $symbols
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rate structures~, indexed by $market $symbols
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
-        $options = $this->safe_value($this->options, 'fetchFundingRates', array());
-        $defaultSubType = $this->safe_string($this->options, 'defaultSubType', 'inverse');
-        $subType = $this->safe_string($options, 'subType', $defaultSubType);
-        $subType = $this->safe_string($params, 'subType', $subType);
+        $defaultSubType = $this->safe_string($this->options, 'defaultSubType', 'linear');
+        $subType = null;
+        list($subType, $params) = $this->handle_option_and_params($params, 'fetchFundingRates', 'subType', $defaultSubType);
+        if ($symbols !== null) {
+            $firstSymbol = $this->safe_string($symbols, 0);
+            $market = $this->market($firstSymbol);
+            $isLinear = $market['linear'];
+            $subType = $isLinear ? 'linear' : 'inverse';
+        }
         $request = array(
-            // 'contract_code' => market['id'],
+            // 'contract_code' => $market['id'],
         );
-        $params = $this->omit($params, 'subType');
         $response = null;
         if ($subType === 'linear') {
             $response = $this->contractPublicGetLinearSwapApiV1SwapBatchFundingRate ($this->extend($request, $params));
         } elseif ($subType === 'inverse') {
             $response = $this->contractPublicGetSwapApiV1SwapBatchFundingRate ($this->extend($request, $params));
         } else {
-            throw new NotSupported($this->id . ' fetchFundingRates() not support this market type');
+            throw new NotSupported($this->id . ' fetchFundingRates() not support this $market type');
         }
         //
         //     {
@@ -7310,7 +7297,7 @@ class htx extends Exchange {
                     $request = $this->extend($request, $query);
                 }
                 $sortedRequest = $this->keysort($request);
-                $auth = $this->urlencode($sortedRequest);
+                $auth = $this->urlencode($sortedRequest, true); // true is a go only requirment
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 $payload = implode("\n", array($method, $this->hostname, $url, $auth)); // eslint-disable-line quotes
                 $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
@@ -7387,7 +7374,7 @@ class htx extends Exchange {
                     $sortedQuery = $this->keysort($query);
                     $request = $this->extend($request, $sortedQuery);
                 }
-                $auth = str_replace('%2c', '%2C', $this->urlencode($request)); // in c# it manually needs to be uppercased
+                $auth = str_replace('%2c', '%2C', $this->urlencode($request, true)); // in c# it manually needs to be uppercased
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 $payload = implode("\n", array($method, $hostname, $url, $auth)); // eslint-disable-line quotes
                 $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
@@ -7421,6 +7408,7 @@ class htx extends Exchange {
         if (is_array($response) && array_key_exists('status', $response)) {
             //
             //     array("status":"error","err-$code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min => `0.001`","data":null)
+            //     array("status":"ok","data":array("errors":[array("order_id":"1349442392365359104","err_code":1061,"err_msg":"The order does not exist.")],"successes":""),"ts":1741773744526)
             //
             $status = $this->safe_string($response, 'status');
             if ($status === 'error') {
@@ -7438,6 +7426,16 @@ class htx extends Exchange {
             $feedback = $this->id . ' ' . $body;
             $code = $this->safe_string($response, 'code');
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
+        }
+        $data = $this->safe_dict($response, 'data');
+        $errorsList = $this->safe_list($data, 'errors');
+        if ($errorsList !== null) {
+            $first = $this->safe_dict($errorsList, 0);
+            $errcode = $this->safe_string($first, 'err_code');
+            $errmessage = $this->safe_string($first, 'err_msg');
+            $feedBack = $this->id . ' ' . $body;
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errcode, $feedBack);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errmessage, $feedBack);
         }
         return null;
     }
@@ -7731,7 +7729,7 @@ class htx extends Exchange {
         ));
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): array {
         /**
          * fetch all open positions
          *

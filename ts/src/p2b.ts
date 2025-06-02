@@ -15,7 +15,7 @@ import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
  * @augments Exchange
  */
 export default class p2b extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'p2b',
             'name': 'p2b',

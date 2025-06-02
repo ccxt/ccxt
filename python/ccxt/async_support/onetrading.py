@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.onetrading import ImplicitAPI
-from ccxt.base.types import Balances, Currencies, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees
+from ccxt.base.types import Any, Balances, Currencies, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -25,7 +25,7 @@ from ccxt.base.precise import Precise
 
 class onetrading(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(onetrading, self).describe(), {
             'id': 'onetrading',
             'name': 'One Trading',
@@ -374,7 +374,7 @@ class onetrading(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_time(self, params={}):
+    async def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -405,9 +405,12 @@ class onetrading(Exchange, ImplicitAPI):
         #
         #     [
         #         {
-        #             "code":"BEST",
-        #             "precision":8
-        #         }
+        #             "code": "USDT",
+        #             "precision": 6,
+        #             "unified_cryptoasset_id": 825,
+        #             "name": "Tether USDt",
+        #             "collateral_percentage": 0
+        #         },
         #     ]
         #
         result: dict = {}
@@ -415,11 +418,11 @@ class onetrading(Exchange, ImplicitAPI):
             currency = response[i]
             id = self.safe_string(currency, 'code')
             code = self.safe_currency_code(id)
-            result[code] = {
+            result[code] = self.safe_currency_structure({
                 'id': id,
                 'code': code,
-                'name': None,
-                'info': currency,  # the original payload
+                'name': self.safe_string(currency, 'name'),
+                'info': currency,
                 'active': None,
                 'fee': None,
                 'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'precision'))),
@@ -430,7 +433,7 @@ class onetrading(Exchange, ImplicitAPI):
                     'withdraw': {'min': None, 'max': None},
                 },
                 'networks': {},
-            }
+            })
         return result
 
     async def fetch_markets(self, params={}) -> List[Market]:

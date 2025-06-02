@@ -15,7 +15,7 @@ import type { IndexType, Balances, Currency, Int, Market, OHLCV, Order, OrderBoo
  * @augments Exchange
  */
 export default class btcalpha extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'btcalpha',
             'name': 'BTC-Alpha',
@@ -214,7 +214,7 @@ export default class btcalpha extends Exchange {
                         'symbolRequired': false,
                     },
                     'fetchOHLCV': {
-                        'max': 720,
+                        'limit': 720,
                     },
                 },
                 'swap': {

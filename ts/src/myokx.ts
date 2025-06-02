@@ -6,7 +6,7 @@ import okx from './okx.js';
 // ---------------------------------------------------------------------------
 
 export default class myokx extends okx {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'myokx',
             'name': 'MyOKX (EEA)',

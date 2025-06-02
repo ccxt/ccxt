@@ -89,7 +89,7 @@ func (this *Coinbase) FetchPortfolios(params ...interface{}) ([]Account, error) 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
  */
-func (this *Coinbase) CreateDepositAddress(code string, options ...CreateDepositAddressOptions) (map[string]interface{}, error) {
+func (this *Coinbase) CreateDepositAddress(code string, options ...CreateDepositAddressOptions) (DepositAddress, error) {
 
     opts := CreateDepositAddressOptionsStruct{}
 
@@ -103,9 +103,9 @@ func (this *Coinbase) CreateDepositAddress(code string, options ...CreateDeposit
     }
     res := <- this.Core.CreateDepositAddress(code, params)
     if IsError(res) {
-        return map[string]interface{}{}, CreateReturnError(res)
+        return DepositAddress{}, CreateReturnError(res)
     }
-    return res.(map[string]interface{}), nil
+    return NewDepositAddress(res), nil
 }
 /**
  * @method
@@ -402,6 +402,22 @@ func (this *Coinbase) FetchCurrenciesFromCache(params ...interface{}) (map[strin
         return map[string]interface{}{}, CreateReturnError(res)
     }
     return res.(map[string]interface{}), nil
+}
+/**
+ * @method
+ * @name coinbase#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-currencies#get-fiat-currencies
+ * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-rates#get-exchange-rates
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Coinbase) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
 }
 /**
  * @method

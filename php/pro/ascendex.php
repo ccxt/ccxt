@@ -8,12 +8,12 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\AuthenticationError;
 use ccxt\NetworkError;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class ascendex extends \ccxt\async\ascendex {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -464,7 +464,7 @@ class ascendex extends \ccxt\async\ascendex {
         //
         // {
         //     "m" => "balance",
-        //     "accountId" => "cshQtyfq8XLAA9kcf19h8bXHbAwwoqDo",
+        //     "accountId" => "cshQtyfq8XLAA9kcf19h8bXHbAwwoqEo",
         //     "ac" => "CASH",
         //     "data" => {
         //         "a" : "USDT",

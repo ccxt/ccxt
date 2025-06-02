@@ -10,7 +10,7 @@ use ccxt\abstract\vertex as Exchange;
 
 class vertex extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'vertex',
             'name' => 'Vertex',
@@ -452,11 +452,10 @@ class vertex extends Exchange {
             if (($tickerId !== null) && (mb_strpos($tickerId, 'PERP') > 0)) {
                 continue;
             }
-            $id = $this->safe_string($data, 'product_id');
             $name = $this->safe_string($data, 'symbol');
             $code = $this->safe_currency_code($name);
-            $result[$code] = array(
-                'id' => $id,
+            $result[$code] = $this->safe_currency_structure(array(
+                'id' => $this->safe_string($data, 'product_id'),
                 'name' => $name,
                 'code' => $code,
                 'precision' => null,
@@ -476,7 +475,7 @@ class vertex extends Exchange {
                         'max' => null,
                     ),
                 ),
-            );
+            ));
         }
         return $result;
     }
@@ -623,7 +622,7 @@ class vertex extends Exchange {
         return $result;
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -631,7 +630,7 @@ class vertex extends Exchange {
          */
         $response = $this->v1GatewayGetTime ($params);
         // 1717481623452
-        return $this->parse_number($response);
+        return $this->parse_to_int($response);
     }
 
     public function fetch_status($params = array ()) {
@@ -1564,7 +1563,7 @@ class vertex extends Exchange {
         if (mb_strpos($base, 'PERP') > 0) {
             $marketId = str_replace('-PERP', '', $marketId) . ':USDC';
         }
-        $market = $this->market($marketId);
+        $market = $this->safe_market($marketId, $market);
         $last = $this->safe_string($ticker, 'last_price');
         return $this->safe_ticker(array(
             'symbol' => $market['symbol'],
@@ -2971,7 +2970,7 @@ class vertex extends Exchange {
         ));
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): array {
         /**
          * fetch all open $positions
          *

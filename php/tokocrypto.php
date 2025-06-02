@@ -10,7 +10,7 @@ use ccxt\abstract\tokocrypto as Exchange;
 
 class tokocrypto extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'tokocrypto',
             'name' => 'Tokocrypto',
@@ -677,7 +677,7 @@ class tokocrypto extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): ?int {
         /**
          *
          * @see https://www.tokocrypto.com/apidocs/#check-server-time

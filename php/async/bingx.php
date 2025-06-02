@@ -14,13 +14,13 @@ use ccxt\BadSymbol;
 use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use React\Async;
-use React\Promise;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise;
+use \React\Promise\PromiseInterface;
 
 class bingx extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bingx',
             'name' => 'BingX',
@@ -49,6 +49,7 @@ class bingx extends Exchange {
                 'createOrder' => true,
                 'createOrders' => true,
                 'createOrderWithTakeProfitAndStopLoss' => true,
+                'createReduceOnlyOrder' => true,
                 'createStopLossOrder' => true,
                 'createStopOrder' => true,
                 'createTakeProfitOrder' => true,
@@ -392,6 +393,7 @@ class bingx extends Exchange {
                                 'uid' => 1,
                                 'apiKey/query' => 2,
                                 'account/apiPermissions' => 5,
+                                'allAccountBalance' => 2,
                             ),
                             'post' => array(
                                 'innerTransfer/authorizeSubAccount' => 1,
@@ -673,7 +675,7 @@ class bingx extends Exchange {
         ));
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the bingx server
@@ -719,7 +721,7 @@ class bingx extends Exchange {
             //
             //    {
             //      "code" => 0,
-            //      "timestamp" => 1702623271477,
+            //      "timestamp" => 1702623271476,
             //      "data" => array(
             //        {
             //          "coin" => "BTC",
@@ -763,61 +765,43 @@ class bingx extends Exchange {
                 $name = $this->safe_string($entry, 'name');
                 $networkList = $this->safe_list($entry, 'networkList');
                 $networks = array();
-                $fee = null;
-                $depositEnabled = false;
-                $withdrawEnabled = false;
-                $defaultLimits = array();
                 for ($j = 0; $j < count($networkList); $j++) {
                     $rawNetwork = $networkList[$j];
                     $network = $this->safe_string($rawNetwork, 'network');
                     $networkCode = $this->network_id_to_code($network);
-                    $isDefault = $this->safe_bool($rawNetwork, 'isDefault');
-                    $networkDepositEnabled = $this->safe_bool($rawNetwork, 'depositEnable');
-                    if ($networkDepositEnabled) {
-                        $depositEnabled = true;
-                    }
-                    $networkWithdrawEnabled = $this->safe_bool($rawNetwork, 'withdrawEnable');
-                    if ($networkWithdrawEnabled) {
-                        $withdrawEnabled = true;
-                    }
                     $limits = array(
                         'withdraw' => array(
                             'min' => $this->safe_number($rawNetwork, 'withdrawMin'),
                             'max' => $this->safe_number($rawNetwork, 'withdrawMax'),
                         ),
                     );
-                    $fee = $this->safe_number($rawNetwork, 'withdrawFee');
-                    if ($isDefault) {
-                        $defaultLimits = $limits;
-                    }
-                    $precision = $this->safe_number($rawNetwork, 'withdrawPrecision');
-                    $networkActive = $networkDepositEnabled || $networkWithdrawEnabled;
+                    $precision = $this->parse_number($this->parse_precision($this->safe_string($rawNetwork, 'withdrawPrecision')));
                     $networks[$networkCode] = array(
                         'info' => $rawNetwork,
                         'id' => $network,
                         'network' => $networkCode,
-                        'fee' => $fee,
-                        'active' => $networkActive,
-                        'deposit' => $networkDepositEnabled,
-                        'withdraw' => $networkWithdrawEnabled,
+                        'fee' => $this->safe_number($rawNetwork, 'withdrawFee'),
+                        'active' => null,
+                        'deposit' => $this->safe_bool($rawNetwork, 'depositEnable'),
+                        'withdraw' => $this->safe_bool($rawNetwork, 'withdrawEnable'),
                         'precision' => $precision,
                         'limits' => $limits,
                     );
                 }
-                $active = $depositEnabled || $withdrawEnabled;
-                $result[$code] = array(
+                $result[$code] = $this->safe_currency_structure(array(
                     'info' => $entry,
                     'code' => $code,
                     'id' => $currencyId,
                     'precision' => null,
                     'name' => $name,
-                    'active' => $active,
-                    'deposit' => $depositEnabled,
-                    'withdraw' => $withdrawEnabled,
+                    'active' => null,
+                    'deposit' => null,
+                    'withdraw' => null,
                     'networks' => $networks,
-                    'fee' => $fee,
-                    'limits' => $defaultLimits,
-                );
+                    'fee' => null,
+                    'limits' => null,
+                    'type' => 'crypto', // only cryptos now
+                ));
             }
             return $result;
         }) ();
@@ -836,7 +820,7 @@ class bingx extends Exchange {
             //                  array(
             //                    "symbol" => "GEAR-USDT",
             //                    "minQty" => 735, // deprecated
-            //                    "maxQty" => 2941177, // deprecated
+            //                    "maxQty" => 2941177, // deprecated.
             //                    "minNotional" => 5,
             //                    "maxNotional" => 20000,
             //                    "status" => 1,
@@ -1486,62 +1470,82 @@ class bingx extends Exchange {
             // spot
             //
             //     {
-            //         "code" => 0,
-            //         "data" => {
-            //           "bids" => array(
-            //             array(
-            //               "26324.73",
-            //               "0.37655"
-            //             ),
-            //             array(
-            //               "26324.71",
-            //               "0.31888"
-            //             ),
-            //         ),
-            //         "asks" => array(
-            //             array(
-            //               "26340.30",
-            //               "6.45221"
-            //             ),
-            //             array(
-            //               "26340.15",
-            //               "6.73261"
-            //             ),
-            //         )}
+            //         "code":0,
+            //         "timestamp":1743240504535,
+            //         "data":{
+            //             "bids":[
+            //                 ["83775.39","1.981875"],
+            //                 ["83775.38","0.001076"],
+            //                 ["83775.34","0.254716"],
+            //             ],
+            //             "asks":[
+            //                 ["83985.40","0.000013"],
+            //                 ["83980.00","0.000011"],
+            //                 ["83975.70","0.000061000000000000005"],
+            //             ],
+            //             "ts":1743240504535,
+            //             "lastUpdateId":13565639906
+            //         }
             //     }
             //
-            // swap
+            //
+            // linear swap
             //
             //     {
-            //         "code" => 0,
-            //         "msg" => "",
-            //         "data" => {
-            //           "T" => 1683914263304,
-            //           "bids" => array(
-            //             array(
-            //               "26300.90000000",
-            //               "30408.00000000"
-            //             ),
-            //             array(
-            //               "26300.80000000",
-            //               "50906.00000000"
-            //             ),
-            //         ),
-            //         "asks" => array(
-            //             array(
-            //               "26301.00000000",
-            //               "43616.00000000"
-            //             ),
-            //             array(
-            //               "26301.10000000",
-            //               "49402.00000000"
-            //             ),
-            //         )}
+            //         "code":0,
+            //         "msg":"",
+            //         "data":{
+            //             "T":1743240836255,
+            //             "bids":[
+            //                 ["83760.7","7.0861"],
+            //                 ["83760.6","0.0044"],
+            //                 ["83757.7","1.9526"],
+            //             ],
+            //             "asks":[
+            //                 ["83784.3","8.3531"],
+            //                 ["83782.8","23.7289"],
+            //                 ["83780.1","18.0617"],
+            //             ],
+            //             "bidsCoin":[
+            //                 ["83760.7","0.0007"],
+            //                 ["83760.6","0.0000"],
+            //                 ["83757.7","0.0002"],
+            //             ],
+            //             "asksCoin":[
+            //                 ["83784.3","0.0008"],
+            //                 ["83782.8","0.0024"],
+            //                 ["83780.1","0.0018"],
+            //             ]
+            //         }
+            //     }
+            //
+            // inverse swap
+            //
+            //     {
+            //         "code":0,
+            //         "msg":"",
+            //         "timestamp":1743240979146,
+            //         "data":{
+            //             "T":1743240978691,
+            //             "bids":[
+            //                 ["83611.4","241.0"],
+            //                 ["83611.3","1.0"],
+            //                 ["83602.9","666.0"],
+            //             ],
+            //             "asks":[
+            //                 ["83645.0","4253.0"],
+            //                 ["83640.5","3188.0"],
+            //                 ["83636.0","5540.0"],
+            //             ]
+            //         }
             //     }
             //
             $orderbook = $this->safe_dict($response, 'data', array());
+            $nonce = $this->safe_integer($orderbook, 'lastUpdateId');
             $timestamp = $this->safe_integer_2($orderbook, 'T', 'ts');
-            return $this->parse_order_book($orderbook, $market['symbol'], $timestamp, 'bids', 'asks', 0, 1);
+            $result = $this->parse_order_book($orderbook, $market['symbol'], $timestamp, 'bids', 'asks', 0, 1);
+            $result['nonce'] = $nonce;
+            return $result;
         }) ();
     }
 
@@ -2475,7 +2479,7 @@ class bingx extends Exchange {
         }) ();
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open $positions
@@ -4719,14 +4723,13 @@ class bingx extends Exchange {
              * @param {boolean} [$params->twap] if fetching twap $orders
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
-            }
             Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
-            );
+            $market = null;
+            $request = array();
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['symbol'] = $market['id'];
+            }
             $type = null;
             $subType = null;
             $standard = null;
@@ -4738,7 +4741,7 @@ class bingx extends Exchange {
                 $response = Async\await($this->contractV1PrivateGetAllOrders ($this->extend($request, $params)));
             } elseif ($type === 'spot') {
                 if ($limit !== null) {
-                    $request['limit'] = $limit;
+                    $request['pageSize'] = $limit;
                 }
                 $response = Async\await($this->spotV1PrivateGetTradeHistoryOrders ($this->extend($request, $params)));
                 //
@@ -5870,20 +5873,14 @@ class bingx extends Exchange {
              * @param {string} $address the $address to withdraw to
              * @param {string} [$tag]
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->walletType] 1 fund account, 2 standard account, 3 perpetual account
+             * @param {int} [$params->walletType] 1 fund account, 2 standard account, 3 perpetual account, 15 spot account
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
             $this->check_address($address);
             Async\await($this->load_markets());
             $currency = $this->currency($code);
-            $walletType = $this->safe_integer($params, 'walletType');
-            if ($walletType === null) {
-                $walletType = 1;
-            }
-            if (!$this->in_array($walletType, array( 1, 2, 3 ))) {
-                throw new BadRequest($this->id . ' withdraw() requires either 1 fund account, 2 standard futures account, 3 perpetual account for walletType');
-            }
+            $walletType = $this->safe_integer($params, 'walletType', 1);
             $request = array(
                 'coin' => $currency['id'],
                 'address' => $address,

@@ -14,13 +14,13 @@ use ccxt\BadSymbol;
 use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use React\Async;
-use React\Promise;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise;
+use \React\Promise\PromiseInterface;
 
 class coinex extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coinex',
             'name' => 'CoinEx',
@@ -729,35 +729,13 @@ class coinex extends Exchange {
                 $canWithdraw = $this->safe_bool($asset, 'withdraw_enabled');
                 $firstChain = $this->safe_dict($chains, 0, array());
                 $firstPrecisionString = $this->parse_precision($this->safe_string($firstChain, 'withdrawal_precision'));
-                $result[$code] = array(
-                    'id' => $currencyId,
-                    'code' => $code,
-                    'name' => null,
-                    'active' => $canDeposit && $canWithdraw,
-                    'deposit' => $canDeposit,
-                    'withdraw' => $canWithdraw,
-                    'fee' => null,
-                    'precision' => $this->parse_number($firstPrecisionString),
-                    'limits' => array(
-                        'amount' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'deposit' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'withdraw' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                    'networks' => array(),
-                    'info' => $coin,
-                );
+                $networks = array();
                 for ($j = 0; $j < count($chains); $j++) {
                     $chain = $chains[$j];
                     $networkId = $this->safe_string($chain, 'chain');
+                    if ($networkId === null) {
+                        continue;
+                    }
                     $precisionString = $this->parse_precision($this->safe_string($chain, 'withdrawal_precision'));
                     $feeString = $this->safe_string($chain, 'withdrawal_fee');
                     $minNetworkDepositString = $this->safe_string($chain, 'min_deposit_amount');
@@ -789,10 +767,35 @@ class coinex extends Exchange {
                         ),
                         'info' => $chain,
                     );
-                    $networks = $this->safe_dict($result[$code], 'networks', array());
                     $networks[$networkId] = $network;
-                    $result[$code]['networks'] = $networks;
                 }
+                $result[$code] = $this->safe_currency_structure(array(
+                    'id' => $currencyId,
+                    'code' => $code,
+                    'name' => null,
+                    'active' => $canDeposit && $canWithdraw,
+                    'deposit' => $canDeposit,
+                    'withdraw' => $canWithdraw,
+                    'fee' => null,
+                    'precision' => $this->parse_number($firstPrecisionString),
+                    'limits' => array(
+                        'amount' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'deposit' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'withdraw' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                    ),
+                    'networks' => array(),
+                    'type' => 'crypto',
+                    'info' => $coin,
+                ));
             }
             return $result;
         }) ();
@@ -1226,7 +1229,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
@@ -3869,7 +3872,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function create_deposit_address(string $code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * create a $currency deposit address
@@ -4065,7 +4068,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions

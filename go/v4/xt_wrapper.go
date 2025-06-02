@@ -35,6 +35,21 @@ func (this *Xt) FetchTime(params ...interface{}) ( int64, error) {
 }
 /**
  * @method
+ * @name xt#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://doc.xt.com/#deposit_withdrawalsupportedCurrenciesGet
+ * @param {object} params extra parameters specific to the xt api endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Xt) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name xt#fetchMarkets
  * @description retrieves data on all markets for xt
  * @see https://doc.xt.com/#market2symbol
@@ -74,6 +89,8 @@ func (this *Xt) FetchSwapAndFutureMarkets(params ...interface{}) ([]map[string]i
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
  * @param {int} [limit] the maximum amount of candles to fetch
  * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *Xt) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OHLCV, error) {
@@ -1302,4 +1319,84 @@ func (this *Xt) Transfer(code string, amount float64, fromAccount string, toAcco
         return TransferEntry{}, CreateReturnError(res)
     }
     return NewTransferEntry(res), nil
+}
+/**
+ * @method
+ * @name xt#setMarginMode
+ * @description set margin mode to 'cross' or 'isolated'
+ * @see https://doc.xt.com/#futures_userchangePositionType
+ * @param {string} marginMode 'cross' or 'isolated'
+ * @param {string} [symbol] required
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.positionSide] *required* "long" or "short"
+ * @returns {object} response from the exchange
+ */
+func (this *Xt) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]interface{}, error) {
+
+    opts := SetMarginModeOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var symbol interface{} = nil
+    if opts.Symbol != nil {
+        symbol = *opts.Symbol
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.SetMarginMode(marginMode, symbol, params)
+    if IsError(res) {
+        return map[string]interface{}{}, CreateReturnError(res)
+    }
+    return res.(map[string]interface{}), nil
+}
+/**
+ * @method
+ * @name xt#editOrder
+ * @description cancels an order and places a new order
+ * @see https://doc.xt.com/#orderorderUpdate
+ * @see https://doc.xt.com/#futures_orderupdate
+ * @see https://doc.xt.com/#futures_entrustupdateProfit
+ * @param {string} id order id
+ * @param {string} symbol unified symbol of the market to create an order in
+ * @param {string} type 'market' or 'limit'
+ * @param {string} side 'buy' or 'sell'
+ * @param {float} amount how much of the currency you want to trade in units of the base currency
+ * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {float} [params.stopLoss] price to set a stop-loss on an open position
+ * @param {float} [params.takeProfit] price to set a take-profit on an open position
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
+func (this *Xt) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
+
+    opts := EditOrderOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var amount interface{} = nil
+    if opts.Amount != nil {
+        amount = *opts.Amount
+    }
+
+    var price interface{} = nil
+    if opts.Price != nil {
+        price = *opts.Price
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.EditOrder(id, symbol, typeVar, side, amount, price, params)
+    if IsError(res) {
+        return Order{}, CreateReturnError(res)
+    }
+    return NewOrder(res), nil
 }
