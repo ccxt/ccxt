@@ -944,12 +944,11 @@ export default class kraken extends krakenRest {
             const storedAsks = orderbook['asks'];
             const storedBids = orderbook['bids'];
             if (a !== undefined) {
-                this.customHandleDeltas (storedAsks, a, 'asks');
+                this.customHandleDeltas (storedAsks, a);
             }
             if (b !== undefined) {
-                this.customHandleDeltas (storedBids, b, 'bids');
+                this.customHandleDeltas (storedBids, b);
             }
-            orderbook.limit ();
             const datetime = this.safeString (first, 'timestamp');
             orderbook['symbol'] = symbol;
             orderbook['timestamp'] = this.parse8601 (datetime);
@@ -965,18 +964,21 @@ export default class kraken extends krakenRest {
                 const bookside = orderbook[key];
                 const deltas = this.safeValue (first, key, []);
                 if (deltas.length > 0) {
-                    this.customHandleDeltas (bookside, deltas, key);
+                    this.customHandleDeltas (bookside, deltas);
                 }
             }
             orderbook['symbol'] = symbol;
         }
         // TODO: checksum get it working properly
+        orderbook.limit ();
         const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
         if (checksum) {
             const payloadArray = [];
             if (c !== undefined) {
                 const checkAsks = orderbook['asks'];
                 const checkBids = orderbook['bids'];
+                // const checkAsks = asks.map ((elem) => [ elem['price'], elem['qty'] ]);
+                // const checkBids = bids.map ((elem) => [ elem['price'], elem['qty'] ]);
                 for (let i = 0; i < 10; i++) {
                     const currentAsk = this.safeValue (checkAsks, i, {});
                     const formattedAsk = this.formatNumber (currentAsk);
@@ -1001,20 +1003,21 @@ export default class kraken extends krakenRest {
         client.resolve (orderbook, messageHash);
     }
 
-    customHandleDeltas (bookside, deltas, key) {
-        const sortOrder = (key === 'bids') ? true : false;
+    customHandleDeltas (bookside, deltas) {
+        // const sortOrder = (key === 'bids') ? true : false;
         for (let j = 0; j < deltas.length; j++) {
             const delta = deltas[j];
             const price = this.safeNumber (delta, 'price');
             const amount = this.safeNumber (delta, 'qty');
-            if (amount === 0) {
-                const index = bookside.findIndex ((x: Int) => x[0] === price);
-                bookside.splice (index, 1);
-            } else {
-                bookside.store (price, amount);
-            }
-            bookside = this.sortBy (bookside, 0, sortOrder);
-            bookside.slice (0, 9);
+            bookside.store (price, amount);
+            // if (amount === 0) {
+            //     const index = bookside.findIndex ((x: Int) => x[0] === price);
+            //     bookside.splice (index, 1);
+            // } else {
+            //     bookside.store (price, amount);
+            // }
+            // bookside = this.sortBy (bookside, 0, sortOrder);
+            // bookside.slice (0, 9);
         }
     }
 
