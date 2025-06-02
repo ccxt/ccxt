@@ -97,7 +97,7 @@ program
     .option ('--verbose', 'enables the verbose mode')
     .option ('--raw', 'keeps the output pristine without extra logs or formatting')
     .option ('--testnet', 'enables the sandbox mode')
-    .option ('--config <path>', 'Provide a different path for the config file')
+    // .option ('--config2 <path>', 'Provide a different path for the config file')
     .option ('--param <keyValue>', 'Pass key=value pair', collectKeyValue, {})
     .option ('--no-load-markets', 'skips markets loading')
     .option ('--details')
@@ -141,6 +141,14 @@ program
     });
 
 program
+    .command ('config <path>')
+    .description ('Sets a different path for the config file, eg: "config ./some/path/config.json"')
+    .action ((configPath) => {
+        changeConfigPath (configPath);
+        process.exit (0);
+    });
+
+program
     .command ('history')
     .description ('Display a list of the previously executed commands')
     .action (() => {
@@ -169,11 +177,6 @@ if (!cliOptions.raw) {
     log ((new Date ()).toISOString ());
     log ('Node.js:', process.version);
     log.blue (pref + ' CCXT v' + ccxt.version);
-}
-
-if (cliOptions.config) {
-    changeConfigPath (cliOptions.config);
-    process.exit (0);
 }
 
 if (!exchangeId && !cliOptions.history) {

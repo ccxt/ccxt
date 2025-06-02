@@ -47,7 +47,8 @@ function loadMainConfigFile () {
 
 function saveConfigFile (config) {
     const cachePath = getCacheDirectory ();
-    fs.writeFileSync (cachePath, JSON.stringify (config, null, 2));
+    const configFilePath = path.join (cachePath, 'config.json');
+    fs.writeFileSync (configFilePath, JSON.stringify (config, null, 2));
 }
 
 function getExchangeSettings (exchangeId: string) {
