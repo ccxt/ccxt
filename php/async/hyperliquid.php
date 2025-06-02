@@ -178,12 +178,12 @@ class hyperliquid extends Exchange {
             ),
             'fees' => array(
                 'swap' => array(
-                    'taker' => $this->parse_number('0.00035'),
-                    'maker' => $this->parse_number('0.0001'),
+                    'taker' => $this->parse_number('0.00045'),
+                    'maker' => $this->parse_number('0.00015'),
                 ),
                 'spot' => array(
-                    'taker' => $this->parse_number('0.00035'),
-                    'maker' => $this->parse_number('0.0001'),
+                    'taker' => $this->parse_number('0.0007'),
+                    'maker' => $this->parse_number('0.0004'),
                 ),
             ),
             'requiredCredentials' => array(
@@ -365,7 +365,7 @@ class hyperliquid extends Exchange {
                 $id = $i;
                 $name = $this->safe_string($data, 'name');
                 $code = $this->safe_currency_code($name);
-                $result[$code] = array(
+                $result[$code] = $this->safe_currency_structure(array(
                     'id' => $id,
                     'name' => $name,
                     'code' => $code,
@@ -387,7 +387,7 @@ class hyperliquid extends Exchange {
                             'max' => null,
                         ),
                     ),
-                );
+                ));
             }
             return $result;
         }) ();

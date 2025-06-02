@@ -388,7 +388,11 @@ export default class coinmetro extends Exchange {
             else if (typeRaw === 'fiat') {
                 type = 'fiat';
             }
-            const precisionDigits = this.safeString2(currency, 'digits', 'notabeneDecimals');
+            let precisionDigits = this.safeString2(currency, 'digits', 'notabeneDecimals');
+            if (code === 'RENDER') {
+                // RENDER is an exception (with broken info)
+                precisionDigits = '4';
+            }
             result[code] = this.safeCurrencyStructure({
                 'id': id,
                 'code': code,

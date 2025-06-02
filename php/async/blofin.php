@@ -51,6 +51,7 @@ class blofin extends Exchange {
                 'createStopMarketOrder' => false,
                 'createStopOrder' => false,
                 'createTakeProfitOrder' => true,
+                'createTriggerOrder' => true,
                 'editOrder' => false,
                 'fetchAccounts' => false,
                 'fetchBalance' => true,
@@ -104,6 +105,7 @@ class blofin extends Exchange {
                 'fetchOrders' => false,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
+                'fetchPositionMode' => true,
                 'fetchPositions' => true,
                 'fetchPositionsForSymbol' => false,
                 'fetchPositionsRisk' => false,
@@ -131,8 +133,8 @@ class blofin extends Exchange {
                 'repayCrossMargin' => false,
                 'setLeverage' => true,
                 'setMargin' => false,
-                'setMarginMode' => false,
-                'setPositionMode' => false,
+                'setMarginMode' => true,
+                'setPositionMode' => true,
                 'signIn' => false,
                 'transfer' => true,
                 'withdraw' => false,
@@ -195,11 +197,14 @@ class blofin extends Exchange {
                         'account/positions' => 1,
                         'account/leverage-info' => 1,
                         'account/margin-mode' => 1,
+                        'account/position-mode' => 1,
                         'account/batch-leverage-info' => 1,
                         'trade/orders-tpsl-pending' => 1,
                         'trade/orders-algo-pending' => 1,
                         'trade/orders-history' => 1,
                         'trade/orders-tpsl-history' => 1,
+                        'trade/orders-algo-history' => 1, // todo new
+                        'trade/order/price-range' => 1,
                         'user/query-apikey' => 1,
                         'affiliate/basic' => 1,
                         'copytrading/instruments' => 1,
@@ -216,6 +221,8 @@ class blofin extends Exchange {
                         'copytrading/trade/pending-tpsl-by-order' => 1,
                     ),
                     'post' => array(
+                        'account/set-margin-mode' => 1,
+                        'account/set-position-mode' => 1,
                         'trade/order' => 1,
                         'trade/order-algo' => 1,
                         'trade/cancel-order' => 1,
@@ -1234,6 +1241,9 @@ class blofin extends Exchange {
         } elseif ($triggerPrice !== null) {
             $request['orderType'] = 'trigger';
             $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
+            if ($isMarketOrder) {
+                $request['orderPrice'] = '-1';
+            }
         }
         return $this->extend($request, $params);
     }
@@ -1414,6 +1424,10 @@ class blofin extends Exchange {
             $isTriggerOrder = $this->safe_string($params, 'triggerPrice') !== null;
             $isType2Order = ($isStopLossPriceDefined || $isTakeProfitPriceDefined);
             $response = null;
+            $reduceOnly = $this->safe_bool($params, 'reduceOnly');
+            if ($reduceOnly !== null) {
+                $params['reduceOnly'] = $reduceOnly ? 'true' : 'false';
+            }
             if ($tpsl || ($method === 'privatePostTradeOrderTpsl') || $isType2Order) {
                 $tpslRequest = $this->create_tpsl_order_request($symbol, $type, $side, $amount, $price, $params);
                 $response = Async\await($this->privatePostTradeOrderTpsl ($tpslRequest));
@@ -2326,6 +2340,7 @@ class blofin extends Exchange {
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated'
+             * @param {string} [$params->positionSide] 'long' or 'short' - required for hedged mode in isolated margin
              * @return {array} $response from the exchange
              */
             if ($symbol === null) {
@@ -2467,12 +2482,106 @@ class blofin extends Exchange {
         }) ();
     }
 
-    public function parse_margin_mode(array $marginMode, $market = null): array {
+    public function parse_margin_mode(array $marginMode, ?array $market = null): array {
         return array(
             'info' => $marginMode,
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'marginMode' => $this->safe_string($marginMode, 'marginMode'),
         );
+    }
+
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($marginMode, $symbol, $params) {
+            /**
+             * set margin mode to 'cross' or 'isolated'
+             *
+             * @see https://docs.blofin.com/index.html#set-margin-mode
+             *
+             * @param {string} $marginMode 'cross' or 'isolated'
+             * @param {string} [$symbol] unified $market $symbol (not used in blofin setMarginMode)
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} $response from the exchange
+             */
+            $this->check_required_argument('setMarginMode', $marginMode, 'marginMode', array( 'cross', 'isolated' ));
+            Async\await($this->load_markets());
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
+            $request = array(
+                'marginMode' => $marginMode,
+            );
+            $response = Async\await($this->privatePostAccountSetMarginMode ($this->extend($request, $params)));
+            //
+            //     {
+            //         "code" => "0",
+            //         "msg" => "success",
+            //         "data" => {
+            //             "marginMode" => "isolated"
+            //         }
+            //     }
+            //
+            $data = $this->safe_dict($response, 'data', array());
+            return $this->parse_margin_mode($data, $market);
+        }) ();
+    }
+
+    public function fetch_position_mode(?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetchs the position mode, hedged or one way
+             *
+             * @see https://docs.blofin.com/index.html#get-position-mode
+             *
+             * @param {string} [$symbol] unified $symbol of the market to fetch the position mode for (not used in blofin fetchPositionMode)
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an object detailing whether the market is in hedged or one-way mode
+             */
+            $response = Async\await($this->privateGetAccountPositionMode ($params));
+            $data = $this->safe_dict($response, 'data', array());
+            $positionMode = $this->safe_string($data, 'positionMode');
+            //
+            //     {
+            //         "code" => "0",
+            //         "msg" => "success",
+            //         "data" => {
+            //             "positionMode" => "long_short_mode"
+            //         }
+            //     }
+            //
+            return array(
+                'info' => $data,
+                'hedged' => $positionMode === 'long_short_mode',
+            );
+        }) ();
+    }
+
+    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($hedged, $symbol, $params) {
+            /**
+             * set $hedged to true or false for a market
+             *
+             * @see https://docs.blofin.com/index.html#set-position-mode
+             *
+             * @param {bool} $hedged set to true to use $hedged mode, false for one-way mode
+             * @param {string} [$symbol] not used by blofin setPositionMode ()
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} response from the exchange
+             */
+            $request = array(
+                'positionMode' => $hedged ? 'long_short_mode' : 'net_mode',
+            );
+            //
+            //     {
+            //         "code" => "0",
+            //         "msg" => "success",
+            //         "data" => {
+            //             "positionMode" => "net_mode"
+            //         }
+            //     }
+            //
+            return Async\await($this->privatePostAccountSetPositionMode ($this->extend($request, $params)));
+        }) ();
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {

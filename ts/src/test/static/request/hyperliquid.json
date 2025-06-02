@@ -11,6 +11,15 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [],
+                "output": "{\"type\":\"meta\"}"
+            }
+        ],
         "fetchTickers": [
             {
                 "description": "fetch spot tickers only",

@@ -36,6 +36,7 @@ var bitrue = require('./src/bitrue.js');
 var bitso = require('./src/bitso.js');
 var bitstamp = require('./src/bitstamp.js');
 var bitteam = require('./src/bitteam.js');
+var bittrade = require('./src/bittrade.js');
 var bitvavo = require('./src/bitvavo.js');
 var blockchaincom = require('./src/blockchaincom.js');
 var blofin = require('./src/blofin.js');
@@ -76,16 +77,13 @@ var hitbtc = require('./src/hitbtc.js');
 var hollaex = require('./src/hollaex.js');
 var htx = require('./src/htx.js');
 var huobi = require('./src/huobi.js');
-var huobijp = require('./src/huobijp.js');
 var hyperliquid = require('./src/hyperliquid.js');
-var idex = require('./src/idex.js');
 var independentreserve = require('./src/independentreserve.js');
 var indodax = require('./src/indodax.js');
 var kraken = require('./src/kraken.js');
 var krakenfutures = require('./src/krakenfutures.js');
 var kucoin = require('./src/kucoin.js');
 var kucoinfutures = require('./src/kucoinfutures.js');
-var kuna = require('./src/kuna.js');
 var latoken = require('./src/latoken.js');
 var lbank = require('./src/lbank.js');
 var luno = require('./src/luno.js');
@@ -135,6 +133,7 @@ var bitmex$1 = require('./src/pro/bitmex.js');
 var bitopro$1 = require('./src/pro/bitopro.js');
 var bitrue$1 = require('./src/pro/bitrue.js');
 var bitstamp$1 = require('./src/pro/bitstamp.js');
+var bittrade$1 = require('./src/pro/bittrade.js');
 var bitvavo$1 = require('./src/pro/bitvavo.js');
 var blockchaincom$1 = require('./src/pro/blockchaincom.js');
 var blofin$1 = require('./src/pro/blofin.js');
@@ -161,9 +160,7 @@ var hitbtc$1 = require('./src/pro/hitbtc.js');
 var hollaex$1 = require('./src/pro/hollaex.js');
 var htx$1 = require('./src/pro/htx.js');
 var huobi$1 = require('./src/pro/huobi.js');
-var huobijp$1 = require('./src/pro/huobijp.js');
 var hyperliquid$1 = require('./src/pro/hyperliquid.js');
-var idex$1 = require('./src/pro/idex.js');
 var independentreserve$1 = require('./src/pro/independentreserve.js');
 var kraken$1 = require('./src/pro/kraken.js');
 var krakenfutures$1 = require('./src/pro/krakenfutures.js');
@@ -193,7 +190,7 @@ var xt$1 = require('./src/pro/xt.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.4.83';
+const version = '4.4.86';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'alpaca': alpaca,
@@ -220,6 +217,7 @@ const exchanges = {
     'bitso': bitso,
     'bitstamp': bitstamp,
     'bitteam': bitteam,
+    'bittrade': bittrade,
     'bitvavo': bitvavo,
     'blockchaincom': blockchaincom,
     'blofin': blofin,
@@ -260,16 +258,13 @@ const exchanges = {
     'hollaex': hollaex,
     'htx': htx,
     'huobi': huobi,
-    'huobijp': huobijp,
     'hyperliquid': hyperliquid,
-    'idex': idex,
     'independentreserve': independentreserve,
     'indodax': indodax,
     'kraken': kraken,
     'krakenfutures': krakenfutures,
     'kucoin': kucoin,
     'kucoinfutures': kucoinfutures,
-    'kuna': kuna,
     'latoken': latoken,
     'lbank': lbank,
     'luno': luno,
@@ -321,6 +316,7 @@ const pro = {
     'bitopro': bitopro$1,
     'bitrue': bitrue$1,
     'bitstamp': bitstamp$1,
+    'bittrade': bittrade$1,
     'bitvavo': bitvavo$1,
     'blockchaincom': blockchaincom$1,
     'blofin': blofin$1,
@@ -347,9 +343,7 @@ const pro = {
     'hollaex': hollaex$1,
     'htx': htx$1,
     'huobi': huobi$1,
-    'huobijp': huobijp$1,
     'hyperliquid': hyperliquid$1,
-    'idex': idex$1,
     'independentreserve': independentreserve$1,
     'kraken': kraken$1,
     'krakenfutures': krakenfutures$1,
@@ -451,6 +445,7 @@ exports.bitrue = bitrue;
 exports.bitso = bitso;
 exports.bitstamp = bitstamp;
 exports.bitteam = bitteam;
+exports.bittrade = bittrade;
 exports.bitvavo = bitvavo;
 exports.blockchaincom = blockchaincom;
 exports.blofin = blofin;
@@ -491,16 +486,13 @@ exports.hitbtc = hitbtc;
 exports.hollaex = hollaex;
 exports.htx = htx;
 exports.huobi = huobi;
-exports.huobijp = huobijp;
 exports.hyperliquid = hyperliquid;
-exports.idex = idex;
 exports.independentreserve = independentreserve;
 exports.indodax = indodax;
 exports.kraken = kraken;
 exports.krakenfutures = krakenfutures;
 exports.kucoin = kucoin;
 exports.kucoinfutures = kucoinfutures;
-exports.kuna = kuna;
 exports.latoken = latoken;
 exports.lbank = lbank;
 exports.luno = luno;

@@ -184,12 +184,12 @@ class hyperliquid(Exchange, ImplicitAPI):
             },
             'fees': {
                 'swap': {
-                    'taker': self.parse_number('0.00035'),
-                    'maker': self.parse_number('0.0001'),
+                    'taker': self.parse_number('0.00045'),
+                    'maker': self.parse_number('0.00015'),
                 },
                 'spot': {
-                    'taker': self.parse_number('0.00035'),
-                    'maker': self.parse_number('0.0001'),
+                    'taker': self.parse_number('0.0007'),
+                    'maker': self.parse_number('0.0004'),
                 },
             },
             'requiredCredentials': {
@@ -368,7 +368,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             id = i
             name = self.safe_string(data, 'name')
             code = self.safe_currency_code(name)
-            result[code] = {
+            result[code] = self.safe_currency_structure({
                 'id': id,
                 'name': name,
                 'code': code,
@@ -390,7 +390,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
-            }
+            })
         return result
 
     def fetch_markets(self, params={}) -> List[Market]:

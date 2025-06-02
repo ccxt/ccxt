@@ -411,23 +411,29 @@ public partial class kraken : ccxt.kraken
      * @see https://docs.kraken.com/api/docs/websocket-v1/cancelorder
      * @description cancel multiple orders
      * @param {string[]} ids order ids
-     * @param {string} symbol unified market symbol, default is undefined
+     * @param {string} [symbol] unified market symbol, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> cancelOrdersWs(object ids, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            throw new NotSupported ((string)add(this.id, " cancelOrdersWs () does not support cancelling orders for a specific symbol.")) ;
+        }
         await this.loadMarkets();
         object token = await this.authenticate();
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
+        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "privateV2");
         object requestId = this.requestId();
         object messageHash = requestId;
         object request = new Dictionary<string, object>() {
-            { "event", "cancelOrder" },
-            { "token", token },
-            { "reqid", requestId },
-            { "txid", ids },
+            { "method", "cancel_order" },
+            { "params", new Dictionary<string, object>() {
+                { "order_id", ids },
+                { "token", token },
+            } },
+            { "req_id", requestId },
         };
         return await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
     }
@@ -438,25 +444,29 @@ public partial class kraken : ccxt.kraken
      * @see https://docs.kraken.com/api/docs/websocket-v1/cancelorder
      * @description cancels an open order
      * @param {string} id order id
-     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> cancelOrderWs(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            throw new NotSupported ((string)add(this.id, " cancelOrderWs () does not support cancelling orders for a specific symbol.")) ;
+        }
         await this.loadMarkets();
         object token = await this.authenticate();
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
+        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "privateV2");
         object requestId = this.requestId();
         object messageHash = requestId;
-        object clientOrderId = this.safeValue2(parameters, "userref", "clientOrderId", id);
-        parameters = this.omit(parameters, new List<object>() {"userref", "clientOrderId"});
         object request = new Dictionary<string, object>() {
-            { "event", "cancelOrder" },
-            { "token", token },
-            { "reqid", requestId },
-            { "txid", new List<object>() {clientOrderId} },
+            { "method", "cancel_order" },
+            { "params", new Dictionary<string, object>() {
+                { "order_id", new List<object>() {id} },
+                { "token", token },
+            } },
+            { "req_id", requestId },
         };
         return await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
     }
@@ -464,14 +474,18 @@ public partial class kraken : ccxt.kraken
     public virtual void handleCancelOrder(WebSocketClient client, object message)
     {
         //
-        //  success
-        //    {
-        //        "event": "cancelOrderStatus",
-        //        "status": "ok"
-        //        "reqid": 1,
-        //    }
+        //     {
+        //         "method": "cancel_order",
+        //         "req_id": 123456789,
+        //         "result": {
+        //             "order_id": "OKAGJC-YHIWK-WIOZWG"
+        //         },
+        //         "success": true,
+        //         "time_in": "2023-09-21T14:36:57.428972Z",
+        //         "time_out": "2023-09-21T14:36:57.437952Z"
+        //     }
         //
-        object reqId = this.safeValue(message, "reqid");
+        object reqId = this.safeValue(message, "req_id");
         callDynamically(client as WebSocketClient, "resolve", new object[] {message, reqId});
     }
 
@@ -480,7 +494,7 @@ public partial class kraken : ccxt.kraken
      * @name kraken#cancelAllOrdersWs
      * @see https://docs.kraken.com/api/docs/websocket-v1/cancelall
      * @description cancel all open orders
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -493,13 +507,15 @@ public partial class kraken : ccxt.kraken
         }
         await this.loadMarkets();
         object token = await this.authenticate();
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
+        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "privateV2");
         object requestId = this.requestId();
         object messageHash = requestId;
         object request = new Dictionary<string, object>() {
-            { "event", "cancelAll" },
-            { "token", token },
-            { "reqid", requestId },
+            { "method", "cancel_all" },
+            { "params", new Dictionary<string, object>() {
+                { "token", token },
+            } },
+            { "req_id", requestId },
         };
         return await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
     }
@@ -507,14 +523,18 @@ public partial class kraken : ccxt.kraken
     public virtual void handleCancelAllOrders(WebSocketClient client, object message)
     {
         //
-        //    {
-        //        "count": 2,
-        //        "event": "cancelAllStatus",
-        //        "status": "ok",
-        //        "reqId": 1
-        //    }
+        //     {
+        //         "method": "cancel_all",
+        //         "req_id": 123456789,
+        //         "result": {
+        //             "count": 1
+        //         },
+        //         "success": true,
+        //         "time_in": "2023-09-21T14:36:57.428972Z",
+        //         "time_out": "2023-09-21T14:36:57.437952Z"
+        //     }
         //
-        object reqId = this.safeValue(message, "reqid");
+        object reqId = this.safeValue(message, "req_id");
         callDynamically(client as WebSocketClient, "resolve", new object[] {message, reqId});
     }
 
@@ -1977,8 +1997,8 @@ public partial class kraken : ccxt.kraken
                     { "subscriptionStatus", this.handleSubscriptionStatus },
                     { "add_order", this.handleCreateEditOrder },
                     { "amend_order", this.handleCreateEditOrder },
-                    { "cancelOrderStatus", this.handleCancelOrder },
-                    { "cancelAllStatus", this.handleCancelAllOrders },
+                    { "cancel_order", this.handleCancelOrder },
+                    { "cancel_all", this.handleCancelAllOrders },
                 };
                 object method = this.safeValue(methods, eventVar);
                 if (isTrue(!isEqual(method, null)))

@@ -861,24 +861,21 @@ class kraken(Exchange, ImplicitAPI):
                     self.commonCurrencies[id] = code
                 else:
                     code = self.safe_currency_code(id)
-            precision = self.parse_number(self.parse_precision(self.safe_string(currency, 'decimals')))
-            # assumes all currencies are active except those listed above
-            active = self.safe_string(currency, 'status') == 'enabled'
             isFiat = code.find('.HOLD') >= 0
-            result[code] = {
+            result[code] = self.safe_currency_structure({
                 'id': id,
                 'code': code,
                 'info': currency,
                 'name': self.safe_string(currency, 'altname'),
-                'active': active,
+                'active': self.safe_string(currency, 'status') == 'enabled',
                 'type': 'fiat' if isFiat else 'crypto',
                 'deposit': None,
                 'withdraw': None,
                 'fee': None,
-                'precision': precision,
+                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'decimals'))),
                 'limits': {
                     'amount': {
-                        'min': precision,
+                        'min': None,
                         'max': None,
                     },
                     'withdraw': {
@@ -887,7 +884,7 @@ class kraken(Exchange, ImplicitAPI):
                     },
                 },
                 'networks': {},
-            }
+            })
         return result
 
     def safe_currency_code(self, currencyId: Str, currency: Currency = None) -> Str:

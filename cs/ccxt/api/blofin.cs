@@ -101,6 +101,11 @@ public partial class blofin : Exchange
         return await this.callAsync ("privateGetAccountMarginMode",parameters);
     }
 
+    public async Task<object> privateGetAccountPositionMode (object parameters = null)
+    {
+        return await this.callAsync ("privateGetAccountPositionMode",parameters);
+    }
+
     public async Task<object> privateGetAccountBatchLeverageInfo (object parameters = null)
     {
         return await this.callAsync ("privateGetAccountBatchLeverageInfo",parameters);
@@ -124,6 +129,16 @@ public partial class blofin : Exchange
     public async Task<object> privateGetTradeOrdersTpslHistory (object parameters = null)
     {
         return await this.callAsync ("privateGetTradeOrdersTpslHistory",parameters);
+    }
+
+    public async Task<object> privateGetTradeOrdersAlgoHistory (object parameters = null)
+    {
+        return await this.callAsync ("privateGetTradeOrdersAlgoHistory",parameters);
+    }
+
+    public async Task<object> privateGetTradeOrderPriceRange (object parameters = null)
+    {
+        return await this.callAsync ("privateGetTradeOrderPriceRange",parameters);
     }
 
     public async Task<object> privateGetUserQueryApikey (object parameters = null)
@@ -194,6 +209,16 @@ public partial class blofin : Exchange
     public async Task<object> privateGetCopytradingTradePendingTpslByOrder (object parameters = null)
     {
         return await this.callAsync ("privateGetCopytradingTradePendingTpslByOrder",parameters);
+    }
+
+    public async Task<object> privatePostAccountSetMarginMode (object parameters = null)
+    {
+        return await this.callAsync ("privatePostAccountSetMarginMode",parameters);
+    }
+
+    public async Task<object> privatePostAccountSetPositionMode (object parameters = null)
+    {
+        return await this.callAsync ("privatePostAccountSetPositionMode",parameters);
     }
 
     public async Task<object> privatePostTradeOrder (object parameters = null)

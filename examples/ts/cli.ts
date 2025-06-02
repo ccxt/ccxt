@@ -474,7 +474,7 @@ async function run () {
                     try {
                         const fn = exchange[methodName]
                         const fnParams = countAllParams(fn)
-                        const argsContainsParams = args.find( arg=> arg && typeof arg === 'object' && Object.keys(arg).length > 0)
+                        const argsContainsParams = args.find( arg=> arg && typeof arg === 'object' && !Array.isArray(arg) && Object.keys(arg).length > 0)
                         if (argsContainsParams && fnParams !== args.length) {
                             // populate the missing params with undefined
                             const missingParams = fnParams - args.length

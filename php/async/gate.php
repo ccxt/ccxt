@@ -725,6 +725,16 @@ class gate extends Exchange {
                 ),
                 'networksById' => array(
                     'OPETH' => 'OP',
+                    'ETH' => 'ERC20', // for GOlang
+                    'ERC20' => 'ERC20',
+                    'TRX' => 'TRC20',
+                    'TRC20' => 'TRC20',
+                    'HT' => 'HRC20',
+                    'HECO' => 'HRC20',
+                    'BSC' => 'BEP20',
+                    'BEP20' => 'BEP20',
+                    'POLYGON' => 'MATIC',
+                    'POL' => 'MATIC',
                 ),
                 'timeInForce' => array(
                     'GTC' => 'gtc',
@@ -1232,6 +1242,9 @@ class gate extends Exchange {
              */
             if ($this->options['adjustForTimeDifference']) {
                 Async\await($this->load_time_difference());
+            }
+            if ($this->check_required_credentials(false)) {
+                Async\await($this->load_unified_status());
             }
             $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
             $rawPromises = array(
@@ -1853,88 +1866,93 @@ class gate extends Exchange {
             if ($apiBackup !== null) {
                 return null;
             }
-            if ($this->check_required_credentials(false)) {
-                Async\await($this->load_unified_status());
-            }
             $response = Async\await($this->publicSpotGetCurrencies ($params));
             //
-            //  array(
-            //   array(
-            //       "currency" => "USDT_ETH",
-            //       "name" => "Tether",
-            //       "delisted" => false,
-            //       "withdraw_disabled" => false,
-            //       "withdraw_delayed" => false,
-            //       "deposit_disabled" => false,
-            //       "trade_disabled" => true,
-            //       "chain" => "ETH"
-            //    ),
-            //  )
+            //    array(
+            //      array(
+            //         "currency" => "USDT",
+            //         "name" => "Tether",
+            //         "delisted" => false,
+            //         "withdraw_disabled" => false,
+            //         "withdraw_delayed" => false,
+            //         "deposit_disabled" => false,
+            //         "trade_disabled" => false,
+            //         "fixed_rate" => "",
+            //         "chain" => "ETH",
+            //         "chains" => array(
+            //           array(
+            //             "name" => "ETH",
+            //             "addr" => "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+            //             "withdraw_disabled" => false,
+            //             "withdraw_delayed" => false,
+            //             "deposit_disabled" => false
+            //           ),
+            //           array(
+            //             "name" => "ARBEVM",
+            //             "addr" => "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
+            //             "withdraw_disabled" => false,
+            //             "withdraw_delayed" => false,
+            //             "deposit_disabled" => false
+            //           ),
+            //           array(
+            //             "name" => "BSC",
+            //             "addr" => "0x55d398326f99059fF775485246999027B3197955",
+            //             "withdraw_disabled" => false,
+            //             "withdraw_delayed" => false,
+            //             "deposit_disabled" => false
+            //           ),
+            //         )
+            //       ),
+            //    )
             //
             $indexedCurrencies = $this->index_by($response, 'currency');
             $result = array();
             for ($i = 0; $i < count($response); $i++) {
                 $entry = $response[$i];
                 $currencyId = $this->safe_string($entry, 'currency');
-                $parts = explode('_', $currencyId);
-                $partFirst = $this->safe_string($parts, 0);
-                // if there's an underscore then the second part is always the chain name (except the _OLD suffix)
-                $currencyName = str_ends_with($currencyId, '_OLD') ? $currencyId : $partFirst;
-                $withdrawDisabled = $this->safe_bool($entry, 'withdraw_disabled', false);
-                $depositDisabled = $this->safe_bool($entry, 'deposit_disabled', false);
-                $tradeDisabled = $this->safe_bool($entry, 'trade_disabled', false);
-                $precision = $this->parse_number('0.0001'); // temporary safe default, because no value provided from API
-                $code = $this->safe_currency_code($currencyName);
+                $code = $this->safe_currency_code($currencyId);
                 // check leveraged tokens (e.g. BTC3S, ETH5L)
-                $isLeveragedToken = false;
-                if (str_ends_with($currencyId, '3S') || str_ends_with($currencyId, '3L') || str_ends_with($currencyId, '5S') || str_ends_with($currencyId, '5L')) {
-                    $realCurrencyId = mb_substr($currencyId, 0, -2 - 0);
-                    if (is_array($indexedCurrencies) && array_key_exists($realCurrencyId, $indexedCurrencies)) {
-                        $isLeveragedToken = true;
-                    }
-                }
-                $type = $isLeveragedToken ? 'leveraged' : 'crypto';
-                // some networks are null, they are mostly obsolete & unsupported dead tokens, so we can default their $networkId to their tokenname
-                $networkId = $this->safe_string($entry, 'chain', $currencyId);
-                $networkCode = $this->network_id_to_code($networkId, $code);
-                $networkEntry = array(
-                    'info' => $entry,
-                    'id' => $networkId,
-                    'network' => $networkCode,
-                    'limits' => array(
-                        'deposit' => array(
-                            'min' => null,
-                            'max' => null,
+                $type = $this->is_leveraged_currency($currencyId, true, $indexedCurrencies) ? 'leveraged' : 'crypto';
+                $chains = $this->safe_list($entry, 'chains', array());
+                $networks = array();
+                for ($j = 0; $j < count($chains); $j++) {
+                    $chain = $chains[$j];
+                    $networkId = $this->safe_string($chain, 'name');
+                    $networkCode = $this->network_id_to_code($networkId);
+                    $networks[$networkCode] = array(
+                        'info' => $chain,
+                        'id' => $networkId,
+                        'network' => $networkCode,
+                        'active' => null,
+                        'deposit' => !$this->safe_bool($chain, 'deposit_disabled'),
+                        'withdraw' => !$this->safe_bool($chain, 'withdraw_disabled'),
+                        'fee' => null,
+                        'precision' => $this->parse_number('0.0001'), // temporary safe default, because no value provided from API,
+                        'limits' => array(
+                            'deposit' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
+                            'withdraw' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
                         ),
-                        'withdraw' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                    'active' => !$tradeDisabled,
-                    'deposit' => !$depositDisabled,
-                    'withdraw' => !$withdrawDisabled,
-                    'fee' => null,
-                    'precision' => $precision,
-                );
-                // check if first $entry for the specific currency
-                if (!(is_array($result) && array_key_exists($code, $result))) {
-                    $result[$code] = array(
-                        'id' => $currencyName,
-                        'lowerCaseId' => strtolower($currencyName),
-                        'code' => $code,
-                        'type' => $type,
-                        'precision' => $precision,
-                        'limits' => null,
-                        'networks' => array(),
-                        'info' => array(), // will be filled below
                     );
                 }
-                $result[$code]['networks'][$networkCode] = $networkEntry;
-                $info = $this->safe_list($result[$code], 'info', array());
-                $info[] = $entry;
-                $result[$code]['info'] = $info;
-                $result[$code] = $this->safe_currency_structure($result[$code]); // this is needed after adding network $entry
+                $result[$code] = $this->safe_currency_structure(array(
+                    'id' => $currencyId,
+                    'code' => $code,
+                    'name' => $this->safe_string($entry, 'name'),
+                    'type' => $type,
+                    'active' => !$this->safe_bool($entry, 'delisted'),
+                    'deposit' => !$this->safe_bool($entry, 'deposit_disabled'),
+                    'withdraw' => !$this->safe_bool($entry, 'withdraw_disabled'),
+                    'fee' => null,
+                    'networks' => $networks,
+                    'precision' => $this->parse_number('0.0001'),
+                    'info' => $entry,
+                ));
             }
             return $result;
         }) ();

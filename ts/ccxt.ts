@@ -40,7 +40,7 @@ import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, Account
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.4.83';
+const version = '4.4.86';
 
 (Exchange as any).ccxtVersion = version
 
@@ -70,6 +70,7 @@ import bitrue from  './src/bitrue.js'
 import bitso from  './src/bitso.js'
 import bitstamp from  './src/bitstamp.js'
 import bitteam from  './src/bitteam.js'
+import bittrade from  './src/bittrade.js'
 import bitvavo from  './src/bitvavo.js'
 import blockchaincom from  './src/blockchaincom.js'
 import blofin from  './src/blofin.js'
@@ -110,16 +111,13 @@ import hitbtc from  './src/hitbtc.js'
 import hollaex from  './src/hollaex.js'
 import htx from  './src/htx.js'
 import huobi from  './src/huobi.js'
-import huobijp from  './src/huobijp.js'
 import hyperliquid from  './src/hyperliquid.js'
-import idex from  './src/idex.js'
 import independentreserve from  './src/independentreserve.js'
 import indodax from  './src/indodax.js'
 import kraken from  './src/kraken.js'
 import krakenfutures from  './src/krakenfutures.js'
 import kucoin from  './src/kucoin.js'
 import kucoinfutures from  './src/kucoinfutures.js'
-import kuna from  './src/kuna.js'
 import latoken from  './src/latoken.js'
 import lbank from  './src/lbank.js'
 import luno from  './src/luno.js'
@@ -172,6 +170,7 @@ import bitmexPro from  './src/pro/bitmex.js'
 import bitoproPro from  './src/pro/bitopro.js'
 import bitruePro from  './src/pro/bitrue.js'
 import bitstampPro from  './src/pro/bitstamp.js'
+import bittradePro from  './src/pro/bittrade.js'
 import bitvavoPro from  './src/pro/bitvavo.js'
 import blockchaincomPro from  './src/pro/blockchaincom.js'
 import blofinPro from  './src/pro/blofin.js'
@@ -198,9 +197,7 @@ import hitbtcPro from  './src/pro/hitbtc.js'
 import hollaexPro from  './src/pro/hollaex.js'
 import htxPro from  './src/pro/htx.js'
 import huobiPro from  './src/pro/huobi.js'
-import huobijpPro from  './src/pro/huobijp.js'
 import hyperliquidPro from  './src/pro/hyperliquid.js'
-import idexPro from  './src/pro/idex.js'
 import independentreservePro from  './src/pro/independentreserve.js'
 import krakenPro from  './src/pro/kraken.js'
 import krakenfuturesPro from  './src/pro/krakenfutures.js'
@@ -253,6 +250,7 @@ const exchanges = {
     'bitso':                  bitso,
     'bitstamp':               bitstamp,
     'bitteam':                bitteam,
+    'bittrade':               bittrade,
     'bitvavo':                bitvavo,
     'blockchaincom':          blockchaincom,
     'blofin':                 blofin,
@@ -293,16 +291,13 @@ const exchanges = {
     'hollaex':                hollaex,
     'htx':                    htx,
     'huobi':                  huobi,
-    'huobijp':                huobijp,
     'hyperliquid':            hyperliquid,
-    'idex':                   idex,
     'independentreserve':     independentreserve,
     'indodax':                indodax,
     'kraken':                 kraken,
     'krakenfutures':          krakenfutures,
     'kucoin':                 kucoin,
     'kucoinfutures':          kucoinfutures,
-    'kuna':                   kuna,
     'latoken':                latoken,
     'lbank':                  lbank,
     'luno':                   luno,
@@ -355,6 +350,7 @@ const pro = {
     'bitopro':                bitoproPro,
     'bitrue':                 bitruePro,
     'bitstamp':               bitstampPro,
+    'bittrade':               bittradePro,
     'bitvavo':                bitvavoPro,
     'blockchaincom':          blockchaincomPro,
     'blofin':                 blofinPro,
@@ -381,9 +377,7 @@ const pro = {
     'hollaex':                hollaexPro,
     'htx':                    htxPro,
     'huobi':                  huobiPro,
-    'huobijp':                huobijpPro,
     'hyperliquid':            hyperliquidPro,
-    'idex':                   idexPro,
     'independentreserve':     independentreservePro,
     'kraken':                 krakenPro,
     'krakenfutures':          krakenfuturesPro,
@@ -577,6 +571,7 @@ export {
     bitso,
     bitstamp,
     bitteam,
+    bittrade,
     bitvavo,
     blockchaincom,
     blofin,
@@ -617,16 +612,13 @@ export {
     hollaex,
     htx,
     huobi,
-    huobijp,
     hyperliquid,
-    idex,
     independentreserve,
     indodax,
     kraken,
     krakenfutures,
     kucoin,
     kucoinfutures,
-    kuna,
     latoken,
     lbank,
     luno,

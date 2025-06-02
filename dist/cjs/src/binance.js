@@ -5195,7 +5195,6 @@ class binance extends binance$1 {
         if (postOnly) {
             uppercaseType = 'LIMIT_MAKER';
         }
-        request['type'] = uppercaseType;
         const triggerPrice = this.safeNumber2(params, 'stopPrice', 'triggerPrice');
         if (triggerPrice !== undefined) {
             if (uppercaseType === 'MARKET') {
@@ -5205,6 +5204,7 @@ class binance extends binance$1 {
                 uppercaseType = 'STOP_LOSS_LIMIT';
             }
         }
+        request['type'] = uppercaseType;
         const validOrderTypes = this.safeList(market['info'], 'orderTypes');
         if (!this.inArray(uppercaseType, validOrderTypes)) {
             if (initialUppercaseType !== uppercaseType) {

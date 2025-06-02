@@ -840,47 +840,30 @@ class okcoin(Exchange, ImplicitAPI):
             return None
         else:
             response = await self.privateGetAssetCurrencies(params)
-            data = self.safe_value(response, 'data', [])
+            data = self.safe_list(response, 'data', [])
             result: dict = {}
             dataByCurrencyId = self.group_by(data, 'ccy')
             currencyIds = list(dataByCurrencyId.keys())
             for i in range(0, len(currencyIds)):
                 currencyId = currencyIds[i]
-                currency = self.safe_currency(currencyId)
-                code = currency['code']
+                code = self.safe_currency_code(currencyId)
                 chains = dataByCurrencyId[currencyId]
                 networks: dict = {}
-                currencyActive = False
-                depositEnabled = False
-                withdrawEnabled = False
-                maxPrecision = None
                 for j in range(0, len(chains)):
                     chain = chains[j]
-                    canDeposit = self.safe_value(chain, 'canDep')
-                    depositEnabled = canDeposit if (canDeposit) else depositEnabled
-                    canWithdraw = self.safe_value(chain, 'canWd')
-                    withdrawEnabled = canWithdraw if (canWithdraw) else withdrawEnabled
-                    canInternal = self.safe_value(chain, 'canInternal')
-                    active = True if (canDeposit and canWithdraw and canInternal) else False
-                    currencyActive = active if (active) else currencyActive
                     networkId = self.safe_string(chain, 'chain')
                     if (networkId is not None) and (networkId.find('-') >= 0):
                         parts = networkId.split('-')
                         chainPart = self.safe_string(parts, 1, networkId)
                         networkCode = self.network_id_to_code(chainPart)
-                        precision = self.parse_precision(self.safe_string(chain, 'wdTickSz'))
-                        if maxPrecision is None:
-                            maxPrecision = precision
-                        else:
-                            maxPrecision = Precise.string_min(maxPrecision, precision)
                         networks[networkCode] = {
                             'id': networkId,
                             'network': networkCode,
-                            'active': active,
-                            'deposit': canDeposit,
-                            'withdraw': canWithdraw,
+                            'active': None,
+                            'deposit': self.safe_bool(chain, 'canDep'),
+                            'withdraw': self.safe_bool(chain, 'canWd'),
                             'fee': self.safe_number(chain, 'minFee'),
-                            'precision': self.parse_number(precision),
+                            'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'wdTickSz'))),
                             'limits': {
                                 'withdraw': {
                                     'min': self.safe_number(chain, 'minWd'),
@@ -890,16 +873,16 @@ class okcoin(Exchange, ImplicitAPI):
                             'info': chain,
                         }
                 firstChain = self.safe_value(chains, 0)
-                result[code] = {
+                result[code] = self.safe_currency_structure({
                     'info': chains,
                     'code': code,
                     'id': currencyId,
                     'name': self.safe_string(firstChain, 'name'),
-                    'active': currencyActive,
-                    'deposit': depositEnabled,
-                    'withdraw': withdrawEnabled,
+                    'active': None,
+                    'deposit': None,
+                    'withdraw': None,
                     'fee': None,
-                    'precision': self.parse_number(maxPrecision),
+                    'precision': None,
                     'limits': {
                         'amount': {
                             'min': None,
@@ -907,7 +890,7 @@ class okcoin(Exchange, ImplicitAPI):
                         },
                     },
                     'networks': networks,
-                }
+                })
             return result
 
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:

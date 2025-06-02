@@ -175,12 +175,12 @@ class hyperliquid extends hyperliquid$1 {
             },
             'fees': {
                 'swap': {
-                    'taker': this.parseNumber('0.00035'),
-                    'maker': this.parseNumber('0.0001'),
+                    'taker': this.parseNumber('0.00045'),
+                    'maker': this.parseNumber('0.00015'),
                 },
                 'spot': {
-                    'taker': this.parseNumber('0.00035'),
-                    'maker': this.parseNumber('0.0001'),
+                    'taker': this.parseNumber('0.0007'),
+                    'maker': this.parseNumber('0.0004'),
                 },
             },
             'requiredCredentials': {
@@ -357,7 +357,7 @@ class hyperliquid extends hyperliquid$1 {
             const id = i;
             const name = this.safeString(data, 'name');
             const code = this.safeCurrencyCode(name);
-            result[code] = {
+            result[code] = this.safeCurrencyStructure({
                 'id': id,
                 'name': name,
                 'code': code,
@@ -379,7 +379,7 @@ class hyperliquid extends hyperliquid$1 {
                         'max': undefined,
                     },
                 },
-            };
+            });
         }
         return result;
     }

@@ -377,20 +377,25 @@ class kraken extends \ccxt\async\kraken {
              *
              * cancel multiple orders
              * @param {string[]} $ids order $ids
-             * @param {string} $symbol unified market $symbol, default is null
+             * @param {string} [$symbol] unified market $symbol, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
+            if ($symbol !== null) {
+                throw new NotSupported($this->id . ' cancelOrdersWs () does not support cancelling orders for a specific $symbol->');
+            }
             Async\await($this->load_markets());
             $token = Async\await($this->authenticate());
-            $url = $this->urls['api']['ws']['private'];
+            $url = $this->urls['api']['ws']['privateV2'];
             $requestId = $this->request_id();
             $messageHash = $requestId;
             $request = array(
-                'event' => 'cancelOrder',
-                'token' => $token,
-                'reqid' => $requestId,
-                'txid' => $ids,
+                'method' => 'cancel_order',
+                'params' => array(
+                    'order_id' => $ids,
+                    'token' => $token,
+                ),
+                'req_id' => $requestId,
             );
             return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
         }) ();
@@ -404,22 +409,25 @@ class kraken extends \ccxt\async\kraken {
              *
              * cancels an open order
              * @param {string} $id order $id
-             * @param {string} $symbol unified $symbol of the market the order was made in
+             * @param {string} [$symbol] unified $symbol of the market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
+            if ($symbol !== null) {
+                throw new NotSupported($this->id . ' cancelOrderWs () does not support cancelling orders for a specific $symbol->');
+            }
             Async\await($this->load_markets());
             $token = Async\await($this->authenticate());
-            $url = $this->urls['api']['ws']['private'];
+            $url = $this->urls['api']['ws']['privateV2'];
             $requestId = $this->request_id();
             $messageHash = $requestId;
-            $clientOrderId = $this->safe_value_2($params, 'userref', 'clientOrderId', $id);
-            $params = $this->omit($params, array( 'userref', 'clientOrderId' ));
             $request = array(
-                'event' => 'cancelOrder',
-                'token' => $token,
-                'reqid' => $requestId,
-                'txid' => array( $clientOrderId ),
+                'method' => 'cancel_order',
+                'params' => array(
+                    'order_id' => array( $id ),
+                    'token' => $token,
+                ),
+                'req_id' => $requestId,
             );
             return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
         }) ();
@@ -427,14 +435,18 @@ class kraken extends \ccxt\async\kraken {
 
     public function handle_cancel_order($client, $message) {
         //
-        //  success
-        //    {
-        //        "event" => "cancelOrderStatus",
-        //        "status" => "ok"
-        //        "reqid" => 1,
-        //    }
+        //     {
+        //         "method" => "cancel_order",
+        //         "req_id" => 123456789,
+        //         "result" => array(
+        //             "order_id" => "OKAGJC-YHIWK-WIOZWG"
+        //         ),
+        //         "success" => true,
+        //         "time_in" => "2023-09-21T14:36:57.428972Z",
+        //         "time_out" => "2023-09-21T14:36:57.437952Z"
+        //     }
         //
-        $reqId = $this->safe_value($message, 'reqid');
+        $reqId = $this->safe_value($message, 'req_id');
         $client->resolve ($message, $reqId);
     }
 
@@ -445,7 +457,7 @@ class kraken extends \ccxt\async\kraken {
              * @see https://docs.kraken.com/api/docs/websocket-v1/cancelall
              *
              * cancel all open orders
-             * @param {string} $symbol unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
+             * @param {string} [$symbol] unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
@@ -454,13 +466,15 @@ class kraken extends \ccxt\async\kraken {
             }
             Async\await($this->load_markets());
             $token = Async\await($this->authenticate());
-            $url = $this->urls['api']['ws']['private'];
+            $url = $this->urls['api']['ws']['privateV2'];
             $requestId = $this->request_id();
             $messageHash = $requestId;
             $request = array(
-                'event' => 'cancelAll',
-                'token' => $token,
-                'reqid' => $requestId,
+                'method' => 'cancel_all',
+                'params' => array(
+                    'token' => $token,
+                ),
+                'req_id' => $requestId,
             );
             return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
         }) ();
@@ -468,14 +482,18 @@ class kraken extends \ccxt\async\kraken {
 
     public function handle_cancel_all_orders($client, $message) {
         //
-        //    {
-        //        "count" => 2,
-        //        "event" => "cancelAllStatus",
-        //        "status" => "ok",
-        //        "reqId" => 1
-        //    }
+        //     {
+        //         "method" => "cancel_all",
+        //         "req_id" => 123456789,
+        //         "result" => array(
+        //             "count" => 1
+        //         ),
+        //         "success" => true,
+        //         "time_in" => "2023-09-21T14:36:57.428972Z",
+        //         "time_out" => "2023-09-21T14:36:57.437952Z"
+        //     }
         //
-        $reqId = $this->safe_value($message, 'reqid');
+        $reqId = $this->safe_value($message, 'req_id');
         $client->resolve ($message, $reqId);
     }
 
@@ -1842,8 +1860,8 @@ class kraken extends \ccxt\async\kraken {
                     'subscriptionStatus' => array($this, 'handle_subscription_status'),
                     'add_order' => array($this, 'handle_create_edit_order'),
                     'amend_order' => array($this, 'handle_create_edit_order'),
-                    'cancelOrderStatus' => array($this, 'handle_cancel_order'),
-                    'cancelAllStatus' => array($this, 'handle_cancel_all_orders'),
+                    'cancel_order' => array($this, 'handle_cancel_order'),
+                    'cancel_all' => array($this, 'handle_cancel_all_orders'),
                 );
                 $method = $this->safe_value($methods, $event);
                 if ($method !== null) {

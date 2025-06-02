@@ -166,12 +166,12 @@ public partial class hyperliquid : Exchange
             } },
             { "fees", new Dictionary<string, object>() {
                 { "swap", new Dictionary<string, object>() {
-                    { "taker", this.parseNumber("0.00035") },
-                    { "maker", this.parseNumber("0.0001") },
+                    { "taker", this.parseNumber("0.00045") },
+                    { "maker", this.parseNumber("0.00015") },
                 } },
                 { "spot", new Dictionary<string, object>() {
-                    { "taker", this.parseNumber("0.00035") },
-                    { "maker", this.parseNumber("0.0001") },
+                    { "taker", this.parseNumber("0.0007") },
+                    { "maker", this.parseNumber("0.0004") },
                 } },
             } },
             { "requiredCredentials", new Dictionary<string, object>() {
@@ -354,7 +354,7 @@ public partial class hyperliquid : Exchange
             object id = i;
             object name = this.safeString(data, "name");
             object code = this.safeCurrencyCode(name);
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "name", name },
                 { "code", code },
@@ -376,7 +376,7 @@ public partial class hyperliquid : Exchange
                         { "max", null },
                     } },
                 } },
-            };
+            });
         }
         return result;
     }

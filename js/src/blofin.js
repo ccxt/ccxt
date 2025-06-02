@@ -51,6 +51,7 @@ export default class blofin extends Exchange {
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
                 'createTakeProfitOrder': true,
+                'createTriggerOrder': true,
                 'editOrder': false,
                 'fetchAccounts': false,
                 'fetchBalance': true,
@@ -104,6 +105,7 @@ export default class blofin extends Exchange {
                 'fetchOrders': false,
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
+                'fetchPositionMode': true,
                 'fetchPositions': true,
                 'fetchPositionsForSymbol': false,
                 'fetchPositionsRisk': false,
@@ -131,8 +133,8 @@ export default class blofin extends Exchange {
                 'repayCrossMargin': false,
                 'setLeverage': true,
                 'setMargin': false,
-                'setMarginMode': false,
-                'setPositionMode': false,
+                'setMarginMode': true,
+                'setPositionMode': true,
                 'signIn': false,
                 'transfer': true,
                 'withdraw': false,
@@ -195,11 +197,14 @@ export default class blofin extends Exchange {
                         'account/positions': 1,
                         'account/leverage-info': 1,
                         'account/margin-mode': 1,
+                        'account/position-mode': 1,
                         'account/batch-leverage-info': 1,
                         'trade/orders-tpsl-pending': 1,
                         'trade/orders-algo-pending': 1,
                         'trade/orders-history': 1,
                         'trade/orders-tpsl-history': 1,
+                        'trade/orders-algo-history': 1,
+                        'trade/order/price-range': 1,
                         'user/query-apikey': 1,
                         'affiliate/basic': 1,
                         'copytrading/instruments': 1,
@@ -216,6 +221,8 @@ export default class blofin extends Exchange {
                         'copytrading/trade/pending-tpsl-by-order': 1,
                     },
                     'post': {
+                        'account/set-margin-mode': 1,
+                        'account/set-position-mode': 1,
                         'trade/order': 1,
                         'trade/order-algo': 1,
                         'trade/cancel-order': 1,
@@ -1198,6 +1205,9 @@ export default class blofin extends Exchange {
         else if (triggerPrice !== undefined) {
             request['orderType'] = 'trigger';
             request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
+            if (isMarketOrder) {
+                request['orderPrice'] = '-1';
+            }
         }
         return this.extend(request, params);
     }
@@ -1376,6 +1386,10 @@ export default class blofin extends Exchange {
         const isTriggerOrder = this.safeString(params, 'triggerPrice') !== undefined;
         const isType2Order = (isStopLossPriceDefined || isTakeProfitPriceDefined);
         let response = undefined;
+        const reduceOnly = this.safeBool(params, 'reduceOnly');
+        if (reduceOnly !== undefined) {
+            params['reduceOnly'] = reduceOnly ? 'true' : 'false';
+        }
         if (tpsl || (method === 'privatePostTradeOrderTpsl') || isType2Order) {
             const tpslRequest = this.createTpslOrderRequest(symbol, type, side, amount, price, params);
             response = await this.privatePostTradeOrderTpsl(tpslRequest);
@@ -2254,6 +2268,7 @@ export default class blofin extends Exchange {
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated'
+     * @param {string} [params.positionSide] 'long' or 'short' - required for hedged mode in isolated margin
      * @returns {object} response from the exchange
      */
     async setLeverage(leverage, symbol = undefined, params = {}) {
@@ -2388,9 +2403,94 @@ export default class blofin extends Exchange {
     parseMarginMode(marginMode, market = undefined) {
         return {
             'info': marginMode,
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'marginMode': this.safeString(marginMode, 'marginMode'),
         };
+    }
+    /**
+     * @method
+     * @name blofin#setMarginMode
+     * @description set margin mode to 'cross' or 'isolated'
+     * @see https://docs.blofin.com/index.html#set-margin-mode
+     * @param {string} marginMode 'cross' or 'isolated'
+     * @param {string} [symbol] unified market symbol (not used in blofin setMarginMode)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    async setMarginMode(marginMode, symbol = undefined, params = {}) {
+        this.checkRequiredArgument('setMarginMode', marginMode, 'marginMode', ['cross', 'isolated']);
+        await this.loadMarkets();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+        }
+        const request = {
+            'marginMode': marginMode,
+        };
+        const response = await this.privatePostAccountSetMarginMode(this.extend(request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": {
+        //             "marginMode": "isolated"
+        //         }
+        //     }
+        //
+        const data = this.safeDict(response, 'data', {});
+        return this.parseMarginMode(data, market);
+    }
+    /**
+     * @method
+     * @name blofin#fetchPositionMode
+     * @description fetchs the position mode, hedged or one way
+     * @see https://docs.blofin.com/index.html#get-position-mode
+     * @param {string} [symbol] unified symbol of the market to fetch the position mode for (not used in blofin fetchPositionMode)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an object detailing whether the market is in hedged or one-way mode
+     */
+    async fetchPositionMode(symbol = undefined, params = {}) {
+        const response = await this.privateGetAccountPositionMode(params);
+        const data = this.safeDict(response, 'data', {});
+        const positionMode = this.safeString(data, 'positionMode');
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": {
+        //             "positionMode": "long_short_mode"
+        //         }
+        //     }
+        //
+        return {
+            'info': data,
+            'hedged': positionMode === 'long_short_mode',
+        };
+    }
+    /**
+     * @method
+     * @name blofin#setPositionMode
+     * @description set hedged to true or false for a market
+     * @see https://docs.blofin.com/index.html#set-position-mode
+     * @param {bool} hedged set to true to use hedged mode, false for one-way mode
+     * @param {string} [symbol] not used by blofin setPositionMode ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    async setPositionMode(hedged, symbol = undefined, params = {}) {
+        const request = {
+            'positionMode': hedged ? 'long_short_mode' : 'net_mode',
+        };
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": {
+        //             "positionMode": "net_mode"
+        //         }
+        //     }
+        //
+        return await this.privatePostAccountSetPositionMode(this.extend(request, params));
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
