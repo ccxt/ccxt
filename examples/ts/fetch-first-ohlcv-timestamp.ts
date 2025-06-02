@@ -4,10 +4,9 @@ import ccxt from '../../js/ccxt.js';
 // AUTO-TRANSPILE //
 
 
-/**
- - This function tries to fetch the "listing time" of a symbol by fetching the earliest available bar in daily resolution.
- - Top-tier exchanges also support fetching smaller timeframes (eg. 1 minute) even several years back, so for those exchanges you can also use `useMinuteTimeframe = true` argument to get the timestamp rounded to the earliest minute bar (instead of daily bar timestamp).
-*/
+
+// This function tries to fetch the "listing time" of a symbol by fetching the earliest available bar in daily resolution.
+// Top-tier exchanges also support fetching smaller timeframes (eg. 1 minute) even several years back, so for those exchanges you can also use `useMinuteTimeframe = true` argument to get the timestamp rounded to the earliest minute bar (instead of daily bar timestamp).
 
 
 async function fetchFirstBarTimestamp (exchange:any, symbol: string, useMinuteTimeframe = false) {
@@ -71,13 +70,14 @@ async function fetchFirstBarTimestamp (exchange:any, symbol: string, useMinuteTi
 }
 
 
-// Usage:
+// ###### Usage ######
 //
-//   const myEx = new ccxt.binance ();
-//   await myEx.loadMarkets ();
-//   const symbol = 'TRUMP/USDT';
-//   const earliest_timestamp = await fetchFirstBarTimestamp(myEx, symbol, true);
-//   console.log ('- Earliest bar timestamp:', earliest_timestamp);
-//   console.log ('- Market.created:', myEx.market(symbol)['created']);
+// const myEx = new ccxt.binance ();
+// await myEx.loadMarkets ();
+// const symbol = 'TRUMP/USDT';
+// const earliest_timestamp = await fetchFirstBarTimestamp(myEx, symbol, true);
+// console.log ('- Earliest bar timestamp:', earliest_timestamp);
+// console.log ('- Market.created:', myEx.market(symbol)['created']);
+
 
 export default fetchFirstBarTimestamp;
