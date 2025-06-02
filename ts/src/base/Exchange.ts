@@ -7197,7 +7197,10 @@ export default class Exchange {
         // get market features
         const market = this.market (symbol);
         const marketType = this.safeString (market, 'type');
-        const features = this.safeDict (this.features, marketType, {});
+        let features = this.safeDict (this.features, marketType, {});
+        if (market['subType'] !== undefined) {
+            features = this.safeDict (features, market['subType'], {});
+        }
         const ohlcv = this.safeDict (features, 'fetchOHLCV');
         if (ohlcv === undefined) {
             throw new NotSupported (this.id + ' fetchOHLCV() is not supported for ' + marketType + ' markets');
