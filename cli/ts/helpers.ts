@@ -10,7 +10,7 @@ import { getCacheDirectory, loadConfigFile } from './cache.js';
 let add_static_result;
 
 try {
-    add_static_result = (await import ('../../js/static-tests.js'))
+    add_static_result = (await import ('../../utils/update-static-tests-data.js'))
         .add_static_result;
 } catch (e) {
     // noop
@@ -101,12 +101,11 @@ async function writeFile (filePath, content) {
         await fsPromises.writeFile (filePath, content);
     } catch (error) {
         if (error.code === 'ENOENT') {
-            await fsPromises.mkdir (path.dirname (filePath), { recursive: true });
+            await fsPromises.mkdir (path.dirname (filePath), { 'recursive': true });
             await fsPromises.writeFile (filePath, content);
         }
     }
 }
-
 
 /**
  *
@@ -115,7 +114,7 @@ async function writeFile (filePath, content) {
  * @param args
  * @param result
  */
-function createRequestTemplate (exchange, methodName, args, result) {
+function createRequestTemplate (cliOptions, exchange, methodName, args, result) {
     const final = {
         'description': 'Fill this with a description of the method call',
         'method': methodName,
@@ -133,8 +132,8 @@ function createRequestTemplate (exchange, methodName, args, result) {
     log.green ('-------------------------------------------');
     log (JSON.stringify (final, null, 2));
     log.green ('-------------------------------------------');
-    if (foundDescription !== undefined) {
-        final.description = foundDescription;
+    if (cliOptions.name) {
+        final.description = cliOptions.name;
         log.green ('auto-saving static result');
         add_static_result ('request', exchange.id, methodName, final);
     }
@@ -149,7 +148,7 @@ function createRequestTemplate (exchange, methodName, args, result) {
  * @param args
  * @param result
  */
-function createResponseTemplate (exchange, methodName, args, result) {
+function createResponseTemplate (cliOptions, exchange, methodName, args, result) {
     const final = {
         'description': 'Fill this with a description of the method call',
         'method': methodName,
@@ -167,8 +166,8 @@ function createResponseTemplate (exchange, methodName, args, result) {
     log.green ('-------------------------------------------');
     log (jsonStringify (final, 2));
     log.green ('-------------------------------------------');
-    if (foundDescription !== undefined) {
-        final.description = foundDescription;
+    if (cliOptions.name) {
+        final.description = cliOptions.name;
         log.green ('auto-saving static result');
         add_static_result ('response', exchange.id, methodName, final);
     }
@@ -567,10 +566,10 @@ function handleDebug (cliOptions) {
  */
 function handleStaticTests (cliOptions, exchange, methodName, args, result) {
     if (cliOptions.request || cliOptions.static) {
-        createRequestTemplate (exchange, methodName, args, result);
+        createRequestTemplate (cliOptions, exchange, methodName, args, result);
     }
     if (cliOptions.response || cliOptions.static) {
-        createResponseTemplate (exchange, methodName, args, result);
+        createResponseTemplate (cliOptions, exchange, methodName, args, result);
     }
 }
 
