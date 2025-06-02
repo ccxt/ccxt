@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import ansi from 'ansicolor';
 import { Command } from 'commander';
 import ololog from 'ololog';

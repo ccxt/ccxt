@@ -27,7 +27,7 @@ npm install -g ccxt-cli
 ## 🛠️ Usage
 
 ```bash
-ccxt <exchange_id> <methodName> [...args] # if you're not sure about the args use the `ccxt explain methodName` command
+ccxt <exchange_id> <methodName> [...args] # if you're not sure about the args, use the `ccxt explain methodName` command
 ```
 
 You can get a quick overview by using the `--help` flag:
@@ -76,46 +76,52 @@ Inside `$CACHE/ccxt-cli/config.json` you can add an object with the `exchangeId`
 
 ## Examples
 
-### Fetch OHLCV
+#### Fetch OHLCV
 
 ```bash
 ccxt binance fetchOHLCV BTC/USDT 1h undefined 10 # we don't want to provide since but we want limit so undefined is provided as the placeholder for since
 ```
 
-### Fetch your balance
+#### Fetch your balance
 
 ```bash
 ccxt kraken fetchBalance
 ```
 
-### Create a market order
+#### Create a market order
 
 ```bash
 ccxt binance createOrder BTC/USDT market buy 0.01
 ```
 
-### Fetch recent private trades
+#### Fetch recent private trades
 
 ```bash
 ccxt coinbasepro fetchMyTrades BTC/USD
 ```
 
 
-### Create order (with params)
+#### Create order (with params)
 
 ```bash
 ccxt binance createOrder "BTC/USDT" market buy 0.01 undefined --param test=true --param clientOrderId=myOrderId # undefined is the place holder for price
+```
+
+#### Fetch your swap/perps balance
+
+```bash
+ccxt binance fetchBalance --swap
 ```
 
 ---
 
 ## 📝 Tips
 
-- Use `--verbose` or `--debug` flags to inspect raw request/response data.
+- Use `--verbose` flag to inspect raw request/response data.
 - Use `--sandbox` to place the request using the testnet/sandbox environment
 - Always test with small amounts when placing orders.
 - Use `ccxt explain createOrder` to view the required arguments for createOrder or any other method
-- Use `ccxt <exchange_id> describe` to view supported capabilities and required credentials.
+- Use `--param keyA=valueA keyB=valueB ...` to provide the `params` argument.
 
 ---
 
