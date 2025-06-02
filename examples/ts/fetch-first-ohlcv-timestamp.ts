@@ -24,7 +24,7 @@ async function fetchFirstBarTimestamp (exchange:any, symbol: string, useMinuteTi
     }
     const ohlcv = exchange.safeDict (features, 'fetchOHLCV');
     if (ohlcv === undefined) {
-        throw new Error (exchange.id + ' fetchOHLCV() is not supported for ' + marketType + ' markets');
+        return undefined;
     }
     const limit = exchange.safeInteger (ohlcv, 'limit');
     const fetchParams = { 'maxRetriesOnFailure': 3 };
