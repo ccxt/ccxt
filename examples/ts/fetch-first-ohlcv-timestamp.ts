@@ -70,6 +70,7 @@ async function fetchFirstBarTimestamp (exchange:any, symbol: string, useMinuteTi
 // Usage:
 //
 //   const myEx = new ccxt.binance ();
+//   await myEx.loadMarkets ();
 //   const symbol = 'TRUMP/USDT';
 //   const earliest_timestamp = await fetchFirstBarTimestamp(myEx, symbol, true);
 //   console.log ('- Earliest bar timestamp:', earliest_timestamp);
