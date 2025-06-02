@@ -5,12 +5,13 @@
   "main": "./js/cli.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo\"Error: no test specified\" && exit 1",
+    "build": "tsc"
   },
   "bin": {
     "ccxt": "./js/cli.js"
   },
-  "author": "",
+  "author": "CCXT",
   "license": "ISC",
   "dependencies": {
     "ansicolor": "^2.0.3",
@@ -18,5 +19,13 @@
     "ccxt": "^4.4.86",
     "commander": "^14.0.0",
     "ololog": "^1.1.175"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ccxt/ccxt.git"
+  },
+  "readme": "README.md",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.com"
   }
 }

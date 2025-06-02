@@ -10,8 +10,7 @@ import { getCacheDirectory, getExchangeSettings, loadConfigFile } from './cache.
 let add_static_result;
 
 try {
-    add_static_result = (await import ('../../utils/update-static-tests-data.js'))
-        .add_static_result;
+    add_static_result = (await import ('../../utils/update-static-tests-data.js'));
 } catch (e) {
     // noop
 }
@@ -19,7 +18,9 @@ let ccxt;
 try {
     ccxt = await import ('ccxt');
 } catch (e) {
-    ccxt = await import ('../../js/ccxt.js');
+// @ts-ignore
+    // ccxt = await import ('../../ts/ccxt');
+    ccxt = await (Function ('return import("../../ts/ccxt")') ());
 }
 
 ansi.nice;
@@ -329,7 +330,7 @@ const printHumanReadable = (exchange, result, cliOptions, useTable = false) => {
  * @param forceCache
  */
 async function handleMarketsLoading (
-    exchange: ccxt.Exchange,
+    exchange: any,
     forceRefresh = false
 ) {
     const cachePath = getCacheDirectory ();
@@ -380,7 +381,7 @@ async function handleMarketsLoading (
  *
  * @param exchange
  */
-function setNoSend (exchange: ccxt.Exchange) {
+function setNoSend (exchange: any) {
     exchange.verbose = true;
     exchange.fetch = function fetch (
         url,

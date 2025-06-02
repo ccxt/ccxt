@@ -10,7 +10,9 @@ let local = false;
 try {
     ccxt = await import ('ccxt');
 } catch (e) {
-    ccxt = await import ('../../ts/ccxt.js');
+// @ts-ignore
+    // ccxt = await import ('../../ts/ccxt');
+    ccxt = await (Function ('return import("../../ts/ccxt")') ());
     local = true;
 }
 
