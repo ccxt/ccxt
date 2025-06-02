@@ -2,7 +2,7 @@ import ansi from 'ansicolor';
 import { Command } from 'commander';
 import ololog from 'ololog';
 import { parseMethodArgs, printHumanReadable, printSavedCommand, printUsage, loadSettingsAndCreateExchange, collectKeyValue, handleDebug, handleStaticTests, askForArgv, printMethodUsage } from './helpers.js';
-import { checkCache, getCacheDirectory, saveCommand } from './cache.js';
+import { changeConfigPath, checkCache, getCacheDirectory, saveCommand } from './cache.js';
 
 let ccxt;
 let local = false;
@@ -58,6 +58,7 @@ interface CLIOptions {
     history?: boolean;
     name?: string;
     param?: any;
+    config?: any;
 }
 
 const exchanges = Object.keys (ccxt.exchanges) as string[];
@@ -94,9 +95,10 @@ program
 
 program
     .option ('--verbose', 'enables the verbose mode')
-    .option ('--debug')
-    .option ('--poll', 'will repeat the call continously')
-    .option ('--no-send')
+    .option ('--raw', 'keeps the output pristine without extra logs or formatting')
+    .option ('--testnet', 'enables the sandbox mode')
+    .option ('--config <path>', 'Provide a different path for the config file')
+    .option ('--param <keyValue>', 'Pass key=value pair', collectKeyValue, {})
     .option ('--no-load-markets', 'skips markets loading')
     .option ('--details')
     .option ('--no-table', 'does not prettify the results')
@@ -104,7 +106,7 @@ program
     .option ('--iso8601')
     .option ('--cors')
     .option ('--cache-markets', 'forces markets caching')
-    .option ('--testnet', 'enables the sandbox mode')
+    .option ('--no-send')
     .option ('--sandbox', 'enables the sandbox mode')
     .option ('--signIn', 'calls the signIn() method if available')
     .option ('--spot', 'sets defaultType as spot')
@@ -112,14 +114,14 @@ program
     .option ('--future', 'sets defaultType as future')
     .option ('--option', 'sets defaultType as option')
     .option ('--request')
+    .option ('--poll', 'will repeat the call continously')
     .option ('--response')
     .option ('--static')
-    .option ('--raw', 'keeps the output pristine without extra logs or formatting')
     .option ('--no-keys', 'does not set any apiKeys even if detected')
     .option ('--i', 'iteractive mode, keeps the session opened')
     .option ('--history', 'prints the history of executed commands')
     .option ('--name <description>', 'Description of static test')
-    .option ('--param <keyValue>', 'Pass key=value pair', collectKeyValue, {});
+    .option ('--debug');
 
 program
     .command ('<exchangeId> <methodName> [args...]') // this command is only for the docs
@@ -148,6 +150,8 @@ program
 
 let inputArgs = process.argv;
 
+program.showHelpAfterError ();
+
 program.parse (inputArgs);
 
 saveCommand (process.argv);
@@ -167,6 +171,11 @@ if (!cliOptions.raw) {
     log.blue (pref + ' CCXT v' + ccxt.version);
 }
 
+if (cliOptions.config) {
+    changeConfigPath (cliOptions.config);
+    process.exit (0);
+}
+
 if (!exchangeId && !cliOptions.history) {
     log (('Error, No exchange id specified!' as any).red);
     printUsage (commandToShow);
@@ -179,6 +188,7 @@ if (!exchangeId && !cliOptions.history) {
  */
 async function run () {
     checkCache ();
+
     const iMode = cliOptions.i;
 
     while (true) { // main loop, used for the interactive mode

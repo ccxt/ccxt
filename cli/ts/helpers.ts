@@ -5,7 +5,7 @@ import path from 'path';
 import asTable from 'as-table';
 import { Agent } from 'https';
 import readline from 'readline';
-import { getCacheDirectory, loadConfigFile } from './cache.js';
+import { getCacheDirectory, getExchangeSettings, loadConfigFile } from './cache.js';
 
 let add_static_result;
 
@@ -442,9 +442,7 @@ async function loadSettingsAndCreateExchange (
 ) {
     let exchange;
     let allSettings = {};
-    if (cliOptions.history) {
-        return;
-    }
+
     // set up keys and settings, if any
     const keysGlobal = path.resolve ('keys.json');
     const keysLocal = path.resolve ('keys.local.json');
@@ -457,15 +455,19 @@ async function loadSettingsAndCreateExchange (
     // log ((`( Note, CCXT CLI is being loaded without api keys, because ${keysLocal} does not exist.  You can see the sample at https://github.com/ccxt/ccxt/blob/master/keys.json )` as any).yellow);
     }
 
+    const exchangeSettings = getExchangeSettings (exchangeId);
+
     const settings = allSettings[exchangeId] ? allSettings[exchangeId] : {};
+
+    const finalSettings = { ...exchangeSettings, ...settings };
 
     const timeout = 30000;
 
     try {
         if ((ccxt.pro as any).exchanges.includes (exchangeId)) {
-            exchange = new ccxt.pro[exchangeId] ({ timeout, httpsAgent, ...settings });
+            exchange = new ccxt.pro[exchangeId] ({ timeout, httpsAgent, ...finalSettings });
         } else {
-            exchange = new ccxt[exchangeId] ({ timeout, httpsAgent, ...settings });
+            exchange = new ccxt[exchangeId] ({ timeout, httpsAgent, ...finalSettings });
         }
         if (exchange === undefined) {
             process.exit ();

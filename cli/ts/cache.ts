@@ -33,7 +33,7 @@ function getCacheDirectory () {
     }
 }
 
-function loadConfigFile () {
+function loadMainConfigFile () {
     const cachePath = getCacheDirectory ();
     const configFilePath = path.join (cachePath, 'config.json');
     if (!fs.existsSync (configFilePath)) {
@@ -45,11 +45,37 @@ function loadConfigFile () {
     return configContent;
 }
 
+function saveConfigFile (config) {
+    const cachePath = getCacheDirectory ();
+    fs.writeFileSync (cachePath, JSON.stringify (config, null, 2));
+}
+
+function getExchangeSettings (exchangeId: string) {
+    let settingsPath = getCacheDirectory ();
+    const config = loadMainConfigFile ();
+
+    if ('cachePath' in config) {
+        settingsPath = config['cachePath'];
+    }
+
+    if (!fs.existsSync (settingsPath)) {
+        log.error ('The specified config file was not found: ' + settingsPath);
+    }
+
+    const settings = JSON.parse (fs.readFileSync (settingsPath).toString ());
+
+    if (exchangeId in settings) {
+        return settings[exchangeId];
+    }
+
+    return {};
+}
+
 /**
  *
  */
 function checkCache () {
-    loadConfigFile ();
+    loadMainConfigFile ();
     const cachePath = getCacheDirectory ();
     const marketsPath = path.join (cachePath, 'markets');
     if (!fs.existsSync (cachePath)) {
@@ -100,9 +126,18 @@ function saveCommand (cm: string[]) {
     fs.writeFileSync (historyFile, JSON.stringify (list, null, 2));
 }
 
+function changeConfigPath (newPath: string) {
+    log ('The config file now will be loaded from: ', newPath);
+    const currentConfig = loadMainConfigFile ();
+    currentConfig['cachePath'] = newPath;
+    saveConfigFile (currentConfig);
+}
+
 export {
+    changeConfigPath,
     checkCache,
     getCacheDirectory,
     saveCommand,
-    loadConfigFile,
+    loadMainConfigFile as loadConfigFile,
+    getExchangeSettings,
 };
