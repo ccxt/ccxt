@@ -19,7 +19,7 @@ The **CCXT CLI** is a lightweight command-line tool that enables you to interact
 You can install the CLI globally with `npm`.
 
 ```bash
-npm install -g ccxt
+npm install -g ccxt-cli
 ```
 
 ---
@@ -27,7 +27,7 @@ npm install -g ccxt
 ## 🛠️ Usage
 
 ```bash
-ccxt <exchange_id> <methodName> [...args]
+ccxt <exchange_id> <methodName> [...args] # if you're not sure about the args use the `ccxt explain methodName` command
 ```
 
 You can get a quick overview by using the `--help` flag:
@@ -36,7 +36,7 @@ You can get a quick overview by using the `--help` flag:
 ccxt --help
 ```
 
-### 🧠 Parameters
+### Parameters
 
 - `<exchange_id>`: The ID of the exchange (e.g., `binance`, `kraken`, `coinbasepro`)
 - `<methodName>`: Any method name available in the CCXT API (e.g., `fetchBalance`, `createOrder`, `fetchTrades`)
@@ -44,7 +44,7 @@ ccxt --help
 
 ---
 
-## 🔐 Authentication
+##  Authentication
 
 To use private methods (e.g., `fetchBalance`, `createOrder`), you must provide API credentials. The CLI supports credentials via environment variables or config files.
 
@@ -70,16 +70,16 @@ Inside `$CACHE/ccxt-cli/config.json` you can add an object with the exchangeId a
   }
 }
 ```
-`$CACHE` varies from OS to OS but by doing `--help` you can see which path is being used.
+`$CACHE` varies from OS to OS but by doing `--help` you can see which path is being used. You can also use the `config` command to set a different path for the config file.
 
 ---
 
-## 🧪 Examples
+## Examples
 
-### Fetch public ticker
+### Fetch OHLCV
 
 ```bash
-ccxt binance fetchTicker BTC/USDT
+ccxt binance fetchOHLCV BTC/USDT 1h undefined 10 # we don't want to provide since but we want limit so undefined is provided as the placeholder for since
 ```
 
 ### Fetch your balance
