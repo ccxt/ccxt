@@ -160,6 +160,7 @@ from ccxt.lbank import lbank                                          # noqa: F4
 from ccxt.luno import luno                                            # noqa: F401
 from ccxt.mercado import mercado                                      # noqa: F401
 from ccxt.mexc import mexc                                            # noqa: F401
+from ccxt.modetrade import modetrade                                  # noqa: F401
 from ccxt.myokx import myokx                                          # noqa: F401
 from ccxt.ndax import ndax                                            # noqa: F401
 from ccxt.novadax import novadax                                      # noqa: F401
@@ -267,6 +268,7 @@ exchanges = [
     'luno',
     'mercado',
     'mexc',
+    'modetrade',
     'myokx',
     'ndax',
     'novadax',
