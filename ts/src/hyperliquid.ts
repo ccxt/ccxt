@@ -3651,10 +3651,6 @@ export default class hyperliquid extends Exchange {
         return records;
     }
 
-    getVaultAddress (params) {
-        const vaultAddress = undefined;
-    }
-
     formatVaultAddress (address: Str = undefined) {
         if (address === undefined) {
             return undefined;
