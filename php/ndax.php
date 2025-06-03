@@ -450,45 +450,45 @@ class ndax extends Exchange {
         );
         $response = $this->publicGetGetProducts ($this->extend($request, $params));
         //
-        //     array(
-        //         array(
-        //             "OMSId":1,
-        //             "ProductId":1,
-        //             "Product":"BTC",
-        //             "ProductFullName":"Bitcoin",
-        //             "ProductType":"CryptoCurrency",
-        //             "DecimalPlaces":8,
-        //             "TickSize":0.0000000100000000000000000000,
-        //             "NoFees":false,
-        //             "IsDisabled":false,
-        //             "MarginEnabled":false
-        //         ),
-        //     )
+        //    [
+        //        array(
+        //            "OMSId" => "1",
+        //            "ProductId" => "1",
+        //            "Product" => "BTC",
+        //            "ProductFullName" => "Bitcoin",
+        //            "MasterDataUniqueProductSymbol" => "",
+        //            "ProductType" => "CryptoCurrency",
+        //            "DecimalPlaces" => "8",
+        //            "TickSize" => "0.0000000100000000000000000000",
+        //            "DepositEnabled" => true,
+        //            "WithdrawEnabled" => true,
+        //            "NoFees" => false,
+        //            "IsDisabled" => false,
+        //            "MarginEnabled" => false
+        //        ),
+        //        ...
         //
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $currency = $response[$i];
             $id = $this->safe_string($currency, 'ProductId');
-            $name = $this->safe_string($currency, 'ProductFullName');
+            $code = $this->safe_currency_code($this->safe_string($currency, 'Product'));
             $ProductType = $this->safe_string($currency, 'ProductType');
             $type = ($ProductType === 'NationalCurrency') ? 'fiat' : 'crypto';
             if ($ProductType === 'Unknown') {
                 // such $currency is just a blanket entry
                 $type = 'other';
             }
-            $code = $this->safe_currency_code($this->safe_string($currency, 'Product'));
-            $isDisabled = $this->safe_value($currency, 'IsDisabled');
-            $active = !$isDisabled;
-            $result[$code] = array(
+            $result[$code] = $this->safe_currency_structure(array(
                 'id' => $id,
-                'name' => $name,
+                'name' => $this->safe_string($currency, 'ProductFullName'),
                 'code' => $code,
                 'type' => $type,
                 'precision' => $this->safe_number($currency, 'TickSize'),
                 'info' => $currency,
-                'active' => $active,
-                'deposit' => null,
-                'withdraw' => null,
+                'active' => !$this->safe_bool($currency, 'IsDisabled'),
+                'deposit' => $this->safe_bool($currency, 'DepositEnabled'),
+                'withdraw' => $this->safe_bool($currency, 'WithdrawEnabled'),
                 'fee' => null,
                 'limits' => array(
                     'amount' => array(
@@ -501,7 +501,8 @@ class ndax extends Exchange {
                     ),
                 ),
                 'networks' => array(),
-            );
+                'margin' => $this->safe_bool($currency, 'MarginEnabled'),
+            ));
         }
         return $result;
     }
@@ -2149,7 +2150,7 @@ class ndax extends Exchange {
         );
     }
 
-    public function create_deposit_address(string $code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()): array {
         /**
          * create a currency deposit address
          * @param {string} $code unified currency $code of the currency for the deposit address

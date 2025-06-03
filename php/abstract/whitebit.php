@@ -82,6 +82,9 @@ abstract class whitebit extends \ccxt\Exchange {
     public function v4_public_get_fee($params = array()) {
         return $this->request('fee', array('v4', 'public'), 'GET', $params, null, null, array());
     }
+    public function v4_public_get_orderbook_depth_market($params = array()) {
+        return $this->request('orderbook/depth/{market}', array('v4', 'public'), 'GET', $params, null, null, array());
+    }
     public function v4_public_get_orderbook_market($params = array()) {
         return $this->request('orderbook/{market}', array('v4', 'public'), 'GET', $params, null, null, array());
     }
@@ -106,6 +109,9 @@ abstract class whitebit extends \ccxt\Exchange {
     public function v4_public_get_platform_status($params = array()) {
         return $this->request('platform/status', array('v4', 'public'), 'GET', $params, null, null, array());
     }
+    public function v4_public_get_mining_pool($params = array()) {
+        return $this->request('mining-pool', array('v4', 'public'), 'GET', $params, null, null, array());
+    }
     public function v4_private_post_collateral_account_balance($params = array()) {
         return $this->request('collateral-account/balance', array('v4', 'private'), 'POST', $params, null, null, array());
     }
@@ -123,6 +129,9 @@ abstract class whitebit extends \ccxt\Exchange {
     }
     public function v4_private_post_collateral_account_summary($params = array()) {
         return $this->request('collateral-account/summary', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4_private_post_collateral_account_funding_history($params = array()) {
+        return $this->request('collateral-account/funding-history', array('v4', 'private'), 'POST', $params, null, null, array());
     }
     public function v4_private_post_main_account_address($params = array()) {
         return $this->request('main-account/address', array('v4', 'private'), 'POST', $params, null, null, array());
@@ -202,6 +211,9 @@ abstract class whitebit extends \ccxt\Exchange {
     public function v4_private_post_order_collateral_trigger_market($params = array()) {
         return $this->request('order/collateral/trigger-market', array('v4', 'private'), 'POST', $params, null, null, array());
     }
+    public function v4_private_post_order_collateral_bulk($params = array()) {
+        return $this->request('order/collateral/bulk', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
     public function v4_private_post_order_new($params = array()) {
         return $this->request('order/new', array('v4', 'private'), 'POST', $params, null, null, array());
     }
@@ -234,6 +246,9 @@ abstract class whitebit extends \ccxt\Exchange {
     }
     public function v4_private_post_order_modify($params = array()) {
         return $this->request('order/modify', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4_private_post_order_conditional_cancel($params = array()) {
+        return $this->request('order/conditional-cancel', array('v4', 'private'), 'POST', $params, null, null, array());
     }
     public function v4_private_post_orders($params = array()) {
         return $this->request('orders', array('v4', 'private'), 'POST', $params, null, null, array());
@@ -288,6 +303,39 @@ abstract class whitebit extends \ccxt\Exchange {
     }
     public function v4_private_post_sub_account_transfer_history($params = array()) {
         return $this->request('sub-account/transfer/history', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4_private_post_sub_account_api_key_create($params = array()) {
+        return $this->request('sub-account/api-key/create', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4_private_post_sub_account_api_key_edit($params = array()) {
+        return $this->request('sub-account/api-key/edit', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4_private_post_sub_account_api_key_delete($params = array()) {
+        return $this->request('sub-account/api-key/delete', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4_private_post_sub_account_api_key_list($params = array()) {
+        return $this->request('sub-account/api-key/list', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4_private_post_sub_account_api_key_reset($params = array()) {
+        return $this->request('sub-account/api-key/reset', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4_private_post_sub_account_api_key_ip_address_list($params = array()) {
+        return $this->request('sub-account/api-key/ip-address/list', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4_private_post_sub_account_api_key_ip_address_create($params = array()) {
+        return $this->request('sub-account/api-key/ip-address/create', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4_private_post_sub_account_api_key_ip_address_delete($params = array()) {
+        return $this->request('sub-account/api-key/ip-address/delete', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4_private_post_mining_rewards($params = array()) {
+        return $this->request('mining/rewards', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4_private_post_market_fee($params = array()) {
+        return $this->request('market/fee', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4_private_post_conditional_orders($params = array()) {
+        return $this->request('conditional-orders', array('v4', 'private'), 'POST', $params, null, null, array());
     }
     public function webGetV1Healthcheck($params = array()) {
         return $this->request('v1/healthcheck', 'web', 'GET', $params, null, null, array());
@@ -364,6 +412,9 @@ abstract class whitebit extends \ccxt\Exchange {
     public function v4PublicGetFee($params = array()) {
         return $this->request('fee', array('v4', 'public'), 'GET', $params, null, null, array());
     }
+    public function v4PublicGetOrderbookDepthMarket($params = array()) {
+        return $this->request('orderbook/depth/{market}', array('v4', 'public'), 'GET', $params, null, null, array());
+    }
     public function v4PublicGetOrderbookMarket($params = array()) {
         return $this->request('orderbook/{market}', array('v4', 'public'), 'GET', $params, null, null, array());
     }
@@ -388,6 +439,9 @@ abstract class whitebit extends \ccxt\Exchange {
     public function v4PublicGetPlatformStatus($params = array()) {
         return $this->request('platform/status', array('v4', 'public'), 'GET', $params, null, null, array());
     }
+    public function v4PublicGetMiningPool($params = array()) {
+        return $this->request('mining-pool', array('v4', 'public'), 'GET', $params, null, null, array());
+    }
     public function v4PrivatePostCollateralAccountBalance($params = array()) {
         return $this->request('collateral-account/balance', array('v4', 'private'), 'POST', $params, null, null, array());
     }
@@ -405,6 +459,9 @@ abstract class whitebit extends \ccxt\Exchange {
     }
     public function v4PrivatePostCollateralAccountSummary($params = array()) {
         return $this->request('collateral-account/summary', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4PrivatePostCollateralAccountFundingHistory($params = array()) {
+        return $this->request('collateral-account/funding-history', array('v4', 'private'), 'POST', $params, null, null, array());
     }
     public function v4PrivatePostMainAccountAddress($params = array()) {
         return $this->request('main-account/address', array('v4', 'private'), 'POST', $params, null, null, array());
@@ -484,6 +541,9 @@ abstract class whitebit extends \ccxt\Exchange {
     public function v4PrivatePostOrderCollateralTriggerMarket($params = array()) {
         return $this->request('order/collateral/trigger-market', array('v4', 'private'), 'POST', $params, null, null, array());
     }
+    public function v4PrivatePostOrderCollateralBulk($params = array()) {
+        return $this->request('order/collateral/bulk', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
     public function v4PrivatePostOrderNew($params = array()) {
         return $this->request('order/new', array('v4', 'private'), 'POST', $params, null, null, array());
     }
@@ -516,6 +576,9 @@ abstract class whitebit extends \ccxt\Exchange {
     }
     public function v4PrivatePostOrderModify($params = array()) {
         return $this->request('order/modify', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4PrivatePostOrderConditionalCancel($params = array()) {
+        return $this->request('order/conditional-cancel', array('v4', 'private'), 'POST', $params, null, null, array());
     }
     public function v4PrivatePostOrders($params = array()) {
         return $this->request('orders', array('v4', 'private'), 'POST', $params, null, null, array());
@@ -570,5 +633,38 @@ abstract class whitebit extends \ccxt\Exchange {
     }
     public function v4PrivatePostSubAccountTransferHistory($params = array()) {
         return $this->request('sub-account/transfer/history', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4PrivatePostSubAccountApiKeyCreate($params = array()) {
+        return $this->request('sub-account/api-key/create', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4PrivatePostSubAccountApiKeyEdit($params = array()) {
+        return $this->request('sub-account/api-key/edit', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4PrivatePostSubAccountApiKeyDelete($params = array()) {
+        return $this->request('sub-account/api-key/delete', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4PrivatePostSubAccountApiKeyList($params = array()) {
+        return $this->request('sub-account/api-key/list', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4PrivatePostSubAccountApiKeyReset($params = array()) {
+        return $this->request('sub-account/api-key/reset', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4PrivatePostSubAccountApiKeyIpAddressList($params = array()) {
+        return $this->request('sub-account/api-key/ip-address/list', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4PrivatePostSubAccountApiKeyIpAddressCreate($params = array()) {
+        return $this->request('sub-account/api-key/ip-address/create', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4PrivatePostSubAccountApiKeyIpAddressDelete($params = array()) {
+        return $this->request('sub-account/api-key/ip-address/delete', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4PrivatePostMiningRewards($params = array()) {
+        return $this->request('mining/rewards', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4PrivatePostMarketFee($params = array()) {
+        return $this->request('market/fee', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4PrivatePostConditionalOrders($params = array()) {
+        return $this->request('conditional-orders', array('v4', 'private'), 'POST', $params, null, null, array());
     }
 }

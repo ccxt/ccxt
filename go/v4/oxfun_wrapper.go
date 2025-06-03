@@ -35,6 +35,21 @@ func (this *Oxfun) FetchMarkets(params ...interface{}) ([]MarketInterface, error
 }
 /**
  * @method
+ * @name oxfun#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://docs.ox.fun/?json#get-v3-assets
+ * @param {dict} [params] extra parameters specific to the exchange API endpoint
+ * @returns {dict} an associative dictionary of currencies
+ */
+func (this *Oxfun) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name oxfun#fetchTickers
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
  * @see https://docs.ox.fun/?json#get-v3-tickers
@@ -202,6 +217,33 @@ func (this *Oxfun) FetchFundingRates(options ...FetchFundingRatesOptions) (Fundi
         return FundingRates{}, CreateReturnError(res)
     }
     return NewFundingRates(res), nil
+}
+/**
+ * @method
+ * @name oxfun#fetchFundingRate
+ * @description fetch the current funding rates for a symbol
+ * @see https://docs.ox.fun/?json#get-v3-funding-estimates
+ * @param {string} symbol unified market symbols
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {Order[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ */
+func (this *Oxfun) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
+
+    opts := FetchFundingRateOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.FetchFundingRate(symbol, params)
+    if IsError(res) {
+        return FundingRate{}, CreateReturnError(res)
+    }
+    return NewFundingRate(res), nil
 }
 /**
  * @method
@@ -780,7 +822,7 @@ func (this *Oxfun) CreateOrders(orders []OrderRequest, options ...CreateOrdersOp
     if opts.Params != nil {
         params = *opts.Params
     }
-    res := <- this.Core.CreateOrders(orders, params)
+    res := <- this.Core.CreateOrders(ConvertOrderRequestListToArray(orders), params)
     if IsError(res) {
         return nil, CreateReturnError(res)
     }

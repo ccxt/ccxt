@@ -46,6 +46,7 @@ class gate(ccxt.async_support.gate):
                 'fetchOpenOrdersWs': True,
                 'fetchClosedOrdersWs': True,
                 'watchOrderBook': True,
+                'watchBidsAsks': True,
                 'watchTicker': True,
                 'watchTickers': True,
                 'watchTrades': True,
@@ -1128,7 +1129,9 @@ class gate(ccxt.async_support.gate):
         cache = self.positions[type]
         for i in range(0, len(positions)):
             position = positions[i]
-            cache.append(position)
+            contracts = self.safe_number(position, 'contracts', 0)
+            if contracts > 0:
+                cache.append(position)
         # don't remove the future from the .futures cache
         future = client.futures[messageHash]
         future.resolve(cache)
@@ -1172,8 +1175,28 @@ class gate(ccxt.async_support.gate):
         for i in range(0, len(data)):
             rawPosition = data[i]
             position = self.parse_position(rawPosition)
-            newPositions.append(position)
-            cache.append(position)
+            symbol = self.safe_string(position, 'symbol')
+            side = self.safe_string(position, 'side')
+            # Control when position is closed no side is returned
+            if side is None:
+                prevLongPosition = self.safe_dict(cache, symbol + 'long')
+                if prevLongPosition is not None:
+                    position['side'] = prevLongPosition['side']
+                    newPositions.append(position)
+                    cache.append(position)
+                prevShortPosition = self.safe_dict(cache, symbol + 'short')
+                if prevShortPosition is not None:
+                    position['side'] = prevShortPosition['side']
+                    newPositions.append(position)
+                    cache.append(position)
+                # if no prev position is found, default to long
+                if prevLongPosition is None and prevShortPosition is None:
+                    position['side'] = 'long'
+                    newPositions.append(position)
+                    cache.append(position)
+            else:
+                newPositions.append(position)
+                cache.append(position)
         messageHashes = self.find_message_hashes(client, type + ':positions::')
         for i in range(0, len(messageHashes)):
             messageHash = messageHashes[i]
@@ -1892,6 +1915,10 @@ class gate(ccxt.async_support.gate):
             'signature': signature,
             'req_param': reqParams,
         }
+        if (channel == 'spot.order_place') or (channel == 'futures.order_place'):
+            payload['req_header'] = {
+                'X-Gate-Channel-Id': 'ccxt',
+            }
         request: dict = {
             'id': requestId,
             'time': time,

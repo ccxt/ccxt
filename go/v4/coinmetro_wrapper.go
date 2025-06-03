@@ -20,6 +20,21 @@ func NewCoinmetro(userConfig map[string]interface{}) Coinmetro {
 
 /**
  * @method
+ * @name coinmetro#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#d5876d43-a3fe-4479-8c58-24d0f044edfb
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Coinmetro) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name coinmetro#fetchMarkets
  * @description retrieves data on all markets for coinmetro
  * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#9fd18008-338e-4863-b07d-722878a46832

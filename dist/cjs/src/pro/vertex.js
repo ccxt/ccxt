@@ -47,6 +47,11 @@ class vertex extends vertex$1 {
                 },
                 'ws': {
                     'inflate': true,
+                    'options': {
+                        'headers': {
+                            'Sec-WebSocket-Extensions': 'permessage-deflate', // requires permessage-deflate extension, maybe we can set this in client implementation when inflate is true
+                        },
+                    },
                 },
             },
             'streaming': {

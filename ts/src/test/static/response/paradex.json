@@ -30,6 +30,99 @@
         "authToken": "token"
     },
     "methods": {
+        "fetchOrder": [
+            {
+                "description": "fetch canceled order",
+                "method": "fetchOrder",
+                "input": [
+                    "1748360402930201709192260001"
+                ],
+                "httpResponse": {
+                    "id": "1748360402930201709192260001",
+                    "account": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941ec6cfd3b31402ec42d72e",
+                    "market": "ADA-USD-PERP",
+                    "side": "BUY",
+                    "type": "LIMIT",
+                    "size": "100",
+                    "remaining_size": "100",
+                    "price": "0.6",
+                    "status": "CLOSED",
+                    "created_at": "1748360402936",
+                    "last_updated_at": "1748360421841",
+                    "timestamp": "1748360402000",
+                    "cancel_reason": "USER_CANCELED",
+                    "client_id": "",
+                    "seq_no": "1748360421841413772",
+                    "instruction": "",
+                    "avg_fill_price": "",
+                    "stp": "EXPIRE_TAKER",
+                    "received_at": "1748360588232",
+                    "published_at": "1748360588233",
+                    "flags": [],
+                    "trigger_price": "0"
+                },
+                "parsedResponse": {
+                    "id": "1748360402930201709192260001",
+                    "clientOrderId": null,
+                    "timestamp": 1748360402936,
+                    "datetime": "2025-05-27T15:40:02.936Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1748360421841,
+                    "status": "canceled",
+                    "symbol": "ADA/USD:USDC",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": "buy",
+                    "price": 0.6,
+                    "triggerPrice": 0,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "average": null,
+                    "amount": 100,
+                    "filled": 0,
+                    "remaining": 100,
+                    "cost": 0,
+                    "trades": [],
+                    "fee": {
+                        "cost": null,
+                        "currency": null
+                    },
+                    "info": {
+                        "id": "1748360402930201709192260001",
+                        "account": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941ec6cfd3b31402ec42d72e",
+                        "market": "ADA-USD-PERP",
+                        "side": "BUY",
+                        "type": "LIMIT",
+                        "size": "100",
+                        "remaining_size": "100",
+                        "price": "0.6",
+                        "status": "CLOSED",
+                        "created_at": "1748360402936",
+                        "last_updated_at": "1748360421841",
+                        "timestamp": "1748360402000",
+                        "cancel_reason": "USER_CANCELED",
+                        "client_id": "",
+                        "seq_no": "1748360421841413772",
+                        "instruction": "",
+                        "avg_fill_price": "",
+                        "stp": "EXPIRE_TAKER",
+                        "received_at": "1748360588232",
+                        "published_at": "1748360588233",
+                        "flags": [],
+                        "trigger_price": "0"
+                    },
+                    "fees": [
+                        {
+                            "cost": null,
+                            "currency": null
+                        }
+                    ],
+                    "stopPrice": 0
+                }
+            }
+        ],
         "fetchTime": [
             {
                 "description": "fetchTime",
@@ -786,7 +879,7 @@
                     "datetime": "2024-07-25T10:36:48.505Z",
                     "lastTradeTimestamp": null,
                     "lastUpdateTimestamp": 1721903808521,
-                    "status": "closed",
+                    "status": "canceled",
                     "symbol": "SOL/USD:USDC",
                     "type": "limit",
                     "timeInForce": null,
@@ -1028,6 +1121,66 @@
                   "marginRatio": null,
                   "marginMode": null,
                   "percentage": null
+                }
+            }
+        ],
+        "fetchGreeks": [
+            {
+                "description": "Fetch option greeks for a symbol",
+                "method": "fetchGreeks",
+                "input": [
+                  "BTC/USD:USDC-117000-P"
+                ],
+                "httpResponse": {"results":[{"symbol":"BTC-USD-117000-P","mark_price":"13818.43377813","mark_iv":"0.61602418","delta":"-0.99776163","greeks":{"delta":"-0.9977616277017128","gamma":"0.0000009347857137626152","vega":"54.75793899555174","rho":"-318.03155737444104","vanna":"0.019830514074091976","volga":"409.4136006559638"},"last_traded_price":"13489","bid":"13793.4","bid_iv":"0.05","ask":"13886","ask_iv":"1.02055911","last_iv":"0.05","volume_24h":"0","total_volume":"932.11715760857","created_at":1747648229995,"underlying_price":"103151.71850654","open_interest":"0","funding_rate":"-0.0002893574218894036","price_change_rate_24h":"0.054437","future_funding_rate":"0.0001"}]},
+                "parsedResponse": {
+                  "symbol": "BTC/USD:USDC-117000-P",
+                  "timestamp": 1747648229995,
+                  "datetime": "2025-05-19T09:50:29.995Z",
+                  "delta": -0.9977616277017128,
+                  "gamma": 9.347857137626152e-7,
+                  "theta": null,
+                  "vega": 54.75793899555174,
+                  "rho": -318.03155737444104,
+                  "vanna": 0.019830514074091976,
+                  "volga": 409.4136006559638,
+                  "bidSize": null,
+                  "askSize": null,
+                  "bidImpliedVolatility": 0.05,
+                  "askImpliedVolatility": 1.02055911,
+                  "markImpliedVolatility": 0.61602418,
+                  "bidPrice": 13793.4,
+                  "askPrice": 13886,
+                  "markPrice": 13818.43377813,
+                  "lastPrice": 13489,
+                  "underlyingPrice": 103151.71850654,
+                  "info": {
+                    "symbol": "BTC-USD-117000-P",
+                    "mark_price": "13818.43377813",
+                    "mark_iv": "0.61602418",
+                    "delta": "-0.99776163",
+                    "greeks": {
+                      "delta": "-0.9977616277017128",
+                      "gamma": "0.0000009347857137626152",
+                      "vega": "54.75793899555174",
+                      "rho": "-318.03155737444104",
+                      "vanna": "0.019830514074091976",
+                      "volga": "409.4136006559638"
+                    },
+                    "last_traded_price": "13489",
+                    "bid": "13793.4",
+                    "bid_iv": "0.05",
+                    "ask": "13886",
+                    "ask_iv": "1.02055911",
+                    "last_iv": "0.05",
+                    "volume_24h": "0",
+                    "total_volume": "932.11715760857",
+                    "created_at": 1747648229995,
+                    "underlying_price": "103151.71850654",
+                    "open_interest": "0",
+                    "funding_rate": "-0.0002893574218894036",
+                    "price_change_rate_24h": "0.054437",
+                    "future_funding_rate": "0.0001"
+                  }
                 }
             }
         ]

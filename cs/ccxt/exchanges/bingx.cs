@@ -35,6 +35,7 @@ public partial class bingx : Exchange
                 { "createOrder", true },
                 { "createOrders", true },
                 { "createOrderWithTakeProfitAndStopLoss", true },
+                { "createReduceOnlyOrder", true },
                 { "createStopLossOrder", true },
                 { "createStopOrder", true },
                 { "createTakeProfitOrder", true },
@@ -378,6 +379,7 @@ public partial class bingx : Exchange
                                 { "uid", 1 },
                                 { "apiKey/query", 2 },
                                 { "account/apiPermissions", 5 },
+                                { "allAccountBalance", 2 },
                             } },
                             { "post", new Dictionary<string, object>() {
                                 { "innerTransfer/authorizeSubAccount", 1 },
@@ -707,7 +709,7 @@ public partial class bingx : Exchange
         //
         //    {
         //      "code": 0,
-        //      "timestamp": 1702623271477,
+        //      "timestamp": 1702623271476,
         //      "data": [
         //        {
         //          "coin": "BTC",
@@ -752,65 +754,44 @@ public partial class bingx : Exchange
             object name = this.safeString(entry, "name");
             object networkList = this.safeList(entry, "networkList");
             object networks = new Dictionary<string, object>() {};
-            object fee = null;
-            object depositEnabled = false;
-            object withdrawEnabled = false;
-            object defaultLimits = new Dictionary<string, object>() {};
             for (object j = 0; isLessThan(j, getArrayLength(networkList)); postFixIncrement(ref j))
             {
                 object rawNetwork = getValue(networkList, j);
                 object network = this.safeString(rawNetwork, "network");
                 object networkCode = this.networkIdToCode(network);
-                object isDefault = this.safeBool(rawNetwork, "isDefault");
-                object networkDepositEnabled = this.safeBool(rawNetwork, "depositEnable");
-                if (isTrue(networkDepositEnabled))
-                {
-                    depositEnabled = true;
-                }
-                object networkWithdrawEnabled = this.safeBool(rawNetwork, "withdrawEnable");
-                if (isTrue(networkWithdrawEnabled))
-                {
-                    withdrawEnabled = true;
-                }
                 object limits = new Dictionary<string, object>() {
                     { "withdraw", new Dictionary<string, object>() {
                         { "min", this.safeNumber(rawNetwork, "withdrawMin") },
                         { "max", this.safeNumber(rawNetwork, "withdrawMax") },
                     } },
                 };
-                fee = this.safeNumber(rawNetwork, "withdrawFee");
-                if (isTrue(isDefault))
-                {
-                    defaultLimits = limits;
-                }
-                object precision = this.safeNumber(rawNetwork, "withdrawPrecision");
-                object networkActive = isTrue(networkDepositEnabled) || isTrue(networkWithdrawEnabled);
+                object precision = this.parseNumber(this.parsePrecision(this.safeString(rawNetwork, "withdrawPrecision")));
                 ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                     { "info", rawNetwork },
                     { "id", network },
                     { "network", networkCode },
-                    { "fee", fee },
-                    { "active", networkActive },
-                    { "deposit", networkDepositEnabled },
-                    { "withdraw", networkWithdrawEnabled },
+                    { "fee", this.safeNumber(rawNetwork, "withdrawFee") },
+                    { "active", null },
+                    { "deposit", this.safeBool(rawNetwork, "depositEnable") },
+                    { "withdraw", this.safeBool(rawNetwork, "withdrawEnable") },
                     { "precision", precision },
                     { "limits", limits },
                 };
             }
-            object active = isTrue(depositEnabled) || isTrue(withdrawEnabled);
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "info", entry },
                 { "code", code },
                 { "id", currencyId },
                 { "precision", null },
                 { "name", name },
-                { "active", active },
-                { "deposit", depositEnabled },
-                { "withdraw", withdrawEnabled },
+                { "active", null },
+                { "deposit", null },
+                { "withdraw", null },
                 { "networks", networks },
-                { "fee", fee },
-                { "limits", defaultLimits },
-            };
+                { "fee", null },
+                { "limits", null },
+                { "type", "crypto" },
+            });
         }
         return result;
     }
@@ -828,7 +809,7 @@ public partial class bingx : Exchange
         //                  {
         //                    "symbol": "GEAR-USDT",
         //                    "minQty": 735, // deprecated
-        //                    "maxQty": 2941177, // deprecated
+        //                    "maxQty": 2941177, // deprecated.
         //                    "minNotional": 5,
         //                    "maxNotional": 20000,
         //                    "status": 1,
@@ -1509,62 +1490,82 @@ public partial class bingx : Exchange
         // spot
         //
         //     {
-        //         "code": 0,
-        //         "data": {
-        //           "bids": [
-        //             [
-        //               "26324.73",
-        //               "0.37655"
+        //         "code":0,
+        //         "timestamp":1743240504535,
+        //         "data":{
+        //             "bids":[
+        //                 ["83775.39","1.981875"],
+        //                 ["83775.38","0.001076"],
+        //                 ["83775.34","0.254716"],
         //             ],
-        //             [
-        //               "26324.71",
-        //               "0.31888"
+        //             "asks":[
+        //                 ["83985.40","0.000013"],
+        //                 ["83980.00","0.000011"],
+        //                 ["83975.70","0.000061000000000000005"],
         //             ],
-        //         ],
-        //         "asks": [
-        //             [
-        //               "26340.30",
-        //               "6.45221"
-        //             ],
-        //             [
-        //               "26340.15",
-        //               "6.73261"
-        //             ],
-        //         ]}
+        //             "ts":1743240504535,
+        //             "lastUpdateId":13565639906
+        //         }
         //     }
         //
-        // swap
+        //
+        // linear swap
         //
         //     {
-        //         "code": 0,
-        //         "msg": "",
-        //         "data": {
-        //           "T": 1683914263304,
-        //           "bids": [
-        //             [
-        //               "26300.90000000",
-        //               "30408.00000000"
+        //         "code":0,
+        //         "msg":"",
+        //         "data":{
+        //             "T":1743240836255,
+        //             "bids":[
+        //                 ["83760.7","7.0861"],
+        //                 ["83760.6","0.0044"],
+        //                 ["83757.7","1.9526"],
         //             ],
-        //             [
-        //               "26300.80000000",
-        //               "50906.00000000"
+        //             "asks":[
+        //                 ["83784.3","8.3531"],
+        //                 ["83782.8","23.7289"],
+        //                 ["83780.1","18.0617"],
         //             ],
-        //         ],
-        //         "asks": [
-        //             [
-        //               "26301.00000000",
-        //               "43616.00000000"
+        //             "bidsCoin":[
+        //                 ["83760.7","0.0007"],
+        //                 ["83760.6","0.0000"],
+        //                 ["83757.7","0.0002"],
         //             ],
-        //             [
-        //               "26301.10000000",
-        //               "49402.00000000"
+        //             "asksCoin":[
+        //                 ["83784.3","0.0008"],
+        //                 ["83782.8","0.0024"],
+        //                 ["83780.1","0.0018"],
+        //             ]
+        //         }
+        //     }
+        //
+        // inverse swap
+        //
+        //     {
+        //         "code":0,
+        //         "msg":"",
+        //         "timestamp":1743240979146,
+        //         "data":{
+        //             "T":1743240978691,
+        //             "bids":[
+        //                 ["83611.4","241.0"],
+        //                 ["83611.3","1.0"],
+        //                 ["83602.9","666.0"],
         //             ],
-        //         ]}
+        //             "asks":[
+        //                 ["83645.0","4253.0"],
+        //                 ["83640.5","3188.0"],
+        //                 ["83636.0","5540.0"],
+        //             ]
+        //         }
         //     }
         //
         object orderbook = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object nonce = this.safeInteger(orderbook, "lastUpdateId");
         object timestamp = this.safeInteger2(orderbook, "T", "ts");
-        return this.parseOrderBook(orderbook, getValue(market, "symbol"), timestamp, "bids", "asks", 0, 1);
+        object result = this.parseOrderBook(orderbook, getValue(market, "symbol"), timestamp, "bids", "asks", 0, 1);
+        ((IDictionary<string,object>)result)["nonce"] = nonce;
+        return result;
     }
 
     /**
@@ -4459,15 +4460,14 @@ public partial class bingx : Exchange
     public async override Task<object> fetchCanceledAndClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(symbol, null)))
-        {
-            throw new ArgumentsRequired ((string)add(this.id, " fetchClosedOrders() requires a symbol argument")) ;
-        }
         await this.loadMarkets();
-        object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
-        };
+        object market = null;
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+        }
         object type = null;
         object subType = null;
         object standard = null;
@@ -4488,7 +4488,7 @@ public partial class bingx : Exchange
         {
             if (isTrue(!isEqual(limit, null)))
             {
-                ((IDictionary<string,object>)request)["limit"] = limit;
+                ((IDictionary<string,object>)request)["pageSize"] = limit;
             }
             response = await this.spotV1PrivateGetTradeHistoryOrders(this.extend(request, parameters));
         } else
@@ -5410,7 +5410,7 @@ public partial class bingx : Exchange
      * @param {string} address the address to withdraw to
      * @param {string} [tag]
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.walletType] 1 fund account, 2 standard account, 3 perpetual account
+     * @param {int} [params.walletType] 1 fund account, 2 standard account, 3 perpetual account, 15 spot account
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
@@ -5422,15 +5422,7 @@ public partial class bingx : Exchange
         this.checkAddress(address);
         await this.loadMarkets();
         object currency = this.currency(code);
-        object walletType = this.safeInteger(parameters, "walletType");
-        if (isTrue(isEqual(walletType, null)))
-        {
-            walletType = 1;
-        }
-        if (!isTrue(this.inArray(walletType, new List<object>() {1, 2, 3})))
-        {
-            throw new BadRequest ((string)add(this.id, " withdraw() requires either 1 fund account, 2 standard futures account, 3 perpetual account for walletType")) ;
-        }
+        object walletType = this.safeInteger(parameters, "walletType", 1);
         object request = new Dictionary<string, object>() {
             { "coin", getValue(currency, "id") },
             { "address", address },

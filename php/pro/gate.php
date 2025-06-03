@@ -43,6 +43,7 @@ class gate extends \ccxt\async\gate {
                 'fetchOpenOrdersWs' => true,
                 'fetchClosedOrdersWs' => true,
                 'watchOrderBook' => true,
+                'watchBidsAsks' => true,
                 'watchTicker' => true,
                 'watchTickers' => true,
                 'watchTrades' => true,
@@ -1257,7 +1258,10 @@ class gate extends \ccxt\async\gate {
             $cache = $this->positions[$type];
             for ($i = 0; $i < count($positions); $i++) {
                 $position = $positions[$i];
-                $cache->append ($position);
+                $contracts = $this->safe_number($position, 'contracts', 0);
+                if ($contracts > 0) {
+                    $cache->append ($position);
+                }
             }
             // don't remove the $future from the .futures $cache
             $future = $client->futures[$messageHash];
@@ -1304,8 +1308,32 @@ class gate extends \ccxt\async\gate {
         for ($i = 0; $i < count($data); $i++) {
             $rawPosition = $data[$i];
             $position = $this->parse_position($rawPosition);
-            $newPositions[] = $position;
-            $cache->append ($position);
+            $symbol = $this->safe_string($position, 'symbol');
+            $side = $this->safe_string($position, 'side');
+            // Control when $position is closed no $side is returned
+            if ($side === null) {
+                $prevLongPosition = $this->safe_dict($cache, $symbol . 'long');
+                if ($prevLongPosition !== null) {
+                    $position['side'] = $prevLongPosition['side'];
+                    $newPositions[] = $position;
+                    $cache->append ($position);
+                }
+                $prevShortPosition = $this->safe_dict($cache, $symbol . 'short');
+                if ($prevShortPosition !== null) {
+                    $position['side'] = $prevShortPosition['side'];
+                    $newPositions[] = $position;
+                    $cache->append ($position);
+                }
+                // if no prev $position is found, default to long
+                if ($prevLongPosition === null && $prevShortPosition === null) {
+                    $position['side'] = 'long';
+                    $newPositions[] = $position;
+                    $cache->append ($position);
+                }
+            } else {
+                $newPositions[] = $position;
+                $cache->append ($position);
+            }
         }
         $messageHashes = $this->find_message_hashes($client, $type . ':$positions::');
         for ($i = 0; $i < count($messageHashes); $i++) {
@@ -2113,6 +2141,11 @@ class gate extends \ccxt\async\gate {
                 'signature' => $signature,
                 'req_param' => $reqParams,
             );
+            if (($channel === 'spot.order_place') || ($channel === 'futures.order_place')) {
+                $payload['req_header'] = array(
+                    'X-Gate-Channel-Id' => 'ccxt',
+                );
+            }
             $request = array(
                 'id' => $requestId,
                 'time' => $time,

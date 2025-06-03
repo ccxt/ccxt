@@ -1415,11 +1415,6 @@ class timex extends timex$1 {
         //
         const id = this.safeString(currency, 'symbol');
         const code = this.safeCurrencyCode(id);
-        const name = this.safeString(currency, 'name');
-        const depositEnabled = this.safeValue(currency, 'depositEnabled');
-        const withdrawEnabled = this.safeValue(currency, 'withdrawalEnabled');
-        const isActive = this.safeValue(currency, 'active');
-        const active = depositEnabled && withdrawEnabled && isActive;
         // const fee = this.safeNumber (currency, 'withdrawalFee');
         const feeString = this.safeString(currency, 'withdrawalFee');
         const tradeDecimals = this.safeInteger(currency, 'tradeDecimals');
@@ -1445,14 +1440,14 @@ class timex extends timex$1 {
             'code': code,
             'info': currency,
             'type': undefined,
-            'name': name,
-            'active': active,
-            'deposit': depositEnabled,
-            'withdraw': withdrawEnabled,
+            'name': this.safeString(currency, 'name'),
+            'active': this.safeBool(currency, 'active'),
+            'deposit': this.safeBool(currency, 'depositEnabled'),
+            'withdraw': this.safeBool(currency, 'withdrawalEnabled'),
             'fee': fee,
             'precision': this.parseNumber(this.parsePrecision(this.safeString(currency, 'decimals'))),
             'limits': {
-                'withdraw': { 'min': fee, 'max': undefined },
+                'withdraw': { 'min': undefined, 'max': undefined },
                 'amount': { 'min': undefined, 'max': undefined },
             },
             'networks': {},
@@ -1554,7 +1549,7 @@ class timex extends timex$1 {
                 'currency': feeCurrency,
             };
         }
-        return {
+        return this.safeTrade({
             'info': trade,
             'id': id,
             'timestamp': timestamp,
@@ -1568,7 +1563,7 @@ class timex extends timex$1 {
             'cost': cost,
             'takerOrMaker': takerOrMaker,
             'fee': fee,
-        };
+        });
     }
     parseOHLCV(ohlcv, market = undefined) {
         //

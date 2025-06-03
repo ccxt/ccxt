@@ -498,19 +498,15 @@ class bigone extends Exchange {
             $id = $this->safe_string($currency, 'symbol');
             $code = $this->safe_currency_code($id);
             $name = $this->safe_string($currency, 'name');
-            $type = $this->safe_bool($currency, 'is_fiat') ? 'fiat' : 'crypto';
             $networks = array();
             $chains = $this->safe_list($currency, 'binding_gateways', array());
             $currencyMaxPrecision = $this->parse_precision($this->safe_string_2($currency, 'withdrawal_scale', 'scale'));
-            $currencyDepositEnabled = null;
-            $currencyWithdrawEnabled = null;
             for ($j = 0; $j < count($chains); $j++) {
                 $chain = $chains[$j];
                 $networkId = $this->safe_string($chain, 'gateway_name');
                 $networkCode = $this->network_id_to_code($networkId);
                 $deposit = $this->safe_bool($chain, 'is_deposit_enabled');
                 $withdraw = $this->safe_bool($chain, 'is_withdrawal_enabled');
-                $isActive = ($deposit && $withdraw);
                 $minDepositAmount = $this->safe_string($chain, 'min_deposit_amount');
                 $minWithdrawalAmount = $this->safe_string($chain, 'min_withdrawal_amount');
                 $withdrawalFee = $this->safe_string($chain, 'withdrawal_fee');
@@ -521,7 +517,7 @@ class bigone extends Exchange {
                     'margin' => null,
                     'deposit' => $deposit,
                     'withdraw' => $withdraw,
-                    'active' => $isActive,
+                    'active' => null,
                     'fee' => $this->parse_number($withdrawalFee),
                     'precision' => $this->parse_number($precision),
                     'limits' => array(
@@ -536,20 +532,29 @@ class bigone extends Exchange {
                     ),
                     'info' => $chain,
                 );
-                // fill global values
-                $currencyDepositEnabled = ($currencyDepositEnabled === null) || $deposit ? $deposit : $currencyDepositEnabled;
-                $currencyWithdrawEnabled = ($currencyWithdrawEnabled === null) || $withdraw ? $withdraw : $currencyWithdrawEnabled;
-                $currencyMaxPrecision = ($currencyMaxPrecision === null) || Precise::string_gt($currencyMaxPrecision, $precision) ? $precision : $currencyMaxPrecision;
             }
-            $result[$code] = array(
+            $chainLength = count($chains);
+            $type = null;
+            if ($this->safe_bool($currency, 'is_fiat')) {
+                $type = 'fiat';
+            } elseif ($chainLength === 0) {
+                if ($this->is_leveraged_currency($id)) {
+                    $type = 'leveraged';
+                } else {
+                    $type = 'other';
+                }
+            } else {
+                $type = 'crypto';
+            }
+            $result[$code] = $this->safe_currency_structure(array(
                 'id' => $id,
                 'code' => $code,
                 'info' => $currency,
                 'name' => $name,
                 'type' => $type,
                 'active' => null,
-                'deposit' => $currencyDepositEnabled,
-                'withdraw' => $currencyWithdrawEnabled,
+                'deposit' => null,
+                'withdraw' => null,
                 'fee' => null,
                 'precision' => $this->parse_number($currencyMaxPrecision),
                 'limits' => array(
@@ -563,7 +568,7 @@ class bigone extends Exchange {
                     ),
                 ),
                 'networks' => $networks,
-            );
+            ));
         }
         return $result;
     }

@@ -23,6 +23,7 @@ public partial class cex : Exchange
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
                 { "createOrder", true },
+                { "createReduceOnlyOrder", false },
                 { "createStopOrder", true },
                 { "createTriggerOrder", true },
                 { "fetchAccounts", true },
@@ -292,8 +293,6 @@ public partial class cex : Exchange
         object id = this.safeString(rawCurrency, "currency");
         object code = this.safeCurrencyCode(id);
         object type = ((bool) isTrue(this.safeBool(rawCurrency, "fiat"))) ? "fiat" : "crypto";
-        object currencyDepositEnabled = this.safeBool(rawCurrency, "walletDeposit");
-        object currencyWithdrawEnabled = this.safeBool(rawCurrency, "walletWithdrawal");
         object currencyPrecision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, "precision")));
         object networks = new Dictionary<string, object>() {};
         object rawNetworks = this.safeDict(rawCurrency, "blockchains", new Dictionary<string, object>() {});
@@ -311,6 +310,7 @@ public partial class cex : Exchange
                 { "margin", null },
                 { "deposit", deposit },
                 { "withdraw", withdraw },
+                { "active", null },
                 { "fee", this.safeNumber(rawNetwork, "withdrawalFee") },
                 { "precision", currencyPrecision },
                 { "limits", new Dictionary<string, object>() {
@@ -332,8 +332,8 @@ public partial class cex : Exchange
             { "name", null },
             { "type", type },
             { "active", null },
-            { "deposit", currencyDepositEnabled },
-            { "withdraw", currencyWithdrawEnabled },
+            { "deposit", this.safeBool(rawCurrency, "walletDeposit") },
+            { "withdraw", this.safeBool(rawCurrency, "walletWithdrawal") },
             { "fee", null },
             { "precision", currencyPrecision },
             { "limits", new Dictionary<string, object>() {
@@ -556,7 +556,7 @@ public partial class cex : Exchange
             { "askVolume", null },
             { "vwap", null },
             { "open", null },
-            { "close", this.safeString(ticker, "lastTradePrice") },
+            { "close", this.safeString(ticker, "last") },
             { "previousClose", null },
             { "change", this.safeNumber(ticker, "priceChange") },
             { "percentage", this.safeNumber(ticker, "priceChangePercentage") },

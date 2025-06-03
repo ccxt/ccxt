@@ -81,6 +81,11 @@ public partial class coinlist : Exchange
         return await this.callAsync ("publicGetV1CompetitionCompetitionId",parameters);
     }
 
+    public async Task<object> publicGetV1SymbolsSymbolFunding (object parameters = null)
+    {
+        return await this.callAsync ("publicGetV1SymbolsSymbolFunding",parameters);
+    }
+
     public async Task<object> privateGetV1Fees (object parameters = null)
     {
         return await this.callAsync ("privateGetV1Fees",parameters);
@@ -176,6 +181,11 @@ public partial class coinlist : Exchange
         return await this.callAsync ("privateGetV1AccountsTraderIdCompetitions",parameters);
     }
 
+    public async Task<object> privateGetV1ClosedPositions (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV1ClosedPositions",parameters);
+    }
+
     public async Task<object> privatePostV1Keys (object parameters = null)
     {
         return await this.callAsync ("privatePostV1Keys",parameters);
@@ -239,6 +249,11 @@ public partial class coinlist : Exchange
     public async Task<object> privatePatchV1OrdersBulk (object parameters = null)
     {
         return await this.callAsync ("privatePatchV1OrdersBulk",parameters);
+    }
+
+    public async Task<object> privatePutV1AccountsTraderIdAlias (object parameters = null)
+    {
+        return await this.callAsync ("privatePutV1AccountsTraderIdAlias",parameters);
     }
 
     public async Task<object> privateDeleteV1KeysKey (object parameters = null)

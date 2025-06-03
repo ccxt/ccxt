@@ -1195,6 +1195,6 @@ func  (this *mercado) HandleErrors(httpCode interface{}, reason interface{}, url
 
 func (this *mercado) Init(userConfig map[string]interface{}) {
     this.Exchange = Exchange{}
-    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
     this.Exchange.DerivedExchange = this
+    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
 }

@@ -35,6 +35,7 @@ class gate extends gate$1 {
                 'fetchOpenOrdersWs': true,
                 'fetchClosedOrdersWs': true,
                 'watchOrderBook': true,
+                'watchBidsAsks': true,
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': true,
@@ -1190,7 +1191,10 @@ class gate extends gate$1 {
         const cache = this.positions[type];
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
-            cache.append(position);
+            const contracts = this.safeNumber(position, 'contracts', 0);
+            if (contracts > 0) {
+                cache.append(position);
+            }
         }
         // don't remove the future from the .futures cache
         const future = client.futures[messageHash];
@@ -1235,8 +1239,33 @@ class gate extends gate$1 {
         for (let i = 0; i < data.length; i++) {
             const rawPosition = data[i];
             const position = this.parsePosition(rawPosition);
-            newPositions.push(position);
-            cache.append(position);
+            const symbol = this.safeString(position, 'symbol');
+            const side = this.safeString(position, 'side');
+            // Control when position is closed no side is returned
+            if (side === undefined) {
+                const prevLongPosition = this.safeDict(cache, symbol + 'long');
+                if (prevLongPosition !== undefined) {
+                    position['side'] = prevLongPosition['side'];
+                    newPositions.push(position);
+                    cache.append(position);
+                }
+                const prevShortPosition = this.safeDict(cache, symbol + 'short');
+                if (prevShortPosition !== undefined) {
+                    position['side'] = prevShortPosition['side'];
+                    newPositions.push(position);
+                    cache.append(position);
+                }
+                // if no prev position is found, default to long
+                if (prevLongPosition === undefined && prevShortPosition === undefined) {
+                    position['side'] = 'long';
+                    newPositions.push(position);
+                    cache.append(position);
+                }
+            }
+            else {
+                newPositions.push(position);
+                cache.append(position);
+            }
         }
         const messageHashes = this.findMessageHashes(client, type + ':positions::');
         for (let i = 0; i < messageHashes.length; i++) {
@@ -2021,6 +2050,11 @@ class gate extends gate$1 {
             'signature': signature,
             'req_param': reqParams,
         };
+        if ((channel === 'spot.order_place') || (channel === 'futures.order_place')) {
+            payload['req_header'] = {
+                'X-Gate-Channel-Id': 'ccxt',
+            };
+        }
         const request = {
             'id': requestId,
             'time': time,

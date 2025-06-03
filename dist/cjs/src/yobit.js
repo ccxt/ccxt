@@ -1260,6 +1260,7 @@ class yobit extends yobit$1 {
             'currency': code,
             'address': address,
             'tag': undefined,
+            'network': undefined,
             'info': response['info'],
         };
     }

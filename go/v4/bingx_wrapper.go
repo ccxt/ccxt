@@ -33,6 +33,21 @@ func (this *Bingx) FetchTime(params ...interface{}) ( int64, error) {
     }
     return (res).(int64), nil
 }
+/**
+ * @method
+ * @name bingx#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://bingx-api.github.io/docs/#/common/account-api.html#All%20Coins
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Bingx) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
 func (this *Bingx) FetchSpotMarkets(params interface{}) ([]MarketInterface, error) {
     res := <- this.Core.FetchSpotMarkets(params)
     if IsError(res) {
@@ -736,7 +751,7 @@ func (this *Bingx) CreateOrders(orders []OrderRequest, options ...CreateOrdersOp
     if opts.Params != nil {
         params = *opts.Params
     }
-    res := <- this.Core.CreateOrders(orders, params)
+    res := <- this.Core.CreateOrders(ConvertOrderRequestListToArray(orders), params)
     if IsError(res) {
         return nil, CreateReturnError(res)
     }
@@ -1592,7 +1607,7 @@ func (this *Bingx) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesO
  * @param {string} address the address to withdraw to
  * @param {string} [tag]
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {int} [params.walletType] 1 fund account, 2 standard account, 3 perpetual account
+ * @param {int} [params.walletType] 1 fund account, 2 standard account, 3 perpetual account, 15 spot account
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
  */
 func (this *Bingx) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {

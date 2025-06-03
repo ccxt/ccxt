@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.4.61'
+__version__ = '4.4.86'
 
 # ----------------------------------------------------------------------------
 
@@ -12,7 +12,160 @@ from ccxt.async_support.base.exchange import Exchange  # noqa: F401
 
 # CCXT Pro exchanges (now this is mainly used for importing exchanges in WS tests)
 
+# DO_NOT_REMOVE__ERROR_IMPORTS_START
+from ccxt.base.errors import BaseError                                # noqa: F401
+from ccxt.base.errors import ExchangeError                            # noqa: F401
+from ccxt.base.errors import AuthenticationError                      # noqa: F401
+from ccxt.base.errors import PermissionDenied                         # noqa: F401
+from ccxt.base.errors import AccountNotEnabled                        # noqa: F401
+from ccxt.base.errors import AccountSuspended                         # noqa: F401
+from ccxt.base.errors import ArgumentsRequired                        # noqa: F401
+from ccxt.base.errors import BadRequest                               # noqa: F401
+from ccxt.base.errors import BadSymbol                                # noqa: F401
+from ccxt.base.errors import OperationRejected                        # noqa: F401
+from ccxt.base.errors import NoChange                                 # noqa: F401
+from ccxt.base.errors import MarginModeAlreadySet                     # noqa: F401
+from ccxt.base.errors import MarketClosed                             # noqa: F401
+from ccxt.base.errors import ManualInteractionNeeded                  # noqa: F401
+from ccxt.base.errors import InsufficientFunds                        # noqa: F401
+from ccxt.base.errors import InvalidAddress                           # noqa: F401
+from ccxt.base.errors import AddressPending                           # noqa: F401
+from ccxt.base.errors import InvalidOrder                             # noqa: F401
+from ccxt.base.errors import OrderNotFound                            # noqa: F401
+from ccxt.base.errors import OrderNotCached                           # noqa: F401
+from ccxt.base.errors import OrderImmediatelyFillable                 # noqa: F401
+from ccxt.base.errors import OrderNotFillable                         # noqa: F401
+from ccxt.base.errors import DuplicateOrderId                         # noqa: F401
+from ccxt.base.errors import ContractUnavailable                      # noqa: F401
+from ccxt.base.errors import NotSupported                             # noqa: F401
+from ccxt.base.errors import InvalidProxySettings                     # noqa: F401
+from ccxt.base.errors import ExchangeClosedByUser                     # noqa: F401
+from ccxt.base.errors import OperationFailed                          # noqa: F401
+from ccxt.base.errors import NetworkError                             # noqa: F401
+from ccxt.base.errors import DDoSProtection                           # noqa: F401
+from ccxt.base.errors import RateLimitExceeded                        # noqa: F401
+from ccxt.base.errors import ExchangeNotAvailable                     # noqa: F401
+from ccxt.base.errors import OnMaintenance                            # noqa: F401
+from ccxt.base.errors import InvalidNonce                             # noqa: F401
+from ccxt.base.errors import ChecksumError                            # noqa: F401
+from ccxt.base.errors import RequestTimeout                           # noqa: F401
+from ccxt.base.errors import BadResponse                              # noqa: F401
+from ccxt.base.errors import NullResponse                             # noqa: F401
+from ccxt.base.errors import CancelPending                            # noqa: F401
+from ccxt.base.errors import UnsubscribeError                         # noqa: F401
+from ccxt.base.errors import error_hierarchy                          # noqa: F401
+# DO_NOT_REMOVE__ERROR_IMPORTS_END
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 from ccxt.pro.alpaca import alpaca                                        # noqa: F401
+from ccxt.pro.apex import apex                                            # noqa: F401
 from ccxt.pro.ascendex import ascendex                                    # noqa: F401
 from ccxt.pro.bequant import bequant                                      # noqa: F401
 from ccxt.pro.binance import binance                                      # noqa: F401
@@ -20,17 +173,15 @@ from ccxt.pro.binancecoinm import binancecoinm                            # noqa
 from ccxt.pro.binanceus import binanceus                                  # noqa: F401
 from ccxt.pro.binanceusdm import binanceusdm                              # noqa: F401
 from ccxt.pro.bingx import bingx                                          # noqa: F401
-from ccxt.pro.bitcoincom import bitcoincom                                # noqa: F401
 from ccxt.pro.bitfinex import bitfinex                                    # noqa: F401
-from ccxt.pro.bitfinex1 import bitfinex1                                  # noqa: F401
 from ccxt.pro.bitget import bitget                                        # noqa: F401
 from ccxt.pro.bithumb import bithumb                                      # noqa: F401
 from ccxt.pro.bitmart import bitmart                                      # noqa: F401
 from ccxt.pro.bitmex import bitmex                                        # noqa: F401
 from ccxt.pro.bitopro import bitopro                                      # noqa: F401
-from ccxt.pro.bitpanda import bitpanda                                    # noqa: F401
 from ccxt.pro.bitrue import bitrue                                        # noqa: F401
 from ccxt.pro.bitstamp import bitstamp                                    # noqa: F401
+from ccxt.pro.bittrade import bittrade                                    # noqa: F401
 from ccxt.pro.bitvavo import bitvavo                                      # noqa: F401
 from ccxt.pro.blockchaincom import blockchaincom                          # noqa: F401
 from ccxt.pro.blofin import blofin                                        # noqa: F401
@@ -45,9 +196,9 @@ from ccxt.pro.coincheck import coincheck                                  # noqa
 from ccxt.pro.coinex import coinex                                        # noqa: F401
 from ccxt.pro.coinone import coinone                                      # noqa: F401
 from ccxt.pro.cryptocom import cryptocom                                  # noqa: F401
-from ccxt.pro.currencycom import currencycom                              # noqa: F401
 from ccxt.pro.defx import defx                                            # noqa: F401
 from ccxt.pro.deribit import deribit                                      # noqa: F401
+from ccxt.pro.derive import derive                                        # noqa: F401
 from ccxt.pro.exmo import exmo                                            # noqa: F401
 from ccxt.pro.gate import gate                                            # noqa: F401
 from ccxt.pro.gateio import gateio                                        # noqa: F401
@@ -57,9 +208,7 @@ from ccxt.pro.hitbtc import hitbtc                                        # noqa
 from ccxt.pro.hollaex import hollaex                                      # noqa: F401
 from ccxt.pro.htx import htx                                              # noqa: F401
 from ccxt.pro.huobi import huobi                                          # noqa: F401
-from ccxt.pro.huobijp import huobijp                                      # noqa: F401
 from ccxt.pro.hyperliquid import hyperliquid                              # noqa: F401
-from ccxt.pro.idex import idex                                            # noqa: F401
 from ccxt.pro.independentreserve import independentreserve                # noqa: F401
 from ccxt.pro.kraken import kraken                                        # noqa: F401
 from ccxt.pro.krakenfutures import krakenfutures                          # noqa: F401
@@ -72,14 +221,15 @@ from ccxt.pro.myokx import myokx                                          # noqa
 from ccxt.pro.ndax import ndax                                            # noqa: F401
 from ccxt.pro.okcoin import okcoin                                        # noqa: F401
 from ccxt.pro.okx import okx                                              # noqa: F401
+from ccxt.pro.okxus import okxus                                          # noqa: F401
 from ccxt.pro.onetrading import onetrading                                # noqa: F401
 from ccxt.pro.oxfun import oxfun                                          # noqa: F401
 from ccxt.pro.p2b import p2b                                              # noqa: F401
 from ccxt.pro.paradex import paradex                                      # noqa: F401
 from ccxt.pro.phemex import phemex                                        # noqa: F401
 from ccxt.pro.poloniex import poloniex                                    # noqa: F401
-from ccxt.pro.poloniexfutures import poloniexfutures                      # noqa: F401
 from ccxt.pro.probit import probit                                        # noqa: F401
+from ccxt.pro.tradeogre import tradeogre                                  # noqa: F401
 from ccxt.pro.upbit import upbit                                          # noqa: F401
 from ccxt.pro.vertex import vertex                                        # noqa: F401
 from ccxt.pro.whitebit import whitebit                                    # noqa: F401
@@ -89,6 +239,7 @@ from ccxt.pro.xt import xt                                                # noqa
 
 exchanges = [
     'alpaca',
+    'apex',
     'ascendex',
     'bequant',
     'binance',
@@ -96,17 +247,15 @@ exchanges = [
     'binanceus',
     'binanceusdm',
     'bingx',
-    'bitcoincom',
     'bitfinex',
-    'bitfinex1',
     'bitget',
     'bithumb',
     'bitmart',
     'bitmex',
     'bitopro',
-    'bitpanda',
     'bitrue',
     'bitstamp',
+    'bittrade',
     'bitvavo',
     'blockchaincom',
     'blofin',
@@ -121,9 +270,9 @@ exchanges = [
     'coinex',
     'coinone',
     'cryptocom',
-    'currencycom',
     'defx',
     'deribit',
+    'derive',
     'exmo',
     'gate',
     'gateio',
@@ -133,9 +282,7 @@ exchanges = [
     'hollaex',
     'htx',
     'huobi',
-    'huobijp',
     'hyperliquid',
-    'idex',
     'independentreserve',
     'kraken',
     'krakenfutures',
@@ -148,14 +295,15 @@ exchanges = [
     'ndax',
     'okcoin',
     'okx',
+    'okxus',
     'onetrading',
     'oxfun',
     'p2b',
     'paradex',
     'phemex',
     'poloniex',
-    'poloniexfutures',
     'probit',
+    'tradeogre',
     'upbit',
     'vertex',
     'whitebit',

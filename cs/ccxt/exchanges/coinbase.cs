@@ -285,6 +285,7 @@ public partial class coinbase : Exchange
                     { "INSUFFICIENT_FUND", typeof(BadRequest) },
                     { "PERMISSION_DENIED", typeof(PermissionDenied) },
                     { "INVALID_ARGUMENT", typeof(BadRequest) },
+                    { "PREVIEW_STOP_PRICE_ABOVE_LAST_TRADE_PRICE", typeof(InvalidOrder) },
                 } },
                 { "broad", new Dictionary<string, object>() {
                     { "request timestamp expired", typeof(InvalidNonce) },
@@ -784,6 +785,7 @@ public partial class coinbase : Exchange
             { "currency", code },
             { "tag", tag },
             { "address", address },
+            { "network", null },
             { "info", response },
         };
     }
@@ -1495,16 +1497,6 @@ public partial class coinbase : Exchange
     { "product_type", "FUTURE" },
     { "contract_expiry_type", "PERPETUAL" },
 }))};
-            if (isTrue(this.checkRequiredCredentials(false)))
-            {
-                ((IList<object>)unresolvedContractPromises).Add(this.extend(parameters, new Dictionary<string, object>() {
-                    { "product_type", "FUTURE" },
-                }));
-                ((IList<object>)unresolvedContractPromises).Add(this.extend(parameters, new Dictionary<string, object>() {
-                    { "product_type", "FUTURE" },
-                    { "contract_expiry_type", "PERPETUAL" },
-                }));
-            }
         } catch(Exception e)
         {
             unresolvedContractPromises = new List<object>() {}; // the sync version of ccxt won't have the promise.all line so the request is made here. Some users can't access perpetual products
@@ -1522,8 +1514,8 @@ public partial class coinbase : Exchange
         object fees = this.safeDict(promises, 1, new Dictionary<string, object>() {});
         object expiringFutures = this.safeDict(contractPromises, 0, new Dictionary<string, object>() {});
         object perpetualFutures = this.safeDict(contractPromises, 1, new Dictionary<string, object>() {});
-        object expiringFees = this.safeDict(contractPromises, 2, new Dictionary<string, object>() {});
-        object perpetualFees = this.safeDict(contractPromises, 3, new Dictionary<string, object>() {});
+        object expiringFees = this.safeDict(contractPromises, 0, new Dictionary<string, object>() {});
+        object perpetualFees = this.safeDict(contractPromises, 1, new Dictionary<string, object>() {});
         //
         //     {
         //         "total_volume": 0,
@@ -1562,7 +1554,23 @@ public partial class coinbase : Exchange
         {
             ((IList<object>)result).Add(this.parseContractMarket(getValue(perpetualData, i), perpetualFeeTier));
         }
-        return result;
+        object newMarkets = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
+        {
+            object market = getValue(result, i);
+            object info = this.safeValue(market, "info", new Dictionary<string, object>() {});
+            object realMarketIds = this.safeList(info, "alias_to", new List<object>() {});
+            object length = getArrayLength(realMarketIds);
+            if (isTrue(isGreaterThan(length, 0)))
+            {
+                ((IDictionary<string,object>)market)["alias"] = getValue(realMarketIds, 0);
+            } else
+            {
+                ((IDictionary<string,object>)market)["alias"] = null;
+            }
+            ((IList<object>)newMarkets).Add(market);
+        }
+        return newMarkets;
     }
 
     public virtual object parseSpotMarket(object market, object feeTier)
@@ -1922,45 +1930,42 @@ public partial class coinbase : Exchange
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await this.fetchCurrenciesFromCache(parameters);
-        object currencies = this.safeList(response, "currencies", new List<object>() {});
+        object promises = new List<object> {this.v2PublicGetCurrencies(parameters), this.v2PublicGetCurrenciesCrypto(parameters), this.v2PublicGetExchangeRates(parameters)};
+        object promisesResult = await promiseAll(promises);
+        object fiatResponse = this.safeDict(promisesResult, 0, new Dictionary<string, object>() {});
         //
-        // fiat
+        //    [
+        //        "data": [
+        //            {
+        //                id: 'IMP',
+        //                name: 'Isle of Man Pound',
+        //                min_size: '0.01'
+        //            },
+        //        ...
         //
-        //    {
-        //        id: 'IMP',
-        //        name: 'Isle of Man Pound',
-        //        min_size: '0.01'
-        //    },
+        object cryptoResponse = this.safeDict(promisesResult, 1, new Dictionary<string, object>() {});
         //
-        // crypto
+        //     [
+        //        "data": [
+        //           {
+        //              asset_id: '9476e3be-b731-47fa-82be-347fabc573d9',
+        //              code: 'AERO',
+        //              name: 'Aerodrome Finance',
+        //              color: '#0433FF',
+        //              sort_index: '340',
+        //              exponent: '8',
+        //              type: 'crypto',
+        //              address_regex: '^(?:0x)?[0-9a-fA-F]{40}$'
+        //           },
+        //          ...
         //
-        //    {
-        //        asset_id: '9476e3be-b731-47fa-82be-347fabc573d9',
-        //        code: 'AERO',
-        //        name: 'Aerodrome Finance',
-        //        color: '#0433FF',
-        //        sort_index: '340',
-        //        exponent: '8',
-        //        type: 'crypto',
-        //        address_regex: '^(?:0x)?[0-9a-fA-F]{40}$'
-        //    }
-        //
-        //
-        //     {
-        //         "data":{
-        //             "currency":"USD",
-        //             "rates":{
-        //                 "AED":"3.67",
-        //                 "AFN":"78.21",
-        //                 "ALL":"110.42",
-        //                 "AMD":"474.18",
-        //                 "ANG":"1.75",
-        //                 ...
-        //             },
-        //         }
-        //     }
-        //
+        object ratesResponse = this.safeDict(promisesResult, 2, new Dictionary<string, object>() {});
+        object fiatData = this.safeList(fiatResponse, "data", new List<object>() {});
+        object cryptoData = this.safeList(cryptoResponse, "data", new List<object>() {});
+        object ratesData = this.safeDict(ratesResponse, "data", new Dictionary<string, object>() {});
+        object rates = this.safeDict(ratesData, "rates", new Dictionary<string, object>() {});
+        object ratesIds = new List<object>(((IDictionary<string,object>)rates).Keys);
+        object currencies = this.arrayConcat(fiatData, cryptoData);
         object result = new Dictionary<string, object>() {};
         object networks = new Dictionary<string, object>() {};
         object networksById = new Dictionary<string, object>() {};
@@ -1973,17 +1978,19 @@ public partial class coinbase : Exchange
             object name = this.safeString(currency, "name");
             ((IDictionary<string,object>)getValue(this.options, "networks"))[(string)code] = ((string)name).ToLower();
             ((IDictionary<string,object>)getValue(this.options, "networksById"))[(string)code] = ((string)name).ToLower();
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            object type = ((bool) isTrue((!isEqual(assetId, null)))) ? "crypto" : "fiat";
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "info", currency },
                 { "id", id },
                 { "code", code },
-                { "type", ((bool) isTrue((!isEqual(assetId, null)))) ? "crypto" : "fiat" },
-                { "name", this.safeString(currency, "name") },
+                { "type", type },
+                { "name", name },
                 { "active", true },
                 { "deposit", null },
                 { "withdraw", null },
                 { "fee", null },
                 { "precision", null },
+                { "networks", new Dictionary<string, object>() {} },
                 { "limits", new Dictionary<string, object>() {
                     { "amount", new Dictionary<string, object>() {
                         { "min", this.safeNumber(currency, "min_size") },
@@ -1994,12 +2001,28 @@ public partial class coinbase : Exchange
                         { "max", null },
                     } },
                 } },
-            };
+            });
             if (isTrue(!isEqual(assetId, null)))
             {
                 object lowerCaseName = ((string)name).ToLower();
                 ((IDictionary<string,object>)networks)[(string)code] = lowerCaseName;
                 ((IDictionary<string,object>)networksById)[(string)lowerCaseName] = code;
+            }
+        }
+        // we have to add other currencies here ( https://discord.com/channels/1220414409550336183/1220464770239430761/1372215891940479098 )
+        for (object i = 0; isLessThan(i, getArrayLength(ratesIds)); postFixIncrement(ref i))
+        {
+            object currencyId = getValue(ratesIds, i);
+            object code = this.safeCurrencyCode(currencyId);
+            if (!isTrue((inOp(result, code))))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
+                    { "info", new Dictionary<string, object>() {} },
+                    { "id", currencyId },
+                    { "code", code },
+                    { "type", "crypto" },
+                    { "networks", new Dictionary<string, object>() {} },
+                });
             }
         }
         ((IDictionary<string,object>)this.options)["networks"] = this.extend(networks, getValue(this.options, "networks"));
@@ -2342,10 +2365,11 @@ public partial class coinbase : Exchange
             askVolume = this.safeNumber(getValue(asks, 0), "size");
         }
         object marketId = this.safeString(ticker, "product_id");
+        market = this.safeMarket(marketId, market);
         object last = this.safeNumber(ticker, "price");
         object datetime = this.safeString(ticker, "time");
         return this.safeTicker(new Dictionary<string, object>() {
-            { "symbol", this.safeSymbol(marketId, market) },
+            { "symbol", getValue(market, "symbol") },
             { "timestamp", this.parse8601(datetime) },
             { "datetime", datetime },
             { "bid", bid },
@@ -2479,7 +2503,7 @@ public partial class coinbase : Exchange
         //             "ending_before":null,
         //             "starting_after":null,
         //             "previous_ending_before":null,
-        //             "next_starting_after":"6b17acd6-2e68-5eb0-9f45-72d67cef578b",
+        //             "next_starting_after":"6b17acd6-2e68-5eb0-9f45-72d67cef578a",
         //             "limit":100,
         //             "order":"desc",
         //             "previous_uri":null,
@@ -4582,6 +4606,7 @@ public partial class coinbase : Exchange
             { "amount", this.numberToString(amount) },
             { "currency", ((string)code).ToUpper() },
             { "payment_method", id },
+            { "commit", true },
         };
         object response = await this.v2PrivatePostAccountsAccountIdDeposits(this.extend(request, parameters));
         //
@@ -4620,7 +4645,8 @@ public partial class coinbase : Exchange
         //         }
         //     }
         //
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        // https://github.com/ccxt/ccxt/issues/25484
+        object data = this.safeDict2(response, "data", "transfer", new Dictionary<string, object>() {});
         return this.parseTransaction(data);
     }
 
@@ -4694,7 +4720,8 @@ public partial class coinbase : Exchange
         //         }
         //     }
         //
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        // https://github.com/ccxt/ccxt/issues/25484
+        object data = this.safeDict2(response, "data", "transfer", new Dictionary<string, object>() {});
         return this.parseTransaction(data);
     }
 
@@ -5247,6 +5274,77 @@ public partial class coinbase : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name coinbase#fetchPortfolioDetails
+     * @description Fetch details for a specific portfolio by UUID
+     * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getportfolios
+     * @param {string} portfolioUuid The unique identifier of the portfolio to fetch
+     * @param {Dict} [params] Extra parameters specific to the exchange API endpoint
+     * @returns {any[]} An account structure <https://docs.ccxt.com/#/?id=account-structure>
+     */
+    public async virtual Task<object> fetchPortfolioDetails(object portfolioUuid, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "portfolio_uuid", portfolioUuid },
+        };
+        object response = await this.v3PrivateGetBrokeragePortfoliosPortfolioUuid(this.extend(request, parameters));
+        object result = this.parsePortfolioDetails(response);
+        return result;
+    }
+
+    public virtual object parsePortfolioDetails(object portfolioData)
+    {
+        object breakdown = getValue(portfolioData, "breakdown");
+        object portfolioInfo = this.safeDict(breakdown, "portfolio", new Dictionary<string, object>() {});
+        object portfolioName = this.safeString(portfolioInfo, "name", "Unknown");
+        object portfolioUuid = this.safeString(portfolioInfo, "uuid", "");
+        object spotPositions = this.safeList(breakdown, "spot_positions", new List<object>() {});
+        object parsedPositions = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(spotPositions)); postFixIncrement(ref i))
+        {
+            object position = getValue(spotPositions, i);
+            object currencyCode = this.safeString(position, "asset", "Unknown");
+            object availableBalanceStr = this.safeString(position, "available_to_trade_fiat", "0");
+            object availableBalance = this.parseNumber(availableBalanceStr);
+            object totalBalanceFiatStr = this.safeString(position, "total_balance_fiat", "0");
+            object totalBalanceFiat = this.parseNumber(totalBalanceFiatStr);
+            object holdAmount = subtract(totalBalanceFiat, availableBalance);
+            object costBasisDict = this.safeDict(position, "cost_basis", new Dictionary<string, object>() {});
+            object costBasisStr = this.safeString(costBasisDict, "value", "0");
+            object averageEntryPriceDict = this.safeDict(position, "average_entry_price", new Dictionary<string, object>() {});
+            object averageEntryPriceStr = this.safeString(averageEntryPriceDict, "value", "0");
+            object positionData = new Dictionary<string, object>() {
+                { "currency", currencyCode },
+                { "available_balance", availableBalance },
+                { "hold_amount", ((bool) isTrue(isGreaterThan(holdAmount, 0))) ? holdAmount : 0 },
+                { "wallet_name", portfolioName },
+                { "account_id", portfolioUuid },
+                { "account_uuid", this.safeString(position, "account_uuid", "") },
+                { "total_balance_fiat", totalBalanceFiat },
+                { "total_balance_crypto", this.parseNumber(this.safeString(position, "total_balance_crypto", "0")) },
+                { "available_to_trade_fiat", this.parseNumber(this.safeString(position, "available_to_trade_fiat", "0")) },
+                { "available_to_trade_crypto", this.parseNumber(this.safeString(position, "available_to_trade_crypto", "0")) },
+                { "available_to_transfer_fiat", this.parseNumber(this.safeString(position, "available_to_transfer_fiat", "0")) },
+                { "available_to_transfer_crypto", this.parseNumber(this.safeString(position, "available_to_trade_crypto", "0")) },
+                { "allocation", this.parseNumber(this.safeString(position, "allocation", "0")) },
+                { "cost_basis", this.parseNumber(costBasisStr) },
+                { "cost_basis_currency", this.safeString(costBasisDict, "currency", "USD") },
+                { "is_cash", this.safeBool(position, "is_cash", false) },
+                { "average_entry_price", this.parseNumber(averageEntryPriceStr) },
+                { "average_entry_price_currency", this.safeString(averageEntryPriceDict, "currency", "USD") },
+                { "asset_uuid", this.safeString(position, "asset_uuid", "") },
+                { "unrealized_pnl", this.parseNumber(this.safeString(position, "unrealized_pnl", "0")) },
+                { "asset_color", this.safeString(position, "asset_color", "") },
+                { "account_type", this.safeString(position, "account_type", "") },
+            };
+            ((IList<object>)parsedPositions).Add(positionData);
+        }
+        return parsedPositions;
+    }
+
     public virtual object createAuthToken(object seconds, object method = null, object url = null)
     {
         // it may not work for v2
@@ -5431,19 +5529,39 @@ public partial class coinbase : Exchange
         //      ]
         //    }
         // or
-        //   {
+        // {
+        //     "success": false,
+        //     "error_response": {
         //       "error": "UNKNOWN_FAILURE_REASON",
         //       "message": "",
         //       "error_details": "",
-        //       "preview_failure_reason": "PREVIEW_STOP_PRICE_BELOW_LAST_TRADE_PRICE"
-        //   }
+        //       "preview_failure_reason": "PREVIEW_STOP_PRICE_ABOVE_LAST_TRADE_PRICE"
+        //     },
+        //     "order_configuration": {
+        //       "stop_limit_stop_limit_gtc": {
+        //         "base_size": "0.0001",
+        //         "limit_price": "2000",
+        //         "stop_price": "2005",
+        //         "stop_direction": "STOP_DIRECTION_STOP_DOWN",
+        //         "reduce_only": false
+        //       }
+        //     }
+        // }
         //
         object errorCode = this.safeString(response, "error");
         if (isTrue(!isEqual(errorCode, null)))
         {
-            object errorMessage = this.safeString2(response, "error_description", "preview_failure_reason");
+            object errorMessage = this.safeString2(response, "error_description", "error");
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errorMessage, feedback);
+            throw new ExchangeError ((string)feedback) ;
+        }
+        object errorResponse = this.safeDict(response, "error_response");
+        if (isTrue(!isEqual(errorResponse, null)))
+        {
+            object errorMessageInner = this.safeString2(errorResponse, "preview_failure_reason", "preview_failure_reason");
+            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorMessageInner, feedback);
+            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errorMessageInner, feedback);
             throw new ExchangeError ((string)feedback) ;
         }
         object errors = this.safeList(response, "errors");

@@ -656,3 +656,60 @@ func (this *Luno) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, err
     }
     return NewLedgerEntryArray(res), nil
 }
+/**
+ * @method
+ * @name luno#createDepositAddress
+ * @description create a currency deposit address
+ * @see https://www.luno.com/en/developers/api#tag/Receive/operation/createFundingAddress
+ * @param {string} code unified currency code of the currency for the deposit address
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.name] an optional name for the new address
+ * @param {int} [params.account_id] an optional account id for the new address
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ */
+func (this *Luno) CreateDepositAddress(code string, options ...CreateDepositAddressOptions) (DepositAddress, error) {
+
+    opts := CreateDepositAddressOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.CreateDepositAddress(code, params)
+    if IsError(res) {
+        return DepositAddress{}, CreateReturnError(res)
+    }
+    return NewDepositAddress(res), nil
+}
+/**
+ * @method
+ * @name luno#fetchDepositAddress
+ * @description fetch the deposit address for a currency associated with this account
+ * @see https://www.luno.com/en/developers/api#tag/Receive/operation/getFundingAddress
+ * @param {string} code unified currency code
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.address] a specific cryptocurrency address to retrieve
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ */
+func (this *Luno) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
+
+    opts := FetchDepositAddressOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.FetchDepositAddress(code, params)
+    if IsError(res) {
+        return DepositAddress{}, CreateReturnError(res)
+    }
+    return NewDepositAddress(res), nil
+}

@@ -19,6 +19,38 @@
         ],
         "createOrder": [
             {
+                "description": "tif FOK",
+                "method": "createOrder",
+                "url": "https://api.mexc.com/api/v3/order?symbol=ADAUSDT&side=BUY&type=FILL_OR_KILL&quantity=0.5&price=2&timestamp=1745858461503&recvWindow=5000&signature=cf86e5583b05a786abb7458c20a10b8119d52fdc9b2f8c01bc878f7d6828e703",
+                "input": [
+                    "ADA/USDT",
+                    "limit",
+                    "buy",
+                    0.5,
+                    2,
+                    {
+                        "timeInForce": "FOK"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "tif IOC",
+                "method": "createOrder",
+                "url": "https://api.mexc.com/api/v3/order?symbol=ADAUSDT&side=BUY&type=IMMEDIATE_OR_CANCEL&quantity=0.5&price=2&timestamp=1745858422724&recvWindow=5000&signature=1b39bae161190c73f75a1dc7fd129e2cfaaf848ece2c36c7eb7e60e651f4c8c5",
+                "input": [
+                    "ADA/USDT",
+                    "limit",
+                    "buy",
+                    0.5,
+                    2,
+                    {
+                        "timeInForce": "IOC"
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "Spot limit buy",
                 "method": "createOrder",
                 "url": "https://api.mexc.com/api/v3/order?symbol=ATLASUSDT&side=BUY&type=LIMIT&quantity=1000&price=0.005&timestamp=1701303487584&recvWindow=5000&signature=3814fef25796ab5bd4136b3ef75daa28421a7f2de8cd15f3343563bdbf0c457b",

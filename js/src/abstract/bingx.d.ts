@@ -139,6 +139,7 @@ interface Exchange {
     accountV1PrivateGetUid(params?: {}): Promise<implicitReturnType>;
     accountV1PrivateGetApiKeyQuery(params?: {}): Promise<implicitReturnType>;
     accountV1PrivateGetAccountApiPermissions(params?: {}): Promise<implicitReturnType>;
+    accountV1PrivateGetAllAccountBalance(params?: {}): Promise<implicitReturnType>;
     accountV1PrivatePostInnerTransferAuthorizeSubAccount(params?: {}): Promise<implicitReturnType>;
     accountTransferV1PrivateGetSubAccountAssetTransferHistory(params?: {}): Promise<implicitReturnType>;
     accountTransferV1PrivatePostSubAccountTransferAssetSupportCoins(params?: {}): Promise<implicitReturnType>;

@@ -15,6 +15,7 @@ interface Exchange {
     publicGetV1Leaderboard(params?: {}): Promise<implicitReturnType>;
     publicGetV1AffiliateCompetitionCode(params?: {}): Promise<implicitReturnType>;
     publicGetV1CompetitionCompetitionId(params?: {}): Promise<implicitReturnType>;
+    publicGetV1SymbolsSymbolFunding(params?: {}): Promise<implicitReturnType>;
     privateGetV1Fees(params?: {}): Promise<implicitReturnType>;
     privateGetV1Accounts(params?: {}): Promise<implicitReturnType>;
     privateGetV1AccountsTraderId(params?: {}): Promise<implicitReturnType>;
@@ -34,6 +35,7 @@ interface Exchange {
     privateGetV1Credits(params?: {}): Promise<implicitReturnType>;
     privateGetV1Positions(params?: {}): Promise<implicitReturnType>;
     privateGetV1AccountsTraderIdCompetitions(params?: {}): Promise<implicitReturnType>;
+    privateGetV1ClosedPositions(params?: {}): Promise<implicitReturnType>;
     privatePostV1Keys(params?: {}): Promise<implicitReturnType>;
     privatePostV1Orders(params?: {}): Promise<implicitReturnType>;
     privatePostV1OrdersCancelAllAfter(params?: {}): Promise<implicitReturnType>;
@@ -47,6 +49,7 @@ interface Exchange {
     privatePostV1AccountsTraderIdCreateCompetition(params?: {}): Promise<implicitReturnType>;
     privatePatchV1OrdersOrderId(params?: {}): Promise<implicitReturnType>;
     privatePatchV1OrdersBulk(params?: {}): Promise<implicitReturnType>;
+    privatePutV1AccountsTraderIdAlias(params?: {}): Promise<implicitReturnType>;
     privateDeleteV1KeysKey(params?: {}): Promise<implicitReturnType>;
     privateDeleteV1Orders(params?: {}): Promise<implicitReturnType>;
     privateDeleteV1OrdersOrderId(params?: {}): Promise<implicitReturnType>;

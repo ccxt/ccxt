@@ -12,10 +12,19 @@ class myokx extends \ccxt\pro\okx {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'myokx',
-            'name' => 'MyOKX',
+            'name' => 'MyOKX (EEA)',
+            'hostname' => 'eea.okx.com',
             'urls' => array(
                 'api' => array(
+                    'rest' => 'https://{hostname}',
                     'ws' => 'wss://wseea.okx.com:8443/ws/v5',
+                ),
+                'www' => 'https://my.okx.com',
+                'doc' => 'https://my.okx.com/docs-v5/en/#overview',
+                'fees' => 'https://my.okx.com/pages/products/fees.html',
+                'referral' => array(
+                    'url' => 'https://www.my.okx.com/join/CCXT2023',
+                    'discount' => 0.2,
                 ),
                 'test' => array(
                     'ws' => 'wss://wseeapap.okx.com:8443/ws/v5',

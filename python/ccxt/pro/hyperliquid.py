@@ -101,15 +101,18 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        order, globalParams = self.parseCreateOrderArgs(symbol, type, side, amount, price, params)
+        order, globalParams = self.parseCreateEditOrderArgs(None, symbol, type, side, amount, price, params)
         orders = await self.create_orders_ws([order], globalParams)
-        return orders[0]
+        parsedOrder = orders[0]
+        orderInfo = self.safe_dict(parsedOrder, 'info')
+        # handle potential error here
+        self.handle_errors(None, None, None, None, None, self.json(orderInfo), orderInfo, None, None)
+        return parsedOrder
 
     async def edit_order_ws(self, id: str, symbol: str, type: str, side: str, amount: Num = None, price: Num = None, params={}):
         """
         edit a trade order
 
-        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-an-order
         https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
 
         :param str id: cancel order id
@@ -130,7 +133,8 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         await self.load_markets()
         market = self.market(symbol)
         url = self.urls['api']['ws']['public']
-        postRequest = self.edit_order_request(id, symbol, type, side, amount, price, params)
+        order, globalParams = self.parseCreateEditOrderArgs(id, symbol, type, side, amount, price, params)
+        postRequest = self.editOrdersRequest([order], globalParams)
         wrapped = self.wrap_as_post_action(postRequest)
         request = self.safe_dict(wrapped, 'request', {})
         requestId = self.safe_string(wrapped, 'requestId')
@@ -140,7 +144,11 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         dataObject = self.safe_dict(responseObject, 'data', {})
         statuses = self.safe_list(dataObject, 'statuses', [])
         first = self.safe_dict(statuses, 0, {})
-        return self.parse_order(first, market)
+        parsedOrder = self.parse_order(first, market)
+        orderInfo = self.safe_dict(parsedOrder, 'info')
+        # handle potential error here
+        self.handle_errors(None, None, None, None, None, self.json(orderInfo), orderInfo, None, None)
+        return parsedOrder
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
@@ -614,7 +622,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
             'id': id,
-            'order': None,
+            'order': self.safe_string(trade, 'oid'),
             'type': None,
             'side': side,
             'takerOrMaker': None,

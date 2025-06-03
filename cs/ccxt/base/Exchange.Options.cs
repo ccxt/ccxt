@@ -161,6 +161,7 @@ public partial class Exchange
     public Func<object, object, object, object> socks_proxy_callback { get; set; } = null;
 
     // WS options
+
     public object tickers = new ccxt.pro.CustomConcurrentDictionary<string, object>();
     public object fundingRates = new ccxt.pro.CustomConcurrentDictionary<string, object>();
     public object bidsasks = new ccxt.pro.CustomConcurrentDictionary<string, object>();
@@ -185,6 +186,8 @@ public partial class Exchange
 
     public object wsProxy { get; set; } = null;
     public object ws_proxy { get; set; } = null;
+
+    public Dictionary<string, object> streaming { get; set; } = new dict();
 
     private string httpProxyValue = "";
     public object httpProxy
@@ -246,6 +249,8 @@ public partial class Exchange
         this.hostname = SafeString(extendedProperties, "hostname");
         this.urls = SafeValue(extendedProperties, "urls") as dict;
         this.limits = SafeValue(extendedProperties, "limits") as dict;
+
+        this.streaming = SafeValue(extendedProperties, "streaming") as dict;
 
         // handle options
         var extendedOptions = safeDict(extendedProperties, "options");

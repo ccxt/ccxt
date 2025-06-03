@@ -20,6 +20,20 @@ func NewBigone(userConfig map[string]interface{}) Bigone {
 
 /**
  * @method
+ * @name bigone#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @param {dict} [params] extra parameters specific to the exchange API endpoint
+ * @returns {dict} an associative dictionary of currencies
+ */
+func (this *Bigone) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name bigone#fetchMarkets
  * @description retrieves data on all markets for bigone
  * @see https://open.big.one/docs/spot_asset_pair.html

@@ -212,10 +212,10 @@ public partial class Exchange
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);
     }
-    public async Task<DepositAddressResponse> CreateDepositAddress(string code, Dictionary<string, object> parameters = null)
+    public async Task<DepositAddress> CreateDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.createDepositAddress(code, parameters);
-        return new DepositAddressResponse(res);
+        return new DepositAddress(res);
     }
     public async Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, Dictionary<string, object> parameters = null)
     {
@@ -1208,8 +1208,8 @@ public partial class Exchange
     }
 }
 // class wrappers
-public class  Ace: ace { public Ace(object args = null) : base(args) { } }
 public class  Alpaca: alpaca { public Alpaca(object args = null) : base(args) { } }
+public class  Apex: apex { public Apex(object args = null) : base(args) { } }
 public class  Ascendex: ascendex { public Ascendex(object args = null) : base(args) { } }
 public class  Bequant: bequant { public Bequant(object args = null) : base(args) { } }
 public class  Bigone: bigone { public Bigone(object args = null) : base(args) { } }
@@ -1221,22 +1221,19 @@ public class  Bingx: bingx { public Bingx(object args = null) : base(args) { } }
 public class  Bit2c: bit2c { public Bit2c(object args = null) : base(args) { } }
 public class  Bitbank: bitbank { public Bitbank(object args = null) : base(args) { } }
 public class  Bitbns: bitbns { public Bitbns(object args = null) : base(args) { } }
-public class  Bitcoincom: bitcoincom { public Bitcoincom(object args = null) : base(args) { } }
 public class  Bitfinex: bitfinex { public Bitfinex(object args = null) : base(args) { } }
-public class  Bitfinex1: bitfinex1 { public Bitfinex1(object args = null) : base(args) { } }
 public class  Bitflyer: bitflyer { public Bitflyer(object args = null) : base(args) { } }
 public class  Bitget: bitget { public Bitget(object args = null) : base(args) { } }
 public class  Bithumb: bithumb { public Bithumb(object args = null) : base(args) { } }
 public class  Bitmart: bitmart { public Bitmart(object args = null) : base(args) { } }
 public class  Bitmex: bitmex { public Bitmex(object args = null) : base(args) { } }
 public class  Bitopro: bitopro { public Bitopro(object args = null) : base(args) { } }
-public class  Bitpanda: bitpanda { public Bitpanda(object args = null) : base(args) { } }
 public class  Bitrue: bitrue { public Bitrue(object args = null) : base(args) { } }
 public class  Bitso: bitso { public Bitso(object args = null) : base(args) { } }
 public class  Bitstamp: bitstamp { public Bitstamp(object args = null) : base(args) { } }
 public class  Bitteam: bitteam { public Bitteam(object args = null) : base(args) { } }
+public class  Bittrade: bittrade { public Bittrade(object args = null) : base(args) { } }
 public class  Bitvavo: bitvavo { public Bitvavo(object args = null) : base(args) { } }
-public class  Bl3p: bl3p { public Bl3p(object args = null) : base(args) { } }
 public class  Blockchaincom: blockchaincom { public Blockchaincom(object args = null) : base(args) { } }
 public class  Blofin: blofin { public Blofin(object args = null) : base(args) { } }
 public class  Btcalpha: btcalpha { public Btcalpha(object args = null) : base(args) { } }
@@ -1259,10 +1256,11 @@ public class  Coinone: coinone { public Coinone(object args = null) : base(args)
 public class  Coinsph: coinsph { public Coinsph(object args = null) : base(args) { } }
 public class  Coinspot: coinspot { public Coinspot(object args = null) : base(args) { } }
 public class  Cryptocom: cryptocom { public Cryptocom(object args = null) : base(args) { } }
-public class  Currencycom: currencycom { public Currencycom(object args = null) : base(args) { } }
+public class  Cryptomus: cryptomus { public Cryptomus(object args = null) : base(args) { } }
 public class  Defx: defx { public Defx(object args = null) : base(args) { } }
 public class  Delta: delta { public Delta(object args = null) : base(args) { } }
 public class  Deribit: deribit { public Deribit(object args = null) : base(args) { } }
+public class  Derive: derive { public Derive(object args = null) : base(args) { } }
 public class  Digifinex: digifinex { public Digifinex(object args = null) : base(args) { } }
 public class  Ellipx: ellipx { public Ellipx(object args = null) : base(args) { } }
 public class  Exmo: exmo { public Exmo(object args = null) : base(args) { } }
@@ -1275,16 +1273,13 @@ public class  Hitbtc: hitbtc { public Hitbtc(object args = null) : base(args) { 
 public class  Hollaex: hollaex { public Hollaex(object args = null) : base(args) { } }
 public class  Htx: htx { public Htx(object args = null) : base(args) { } }
 public class  Huobi: huobi { public Huobi(object args = null) : base(args) { } }
-public class  Huobijp: huobijp { public Huobijp(object args = null) : base(args) { } }
 public class  Hyperliquid: hyperliquid { public Hyperliquid(object args = null) : base(args) { } }
-public class  Idex: idex { public Idex(object args = null) : base(args) { } }
 public class  Independentreserve: independentreserve { public Independentreserve(object args = null) : base(args) { } }
 public class  Indodax: indodax { public Indodax(object args = null) : base(args) { } }
 public class  Kraken: kraken { public Kraken(object args = null) : base(args) { } }
 public class  Krakenfutures: krakenfutures { public Krakenfutures(object args = null) : base(args) { } }
 public class  Kucoin: kucoin { public Kucoin(object args = null) : base(args) { } }
 public class  Kucoinfutures: kucoinfutures { public Kucoinfutures(object args = null) : base(args) { } }
-public class  Kuna: kuna { public Kuna(object args = null) : base(args) { } }
 public class  Latoken: latoken { public Latoken(object args = null) : base(args) { } }
 public class  Lbank: lbank { public Lbank(object args = null) : base(args) { } }
 public class  Luno: luno { public Luno(object args = null) : base(args) { } }
@@ -1296,6 +1291,7 @@ public class  Novadax: novadax { public Novadax(object args = null) : base(args)
 public class  Oceanex: oceanex { public Oceanex(object args = null) : base(args) { } }
 public class  Okcoin: okcoin { public Okcoin(object args = null) : base(args) { } }
 public class  Okx: okx { public Okx(object args = null) : base(args) { } }
+public class  Okxus: okxus { public Okxus(object args = null) : base(args) { } }
 public class  Onetrading: onetrading { public Onetrading(object args = null) : base(args) { } }
 public class  Oxfun: oxfun { public Oxfun(object args = null) : base(args) { } }
 public class  P2b: p2b { public P2b(object args = null) : base(args) { } }
@@ -1303,7 +1299,6 @@ public class  Paradex: paradex { public Paradex(object args = null) : base(args)
 public class  Paymium: paymium { public Paymium(object args = null) : base(args) { } }
 public class  Phemex: phemex { public Phemex(object args = null) : base(args) { } }
 public class  Poloniex: poloniex { public Poloniex(object args = null) : base(args) { } }
-public class  Poloniexfutures: poloniexfutures { public Poloniexfutures(object args = null) : base(args) { } }
 public class  Probit: probit { public Probit(object args = null) : base(args) { } }
 public class  Timex: timex { public Timex(object args = null) : base(args) { } }
 public class  Tokocrypto: tokocrypto { public Tokocrypto(object args = null) : base(args) { } }

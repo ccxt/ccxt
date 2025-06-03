@@ -43,7 +43,7 @@ class CCXTProTranspiler extends Transpiler {
             'Exchange': 'base.exchange',
         }
 
-        async = (async ? '.async_support' : '')
+        // async = (async ? '.async_support' : '')
 
         if (baseClass.indexOf ('Rest') >= 0) {
             return [
@@ -89,7 +89,7 @@ class CCXTProTranspiler extends Transpiler {
     }
 
     createPHPClassDeclaration (className, baseClass) {
-        let lines = []
+        let lines: string[] = []
         if (baseClass.indexOf ('Rest') >= 0) {
             //     lines = lines.concat ([
             //         '',
@@ -158,7 +158,7 @@ class CCXTProTranspiler extends Transpiler {
     }
 
     transpileWsExchangeTests () {
-        const wsCollectedTests = [];
+        const wsCollectedTests: Object[] = [];
         for (const currentFolder of ['Exchange/']) {
             const fileNames = this.readTsFileNames(this.wsTestsDirectories.ts + currentFolder);
             for (const testName of fileNames) {

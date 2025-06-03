@@ -35,6 +35,21 @@ func (this *Bybit) FetchTime(params ...interface{}) ( int64, error) {
 }
 /**
  * @method
+ * @name bybit#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://bybit-exchange.github.io/docs/v5/asset/coin-info
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Bybit) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name bybit#fetchMarkets
  * @description retrieves data on all markets for bybit
  * @see https://bybit-exchange.github.io/docs/v5/market/instrument
@@ -125,6 +140,40 @@ func (this *Bybit) FetchTickers(options ...FetchTickersOptions) (Tickers, error)
         params = *opts.Params
     }
     res := <- this.Core.FetchTickers(symbols, params)
+    if IsError(res) {
+        return Tickers{}, CreateReturnError(res)
+    }
+    return NewTickers(res), nil
+}
+/**
+ * @method
+ * @name bybit#fetchBidsAsks
+ * @description fetches the bid and ask price and volume for multiple markets
+ * @see https://bybit-exchange.github.io/docs/v5/market/tickers
+ * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.subType] *contract only* 'linear', 'inverse'
+ * @param {string} [params.baseCoin] *option only* base coin, default is 'BTC'
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ */
+func (this *Bybit) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
+
+    opts := FetchBidsAsksOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var symbols interface{} = nil
+    if opts.Symbols != nil {
+        symbols = *opts.Symbols
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.FetchBidsAsks(symbols, params)
     if IsError(res) {
         return Tickers{}, CreateReturnError(res)
     }
@@ -472,7 +521,7 @@ func (this *Bybit) CreateOrders(orders []OrderRequest, options ...CreateOrdersOp
     if opts.Params != nil {
         params = *opts.Params
     }
-    res := <- this.Core.CreateOrders(orders, params)
+    res := <- this.Core.CreateOrders(ConvertOrderRequestListToArray(orders), params)
     if IsError(res) {
         return nil, CreateReturnError(res)
     }
@@ -531,6 +580,33 @@ func (this *Bybit) EditOrder(id string, symbol string, typeVar string, side stri
         return Order{}, CreateReturnError(res)
     }
     return NewOrder(res), nil
+}
+/**
+ * @method
+ * @name bybit#editOrders
+ * @description edit a list of trade orders
+ * @see https://bybit-exchange.github.io/docs/v5/order/batch-amend
+ * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
+func (this *Bybit) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
+
+    opts := EditOrdersOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.EditOrders(orders, params)
+    if IsError(res) {
+        return nil, CreateReturnError(res)
+    }
+    return NewOrderArray(res), nil
 }
 /**
  * @method
@@ -1507,6 +1583,7 @@ func (this *Bybit) FetchPosition(symbol string, options ...FetchPositionOptions)
  * @param {string} [params.subType] market subType, ['linear', 'inverse']
  * @param {string} [params.baseCoin] Base coin. Supports linear, inverse & option
  * @param {string} [params.settleCoin] Settle coin. Supports linear, inverse & option
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
  */
 func (this *Bybit) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {

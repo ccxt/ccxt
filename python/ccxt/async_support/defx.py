@@ -614,7 +614,7 @@ class defx(Exchange, ImplicitAPI):
             'active': self.safe_string(market, 'status', '') == 'active',
             'contract': True,
             'linear': True,
-            'inverse': None,
+            'inverse': False,
             'taker': self.safe_number(fees, 'taker'),
             'maker': self.safe_number(fees, 'maker'),
             'contractSize': self.parse_number('1'),
@@ -1495,7 +1495,7 @@ class defx(Exchange, ImplicitAPI):
         first = self.safe_dict(data, 0, {})
         return self.parse_position(first, market)
 
-    async def fetch_positions(self, symbols: Strings = None, params={}):
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open positions
 

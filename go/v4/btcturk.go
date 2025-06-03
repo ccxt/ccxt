@@ -251,7 +251,7 @@ func  (this *btcturk) FetchMarkets(optionalArgs ...interface{}) <- chan interfac
             //                            "minPrice": "0.0000000000001",
             //                            "maxPrice": "10000000",
             //                            "tickSize": "10",
-            //                            "minExchangeValue": "99.91",
+            //                            "minExchangeValue": "99.92",
             //                            "minAmount": null,
             //                            "maxAmount": null
             //                        }
@@ -1256,6 +1256,6 @@ func  (this *btcturk) HandleErrors(code interface{}, reason interface{}, url int
 
 func (this *btcturk) Init(userConfig map[string]interface{}) {
     this.Exchange = Exchange{}
-    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
     this.Exchange.DerivedExchange = this
+    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
 }

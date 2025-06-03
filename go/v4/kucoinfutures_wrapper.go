@@ -457,6 +457,7 @@ func (this *Kucoinfutures) FetchPositionsHistory(options ...FetchPositionsHistor
  * @param {string} [params.timeInForce] GTC, GTT, IOC, or FOK, default is GTC, limit orders only
  * @param {string} [params.postOnly] Post only flag, invalid when timeInForce is IOC or FOK
  * @param {float} [params.cost] the cost of the order in units of USDT
+ * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'isolated'
  * ----------------- Exchange Specific Parameters -----------------
  * @param {float} [params.leverage] Leverage size of the order (mandatory param in request, default is 1)
  * @param {string} [params.clientOid] client order id, defaults to uuid if not passed
@@ -513,7 +514,7 @@ func (this *Kucoinfutures) CreateOrders(orders []OrderRequest, options ...Create
     if opts.Params != nil {
         params = *opts.Params
     }
-    res := <- this.Core.CreateOrders(orders, params)
+    res := <- this.Core.CreateOrders(ConvertOrderRequestListToArray(orders), params)
     if IsError(res) {
         return nil, CreateReturnError(res)
     }

@@ -70,6 +70,7 @@ class coincatch extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
                 'fetchDepositsWithdrawals' => false,
+                'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
@@ -354,56 +355,18 @@ class coincatch extends Exchange {
                     'CRO' => 'CronosChain',
                 ),
                 'networksById' => array(
-                    'BITCOIN' => 'BTC',
-                    'ERC20' => 'ERC20',
                     'TRC20' => 'TRC20',
                     'TRX(TRC20)' => 'TRC20',
-                    'BEP20' => 'BEP20',
                     'ArbitrumOne' => 'ARB', // todo check
-                    'Optimism' => 'OPTIMISM',
-                    'LTC' => 'LTC',
-                    'BCH' => 'BCH',
-                    'ETC' => 'ETC',
-                    'SOL' => 'SOL',
-                    'NEO3' => 'NEO3',
-                    'stacks' => 'STX',
-                    'Elrond' => 'EGLD',
-                    'NEARProtocol' => 'NEAR',
-                    'AcalaToken' => 'ACA',
-                    'Klaytn' => 'KLAY',
-                    'Fantom' => 'FTM',
-                    'Terra' => 'TERRA',
-                    'WAVES' => 'WAVES',
-                    'TAO' => 'TAO',
-                    'SUI' => 'SUI',
-                    'SEI' => 'SEI',
                     'THORChain' => 'RUNE', // todo check
-                    'ZIL' => 'ZIL',
                     'Solar' => 'SXP', // todo check
-                    'FET' => 'FET',
                     'C-Chain' => 'AVAX', // todo check
-                    'XRP' => 'XRP',
-                    'EOS' => 'EOS',
-                    'DOGECOIN' => 'DOGE',
                     'CAP20' => 'CAP20', // todo check
-                    'Polygon' => 'MATIC',
-                    'CSPR' => 'CSPR',
-                    'Moonbeam' => 'GLMR',
-                    'MINA' => 'MINA',
                     'CFXeSpace' => 'CFX', // todo check
                     'CFX' => 'CFX',
                     'StratisEVM' => 'STRAT', // todo check
-                    'Celestia' => 'TIA',
                     'ChilizChain' => 'ChilizChain', // todo check
-                    'Aptos' => 'APT',
-                    'Ontology' => 'ONT',
-                    'ICP' => 'ICP',
-                    'Cardano' => 'ADA',
-                    'FIL' => 'FIL',
-                    'CELO' => 'CELO',
-                    'DOT' => 'DOT',
                     'StellarLumens' => 'XLM', // todo check
-                    'ATOM' => 'ATOM',
                     'CronosChain' => 'CRO', // todo check
                 ),
             ),
@@ -639,75 +602,129 @@ class coincatch extends Exchange {
             $currencyId = $this->safe_string($currecy, 'coinName');
             $currenciesIds[] = $currencyId;
             $code = $this->safe_currency_code($currencyId);
-            $allowDeposit = false;
-            $allowWithdraw = false;
-            $minDeposit = null;
-            $minWithdraw = null;
             $networks = $this->safe_list($currecy, 'chains');
-            $networksById = $this->safe_dict($this->options, 'networksById');
             $parsedNetworks = array();
             for ($j = 0; $j < count($networks); $j++) {
                 $network = $networks[$j];
                 $networkId = $this->safe_string($network, 'chain');
-                $networkName = $this->safe_string($networksById, $networkId, $networkId);
-                $networkDepositString = $this->safe_string($network, 'rechargeable');
-                $networkDeposit = $networkDepositString === 'true';
-                $networkWithdrawString = $this->safe_string($network, 'withdrawable');
-                $networkWithdraw = $networkWithdrawString === 'true';
-                $networkMinDeposit = $this->safe_string($network, 'minDepositAmount');
-                $networkMinWithdraw = $this->safe_string($network, 'minWithdrawAmount');
+                $networkCode = $this->network_code_to_id($networkId);
                 $parsedNetworks[$networkId] = array(
                     'id' => $networkId,
-                    'network' => $networkName,
+                    'network' => $networkCode,
                     'limits' => array(
                         'deposit' => array(
-                            'min' => $this->parse_number($networkMinDeposit),
+                            'min' => $this->safe_number($network, 'minDepositAmount'),
                             'max' => null,
                         ),
                         'withdraw' => array(
-                            'min' => $this->parse_number($networkMinWithdraw),
+                            'min' => $this->safe_number($network, 'minWithdrawAmount'),
                             'max' => null,
                         ),
                     ),
-                    'active' => $networkDeposit && $networkWithdraw,
-                    'deposit' => $networkDeposit,
-                    'withdraw' => $networkWithdraw,
+                    'active' => null,
+                    'deposit' => $this->safe_string($network, 'rechargeable') === 'true',
+                    'withdraw' => $this->safe_string($network, 'withdrawable') === 'true',
                     'fee' => $this->safe_number($network, 'withdrawFee'),
                     'precision' => null,
                     'info' => $network,
                 );
-                $allowDeposit = $allowDeposit ? $allowDeposit : $networkDeposit;
-                $allowWithdraw = $allowWithdraw ? $allowWithdraw : $networkWithdraw;
-                $minDeposit = $minDeposit ? Precise::string_min($networkMinDeposit, $minDeposit) : $networkMinDeposit;
-                $minWithdraw = $minWithdraw ? Precise::string_min($networkMinWithdraw, $minWithdraw) : $networkMinWithdraw;
             }
-            $result[$code] = array(
+            $result[$code] = $this->safe_currency_structure(array(
                 'id' => $currencyId,
                 'numericId' => $this->safe_integer($currecy, 'coinId'),
                 'code' => $code,
                 'precision' => null,
                 'type' => null,
                 'name' => null,
-                'active' => $allowWithdraw && $allowDeposit,
-                'deposit' => $allowDeposit,
-                'withdraw' => $allowWithdraw,
+                'active' => null,
+                'deposit' => null,
+                'withdraw' => null,
                 'fee' => null,
                 'limits' => array(
                     'deposit' => array(
-                        'min' => $this->parse_number($minDeposit),
+                        'min' => null,
                         'max' => null,
                     ),
                     'withdraw' => array(
-                        'min' => $this->parse_number($minWithdraw),
+                        'min' => null,
                         'max' => null,
                     ),
                 ),
                 'networks' => $parsedNetworks,
                 'info' => $currecy,
-            );
+            ));
         }
         if ($this->safe_list($this->options, 'currencyIdsListForParseMarket') === null) {
             $this->options['currencyIdsListForParseMarket'] = $currenciesIds;
+        }
+        return $result;
+    }
+
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
+        /**
+         * fetch deposit and withdraw fees
+         *
+         * @see https://coincatch.github.io/github.io/en/spot/#get-coin-list
+         *
+         * @param {string[]} [$codes] list of unified currency $codes
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
+         */
+        $this->load_markets();
+        $response = $this->publicGetApiSpotV1PublicCurrencies ($params);
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_deposit_withdraw_fees($data, $codes, 'coinName');
+    }
+
+    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
+        //
+        // {
+        //     "coinId":"1",
+        //     "coinName":"BTC",
+        //     "transfer":"true",
+        //     "chains":array(
+        //         {
+        //             "chain":null,
+        //             "needTag":"false",
+        //             "withdrawable":"true",
+        //             "rechargeAble":"true",
+        //             "withdrawFee":"0.005",
+        //             "depositConfirm":"1",
+        //             "withdrawConfirm":"1",
+        //             "minDepositAmount":"0.001",
+        //             "minWithdrawAmount":"0.001",
+        //             "browserUrl":"https://blockchair.com/bitcoin/testnet/transaction/"
+        //         }
+        //     )
+        // }
+        //
+        $chains = $this->safe_list($fee, 'chains', array());
+        $chainsLength = count($chains);
+        $result = array(
+            'info' => $fee,
+            'withdraw' => array(
+                'fee' => null,
+                'percentage' => null,
+            ),
+            'deposit' => array(
+                'fee' => null,
+                'percentage' => null,
+            ),
+            'networks' => array(),
+        );
+        for ($i = 0; $i < $chainsLength; $i++) {
+            $chain = $chains[$i];
+            $networkId = $this->safe_string($chain, 'chain');
+            $currencyCode = $this->safe_string($currency, 'code');
+            $networkCode = $this->network_id_to_code($networkId, $currencyCode);
+            $result['networks'][$networkCode] = array(
+                'deposit' => array( 'fee' => null, 'percentage' => null ),
+                'withdraw' => array( 'fee' => $this->safe_number($chain, 'withdrawFee'), 'percentage' => false ),
+            );
+            if ($chainsLength === 1) {
+                $result['withdraw']['fee'] = $this->safe_number($chain, 'withdrawFee');
+                $result['withdraw']['percentage'] = false;
+            }
         }
         return $result;
     }

@@ -1,4 +1,3 @@
-version: '2.1'
 services:
 
   # Runs a CCXT build & test environment with all the required dependencies installed:

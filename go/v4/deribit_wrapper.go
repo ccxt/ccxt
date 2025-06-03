@@ -35,6 +35,21 @@ func (this *Deribit) FetchTime(params ...interface{}) ( int64, error) {
 }
 /**
  * @method
+ * @name deribit#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://docs.deribit.com/#public-get_currencies
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Deribit) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name deribit#fetchStatus
  * @description the latest known information on the availability of the exchange API
  * @see https://docs.deribit.com/#public-status
@@ -105,7 +120,7 @@ func (this *Deribit) FetchBalance(params ...interface{}) (Balances, error) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
  */
-func (this *Deribit) CreateDepositAddress(code string, options ...CreateDepositAddressOptions) (map[string]interface{}, error) {
+func (this *Deribit) CreateDepositAddress(code string, options ...CreateDepositAddressOptions) (DepositAddress, error) {
 
     opts := CreateDepositAddressOptionsStruct{}
 
@@ -119,9 +134,9 @@ func (this *Deribit) CreateDepositAddress(code string, options ...CreateDepositA
     }
     res := <- this.Core.CreateDepositAddress(code, params)
     if IsError(res) {
-        return map[string]interface{}{}, CreateReturnError(res)
+        return DepositAddress{}, CreateReturnError(res)
     }
-    return res.(map[string]interface{}), nil
+    return NewDepositAddress(res), nil
 }
 /**
  * @method

@@ -31,6 +31,7 @@ func  (this *cex) Describe() interface{}  {
             "cancelAllOrders": true,
             "cancelOrder": true,
             "createOrder": true,
+            "createReduceOnlyOrder": false,
             "createStopOrder": true,
             "createTriggerOrder": true,
             "fetchAccounts": true,
@@ -308,8 +309,6 @@ func  (this *cex) ParseCurrency(rawCurrency interface{}) interface{}  {
     var id interface{} = this.SafeString(rawCurrency, "currency")
     var code interface{} = this.SafeCurrencyCode(id)
     var typeVar interface{} = Ternary(IsTrue(this.SafeBool(rawCurrency, "fiat")), "fiat", "crypto")
-    var currencyDepositEnabled interface{} = this.SafeBool(rawCurrency, "walletDeposit")
-    var currencyWithdrawEnabled interface{} = this.SafeBool(rawCurrency, "walletWithdrawal")
     var currencyPrecision interface{} = this.ParseNumber(this.ParsePrecision(this.SafeString(rawCurrency, "precision")))
     var networks interface{} = map[string]interface{} {}
     var rawNetworks interface{} = this.SafeDict(rawCurrency, "blockchains", map[string]interface{} {})
@@ -326,6 +325,7 @@ func  (this *cex) ParseCurrency(rawCurrency interface{}) interface{}  {
     "margin": nil,
     "deposit": deposit,
     "withdraw": withdraw,
+    "active": nil,
     "fee": this.SafeNumber(rawNetwork, "withdrawalFee"),
     "precision": currencyPrecision,
     "limits": map[string]interface{} {
@@ -347,8 +347,8 @@ func  (this *cex) ParseCurrency(rawCurrency interface{}) interface{}  {
         "name": nil,
         "type": typeVar,
         "active": nil,
-        "deposit": currencyDepositEnabled,
-        "withdraw": currencyWithdrawEnabled,
+        "deposit": this.SafeBool(rawCurrency, "walletDeposit"),
+        "withdraw": this.SafeBool(rawCurrency, "walletWithdrawal"),
         "fee": nil,
         "precision": currencyPrecision,
         "limits": map[string]interface{} {
@@ -614,7 +614,7 @@ func  (this *cex) ParseTicker(ticker interface{}, optionalArgs ...interface{}) i
         "askVolume": nil,
         "vwap": nil,
         "open": nil,
-        "close": this.SafeString(ticker, "lastTradePrice"),
+        "close": this.SafeString(ticker, "last"),
         "previousClose": nil,
         "change": this.SafeNumber(ticker, "priceChange"),
         "percentage": this.SafeNumber(ticker, "priceChangePercentage"),
@@ -2195,6 +2195,6 @@ func  (this *cex) HandleErrors(code interface{}, reason interface{}, url interfa
 
 func (this *cex) Init(userConfig map[string]interface{}) {
     this.Exchange = Exchange{}
-    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
     this.Exchange.DerivedExchange = this
+    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
 }

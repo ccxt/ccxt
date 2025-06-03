@@ -55,6 +55,11 @@ class vertex(ccxt.async_support.vertex):
                 },
                 'ws': {
                     'inflate': True,
+                    'options': {
+                        'headers': {
+                            'Sec-WebSocket-Extensions': 'permessage-deflate',  # requires permessage-deflate extension, maybe we can set self in client implementation when self.inflateis True
+                        },
+                    },
                 },
             },
             'streaming': {

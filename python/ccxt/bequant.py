@@ -14,11 +14,12 @@ class bequant(hitbtc, ImplicitAPI):
         return self.deep_extend(super(bequant, self).describe(), {
             'id': 'bequant',
             'name': 'Bequant',
-            'countries': ['MT'],  # Malta
             'pro': True,
+            'countries': ['MT'],  # Malta
             'urls': {
                 'logo': 'https://github.com/user-attachments/assets/0583ef1f-29fe-4b7c-8189-63565a0e2867',
                 'api': {
+                    # v3
                     'public': 'https://api.bequant.io/api/3',
                     'private': 'https://api.bequant.io/api/3',
                 },
