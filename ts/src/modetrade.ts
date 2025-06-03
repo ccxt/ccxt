@@ -128,7 +128,7 @@ export default class modetrade extends Exchange {
                 '1y': '1y',
             },
             'urls': {
-                'logo': 'https://trade.mode.network/logowith-text.svg',
+                'logo': 'https://github.com/user-attachments/assets/cec2b7f1-3b2b-4502-971b-447ee1937d6b',
                 'api': {
                     'public': 'https://api-evm.orderly.org',
                     'private': 'https://api-evm.orderly.org',
