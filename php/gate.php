@@ -106,7 +106,7 @@ class gate extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
-                'fetchDepositAddressesByNetwork' => false,
+                'fetchDepositAddressesByNetwork' => true,
                 'fetchDeposits' => true,
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
@@ -2201,9 +2201,7 @@ class gate extends Exchange {
         $chains = $this->safe_value($response, 'multichain_addresses', array());
         $currencyId = $this->safe_string($response, 'currency');
         $currency = $this->safe_currency($currencyId, $currency);
-        $parsed = $this->parse_deposit_addresses($chains, [ $currency['code'] ], false, array(
-            'currency' => $currency['id'],
-        ));
+        $parsed = $this->parse_deposit_addresses($chains, null, false);
         return $this->index_by($parsed, 'network');
     }
 
@@ -2222,8 +2220,8 @@ class gate extends Exchange {
         $networkCode = null;
         list($networkCode, $params) = $this->handle_network_code_and_params($params);
         $chainsIndexedById = $this->fetch_deposit_addresses_by_network($code, $params);
-        $selectedNetworkId = $this->select_network_code_from_unified_networks($code, $networkCode, $chainsIndexedById);
-        return $chainsIndexedById[$selectedNetworkId];
+        $selectedNetworkIdOrCode = $this->select_network_code_from_unified_networks($code, $networkCode, $chainsIndexedById);
+        return $chainsIndexedById[$selectedNetworkIdOrCode];
     }
 
     public function parse_deposit_address($depositAddress, $currency = null) {
