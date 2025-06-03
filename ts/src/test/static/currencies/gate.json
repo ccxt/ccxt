@@ -2018,5 +2018,76 @@
                 "max": null
             }
         }
+    },
+    "MORPHER": {
+        "info": {
+            "currency": "MPH",
+            "name": "Morpher",
+            "delisted": false,
+            "withdraw_disabled": false,
+            "withdraw_delayed": false,
+            "deposit_disabled": false,
+            "trade_disabled": false,
+            "fixed_rate": "",
+            "chain": "ETH",
+            "chains": [
+                {
+                    "name": "ETH",
+                    "addr": "0x6369c3dadfc00054a42ba8b2c09c48131dd4aa38",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                }
+            ]
+        },
+        "id": "MPH",
+        "numericId": null,
+        "code": "MORPHER",
+        "precision": 0.0001,
+        "type": "crypto",
+        "name": "Morpher",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": null,
+        "fees": {},
+        "networks": {
+            "ERC20": {
+                "info": {
+                    "name": "ETH",
+                    "addr": "0x6369c3dadfc00054a42ba8b2c09c48131dd4aa38",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                "id": "ETH",
+                "network": "ERC20",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 0.0001,
+                "limits": {
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            }
+        },
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
     }
 }
