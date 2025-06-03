@@ -1277,7 +1277,11 @@ class paradex extends Exchange {
         $cancelReason = $this->safe_string($order, 'cancel_reason');
         $status = $this->safe_string($order, 'status');
         if ($cancelReason !== null) {
-            $status = 'canceled';
+            if ($cancelReason === 'NOT_ENOUGH_MARGIN') {
+                $status = 'rejected';
+            } else {
+                $status = 'canceled';
+            }
         }
         $side = $this->safe_string_lower($order, 'side');
         $average = $this->omit_zero($this->safe_string($order, 'avg_fill_price'));
