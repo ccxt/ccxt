@@ -1248,7 +1248,10 @@ class paradex(Exchange, ImplicitAPI):
         cancelReason = self.safe_string(order, 'cancel_reason')
         status = self.safe_string(order, 'status')
         if cancelReason is not None:
-            status = 'canceled'
+            if cancelReason == 'NOT_ENOUGH_MARGIN':
+                status = 'rejected'
+            else:
+                status = 'canceled'
         side = self.safe_string_lower(order, 'side')
         average = self.omit_zero(self.safe_string(order, 'avg_fill_price'))
         remaining = self.omit_zero(self.safe_string(order, 'remaining_size'))
