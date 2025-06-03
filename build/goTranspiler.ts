@@ -48,14 +48,15 @@ if (platform === 'win32') {
     }
 }
 
-const GLOBAL_WRAPPER_FILE = './go/v4/base/exchange_wrappers.go';
-const EXCHANGE_WRAPPER_FOLDER = './go/v4/'
-const DYNAMIC_INSTANCE_FILE = './go/v4/exchange_dynamic.go';
-// const EXCHANGE_WS_WRAPPER_FOLDER = './go/v4/exchanges/pro/wrappers/'
-const ERRORS_FILE = './go/v4/exchange_errors.go';
-const BASE_METHODS_FILE = './go/v4/exchange_generated.go';
-const EXCHANGES_FOLDER = './go/v4/';
-// const EXCHANGES_WS_FOLDER = './go/v4/exchanges/pro/';
+const GLOBAL_WRAPPER_FILE = './go/v4beta/base/exchange_wrappers.go';
+const EXCHANGE_WRAPPER_FOLDER = './go/v4beta/'
+// const DYNAMIC_INSTANCE_FILE = './go/v4beta/dynamic/exchange_dynamic.go';
+const DYNAMIC_INSTANCE_FILE = './go/v4beta/exchange_dynamic.go';
+// const EXCHANGE_WS_WRAPPER_FOLDER = './go/v4beta/exchanges/pro/wrappers/'
+const ERRORS_FILE = './go/v4beta/exchange_errors.go';
+const BASE_METHODS_FILE = './go/v4beta/exchange_generated.go';
+const EXCHANGES_FOLDER = './go/v4beta/';
+// const EXCHANGES_WS_FOLDER = './go/v4beta/exchanges/pro/';
 // const GENERATED_TESTS_FOLDER = './go/tests/Generated/Exchange/';
 const BASE_TESTS_FOLDER = './go/tests/base';
 const BASE_TESTS_FILE =  './go/tests/base/tests.go';
@@ -1215,7 +1216,7 @@ ${caseStatements.join('\n')}
     }
 
     safeOptionsStructFile() {
-        const EXCHANGE_OPTIONS_FILE = './go/v4/exchange_wrapper_structs.go';
+        const EXCHANGE_OPTIONS_FILE = './go/v4beta/exchange_wrapper_structs.go';
 
         const file = [
             'package ccxt',
@@ -1268,7 +1269,7 @@ ${caseStatements.join('\n')}
             for (let i = 0; i < transpiledFiles.length; i++) {
                 const transpiled = transpiledFiles[i];
                 const exchangeName = exchanges[i].replace('.ts','');
-                const path = EXCHANGE_WRAPPER_FOLDER + exchangeName + '_wrapper.go';
+                const path = EXCHANGE_WRAPPER_FOLDER + exchangeName + '/' + exchangeName + '_wrapper.go';
                 this.createGoWrappers(exchangeName, path, transpiled.methodsTypes)
             }
         } else {
@@ -1388,7 +1389,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
         const csharp  = this.createGoExchange (extensionlessName, csharpResult, ws)
 
         if (csharpFolder) {
-            overwriteFileAndFolder (csharpFolder + goFilename, csharp)
+            overwriteFileAndFolder (csharpFolder + extensionlessName + '/' + goFilename, csharp)
             // fs.utimesSync (csharpFolder + csharpFilename, new Date (), new Date (tsMtime))
         }
     }
@@ -1596,7 +1597,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
 
             const file = [
                 'package base',
-                testName.indexOf('tests.init') === -1 ? 'import "github.com/ccxt/ccxt/go/v4"' : '',
+                testName.indexOf('tests.init') === -1 ? 'import "github.com/ccxt/ccxt/go/v4beta"' : '',
                 '',
                 this.createGeneratedHeader().join('\n'),
                 content,
@@ -1643,7 +1644,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
 
         const file = [
             'package base',
-            'import "github.com/ccxt/ccxt/go/v4"',
+            'import "github.com/ccxt/ccxt/go/v4beta"',
             '',
             this.createGeneratedHeader().join('\n'),
             contentIndentend,
@@ -1757,7 +1758,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             const namespace = 'package base';
             const fileHeaders = [
                 namespace,
-                'import "github.com/ccxt/ccxt/go/v4"',
+                'import "github.com/ccxt/ccxt/go/v4beta"',
                 '',
                 this.createGeneratedHeader().join('\n'),
                 '',
