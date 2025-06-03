@@ -20,7 +20,8 @@ try {
         ccxt = await (Function ('return import("../../ts/ccxt")') ());
         local = true;
     } catch (ee) {
-        log.error ('Neither a local installation nor a CCXT installation was detected, make `npm i` first');
+        log.error ('Neither a local installation nor a global CCXT installation was detected, make `npm i` first');
+        process.exit (1);
     }
 }
 

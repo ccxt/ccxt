@@ -28,6 +28,7 @@ try {
         ccxt = await (Function ('return import("../../ts/ccxt")') ());
     } catch (ee) {
         log.error ('Neither a local nor a global ccxt installation was detected, please do `npm i` first');
+        process.exit (1);
     }
 }
 

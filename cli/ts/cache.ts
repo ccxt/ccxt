@@ -56,7 +56,7 @@ function saveConfigFile (config) {
 }
 
 function getExchangeSettings (exchangeId: string) {
-    let settingsPath = getCacheDirectory ();
+    let settingsPath = path.join (getCacheDirectory (), 'config.json');
     const config = loadMainConfigFile ();
 
     if ('cachePath' in config) {
