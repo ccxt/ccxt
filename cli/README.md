@@ -26,9 +26,7 @@ npm install -g ccxt-cli
 
 ## DEMO
 
-[DEMO](https://github.com/user-attachments/assets/db651858-aeb5-430d-ba96-39638a57a260)
-
-https://github.com/user-attachments/assets/db651858-aeb5-430d-ba96-39638a57a260
+https://github.com/user-attachments/assets/5631e28c-4c82-4b04-840f-e1021ed42c93
 
 ## 🛠️ Usage
 
