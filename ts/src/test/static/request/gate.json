@@ -17,6 +17,18 @@
         ],
         "fetchDepositAddress": [
             {
+                "description": "usdt on ERC20",
+                "method": "fetchDepositAddress",
+                "url": "https://api.gateio.ws/api/v4/wallet/deposit_address?currency=USDT",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ERC20"
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "TRC20",
                 "method": "fetchDepositAddress",
                 "url": "https://api.gateio.ws/api/v4/wallet/deposit_address?currency=USDT",
