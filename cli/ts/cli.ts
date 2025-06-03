@@ -184,9 +184,9 @@ let [ exchangeId, methodName, ...params ] = program.args;
 
 if (!cliOptions.raw) {
     const pref = local ? '[local]' : '';
-    log ((new Date ()).toISOString ());
-    log ('Node.js:', process.version);
-    log.blue (pref + ' CCXT v' + ccxt.version);
+    // log ((new Date ()).toISOString ());
+    // log ('Node.js:', process.version);
+    log.bgBlue (pref + 'CCXT v' + ccxt.version);
 }
 
 if (!exchangeId && !cliOptions.history) {
@@ -272,16 +272,7 @@ async function executeCCXTCommand (exchange, params:any, methodName: string, cli
 
     const result = await exchange[methodName] (...args);
     end = exchange.milliseconds ();
-    if (!isWsMethod && !cliOptions.raw) {
-        log (
-            exchange.iso8601 (end),
-            'iteration',
-            i++,
-            'passed in',
-            end - start,
-            'ms\n'
-        );
-    }
+
     printHumanReadable (exchange, result, cliOptions);
     if (!isWsMethod && !cliOptions.raw) {
         log (
