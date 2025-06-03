@@ -1534,9 +1534,9 @@ class Exchange(object):
         currencies = None
         if self.has['fetchCurrencies'] is True:
             currencies = self.fetch_currencies()
-            self.options['fetched_currencies_for_fetch_markets'] = currencies
+            self.options['cachedCurrencies'] = currencies
         markets = self.fetch_markets(params)
-        del self.options['fetched_currencies_for_fetch_markets']
+        del self.options['cachedCurrencies']
         return self.set_markets(markets, currencies)
 
     def fetch_markets(self, params={}):
