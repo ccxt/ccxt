@@ -166,6 +166,7 @@ from ccxt.novadax import novadax                                      # noqa: F4
 from ccxt.oceanex import oceanex                                      # noqa: F401
 from ccxt.okcoin import okcoin                                        # noqa: F401
 from ccxt.okx import okx                                              # noqa: F401
+from ccxt.okxus import okxus                                          # noqa: F401
 from ccxt.onetrading import onetrading                                # noqa: F401
 from ccxt.oxfun import oxfun                                          # noqa: F401
 from ccxt.p2b import p2b                                              # noqa: F401
@@ -272,6 +273,7 @@ exchanges = [
     'oceanex',
     'okcoin',
     'okx',
+    'okxus',
     'onetrading',
     'oxfun',
     'p2b',
