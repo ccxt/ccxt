@@ -4,7 +4,6 @@ import ccxt from '../../js/ccxt.js';
 // AUTO-TRANSPILE //
 
 
-
 // ###### Description ######
 //
 // This function tries to fetch the "listing time" of a symbol by fetching the earliest available bar in daily resolution.
@@ -55,7 +54,7 @@ async function fetchFirstBarTimestamp (exchange:any, symbol: string, useMinuteTi
     // if minute resolution needed
     if (useMinuteTimeframe) {
         const maxIteration = Math.ceil (minutesPerDay / limit);
-        const allPromises = [];
+        const allPromises: any[] = [];
         for (let i = 0; i < maxIteration; i++) {
             currentSince = foundStartTime + i * limit * 60 * 1000;
             allPromises.push (exchange.fetchOHLCV (symbol, '1m', currentSince, limit, fetchParams));
