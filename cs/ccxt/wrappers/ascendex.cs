@@ -25,6 +25,16 @@ public partial class ascendex
         var res = await this.fetchMarkets(parameters);
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
+    public async Task<List<MarketInterface>> FetchSpotMarkets(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchSpotMarkets(parameters);
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
+    }
+    public async Task<List<MarketInterface>> FetchContractMarkets(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchContractMarkets(parameters);
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
+    }
     /// <summary>
     /// fetches the current integer timestamp in milliseconds from the ascendex server
     /// </summary>
@@ -186,6 +196,12 @@ public partial class ascendex
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest candle to fetch
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>int[][]</term> A list of candles ordered as timestamp, open, high, low, close, volume.</returns>
@@ -279,7 +295,7 @@ public partial class ascendex
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stopPrice</term>
+    /// <term>params.triggerPrice</term>
     /// <description>
     /// float : the price at which a trigger order is triggered at
     /// </description>
@@ -325,7 +341,7 @@ public partial class ascendex
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stopPrice</term>
+    /// <term>params.triggerPrice</term>
     /// <description>
     /// float : the price at which a trigger order is triggered at
     /// </description>
@@ -377,7 +393,7 @@ public partial class ascendex
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stopPrice</term>
+    /// <term>params.triggerPrice</term>
     /// <description>
     /// float : the price at which a trigger order is triggered at
     /// </description>
@@ -550,10 +566,10 @@ public partial class ascendex
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
+    public async Task<DepositAddress> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddress(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositAddress(res);
     }
     /// <summary>
     /// fetch all deposits made to an account
@@ -692,11 +708,11 @@ public partial class ascendex
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols.</returns>
-    public async Task<Dictionary<string, object>> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object[]</term> a list of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols.</returns>
+    public async Task<FundingRates> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingRates(symbols, parameters);
-        return ((Dictionary<string, object>)res);
+        return new FundingRates(res);
     }
     /// <summary>
     /// set the level of leverage for a market

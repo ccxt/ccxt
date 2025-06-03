@@ -9,6 +9,7 @@ var CairoResult = require('./enum/CairoResult.js');
 var tuple = require('./tuple.js');
 var shortString = require('../shortString.js');
 
+// ----------------------------------------------------------------------------
 function errorU256(key) {
     return Error(`Your object includes the property : ${key}, containing an Uint256 object without the 'low' and 'high' keys.`);
 }

@@ -9,7 +9,7 @@ use Exception; // a common import
 
 class bequant extends \ccxt\pro\hitbtc {
 
-    public function describe() {
+    public function describe(): mixed {
         // eslint-disable-next-line new-cap
         $describeExtended = $this->get_describe_for_extended_ws_exchange(new \ccxt\async\bequant (), new \ccxt\async\hitbtc (), parent::describe());
         return $this->deep_extend($describeExtended, array(

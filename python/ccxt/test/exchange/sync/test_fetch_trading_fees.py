@@ -23,3 +23,4 @@ def test_fetch_trading_fees(exchange, skipped_properties):
     for i in range(0, len(symbols)):
         symbol = symbols[i]
         test_trading_fee(exchange, skipped_properties, method, symbol, fees[symbol])
+    return True

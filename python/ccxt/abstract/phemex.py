@@ -24,6 +24,7 @@ class ImplicitAPI:
     v1_get_exchange_public_products = v1GetExchangePublicProducts = Entry('exchange/public/products', 'v1', 'GET', {'cost': 5})
     v1_get_api_data_public_data_funding_rate_history = v1GetApiDataPublicDataFundingRateHistory = Entry('api-data/public/data/funding-rate-history', 'v1', 'GET', {'cost': 5})
     v2_get_public_products = v2GetPublicProducts = Entry('public/products', 'v2', 'GET', {'cost': 5})
+    v2_get_public_products_plus = v2GetPublicProductsPlus = Entry('public/products-plus', 'v2', 'GET', {'cost': 5})
     v2_get_md_v2_orderbook = v2GetMdV2Orderbook = Entry('md/v2/orderbook', 'v2', 'GET', {'cost': 5})
     v2_get_md_v2_trade = v2GetMdV2Trade = Entry('md/v2/trade', 'v2', 'GET', {'cost': 5})
     v2_get_md_v2_ticker_24hr = v2GetMdV2Ticker24hr = Entry('md/v2/ticker/24hr', 'v2', 'GET', {'cost': 5})

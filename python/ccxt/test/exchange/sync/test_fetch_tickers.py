@@ -18,7 +18,8 @@ from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 def test_fetch_tickers(exchange, skipped_properties, symbol):
     # const withoutSymbol = testFetchTickersHelper (exchange, skippedProperties, undefined);
     # const withSymbol = testFetchTickersHelper (exchange, skippedProperties, [ symbol ]);
-    [test_fetch_tickers_helper(exchange, skipped_properties, None), test_fetch_tickers_helper(exchange, skipped_properties, [symbol])]
+    ([test_fetch_tickers_helper(exchange, skipped_properties, None), test_fetch_tickers_helper(exchange, skipped_properties, [symbol])])
+    return True
 
 
 def test_fetch_tickers_helper(exchange, skipped_properties, arg_symbols, arg_params={}):
@@ -34,3 +35,4 @@ def test_fetch_tickers_helper(exchange, skipped_properties, arg_symbols, arg_par
         # todo: symbol check here
         ticker = values[i]
         test_ticker(exchange, skipped_properties, method, ticker, checked_symbol)
+    return True

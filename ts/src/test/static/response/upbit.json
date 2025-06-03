@@ -113,6 +113,8 @@
                     "average": 72352.40049018,
                     "baseVolume": 7.03935349,
                     "quoteVolume": 506342.98398488,
+                    "markPrice": null,
+                    "indexPrice": null,
                     "info": {
                         "market": "USDT-BTC",
                         "trade_date": "20240313",

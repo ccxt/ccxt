@@ -198,7 +198,7 @@ abstract class Element implements ElementBase
      * @throws \UnexpectedValueException If called in the context of an expected
      *                                   type, but decoding yields another type
      */
-    public static function fromDER(string $data, int &$offset = null): ElementBase
+    public static function fromDER(string $data, ?int &$offset = null): ElementBase
     {
         $idx = $offset ?? 0;
         // decode identifier

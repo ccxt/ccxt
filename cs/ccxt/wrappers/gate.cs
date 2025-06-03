@@ -6,6 +6,26 @@ namespace ccxt;
 
 public partial class gate
 {
+    /// <summary>
+    /// fetches the current integer timestamp in milliseconds from the exchange server
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#get-server-current-time"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>int</term> the current integer timestamp in milliseconds from the exchange server.</returns>
+    public async Task<Int64> FetchTime(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTime(parameters);
+        return (Int64)res;
+    }
     public MarketInterface CreateExpiredOptionMarket(string symbol)
     {
         var res = this.createExpiredOptionMarket(symbol);
@@ -70,10 +90,10 @@ public partial class gate
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchFundingRate(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<FundingRate> FetchFundingRate(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingRate(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new FundingRate(res);
     }
     /// <summary>
     /// fetch the funding rate for multiple markets
@@ -89,16 +109,35 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols.</returns>
-    public async Task<Dictionary<string, object>> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols.</returns>
+    public async Task<FundingRates> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingRates(symbols, parameters);
-        return ((Dictionary<string, object>)res);
+        return new FundingRates(res);
     }
     public async Task<Dictionary<string, object>> FetchNetworkDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchNetworkDepositAddress(code, parameters);
         return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// fetch a dictionary of addresses for a currency, indexed by network
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the api endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by the network.</returns>
+    public async Task<List<DepositAddress>> FetchDepositAddressesByNetwork(string code, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchDepositAddressesByNetwork(code, parameters);
+        return ((IList<object>)res).Select(item => new DepositAddress(item)).ToList<DepositAddress>();
     }
     /// <summary>
     /// fetch the deposit address for a currency associated with this account
@@ -121,10 +160,10 @@ public partial class gate
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
+    public async Task<DepositAddress> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddress(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositAddress(res);
     }
     /// <summary>
     /// fetch the trading fees for a market
@@ -317,6 +356,50 @@ public partial class gate
         var res = await this.fetchTickers(symbols, parameters);
         return new Tickers(res);
     }
+    /// <summary>
+    /// undefined
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : exchange specific parameters
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : spot, margin, swap or future, if not provided this.options['defaultType'] is used
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.settle</term>
+    /// <description>
+    /// string : 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.symbol</term>
+    /// <description>
+    /// string : margin only - unified ccxt symbol
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.unifiedAccount</term>
+    /// <description>
+    /// boolean : default false, set to true for fetching the unified account balance
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}.</returns>
     public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchBalance(parameters);
@@ -358,6 +441,18 @@ public partial class gate
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest funding rate to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.paginate</term>
+    /// <description>
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
     /// </description>
     /// </item>
     /// </list>
@@ -538,9 +633,15 @@ public partial class gate
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.unifiedAccount</term>
+    /// <description>
+    /// bool : set to true for fetching trades in a unified account
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.paginate</term>
     /// <description>
-    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// bool : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
     /// </description>
     /// </item>
     /// </list>
@@ -572,15 +673,15 @@ public partial class gate
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.until</term>
-    /// <description>
-    /// int : end time in ms
-    /// </description>
-    /// </item>
-    /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : end time in ms
     /// </description>
     /// </item>
     /// <item>
@@ -690,7 +791,7 @@ public partial class gate
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stopPrice</term>
+    /// <term>params.triggerPrice</term>
     /// <description>
     /// float : The price at which a trigger order is triggered at
     /// </description>
@@ -779,6 +880,12 @@ public partial class gate
     /// float : *spot market buy only* the quote quantity that can be used as an alternative for the amount
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.unifiedAccount</term>
+    /// <description>
+    /// bool : set to true for creating an order in the unified account
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>undefined</term> undefined.</returns>
@@ -801,6 +908,12 @@ public partial class gate
     /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#create-a-batch-of-orders"/>  <br/>
     /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#create-a-batch-of-futures-orders"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -825,6 +938,12 @@ public partial class gate
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.unifiedAccount</term>
+    /// <description>
+    /// bool : set to true for creating a unified account order
     /// </description>
     /// </item>
     /// </list>
@@ -859,6 +978,12 @@ public partial class gate
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.unifiedAccount</term>
+    /// <description>
+    /// bool : set to true for editing an order in a unified account
     /// </description>
     /// </item>
     /// </list>
@@ -915,6 +1040,12 @@ public partial class gate
     /// string : 'btc' or 'usdt' - settle currency for perpetual swap and future - market settle currency is used if symbol !== undefined, default="usdt" for swap and "btc" for future
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.unifiedAccount</term>
+    /// <description>
+    /// bool : set to true for fetching a unified account order
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>undefined</term> undefined.</returns>
@@ -928,6 +1059,7 @@ public partial class gate
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-all-open-orders"/>  <br/>
+    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#retrieve-running-auto-order-list"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -948,9 +1080,9 @@ public partial class gate
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// bool : true for fetching stop orders
+    /// bool : true for fetching trigger orders
     /// </description>
     /// </item>
     /// <item>
@@ -963,6 +1095,12 @@ public partial class gate
     /// <term>params.marginMode</term>
     /// <description>
     /// string : 'cross' or 'isolated' - marginMode for type='margin', if not provided this.options['defaultMarginMode'] is used
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.unifiedAccount</term>
+    /// <description>
+    /// bool : set to true for fetching unified account orders
     /// </description>
     /// </item>
     /// </list>
@@ -986,6 +1124,7 @@ public partial class gate
     /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-futures-orders-2"/>  <br/>
     /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-all-auto-orders-2"/>  <br/>
     /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-options-orders"/>  <br/>
+    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-futures-orders-by-time-range"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1006,9 +1145,9 @@ public partial class gate
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// bool : true for fetching stop orders
+    /// bool : true for fetching trigger orders
     /// </description>
     /// </item>
     /// <item>
@@ -1023,6 +1162,18 @@ public partial class gate
     /// string : 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.historical</term>
+    /// <description>
+    /// boolean : *swap only* true for using historical endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.unifiedAccount</term>
+    /// <description>
+    /// bool : set to true for fetching unified account orders
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -1032,13 +1183,6 @@ public partial class gate
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchClosedOrders(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
-    }
-    public List<Dictionary<string, object>> FetchOrdersByStatusRequest(object status, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
-    {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
-        var res = this.fetchOrdersByStatusRequest(status, symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
     public async Task<Dictionary<string, object>> FetchOrdersByStatus(object status, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
@@ -1063,9 +1207,15 @@ public partial class gate
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
     /// bool : True if the order to be cancelled is a trigger order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.unifiedAccount</term>
+    /// <description>
+    /// bool : set to true for canceling unified account orders
     /// </description>
     /// </item>
     /// </list>
@@ -1089,6 +1239,12 @@ public partial class gate
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.unifiedAccount</term>
+    /// <description>
+    /// bool : set to true for canceling unified account orders
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -1107,6 +1263,12 @@ public partial class gate
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.unifiedAccount</term>
+    /// <description>
+    /// bool : set to true for canceling unified account orders
     /// </description>
     /// </item>
     /// </list>
@@ -1130,6 +1292,12 @@ public partial class gate
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.unifiedAccount</term>
+    /// <description>
+    /// bool : set to true for canceling unified account orders
     /// </description>
     /// </item>
     /// </list>
@@ -1284,6 +1452,60 @@ public partial class gate
         var res = await this.fetchMarketLeverageTiers(symbol, parameters);
         return ((IList<object>)res).Select(item => new LeverageTier(item)).ToList<LeverageTier>();
     }
+    /// <summary>
+    /// fetch the interest owed by the user for borrowing currency for margin trading
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-interest-records"/>  <br/>
+    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#interest-records-for-the-cross-margin-account"/>  <br/>
+    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-interest-records-2"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol when fetching interest in isolated markets
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch borrow interest for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.unifiedAccount</term>
+    /// <description>
+    /// boolean : set to true for fetching borrow interest in the unified account
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}.</returns>
+    public async Task<List<BorrowInterest>> FetchBorrowInterest(string code = null, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchBorrowInterest(code, symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new BorrowInterest(item)).ToList<BorrowInterest>();
+    }
     public async Task<List<OpenInterest>> FetchOpenInterestHistory(string symbol, string timeframe = "5m", Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -1370,6 +1592,12 @@ public partial class gate
     /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-account-changing-history"/>  <br/>
     /// <list type="table">
     /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>since</term>
     /// <description>
     /// int : timestamp in ms of the earliest ledger entry
@@ -1396,18 +1624,18 @@ public partial class gate
     /// <item>
     /// <term>params.paginate</term>
     /// <description>
-    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
     /// </description>
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}.</returns>
+    public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchLedger(code, since, limit, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new LedgerEntry(item)).ToList<LedgerEntry>();
     }
     /// <summary>
     /// set dual/hedged mode to true or false for a swap market, make sure all positions are closed and no orders are open before setting dual mode
@@ -1675,6 +1903,24 @@ public partial class gate
     /// <term>params.until</term>
     /// <description>
     /// int : the latest time in ms to fetch positions for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.offset</term>
+    /// <description>
+    /// int : list offset, starting from 0
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.side</term>
+    /// <description>
+    /// string : long or short
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.pnl</term>
+    /// <description>
+    /// string : query profit or loss
     /// </description>
     /// </item>
     /// </list>

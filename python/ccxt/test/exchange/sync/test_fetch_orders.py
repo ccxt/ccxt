@@ -24,3 +24,4 @@ def test_fetch_orders(exchange, skipped_properties, symbol):
     for i in range(0, len(orders)):
         test_order(exchange, skipped_properties, method, orders[i], symbol, now)
     test_shared_methods.assert_timestamp_order(exchange, method, symbol, orders)
+    return True

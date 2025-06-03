@@ -21,7 +21,7 @@ export default class tradeogre extends Exchange {
             'countries': [],
             'rateLimit': 100,
             'version': 'v2',
-            'pro': false,
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -71,7 +71,7 @@ export default class tradeogre extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': false,
-                'fetchOHLCV': false,
+                'fetchOHLCV': true,
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
@@ -80,7 +80,6 @@ export default class tradeogre extends Exchange {
                 'fetchOrderBooks': false,
                 'fetchOrders': false,
                 'fetchOrderTrades': false,
-                'fetchPermissions': false,
                 'fetchPosition': false,
                 'fetchPositionHistory': false,
                 'fetchPositionMode': false,
@@ -90,7 +89,7 @@ export default class tradeogre extends Exchange {
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
-                'fetchTickers': false,
+                'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTradingLimits': false,
                 'fetchTransactionFee': false,
@@ -132,11 +131,12 @@ export default class tradeogre extends Exchange {
                         'orders/{market}': 1,
                         'ticker/{market}': 1,
                         'history/{market}': 1,
+                        'chart/{interval}/{market}/{timestamp}': 1,
+                        'chart/{interval}/{market}': 1,
                     },
                 },
                 'private': {
                     'get': {
-                        'account/balance': 1,
                         'account/balances': 1,
                         'account/order/{uuid}': 1,
                     },
@@ -146,6 +146,7 @@ export default class tradeogre extends Exchange {
                         'order/cancel': 1,
                         'orders': 1,
                         'account/orders': 1,
+                        'account/balance': 1,
                     },
                 },
             },
@@ -159,18 +160,79 @@ export default class tradeogre extends Exchange {
                     'Order not found': BadRequest,
                 },
             },
+            'timeframes': {
+                '1m': '1m',
+                '15m': '15m',
+                '1h': '1h',
+                '4h': '4h',
+                '1d': '1d',
+                '1w': '1w',
+            },
             'options': {},
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': false,
+                        'triggerDirection': false,
+                        'triggerPriceType': undefined,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': false,
+                            'FOK': false,
+                            'PO': false,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': undefined,
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': undefined,
+                    'fetchOHLCV': undefined, // todo
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
         });
     }
+    /**
+     * @method
+     * @name tradeogre#fetchMarkets
+     * @description retrieves data on all markets for bigone
+     * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#markets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     async fetchMarkets(params = {}) {
-        /**
-         * @method
-         * @name tradeogre#fetchMarkets
-         * @description retrieves data on all markets for bigone
-         * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#markets
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} an array of objects representing market data
-         */
         const response = await this.publicGetMarkets(params);
         //
         //   [
@@ -252,15 +314,15 @@ export default class tradeogre extends Exchange {
         }
         return result;
     }
+    /**
+     * @method
+     * @name tradeogre#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchTicker(symbol, params = {}) {
-        /**
-         * @method
-         * @name tradeogre#fetchTicker
-         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -281,18 +343,75 @@ export default class tradeogre extends Exchange {
         //
         return this.parseTicker(response, market);
     }
+    /**
+     * @method
+     * @name tradeogre#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async fetchTickers(symbols = undefined, params = {}) {
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        const request = {};
+        const response = await this.publicGetMarkets(this.extend(request, params));
+        //
+        //     [
+        //         {
+        //             "AAVE-USDT": {
+        //                 "initialprice": "177.20325711",
+        //                 "price": "177.20325711",
+        //                 "high": "177.20325711",
+        //                 "low": "177.20325711",
+        //                 "volume": "0.00000000",
+        //                 "bid": "160.72768581",
+        //                 "ask": "348.99999999",
+        //                 "basename": "Aave"
+        //             }
+        //         },
+        //         ...
+        //     ]
+        //
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const marketIdArray = Object.keys(entry);
+            const marketId = this.safeString(marketIdArray, 0);
+            const market = this.safeMarket(marketId);
+            const data = entry[marketId];
+            const ticker = this.parseTicker(data, market);
+            const symbol = ticker['symbol'];
+            result[symbol] = ticker;
+        }
+        return this.filterByArrayTickers(result, 'symbol', symbols);
+    }
     parseTicker(ticker, market = undefined) {
         //
-        //  {
-        //       "success":true,
-        //       "initialprice":"0.02502002",
-        //       "price":"0.02500000",
-        //       "high":"0.03102001",
-        //       "low":"0.02500000",
-        //       "volume":"0.15549958",
-        //       "bid":"0.02420000",
-        //       "ask":"0.02625000"
-        //   }
+        //  fetchTicker:
+        //     {
+        //         "success":true,
+        //         "initialprice":"0.02502002",
+        //         "price":"0.02500000",
+        //         "high":"0.03102001",
+        //         "low":"0.02500000",
+        //         "volume":"0.15549958",
+        //         "bid":"0.02420000",
+        //         "ask":"0.02625000"
+        //     }
+        //
+        //  fetchTickers:
+        //     {
+        //         "initialprice": "177.20325711",
+        //         "price": "177.20325711",
+        //         "high": "177.20325711",
+        //         "low": "177.20325711",
+        //         "volume": "0.00000000",
+        //         "bid": "160.72768581",
+        //         "ask": "348.99999999",
+        //         "basename": "Aave"
+        //     },
+        //     ...
         //
         return this.safeTicker({
             'symbol': this.safeString(market, 'symbol'),
@@ -305,28 +424,91 @@ export default class tradeogre extends Exchange {
             'ask': this.safeString(ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeString(ticker, 'open'),
-            'close': undefined,
+            'open': this.safeString(ticker, 'initialprice'),
+            'close': this.safeString(ticker, 'price'),
             'last': undefined,
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeString(ticker, 'volume'),
-            'quoteVolume': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': this.safeString(ticker, 'volume'),
             'info': ticker,
         }, market);
     }
+    /**
+     * @method
+     * @name tradeogre#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp of the latest candle in ms
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'market': market['id'],
+            'interval': this.safeString(this.timeframes, timeframe, timeframe),
+        };
+        let response = undefined;
+        const until = this.safeInteger(params, 'until');
+        if (until !== undefined) {
+            params = this.omit(params, 'until');
+            request['timestamp'] = this.parseToInt(until / 1000);
+            response = await this.publicGetChartIntervalMarketTimestamp(this.extend(request, params));
+        }
+        else {
+            response = await this.publicGetChartIntervalMarket(this.extend(request, params));
+        }
+        //
+        //     [
+        //         [
+        //             1729130040,
+        //             67581.47235999,
+        //             67581.47235999,
+        //             67338.01,
+        //             67338.01,
+        //             6.72168016
+        //         ],
+        //     ]
+        //
+        return this.parseOHLCVs(response, market, timeframe, since, limit);
+    }
+    parseOHLCV(ohlcv, market = undefined) {
+        //
+        //     [
+        //         1729130040,
+        //         67581.47235999,
+        //         67581.47235999,
+        //         67338.01,
+        //         67338.01,
+        //         6.72168016
+        //     ]
+        //
+        return [
+            this.safeTimestamp(ohlcv, 0),
+            this.safeNumber(ohlcv, 1),
+            this.safeNumber(ohlcv, 2),
+            this.safeNumber(ohlcv, 3),
+            this.safeNumber(ohlcv, 4),
+            this.safeNumber(ohlcv, 5),
+        ];
+    }
+    /**
+     * @method
+     * @name tradeogre#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name tradeogre#fetchOrderBook
-         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -350,6 +532,7 @@ export default class tradeogre extends Exchange {
             'asks': rawAsks,
         };
         const orderbook = this.parseOrderBook(rawOrderbook, symbol);
+        orderbook['nonce'] = this.safeInteger(response, 's');
         return orderbook;
     }
     parseBidsAsks(bidasks, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
@@ -363,18 +546,18 @@ export default class tradeogre extends Exchange {
         }
         return result;
     }
+    /**
+     * @method
+     * @name tradeogre#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum number of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} params.lastId order id
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name tradeogre#fetchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum number of trades to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} params.lastId order id
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -412,16 +595,34 @@ export default class tradeogre extends Exchange {
             },
         }, market);
     }
+    /**
+     * @method
+     * @name tradeogre#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.currency] currency to fetch the balance for
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     async fetchBalance(params = {}) {
-        /**
-         * @method
-         * @name tradeogre#fetchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-         */
         await this.loadMarkets();
-        const response = await this.privateGetAccountBalances(params);
+        let response = undefined;
+        const currency = this.safeString(params, 'currency');
+        if (currency !== undefined) {
+            response = await this.privatePostAccountBalance(params);
+            const singleCurrencyresult = {
+                'info': response,
+            };
+            const code = this.safeCurrencyCode(currency);
+            const account = {
+                'total': this.safeNumber(response, 'balance'),
+                'free': this.safeNumber(response, 'available'),
+            };
+            singleCurrencyresult[code] = account;
+            return this.safeBalance(singleCurrencyresult);
+        }
+        else {
+            response = await this.privateGetAccountBalances(params);
+        }
         const result = this.safeDict(response, 'balances', {});
         return this.parseBalance(result);
     }
@@ -446,31 +647,32 @@ export default class tradeogre extends Exchange {
         }
         return this.safeBalance(result);
     }
+    /**
+     * @method
+     * @name tradeogre#createOrder
+     * @description create a trade order
+     * @see https://tradeogre.com/help/api#:~:text=u%20%27%7Bpublic%7D%3A%7Bprivate%7D%27-,Submit%20Buy%20Order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type must be 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        /**
-         * @method
-         * @name tradeogre#createOrder
-         * @description create a trade order
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type must be 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         if (type === 'market') {
             throw new BadRequest(this.id + ' createOrder does not support market orders');
         }
         if (price === undefined) {
-            throw new ArgumentsRequired(this.id + ' createOrder requires a limit parameter');
+            throw new ArgumentsRequired(this.id + ' createOrder requires a price parameter');
         }
         const request = {
             'market': market['id'],
-            'quantity': this.parseToNumeric(this.amountToPrecision(symbol, amount)),
-            'price': this.parseToNumeric(this.priceToPrecision(symbol, price)),
+            'quantity': this.amountToPrecision(symbol, amount),
+            'price': this.priceToPrecision(symbol, price),
         };
         let response = undefined;
         if (side === 'buy') {
@@ -481,16 +683,16 @@ export default class tradeogre extends Exchange {
         }
         return this.parseOrder(response, market);
     }
+    /**
+     * @method
+     * @name tradeogre#cancelOrder
+     * @description cancels an open order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name tradeogre#cancelOrder
-         * @description cancels an open order
-         * @param {string} id order id
-         * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         const request = {
             'uuid': id,
@@ -498,32 +700,33 @@ export default class tradeogre extends Exchange {
         const response = await this.privatePostOrderCancel(this.extend(request, params));
         return this.parseOrder(response);
     }
+    /**
+     * @method
+     * @name tradeogre#cancelAllOrders
+     * @description cancel all open orders
+     * @param {string} symbol alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async cancelAllOrders(symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name tradeogre#cancelAllOrders
-         * @description cancel all open orders
-         * @param {string} symbol alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         const response = await this.cancelOrder('all', symbol, params);
         return [
             response,
         ];
     }
+    /**
+     * @method
+     * @name tradeogre#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://tradeogre.com/help/api#:~:text=%7B%22success%22%3Atrue%7D-,Get%20Orders,-Method%20(POST)
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name tradeogre#fetchOpenOrders
-         * @description fetch all unfilled currently open orders
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of order structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         let market = undefined;
         if (symbol !== undefined) {
@@ -536,16 +739,17 @@ export default class tradeogre extends Exchange {
         const response = await this.privatePostAccountOrders(this.extend(request, params));
         return this.parseOrders(response, market, since, limit);
     }
+    /**
+     * @method
+     * @name tradeogre#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://tradeogre.com/help/api#:~:text=market%22%3A%22XMR%2DBTC%22%7D%5D-,Get%20Order,-Method%20(GET)
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name ace#fetchOrder
-         * @description fetches information on an order made by the user
-         * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-status
-         * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         const request = {
             'uuid': id,
@@ -581,12 +785,12 @@ export default class tradeogre extends Exchange {
             'postOnly': undefined,
             'side': this.safeString(order, 'type'),
             'price': this.safeString(order, 'price'),
-            'stopPrice': undefined,
-            'amount': this.safeString(order, 'quantity'),
+            'triggerPrice': undefined,
+            'amount': undefined,
             'cost': undefined,
             'average': undefined,
             'filled': this.safeString(order, 'fulfilled'),
-            'remaining': undefined,
+            'remaining': this.safeString(order, 'quantity'),
             'status': undefined,
             'fee': {
                 'currency': undefined,

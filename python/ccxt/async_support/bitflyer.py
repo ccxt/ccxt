@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitflyer import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, MarketInterface, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFeeInterface, Transaction
+from ccxt.base.types import Any, Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, FundingRate, Trade, TradingFeeInterface, Transaction, MarketInterface
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -18,7 +18,7 @@ from ccxt.base.precise import Precise
 
 class bitflyer(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(bitflyer, self).describe(), {
             'id': 'bitflyer',
             'name': 'bitFlyer',
@@ -39,6 +39,9 @@ class bitflyer(Exchange, ImplicitAPI):
                 'fetchBalance': True,
                 'fetchClosedOrders': 'emulated',
                 'fetchDeposits': True,
+                'fetchFundingRate': True,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
@@ -59,7 +62,7 @@ class bitflyer(Exchange, ImplicitAPI):
                 'withdraw': True,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg',
+                'logo': 'https://github.com/user-attachments/assets/d0217747-e54d-4533-8416-0d553dca74bb',
                 'api': {
                     'rest': 'https://api.{hostname}',
                 },
@@ -78,6 +81,7 @@ class bitflyer(Exchange, ImplicitAPI):
                         'gethealth',
                         'getboardstate',
                         'getchats',
+                        'getfundingrate',
                     ],
                 },
                 'private': {
@@ -119,6 +123,82 @@ class bitflyer(Exchange, ImplicitAPI):
                 },
             },
             'precisionMode': TICK_SIZE,
+            'features': {
+                'spot': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': False,
+                        'triggerPriceType': None,
+                        'triggerDirection': False,
+                        'stopLossPrice': False,
+                        'takeProfitPrice': False,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': True,  # todo implement
+                        },
+                        'hedged': False,
+                        'trailing': False,  # todo recheck
+                        'leverage': False,
+                        'marketBuyRequiresPrice': False,
+                        'marketBuyByCost': False,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'daysBack': None,
+                        'untilDays': None,
+                        'symbolRequired': True,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchOrders': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'daysBack': None,
+                        'untilDays': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'daysBack': None,
+                        'daysBackCanceled': None,
+                        'untilDays': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchOHLCV': None,
+                },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
             'exceptions': {
                 'exact': {
                     '-2': OnMaintenance,  # {"status":-2,"error_message":"Under maintenance","data":null}
@@ -156,7 +236,9 @@ class bitflyer(Exchange, ImplicitAPI):
     async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for bitflyer
-        :see: https://lightning.bitflyer.com/docs?lang=en#market-list
+
+        https://lightning.bitflyer.com/docs?lang=en#market-list
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -168,6 +250,7 @@ class bitflyer(Exchange, ImplicitAPI):
         #         {"product_code": "BCH_BTC", "market_type": "Spot"},
         #         # forex swap
         #         {"product_code": "FX_BTC_JPY", "market_type": "FX"},
+        #
         #         # future
         #         {
         #             "product_code": "BTCJPY11FEB2022",
@@ -314,7 +397,9 @@ class bitflyer(Exchange, ImplicitAPI):
     async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://lightning.bitflyer.com/docs?lang=en#get-account-asset-balance
+
+        https://lightning.bitflyer.com/docs?lang=en#get-account-asset-balance
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
@@ -344,7 +429,9 @@ class bitflyer(Exchange, ImplicitAPI):
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://lightning.bitflyer.com/docs?lang=en#order-book
+
+        https://lightning.bitflyer.com/docs?lang=en#order-book
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -388,7 +475,9 @@ class bitflyer(Exchange, ImplicitAPI):
     async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://lightning.bitflyer.com/docs?lang=en#ticker
+
+        https://lightning.bitflyer.com/docs?lang=en#ticker
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -463,7 +552,9 @@ class bitflyer(Exchange, ImplicitAPI):
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://lightning.bitflyer.com/docs?lang=en#list-executions
+
+        https://lightning.bitflyer.com/docs?lang=en#list-executions
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -496,7 +587,9 @@ class bitflyer(Exchange, ImplicitAPI):
     async def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
-        :see: https://lightning.bitflyer.com/docs?lang=en#get-trading-commission
+
+        https://lightning.bitflyer.com/docs?lang=en#get-trading-commission
+
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
@@ -525,7 +618,9 @@ class bitflyer(Exchange, ImplicitAPI):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
-        :see: https://lightning.bitflyer.com/docs?lang=en#send-a-new-order
+
+        https://lightning.bitflyer.com/docs?lang=en#send-a-new-order
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -553,7 +648,9 @@ class bitflyer(Exchange, ImplicitAPI):
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
-        :see: https://lightning.bitflyer.com/docs?lang=en#cancel-order
+
+        https://lightning.bitflyer.com/docs?lang=en#cancel-order
+
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -618,7 +715,6 @@ class bitflyer(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': None,
             'triggerPrice': None,
             'cost': None,
             'amount': amount,
@@ -632,7 +728,9 @@ class bitflyer(Exchange, ImplicitAPI):
     async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = 100, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
-        :see: https://lightning.bitflyer.com/docs?lang=en#list-orders
+
+        https://lightning.bitflyer.com/docs?lang=en#list-orders
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -656,7 +754,9 @@ class bitflyer(Exchange, ImplicitAPI):
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = 100, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
-        :see: https://lightning.bitflyer.com/docs?lang=en#list-orders
+
+        https://lightning.bitflyer.com/docs?lang=en#list-orders
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
@@ -671,7 +771,9 @@ class bitflyer(Exchange, ImplicitAPI):
     async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = 100, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
-        :see: https://lightning.bitflyer.com/docs?lang=en#list-orders
+
+        https://lightning.bitflyer.com/docs?lang=en#list-orders
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -686,7 +788,10 @@ class bitflyer(Exchange, ImplicitAPI):
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
-        :see: https://lightning.bitflyer.com/docs?lang=en#list-orders
+
+        https://lightning.bitflyer.com/docs?lang=en#list-orders
+
+        :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -702,7 +807,9 @@ class bitflyer(Exchange, ImplicitAPI):
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
-        :see: https://lightning.bitflyer.com/docs?lang=en#list-executions
+
+        https://lightning.bitflyer.com/docs?lang=en#list-executions
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
@@ -735,10 +842,12 @@ class bitflyer(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    async def fetch_positions(self, symbols: Strings = None, params={}):
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open positions
-        :see: https://lightning.bitflyer.com/docs?lang=en#get-open-interest-summary
+
+        https://lightning.bitflyer.com/docs?lang=en#get-open-interest-summary
+
         :param str[] symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
@@ -770,10 +879,12 @@ class bitflyer(Exchange, ImplicitAPI):
         # todo unify parsePosition/parsePositions
         return response
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
-        :see: https://lightning.bitflyer.com/docs?lang=en#withdrawing-funds
+
+        https://lightning.bitflyer.com/docs?lang=en#withdrawing-funds
+
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
@@ -802,7 +913,9 @@ class bitflyer(Exchange, ImplicitAPI):
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
-        :see: https://lightning.bitflyer.com/docs?lang=en#get-crypto-assets-deposit-history
+
+        https://lightning.bitflyer.com/docs?lang=en#get-crypto-assets-deposit-history
+
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
@@ -836,7 +949,9 @@ class bitflyer(Exchange, ImplicitAPI):
     async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
-        :see: https://lightning.bitflyer.com/docs?lang=en#get-crypto-assets-transaction-history
+
+        https://lightning.bitflyer.com/docs?lang=en#get-crypto-assets-transaction-history
+
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
@@ -962,6 +1077,60 @@ class bitflyer(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
+    async def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
+        """
+        fetch the current funding rate
+
+        https://lightning.bitflyer.com/docs#funding-rate
+
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        request: dict = {
+            'product_code': market['id'],
+        }
+        response = await self.publicGetGetfundingrate(self.extend(request, params))
+        #
+        #    {
+        #        "current_funding_rate": -0.003750000000
+        #        "next_funding_rate_settledate": "2024-04-15T13:00:00"
+        #    }
+        #
+        return self.parse_funding_rate(response, market)
+
+    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
+        #
+        #    {
+        #        "current_funding_rate": -0.003750000000
+        #        "next_funding_rate_settledate": "2024-04-15T13:00:00"
+        #    }
+        #
+        nextFundingDatetime = self.safe_string(contract, 'next_funding_rate_settledate')
+        nextFundingTimestamp = self.parse8601(nextFundingDatetime)
+        return {
+            'info': contract,
+            'symbol': self.safe_string(market, 'symbol'),
+            'markPrice': None,
+            'indexPrice': None,
+            'interestRate': None,
+            'estimatedSettlePrice': None,
+            'timestamp': None,
+            'datetime': None,
+            'fundingRate': None,
+            'fundingTimestamp': None,
+            'fundingDatetime': None,
+            'nextFundingRate': self.safe_number(contract, 'current_funding_rate'),
+            'nextFundingTimestamp': nextFundingTimestamp,
+            'nextFundingDatetime': self.iso8601(nextFundingTimestamp),
+            'previousFundingRate': None,
+            'previousFundingTimestamp': None,
+            'previousFundingDatetime': None,
+            'interval': None,
+        }
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = '/' + self.version + '/'
         if api == 'private':
@@ -994,8 +1163,8 @@ class bitflyer(Exchange, ImplicitAPI):
         feedback = self.id + ' ' + body
         # i.e. {"status":-2,"error_message":"Under maintenance","data":null}
         errorMessage = self.safe_string(response, 'error_message')
-        statusCode = self.safe_number(response, 'status')
+        statusCode = self.safe_integer(response, 'status')
         if errorMessage is not None:
             self.throw_exactly_matched_exception(self.exceptions['exact'], statusCode, feedback)
-            self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
+            raise ExchangeError(feedback)
         return None

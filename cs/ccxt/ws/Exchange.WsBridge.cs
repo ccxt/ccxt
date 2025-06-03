@@ -134,6 +134,7 @@ public partial class Exchange
         {
             object ws = this.safeValue(this.options, "ws", new Dictionary<string, object>() { });
             var wsOptions = this.safeValue(ws, "options", new Dictionary<string, object>() { });
+            wsOptions = this.deepExtend(this.streaming, wsOptions);
             var keepAlive = ((Int64)this.safeInteger(wsOptions, "keepAlive", 30000));
             var useMessageQueue = ((bool)this.safeBool(wsOptions, "useMessageQueue", true));
             var client = new WebSocketClient(url, proxy, handleMessage, ping, onClose, onError, this.verbose, keepAlive, useMessageQueue);

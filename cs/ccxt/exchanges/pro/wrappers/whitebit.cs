@@ -10,6 +10,7 @@ public partial class whitebit
     /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.whitebit.com/public/websocket/#kline"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -43,6 +44,7 @@ public partial class whitebit
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.whitebit.com/public/websocket/#market-depth"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -69,6 +71,7 @@ public partial class whitebit
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.whitebit.com/public/websocket/#market-statistics"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -85,9 +88,30 @@ public partial class whitebit
         return new Ticker(res);
     }
     /// <summary>
+    /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.whitebit.com/public/websocket/#market-statistics"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    public async Task<Tickers> WatchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchTickers(symbols, parameters);
+        return new Tickers(res);
+    }
+    /// <summary>
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.whitebit.com/public/websocket/#market-trades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -121,6 +145,7 @@ public partial class whitebit
     /// watches trades made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.whitebit.com/private/websocket/#deals"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -154,6 +179,7 @@ public partial class whitebit
     /// watches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.whitebit.com/private/websocket/#orders-pending"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -187,6 +213,8 @@ public partial class whitebit
     /// watch balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.whitebit.com/private/websocket/#balance-spot"/>  <br/>
+    /// See <see href="https://docs.whitebit.com/private/websocket/#balance-margin"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

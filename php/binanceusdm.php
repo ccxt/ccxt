@@ -10,12 +10,12 @@ use ccxt\abstract\binanceusdm as binance;
 
 class binanceusdm extends binance {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'binanceusdm',
             'name' => 'Binance USDⓈ-M',
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg',
+                'logo' => 'https://github.com/user-attachments/assets/871cbea7-eebb-4b28-b260-c1c91df0487a',
                 'doc' => array(
                     'https://binance-docs.github.io/apidocs/futures/en/',
                     'https://binance-docs.github.io/apidocs/spot/en',
@@ -35,7 +35,7 @@ class binanceusdm extends binance {
                 'fetchMarkets' => array( 'linear' ),
                 'defaultSubType' => 'linear',
                 // https://www.binance.com/en/support/faq/360033162192
-                // tier amount, maintenance margin, initial margin
+                // tier amount, maintenance margin, initial margin,
                 'leverageBrackets' => null,
                 'marginTypes' => array(),
                 'marginModes' => array(),

@@ -22,6 +22,7 @@ error_hierarchy = {
                     'MarginModeAlreadySet': {},
                 },
                 'MarketClosed': {},
+                'ManualInteractionNeeded': {},
             },
             'InsufficientFunds': {},
             'InvalidAddress': {
@@ -56,6 +57,7 @@ error_hierarchy = {
             },
             'CancelPending': {},
         },
+        'UnsubscribeError': {},
     },
 }
 
@@ -109,6 +111,10 @@ class MarginModeAlreadySet(NoChange):
 
 
 class MarketClosed(OperationRejected):
+    pass
+
+
+class ManualInteractionNeeded(OperationRejected):
     pass
 
 
@@ -212,6 +218,10 @@ class CancelPending(OperationFailed):
     pass
 
 
+class UnsubscribeError(BaseError):
+    pass
+
+
 __all__ = [
     'error_hierarchy',
     'BaseError',
@@ -227,6 +237,7 @@ __all__ = [
     'NoChange',
     'MarginModeAlreadySet',
     'MarketClosed',
+    'ManualInteractionNeeded',
     'InsufficientFunds',
     'InvalidAddress',
     'AddressPending',
@@ -251,5 +262,6 @@ __all__ = [
     'RequestTimeout',
     'BadResponse',
     'NullResponse',
-    'CancelPending'
+    'CancelPending',
+    'UnsubscribeError'
 ]

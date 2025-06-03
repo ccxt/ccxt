@@ -13,7 +13,7 @@
                     "next_open": "2024-07-18T09:30:00-04:00",
                     "next_close": "2024-07-18T16:00:00-04:00"
                 },
-                "parsedResponse": "1721290233389"
+                "parsedResponse": 1721290233389
             }
         ],
         "fetchMarkets": [
@@ -294,6 +294,523 @@
                     "datetime": "2024-07-18T08:22:41.607Z",
                     "nonce": null
                 }
+            },
+            {
+                "description": "Fetch order book with limit",
+                "method": "fetchOrderBook",
+                "input": [
+                    "BTC/USDT",
+                    1
+                ],
+                "httpResponse": {
+                    "orderbooks": {
+                        "BTC/USDT": {
+                            "a": [
+                                {
+                                    "p": "63874.3",
+                                    "s": "0.1779"
+                                },
+                                {
+                                    "p": "63887.615",
+                                    "s": "0.3543"
+                                },
+                                {
+                                    "p": "63952.8",
+                                    "s": "0.540044"
+                                },
+                                {
+                                    "p": "64007.34",
+                                    "s": "0.72083"
+                                },
+                                {
+                                    "p": "64179.8",
+                                    "s": "0.892218"
+                                },
+                                {
+                                    "p": "64532.9",
+                                    "s": "1.06787"
+                                },
+                                {
+                                    "p": "65172.36",
+                                    "s": "1.239"
+                                }
+                            ],
+                            "b": [
+                                {
+                                    "p": "63726.61",
+                                    "s": "0.1773"
+                                },
+                                {
+                                    "p": "63720.3",
+                                    "s": "0.35846"
+                                },
+                                {
+                                    "p": "63667.25",
+                                    "s": "0.54042"
+                                },
+                                {
+                                    "p": "63581.425",
+                                    "s": "0.7172"
+                                },
+                                {
+                                    "p": "63405",
+                                    "s": "0.897117"
+                                },
+                                {
+                                    "p": "63101.56",
+                                    "s": "1.07915"
+                                },
+                                {
+                                    "p": "62446.443",
+                                    "s": "1.241"
+                                }
+                            ],
+                            "t": "2024-08-26T12:24:21.026648354Z"
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "bids": [
+                        [
+                            63726.61,
+                            0.1773
+                        ],
+                        [
+                            63720.3,
+                            0.35846
+                        ],
+                        [
+                            63667.25,
+                            0.54042
+                        ],
+                        [
+                            63581.425,
+                            0.7172
+                        ],
+                        [
+                            63405,
+                            0.897117
+                        ],
+                        [
+                            63101.56,
+                            1.07915
+                        ],
+                        [
+                            62446.443,
+                            1.241
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            63874.3,
+                            0.1779
+                        ],
+                        [
+                            63887.615,
+                            0.3543
+                        ],
+                        [
+                            63952.8,
+                            0.540044
+                        ],
+                        [
+                            64007.34,
+                            0.72083
+                        ],
+                        [
+                            64179.8,
+                            0.892218
+                        ],
+                        [
+                            64532.9,
+                            1.06787
+                        ],
+                        [
+                            65172.36,
+                            1.239
+                        ]
+                    ],
+                    "timestamp": 1724675061026,
+                    "datetime": "2024-08-26T12:24:21.026Z",
+                    "nonce": null
+                }
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetchTicker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USD"
+                ],
+                "httpResponse": {
+                    "snapshots": {
+                        "BTC/USD": {
+                            "dailyBar": {
+                                "c": 69656.91,
+                                "h": 71589.35,
+                                "l": 68774.109,
+                                "n": 105,
+                                "o": 69536.7,
+                                "t": "2024-11-01T05:00:00Z",
+                                "v": 3.815852502,
+                                "vw": 69879.0364983585
+                            },
+                            "latestQuote": {
+                                "ap": 69684.9,
+                                "as": 0.682,
+                                "bp": 69625.1,
+                                "bs": 0.675524,
+                                "t": "2024-11-02T02:00:19.31973121Z"
+                            },
+                            "latestTrade": {
+                                "i": 7446469938634049684,
+                                "p": 69526.91,
+                                "s": 0.001,
+                                "t": "2024-11-02T01:21:49.863844274Z",
+                                "tks": "B"
+                            },
+                            "minuteBar": {
+                                "c": 69656.91,
+                                "h": 69656.91,
+                                "l": 69648.07,
+                                "n": 0,
+                                "o": 69648.07,
+                                "t": "2024-11-02T01:59:00Z",
+                                "v": 0,
+                                "vw": 0
+                            },
+                            "prevDailyBar": {
+                                "c": 69515.1415,
+                                "h": 72668.837,
+                                "l": 68796.85,
+                                "n": 129,
+                                "o": 72258.9,
+                                "t": "2024-10-31T05:00:00Z",
+                                "v": 2.217683307,
+                                "vw": 70782.6811608144
+                            }
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "dailyBar": {
+                            "c": 69656.91,
+                            "h": 71589.35,
+                            "l": 68774.109,
+                            "n": 105,
+                            "o": 69536.7,
+                            "t": "2024-11-01T05:00:00Z",
+                            "v": 3.815852502,
+                            "vw": 69879.0364983585
+                        },
+                        "latestQuote": {
+                            "ap": 69684.9,
+                            "as": 0.682,
+                            "bp": 69625.1,
+                            "bs": 0.675524,
+                            "t": "2024-11-02T02:00:19.31973121Z"
+                        },
+                        "latestTrade": {
+                            "i": 7446469938634049684,
+                            "p": 69526.91,
+                            "s": 0.001,
+                            "t": "2024-11-02T01:21:49.863844274Z",
+                            "tks": "B"
+                        },
+                        "minuteBar": {
+                            "c": 69656.91,
+                            "h": 69656.91,
+                            "l": 69648.07,
+                            "n": 0,
+                            "o": 69648.07,
+                            "t": "2024-11-02T01:59:00Z",
+                            "v": 0,
+                            "vw": 0
+                        },
+                        "prevDailyBar": {
+                            "c": 69515.1415,
+                            "h": 72668.837,
+                            "l": 68796.85,
+                            "n": 129,
+                            "o": 72258.9,
+                            "t": "2024-10-31T05:00:00Z",
+                            "v": 2.217683307,
+                            "vw": 70782.6811608144
+                        }
+                    },
+                    "symbol": "BTC/USD",
+                    "timestamp": 1730512819319,
+                    "datetime": "2024-11-02T02:00:19.31973121Z",
+                    "high": 71589.35,
+                    "low": 68774.109,
+                    "bid": 69625.1,
+                    "bidVolume": 0.675524,
+                    "ask": 69684.9,
+                    "askVolume": 0.682,
+                    "vwap": 69879.0364983585,
+                    "open": 69536.7,
+                    "close": 69656.91,
+                    "last": 69526.91,
+                    "previousClose": 69515.1415,
+                    "change": -9.79,
+                    "percentage": -0.0140788964676206,
+                    "average": 69531,
+                    "baseVolume": 3.815852502,
+                    "quoteVolume": 105,
+                    "indexPrice": null,
+                    "markPrice": null
+                }
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetchTickers",
+                "method": "fetchTickers",
+                "input": [
+                    [
+                        "BTC/USD",
+                        "LTC/USD"
+                    ]
+                ],
+                "httpResponse": {
+                    "snapshots": {
+                        "BTC/USD": {
+                            "dailyBar": {
+                                "c": 69695.0625,
+                                "h": 71589.35,
+                                "l": 68774.109,
+                                "n": 105,
+                                "o": 69536.7,
+                                "t": "2024-11-01T05:00:00Z",
+                                "v": 3.815852502,
+                                "vw": 69879.0364983585
+                            },
+                            "latestQuote": {
+                                "ap": 69737.5,
+                                "as": 0.674999,
+                                "bp": 69669.69,
+                                "bs": 1.34887,
+                                "t": "2024-11-02T02:10:11.936226434Z"
+                            },
+                            "latestTrade": {
+                                "i": 7446469938634049684,
+                                "p": 69526.91,
+                                "s": 0.001,
+                                "t": "2024-11-02T01:21:49.863844274Z",
+                                "tks": "B"
+                            },
+                            "minuteBar": {
+                                "c": 69695.0625,
+                                "h": 69695.0625,
+                                "l": 69694.4435,
+                                "n": 0,
+                                "o": 69694.4435,
+                                "t": "2024-11-02T02:09:00Z",
+                                "v": 0,
+                                "vw": 0
+                            },
+                            "prevDailyBar": {
+                                "c": 69515.1415,
+                                "h": 72668.837,
+                                "l": 68796.85,
+                                "n": 129,
+                                "o": 72258.9,
+                                "t": "2024-10-31T05:00:00Z",
+                                "v": 2.217683307,
+                                "vw": 70782.6811608144
+                            }
+                        },
+                        "LTC/USD": {
+                            "dailyBar": {
+                                "c": 70.6675,
+                                "h": 71.02,
+                                "l": 67.6675,
+                                "n": 19,
+                                "o": 68.9741,
+                                "t": "2024-11-01T05:00:00Z",
+                                "v": 4.187812253,
+                                "vw": 70.252723249
+                            },
+                            "latestQuote": {
+                                "ap": 70.727,
+                                "as": 67.4,
+                                "bp": 70.608,
+                                "bs": 68.07,
+                                "t": "2024-11-02T02:05:49.217069678Z"
+                            },
+                            "latestTrade": {
+                                "i": 6260588270078208,
+                                "p": 70.42,
+                                "s": 0.01065038,
+                                "t": "2024-11-02T00:35:42.416112765Z",
+                                "tks": "B"
+                            },
+                            "minuteBar": {
+                                "c": 70.6675,
+                                "h": 70.6675,
+                                "l": 70.6675,
+                                "n": 0,
+                                "o": 70.6675,
+                                "t": "2024-11-02T02:05:00Z",
+                                "v": 0,
+                                "vw": 0
+                            },
+                            "prevDailyBar": {
+                                "c": 68.9545,
+                                "h": 71.69,
+                                "l": 68.06,
+                                "n": 11,
+                                "o": 71.40865,
+                                "t": "2024-10-31T05:00:00Z",
+                                "v": 15.000180961,
+                                "vw": 70.6527569287
+                            }
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "BTC/USD": {
+                        "info": {
+                            "dailyBar": {
+                                "c": 69695.0625,
+                                "h": 71589.35,
+                                "l": 68774.109,
+                                "n": 105,
+                                "o": 69536.7,
+                                "t": "2024-11-01T05:00:00Z",
+                                "v": 3.815852502,
+                                "vw": 69879.0364983585
+                            },
+                            "latestQuote": {
+                                "ap": 69737.5,
+                                "as": 0.674999,
+                                "bp": 69669.69,
+                                "bs": 1.34887,
+                                "t": "2024-11-02T02:10:11.936226434Z"
+                            },
+                            "latestTrade": {
+                                "i": 7446469938634049684,
+                                "p": 69526.91,
+                                "s": 0.001,
+                                "t": "2024-11-02T01:21:49.863844274Z",
+                                "tks": "B"
+                            },
+                            "minuteBar": {
+                                "c": 69695.0625,
+                                "h": 69695.0625,
+                                "l": 69694.4435,
+                                "n": 0,
+                                "o": 69694.4435,
+                                "t": "2024-11-02T02:09:00Z",
+                                "v": 0,
+                                "vw": 0
+                            },
+                            "prevDailyBar": {
+                                "c": 69515.1415,
+                                "h": 72668.837,
+                                "l": 68796.85,
+                                "n": 129,
+                                "o": 72258.9,
+                                "t": "2024-10-31T05:00:00Z",
+                                "v": 2.217683307,
+                                "vw": 70782.6811608144
+                            }
+                        },
+                        "symbol": "BTC/USD",
+                        "timestamp": 1730513411936,
+                        "datetime": "2024-11-02T02:10:11.936226434Z",
+                        "high": 71589.35,
+                        "low": 68774.109,
+                        "bid": 69669.69,
+                        "bidVolume": 1.34887,
+                        "ask": 69737.5,
+                        "askVolume": 0.674999,
+                        "vwap": 69879.0364983585,
+                        "open": 69536.7,
+                        "close": 69695.0625,
+                        "last": 69526.91,
+                        "previousClose": 69515.1415,
+                        "change": -9.79,
+                        "percentage": -0.0140788964676206,
+                        "average": 69531,
+                        "baseVolume": 3.815852502,
+                        "quoteVolume": 105,
+                        "indexPrice": null,
+                        "markPrice": null
+                    },
+                    "LTC/USD": {
+                        "info": {
+                            "dailyBar": {
+                                "c": 70.6675,
+                                "h": 71.02,
+                                "l": 67.6675,
+                                "n": 19,
+                                "o": 68.9741,
+                                "t": "2024-11-01T05:00:00Z",
+                                "v": 4.187812253,
+                                "vw": 70.252723249
+                            },
+                            "latestQuote": {
+                                "ap": 70.727,
+                                "as": 67.4,
+                                "bp": 70.608,
+                                "bs": 68.07,
+                                "t": "2024-11-02T02:05:49.217069678Z"
+                            },
+                            "latestTrade": {
+                                "i": 6260588270078208,
+                                "p": 70.42,
+                                "s": 0.01065038,
+                                "t": "2024-11-02T00:35:42.416112765Z",
+                                "tks": "B"
+                            },
+                            "minuteBar": {
+                                "c": 70.6675,
+                                "h": 70.6675,
+                                "l": 70.6675,
+                                "n": 0,
+                                "o": 70.6675,
+                                "t": "2024-11-02T02:05:00Z",
+                                "v": 0,
+                                "vw": 0
+                            },
+                            "prevDailyBar": {
+                                "c": 68.9545,
+                                "h": 71.69,
+                                "l": 68.06,
+                                "n": 11,
+                                "o": 71.40865,
+                                "t": "2024-10-31T05:00:00Z",
+                                "v": 15.000180961,
+                                "vw": 70.6527569287
+                            }
+                        },
+                        "symbol": "LTC/USD",
+                        "timestamp": 1730513149217,
+                        "datetime": "2024-11-02T02:05:49.217069678Z",
+                        "high": 71.02,
+                        "low": 67.6675,
+                        "bid": 70.608,
+                        "bidVolume": 68.07,
+                        "ask": 70.727,
+                        "askVolume": 67.4,
+                        "vwap": 70.252723249,
+                        "open": 68.9741,
+                        "close": 70.6675,
+                        "last": 70.42,
+                        "previousClose": 68.9545,
+                        "change": 1.4459,
+                        "percentage": 2.0962941161972393,
+                        "average": 69.697,
+                        "baseVolume": 4.187812253,
+                        "quoteVolume": 19,
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                }
             }
         ],
         "fetchOHLCV": [
@@ -331,6 +848,554 @@
                         0.015155213
                     ]
                 ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetchMyTrades",
+                "method": "fetchMyTrades",
+                "input": [
+                    "LTC/USD"
+                ],
+                "httpResponse": [
+                    {
+                        "id": "20221228071929579::ca2aafd0-1270-4b56-b0a9-85423b4a07c8",
+                        "activity_type": "FILL",
+                        "transaction_time": "2022-12-28T12:19:29.579352Z",
+                        "type": "fill",
+                        "price": "67.31",
+                        "qty": "0.07",
+                        "side": "sell",
+                        "symbol": "LTC/USD",
+                        "leaves_qty": "0",
+                        "order_id": "82eebcf7-6e66-4b7e-93f8-be0df0e4f12e",
+                        "cum_qty": "0.07",
+                        "order_status": "filled",
+                        "swap_rate": "1"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "20221228071929579::ca2aafd0-1270-4b56-b0a9-85423b4a07c8",
+                            "activity_type": "FILL",
+                            "transaction_time": "2022-12-28T12:19:29.579352Z",
+                            "type": "fill",
+                            "price": "67.31",
+                            "qty": "0.07",
+                            "side": "sell",
+                            "symbol": "LTC/USD",
+                            "leaves_qty": "0",
+                            "order_id": "82eebcf7-6e66-4b7e-93f8-be0df0e4f12e",
+                            "cum_qty": "0.07",
+                            "order_status": "filled",
+                            "swap_rate": "1"
+                        },
+                        "id": "20221228071929579::ca2aafd0-1270-4b56-b0a9-85423b4a07c8",
+                        "timestamp": 1672229969579,
+                        "datetime": "2022-12-28T12:19:29.579Z",
+                        "symbol": "LTC/USD",
+                        "order": "82eebcf7-6e66-4b7e-93f8-be0df0e4f12e",
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 67.31,
+                        "amount": 0.07,
+                        "cost": 4.7117,
+                        "fee": {"cost":null,"currency":null},
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "fetch the BTC deposit address",
+                "method": "fetchDepositAddress",
+                "input": [
+                  "BTC"
+                ],
+                "httpResponse": {
+                  "asset_id": "4fa30c85-77b7-4cbc-92dd-7b7513640aad",
+                  "address": "bc1q2fpskfnwem3uq9z8660e4z6pfv7aqfamysk75r",
+                  "created_at": "2024-11-03T07:30:05.609149Z"
+                },
+                "parsedResponse": {
+                  "info": {
+                    "asset_id": "4fa30c85-77b7-4cbc-92dd-7b7513640aad",
+                    "address": "bc1q2fpskfnwem3uq9z8660e4z6pfv7aqfamysk75r",
+                    "created_at": "2024-11-03T07:30:05.609149Z"
+                  },
+                  "currency": "BTC",
+                  "network": null,
+                  "address": "bc1q2fpskfnwem3uq9z8660e4z6pfv7aqfamysk75r",
+                  "tag": null
+                }
+            }
+        ],
+        "withdraw": [
+            {
+                "description": "withdraw USDT to a whitelisted address",
+                "method": "withdraw",
+                "input": [
+                  "USDT",
+                  20,
+                  "0x49a2c0925196e4dcf05945f67f690153190fbaab"
+                ],
+                "httpResponse": {
+                  "id": "e27b70a6-5610-40d7-8468-a516a284b776",
+                  "tx_hash": null,
+                  "direction": "OUTGOING",
+                  "amount": "20",
+                  "usd_value": "19.99856",
+                  "chain": "ETH",
+                  "asset": "USDT",
+                  "from_address": "0x3777C930E4dCA196E070d39B60c644C8Aae02f23",
+                  "to_address": "0x49a2c0925196e4dcf05945f67f690153190fbaab",
+                  "status": "PROCESSING",
+                  "created_at": "2024-11-07T02:39:01.775495Z",
+                  "network_fee": "4",
+                  "fees": "0.1"
+                },
+                "parsedResponse": {
+                  "info": {
+                    "id": "e27b70a6-5610-40d7-8468-a516a284b776",
+                    "tx_hash": null,
+                    "direction": "OUTGOING",
+                    "amount": "20",
+                    "usd_value": "19.99856",
+                    "chain": "ETH",
+                    "asset": "USDT",
+                    "from_address": "0x3777C930E4dCA196E070d39B60c644C8Aae02f23",
+                    "to_address": "0x49a2c0925196e4dcf05945f67f690153190fbaab",
+                    "status": "PROCESSING",
+                    "created_at": "2024-11-07T02:39:01.775495Z",
+                    "network_fee": "4",
+                    "fees": "0.1"
+                  },
+                  "id": "e27b70a6-5610-40d7-8468-a516a284b776",
+                  "txid": null,
+                  "timestamp": 1730947141775,
+                  "datetime": "2024-11-07T02:39:01.775495Z",
+                  "network": "ETH",
+                  "address": "0x49a2c0925196e4dcf05945f67f690153190fbaab",
+                  "addressTo": "0x49a2c0925196e4dcf05945f67f690153190fbaab",
+                  "addressFrom": "0x3777C930E4dCA196E070d39B60c644C8Aae02f23",
+                  "tag": null,
+                  "tagTo": null,
+                  "tagFrom": null,
+                  "type": "withdrawal",
+                  "amount": 20,
+                  "currency": "USDT",
+                  "status": "pending",
+                  "updated": null,
+                  "fee": {
+                    "cost": 4.1,
+                    "currency": "USDT"
+                  },
+                  "comment": null,
+                  "internal": null
+                }
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "fetch USDT deposits",
+                "method": "fetchDeposits",
+                "input": [
+                  "USDT"
+                ],
+                "httpResponse": [
+                  {
+                    "id": "e27b70a6-5610-40d7-8468-a516a284b776",
+                    "tx_hash": null,
+                    "direction": "OUTGOING",
+                    "amount": "20",
+                    "usd_value": "19.99856",
+                    "chain": "ETH",
+                    "asset": "USDT",
+                    "from_address": "0x3777C930E4dCA196E070d39B60c644C8Aae02f23",
+                    "to_address": "0x49a2c0925196e4dcf05945f67f690153190fbaab",
+                    "status": "FAILED",
+                    "created_at": "2024-11-07T02:39:01.775495Z",
+                    "network_fee": "0",
+                    "fees": "0"
+                  },
+                  {
+                    "id": "0d929e68-c1fe-4a55-a9e7-11a49e9a5962",
+                    "tx_hash": "0xc83877ebede523aedd1c252fac7d4456ed02efae72fc24ae40fa83c48d19c92a",
+                    "direction": "INCOMING",
+                    "amount": "41.73",
+                    "usd_value": "41.7",
+                    "chain": "ETH",
+                    "asset": "USDT",
+                    "from_address": "0x9642b23Ed1E01Df1092B92641051881a322F5D4E",
+                    "to_address": "0x935a1B871b732D72720a34B8dA61584d6966110F",
+                    "status": "COMPLETE",
+                    "created_at": "2024-11-05T09:57:39.9987Z",
+                    "network_fee": "0",
+                    "fees": "0"
+                  }
+                ],
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "id": "0d929e68-c1fe-4a55-a9e7-11a49e9a5962",
+                      "tx_hash": "0xc83877ebede523aedd1c252fac7d4456ed02efae72fc24ae40fa83c48d19c92a",
+                      "direction": "INCOMING",
+                      "amount": "41.73",
+                      "usd_value": "41.7",
+                      "chain": "ETH",
+                      "asset": "USDT",
+                      "from_address": "0x9642b23Ed1E01Df1092B92641051881a322F5D4E",
+                      "to_address": "0x935a1B871b732D72720a34B8dA61584d6966110F",
+                      "status": "COMPLETE",
+                      "created_at": "2024-11-05T09:57:39.9987Z",
+                      "network_fee": "0",
+                      "fees": "0"
+                    },
+                    "id": "0d929e68-c1fe-4a55-a9e7-11a49e9a5962",
+                    "txid": "0xc83877ebede523aedd1c252fac7d4456ed02efae72fc24ae40fa83c48d19c92a",
+                    "timestamp": 1730800659998,
+                    "datetime": "2024-11-05T09:57:39.9987Z",
+                    "network": "ETH",
+                    "address": "0x935a1B871b732D72720a34B8dA61584d6966110F",
+                    "addressTo": "0x935a1B871b732D72720a34B8dA61584d6966110F",
+                    "addressFrom": "0x9642b23Ed1E01Df1092B92641051881a322F5D4E",
+                    "tag": null,
+                    "tagTo": null,
+                    "tagFrom": null,
+                    "type": "deposit",
+                    "amount": 41.73,
+                    "currency": "USDT",
+                    "status": "ok",
+                    "updated": null,
+                    "fee": {
+                      "cost": 0,
+                      "currency": "USDT"
+                    },
+                    "comment": null,
+                    "internal": null
+                  }
+                ]
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "fetch USDT withdrawals",
+                "method": "fetchWithdrawals",
+                "input": [
+                  "USDT"
+                ],
+                "httpResponse": [
+                  {
+                    "id": "e27b70a6-5610-40d7-8468-a516a284b776",
+                    "tx_hash": null,
+                    "direction": "OUTGOING",
+                    "amount": "20",
+                    "usd_value": "19.99856",
+                    "chain": "ETH",
+                    "asset": "USDT",
+                    "from_address": "0x3777C930E4dCA196E070d39B60c644C8Aae02f23",
+                    "to_address": "0x49a2c0925196e4dcf05945f67f690153190fbaab",
+                    "status": "FAILED",
+                    "created_at": "2024-11-07T02:39:01.775495Z",
+                    "network_fee": "0",
+                    "fees": "0"
+                  },
+                  {
+                    "id": "0d929e68-c1fe-4a55-a9e7-11a49e9a5962",
+                    "tx_hash": "0xc83877ebede523aedd1c252fac7d4456ed02efae72fc24ae40fa83c48d19c92a",
+                    "direction": "INCOMING",
+                    "amount": "41.73",
+                    "usd_value": "41.7",
+                    "chain": "ETH",
+                    "asset": "USDT",
+                    "from_address": "0x9642b23Ed1E01Df1092B92641051881a322F5D4E",
+                    "to_address": "0x935a1B871b732D72720a34B8dA61584d6966110F",
+                    "status": "COMPLETE",
+                    "created_at": "2024-11-05T09:57:39.9987Z",
+                    "network_fee": "0",
+                    "fees": "0"
+                  }
+                ],
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "id": "e27b70a6-5610-40d7-8468-a516a284b776",
+                      "tx_hash": null,
+                      "direction": "OUTGOING",
+                      "amount": "20",
+                      "usd_value": "19.99856",
+                      "chain": "ETH",
+                      "asset": "USDT",
+                      "from_address": "0x3777C930E4dCA196E070d39B60c644C8Aae02f23",
+                      "to_address": "0x49a2c0925196e4dcf05945f67f690153190fbaab",
+                      "status": "FAILED",
+                      "created_at": "2024-11-07T02:39:01.775495Z",
+                      "network_fee": "0",
+                      "fees": "0"
+                    },
+                    "id": "e27b70a6-5610-40d7-8468-a516a284b776",
+                    "txid": null,
+                    "timestamp": 1730947141775,
+                    "datetime": "2024-11-07T02:39:01.775495Z",
+                    "network": "ETH",
+                    "address": "0x49a2c0925196e4dcf05945f67f690153190fbaab",
+                    "addressTo": "0x49a2c0925196e4dcf05945f67f690153190fbaab",
+                    "addressFrom": "0x3777C930E4dCA196E070d39B60c644C8Aae02f23",
+                    "tag": null,
+                    "tagTo": null,
+                    "tagFrom": null,
+                    "type": "withdrawal",
+                    "amount": 20,
+                    "currency": "USDT",
+                    "status": "failed",
+                    "updated": null,
+                    "fee": {
+                      "cost": 0,
+                      "currency": "USDT"
+                    },
+                    "comment": null,
+                    "internal": null
+                  }
+                ]
+            }
+        ],
+        "fetchDepositsWithdrawals": [
+            {
+                "description": "fetch deposits and withdrawals for USDT",
+                "method": "fetchDepositsWithdrawals",
+                "input": [
+                  "USDT"
+                ],
+                "httpResponse": [
+                  {
+                    "id": "e27b70a6-5610-40d7-8468-a516a284b776",
+                    "tx_hash": null,
+                    "direction": "OUTGOING",
+                    "amount": "20",
+                    "usd_value": "19.99856",
+                    "chain": "ETH",
+                    "asset": "USDT",
+                    "from_address": "0x3777C930E4dCA196E070d39B60c644C8Aae02f23",
+                    "to_address": "0x49a2c0925196e4dcf05945f67f690153190fbaab",
+                    "status": "FAILED",
+                    "created_at": "2024-11-07T02:39:01.775495Z",
+                    "network_fee": "0",
+                    "fees": "0"
+                  },
+                  {
+                    "id": "0d929e68-c1fe-4a55-a9e7-11a49e9a5962",
+                    "tx_hash": "0xc83877ebede523aedd1c252fac7d4456ed02efae72fc24ae40fa83c48d19c92a",
+                    "direction": "INCOMING",
+                    "amount": "41.73",
+                    "usd_value": "41.7",
+                    "chain": "ETH",
+                    "asset": "USDT",
+                    "from_address": "0x9642b23Ed1E01Df1092B92641051881a322F5D4E",
+                    "to_address": "0x935a1B871b732D72720a34B8dA61584d6966110F",
+                    "status": "COMPLETE",
+                    "created_at": "2024-11-05T09:57:39.9987Z",
+                    "network_fee": "0",
+                    "fees": "0"
+                  }
+                ],
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "id": "0d929e68-c1fe-4a55-a9e7-11a49e9a5962",
+                      "tx_hash": "0xc83877ebede523aedd1c252fac7d4456ed02efae72fc24ae40fa83c48d19c92a",
+                      "direction": "INCOMING",
+                      "amount": "41.73",
+                      "usd_value": "41.7",
+                      "chain": "ETH",
+                      "asset": "USDT",
+                      "from_address": "0x9642b23Ed1E01Df1092B92641051881a322F5D4E",
+                      "to_address": "0x935a1B871b732D72720a34B8dA61584d6966110F",
+                      "status": "COMPLETE",
+                      "created_at": "2024-11-05T09:57:39.9987Z",
+                      "network_fee": "0",
+                      "fees": "0"
+                    },
+                    "id": "0d929e68-c1fe-4a55-a9e7-11a49e9a5962",
+                    "txid": "0xc83877ebede523aedd1c252fac7d4456ed02efae72fc24ae40fa83c48d19c92a",
+                    "timestamp": 1730800659998,
+                    "datetime": "2024-11-05T09:57:39.9987Z",
+                    "network": "ETH",
+                    "address": "0x935a1B871b732D72720a34B8dA61584d6966110F",
+                    "addressTo": "0x935a1B871b732D72720a34B8dA61584d6966110F",
+                    "addressFrom": "0x9642b23Ed1E01Df1092B92641051881a322F5D4E",
+                    "tag": null,
+                    "tagTo": null,
+                    "tagFrom": null,
+                    "type": "deposit",
+                    "amount": 41.73,
+                    "currency": "USDT",
+                    "status": "ok",
+                    "updated": null,
+                    "fee": {
+                      "cost": 0,
+                      "currency": "USDT"
+                    },
+                    "comment": null,
+                    "internal": null
+                  },
+                  {
+                    "info": {
+                      "id": "e27b70a6-5610-40d7-8468-a516a284b776",
+                      "tx_hash": null,
+                      "direction": "OUTGOING",
+                      "amount": "20",
+                      "usd_value": "19.99856",
+                      "chain": "ETH",
+                      "asset": "USDT",
+                      "from_address": "0x3777C930E4dCA196E070d39B60c644C8Aae02f23",
+                      "to_address": "0x49a2c0925196e4dcf05945f67f690153190fbaab",
+                      "status": "FAILED",
+                      "created_at": "2024-11-07T02:39:01.775495Z",
+                      "network_fee": "0",
+                      "fees": "0"
+                    },
+                    "id": "e27b70a6-5610-40d7-8468-a516a284b776",
+                    "txid": null,
+                    "timestamp": 1730947141775,
+                    "datetime": "2024-11-07T02:39:01.775495Z",
+                    "network": "ETH",
+                    "address": "0x49a2c0925196e4dcf05945f67f690153190fbaab",
+                    "addressTo": "0x49a2c0925196e4dcf05945f67f690153190fbaab",
+                    "addressFrom": "0x3777C930E4dCA196E070d39B60c644C8Aae02f23",
+                    "tag": null,
+                    "tagTo": null,
+                    "tagFrom": null,
+                    "type": "withdrawal",
+                    "amount": 20,
+                    "currency": "USDT",
+                    "status": "failed",
+                    "updated": null,
+                    "fee": {
+                      "cost": 0,
+                      "currency": "USDT"
+                    },
+                    "comment": null,
+                    "internal": null
+                  }
+                ]
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetch the balance",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                  "id": "43a01bee-67e3-4eb1-b2f1-65d1dc26ade5",
+                  "admin_configurations": {
+                    "allow_instant_ach": true,
+                    "max_margin_multiplier": "4"
+                  },
+                  "user_configurations": {
+                    "fractional_trading": true,
+                    "max_margin_multiplier": "4"
+                  },
+                  "account_number": "744863727",
+                  "status": "ACTIVE",
+                  "crypto_status": "ACTIVE",
+                  "currency": "USD",
+                  "buying_power": "5.92",
+                  "regt_buying_power": "5.92",
+                  "daytrading_buying_power": "0",
+                  "effective_buying_power": "5.92",
+                  "non_marginable_buying_power": "5.92",
+                  "bod_dtbp": "0",
+                  "cash": "5.92",
+                  "accrued_fees": "0",
+                  "portfolio_value": "48.61",
+                  "pattern_day_trader": false,
+                  "trading_blocked": false,
+                  "transfers_blocked": false,
+                  "account_blocked": false,
+                  "created_at": "2022-06-13T14:59:18.318096Z",
+                  "trade_suspended_by_user": false,
+                  "multiplier": "1",
+                  "shorting_enabled": false,
+                  "equity": "48.61",
+                  "last_equity": "48.8014266",
+                  "long_market_value": "42.69",
+                  "short_market_value": "0",
+                  "position_market_value": "42.69",
+                  "initial_margin": "0",
+                  "maintenance_margin": "0",
+                  "last_maintenance_margin": "0",
+                  "sma": "5.92",
+                  "daytrade_count": "0",
+                  "balance_asof": "2024-12-10",
+                  "crypto_tier": "1",
+                  "intraday_adjustments": "0",
+                  "pending_reg_taf_fees": "0"
+                },
+                "parsedResponse": {
+                  "info": {
+                    "id": "43a01bee-67e3-4eb1-b2f1-65d1dc26ade5",
+                    "admin_configurations": {
+                      "allow_instant_ach": true,
+                      "max_margin_multiplier": "4"
+                    },
+                    "user_configurations": {
+                      "fractional_trading": true,
+                      "max_margin_multiplier": "4"
+                    },
+                    "account_number": "744863727",
+                    "status": "ACTIVE",
+                    "crypto_status": "ACTIVE",
+                    "currency": "USD",
+                    "buying_power": "5.92",
+                    "regt_buying_power": "5.92",
+                    "daytrading_buying_power": "0",
+                    "effective_buying_power": "5.92",
+                    "non_marginable_buying_power": "5.92",
+                    "bod_dtbp": "0",
+                    "cash": "5.92",
+                    "accrued_fees": "0",
+                    "portfolio_value": "48.61",
+                    "pattern_day_trader": false,
+                    "trading_blocked": false,
+                    "transfers_blocked": false,
+                    "account_blocked": false,
+                    "created_at": "2022-06-13T14:59:18.318096Z",
+                    "trade_suspended_by_user": false,
+                    "multiplier": "1",
+                    "shorting_enabled": false,
+                    "equity": "48.61",
+                    "last_equity": "48.8014266",
+                    "long_market_value": "42.69",
+                    "short_market_value": "0",
+                    "position_market_value": "42.69",
+                    "initial_margin": "0",
+                    "maintenance_margin": "0",
+                    "last_maintenance_margin": "0",
+                    "sma": "5.92",
+                    "daytrade_count": "0",
+                    "balance_asof": "2024-12-10",
+                    "crypto_tier": "1",
+                    "intraday_adjustments": "0",
+                    "pending_reg_taf_fees": "0"
+                  },
+                  "USD": {
+                    "free": 5.92,
+                    "used": 42.69,
+                    "total": 48.61
+                  },
+                  "free": {
+                    "USD": 5.92
+                  },
+                  "used": {
+                    "USD": 42.69
+                  },
+                  "total": {
+                    "USD": 48.61
+                  }
+                }
             }
         ]
     }

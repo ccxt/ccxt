@@ -16,7 +16,7 @@ class ClientNegotiator {
      */
     private $defaultHeader;
 
-    function __construct(PermessageDeflateOptions $perMessageDeflateOptions = null) {
+    function __construct(?PermessageDeflateOptions $perMessageDeflateOptions = null) {
         $this->verifier = new ResponseVerifier;
 
         $this->defaultHeader = new Request('GET', '', [

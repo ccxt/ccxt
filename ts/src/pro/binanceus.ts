@@ -7,11 +7,12 @@ import binanceusRest from '../binanceus.js';
 // ---------------------------------------------------------------------------
 
 export default class binanceus extends binance {
-    describe () {
+    describe (): any {
         // eslint-disable-next-line new-cap
         const restInstance = new binanceusRest ();
         const restDescribe = restInstance.describe ();
-        const extended = this.deepExtend (restDescribe, super.describe ());
+        const parentWsDescribe = super.describeData ();
+        const extended = this.deepExtend (restDescribe, parentWsDescribe);
         return this.deepExtend (extended, {
             'id': 'binanceus',
             'name': 'Binance US',
@@ -26,7 +27,7 @@ export default class binanceus extends binance {
                     'web': 'https://www.binance.us',
                     'sapi': 'https://api.binance.us/sapi/v1',
                     'wapi': 'https://api.binance.us/wapi/v3',
-                    'public': 'https://api.binance.us/api/v1',
+                    'public': 'https://api.binance.us/api/v3',
                     'private': 'https://api.binance.us/api/v3',
                     'v3': 'https://api.binance.us/api/v3',
                     'v1': 'https://api.binance.us/api/v1',

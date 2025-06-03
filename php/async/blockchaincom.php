@@ -11,12 +11,12 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\InsufficientFunds;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class blockchaincom extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'blockchaincom',
             'secret' => null,
@@ -43,6 +43,8 @@ class blockchaincom extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchDeposit' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
@@ -78,7 +80,7 @@ class blockchaincom extends Exchange {
             ),
             'timeframes' => null,
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/147515585-1296e91b-7398-45e5-9d32-f6121538533f.jpeg',
+                'logo' => 'https://github.com/user-attachments/assets/975e3054-3399-4363-bcee-ec3c6d63d4e8',
                 'test' => array(
                     'public' => 'https://testnet-api.delta.exchange',
                     'private' => 'https://testnet-api.delta.exchange',
@@ -215,6 +217,74 @@ class blockchaincom extends Exchange {
                     // 'DIGITALGOLD' => 'DGLD',
                 ),
             ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => false,
+                            'GTD' => true, // todo implementation
+                        ),
+                        'hedged' => false,
+                        'leverage' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'marketBuyByCost' => false,
+                        'selfTradePrevention' => false,
+                        'trailing' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => 100000, // todo implementation
+                        'untilDays' => 100000, // todo implementation
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'symbolRequired' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => null, // todo implement
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => 100000,
+                        'daysBackCanceled' => 1,
+                        'untilDays' => 100000,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOHLCV' => null, // todo webapi
+                ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
@@ -230,7 +300,9 @@ class blockchaincom extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for blockchaincom
+             *
              * @see https://api.blockchain.com/v3/#getsymbols
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing $market data
              */
@@ -360,7 +432,9 @@ class blockchaincom extends Exchange {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
              * @see https://api.blockchain.com/v3/#getl3orderbook
+             *
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -374,7 +448,9 @@ class blockchaincom extends Exchange {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches level 3 information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
              * @see https://api.blockchain.com/v3/#getl3orderbook
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$limit] max number of orders to return, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -450,7 +526,9 @@ class blockchaincom extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             *
              * @see https://api.blockchain.com/v3/#gettickerbysymbol
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -469,7 +547,9 @@ class blockchaincom extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+             *
              * @see https://api.blockchain.com/v3/#gettickers
+             *
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
@@ -553,7 +633,9 @@ class blockchaincom extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             *
              * @see https://api.blockchain.com/v3/#createorder
+             *
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
@@ -579,14 +661,14 @@ class blockchaincom extends Exchange {
                 'orderQty' => $this->amount_to_precision($symbol, $amount),
                 'clOrdId' => $clientOrderId,
             );
-            $stopPrice = $this->safe_value_2($params, 'stopPx', 'stopPrice');
-            $params = $this->omit($params, array( 'stopPx', 'stopPrice' ));
+            $triggerPrice = $this->safe_value_n($params, array( 'triggerPrice', 'stopPx', 'stopPrice' ));
+            $params = $this->omit($params, array( 'triggerPrice', 'stopPx', 'stopPrice' ));
             if ($uppercaseOrderType === 'STOP' || $uppercaseOrderType === 'STOPLIMIT') {
-                if ($stopPrice === null) {
-                    throw new ArgumentsRequired($this->id . ' createOrder() requires a stopPx or $stopPrice param for a ' . $uppercaseOrderType . ' order');
+                if ($triggerPrice === null) {
+                    throw new ArgumentsRequired($this->id . ' createOrder() requires a stopPx or $triggerPrice param for a ' . $uppercaseOrderType . ' order');
                 }
             }
-            if ($stopPrice !== null) {
+            if ($triggerPrice !== null) {
                 if ($uppercaseOrderType === 'MARKET') {
                     $request['ordType'] = 'STOP';
                 } elseif ($uppercaseOrderType === 'LIMIT') {
@@ -605,7 +687,7 @@ class blockchaincom extends Exchange {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
             if ($stopPriceRequired) {
-                $request['stopPx'] = $this->price_to_precision($symbol, $stopPrice);
+                $request['stopPx'] = $this->price_to_precision($symbol, $triggerPrice);
             }
             $response = Async\await($this->privatePostOrders ($this->extend($request, $params)));
             return $this->parse_order($response, $market);
@@ -616,7 +698,9 @@ class blockchaincom extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
+             *
              * @see https://api.blockchain.com/v3/#deleteorder
+             *
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -637,7 +721,9 @@ class blockchaincom extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders
+             *
              * @see https://api.blockchain.com/v3/#deleteallorders
+             *
              * @param {string} $symbol unified market $symbol of the market to cancel orders in, all markets are used if null, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
@@ -668,7 +754,9 @@ class blockchaincom extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading fees for multiple markets
+             *
              * @see https://api.blockchain.com/v3/#getfees
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by market symbols
              */
@@ -701,7 +789,9 @@ class blockchaincom extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple canceled orders made by the user
+             *
              * @see https://api.blockchain.com/v3/#getorders
+             *
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] timestamp in ms of the earliest order, default is null
              * @param {int} [$limit] max number of orders to return, default is null
@@ -717,7 +807,9 @@ class blockchaincom extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
+             *
              * @see https://api.blockchain.com/v3/#getorders
+             *
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -733,7 +825,9 @@ class blockchaincom extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
+             *
              * @see https://api.blockchain.com/v3/#getorders
+             *
              * @param {string} $symbol unified market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of  open orders structures to retrieve
@@ -815,7 +909,9 @@ class blockchaincom extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all $trades made by the user
+             *
              * @see https://api.blockchain.com/v3/#getfills
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of $trades structures to retrieve
@@ -837,11 +933,13 @@ class blockchaincom extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit $address for a $currency associated with this account
+             *
              * @see https://api.blockchain.com/v3/#getdepositaddress
+             *
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
@@ -861,13 +959,13 @@ class blockchaincom extends Exchange {
                 $tag = $this->safe_string($addressParts, 0);
                 $address = $this->safe_string($addressParts, 1);
             }
-            $result = array( 'info' => $response );
-            $result['currency'] = $currency['code'];
-            $result['address'] = $address;
-            if ($tag !== null) {
-                $result['tag'] = $tag;
-            }
-            return $result;
+            return array(
+                'info' => $response,
+                'currency' => $currency['code'],
+                'network' => null,
+                'address' => $address,
+                'tag' => $tag,
+            );
         }) ();
     }
 
@@ -953,11 +1051,13 @@ class blockchaincom extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
+             *
              * @see https://api.blockchain.com/v3/#createwithdrawal
+             *
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to
@@ -993,7 +1093,9 @@ class blockchaincom extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
+             *
              * @see https://api.blockchain.com/v3/#getwithdrawals
+             *
              * @param {string} $code unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch withdrawals for
              * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
@@ -1021,7 +1123,9 @@ class blockchaincom extends Exchange {
         return Async\async(function () use ($id, $code, $params) {
             /**
              * fetch data on a currency withdrawal via the withdrawal $id
+             *
              * @see https://api.blockchain.com/v3/#getwithdrawalbyid
+             *
              * @param {string} $id withdrawal $id
              * @param {string} $code not used by blockchaincom.fetchWithdrawal
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1040,7 +1144,9 @@ class blockchaincom extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
+             *
              * @see https://api.blockchain.com/v3/#getdeposits
+             *
              * @param {string} $code unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch deposits for
              * @param {int} [$limit] the maximum number of deposits structures to retrieve
@@ -1068,7 +1174,9 @@ class blockchaincom extends Exchange {
         return Async\async(function () use ($id, $code, $params) {
             /**
              * fetch information on a $deposit
+             *
              * @see https://api.blockchain.com/v3/#getdepositbyid
+             *
              * @param {string} $id $deposit $id
              * @param {string} $code not used by blockchaincom fetchDeposit ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1088,7 +1196,9 @@ class blockchaincom extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
+             *
              * @see https://api.blockchain.com/v3/#getaccounts
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
@@ -1136,7 +1246,10 @@ class blockchaincom extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
+             *
              * @see https://api.blockchain.com/v3/#getorderbyid
+             *
+             * @param {string} $id the order $id
              * @param {string} $symbol not used by blockchaincom fetchOrder
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~

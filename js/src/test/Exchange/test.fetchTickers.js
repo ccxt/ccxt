@@ -11,6 +11,7 @@ async function testFetchTickers(exchange, skippedProperties, symbol) {
     // const withoutSymbol = testFetchTickersHelper (exchange, skippedProperties, undefined);
     // const withSymbol = testFetchTickersHelper (exchange, skippedProperties, [ symbol ]);
     await Promise.all([testFetchTickersHelper(exchange, skippedProperties, undefined), testFetchTickersHelper(exchange, skippedProperties, [symbol])]);
+    return true;
 }
 async function testFetchTickersHelper(exchange, skippedProperties, argSymbols, argParams = {}) {
     const method = 'fetchTickers';
@@ -27,5 +28,6 @@ async function testFetchTickersHelper(exchange, skippedProperties, argSymbols, a
         const ticker = values[i];
         testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
     }
+    return true;
 }
 export default testFetchTickers;

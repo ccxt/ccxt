@@ -30,7 +30,7 @@ public partial class cryptocom
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://exchange-docs.crypto.com/spot/index.html#public-get-ticker"/>  <br/>
+    /// See <see href="https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-tickers"/>  <br/>
     /// See <see href="https://exchange-docs.crypto.com/derivatives/index.html#public-get-tickers"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -309,9 +309,9 @@ public partial class cryptocom
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stopPrice</term>
+    /// <term>params.triggerPrice</term>
     /// <description>
-    /// float : price to trigger a stop order
+    /// float : price to trigger a trigger order
     /// </description>
     /// </item>
     /// <item>
@@ -342,6 +342,12 @@ public partial class cryptocom
     /// See <see href="https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order-list-list"/>  <br/>
     /// See <see href="https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order-list-oco"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -557,15 +563,16 @@ public partial class cryptocom
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by the network.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositAddressesByNetwork(string code, Dictionary<string, object> parameters = null)
+    public async Task<List<DepositAddress>> FetchDepositAddressesByNetwork(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddressesByNetwork(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new DepositAddress(item)).ToList<DepositAddress>();
     }
     /// <summary>
     /// fetch the deposit address for a currency associated with this account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-address"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -576,10 +583,10 @@ public partial class cryptocom
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
+    public async Task<DepositAddress> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddress(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositAddress(res);
     }
     /// <summary>
     /// fetch all deposits made to an account
@@ -688,6 +695,12 @@ public partial class cryptocom
     /// See <see href="https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-transactions"/>  <br/>
     /// <list type="table">
     /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>since</term>
     /// <description>
     /// int : timestamp in ms of the earliest ledger entry
@@ -713,13 +726,13 @@ public partial class cryptocom
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}.</returns>
+    public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchLedger(code, since, limit, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new LedgerEntry(item)).ToList<LedgerEntry>();
     }
     /// <summary>
     /// fetch all the accounts associated with a profile
@@ -866,5 +879,45 @@ public partial class cryptocom
     {
         var res = await this.fetchPositions(symbols, parameters);
         return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
+    }
+    /// <summary>
+    /// fetch the trading fees for a market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-instrument-fee-rate"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}.</returns>
+    public async Task<TradingFeeInterface> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTradingFee(symbol, parameters);
+        return new TradingFeeInterface(res);
+    }
+    /// <summary>
+    /// fetch the trading fees for multiple markets
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-fee-rate"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols.</returns>
+    public async Task<TradingFees> FetchTradingFees(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTradingFees(parameters);
+        return new TradingFees(res);
     }
 }

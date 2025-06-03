@@ -3,6 +3,224 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "withdraw": [
+            {
+                "description": "withdraw USDT on ERC20",
+                "method": "withdraw",
+                "input": [
+                    "USDT",
+                    10,
+                    "0x0000000000000000000000000000000000000000",
+                    null,
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "httpResponse": {
+                    "withdraw_id": "25052918110800327",
+                    "success": true
+                },
+                "parsedResponse": {
+                    "info": {
+                        "withdraw_id": "25052918110800327",
+                        "success": true
+                    },
+                    "id": "25052918110800327",
+                    "txid": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "address": null,
+                    "addressFrom": null,
+                    "addressTo": null,
+                    "tag": null,
+                    "tagFrom": null,
+                    "tagTo": null,
+                    "type": null,
+                    "amount": null,
+                    "currency": "USDT",
+                    "status": null,
+                    "updated": null,
+                    "comment": null,
+                    "internal": null,
+                    "fee": null,
+                    "network": null
+                }
+            },
+            {
+                "description": "withdraw USDT on ETH",
+                "method": "withdraw",
+                "input": [
+                    "USDT",
+                    10,
+                    "0x0000000000000000000000000000000000000000",
+                    null,
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "httpResponse": {
+                    "withdraw_id": "25052917354800318",
+                    "success": true
+                },
+                "parsedResponse": {
+                    "info": {
+                        "withdraw_id": "25052917354800318",
+                        "success": true
+                    },
+                    "id": "25052917354800318",
+                    "txid": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "address": null,
+                    "addressFrom": null,
+                    "addressTo": null,
+                    "tag": null,
+                    "tagFrom": null,
+                    "tagTo": null,
+                    "type": null,
+                    "amount": null,
+                    "currency": "USDT",
+                    "status": null,
+                    "updated": null,
+                    "comment": null,
+                    "internal": null,
+                    "fee": null,
+                    "network": null
+                }
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "fetchDepositAddress USDT on ETH",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "address": "0x841e314BB4E4D41392E27B4b04634B5bE73366Da",
+                    "extra": ""
+                },
+                "parsedResponse": {
+                    "info": {
+                        "success": true,
+                        "address": "0x841e314BB4E4D41392E27B4b04634B5bE73366Da",
+                        "extra": ""
+                    },
+                    "currency": "USDT",
+                    "network": null,
+                    "address": "0x841e314BB4E4D41392E27B4b04634B5bE73366Da",
+                    "tag": null
+                }
+            },
+            {
+                "description": "fetchDepositAddress USDT on ERC20",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ERC20"
+                    }
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "address": "0x841e314BB4E4D41392E27B4b04634B5bE73366Da",
+                    "extra": ""
+                },
+                "parsedResponse": {
+                    "info": {
+                        "success": true,
+                        "address": "0x841e314BB4E4D41392E27B4b04634B5bE73366Da",
+                        "extra": ""
+                    },
+                    "currency": "USDT",
+                    "network": null,
+                    "address": "0x841e314BB4E4D41392E27B4b04634B5bE73366Da",
+                    "tag": null
+                }
+            },
+            {
+                "description": "fetchDepositAddress ETH on ERC20",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "ETH",
+                    {
+                        "network": "ERC20"
+                    }
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "address": "0x841e314BB4E4D41392E27B4b04634B5bE73366Da",
+                    "extra": ""
+                },
+                "parsedResponse": {
+                    "info": {
+                        "success": true,
+                        "address": "0x841e314BB4E4D41392E27B4b04634B5bE73366Da",
+                        "extra": ""
+                    },
+                    "currency": "ETH",
+                    "network": null,
+                    "address": "0x841e314BB4E4D41392E27B4b04634B5bE73366Da",
+                    "tag": null
+                }
+            },
+            {
+                "description": "fetchDepositAddress ETH on ETH",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "ETH",
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "address": "0x841e314BB4E4D41392E27B4b04634B5bE73366Da",
+                    "extra": ""
+                },
+                "parsedResponse": {
+                    "info": {
+                        "success": true,
+                        "address": "0x841e314BB4E4D41392E27B4b04634B5bE73366Da",
+                        "extra": ""
+                    },
+                    "currency": "ETH",
+                    "network": null,
+                    "address": "0x841e314BB4E4D41392E27B4b04634B5bE73366Da",
+                    "tag": null
+                }
+            },
+            {
+                "description": "fetchDepositAddress BTC on BTC",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "BTC",
+                    {
+                        "network": "BTC"
+                    }
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "address": "1MNS1epZFL1tgzXQB3ZJkkYDF5sqEcJAcw",
+                    "extra": ""
+                },
+                "parsedResponse": {
+                    "info": {
+                        "success": true,
+                        "address": "1MNS1epZFL1tgzXQB3ZJkkYDF5sqEcJAcw",
+                        "extra": ""
+                    },
+                    "currency": "BTC",
+                    "network": null,
+                    "address": "1MNS1epZFL1tgzXQB3ZJkkYDF5sqEcJAcw",
+                    "tag": null
+                }
+            }
+        ],
         "fetchMyTrades": [
             {
                 "description": "Spot trades",
@@ -145,7 +363,7 @@
                         "cost": 7.08137472,
                         "trades": [],
                         "fee": {
-                            "cost": "0.00354069",
+                            "cost": 0.00354069,
                             "currency": "USDT"
                         },
                         "info": {
@@ -248,7 +466,7 @@
                     "cost": 7.661,
                     "trades": [],
                     "fee": {
-                      "cost": "0.0038305",
+                      "cost": 0.0038305,
                       "currency": "USDT"
                     },
                     "info": {
@@ -875,7 +1093,7 @@
                     }
                   ],
                   "fee": {
-                    "cost": "0.00354069",
+                    "cost": 0.00354069,
                     "currency": "USDT"
                   },
                   "info": {
@@ -1032,7 +1250,7 @@
                     }
                   ],
                   "fee": {
-                    "cost": "0.0001",
+                    "cost": 0.0001,
                     "currency": "LTC"
                   },
                   "info": {

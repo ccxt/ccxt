@@ -23,6 +23,12 @@ function test_safe_methods() {
         ),
         'str' => 'heLlo',
         'strNumber' => '3',
+        'zeroNumeric' => 0,
+        'zeroString' => '0',
+        'undefined' => null,
+        'emptyString' => '',
+        'floatNumeric' => 0.123,
+        'floatString' => '0.123',
     );
     $input_list = ['Hi', 2];
     $compare_dict = array(
@@ -71,6 +77,7 @@ function test_safe_methods() {
     assert(equals($dict_object, $compare_dict));
     $list_object = $exchange->safe_dict_2($input_dict, 'a', 'list');
     assert($list_object === null);
+    // @ts-expect-error
     assert($exchange->safe_dict_2($input_list, 2, 1) === null);
     // safeDictN
     $dict_object = $exchange->safe_dict_n($input_dict, ['a', 'b', 'dict']);
@@ -87,6 +94,7 @@ function test_safe_methods() {
     $list_object = $exchange->safe_list_2($input_dict, 'a', 'list');
     assert(equals($dict_object, $compare_dict));
     assert($exchange->safe_list_2($input_dict, 'a', 'dict') === null);
+    // @ts-expect-error
     assert($exchange->safe_list_2($input_list, 2, 1) === null);
     // safeListN
     $list_object = $exchange->safe_list_n($input_dict, ['a', 'b', 'list']);
@@ -199,25 +207,38 @@ function test_safe_methods() {
     assert($exchange->safe_timestamp_n($input_dict, ['a', 'b', 'strNumber']) === 3000);
     assert($exchange->safe_timestamp_n($input_list, [3, 2, 1]) === 2000);
     // safeFloat
+    // @ts-expect-error
     assert($exchange->safe_float($input_dict, 'i') === floatval(1));
     assert($exchange->safe_float($input_dict, 'f') === 0.123);
+    // @ts-expect-error
     assert($exchange->safe_float($input_dict, 'strNumber') === floatval(3));
+    // @ts-expect-error
     assert($exchange->safe_float($input_list, 1) === floatval(2));
     // safeFloat2
+    // @ts-expect-error
     assert($exchange->safe_float_2($input_dict, 'a', 'i') === floatval(1));
     assert($exchange->safe_float_2($input_dict, 'a', 'f') === 0.123);
+    // @ts-expect-error
     assert($exchange->safe_float_2($input_dict, 'a', 'strNumber') === floatval(3));
+    // @ts-expect-error
     assert($exchange->safe_float_2($input_list, 2, 1) === floatval(2));
     // safeFloatN
+    // @ts-expect-error
     assert($exchange->safe_float_n($input_dict, ['a', 'b', 'i']) === floatval(1));
     assert($exchange->safe_float_n($input_dict, ['a', 'b', 'f']) === 0.123);
+    // @ts-expect-error
     assert($exchange->safe_float_n($input_dict, ['a', 'b', 'strNumber']) === floatval(3));
+    // @ts-expect-error
     assert($exchange->safe_float_n($input_list, [3, 2, 1]) === floatval(2));
     // safeNumber
     assert($exchange->safe_number($input_dict, 'i') === $exchange->parse_number(1));
     assert($exchange->safe_number($input_dict, 'f') === $exchange->parse_number(0.123));
     assert($exchange->safe_number($input_dict, 'strNumber') === $exchange->parse_number(3));
     assert($exchange->safe_number($input_list, 1) === $exchange->parse_number(2));
+    assert($exchange->safe_number($input_list, 'bool') === null);
+    assert($exchange->safe_number($input_list, 'list') === null);
+    assert($exchange->safe_number($input_list, 'dict') === null);
+    assert($exchange->safe_number($input_list, 'str') === null);
     // safeNumber2
     assert($exchange->safe_number_2($input_dict, 'a', 'i') === $exchange->parse_number(1));
     assert($exchange->safe_number_2($input_dict, 'a', 'f') === $exchange->parse_number(0.123));
@@ -237,4 +258,11 @@ function test_safe_methods() {
     // safeBoolN
     assert($exchange->safe_bool_n($input_dict, ['a', 'b', 'bool']) === true);
     assert($exchange->safe_bool_n($input_list, [3, 2, 1]) === null);
+    // safeNumberOmitZero
+    assert($exchange->safe_number_omit_zero($input_dict, 'zeroNumeric') === null);
+    assert($exchange->safe_number_omit_zero($input_dict, 'zeroString') === null);
+    assert($exchange->safe_number_omit_zero($input_dict, 'undefined') === null);
+    assert($exchange->safe_number_omit_zero($input_dict, 'emptyString') === null);
+    assert($exchange->safe_number_omit_zero($input_dict, 'floatNumeric') !== null);
+    assert($exchange->safe_number_omit_zero($input_dict, 'floatString') !== null);
 }

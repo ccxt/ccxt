@@ -10,12 +10,12 @@ use ccxt\async\abstract\latoken as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class latoken extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'latoken',
             'name' => 'Latoken',
@@ -49,6 +49,12 @@ class latoken extends Exchange {
                 'fetchDepositAddressesByNetwork' => false,
                 'fetchDepositsWithdrawals' => true,
                 'fetchDepositWithdrawFees' => false,
+                'fetchFundingHistory' => false,
+                'fetchFundingInterval' => false,
+                'fetchFundingIntervals' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
                 'fetchMarginMode' => false,
@@ -231,6 +237,74 @@ class latoken extends Exchange {
                     'method' => 'fetchPrivateTradingFee', // or 'fetchPublicTradingFee'
                 ),
             ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true, // todo => for non-trigger orders
+                            'FOK' => true,
+                            'PO' => false,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'selfTradePrevention' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => 100000, // todo
+                        'untilDays' => null,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => true,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => 100000, // todo
+                        'daysBackCanceled' => 1,
+                        'untilDays' => null,
+                        'trigger' => true,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOHLCV' => null,
+                ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
         ));
     }
 
@@ -238,11 +312,13 @@ class latoken extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
+             *
              * @see https://api.latoken.com/doc/v2/#tag/Time/operation/currentTime
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int} the current integer timestamp in milliseconds from the exchange server
              */
@@ -260,7 +336,9 @@ class latoken extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for latoken
+             *
              * @see https://api.latoken.com/doc/v2/#tag/Pair/operation/getActivePairs
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing $market data
              */
@@ -501,7 +579,9 @@ class latoken extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * query for $balance and get the amount of funds available for trading or funds locked in orders
+             *
              * @see https://api.latoken.com/doc/v2/#tag/Account/operation/getBalancesByUser
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=$balance-structure $balance structure~
              */
@@ -568,7 +648,9 @@ class latoken extends Exchange {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
              * @see https://api.latoken.com/doc/v2/#tag/Order-Book/operation/getOrderBook
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -656,7 +738,9 @@ class latoken extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             *
              * @see https://api.latoken.com/doc/v2/#tag/Ticker/operation/getTicker
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -696,7 +780,9 @@ class latoken extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+             *
              * @see https://api.latoken.com/doc/v2/#tag/Ticker/operation/getAllTickers
+             *
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
@@ -819,7 +905,9 @@ class latoken extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
+             *
              * @see https://api.latoken.com/doc/v2/#tag/Trade/operation/getTradesByPair
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
@@ -853,8 +941,10 @@ class latoken extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the trading fees for a market
+             *
              * @see https://api.latoken.com/doc/v2/#tag/Trade/operation/getFeeByPair
              * @see https://api.latoken.com/doc/v2/#tag/Trade/operation/getAuthFeeByPair
+             *
              * @param {string} $symbol unified market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
@@ -933,8 +1023,10 @@ class latoken extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all trades made by the user
+             *
              * @see https://api.latoken.com/doc/v2/#tag/Trade/operation/getTradesByTrader
              * @see https://api.latoken.com/doc/v2/#tag/Trade/operation/getTradesByAssetAndTrader
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trades structures to retrieve
@@ -1089,7 +1181,6 @@ class latoken extends Exchange {
         }
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'condition'));
-        $triggerPrice = $this->safe_string($order, 'stopPrice');
         return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -1104,8 +1195,7 @@ class latoken extends Exchange {
             'postOnly' => null,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $triggerPrice,
-            'triggerPrice' => $triggerPrice,
+            'triggerPrice' => $this->safe_string($order, 'stopPrice'),
             'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
@@ -1120,8 +1210,10 @@ class latoken extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
+             *
              * @see https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrdersByPair
              * @see https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getMyActiveStopOrdersByPair  // stop
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of  open orders structures to retrieve
@@ -1177,10 +1269,12 @@ class latoken extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple orders made by the user
+             *
              * @see https://api.latoken.com/doc/v2/#tag/Order/operation/getMyOrders
              * @see https://api.latoken.com/doc/v2/#tag/Order/operation/getMyOrdersByPair
              * @see https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getMyStopOrders       // stop
              * @see https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getMyStopOrdersByPair // stop
+             *
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -1248,8 +1342,11 @@ class latoken extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
+             *
              * @see https://api.latoken.com/doc/v2/#tag/Order/operation/getOrderById
              * @see https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getStopOrderById
+             *
+             * @param {string} $id order $id
              * @param {string} [$symbol] not used by latoken fetchOrder
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->trigger] true if fetching a trigger order
@@ -1295,8 +1392,10 @@ class latoken extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             *
              * @see https://api.latoken.com/doc/v2/#tag/Order/operation/placeOrder
              * @see https://api.latoken.com/doc/v2/#tag/StopOrder/operation/placeStopOrder  // stop
+             *
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
@@ -1357,8 +1456,10 @@ class latoken extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
+             *
              * @see https://api.latoken.com/doc/v2/#tag/Order/operation/cancelOrder
              * @see https://api.latoken.com/doc/v2/#tag/StopOrder/operation/cancelStopOrder  // stop
+             *
              * @param {string} $id order $id
              * @param {string} $symbol not used by latoken cancelOrder ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1394,8 +1495,10 @@ class latoken extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders in a $market
+             *
              * @see https://api.latoken.com/doc/v2/#tag/Order/operation/cancelAllOrders
              * @see https://api.latoken.com/doc/v2/#tag/Order/operation/cancelAllOrdersByPair
+             *
              * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->trigger] true if cancelling trigger orders
@@ -1445,7 +1548,9 @@ class latoken extends Exchange {
             /**
              * @deprecated
              * use fetchDepositsWithdrawals instead
+             *
              * @see https://api.latoken.com/doc/v2/#tag/Transaction/operation/getUserTransactions
+             *
              * @param {string} $code unified $currency $code for the $currency of the transactions, default is null
              * @param {int} [$since] timestamp in ms of the earliest transaction, default is null
              * @param {int} [$limit] max number of transactions to return, default is null
@@ -1561,6 +1666,7 @@ class latoken extends Exchange {
         $statuses = array(
             'TRANSACTION_STATUS_CONFIRMED' => 'ok',
             'TRANSACTION_STATUS_EXECUTED' => 'ok',
+            'TRANSACTION_STATUS_CHECKING' => 'pending',
             'TRANSACTION_STATUS_CANCELLED' => 'canceled',
         );
         return $this->safe_string($statuses, $status, $status);
@@ -1578,7 +1684,9 @@ class latoken extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch a history of internal $transfers made on an account
+             *
              * @see https://api.latoken.com/doc/v2/#tag/Transfer/operation/getUsersTransfers
+             *
              * @param {string} $code unified $currency $code of the $currency transferred
              * @param {int} [$since] the earliest time in ms to fetch $transfers for
              * @param {int} [$limit] the maximum number of  $transfers structures to retrieve
@@ -1628,9 +1736,11 @@ class latoken extends Exchange {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account
+             *
              * @see https://api.latoken.com/doc/v2/#tag/Transfer/operation/transferByEmail
              * @see https://api.latoken.com/doc/v2/#tag/Transfer/operation/transferById
              * @see https://api.latoken.com/doc/v2/#tag/Transfer/operation/transferByPhone
+             *
              * @param {string} $code unified $currency $code
              * @param {float} $amount amount to transfer
              * @param {string} $fromAccount account to transfer from

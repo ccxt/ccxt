@@ -7,13 +7,14 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task testFetchTickers(Exchange exchange, object skippedProperties, object symbol)
+    async static public Task<object> testFetchTickers(Exchange exchange, object skippedProperties, object symbol)
     {
         // const withoutSymbol = testFetchTickersHelper (exchange, skippedProperties, undefined);
         // const withSymbol = testFetchTickersHelper (exchange, skippedProperties, [ symbol ]);
         await promiseAll(new List<object> {testFetchTickersHelper(exchange, skippedProperties, null), testFetchTickersHelper(exchange, skippedProperties, new List<object>() {symbol})});
+        return true;
     }
-    async static public Task testFetchTickersHelper(Exchange exchange, object skippedProperties, object argSymbols, object argParams = null)
+    async static public Task<object> testFetchTickersHelper(Exchange exchange, object skippedProperties, object argSymbols, object argParams = null)
     {
         argParams ??= new Dictionary<string, object>();
         object method = "fetchTickers";
@@ -32,6 +33,7 @@ public partial class testMainClass : BaseTest
             object ticker = getValue(values, i);
             testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
         }
+        return true;
     }
 
 }

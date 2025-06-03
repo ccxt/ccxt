@@ -13,6 +13,7 @@ async function testFetchOrders (exchange: Exchange, skippedProperties: object, s
         testOrder (exchange, skippedProperties, method, orders[i], symbol, now);
     }
     testSharedMethods.assertTimestampOrder (exchange, method, symbol, orders);
+    return true;
 }
 
 export default testFetchOrders;

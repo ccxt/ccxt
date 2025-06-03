@@ -9,7 +9,7 @@ use Exception; // a common import
 
 class bitpanda extends \ccxt\pro\onetrading {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'alias' => true,
             'id' => 'bitpanda',

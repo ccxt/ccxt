@@ -1,6 +1,6 @@
 "use strict";
 
-const ccxt = require ('../../ccxt.js')
+const ccxt = require ('../../js/ccxt.js')
 
 console.log ('CCXT Version:', ccxt.version)
 

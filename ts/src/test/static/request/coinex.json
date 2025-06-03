@@ -6,7 +6,7 @@
         "tonce",
         "client_id"
     ],
-    "outputType": "urlencoded",
+    "outputType": "both",
     "methods": {
         "fetchMyTrades": [
             {
@@ -295,18 +295,19 @@
             }
         ],
         "transfer": [
-            {
-                "description": "Transfer from swap to spot",
-                "method": "transfer",
-                "url": "https://api.coinex.com/v2/assets/transfer",
-                "input": [
-                  "USDT",
-                  10,
-                  "swap",
-                  "spot"
-                ],
-                "output": "{\"amount\":\"10\",\"ccy\":\"USDT\",\"from_account_type\":\"FUTURES\",\"to_account_type\":\"SPOT\"}"
-            }
+          {
+            "description": "Transfer from swap to spot",
+            "method": "transfer",
+            "disabledGO": true,
+            "url": "https://api.coinex.com/v2/assets/transfer",
+            "input": [
+              "USDT",
+              10,
+              "swap",
+              "spot"
+            ],
+            "output": "{\"amount\":\"10\",\"ccy\":\"USDT\",\"from_account_type\":\"FUTURES\",\"to_account_type\":\"SPOT\"}"
+        }
         ],
         "createOrder": [
             {
@@ -727,6 +728,18 @@
             }
         ],
         "cancelOrders": [
+            {
+                "description": "cancelOrders spot",
+                "method": "cancelOrders",
+                "url": "https://api.coinex.com/v2/spot/cancel-batch-order",
+                "input": [
+                    [
+                        "133207122417"
+                    ],
+                    "LTC/USDT"
+                ],
+                "output": "{\"market\":\"LTCUSDT\",\"order_ids\":[133207122417]}"
+            },
             {
                 "description": "Cancel multiple spot orders at once",
                 "method": "cancelOrders",
@@ -1288,7 +1301,31 @@
             ]
         }
      ],
+    "fetchFundingInterval": [
+      {
+        "description": "linear swap fetch the funding interval",
+        "method": "fetchFundingInterval",
+        "url": "https://api.coinex.com/v2/futures/funding-rate?market=BTCUSDT",
+        "input": [
+          "BTC/USDT:USDT"
+        ]
+      }
+     ],
      "withdraw": [
+            {
+                "description": "with network",
+                "method": "withdraw",
+                "url": "https://api.coinex.com/v2/assets/withdraw",
+                "input": [
+                    "TRUMP",
+                    1.863679444,
+                    "Ec59AaXM8qMmZo2j5qaKytKMcvvixekypQ85ZF5ASR4A",
+                    {
+                        "network": "SOL"
+                    }
+                ],
+                "output": "{\"amount\":\"1.863679\",\"ccy\":\"TRUMP\",\"chain\":\"SOL\",\"to_address\":\"Ec59AaXM8qMmZo2j5qaKytKMcvvixekypQ85ZF5ASR4A\"}"
+            },
         {
           "description": "Withdraw USDT on the TRC20 chain",
           "method": "withdraw",
@@ -1299,10 +1336,25 @@
             "TY5vq3MT6b5cQVAHWHtpGyPg1ERcQgi3UN",
             null,
             {
-              "network": "TRX"
+              "network": "TRC20"
             }
           ],
           "output": "{\"amount\":\"15\",\"ccy\":\"USDT\",\"chain\":\"TRC20\",\"to_address\":\"TY5vq3MT6b5cQVAHWHtpGyPg1ERcQgi3UN\"}"
+        }
+      ],
+      "closePosition": [
+        {
+          "description": "swap close a position",
+          "method": "closePosition",
+          "url": "https://api.coinex.com/v2/futures/close-position",
+          "input": [
+            "BTC/USDT:USDT",
+            null,
+            {
+              "type": "market"
+            }
+          ],
+          "output": "{\"market\":\"BTCUSDT\",\"market_type\":\"FUTURES\",\"type\":\"market\"}"
         }
       ]
     },

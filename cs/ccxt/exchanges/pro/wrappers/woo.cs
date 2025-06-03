@@ -10,8 +10,8 @@ public partial class woo
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#orderbookupdate"/>  <br/>
-    /// See <see href="https://docs.woo.org/#orderbook"/>  <br/>
+    /// See <see href="https://docs.woox.io/#orderbookupdate"/>  <br/>
+    /// See <see href="https://docs.woox.io/#orderbook"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -63,7 +63,7 @@ public partial class woo
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#24h-tickers"/>  <br/>
+    /// See <see href="https://docs.woox.io/#24h-tickers"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -80,10 +80,30 @@ public partial class woo
         return new Tickers(res);
     }
     /// <summary>
+    /// watches best bid & ask for symbols
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.woox.io/#bbos"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    public async Task<Tickers> WatchBidsAsks(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchBidsAsks(symbols, parameters);
+        return new Tickers(res);
+    }
+    /// <summary>
     /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#k-line"/>  <br/>
+    /// See <see href="https://docs.woox.io/#k-line"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -117,7 +137,7 @@ public partial class woo
     /// watches information on multiple trades made in a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#trade"/>  <br/>
+    /// See <see href="https://docs.woox.io/#trade"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -156,8 +176,8 @@ public partial class woo
     /// watches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#executionreport"/>  <br/>
-    /// See <see href="https://docs.woo.org/#algoexecutionreportv2"/>  <br/>
+    /// See <see href="https://docs.woox.io/#executionreport"/>  <br/>
+    /// See <see href="https://docs.woox.io/#algoexecutionreportv2"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -197,8 +217,8 @@ public partial class woo
     /// watches information on multiple trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#executionreport"/>  <br/>
-    /// See <see href="https://docs.woo.org/#algoexecutionreportv2"/>  <br/>
+    /// See <see href="https://docs.woox.io/#executionreport"/>  <br/>
+    /// See <see href="https://docs.woox.io/#algoexecutionreportv2"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -238,7 +258,7 @@ public partial class woo
     /// watch all open positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#position-push"/>  <br/>
+    /// See <see href="https://docs.woox.io/#position-push"/>  <br/>
     /// <list type="table">
     /// </list>
     /// </remarks>
@@ -254,7 +274,7 @@ public partial class woo
     /// watch balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#balance"/>  <br/>
+    /// See <see href="https://docs.woox.io/#balance"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

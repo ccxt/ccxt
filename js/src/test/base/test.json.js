@@ -4,8 +4,8 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-// @ts-nocheck
 // AUTO_TRANSPILE_ENABLED
+// todo: per https://github.com/ttodua/ccxt/blob/17fc70fd7ccd8f6f5357e2dbd08aa30a1df0948b/ts/src/test/base/test.json.ts#L1
 import assert from 'assert';
 import ccxt, { BadRequest } from '../../../ccxt.js';
 function testJson() {
@@ -20,6 +20,7 @@ function testJson() {
     const list = [1, 2];
     const listJson = exchange.json(list);
     assert(listJson === "[1,2]");
+    assert('GO_SKIP_START');
     // Test: can serialize errors
     try {
         throw new BadRequest("some error");
@@ -28,6 +29,7 @@ function testJson() {
         const errString = exchange.json(e);
         assert(errString === "{\"name\":\"BadRequest\"}");
     }
+    assert('GO_SKIP_END');
     // Test: json a string
     const str = "ccxt, rocks!";
     const serializedString = exchange.json(str);

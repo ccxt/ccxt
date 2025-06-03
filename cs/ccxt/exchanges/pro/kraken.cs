@@ -20,6 +20,7 @@ public partial class kraken : ccxt.kraken
                 { "watchOrders", true },
                 { "watchTicker", true },
                 { "watchTickers", true },
+                { "watchBidsAsks", true },
                 { "watchTrades", true },
                 { "watchTradesForSymbols", true },
                 { "createOrderWs", true },
@@ -104,38 +105,230 @@ public partial class kraken : ccxt.kraken
         });
     }
 
+    public virtual object orderRequestWs(object method, object symbol, object type, object request, object amount, object price = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object isLimitOrder = ((string)type).EndsWith(((string)"limit")); // supporting limit, stop-loss-limit, take-profit-limit, etc
+        if (isTrue(isLimitOrder))
+        {
+            if (isTrue(isEqual(price, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " limit orders require a price argument")) ;
+            }
+            ((IDictionary<string,object>)getValue(request, "params"))["limit_price"] = this.parseToNumeric(this.priceToPrecision(symbol, price));
+        }
+        object isMarket = (isEqual(type, "market"));
+        object postOnly = null;
+        var postOnlyparametersVariable = this.handlePostOnly(isMarket, false, parameters);
+        postOnly = ((IList<object>)postOnlyparametersVariable)[0];
+        parameters = ((IList<object>)postOnlyparametersVariable)[1];
+        if (isTrue(postOnly))
+        {
+            ((IDictionary<string,object>)getValue(request, "params"))["post_only"] = true;
+        }
+        object clientOrderId = this.safeString(parameters, "clientOrderId");
+        if (isTrue(!isEqual(clientOrderId, null)))
+        {
+            ((IDictionary<string,object>)getValue(request, "params"))["cl_ord_id"] = clientOrderId;
+        }
+        object cost = this.safeString(parameters, "cost");
+        if (isTrue(!isEqual(cost, null)))
+        {
+            ((IDictionary<string,object>)getValue(request, "params"))["order_qty"] = this.parseToNumeric(this.costToPrecision(symbol, cost));
+        }
+        object stopLoss = this.safeDict(parameters, "stopLoss", new Dictionary<string, object>() {});
+        object takeProfit = this.safeDict(parameters, "takeProfit", new Dictionary<string, object>() {});
+        object presetStopLoss = this.safeString(stopLoss, "triggerPrice");
+        object presetTakeProfit = this.safeString(takeProfit, "triggerPrice");
+        object presetStopLossLimit = this.safeString(stopLoss, "price");
+        object presetTakeProfitLimit = this.safeString(takeProfit, "price");
+        object isPresetStopLoss = !isEqual(presetStopLoss, null);
+        object isPresetTakeProfit = !isEqual(presetTakeProfit, null);
+        object stopLossPrice = this.safeString(parameters, "stopLossPrice");
+        object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
+        object isStopLossPriceOrder = !isEqual(stopLossPrice, null);
+        object isTakeProfitPriceOrder = !isEqual(takeProfitPrice, null);
+        object trailingAmount = this.safeString(parameters, "trailingAmount");
+        object trailingPercent = this.safeString(parameters, "trailingPercent");
+        object trailingLimitAmount = this.safeString(parameters, "trailingLimitAmount");
+        object trailingLimitPercent = this.safeString(parameters, "trailingLimitPercent");
+        object isTrailingAmountOrder = !isEqual(trailingAmount, null);
+        object isTrailingPercentOrder = !isEqual(trailingPercent, null);
+        object isTrailingLimitAmountOrder = !isEqual(trailingLimitAmount, null);
+        object isTrailingLimitPercentOrder = !isEqual(trailingLimitPercent, null);
+        object offset = this.safeString(parameters, "offset", ""); // can set this to - for minus
+        object trailingAmountString = ((bool) isTrue((!isEqual(trailingAmount, null)))) ? add(offset, this.numberToString(trailingAmount)) : null;
+        object trailingPercentString = ((bool) isTrue((!isEqual(trailingPercent, null)))) ? add(offset, this.numberToString(trailingPercent)) : null;
+        object trailingLimitAmountString = ((bool) isTrue((!isEqual(trailingLimitAmount, null)))) ? add(offset, this.numberToString(trailingLimitAmount)) : null;
+        object trailingLimitPercentString = ((bool) isTrue((!isEqual(trailingLimitPercent, null)))) ? add(offset, this.numberToString(trailingLimitPercent)) : null;
+        object priceType = ((bool) isTrue((isTrue(isTrailingPercentOrder) || isTrue(isTrailingLimitPercentOrder)))) ? "pct" : "quote";
+        if (isTrue(isEqual(method, "createOrderWs")))
+        {
+            object reduceOnly = this.safeBool(parameters, "reduceOnly");
+            if (isTrue(reduceOnly))
+            {
+                ((IDictionary<string,object>)getValue(request, "params"))["reduce_only"] = true;
+            }
+            object timeInForce = this.safeStringLower(parameters, "timeInForce");
+            if (isTrue(!isEqual(timeInForce, null)))
+            {
+                ((IDictionary<string,object>)getValue(request, "params"))["time_in_force"] = timeInForce;
+            }
+            parameters = this.omit(parameters, new List<object>() {"reduceOnly", "timeInForce"});
+            if (isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isStopLossPriceOrder) || isTrue(isTakeProfitPriceOrder)) || isTrue(isTrailingAmountOrder)) || isTrue(isTrailingPercentOrder)) || isTrue(isTrailingLimitAmountOrder)) || isTrue(isTrailingLimitPercentOrder)))
+            {
+                ((IDictionary<string,object>)getValue(request, "params"))["triggers"] = new Dictionary<string, object>() {};
+            }
+            if (isTrue(isTrue(isPresetStopLoss) || isTrue(isPresetTakeProfit)))
+            {
+                ((IDictionary<string,object>)getValue(request, "params"))["conditional"] = new Dictionary<string, object>() {};
+                if (isTrue(isPresetStopLoss))
+                {
+                    ((IDictionary<string,object>)getValue(getValue(request, "params"), "conditional"))["order_type"] = "stop-loss";
+                    ((IDictionary<string,object>)getValue(getValue(request, "params"), "conditional"))["trigger_price"] = this.parseToNumeric(this.priceToPrecision(symbol, presetStopLoss));
+                } else if (isTrue(isPresetTakeProfit))
+                {
+                    ((IDictionary<string,object>)getValue(getValue(request, "params"), "conditional"))["order_type"] = "take-profit";
+                    ((IDictionary<string,object>)getValue(getValue(request, "params"), "conditional"))["trigger_price"] = this.parseToNumeric(this.priceToPrecision(symbol, presetTakeProfit));
+                }
+                if (isTrue(!isEqual(presetStopLossLimit, null)))
+                {
+                    ((IDictionary<string,object>)getValue(getValue(request, "params"), "conditional"))["order_type"] = "stop-loss-limit";
+                    ((IDictionary<string,object>)getValue(getValue(request, "params"), "conditional"))["limit_price"] = this.parseToNumeric(this.priceToPrecision(symbol, presetStopLossLimit));
+                } else if (isTrue(!isEqual(presetTakeProfitLimit, null)))
+                {
+                    ((IDictionary<string,object>)getValue(getValue(request, "params"), "conditional"))["order_type"] = "take-profit-limit";
+                    ((IDictionary<string,object>)getValue(getValue(request, "params"), "conditional"))["limit_price"] = this.parseToNumeric(this.priceToPrecision(symbol, presetTakeProfitLimit));
+                }
+                parameters = this.omit(parameters, new List<object>() {"stopLoss", "takeProfit"});
+            } else if (isTrue(isTrue(isStopLossPriceOrder) || isTrue(isTakeProfitPriceOrder)))
+            {
+                if (isTrue(isStopLossPriceOrder))
+                {
+                    ((IDictionary<string,object>)getValue(getValue(request, "params"), "triggers"))["price"] = this.parseToNumeric(this.priceToPrecision(symbol, stopLossPrice));
+                    if (isTrue(isLimitOrder))
+                    {
+                        ((IDictionary<string,object>)getValue(request, "params"))["order_type"] = "stop-loss-limit";
+                    } else
+                    {
+                        ((IDictionary<string,object>)getValue(request, "params"))["order_type"] = "stop-loss";
+                    }
+                } else
+                {
+                    ((IDictionary<string,object>)getValue(getValue(request, "params"), "triggers"))["price"] = this.parseToNumeric(this.priceToPrecision(symbol, takeProfitPrice));
+                    if (isTrue(isLimitOrder))
+                    {
+                        ((IDictionary<string,object>)getValue(request, "params"))["order_type"] = "take-profit-limit";
+                    } else
+                    {
+                        ((IDictionary<string,object>)getValue(request, "params"))["order_type"] = "take-profit";
+                    }
+                }
+            } else if (isTrue(isTrue(isTrue(isTrue(isTrailingAmountOrder) || isTrue(isTrailingPercentOrder)) || isTrue(isTrailingLimitAmountOrder)) || isTrue(isTrailingLimitPercentOrder)))
+            {
+                ((IDictionary<string,object>)getValue(getValue(request, "params"), "triggers"))["price_type"] = priceType;
+                if (isTrue(!isTrue(isLimitOrder) && isTrue((isTrue(isTrailingAmountOrder) || isTrue(isTrailingPercentOrder)))))
+                {
+                    ((IDictionary<string,object>)getValue(request, "params"))["order_type"] = "trailing-stop";
+                    if (isTrue(isTrailingAmountOrder))
+                    {
+                        ((IDictionary<string,object>)getValue(getValue(request, "params"), "triggers"))["price"] = this.parseToNumeric(trailingAmountString);
+                    } else
+                    {
+                        ((IDictionary<string,object>)getValue(getValue(request, "params"), "triggers"))["price"] = this.parseToNumeric(trailingPercentString);
+                    }
+                } else
+                {
+                    // trailing limit orders are not conventionally supported because the static limit_price_type param is not available for trailing-stop-limit orders
+                    ((IDictionary<string,object>)getValue(request, "params"))["limit_price_type"] = priceType;
+                    ((IDictionary<string,object>)getValue(request, "params"))["order_type"] = "trailing-stop-limit";
+                    if (isTrue(isTrailingLimitAmountOrder))
+                    {
+                        ((IDictionary<string,object>)getValue(getValue(request, "params"), "triggers"))["price"] = this.parseToNumeric(trailingLimitAmountString);
+                    } else
+                    {
+                        ((IDictionary<string,object>)getValue(getValue(request, "params"), "triggers"))["price"] = this.parseToNumeric(trailingLimitPercentString);
+                    }
+                }
+            }
+        } else if (isTrue(isEqual(method, "editOrderWs")))
+        {
+            if (isTrue(isTrue(isPresetStopLoss) || isTrue(isPresetTakeProfit)))
+            {
+                throw new NotSupported ((string)add(this.id, " editing the stopLoss and takeProfit on existing orders is currently not supported")) ;
+            }
+            if (isTrue(isTrue(isStopLossPriceOrder) || isTrue(isTakeProfitPriceOrder)))
+            {
+                if (isTrue(isStopLossPriceOrder))
+                {
+                    ((IDictionary<string,object>)getValue(request, "params"))["trigger_price"] = this.parseToNumeric(this.priceToPrecision(symbol, stopLossPrice));
+                } else
+                {
+                    ((IDictionary<string,object>)getValue(request, "params"))["trigger_price"] = this.parseToNumeric(this.priceToPrecision(symbol, takeProfitPrice));
+                }
+            } else if (isTrue(isTrue(isTrue(isTrue(isTrailingAmountOrder) || isTrue(isTrailingPercentOrder)) || isTrue(isTrailingLimitAmountOrder)) || isTrue(isTrailingLimitPercentOrder)))
+            {
+                ((IDictionary<string,object>)getValue(request, "params"))["trigger_price_type"] = priceType;
+                if (isTrue(!isTrue(isLimitOrder) && isTrue((isTrue(isTrailingAmountOrder) || isTrue(isTrailingPercentOrder)))))
+                {
+                    if (isTrue(isTrailingAmountOrder))
+                    {
+                        ((IDictionary<string,object>)getValue(request, "params"))["trigger_price"] = this.parseToNumeric(trailingAmountString);
+                    } else
+                    {
+                        ((IDictionary<string,object>)getValue(request, "params"))["trigger_price"] = this.parseToNumeric(trailingPercentString);
+                    }
+                } else
+                {
+                    ((IDictionary<string,object>)getValue(request, "params"))["limit_price_type"] = priceType;
+                    if (isTrue(isTrailingLimitAmountOrder))
+                    {
+                        ((IDictionary<string,object>)getValue(request, "params"))["trigger_price"] = this.parseToNumeric(trailingLimitAmountString);
+                    } else
+                    {
+                        ((IDictionary<string,object>)getValue(request, "params"))["trigger_price"] = this.parseToNumeric(trailingLimitPercentString);
+                    }
+                }
+            }
+        }
+        parameters = this.omit(parameters, new List<object>() {"clientOrderId", "cost", "offset", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent"});
+        return new List<object>() {request, parameters};
+    }
+
+    /**
+     * @method
+     * @name kraken#createOrderWs
+     * @description create a trade order
+     * @see https://docs.kraken.com/api/docs/websocket-v2/add_order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kraken#createOrderWs
-        * @see https://docs.kraken.com/websockets/#message-addOrder
-        * @description create a trade order
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object token = await this.authenticate();
         object market = this.market(symbol);
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
+        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "privateV2");
         object requestId = this.requestId();
         object messageHash = requestId;
         object request = new Dictionary<string, object>() {
-            { "event", "addOrder" },
-            { "token", token },
-            { "reqid", requestId },
-            { "ordertype", type },
-            { "type", side },
-            { "pair", getValue(market, "wsId") },
-            { "volume", this.amountToPrecision(symbol, amount) },
+            { "method", "add_order" },
+            { "params", new Dictionary<string, object>() {
+                { "order_type", type },
+                { "side", side },
+                { "order_qty", this.parseToNumeric(this.amountToPrecision(symbol, amount)) },
+                { "symbol", getValue(market, "symbol") },
+                { "token", token },
+            } },
+            { "req_id", requestId },
         };
-        var requestparametersVariable = this.orderRequest("createOrderWs", symbol, type, request, amount, price, parameters);
+        var requestparametersVariable = this.orderRequestWs("createOrderWs", symbol, type, request, amount, price, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         return await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
@@ -145,120 +338,135 @@ public partial class kraken : ccxt.kraken
     {
         //
         //  createOrder
-        //    {
-        //        "descr": "sell 0.00010000 XBTUSDT @ market",
-        //        "event": "addOrderStatus",
-        //        "reqid": 1,
-        //        "status": "ok",
-        //        "txid": "OAVXZH-XIE54-JCYYDG"
-        //    }
-        //  editOrder
-        //    {
-        //        "descr": "order edited price = 9000.00000000",
-        //        "event": "editOrderStatus",
-        //        "originaltxid": "O65KZW-J4AW3-VFS74A",
-        //        "reqid": 3,
-        //        "status": "ok",
-        //        "txid": "OTI672-HJFAO-XOIPPK"
-        //    }
+        //     {
+        //         "method": "add_order",
+        //         "req_id": 1,
+        //         "result": {
+        //             "order_id": "OXM2QD-EALR2-YBAVEU"
+        //         },
+        //         "success": true,
+        //         "time_in": "2025-05-13T10:12:13.876173Z",
+        //         "time_out": "2025-05-13T10:12:13.890137Z"
+        //     }
         //
-        object order = this.parseOrder(message);
-        object messageHash = this.safeValue(message, "reqid");
+        //  editOrder
+        //     {
+        //         "method": "amend_order",
+        //         "req_id": 1,
+        //         "result": {
+        //             "amend_id": "TYDLSQ-OYNYU-3MNRER",
+        //             "order_id": "OGL7HR-SWFO4-NRQTHO"
+        //         },
+        //         "success": true,
+        //         "time_in": "2025-05-14T13:54:10.840342Z",
+        //         "time_out": "2025-05-14T13:54:10.855046Z"
+        //     }
+        //
+        object result = this.safeDict(message, "result", new Dictionary<string, object>() {});
+        object order = this.parseOrder(result);
+        object messageHash = this.safeValue2(message, "reqid", "req_id");
         callDynamically(client as WebSocketClient, "resolve", new object[] {order, messageHash});
     }
 
+    /**
+     * @method
+     * @name kraken#editOrderWs
+     * @description edit a trade order
+     * @see https://docs.kraken.com/api/docs/websocket-v2/amend_order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of the currency you want to trade in units of the base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> editOrderWs(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kraken#editOrderWs
-        * @description edit a trade order
-        * @see https://docs.kraken.com/websockets/#message-editOrder
-        * @param {string} id order id
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of the currency you want to trade in units of the base currency
-        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object token = await this.authenticate();
-        object market = this.market(symbol);
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
+        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "privateV2");
         object requestId = this.requestId();
         object messageHash = requestId;
         object request = new Dictionary<string, object>() {
-            { "event", "editOrder" },
-            { "token", token },
-            { "reqid", requestId },
-            { "orderid", id },
-            { "pair", getValue(market, "wsId") },
+            { "method", "amend_order" },
+            { "params", new Dictionary<string, object>() {
+                { "order_id", id },
+                { "order_qty", this.parseToNumeric(this.amountToPrecision(symbol, amount)) },
+                { "token", token },
+            } },
+            { "req_id", requestId },
         };
-        if (isTrue(!isEqual(amount, null)))
-        {
-            ((IDictionary<string,object>)request)["volume"] = this.amountToPrecision(symbol, amount);
-        }
-        var requestparametersVariable = this.orderRequest("editOrderWs", symbol, type, request, amount, price, parameters);
+        var requestparametersVariable = this.orderRequestWs("editOrderWs", symbol, type, request, amount, price, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         return await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
     }
 
+    /**
+     * @method
+     * @name kraken#cancelOrdersWs
+     * @see https://docs.kraken.com/api/docs/websocket-v1/cancelorder
+     * @description cancel multiple orders
+     * @param {string[]} ids order ids
+     * @param {string} [symbol] unified market symbol, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelOrdersWs(object ids, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kraken#cancelOrdersWs
-        * @see https://docs.kraken.com/websockets/#message-cancelOrder
-        * @description cancel multiple orders
-        * @param {string[]} ids order ids
-        * @param {string} symbol unified market symbol, default is undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            throw new NotSupported ((string)add(this.id, " cancelOrdersWs () does not support cancelling orders for a specific symbol.")) ;
+        }
         await this.loadMarkets();
         object token = await this.authenticate();
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
+        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "privateV2");
         object requestId = this.requestId();
         object messageHash = requestId;
         object request = new Dictionary<string, object>() {
-            { "event", "cancelOrder" },
-            { "token", token },
-            { "reqid", requestId },
-            { "txid", ids },
+            { "method", "cancel_order" },
+            { "params", new Dictionary<string, object>() {
+                { "order_id", ids },
+                { "token", token },
+            } },
+            { "req_id", requestId },
         };
         return await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
     }
 
+    /**
+     * @method
+     * @name kraken#cancelOrderWs
+     * @see https://docs.kraken.com/api/docs/websocket-v1/cancelorder
+     * @description cancels an open order
+     * @param {string} id order id
+     * @param {string} [symbol] unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelOrderWs(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kraken#cancelOrderWs
-        * @see https://docs.kraken.com/websockets/#message-cancelOrder
-        * @description cancels an open order
-        * @param {string} id order id
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            throw new NotSupported ((string)add(this.id, " cancelOrderWs () does not support cancelling orders for a specific symbol.")) ;
+        }
         await this.loadMarkets();
         object token = await this.authenticate();
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
+        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "privateV2");
         object requestId = this.requestId();
         object messageHash = requestId;
-        object clientOrderId = this.safeValue2(parameters, "userref", "clientOrderId", id);
-        parameters = this.omit(parameters, new List<object>() {"userref", "clientOrderId"});
         object request = new Dictionary<string, object>() {
-            { "event", "cancelOrder" },
-            { "token", token },
-            { "reqid", requestId },
-            { "txid", new List<object>() {clientOrderId} },
+            { "method", "cancel_order" },
+            { "params", new Dictionary<string, object>() {
+                { "order_id", new List<object>() {id} },
+                { "token", token },
+            } },
+            { "req_id", requestId },
         };
         return await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
     }
@@ -266,28 +474,32 @@ public partial class kraken : ccxt.kraken
     public virtual void handleCancelOrder(WebSocketClient client, object message)
     {
         //
-        //  success
-        //    {
-        //        "event": "cancelOrderStatus",
-        //        "status": "ok"
-        //        "reqid": 1,
-        //    }
+        //     {
+        //         "method": "cancel_order",
+        //         "req_id": 123456789,
+        //         "result": {
+        //             "order_id": "OKAGJC-YHIWK-WIOZWG"
+        //         },
+        //         "success": true,
+        //         "time_in": "2023-09-21T14:36:57.428972Z",
+        //         "time_out": "2023-09-21T14:36:57.437952Z"
+        //     }
         //
-        object reqId = this.safeValue(message, "reqid");
+        object reqId = this.safeValue(message, "req_id");
         callDynamically(client as WebSocketClient, "resolve", new object[] {message, reqId});
     }
 
+    /**
+     * @method
+     * @name kraken#cancelAllOrdersWs
+     * @see https://docs.kraken.com/api/docs/websocket-v1/cancelall
+     * @description cancel all open orders
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelAllOrdersWs(object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kraken#cancelAllOrdersWs
-        * @see https://docs.kraken.com/websockets/#message-cancelAll
-        * @description cancel all open orders
-        * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -295,13 +507,15 @@ public partial class kraken : ccxt.kraken
         }
         await this.loadMarkets();
         object token = await this.authenticate();
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
+        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "privateV2");
         object requestId = this.requestId();
         object messageHash = requestId;
         object request = new Dictionary<string, object>() {
-            { "event", "cancelAll" },
-            { "token", token },
-            { "reqid", requestId },
+            { "method", "cancel_all" },
+            { "params", new Dictionary<string, object>() {
+                { "token", token },
+            } },
+            { "req_id", requestId },
         };
         return await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
     }
@@ -309,14 +523,18 @@ public partial class kraken : ccxt.kraken
     public virtual void handleCancelAllOrders(WebSocketClient client, object message)
     {
         //
-        //    {
-        //        "count": 2,
-        //        "event": "cancelAllStatus",
-        //        "status": "ok",
-        //        "reqId": 1
-        //    }
+        //     {
+        //         "method": "cancel_all",
+        //         "req_id": 123456789,
+        //         "result": {
+        //             "count": 1
+        //         },
+        //         "success": true,
+        //         "time_in": "2023-09-21T14:36:57.428972Z",
+        //         "time_out": "2023-09-21T14:36:57.437952Z"
+        //     }
         //
-        object reqId = this.safeValue(message, "reqid");
+        object reqId = this.safeValue(message, "req_id");
         callDynamically(client as WebSocketClient, "resolve", new object[] {message, reqId});
     }
 
@@ -491,16 +709,17 @@ public partial class kraken : ccxt.kraken
         return await this.watch(url, messageHash, request, messageHash);
     }
 
+    /**
+     * @method
+     * @name kraken#watchTicker
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://docs.kraken.com/api/docs/websocket-v1/ticker
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name kraken#watchTicker
-        * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbol = this.symbol(symbol);
@@ -508,16 +727,17 @@ public partial class kraken : ccxt.kraken
         return getValue(tickers, symbol);
     }
 
+    /**
+     * @method
+     * @name kraken#watchTickers
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://docs.kraken.com/api/docs/websocket-v1/ticker
+     * @param {string[]} symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kraken#watchTickers
-        * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, null, false);
@@ -531,36 +751,102 @@ public partial class kraken : ccxt.kraken
         return this.filterByArray(this.tickers, "symbol", symbols);
     }
 
+    /**
+     * @method
+     * @name kraken#watchBidsAsks
+     * @see https://docs.kraken.com/api/docs/websocket-v1/spread
+     * @description watches best bid & ask for symbols
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, false);
+        object ticker = await this.watchMultiHelper("bidask", "spread", symbols, null, parameters);
+        if (isTrue(this.newUpdates))
+        {
+            object result = new Dictionary<string, object>() {};
+            ((IDictionary<string,object>)result)[(string)getValue(ticker, "symbol")] = ticker;
+            return result;
+        }
+        return this.filterByArray(this.bidsasks, "symbol", symbols);
+    }
+
+    public virtual void handleBidAsk(WebSocketClient client, object message, object subscription)
+    {
+        //
+        //     [
+        //         7208974, // channelID
+        //         [
+        //             "63758.60000", // bid
+        //             "63759.10000", // ask
+        //             "1726814731.089778", // timestamp
+        //             "0.00057917", // bid_volume
+        //             "0.15681688" // ask_volume
+        //         ],
+        //         "spread",
+        //         "XBT/USDT"
+        //     ]
+        //
+        object parsedTicker = this.parseWsBidAsk(message);
+        object symbol = getValue(parsedTicker, "symbol");
+        ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = parsedTicker;
+        object messageHash = this.getMessageHash("bidask", null, symbol);
+        callDynamically(client as WebSocketClient, "resolve", new object[] {parsedTicker, messageHash});
+    }
+
+    public virtual object parseWsBidAsk(object ticker, object market = null)
+    {
+        object data = this.safeList(ticker, 1, new List<object>() {});
+        object marketId = this.safeString(ticker, 3);
+        market = this.safeValue(getValue(this.options, "marketsByWsName"), marketId);
+        object symbol = this.safeString(market, "symbol");
+        object timestamp = multiply(this.parseToInt(this.safeInteger(data, 2)), 1000);
+        return this.safeTicker(new Dictionary<string, object>() {
+            { "symbol", symbol },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "ask", this.safeString(data, 1) },
+            { "askVolume", this.safeString(data, 4) },
+            { "bid", this.safeString(data, 0) },
+            { "bidVolume", this.safeString(data, 3) },
+            { "info", ticker },
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name kraken#watchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://docs.kraken.com/api/docs/websocket-v1/trade
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kraken#watchTrades
-        * @description get the list of most recent trades for a particular symbol
-        * @see https://docs.kraken.com/websockets/#message-trade
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         return await this.watchTradesForSymbols(new List<object>() {symbol}, since, limit, parameters);
     }
 
+    /**
+     * @method
+     * @name kraken#watchTradesForSymbols
+     * @see https://docs.kraken.com/api/docs/websocket-v1/trade
+     * @description get the list of most recent trades for a list of symbols
+     * @param {string[]} symbols unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kraken#watchTradesForSymbols
-        * @see https://docs.kraken.com/websockets/#message-trade
-        * @description get the list of most recent trades for a list of symbols
-        * @param {string[]} symbols unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         object trades = await this.watchMultiHelper("trade", "trade", symbols, null, parameters);
         if (isTrue(this.newUpdates))
@@ -572,34 +858,34 @@ public partial class kraken : ccxt.kraken
         return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
     }
 
+    /**
+     * @method
+     * @name kraken#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.kraken.com/api/docs/websocket-v1/book
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kraken#watchOrderBook
-        * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://docs.kraken.com/websockets/#message-book
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         return await this.watchOrderBookForSymbols(new List<object>() {symbol}, limit, parameters);
     }
 
+    /**
+     * @method
+     * @name kraken#watchOrderBookForSymbols
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.kraken.com/api/docs/websocket-v1/book
+     * @param {string[]} symbols unified array of symbols
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kraken#watchOrderBookForSymbols
-        * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://docs.kraken.com/websockets/#message-book
-        * @param {string[]} symbols unified array of symbols
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(limit, null)))
@@ -620,19 +906,20 @@ public partial class kraken : ccxt.kraken
         return (orderbook as IOrderBook).limit();
     }
 
+    /**
+     * @method
+     * @name kraken#watchOHLCV
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://docs.kraken.com/api/docs/websocket-v1/ohlc
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     public async override Task<object> watchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kraken#watchOHLCV
-        * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} timeframe the length of time each candle represents
-        * @param {int} [since] timestamp in ms of the earliest candle to fetch
-        * @param {int} [limit] the maximum amount of candles to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -853,8 +1140,8 @@ public partial class kraken : ccxt.kraken
                 if (isTrue(!isEqual(localChecksum, c)))
                 {
                     var error = new ChecksumError(add(add(this.id, " "), this.orderbookChecksumMessage(symbol)));
-
-
+                    ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
+                    ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
                     ((WebSocketClient)client).reject(error, messageHash);
                     return;
                 }
@@ -916,6 +1203,20 @@ public partial class kraken : ccxt.kraken
         //         "version": "0.2.0"
         //     }
         //
+        // v2
+        //     {
+        //         channel: 'status',
+        //         type: 'update',
+        //         data: [
+        //             {
+        //                 version: '2.0.10',
+        //                 system: 'online',
+        //                 api_version: 'v2',
+        //                 connection_id: 6447481662169813000
+        //             }
+        //         ]
+        //     }
+        //
         return message;
     }
 
@@ -975,18 +1276,19 @@ public partial class kraken : ccxt.kraken
         return this.filterBySymbolSinceLimit(result, symbol, since, limit);
     }
 
+    /**
+     * @method
+     * @name kraken#watchMyTrades
+     * @description watches information on multiple trades made by the user
+     * @see https://docs.kraken.com/api/docs/websocket-v1/owntrades
+     * @param {string} symbol unified market symbol of the market trades were made in
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kraken#watchMyTrades
-        * @description watches information on multiple trades made by the user
-        * @param {string} symbol unified market symbol of the market trades were made in
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trade structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         return await this.watchPrivate("ownTrades", symbol, since, limit, parameters);
     }
@@ -1155,19 +1457,19 @@ public partial class kraken : ccxt.kraken
         };
     }
 
+    /**
+     * @method
+     * @name kraken#watchOrders
+     * @see https://docs.kraken.com/api/docs/websocket-v1/openorders
+     * @description watches information on multiple orders made by the user
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of  orde structures to retrieve
+     * @param {object} [params] maximum number of orderic to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kraken#watchOrders
-        * @see https://docs.kraken.com/websockets/#message-openOrders
-        * @description watches information on multiple orders made by the user
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of  orde structures to retrieve
-        * @param {object} [params] maximum number of orderic to the exchange API endpoint
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         return await this.watchPrivate("openOrders", symbol, since, limit, parameters);
     }
@@ -1298,7 +1600,7 @@ public partial class kraken : ccxt.kraken
                         object first = getValue(stored, 0);
                         if (isTrue(inOp(symbolsByOrderId, getValue(first, "id"))))
                         {
-
+                            ((IDictionary<string,object>)symbolsByOrderId).Remove((string)getValue(first, "id"));
                         }
                     }
                     callDynamically(stored, "append", new object[] {newOrder});
@@ -1479,16 +1781,16 @@ public partial class kraken : ccxt.kraken
         return await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes, subscriptionArgs);
     }
 
+    /**
+     * @method
+     * @name kraken#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://docs.kraken.com/api/docs/websocket-v2/balances
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> watchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name kraken#watchBalance
-        * @description watch balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://docs.kraken.com/api/docs/websocket-v2/balances
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object token = await this.authenticate();
@@ -1616,10 +1918,19 @@ public partial class kraken : ccxt.kraken
         //         "subscription": { name: "ticker" }
         //     }
         //
-        object errorMessage = this.safeString(message, "errorMessage");
+        // v2
+        //     {
+        //         "error": "Unsupported field: 'price' for the given msg type: add order",
+        //         "method": "add_order",
+        //         "success": false,
+        //         "time_in": "2025-05-13T08:59:44.803511Z",
+        //         "time_out": "2025-05-13T08:59:44.803542Z'
+        //     }
+        //
+        object errorMessage = this.safeString2(message, "errorMessage", "error");
         if (isTrue(!isEqual(errorMessage, null)))
         {
-            object requestId = this.safeValue(message, "reqid");
+            object requestId = this.safeValue2(message, "reqid", "req_id");
             if (isTrue(!isEqual(requestId, null)))
             {
                 object broad = getValue(getValue(this.exceptions, "ws"), "broad");
@@ -1653,6 +1964,7 @@ public partial class kraken : ccxt.kraken
                 { "book", this.handleOrderBook },
                 { "ohlc", this.handleOHLCV },
                 { "ticker", this.handleTicker },
+                { "spread", this.handleBidAsk },
                 { "trade", this.handleTrades },
                 { "openOrders", this.handleOrders },
                 { "ownTrades", this.handleMyTrades },
@@ -1678,15 +1990,15 @@ public partial class kraken : ccxt.kraken
             }
             if (isTrue(this.handleErrorMessage(client as WebSocketClient, message)))
             {
-                object eventVar = this.safeString(message, "event");
+                object eventVar = this.safeString2(message, "event", "method");
                 object methods = new Dictionary<string, object>() {
                     { "heartbeat", this.handleHeartbeat },
                     { "systemStatus", this.handleSystemStatus },
                     { "subscriptionStatus", this.handleSubscriptionStatus },
-                    { "addOrderStatus", this.handleCreateEditOrder },
-                    { "editOrderStatus", this.handleCreateEditOrder },
-                    { "cancelOrderStatus", this.handleCancelOrder },
-                    { "cancelAllStatus", this.handleCancelAllOrders },
+                    { "add_order", this.handleCreateEditOrder },
+                    { "amend_order", this.handleCreateEditOrder },
+                    { "cancel_order", this.handleCancelOrder },
+                    { "cancel_all", this.handleCancelAllOrders },
                 };
                 object method = this.safeValue(methods, eventVar);
                 if (isTrue(!isEqual(method, null)))

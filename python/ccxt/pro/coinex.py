@@ -4,45 +4,51 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 import ccxt.async_support
-from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
+from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
+import hashlib
+from ccxt.base.types import Any, Balances, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import RequestTimeout
-from ccxt.base.precise import Precise
 
 
 class coinex(ccxt.async_support.coinex):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(coinex, self).describe(), {
             'has': {
                 'ws': True,
                 'watchBalance': True,
+                'watchBidsAsks': True,
                 'watchTicker': True,
                 'watchTickers': True,
                 'watchTrades': True,
-                'watchMyTrades': False,  # can query but can't subscribe
+                'watchTradesForSymbols': True,
+                'watchMyTrades': True,
                 'watchOrders': True,
                 'watchOrderBook': True,
-                'watchOHLCV': True,  # only for swap markets
-                'fetchOHLCVWs': True,
+                'watchOrderBookForSymbols': True,
+                'watchOHLCV': False,
+                'fetchOHLCVWs': False,
             },
             'urls': {
                 'api': {
                     'ws': {
-                        'spot': 'wss://socket.coinex.com/',
-                        'swap': 'wss://perpetual.coinex.com/',
+                        'spot': 'wss://socket.coinex.com/v2/spot/',
+                        'swap': 'wss://socket.coinex.com/v2/futures/',
                     },
                 },
             },
             'options': {
-                'watchOHLCVWarning': True,
+                'ws': {
+                    'gunzip': True,
+                },
                 'timeframes': {
                     '1m': 60,
                     '3m': 180,
@@ -62,21 +68,32 @@ class coinex(ccxt.async_support.coinex):
                 'watchOrderBook': {
                     'limits': [5, 10, 20, 50],
                     'defaultLimit': 50,
-                    'aggregations': ['10', '1', '0', '0.1', '0.01'],
+                    'aggregations': ['1000', '100', '10', '1', '0', '0.1', '0.01', '0.001', '0.0001', '0.00001', '0.000001', '0.0000001', '0.00000001', '0.000000001', '0.0000000001', '0.00000000001'],
                     'defaultAggregation': '0',
                 },
             },
             'streaming': {
             },
             'exceptions': {
-                'codes': {
-                    '1': BadRequest,  # Parameter error
-                    '2': ExchangeError,  # Internal error
-                    '3': ExchangeNotAvailable,  # Service unavailable
-                    '4': NotSupported,  # Method unavailable
-                    '5': RequestTimeout,  # Service timeout
-                    '6': AuthenticationError,  # Permission denied
+                'exact': {
+                    '20001': BadRequest,  # Invalid argument
+                    '20002': NotSupported,  # Method unavailable
+                    '21001': AuthenticationError,  # Authentication required
+                    '21002': AuthenticationError,  # Incorrect signature
+                    '23001': RequestTimeout,  # Request service timeout
+                    '23002': RateLimitExceeded,  # Requests too frequently
+                    '24001': ExchangeError,  # Internal error
+                    '24002': ExchangeNotAvailable,  # Service unavailable temporarily
+                    '30001': BadRequest,  # Invalid argument
+                    '30002': NotSupported,  # Method unavailable
+                    '31001': AuthenticationError,  # Authentication required
+                    '31002': AuthenticationError,  # Incorrect signature
+                    '33001': RequestTimeout,  # Request service timeout
+                    '33002': RateLimitExceeded,  # Requests too frequently
+                    '34001': ExchangeError,  # Internal error
+                    '34002': ExchangeNotAvailable,  # Service unavailable temporarily
                 },
+                'broad': {},
             },
         })
 
@@ -91,61 +108,66 @@ class coinex(ccxt.async_support.coinex):
         #
         #     {
         #         "method": "state.update",
-        #         "params": [{
-        #             "BTCUSDT": {
-        #                 "last": "31577.89",
-        #                 "open": "29318.36",
-        #                 "close": "31577.89",
-        #                 "high": "32222.19",
-        #                 "low": "29317.21",
-        #                 "volume": "630.43024965",
-        #                 "sell_total": "13.66143951",
-        #                 "buy_total": "2.76410939",
-        #                 "period": 86400,
-        #                 "deal": "19457487.84611409070000000000"
-        #             }
-        #         }]
+        #         "data": {
+        #             "state_list": [
+        #                 {
+        #                     "market": "LATUSDT",
+        #                     "last": "0.008157",
+        #                     "open": "0.008286",
+        #                     "close": "0.008157",
+        #                     "high": "0.008390",
+        #                     "low": "0.008106",
+        #                     "volume": "807714.49139758",
+        #                     "volume_sell": "286170.69645599",
+        #                     "volume_buy": "266161.23236408",
+        #                     "value": "6689.21644207",
+        #                     "period": 86400
+        #                 },
+        #             ]
+        #         },
+        #         "id": null
         #     }
         #
         #  swap
         #
         #     {
         #         "method": "state.update",
-        #         "params": [{
-        #             "BTCUSDT": {
-        #                 "period": 86400,
-        #                 "funding_time": 422,
-        #                 "position_amount": "285.6246",
-        #                 "funding_rate_last": "-0.00097933",
-        #                 "funding_rate_next": "0.00022519",
-        #                 "funding_rate_predict": "0.00075190",
-        #                 "insurance": "17474289.49925859030905338270",
-        #                 "last": "31570.08",
-        #                 "sign_price": "31568.09",
-        #                 "index_price": "31561.85000000",
-        #                 "open": "29296.11",
-        #                 "close": "31570.08",
-        #                 "high": "32463.40",
-        #                 "low": "29296.11",
-        #                 "volume": "8774.7318",
-        #                 "deal": "270675177.827928219109030017258398",
-        #                 "sell_total": "19.2230",
-        #                 "buy_total": "25.7814"
-        #             }
-        #         }]
+        #         "data": {
+        #             "state_list": [
+        #                 {
+        #                     "market": "ETHUSD_SIGNPRICE",
+        #                     "last": "1892.29",
+        #                     "open": "1884.62",
+        #                     "close": "1892.29",
+        #                     "high": "1894.09",
+        #                     "low": "1863.72",
+        #                     "volume": "0",
+        #                     "value": "0",
+        #                     "volume_sell": "0",
+        #                     "volume_buy": "0",
+        #                     "open_interest_size": "0",
+        #                     "insurance_fund_size": "0",
+        #                     "latest_funding_rate": "0",
+        #                     "next_funding_rate": "0",
+        #                     "latest_funding_time": 0,
+        #                     "next_funding_time": 0,
+        #                     "period": 86400
+        #                 },
+        #             ]
+        #         ],
+        #         "id": null
         #     }
         #
         defaultType = self.safe_string(self.options, 'defaultType')
-        params = self.safe_value(message, 'params', [])
-        rawTickers = self.safe_value(params, 0, {})
-        keys = list(rawTickers.keys())
+        data = self.safe_dict(message, 'data', {})
+        rawTickers = self.safe_list(data, 'state_list', [])
         newTickers = []
-        for i in range(0, len(keys)):
-            marketId = keys[i]
-            rawTicker = rawTickers[marketId]
+        for i in range(0, len(rawTickers)):
+            entry = rawTickers[i]
+            marketId = self.safe_string(entry, 'market')
             symbol = self.safe_symbol(marketId, None, None, defaultType)
             market = self.safe_market(marketId, None, None, defaultType)
-            parsedTicker = self.parse_ws_ticker(rawTicker, market)
+            parsedTicker = self.parse_ws_ticker(entry, market)
             self.tickers[symbol] = parsedTicker
             newTickers.append(parsedTicker)
         messageHashes = self.find_message_hashes(client, 'tickers::')
@@ -166,52 +188,53 @@ class coinex(ccxt.async_support.coinex):
         #  spot
         #
         #     {
-        #         "last": "31577.89",
-        #         "open": "29318.36",
-        #         "close": "31577.89",
-        #         "high": "32222.19",
-        #         "low": "29317.21",
-        #         "volume": "630.43024965",
-        #         "sell_total": "13.66143951",
-        #         "buy_total": "2.76410939",
-        #         "period": 86400,
-        #         "deal": "19457487.84611409070000000000"
+        #         "market": "LATUSDT",
+        #         "last": "0.008157",
+        #         "open": "0.008286",
+        #         "close": "0.008157",
+        #         "high": "0.008390",
+        #         "low": "0.008106",
+        #         "volume": "807714.49139758",
+        #         "volume_sell": "286170.69645599",
+        #         "volume_buy": "266161.23236408",
+        #         "value": "6689.21644207",
+        #         "period": 86400
         #     }
         #
         #  swap
         #
         #     {
-        #         "period": 86400,
-        #         "funding_time": 422,
-        #         "position_amount": "285.6246",
-        #         "funding_rate_last": "-0.00097933",
-        #         "funding_rate_next": "0.00022519",
-        #         "funding_rate_predict": "0.00075190",
-        #         "insurance": "17474289.49925859030905338270",
-        #         "last": "31570.08",
-        #         "sign_price": "31568.09",
-        #         "index_price": "31561.85000000",
-        #         "open": "29296.11",
-        #         "close": "31570.08",
-        #         "high": "32463.40",
-        #         "low": "29296.11",
-        #         "volume": "8774.7318",
-        #         "deal": "270675177.827928219109030017258398",
-        #         "sell_total": "19.2230",
-        #         "buy_total": "25.7814"
+        #         "market": "ETHUSD_SIGNPRICE",
+        #         "last": "1892.29",
+        #         "open": "1884.62",
+        #         "close": "1892.29",
+        #         "high": "1894.09",
+        #         "low": "1863.72",
+        #         "volume": "0",
+        #         "value": "0",
+        #         "volume_sell": "0",
+        #         "volume_buy": "0",
+        #         "open_interest_size": "0",
+        #         "insurance_fund_size": "0",
+        #         "latest_funding_rate": "0",
+        #         "next_funding_rate": "0",
+        #         "latest_funding_time": 0,
+        #         "next_funding_time": 0,
+        #         "period": 86400
         #     }
         #
         defaultType = self.safe_string(self.options, 'defaultType')
+        marketId = self.safe_string(ticker, 'market')
         return self.safe_ticker({
-            'symbol': self.safe_symbol(None, market, None, defaultType),
+            'symbol': self.safe_symbol(marketId, market, None, defaultType),
             'timestamp': None,
             'datetime': None,
             'high': self.safe_string(ticker, 'high'),
             'low': self.safe_string(ticker, 'low'),
             'bid': None,
-            'bidVolume': self.safe_string(ticker, 'buy_total'),
+            'bidVolume': self.safe_string(ticker, 'volume_buy'),
             'ask': None,
-            'askVolume': self.safe_string(ticker, 'sell_total'),
+            'askVolume': self.safe_string(ticker, 'volume_sell'),
             'vwap': None,
             'open': self.safe_string(ticker, 'open'),
             'close': self.safe_string(ticker, 'close'),
@@ -221,26 +244,39 @@ class coinex(ccxt.async_support.coinex):
             'percentage': None,
             'average': None,
             'baseVolume': self.safe_string(ticker, 'volume'),
-            'quoteVolume': self.safe_string(ticker, 'deal'),
+            'quoteVolume': self.safe_string(ticker, 'value'),
             'info': ticker,
         }, market)
 
     async def watch_balance(self, params={}) -> Balances:
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
+
+        https://docs.coinex.com/api/v2/assets/balance/ws/spot_balance
+        https://docs.coinex.com/api/v2/assets/balance/ws/futures_balance
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
-        await self.authenticate(params)
-        messageHash = 'balance'
         type = None
-        type, params = self.handle_market_type_and_params('watchBalance', None, params)
+        type, params = self.handle_market_type_and_params('watchBalance', None, params, 'spot')
+        await self.authenticate(type)
         url = self.urls['api']['ws'][type]
-        currencies = list(self.currencies_by_id.keys())
+        # coinex throws a closes the websocket when subscribing over 1422 currencies, therefore we filter out inactive currencies
+        activeCurrencies = self.filter_by(self.currencies_by_id, 'active', True)
+        activeCurrenciesById = self.index_by(activeCurrencies, 'id')
+        currencies = list(activeCurrenciesById.keys())
+        if currencies is None:
+            currencies = []
+        messageHash = 'balances'
+        if type == 'spot':
+            messageHash += ':spot'
+        else:
+            messageHash += ':swap'
         subscribe: dict = {
-            'method': 'asset.subscribe',
-            'params': currencies,
+            'method': 'balance.subscribe',
+            'params': {'ccy_list': currencies},
             'id': self.request_id(),
         }
         request = self.deep_extend(subscribe, params)
@@ -248,57 +284,241 @@ class coinex(ccxt.async_support.coinex):
 
     def handle_balance(self, client: Client, message):
         #
+        # spot
+        #
         #     {
-        #         "method": "asset.update",
-        #         "params": [
-        #             {
-        #                 "BTC": {
-        #                     "available": "250",
-        #                     "frozen": "10",
-        #                 }
-        #             }
-        #         ],
+        #         "method": "balance.update",
+        #         "data": {
+        #             "balance_list": [
+        #                 {
+        #                     "margin_market": "BTCUSDT",
+        #                     "ccy": "BTC",
+        #                     "available": "44.62207740",
+        #                     "frozen": "0.00000000",
+        #                     "updated_at": 1689152421692
+        #                 },
+        #             ]
+        #         },
         #         "id": null
         #     }
         #
-        params = self.safe_value(message, 'params', [])
-        first = self.safe_value(params, 0, {})
-        self.balance['info'] = first
-        currencies = list(first.keys())
-        for i in range(0, len(currencies)):
-            currencyId = currencies[i]
-            code = self.safe_currency_code(currencyId)
-            available = self.safe_string(first[currencyId], 'available')
-            frozen = self.safe_string(first[currencyId], 'frozen')
-            account = self.account()
-            account['free'] = available
-            account['used'] = frozen
+        # swap
+        #
+        #     {
+        #         "method": "balance.update",
+        #         "data": {
+        #             "balance_list": [
+        #                 {
+        #                     "ccy": "USDT",
+        #                     "available": "97.92470982756335000001",
+        #                     "frozen": "0.00000000000000000000",
+        #                     "margin": "0.61442700000000000000",
+        #                     "transferrable": "97.92470982756335000001",
+        #                     "unrealized_pnl": "-0.00807000000000000000",
+        #                     "equity": "97.92470982756335000001"
+        #                 },
+        #             ]
+        #         },
+        #         "id": null
+        #     }
+        #
+        if self.balance is None:
+            self.balance = {}
+        data = self.safe_dict(message, 'data', {})
+        balances = self.safe_list(data, 'balance_list', [])
+        firstEntry = balances[0]
+        updated = self.safe_integer(firstEntry, 'updated_at')
+        unrealizedPnl = self.safe_string(firstEntry, 'unrealized_pnl')
+        isSpot = (updated is not None)
+        isSwap = (unrealizedPnl is not None)
+        info = None
+        account = None
+        rawBalances = []
+        if isSpot:
+            account = 'spot'
+            for i in range(0, len(balances)):
+                rawBalances = self.array_concat(rawBalances, balances)
+            info = rawBalances
+        if isSwap:
+            account = 'swap'
+            for i in range(0, len(balances)):
+                rawBalances = self.array_concat(rawBalances, balances)
+            info = rawBalances
+        for i in range(0, len(rawBalances)):
+            entry = rawBalances[i]
+            self.parse_ws_balance(entry, account)
+        messageHash = None
+        if account is not None:
+            if self.safe_value(self.balance, account) is None:
+                self.balance[account] = {}
+            self.balance[account]['info'] = info
+            self.balance[account] = self.safe_balance(self.balance[account])
+            messageHash = 'balances:' + account
+            client.resolve(self.balance[account], messageHash)
+
+    def parse_ws_balance(self, balance, accountType=None):
+        #
+        # spot
+        #
+        #     {
+        #         "margin_market": "BTCUSDT",
+        #         "ccy": "BTC",
+        #         "available": "44.62207740",
+        #         "frozen": "0.00000000",
+        #         "updated_at": 1689152421692
+        #     }
+        #
+        # swap
+        #
+        #     {
+        #         "ccy": "USDT",
+        #         "available": "97.92470982756335000001",
+        #         "frozen": "0.00000000000000000000",
+        #         "margin": "0.61442700000000000000",
+        #         "transferrable": "97.92470982756335000001",
+        #         "unrealized_pnl": "-0.00807000000000000000",
+        #         "equity": "97.92470982756335000001"
+        #     }
+        #
+        account = self.account()
+        currencyId = self.safe_string(balance, 'ccy')
+        code = self.safe_currency_code(currencyId)
+        account['free'] = self.safe_string(balance, 'available')
+        account['used'] = self.safe_string(balance, 'frozen')
+        if accountType is not None:
+            if self.safe_value(self.balance, accountType) is None:
+                self.balance[accountType] = {}
+            self.balance[accountType][code] = account
+        else:
             self.balance[code] = account
-            self.balance = self.safe_balance(self.balance)
-        messageHash = 'balance'
-        client.resolve(self.balance, messageHash)
+
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+        """
+        watches information on multiple trades made by the user
+
+        https://docs.coinex.com/api/v2/spot/deal/ws/user-deals
+        https://docs.coinex.com/api/v2/futures/deal/ws/user-deals
+
+        :param str [symbol]: unified symbol of the market the trades were made in
+        :param int [since]: the earliest time in ms to watch trades
+        :param int [limit]: the maximum number of trade structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        """
+        await self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            symbol = market['symbol']
+        type = None
+        type, params = self.handle_market_type_and_params('watchMyTrades', market, params, 'spot')
+        await self.authenticate(type)
+        url = self.urls['api']['ws'][type]
+        subscribedSymbols = []
+        messageHash = 'myTrades'
+        if market is not None:
+            messageHash += ':' + symbol
+            subscribedSymbols.append(market['id'])
+        else:
+            if type == 'spot':
+                messageHash += ':spot'
+            else:
+                messageHash += ':swap'
+        message: dict = {
+            'method': 'user_deals.subscribe',
+            'params': {'market_list': subscribedSymbols},
+            'id': self.request_id(),
+        }
+        request = self.deep_extend(message, params)
+        trades = await self.watch(url, messageHash, request, messageHash)
+        if self.newUpdates:
+            limit = trades.getLimit(symbol, limit)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
+
+    def handle_my_trades(self, client: Client, message):
+        #
+        #     {
+        #         "method": "user_deals.update",
+        #         "data": {
+        #             "deal_id": 3514376759,
+        #             "created_at": 1689152421692,
+        #             "market": "BTCUSDT",
+        #             "side": "buy",
+        #             "order_id": 8678890,
+        #             "margin_market": "BTCUSDT",
+        #             "price": "30718.42",
+        #             "amount": "0.00000325",
+        #             "role": "taker",
+        #             "fee": "0.0299",
+        #             "fee_ccy": "USDT"
+        #         },
+        #         "id": null
+        #     }
+        #
+        data = self.safe_dict(message, 'data', {})
+        marketId = self.safe_string(data, 'market')
+        isSpot = client.url.find('spot') > -1
+        defaultType = 'spot' if isSpot else 'swap'
+        market = self.safe_market(marketId, None, None, defaultType)
+        symbol = market['symbol']
+        messageHash = 'myTrades:' + symbol
+        messageWithType = 'myTrades:' + market['type']
+        stored = self.safe_value(self.trades, symbol)
+        if stored is None:
+            limit = self.safe_integer(self.options, 'tradesLimit', 1000)
+            stored = ArrayCache(limit)
+            self.trades[symbol] = stored
+        parsed = self.parse_ws_trade(data, market)
+        stored.append(parsed)
+        self.trades[symbol] = stored
+        client.resolve(self.trades[symbol], messageWithType)
+        client.resolve(self.trades[symbol], messageHash)
 
     def handle_trades(self, client: Client, message):
         #
+        # spot
+        #
         #     {
         #         "method": "deals.update",
-        #         "params": [
-        #             "BTCUSD",
-        #             [{
-        #                 "type": "sell",
-        #                 "time": 1496458040.059284,
-        #                 "price ": "46444.74",
-        #                 "id": 29433,
-        #                 "amount": "0.00120000"
-        #             }]
-        #         ],
+        #         "data": {
+        #             "market": "BTCUSDT",
+        #             "deal_list": [
+        #                 {
+        #                     "deal_id": 3514376759,
+        #                     "created_at": 1689152421692,
+        #                     "side": "buy",
+        #                     "price": "30718.42",
+        #                     "amount": "0.00000325"
+        #                 },
+        #             ]
+        #         },
         #         "id": null
         #     }
         #
-        params = self.safe_value(message, 'params', [])
-        marketId = self.safe_string(params, 0)
-        trades = self.safe_value(params, 1, [])
-        defaultType = self.safe_string(self.options, 'defaultType')
+        # swap
+        #
+        #     {
+        #         "method": "deals.update",
+        #         "data": {
+        #             "market": "BTCUSDT",
+        #             "deal_list": [
+        #                 {
+        #                     "deal_id": 3514376759,
+        #                     "created_at": 1689152421692,
+        #                     "side": "buy",
+        #                     "price": "30718.42",
+        #                     "amount": "0.00000325"
+        #                 },
+        #             ]
+        #         },
+        #         "id": null
+        #     }
+        #
+        data = self.safe_dict(message, 'data', {})
+        trades = self.safe_list(data, 'deal_list', [])
+        marketId = self.safe_string(data, 'market')
+        isSpot = client.url.find('spot') > -1
+        defaultType = 'spot' if isSpot else 'swap'
         market = self.safe_market(marketId, None, None, defaultType)
         symbol = market['symbol']
         messageHash = 'trades:' + symbol
@@ -316,288 +536,250 @@ class coinex(ccxt.async_support.coinex):
 
     def parse_ws_trade(self, trade, market=None):
         #
+        # spot watchTrades
+        #
         #     {
-        #         "type": "sell",
-        #         "time": 1496458040.059284,
-        #         "price ": "46444.74",
-        #         "id": 29433,
-        #         "amount": "0.00120000"
+        #         "deal_id": 3514376759,
+        #         "created_at": 1689152421692,
+        #         "side": "buy",
+        #         "price": "30718.42",
+        #         "amount": "0.00000325"
         #     }
         #
-        timestamp = self.safe_timestamp(trade, 'time')
-        defaultType = self.safe_string(self.options, 'defaultType')
+        # swap watchTrades
+        #
+        #     {
+        #         "deal_id": 3514376759,
+        #         "created_at": 1689152421692,
+        #         "side": "buy",
+        #         "price": "30718.42",
+        #         "amount": "0.00000325"
+        #     }
+        #
+        # spot and swap watchMyTrades
+        #
+        #     {
+        #         "deal_id": 3514376759,
+        #         "created_at": 1689152421692,
+        #         "market": "BTCUSDT",
+        #         "side": "buy",
+        #         "order_id": 8678890,
+        #         "margin_market": "BTCUSDT",
+        #         "price": "30718.42",
+        #         "amount": "0.00000325",
+        #         "role": "taker",
+        #         "fee": "0.0299",
+        #         "fee_ccy": "USDT"
+        #     }
+        #
+        timestamp = self.safe_integer(trade, 'created_at')
+        isSpot = ('margin_market' in trade)
+        defaultType = 'spot' if isSpot else 'swap'
+        marketId = self.safe_string(trade, 'market')
+        market = self.safe_market(marketId, market, None, defaultType)
+        fee: dict = {}
+        feeCost = self.omit_zero(self.safe_string(trade, 'fee'))
+        if feeCost is not None:
+            feeCurrencyId = self.safe_string(trade, 'fee_ccy', market['quote'])
+            fee = {
+                'currency': self.safe_currency_code(feeCurrencyId),
+                'cost': feeCost,
+            }
         return self.safe_trade({
-            'id': self.safe_string(trade, 'id'),
+            'id': self.safe_string(trade, 'deal_id'),
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': self.safe_symbol(None, market, None, defaultType),
-            'order': None,
+            'symbol': self.safe_symbol(marketId, market, None, defaultType),
+            'order': self.safe_string(trade, 'order_id'),
             'type': None,
-            'side': self.safe_string(trade, 'type'),
-            'takerOrMaker': None,
+            'side': self.safe_string(trade, 'side'),
+            'takerOrMaker': self.safe_string(trade, 'role'),
             'price': self.safe_string(trade, 'price'),
             'amount': self.safe_string(trade, 'amount'),
             'cost': None,
-            'fee': None,
+            'fee': fee,
         }, market)
-
-    def handle_ohlcv(self, client: Client, message):
-        #
-        #  spot
-        #     {
-        #         "error": null,
-        #         "result": [
-        #           [
-        #             1673846940,
-        #             "21148.74",
-        #             "21148.38",
-        #             "21148.75",
-        #             "21138.66",
-        #             "1.57060173",
-        #             "33214.9138778914"
-        #           ],
-        #         ]
-        #         "id": 1,
-        #     }
-        #  swap
-        #     {
-        #         "method": "kline.update",
-        #         "params": [
-        #             [
-        #                 1654019640,   # timestamp
-        #                 "32061.99",   # open
-        #                 "32061.28",   # close
-        #                 "32061.99",   # high
-        #                 "32061.28",   # low
-        #                 "0.1285",     # amount base
-        #                 "4119.943736"  # amount quote
-        #             ]
-        #         ],
-        #         "id": null
-        #     }
-        #
-        candles = self.safe_value_2(message, 'params', 'result', [])
-        messageHash = 'ohlcv'
-        id = self.safe_string(message, 'id')
-        ohlcvs = self.parse_ohlcvs(candles)
-        if id is not None:
-            # spot subscription response
-            client.resolve(ohlcvs, messageHash)
-            return
-        keys = list(self.ohlcvs.keys())
-        keysLength = len(keys)
-        if keysLength == 0:
-            self.ohlcvs['unknown'] = {}
-            limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
-            stored = ArrayCacheByTimestamp(limit)
-            self.ohlcvs['unknown']['unknown'] = stored
-        ohlcv = self.ohlcvs['unknown']['unknown']
-        for i in range(0, len(ohlcvs)):
-            candle = ohlcvs[i]
-            ohlcv.append(candle)
-        client.resolve(ohlcv, messageHash)
 
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket007_state_subscribe
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+        https://docs.coinex.com/api/v2/spot/market/ws/market
+        https://docs.coinex.com/api/v2/futures/market/ws/market-state
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
+        await self.load_markets()
+        market = self.market(symbol)
         tickers = await self.watch_tickers([symbol], params)
-        return self.safe_value(tickers, symbol)
+        return tickers[market['symbol']]
 
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket007_state_subscribe
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+
+        https://docs.coinex.com/api/v2/spot/market/ws/market
+        https://docs.coinex.com/api/v2/futures/market/ws/market-state
+
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
-        symbols = self.market_symbols(symbols)
+        marketIds = self.market_ids(symbols)
+        market = None
+        messageHashes = []
+        symbolsDefined = (symbols is not None)
+        if symbolsDefined:
+            for i in range(0, len(symbols)):
+                symbol = symbols[i]
+                market = self.market(symbol)
+                messageHashes.append('tickers::' + market['symbol'])
+        else:
+            messageHashes.append('tickers')
         type = None
-        type, params = self.handle_market_type_and_params('watchTickers', None, params)
+        type, params = self.handle_market_type_and_params('watchTickers', market, params)
         url = self.urls['api']['ws'][type]
-        messageHash = 'tickers'
-        if symbols is not None:
-            messageHash = 'tickers::' + ','.join(symbols)
+        subscriptionHashes = ['all@ticker']
         subscribe: dict = {
             'method': 'state.subscribe',
+            'params': {'market_list': marketIds},
             'id': self.request_id(),
-            'params': [],
         }
-        request = self.deep_extend(subscribe, params)
-        newTickers = await self.watch(url, messageHash, request, messageHash)
+        result = await self.watch_multiple(url, messageHashes, self.deep_extend(subscribe, params), subscriptionHashes)
         if self.newUpdates:
-            return newTickers
+            return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket012_deal_subcribe
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket019_deal_subcribe
         get the list of most recent trades for a particular symbol
+
+        https://docs.coinex.com/api/v2/spot/market/ws/market-deals
+        https://docs.coinex.com/api/v2/futures/market/ws/market-deals
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
+        params['callerMethodName'] = 'watchTrades'
+        return await self.watch_trades_for_symbols([symbol], since, limit, params)
+
+    async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+        """
+        watch the most recent trades for a list of symbols
+
+        https://docs.coinex.com/api/v2/spot/market/ws/market-deals
+        https://docs.coinex.com/api/v2/futures/market/ws/market-deals
+
+        :param str[] symbols: unified symbols of the markets to fetch trades for
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        """
         await self.load_markets()
-        market = self.market(symbol)
+        subscribedSymbols = []
+        messageHashes = []
+        market = None
+        callerMethodName = None
+        callerMethodName, params = self.handle_param_string(params, 'callerMethodName', 'watchTradesForSymbols')
+        symbolsDefined = (symbols is not None)
+        if symbolsDefined:
+            for i in range(0, len(symbols)):
+                symbol = symbols[i]
+                market = self.market(symbol)
+                subscribedSymbols.append(market['id'])
+                messageHashes.append('trades:' + market['symbol'])
+        else:
+            messageHashes.append('trades')
         type = None
-        type, params = self.handle_market_type_and_params('watchTrades', market, params)
+        type, params = self.handle_market_type_and_params(callerMethodName, market, params)
         url = self.urls['api']['ws'][type]
-        messageHash = 'trades:' + symbol
-        subscriptionHash = 'trades'
-        subscribedSymbols = self.safe_value(self.options, 'watchTradesSubscriptions', [])
-        subscribedSymbols.append(market['id'])
-        message: dict = {
+        subscriptionHashes = ['trades']
+        subscribe: dict = {
             'method': 'deals.subscribe',
-            'params': subscribedSymbols,
+            'params': {'market_list': subscribedSymbols},
             'id': self.request_id(),
         }
-        self.options['watchTradesSubscriptions'] = subscribedSymbols
-        request = self.deep_extend(message, params)
-        trades = await self.watch(url, messageHash, request, subscriptionHash)
+        trades = await self.watch_multiple(url, messageHashes, self.deep_extend(subscribe, params), subscriptionHashes)
+        if self.newUpdates:
+            return trades
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}) -> OrderBook:
         """
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket017_depth_subscribe_multi
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket011_depth_subscribe_multi
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :param str symbol: unified symbol of the market to fetch the order book for
+
+        https://docs.coinex.com/api/v2/spot/market/ws/market-depth
+        https://docs.coinex.com/api/v2/futures/market/ws/market-depth
+
+        :param str[] symbols: unified array of symbols
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
-        market = self.market(symbol)
-        symbol = market['symbol']
+        watchOrderBookSubscriptions: dict = {}
+        messageHashes = []
+        market = None
         type = None
-        type, params = self.handle_market_type_and_params('watchOrderBook', market, params)
-        url = self.urls['api']['ws'][type]
-        name = 'orderbook'
-        messageHash = name + ':' + symbol
-        options = self.safe_value(self.options, 'watchOrderBook', {})
-        limits = self.safe_value(options, 'limits', [])
+        callerMethodName = None
+        callerMethodName, params = self.handle_param_string(params, 'callerMethodName', 'watchOrderBookForSymbols')
+        type, params = self.handle_market_type_and_params(callerMethodName, None, params)
+        options = self.safe_dict(self.options, 'watchOrderBook', {})
+        limits = self.safe_list(options, 'limits', [])
         if limit is None:
-            limit = self.safe_value(options, 'defaultLimit', 50)
+            limit = self.safe_integer(options, 'defaultLimit', 50)
         if not self.in_array(limit, limits):
-            raise NotSupported(self.id + ' watchOrderBook() limit must be one of ' + ', '.join(limits))
+            raise NotSupported(self.id + ' watchOrderBookForSymbols() limit must be one of ' + ', '.join(limits))
         defaultAggregation = self.safe_string(options, 'defaultAggregation', '0')
-        aggregations = self.safe_value(options, 'aggregations', [])
+        aggregations = self.safe_list(options, 'aggregations', [])
         aggregation = self.safe_string(params, 'aggregation', defaultAggregation)
         if not self.in_array(aggregation, aggregations):
-            raise NotSupported(self.id + ' watchOrderBook() aggregation must be one of ' + ', '.join(aggregations))
+            raise NotSupported(self.id + ' watchOrderBookForSymbols() aggregation must be one of ' + ', '.join(aggregations))
         params = self.omit(params, 'aggregation')
-        watchOrderBookSubscriptions = self.safe_value(self.options, 'watchOrderBookSubscriptions', {})
-        watchOrderBookSubscriptions[symbol] = [market['id'], limit, aggregation, True]
+        symbolsDefined = (symbols is not None)
+        if symbolsDefined:
+            for i in range(0, len(symbols)):
+                symbol = symbols[i]
+                market = self.market(symbol)
+                messageHashes.append('orderbook:' + market['symbol'])
+                watchOrderBookSubscriptions[symbol] = [market['id'], limit, aggregation, True]
+        else:
+            messageHashes.append('orderbook')
+        marketList = list(watchOrderBookSubscriptions.values())
         subscribe: dict = {
-            'method': 'depth.subscribe_multi',
+            'method': 'depth.subscribe',
+            'params': {'market_list': marketList},
             'id': self.request_id(),
-            'params': list(watchOrderBookSubscriptions.values()),
         }
-        self.options['watchOrderBookSubscriptions'] = watchOrderBookSubscriptions
-        subscriptionHash = self.hash(self.encode(self.json(watchOrderBookSubscriptions)), 'sha256')
-        request = self.deep_extend(subscribe, params)
-        orderbook = await self.watch(url, messageHash, request, subscriptionHash, request)
-        return orderbook.limit()
-
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
-        """
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket023_kline_subscribe
-        watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :param str symbol: unified symbol of the market to fetch OHLCV data for
-        :param str timeframe: the length of time each candle represents
-        :param int [since]: timestamp in ms of the earliest candle to fetch
-        :param int [limit]: the maximum amount of candles to fetch
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
-        """
-        await self.load_markets()
-        market = self.market(symbol)
-        symbol = market['symbol']
-        type = None
-        type, params = self.handle_market_type_and_params('watchOHLCV', market, params)
-        if type != 'swap':
-            raise NotSupported(self.id + ' watchOHLCV() is only supported for swap markets. Try using fetchOHLCV() instead')
+        subscriptionHashes = self.hash(self.encode(self.json(watchOrderBookSubscriptions)), 'sha256')
         url = self.urls['api']['ws'][type]
-        messageHash = 'ohlcv'
-        watchOHLCVWarning = self.safe_bool(self.options, 'watchOHLCVWarning', True)
-        client = self.safe_value(self.clients, url, {})
-        clientSub = self.safe_value(client, 'subscriptions', {})
-        existingSubscription = self.safe_value(clientSub, messageHash)
-        subSymbol = self.safe_string(existingSubscription, 'symbol')
-        subTimeframe = self.safe_string(existingSubscription, 'timeframe')
-        # due to nature of coinex response can only watch one symbol at a time
-        if watchOHLCVWarning and existingSubscription is not None and (subSymbol != symbol or subTimeframe != timeframe):
-            raise ExchangeError(self.id + ' watchOHLCV() can only watch one symbol and timeframe at a time. To supress self warning set watchOHLCVWarning to False in options')
-        timeframes = self.safe_value(self.options, 'timeframes', {})
-        subscribe: dict = {
-            'method': 'kline.subscribe',
-            'id': self.request_id(),
-            'params': [
-                market['id'],
-                self.safe_integer(timeframes, timeframe),
-            ],
-        }
-        subscription: dict = {
-            'symbol': symbol,
-            'timeframe': timeframe,
-        }
-        request = self.deep_extend(subscribe, params)
-        ohlcvs = await self.watch(url, messageHash, request, messageHash, subscription)
+        orderbooks = await self.watch_multiple(url, messageHashes, self.deep_extend(subscribe, params), subscriptionHashes)
         if self.newUpdates:
-            limit = ohlcvs.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcvs, since, limit, 0)
+            return orderbooks
+        return orderbooks.limit()
 
-    async def fetch_ohlcv_ws(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
-        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket005_kline_query
-        query historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :param str symbol: unified symbol of the market to query OHLCV data for
-        :param str timeframe: the length of time each candle represents
-        :param int|None since: timestamp in ms of the earliest candle to fetch
-        :param int|None limit: the maximum amount of candles to fetch
-        :param dict params: extra parameters specific to the exchange API endpoint
-        :param int|None params['end']: the end time for spot markets, self.seconds() is set
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+
+        https://docs.coinex.com/api/v2/spot/market/ws/market-depth
+        https://docs.coinex.com/api/v2/futures/market/ws/market-depth
+
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
-        await self.load_markets()
-        market = self.market(symbol)
-        type, query = self.handle_market_type_and_params('fetchOHLCV', market, params)
-        url = self.urls['api']['ws'][type]
-        symbol = market['symbol']
-        messageHash = 'ohlcv'
-        timeframes = self.safe_value(self.options, 'timeframes', {})
-        timeframe = self.safe_string(timeframes, timeframe, timeframe)
-        if since is None:
-            since = 1640995200  # January 1, 2022
-        id = self.request_id()
-        subscribe: dict = {
-            'method': 'kline.query',
-            'params': [
-                market['id'],
-                self.parse_to_int(since / 1000),
-                self.safe_integer(params, 'end', self.seconds()),
-                self.parse_to_int(timeframe),
-            ],
-            'id': id,
-        }
-        subscription: dict = {
-            'id': id,
-            'future': messageHash,
-        }
-        subscriptionHash = id
-        request = self.deep_extend(subscribe, query)
-        ohlcvs = await self.watch(url, messageHash, request, subscriptionHash, subscription)
-        return self.filter_by_since_limit(ohlcvs, since, limit, 0)
+        params['callerMethodName'] = 'watchOrderBook'
+        return await self.watch_order_book_for_symbols([symbol], limit, params)
 
     def handle_delta(self, bookside, delta):
         bidAsk = self.parse_bid_ask(delta, 0, 1)
@@ -611,49 +793,51 @@ class coinex(ccxt.async_support.coinex):
         #
         #     {
         #         "method": "depth.update",
-        #         "params": [
-        #             False,
-        #             {
+        #         "data": {
+        #             "market": "BTCUSDT",
+        #             "is_full": True,
+        #             "depth": {
         #                 "asks": [
-        #                     ["46350.52", "1.07871851"],
-        #                     ...
+        #                     [
+        #                         "30740.00",
+        #                         "0.31763545"
+        #                     ],
         #                 ],
         #                 "bids": [
-        #                     ["46349.61", "0.04000000"],
-        #                     ...
+        #                     [
+        #                         "30736.00",
+        #                         "0.04857373"
+        #                     ],
         #                 ],
-        #                 "last": "46349.93",
-        #                 "time": 1639987469166,
-        #                 "checksum": 1533284725
-        #             },
-        #             "BTCUSDT"
-        #         ],
+        #                 "last": "30746.28",
+        #                 "updated_at": 1689152421692,
+        #                 "checksum": 2578768879
+        #             }
+        #         },
         #         "id": null
         #     }
         #
-        isSwap = client.url.find('perpetual') >= 0
-        marketType = 'swap' if isSwap else 'spot'
-        params = self.safe_value(message, 'params', [])
-        fullOrderBook = self.safe_value(params, 0)
-        orderbook = self.safe_value(params, 1)
-        marketId = self.safe_string(params, 2)
-        market = self.safe_market(marketId, None, None, marketType)
+        defaultType = self.safe_string(self.options, 'defaultType')
+        data = self.safe_dict(message, 'data', {})
+        depth = self.safe_dict(data, 'depth', {})
+        marketId = self.safe_string(data, 'market')
+        market = self.safe_market(marketId, None, None, defaultType)
         symbol = market['symbol']
         name = 'orderbook'
         messageHash = name + ':' + symbol
-        timestamp = self.safe_integer(orderbook, 'time')
+        timestamp = self.safe_integer(depth, 'updated_at')
         currentOrderBook = self.safe_value(self.orderbooks, symbol)
+        fullOrderBook = self.safe_bool(data, 'is_full', False)
         if fullOrderBook:
-            snapshot = self.parse_order_book(orderbook, symbol, timestamp)
+            snapshot = self.parse_order_book(depth, symbol, timestamp)
             if currentOrderBook is None:
-                orderbook = self.order_book(snapshot)
-                self.orderbooks[symbol] = orderbook
+                self.orderbooks[symbol] = self.order_book(snapshot)
             else:
                 orderbook = self.orderbooks[symbol]
                 orderbook.reset(snapshot)
         else:
-            asks = self.safe_value(orderbook, 'asks', [])
-            bids = self.safe_value(orderbook, 'bids', [])
+            asks = self.safe_list(depth, 'asks', [])
+            bids = self.safe_list(depth, 'bids', [])
             self.handle_deltas(currentOrderBook['asks'], asks)
             self.handle_deltas(currentOrderBook['bids'], bids)
             currentOrderBook['nonce'] = timestamp
@@ -664,24 +848,52 @@ class coinex(ccxt.async_support.coinex):
         client.resolve(self.orderbooks[symbol], messageHash)
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+        """
+        watches information on multiple orders made by the user
+
+        https://docs.coinex.com/api/v2/spot/order/ws/user-order
+        https://docs.coinex.com/api/v2/futures/order/ws/user-order
+
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param bool [params.trigger]: if the orders to watch are trigger orders or not
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
         await self.load_markets()
-        await self.authenticate(params)
+        trigger = self.safe_bool_2(params, 'trigger', 'stop')
+        params = self.omit(params, ['trigger', 'stop'])
         messageHash = 'orders'
         market = None
-        type, query = self.handle_market_type_and_params('watchOrders', market, params)
-        message: dict = {
-            'method': 'order.subscribe',
-            'id': self.request_id(),
-        }
+        marketList = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
-            message['params'] = [market['id']]
+        type = None
+        type, params = self.handle_market_type_and_params('watchOrders', market, params, 'spot')
+        await self.authenticate(type)
+        if symbol is not None:
+            marketList = [market['id']]
             messageHash += ':' + symbol
         else:
-            message['params'] = []
+            marketList = []
+            if type == 'spot':
+                messageHash += ':spot'
+            else:
+                messageHash += ':swap'
+        method = None
+        if trigger:
+            method = 'stop.subscribe'
+        else:
+            method = 'order.subscribe'
+        message: dict = {
+            'method': method,
+            'params': {'market_list': marketList},
+            'id': self.request_id(),
+        }
         url = self.urls['api']['ws'][type]
-        request = self.deep_extend(message, query)
+        request = self.deep_extend(message, params)
         orders = await self.watch(url, messageHash, request, messageHash, request)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
@@ -689,255 +901,260 @@ class coinex(ccxt.async_support.coinex):
 
     def handle_orders(self, client: Client, message):
         #
-        #  spot
+        # spot
         #
-        #      {
-        #          "method": "order.update",
-        #          "params": [
-        #              1,
-        #              {
-        #                  "id": 77782469357,
-        #                  "type": 1,
-        #                  "side": 2,
-        #                  "user": 1849116,
-        #                  "account": 0,
-        #                  "option": 2,
-        #                  "ctime": 1653961043.048967,
-        #                  "mtime": 1653961043.048967,
-        #                  "market": "BTCUSDT",
-        #                  "source": "web",
-        #                  "client_id": '',
-        #                  "price": "1.00",
-        #                  "amount": "1.00000000",
-        #                  "taker_fee": "0.0020",
-        #                  "maker_fee": "0.0020",
-        #                  "left": "1.00000000",
-        #                  "deal_stock": "0",
-        #                  "deal_money": "0",
-        #                  "money_fee": "0",
-        #                  "stock_fee": "0",
-        #                  "asset_fee": "0",
-        #                  "fee_discount": "1",
-        #                  "last_deal_amount": "0",
-        #                  "last_deal_price": "0",
-        #                  "last_deal_time": 0,
-        #                  "last_deal_id": 0,
-        #                  "last_role": 0,
-        #                  "fee_asset": null,
-        #                  "stop_id": 0
-        #              }
-        #          ],
-        #          "id": null
-        #      }
+        #     {
+        #         "method": "order.update",
+        #         "data": {
+        #             "event": "put",
+        #             "order": {
+        #                 "order_id": 12750,
+        #                 "market": "BTCUSDT",
+        #                 "margin_market": "BTCUSDT",
+        #                 "type": "limit",
+        #                 "side": "buy",
+        #                 "price": "5999.00",
+        #                 "amount": "1.50000000",
+        #                 "unfill_amount": "1.50000000",
+        #                 "fill_value": "1.50000000",
+        #                 "taker_fee_rate": "0.0001",
+        #                 "maker_fee_rate": "0.0001",
+        #                 "base_ccy_fee": "0.0001",
+        #                 "quote_ccy_fee": "0.0001",
+        #                 "discount_ccy_fee": "0.0001",
+        #                 "last_fill_amount": "0",
+        #                 "last_fill_price": "0",
+        #                 "client_id": "buy1_1234",
+        #                 "created_at": 1689152421692,
+        #                 "updated_at": 1689152421692,
+        #             }
+        #         },
+        #         "id": null
+        #     }
         #
-        #  swap
+        # spot stop
         #
-        #      {
-        #          "method": "order.update",
-        #          "params": [
-        #              1,
-        #              {
-        #                  "order_id": 23423462821,
-        #                  "position_id": 0,
-        #                  "stop_id": 0,
-        #                  "market": "BTCUSDT",
-        #                  "type": 1,
-        #                  "side": 2,
-        #                  "target": 0,
-        #                  "effect_type": 1,
-        #                  "user_id": 1849116,
-        #                  "create_time": 1653961509.25049,
-        #                  "update_time": 1653961509.25049,
-        #                  "source": "web",
-        #                  "price": "1.00",
-        #                  "amount": "1.0000",
-        #                  "taker_fee": "0.00050",
-        #                  "maker_fee": "0.00030",
-        #                  "left": "1.0000",
-        #                  "deal_stock": "0.00000000000000000000",
-        #                  "deal_fee": "0.00000000000000000000",
-        #                  "deal_profit": "0.00000000000000000000",
-        #                  "last_deal_amount": "0.00000000000000000000",
-        #                  "last_deal_price": "0.00000000000000000000",
-        #                  "last_deal_time": 0,
-        #                  "last_deal_id": 0,
-        #                  "last_deal_type": 0,
-        #                  "last_deal_role": 0,
-        #                  "client_id": '',
-        #                  "fee_asset": '',
-        #                  "fee_discount": "0.00000000000000000000",
-        #                  "deal_asset_fee": "0.00000000000000000000",
-        #                  "leverage": "3",
-        #                  "position_type": 2
-        #              }
-        #          ],
-        #          "id": null
-        #      }
+        #     {
+        #         "method": "stop.update",
+        #         "data": {
+        #             "event": 1,
+        #             "stop": {
+        #                 "stop_id": 102067022299,
+        #                 "market": "BTCUSDT",
+        #                 "margin_market": "BTCUSDT",
+        #                 "type": "limit",
+        #                 "side": "buy",
+        #                 "price": "20000.00",
+        #                 "amount": "0.10000000",
+        #                 "trigger_price": "20000.00",
+        #                 "trigger_direction": "lower",
+        #                 "taker_fee_rate": "0.0016",
+        #                 "maker_fee_rate": "0.0016",
+        #                 "status": "active_success",
+        #                 "client_id": "",
+        #                 "created_at": 1689152996689,
+        #                 "updated_at": 1689152996689,
+        #             }
+        #         },
+        #         "id": null
+        #     }
         #
-        params = self.safe_value(message, 'params', [])
-        order = self.safe_value(params, 1, {})
+        # swap
+        #
+        #     {
+        #         "method": "order.update",
+        #         "data": {
+        #             "event": "put",
+        #             "order": {
+        #                 "order_id": 98388656341,
+        #                 "stop_id": 0,
+        #                 "market": "BTCUSDT",
+        #                 "side": "buy",
+        #                 "type": "limit",
+        #                 "amount": "0.0010",
+        #                 "price": "50000.00",
+        #                 "unfilled_amount": "0.0010",
+        #                 "filled_amount": "0",
+        #                 "filled_value": "0",
+        #                 "fee": "0",
+        #                 "fee_ccy": "USDT",
+        #                 "taker_fee_rate": "0.00046",
+        #                 "maker_fee_rate": "0.00000000000000000000",
+        #                 "client_id": "",
+        #                 "last_filled_amount": "0.0010",
+        #                 "last_filled_price": "30721.35",
+        #                 "created_at": 1689145715129,
+        #                 "updated_at": 1689145715129
+        #             }
+        #         },
+        #         "id": null
+        #     }
+        #
+        # swap stop
+        #
+        #     {
+        #         "method": "stop.update",
+        #         "data": {
+        #             "event": "put",
+        #             "stop": {
+        #                 "stop_id": 98389557871,
+        #                 "market": "BTCUSDT",
+        #                 "side": "sell",
+        #                 "type": "limit",
+        #                 "price": "20000.00",
+        #                 "amount": "0.0100",
+        #                 "trigger_price": "20000.00",
+        #                 "trigger_direction": "higer",
+        #                 "trigger_price_type": "index_price",
+        #                 "taker_fee_rate": "0.00046",
+        #                 "maker_fee_rate": "0.00026",
+        #                 "client_id": "",
+        #                 "created_at": 1689146382674,
+        #                 "updated_at": 1689146382674
+        #             }
+        #         },
+        #         "id": null
+        #     }
+        #
+        data = self.safe_dict(message, 'data', {})
+        order = self.safe_dict_2(data, 'order', 'stop', {})
         parsedOrder = self.parse_ws_order(order)
+        symbol = parsedOrder['symbol']
+        market = self.market(symbol)
         if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)
         orders = self.orders
         orders.append(parsedOrder)
         messageHash = 'orders'
-        client.resolve(self.orders, messageHash)
-        messageHash += ':' + parsedOrder['symbol']
+        messageWithType = messageHash + ':' + market['type']
+        client.resolve(self.orders, messageWithType)
+        messageHash += ':' + symbol
         client.resolve(self.orders, messageHash)
 
     def parse_ws_order(self, order, market=None):
         #
-        #  spot
+        # spot
         #
-        #       {
-        #           "id": 77782469357,
-        #           "type": 1,
-        #           "side": 2,
-        #           "user": 1849116,
-        #           "account": 0,
-        #           "option": 2,
-        #           "ctime": 1653961043.048967,
-        #           "mtime": 1653961043.048967,
-        #           "market": "BTCUSDT",
-        #           "source": "web",
-        #           "client_id": '',
-        #           "price": "1.00",
-        #           "amount": "1.00000000",
-        #           "taker_fee": "0.0020",
-        #           "maker_fee": "0.0020",
-        #           "left": "1.00000000",
-        #           "deal_stock": "0",
-        #           "deal_money": "0",
-        #           "money_fee": "0",
-        #           "stock_fee": "0",
-        #           "asset_fee": "0",
-        #           "fee_discount": "1",
-        #           "last_deal_amount": "0",
-        #           "last_deal_price": "0",
-        #           "last_deal_time": 0,
-        #           "last_deal_id": 0,
-        #           "last_role": 0,
-        #           "fee_asset": null,
-        #           "stop_id": 0
-        #       }
+        #     {
+        #         "order_id": 12750,
+        #         "market": "BTCUSDT",
+        #         "margin_market": "BTCUSDT",
+        #         "type": "limit",
+        #         "side": "buy",
+        #         "price": "5999.00",
+        #         "amount": "1.50000000",
+        #         "unfill_amount": "1.50000000",
+        #         "fill_value": "1.50000000",
+        #         "taker_fee_rate": "0.0001",
+        #         "maker_fee_rate": "0.0001",
+        #         "base_ccy_fee": "0.0001",
+        #         "quote_ccy_fee": "0.0001",
+        #         "discount_ccy_fee": "0.0001",
+        #         "last_fill_amount": "0",
+        #         "last_fill_price": "0",
+        #         "client_id": "buy1_1234",
+        #         "created_at": 1689152421692,
+        #         "updated_at": 1689152421692,
+        #     }
         #
-        #  swap
+        # spot stop
         #
-        #      {
-        #          "order_id": 23423462821,
-        #          "position_id": 0,
-        #          "stop_id": 0,
-        #          "market": "BTCUSDT",
-        #          "type": 1,
-        #          "side": 2,
-        #          "target": 0,
-        #          "effect_type": 1,
-        #          "user_id": 1849116,
-        #          "create_time": 1653961509.25049,
-        #          "update_time": 1653961509.25049,
-        #          "source": "web",
-        #          "price": "1.00",
-        #          "amount": "1.0000",
-        #          "taker_fee": "0.00050",
-        #          "maker_fee": "0.00030",
-        #          "left": "1.0000",
-        #          "deal_stock": "0.00000000000000000000",
-        #          "deal_fee": "0.00000000000000000000",
-        #          "deal_profit": "0.00000000000000000000",
-        #          "last_deal_amount": "0.00000000000000000000",
-        #          "last_deal_price": "0.00000000000000000000",
-        #          "last_deal_time": 0,
-        #          "last_deal_id": 0,
-        #          "last_deal_type": 0,
-        #          "last_deal_role": 0,
-        #          "client_id": '',
-        #          "fee_asset": '',
-        #          "fee_discount": "0.00000000000000000000",
-        #          "deal_asset_fee": "0.00000000000000000000",
-        #          "leverage": "3",
-        #          "position_type": 2
-        #      }
+        #     {
+        #         "stop_id": 102067022299,
+        #         "market": "BTCUSDT",
+        #         "margin_market": "BTCUSDT",
+        #         "type": "limit",
+        #         "side": "buy",
+        #         "price": "20000.00",
+        #         "amount": "0.10000000",
+        #         "trigger_price": "20000.00",
+        #         "trigger_direction": "lower",
+        #         "taker_fee_rate": "0.0016",
+        #         "maker_fee_rate": "0.0016",
+        #         "status": "active_success",
+        #         "client_id": "",
+        #         "created_at": 1689152996689,
+        #         "updated_at": 1689152996689,
+        #     }
         #
-        #  order.update_stop
+        # swap
         #
-        #       {
-        #           "id": 78006745870,
-        #           "type": 1,
-        #           "side": 2,
-        #           "user": 1849116,
-        #           "account": 1,
-        #           "option": 70,
-        #           "direction": 1,
-        #           "ctime": 1654171725.131976,
-        #           "mtime": 1654171725.131976,
-        #           "market": "BTCUSDT",
-        #           "source": "web",
-        #           "client_id": '',
-        #           "stop_price": "1.00",
-        #           "price": "1.00",
-        #           "amount": "1.00000000",
-        #           "taker_fee": "0.0020",
-        #           "maker_fee": "0.0020",
-        #           "fee_discount": "1",
-        #           "fee_asset": null,
-        #           "status": 0
-        #       }
+        #     {
+        #         "order_id": 98388656341,
+        #         "stop_id": 0,
+        #         "market": "BTCUSDT",
+        #         "side": "buy",
+        #         "type": "limit",
+        #         "amount": "0.0010",
+        #         "price": "50000.00",
+        #         "unfilled_amount": "0.0010",
+        #         "filled_amount": "0",
+        #         "filled_value": "0",
+        #         "fee": "0",
+        #         "fee_ccy": "USDT",
+        #         "taker_fee_rate": "0.00046",
+        #         "maker_fee_rate": "0.00000000000000000000",
+        #         "client_id": "",
+        #         "last_filled_amount": "0.0010",
+        #         "last_filled_price": "30721.35",
+        #         "created_at": 1689145715129,
+        #         "updated_at": 1689145715129
+        #     }
         #
-        timestamp = self.safe_timestamp_2(order, 'update_time', 'mtime')
+        # swap stop
+        #
+        #     {
+        #         "stop_id": 98389557871,
+        #         "market": "BTCUSDT",
+        #         "side": "sell",
+        #         "type": "limit",
+        #         "price": "20000.00",
+        #         "amount": "0.0100",
+        #         "trigger_price": "20000.00",
+        #         "trigger_direction": "higer",
+        #         "trigger_price_type": "index_price",
+        #         "taker_fee_rate": "0.00046",
+        #         "maker_fee_rate": "0.00026",
+        #         "client_id": "",
+        #         "created_at": 1689146382674,
+        #         "updated_at": 1689146382674
+        #     }
+        #
+        timestamp = self.safe_integer(order, 'created_at')
         marketId = self.safe_string(order, 'market')
-        typeCode = self.safe_string(order, 'type')
-        type = self.safe_string({
-            '1': 'limit',
-            '2': 'market',
-        }, typeCode)
-        sideCode = self.safe_string(order, 'side')
-        side = self.safe_string({
-            '1': 'sell',
-            '2': 'buy',
-        }, sideCode)
-        remaining = self.safe_string(order, 'left')
-        amount = self.safe_string(order, 'amount')
         status = self.safe_string(order, 'status')
-        defaultType = self.safe_string(self.options, 'defaultType')
+        isSpot = ('margin_market' in order)
+        defaultType = 'spot' if isSpot else 'swap'
         market = self.safe_market(marketId, market, None, defaultType)
-        cost = self.safe_string(order, 'deal_money')
-        filled = self.safe_string(order, 'deal_stock')
-        average = None
-        if market['swap']:
-            leverage = self.safe_string(order, 'leverage')
-            cost = Precise.string_div(filled, leverage)
-            average = Precise.string_div(filled, amount)
-            filled = None
         fee = None
-        feeCost = self.omit_zero(self.safe_string(order, 'money_fee'))
+        feeCost = self.omit_zero(self.safe_string_2(order, 'fee', 'quote_ccy_fee'))
         if feeCost is not None:
-            feeCurrencyId = self.safe_string(order, 'fee_asset', market['quote'])
+            feeCurrencyId = self.safe_string(order, 'fee_ccy', market['quote'])
             fee = {
                 'currency': self.safe_currency_code(feeCurrencyId),
                 'cost': feeCost,
             }
         return self.safe_order({
             'info': order,
-            'id': self.safe_string_2(order, 'order_id', 'id'),
+            'id': self.safe_string_2(order, 'order_id', 'stop_id'),
             'clientOrderId': self.safe_string(order, 'client_id'),
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
-            'lastTradeTimestamp': self.safe_timestamp(order, 'last_deal_time'),
+            'lastTradeTimestamp': self.safe_integer(order, 'updated_at'),
             'symbol': market['symbol'],
-            'type': type,
+            'type': self.safe_string(order, 'type'),
             'timeInForce': None,
             'postOnly': None,
-            'side': side,
+            'side': self.safe_string(order, 'side'),
             'price': self.safe_string(order, 'price'),
-            'stopPrice': self.safe_string(order, 'stop_price'),
-            'triggerPrice': self.safe_string(order, 'stop_price'),
-            'amount': amount,
-            'filled': filled,
-            'remaining': remaining,
-            'cost': cost,
-            'average': average,
+            'stopPrice': self.safe_string(order, 'trigger_price'),
+            'triggerPrice': self.safe_string(order, 'trigger_price'),
+            'amount': self.safe_string(order, 'amount'),
+            'filled': self.safe_string_2(order, 'filled_amount', 'fill_value'),
+            'remaining': self.safe_string_2(order, 'unfilled_amount', 'unfill_amount'),
+            'cost': None,
+            'average': None,
             'status': self.parse_ws_order_status(status),
             'fee': fee,
             'trades': None,
@@ -945,24 +1162,111 @@ class coinex(ccxt.async_support.coinex):
 
     def parse_ws_order_status(self, status):
         statuses: dict = {
-            '0': 'pending',
-            '1': 'ok',
+            'active_success': 'open',
+            'active_fail': 'canceled',
+            'cancel': 'canceled',
         }
         return self.safe_string(statuses, status, status)
 
+    async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        watches best bid & ask for symbols
+
+        https://docs.coinex.com/api/v2/spot/market/ws/market-bbo
+        https://docs.coinex.com/api/v2/futures/market/ws/market-bbo
+
+        :param str[] [symbols]: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        marketIds = self.market_ids(symbols)
+        messageHashes = []
+        market = None
+        symbolsDefined = (symbols is not None)
+        if symbolsDefined:
+            for i in range(0, len(symbols)):
+                symbol = symbols[i]
+                market = self.market(symbol)
+                messageHashes.append('bidsasks:' + market['symbol'])
+        else:
+            messageHashes.append('bidsasks')
+        type = None
+        type, params = self.handle_market_type_and_params('watchBidsAsks', market, params)
+        url = self.urls['api']['ws'][type]
+        subscriptionHashes = ['all@bidsasks']
+        subscribe: dict = {
+            'method': 'bbo.subscribe',
+            'params': {'market_list': marketIds},
+            'id': self.request_id(),
+        }
+        result = await self.watch_multiple(url, messageHashes, self.deep_extend(subscribe, params), subscriptionHashes)
+        if self.newUpdates:
+            return result
+        return self.filter_by_array(self.bidsasks, 'symbol', symbols)
+
+    def handle_bid_ask(self, client: Client, message):
+        #
+        #     {
+        #         "method": "bbo.update",
+        #         "data": {
+        #             "market": "BTCUSDT",
+        #             "updated_at": 1656660154,
+        #             "best_bid_price": "20000",
+        #             "best_bid_size": "0.1",
+        #             "best_ask_price": "20001",
+        #             "best_ask_size": "0.15"
+        #         },
+        #         "id": null
+        #     }
+        #
+        data = self.safe_dict(message, 'data', {})
+        parsedTicker = self.parse_ws_bid_ask(data)
+        symbol = parsedTicker['symbol']
+        self.bidsasks[symbol] = parsedTicker
+        messageHash = 'bidsasks:' + symbol
+        client.resolve(parsedTicker, messageHash)
+
+    def parse_ws_bid_ask(self, ticker, market=None):
+        #
+        #     {
+        #         "market": "BTCUSDT",
+        #         "updated_at": 1656660154,
+        #         "best_bid_price": "20000",
+        #         "best_bid_size": "0.1",
+        #         "best_ask_price": "20001",
+        #         "best_ask_size": "0.15"
+        #     }
+        #
+        defaultType = self.safe_string(self.options, 'defaultType')
+        marketId = self.safe_string(ticker, 'market')
+        market = self.safe_market(marketId, market, None, defaultType)
+        timestamp = self.safe_integer(ticker, 'updated_at')
+        return self.safe_ticker({
+            'symbol': self.safe_symbol(marketId, market, None, defaultType),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'ask': self.safe_number(ticker, 'best_ask_price'),
+            'askVolume': self.safe_number(ticker, 'best_ask_size'),
+            'bid': self.safe_number(ticker, 'best_bid_price'),
+            'bidVolume': self.safe_number(ticker, 'best_bid_size'),
+            'info': ticker,
+        }, market)
+
     def handle_message(self, client: Client, message):
-        error = self.safe_value(message, 'error')
-        if error is not None:
-            raise ExchangeError(self.id + ' ' + self.json(error))
         method = self.safe_string(message, 'method')
+        error = self.safe_string(message, 'message')
+        if error is not None:
+            self.handle_errors(None, None, client.url, method, None, self.json(error), message, None, None)
         handlers: dict = {
             'state.update': self.handle_ticker,
-            'asset.update': self.handle_balance,
+            'balance.update': self.handle_balance,
             'deals.update': self.handle_trades,
+            'user_deals.update': self.handle_my_trades,
             'depth.update': self.handle_order_book,
             'order.update': self.handle_orders,
-            'kline.update': self.handle_ohlcv,
-            'order.update_stop': self.handle_orders,
+            'stop.update': self.handle_orders,
+            'bbo.update': self.handle_bid_ask,
         }
         handler = self.safe_value(handlers, method)
         if handler is not None:
@@ -970,92 +1274,90 @@ class coinex(ccxt.async_support.coinex):
             return
         self.handle_subscription_status(client, message)
 
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+        if response is None:
+            return None
+        #
+        #     {"id": 1, "code": 20001, "message": "invalid argument"}
+        #     {"id": 2, "code": 21001, "message": "require auth"}
+        #     {"id": 1, "code": 21002, "message": "Signature Incorrect"}
+        #
+        message = self.safe_string_lower(response, 'message')
+        isErrorMessage = (message is not None) and (message != 'ok')
+        errorCode = self.safe_string(response, 'code')
+        isErrorCode = (errorCode is not None) and (errorCode != '0')
+        if isErrorCode or isErrorMessage:
+            feedback = self.id + ' ' + body
+            self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
+            raise ExchangeError(feedback)
+        return None
+
     def handle_authentication_message(self, client: Client, message):
         #
+        # success
+        #
         #     {
-        #         "error": null,
-        #         "result": {
-        #             "status": "success"
-        #         },
-        #         "id": 1
+        #         "id": 1,
+        #         "code": 0,
+        #         "message": "OK"
         #     }
         #
-        messageHashSpot = 'authenticated:spot'
-        messageHashSwap = 'authenticated:swap'
-        # client.resolve(message, messageHashSpot)
-        # client.resolve(message, messageHashSwap)
-        spotFuture = self.safe_value(client.futures, messageHashSpot)
-        spotFuture.resolve(True)
-        swapFutures = self.safe_value(client.futures, messageHashSwap)
-        swapFutures.resolve(True)
-        return message
+        # fail
+        #
+        #     {
+        #         "id": 1,
+        #         "code": 21002,
+        #         "message": ""
+        #     }
+        #
+        status = self.safe_string_lower(message, 'message')
+        errorCode = self.safe_string(message, 'code')
+        messageHash = 'authenticated'
+        if (status == 'ok') or (errorCode == '0'):
+            future = self.safe_value(client.futures, messageHash)
+            future.resolve(True)
+        else:
+            error = AuthenticationError(self.json(message))
+            client.reject(error, messageHash)
+            if messageHash in client.subscriptions:
+                del client.subscriptions[messageHash]
 
     def handle_subscription_status(self, client: Client, message):
         id = self.safe_integer(message, 'id')
         subscription = self.safe_value(client.subscriptions, id)
         if subscription is not None:
             futureIndex = self.safe_string(subscription, 'future')
-            if futureIndex == 'ohlcv':
-                self.handle_ohlcv(client, message)
-                return
             future = self.safe_value(client.futures, futureIndex)
             if future is not None:
                 future.resolve(True)
             del client.subscriptions[id]
 
-    async def authenticate(self, params={}):
-        type = None
-        type, params = self.handle_market_type_and_params('authenticate', None, params)
+    async def authenticate(self, type: str):
         url = self.urls['api']['ws'][type]
         client = self.client(url)
         time = self.milliseconds()
-        isSpot = (type == 'spot')
-        spotMessageHash = 'authenticated:spot'
-        swapMessageHash = 'authenticated:swap'
-        messageHash = spotMessageHash if isSpot else swapMessageHash
+        timestamp = str(time)
+        messageHash = 'authenticated'
         future = client.future(messageHash)
         authenticated = self.safe_value(client.subscriptions, messageHash)
-        if type == 'spot':
-            if authenticated is not None:
-                return await future
-            requestId = self.request_id()
-            subscribe: dict = {
-                'id': requestId,
-                'future': spotMessageHash,
-            }
-            signData = 'access_id=' + self.apiKey + '&tonce=' + self.number_to_string(time) + '&secret_key=' + self.secret
-            hash = self.hash(self.encode(signData), 'md5')
-            request: dict = {
-                'method': 'server.sign',
-                'params': [
-                    self.apiKey,
-                    hash.upper(),
-                    time,
-                ],
-                'id': requestId,
-            }
-            self.watch(url, messageHash, request, requestId, subscribe)
-            client.subscriptions[messageHash] = True
+        if authenticated is not None:
             return await future
-        else:
-            if authenticated is not None:
-                return await future
-            requestId = self.request_id()
-            subscribe: dict = {
-                'id': requestId,
-                'future': swapMessageHash,
-            }
-            signData = 'access_id=' + self.apiKey + '&timestamp=' + self.number_to_string(time) + '&secret_key=' + self.secret
-            hash = self.hash(self.encode(signData), 'sha256', 'hex')
-            request: dict = {
-                'method': 'server.sign',
-                'params': [
-                    self.apiKey,
-                    hash.lower(),
-                    time,
-                ],
-                'id': requestId,
-            }
-            self.watch(url, messageHash, request, requestId, subscribe)
-            client.subscriptions[messageHash] = True
-            return await future
+        requestId = self.request_id()
+        subscribe: dict = {
+            'id': requestId,
+            'future': messageHash,
+        }
+        hmac = self.hmac(self.encode(timestamp), self.encode(self.secret), hashlib.sha256, 'hex')
+        request: dict = {
+            'id': requestId,
+            'method': 'server.sign',
+            'params': {
+                'access_id': self.apiKey,
+                'signed_str': hmac.lower(),
+                'timestamp': time,
+            },
+        }
+        self.watch(url, messageHash, request, requestId, subscribe)
+        client.subscriptions[messageHash] = True
+        return await future

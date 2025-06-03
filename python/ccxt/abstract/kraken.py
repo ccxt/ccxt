@@ -16,6 +16,7 @@ class ImplicitAPI:
     private_post_addorder = privatePostAddOrder = Entry('AddOrder', 'private', 'POST', {'cost': 0})
     private_post_addorderbatch = privatePostAddOrderBatch = Entry('AddOrderBatch', 'private', 'POST', {'cost': 0})
     private_post_addexport = privatePostAddExport = Entry('AddExport', 'private', 'POST', {'cost': 3})
+    private_post_amendorder = privatePostAmendOrder = Entry('AmendOrder', 'private', 'POST', {'cost': 0})
     private_post_balance = privatePostBalance = Entry('Balance', 'private', 'POST', {'cost': 3})
     private_post_cancelall = privatePostCancelAll = Entry('CancelAll', 'private', 'POST', {'cost': 3})
     private_post_cancelallordersafter = privatePostCancelAllOrdersAfter = Entry('CancelAllOrdersAfter', 'private', 'POST', {'cost': 3})

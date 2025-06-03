@@ -47,11 +47,11 @@ public partial class hollaex
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbol.</returns>
-    public async Task<Dictionary<string, OrderBook>> FetchOrderBooks(List<String> symbols = null, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<OrderBooks> FetchOrderBooks(List<String> symbols = null, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOrderBooks(symbols, limit, parameters);
-        return ((Dictionary<string, OrderBook>)res);
+        return new OrderBooks(res);
     }
     /// <summary>
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -175,7 +175,7 @@ public partial class hollaex
         return new TradingFees(res);
     }
     /// <summary>
-    /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+    /// hollaex has large gaps between candles, so it's recommended to specify since
     /// </summary>
     /// <remarks>
     /// See <see href="https://apidocs.hollaex.com/#chart"/>  <br/>
@@ -196,6 +196,12 @@ public partial class hollaex
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest candle to fetch
     /// </description>
     /// </item>
     /// </list>
@@ -498,10 +504,10 @@ public partial class hollaex
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a list of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositAddresses(List<String> codes = null, Dictionary<string, object> parameters = null)
+    public async Task<List<DepositAddress>> FetchDepositAddresses(List<String> codes = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddresses(codes, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new DepositAddress(item)).ToList<DepositAddress>();
     }
     /// <summary>
     /// fetch all deposits made to an account

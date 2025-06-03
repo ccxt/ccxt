@@ -70,6 +70,7 @@ public partial class wazirx
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.wazirx.com/#trade-streams"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -137,6 +138,7 @@ public partial class wazirx
     /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.wazirx.com/#kline-candlestick-stream"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
