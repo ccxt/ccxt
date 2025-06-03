@@ -697,7 +697,7 @@ export default class modetrade extends Exchange {
                     'info': network,
                 };
             }
-            result[code] = {
+            result[code] = this.safeCurrencyStructure ({
                 'id': currencyId,
                 'name': currencyId,
                 'code': code,
@@ -718,7 +718,7 @@ export default class modetrade extends Exchange {
                     },
                 },
                 'info': token,
-            };
+            });
         }
         return result;
     }
