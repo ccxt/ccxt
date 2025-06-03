@@ -95,6 +95,7 @@ var novadax = require('./src/novadax.js');
 var oceanex = require('./src/oceanex.js');
 var okcoin = require('./src/okcoin.js');
 var okx = require('./src/okx.js');
+var okxus = require('./src/okxus.js');
 var onetrading = require('./src/onetrading.js');
 var oxfun = require('./src/oxfun.js');
 var p2b = require('./src/p2b.js');
@@ -173,6 +174,7 @@ var myokx$1 = require('./src/pro/myokx.js');
 var ndax$1 = require('./src/pro/ndax.js');
 var okcoin$1 = require('./src/pro/okcoin.js');
 var okx$1 = require('./src/pro/okx.js');
+var okxus$1 = require('./src/pro/okxus.js');
 var onetrading$1 = require('./src/pro/onetrading.js');
 var oxfun$1 = require('./src/pro/oxfun.js');
 var p2b$1 = require('./src/pro/p2b.js');
@@ -276,6 +278,7 @@ const exchanges = {
     'oceanex': oceanex,
     'okcoin': okcoin,
     'okx': okx,
+    'okxus': okxus,
     'onetrading': onetrading,
     'oxfun': oxfun,
     'p2b': p2b,
@@ -356,6 +359,7 @@ const pro = {
     'ndax': ndax$1,
     'okcoin': okcoin$1,
     'okx': okx$1,
+    'okxus': okxus$1,
     'onetrading': onetrading$1,
     'oxfun': oxfun$1,
     'p2b': p2b$1,
@@ -504,6 +508,7 @@ exports.novadax = novadax;
 exports.oceanex = oceanex;
 exports.okcoin = okcoin;
 exports.okx = okx;
+exports.okxus = okxus;
 exports.onetrading = onetrading;
 exports.oxfun = oxfun;
 exports.p2b = p2b;
