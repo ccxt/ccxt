@@ -420,6 +420,7 @@ class Exchange {
         'oceanex',
         'okcoin',
         'okx',
+        'okxus',
         'onetrading',
         'oxfun',
         'p2b',
