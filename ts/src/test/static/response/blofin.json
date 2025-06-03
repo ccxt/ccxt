@@ -866,6 +866,8 @@
                     "average": 72754.6,
                     "baseVolume": 50493822,
                     "quoteVolume": null,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "instId": "BTC-USDT",
                         "last": "73355.3",
@@ -881,6 +883,70 @@
                         "vol24h": "50493822",
                         "ts": "1710328244013"
                     }
+                }
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "trigger market order",
+                "method": "createOrder",
+                "input": [
+                    "ADA/USDT:USDT",
+                    "market",
+                    "sell",
+                    1,
+                    null,
+                    {
+                        "triggerPrice": "4",
+                        "positionSide": "short",
+                        "marginMode": "isolated"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "success",
+                    "data": {
+                        "algoId": "61602159",
+                        "clientOrderId": null,
+                        "msg": null,
+                        "code": "0"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "algoId": "61602159",
+                        "clientOrderId": null,
+                        "msg": null,
+                        "code": "0"
+                    },
+                    "id": "61602159",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "ADA/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": null,
+                    "price": null,
+                    "stopLossTriggerPrice": null,
+                    "takeProfitTriggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "average": null,
+                    "cost": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "reduceOnly": false,
+                    "fees": [],
+                    "stopPrice": null,
+                    "triggerPrice": null
                 }
             }
         ]

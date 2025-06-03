@@ -40,7 +40,10 @@
                         "price": 73210.53,
                         "amount": 0.0001,
                         "cost": 7.321053,
-                        "fee": {"cost": null, "currency": null },
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
                         "fees": []
                     }
                 ]
@@ -84,6 +87,8 @@
                     "average": null,
                     "baseVolume": 43.5725531,
                     "quoteVolume": null,
+                    "markPrice": null,
+                    "indexPrice": null,
                     "info": {
                         "pair": "btc_usdt",
                         "lastPrice": "73102.33000000",
@@ -101,34 +106,117 @@
                 "description": "fetch OHLCV",
                 "method": "fetchOHLCV",
                 "input": [
-                  "BTC/USDT",
-                  "1h",
-                  null,
-                  1
+                    "BTC/USDT",
+                    "1h",
+                    null,
+                    1
                 ],
                 "httpResponse": {
-                  "data": [
-                    {
-                      "timestamp": "1710327600000",
-                      "open": "73250",
-                      "high": "73250",
-                      "low": "73102.33",
-                      "close": "73102.33",
-                      "volume": "0.00828995"
-                    }
-                  ]
+                    "data": [
+                        {
+                            "timestamp": "1710327600000",
+                            "open": "73250",
+                            "high": "73250",
+                            "low": "73102.33",
+                            "close": "73102.33",
+                            "volume": "0.00828995"
+                        }
+                    ]
                 },
                 "parsedResponse": [
-                  [
-                    1710327600000,
-                    73250,
-                    73250,
-                    73102.33,
-                    73102.33,
-                    0.00828995
-                  ]
+                    [
+                        1710327600000,
+                        73250,
+                        73250,
+                        73102.33,
+                        73102.33,
+                        0.00828995
+                    ]
                 ]
-              }
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetchOpenOrders",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "action": "SELL",
+                            "avgExecutionPrice": "0",
+                            "fee": "0",
+                            "feeSymbol": "usdt",
+                            "bitoFee": "0",
+                            "executedAmount": "0",
+                            "id": "6135165736",
+                            "originalAmount": "0.0039",
+                            "pair": "btc_usdt",
+                            "price": "97753",
+                            "remainingAmount": "0.0039",
+                            "seq": "BTCUSDT7797876599",
+                            "status": 0,
+                            "createdTimestamp": 1733122154,
+                            "updatedTimestamp": 1733122154,
+                            "total": "0",
+                            "type": "LIMIT",
+                            "timeInForce": "GTC"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "6135165736",
+                        "clientOrderId": null,
+                        "timestamp": 1733122154,
+                        "datetime": "1970-01-21T01:25:22.154Z",
+                        "lastTradeTimestamp": 1733122154,
+                        "symbol": "BTC/USDT",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "side": "sell",
+                        "price": 97753,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "amount": 0.0039,
+                        "cost": 0,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 0.0039,
+                        "status": "open",
+                        "fee": null,
+                        "trades": [],
+                        "info": {
+                            "action": "SELL",
+                            "avgExecutionPrice": "0",
+                            "fee": "0",
+                            "feeSymbol": "usdt",
+                            "bitoFee": "0",
+                            "executedAmount": "0",
+                            "id": "6135165736",
+                            "originalAmount": "0.0039",
+                            "pair": "btc_usdt",
+                            "price": "97753",
+                            "remainingAmount": "0.0039",
+                            "seq": "BTCUSDT7797876599",
+                            "status": 0,
+                            "createdTimestamp": 1733122154,
+                            "updatedTimestamp": 1733122154,
+                            "total": "0",
+                            "type": "LIMIT",
+                            "timeInForce": "GTC"
+                        },
+                        "fees": [],
+                        "lastUpdateTimestamp": null,
+                        "reduceOnly": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
         ]
     }
 }

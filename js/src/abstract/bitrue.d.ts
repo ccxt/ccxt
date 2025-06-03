@@ -66,9 +66,9 @@ interface Exchange {
     dapiV2PrivatePostOrder(params?: {}): Promise<implicitReturnType>;
     dapiV2PrivatePostAllOpenOrders(params?: {}): Promise<implicitReturnType>;
     dapiV2PrivatePostFuturesTransfer(params?: {}): Promise<implicitReturnType>;
-    openPrivatePostPoseidonApiV1ListenKey(params?: {}): Promise<implicitReturnType>;
-    openPrivatePutPoseidonApiV1ListenKeyListenKey(params?: {}): Promise<implicitReturnType>;
-    openPrivateDeletePoseidonApiV1ListenKeyListenKey(params?: {}): Promise<implicitReturnType>;
+    openV1PrivatePostPoseidonApiV1ListenKey(params?: {}): Promise<implicitReturnType>;
+    openV1PrivatePutPoseidonApiV1ListenKeyListenKey(params?: {}): Promise<implicitReturnType>;
+    openV1PrivateDeletePoseidonApiV1ListenKeyListenKey(params?: {}): Promise<implicitReturnType>;
 }
 declare abstract class Exchange extends _Exchange {
 }

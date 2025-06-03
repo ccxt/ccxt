@@ -95,9 +95,11 @@ public partial class BaseTest
     public static bool isGreaterThanOrEqual(object a, object b) => Exchange.isGreaterThanOrEqual(a, b);
     public static bool isLessThanOrEqual(object a, object b) => Exchange.isLessThanOrEqual(a, b);
     public static object postFixIncrement(ref object a) => Exchange.postFixIncrement(ref a);
+    public static object mathMax(object a, object b) => Exchange.mathMax(a, b);
     public static object add(object a, object b) => Exchange.add(a, b);
     public static object multiply(object a, object b) => Exchange.multiply(a, b);
     public static object subtract(object a, object b) => Exchange.subtract(a, b);
+    public static object divide(object a, object b) => Exchange.divide(a, b);
     public static string toStringOrNull(object a) => Exchange.toStringOrNull(a);
     public static bool isEqual(object a, object b) => Exchange.isEqual(a, b);
     public static bool isTrue(object a) => Exchange.isTrue(a);
@@ -107,7 +109,6 @@ public partial class BaseTest
     public static string rsa(object request, object secret, Delegate alg = null) => Exchange.Rsa(request, secret, alg);
     public static object ecdsa(object request, object secret, Delegate alg = null, Delegate stub = null) => Exchange.Ecdsa(request, secret, alg, stub);
     public string jwt(object data, object secret, Delegate alg = null, bool isRsa = false) => Exchange.Jwt(data, secret, alg, isRsa);
-
     public static object crc32(object str, object signed2 = null) => Exchange.Crc32(str, signed2);
     public static string sha1() => "sha1";
     public static string sha256() => "sha256";
@@ -118,6 +119,8 @@ public partial class BaseTest
     public static string keccak() => "keccak";
     public static string secp256k1() => "secp256k1";
     public static object parseFloat(object a) => Exchange.parseFloat(a);
+    public static object callDynamically(object obj, object methodName, object[] args = null) => Exchange.callDynamically(obj, methodName, args);
+    public static async Task<object> callDynamicallyAsync(object obj, object methodName, object[] args = null) => await Exchange.callDynamicallyAsync(obj, methodName, args);
 
     public bool equals(object a, object b)
     {
@@ -164,6 +167,20 @@ public partial class BaseTest
 
     }
 
+    public object json(object a)
+    {
+        return Exchange.Json(a);
+    }
+
+    public object DeepEqual(object a, object b)
+    {
+        return isEqual(json(a), json(b));
+    }
+
+    public void AssertDeepEqual(Exchange exchange, object skippedProperties, object method, object a, object b)
+    {
+        assert(DeepEqual(a, b), add(add(add(add("two dicts do not match: ", Exchange.Json(a)), " != "), Exchange.Json(b)), method));
+    }
 }
 
 

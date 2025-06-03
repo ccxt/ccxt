@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.probit import ImplicitAPI
 import math
-from ccxt.base.types import Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -28,7 +28,7 @@ from ccxt.base.precise import Precise
 
 class probit(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(probit, self).describe(), {
             'id': 'probit',
             'name': 'ProBit',
@@ -62,6 +62,7 @@ class probit(Exchange, ImplicitAPI):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': True,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
                 'fetchDepositsWithdrawals': True,
                 'fetchFundingHistory': False,
@@ -102,7 +103,7 @@ class probit(Exchange, ImplicitAPI):
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
-                'sandbox': True,
+                'sandbox': False,
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
@@ -184,6 +185,77 @@ class probit(Exchange, ImplicitAPI):
                     'taker': self.parse_number('0.002'),
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': False,
+                        'triggerDirection': False,
+                        'triggerPriceType': None,
+                        'stopLossPrice': False,
+                        'takeProfitPrice': False,
+                        'attachedStopLossTakeProfit': None,
+                        # todo
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': False,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': 100000,  # todo
+                        'untilDays': 100000,  # todo
+                        'symbolRequired': False,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': 100000,  # todo
+                        'daysBackCanceled': 1,  # todo
+                        'untilDays': 90,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 4000,
+                    },
+                },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
             'exceptions': {
                 'exact': {
                     'UNAUTHORIZED': AuthenticationError,
@@ -244,7 +316,9 @@ class probit(Exchange, ImplicitAPI):
 
     def fetch_markets(self, params={}) -> List[Market]:
         """
-        :see: https://docs-en.probit.com/reference/market
+
+        https://docs-en.probit.com/reference/market
+
         retrieves data on all markets for probit
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
@@ -284,6 +358,8 @@ class probit(Exchange, ImplicitAPI):
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         closed = self.safe_bool(market, 'closed', False)
+        showInUI = self.safe_bool(market, 'show_in_ui', True)
+        active = not closed and showInUI
         takerFeeRate = self.safe_string(market, 'taker_fee_rate')
         taker = Precise.string_div(takerFeeRate, '100')
         makerFeeRate = self.safe_string(market, 'maker_fee_rate')
@@ -303,7 +379,7 @@ class probit(Exchange, ImplicitAPI):
             'swap': False,
             'future': False,
             'option': False,
-            'active': not closed,
+            'active': active,
             'contract': False,
             'linear': None,
             'inverse': None,
@@ -343,7 +419,9 @@ class probit(Exchange, ImplicitAPI):
 
     def fetch_currencies(self, params={}) -> Currencies:
         """
-        :see: https://docs-en.probit.com/reference/currency
+
+        https://docs-en.probit.com/reference/currency
+
         fetches all available currencies on an exchange
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
@@ -405,32 +483,23 @@ class probit(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        currencies = self.safe_value(response, 'data', [])
+        currencies = self.safe_list(response, 'data', [])
         result: dict = {}
         for i in range(0, len(currencies)):
             currency = currencies[i]
             id = self.safe_string(currency, 'id')
             code = self.safe_currency_code(id)
-            displayName = self.safe_value(currency, 'display_name')
+            displayName = self.safe_dict(currency, 'display_name')
             name = self.safe_string(displayName, 'en-us')
-            platforms = self.safe_value(currency, 'platform', [])
+            platforms = self.safe_list(currency, 'platform', [])
             platformsByPriority = self.sort_by(platforms, 'priority')
-            platform = None
             networkList: dict = {}
             for j in range(0, len(platformsByPriority)):
                 network = platformsByPriority[j]
                 idInner = self.safe_string(network, 'id')
                 networkCode = self.network_id_to_code(idInner)
-                currentDepositSuspended = self.safe_value(network, 'deposit_suspended')
-                currentWithdrawalSuspended = self.safe_value(network, 'withdrawal_suspended')
-                currentDeposit = not currentDepositSuspended
-                currentWithdraw = not currentWithdrawalSuspended
-                currentActive = currentDeposit and currentWithdraw
-                if currentActive:
-                    platform = network
-                precision = self.parse_precision(self.safe_string(network, 'precision'))
-                withdrawFee = self.safe_value(network, 'withdrawal_fee', [])
-                networkFee = self.safe_value(withdrawFee, 0, {})
+                withdrawFee = self.safe_list(network, 'withdrawal_fee', [])
+                networkFee = self.safe_dict(withdrawFee, 0, {})
                 for k in range(0, len(withdrawFee)):
                     withdrawPlatform = withdrawFee[k]
                     feeCurrencyId = self.safe_string(withdrawPlatform, 'currency_id')
@@ -440,11 +509,11 @@ class probit(Exchange, ImplicitAPI):
                 networkList[networkCode] = {
                     'id': idInner,
                     'network': networkCode,
-                    'active': currentActive,
-                    'deposit': currentDeposit,
-                    'withdraw': currentWithdraw,
+                    'active': None,
+                    'deposit': not self.safe_bool(network, 'deposit_suspended'),
+                    'withdraw': not self.safe_bool(network, 'withdrawal_suspended'),
                     'fee': self.safe_number(networkFee, 'amount'),
-                    'precision': self.parse_number(precision),
+                    'precision': self.parse_number(self.parse_precision(self.safe_string(network, 'precision'))),
                     'limits': {
                         'withdraw': {
                             'min': self.safe_number(network, 'min_withdrawal_amount'),
@@ -457,52 +526,33 @@ class probit(Exchange, ImplicitAPI):
                     },
                     'info': network,
                 }
-            if platform is None:
-                platform = self.safe_value(platformsByPriority, 0, {})
-            depositSuspended = self.safe_value(platform, 'deposit_suspended')
-            withdrawalSuspended = self.safe_value(platform, 'withdrawal_suspended')
-            deposit = not depositSuspended
-            withdraw = not withdrawalSuspended
-            active = deposit and withdraw
-            withdrawalFees = self.safe_value(platform, 'withdrawal_fee', {})
-            fees = []
-            # sometimes the withdrawal fee is an empty object
-            # [{'amount': '0.015', 'priority': 1, 'currency_id': 'ETH'}, {}]
-            for j in range(0, len(withdrawalFees)):
-                withdrawalFeeInner = withdrawalFees[j]
-                amount = self.safe_number(withdrawalFeeInner, 'amount')
-                priority = self.safe_integer(withdrawalFeeInner, 'priority')
-                if (amount is not None) and (priority is not None):
-                    fees.append(withdrawalFeeInner)
-            withdrawalFeesByPriority = self.sort_by(fees, 'priority')
-            withdrawalFee = self.safe_value(withdrawalFeesByPriority, 0, {})
-            fee = self.safe_number(withdrawalFee, 'amount')
-            result[code] = {
+            result[code] = self.safe_currency_structure({
                 'id': id,
                 'code': code,
                 'info': currency,
                 'name': name,
-                'active': active,
-                'deposit': deposit,
-                'withdraw': withdraw,
-                'fee': fee,
-                'precision': self.parse_number(self.parse_precision(self.safe_string(platform, 'precision'))),
+                'active': None,
+                'deposit': None,
+                'withdraw': None,
+                'type': 'crypto',
+                'fee': None,
+                'precision': None,
                 'limits': {
                     'amount': {
                         'min': None,
                         'max': None,
                     },
                     'deposit': {
-                        'min': self.safe_number(platform, 'min_deposit_amount'),
+                        'min': None,
                         'max': None,
                     },
                     'withdraw': {
-                        'min': self.safe_number(platform, 'min_withdrawal_amount'),
+                        'min': None,
                         'max': None,
                     },
                 },
                 'networks': networkList,
-            }
+            })
         return result
 
     def parse_balance(self, response) -> Balances:
@@ -524,7 +574,9 @@ class probit(Exchange, ImplicitAPI):
 
     def fetch_balance(self, params={}) -> Balances:
         """
-        :see: https://docs-en.probit.com/reference/balance
+
+        https://docs-en.probit.com/reference/balance
+
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
@@ -546,7 +598,9 @@ class probit(Exchange, ImplicitAPI):
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
-        :see: https://docs-en.probit.com/reference/order_book
+
+        https://docs-en.probit.com/reference/order_book
+
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
@@ -574,7 +628,9 @@ class probit(Exchange, ImplicitAPI):
 
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
-        :see: https://docs-en.probit.com/reference/ticker
+
+        https://docs-en.probit.com/reference/ticker
+
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -607,7 +663,9 @@ class probit(Exchange, ImplicitAPI):
 
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
-        :see: https://docs-en.probit.com/reference/ticker
+
+        https://docs-en.probit.com/reference/ticker
+
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -686,7 +744,9 @@ class probit(Exchange, ImplicitAPI):
 
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
-        :see: https://docs-en.probit.com/reference/trade
+
+        https://docs-en.probit.com/reference/trade
+
         fetch all trades made by the user
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
@@ -735,7 +795,9 @@ class probit(Exchange, ImplicitAPI):
 
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
-        :see: https://docs-en.probit.com/reference/trade-1
+
+        https://docs-en.probit.com/reference/trade-1
+
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -848,9 +910,11 @@ class probit(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def fetch_time(self, params={}):
+    def fetch_time(self, params={}) -> Int:
         """
-        :see: https://docs-en.probit.com/reference/time
+
+        https://docs-en.probit.com/reference/time
+
         fetches the current integer timestamp in milliseconds from the exchange server
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
@@ -893,13 +957,16 @@ class probit(Exchange, ImplicitAPI):
 
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
-        :see: https://docs-en.probit.com/reference/candle
+
+        https://docs-en.probit.com/reference/candle
+
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.until]: timestamp in ms of the earliest candle to fetch
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
@@ -915,18 +982,19 @@ class probit(Exchange, ImplicitAPI):
             'limit': requestLimit,  # max 1000
         }
         now = self.milliseconds()
-        duration = self.parse_timeframe(timeframe)
+        until = self.safe_integer(params, 'until')
+        durationMilliseconds = self.parse_timeframe(timeframe) * 1000
         startTime = since
-        endTime = now
+        endTime = until - durationMilliseconds if (until is not None) else now
         if since is None:
             if limit is None:
                 limit = requestLimit
-            startTime = now - limit * duration * 1000
+            startLimit = limit - 1
+            startTime = endTime - startLimit * durationMilliseconds
         else:
-            if limit is None:
-                endTime = now
-            else:
-                endTime = self.sum(since, self.sum(limit, 1) * duration * 1000)
+            if limit is not None:
+                endByLimit = self.sum(since, limit * durationMilliseconds)
+                endTime = min(endTime, endByLimit)
         startTimeNormalized = self.normalize_ohlcv_timestamp(startTime, timeframe)
         endTimeNormalized = self.normalize_ohlcv_timestamp(endTime, timeframe, True)
         request['start_time'] = startTimeNormalized
@@ -977,7 +1045,9 @@ class probit(Exchange, ImplicitAPI):
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
-        :see: https://docs-en.probit.com/reference/open_order-1
+
+        https://docs-en.probit.com/reference/open_order-1
+
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
@@ -998,7 +1068,9 @@ class probit(Exchange, ImplicitAPI):
 
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
-        :see: https://docs-en.probit.com/reference/order
+
+        https://docs-en.probit.com/reference/order
+
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -1026,8 +1098,11 @@ class probit(Exchange, ImplicitAPI):
 
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
-        :see: https://docs-en.probit.com/reference/order-3
+
+        https://docs-en.probit.com/reference/order-3
+
         fetches information on an order made by the user
+        :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1110,7 +1185,6 @@ class probit(Exchange, ImplicitAPI):
             'side': side,
             'status': status,
             'price': price,
-            'stopPrice': None,
             'triggerPrice': None,
             'amount': amount,
             'filled': filled,
@@ -1127,7 +1201,9 @@ class probit(Exchange, ImplicitAPI):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
-        :see: https://docs-en.probit.com/reference/order-1
+
+        https://docs-en.probit.com/reference/order-1
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -1212,7 +1288,9 @@ class probit(Exchange, ImplicitAPI):
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
-        :see: https://docs-en.probit.com/reference/order-2
+
+        https://docs-en.probit.com/reference/order-2
+
         cancels an open order
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
@@ -1231,7 +1309,7 @@ class probit(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data')
         return self.parse_order(data)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
         address = self.safe_string(depositAddress, 'address')
         tag = self.safe_string(depositAddress, 'destination_tag')
         currencyId = self.safe_string(depositAddress, 'currency_id')
@@ -1240,16 +1318,18 @@ class probit(Exchange, ImplicitAPI):
         network = self.safe_string(depositAddress, 'platform_id')
         self.check_address(address)
         return {
+            'info': depositAddress,
             'currency': code,
+            'network': network,
             'address': address,
             'tag': tag,
-            'network': network,
-            'info': depositAddress,
         }
 
-    def fetch_deposit_address(self, code: str, params={}):
+    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
-        :see: https://docs-en.probit.com/reference/deposit_address
+
+        https://docs-en.probit.com/reference/deposit_address
+
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1297,9 +1377,11 @@ class probit(Exchange, ImplicitAPI):
             raise InvalidAddress(self.id + ' fetchDepositAddress() returned an empty response')
         return self.parse_deposit_address(firstAddress, currency)
 
-    def fetch_deposit_addresses(self, codes: Strings = None, params={}):
+    def fetch_deposit_addresses(self, codes: Strings = None, params={}) -> List[DepositAddress]:
         """
-        :see: https://docs-en.probit.com/reference/deposit_address
+
+        https://docs-en.probit.com/reference/deposit_address
+
         fetch deposit addresses for multiple currencies and chain types
         :param str[]|None codes: list of unified currency codes, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1317,9 +1399,11 @@ class probit(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_deposit_addresses(data, codes)
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
-        :see: https://docs-en.probit.com/reference/withdrawal
+
+        https://docs-en.probit.com/reference/withdrawal
+
         make a withdrawal
         :param str code: unified currency code
         :param float amount: the amount to withdraw
@@ -1393,12 +1477,14 @@ class probit(Exchange, ImplicitAPI):
     def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch history of deposits and withdrawals
-        :see: https://docs-en.probit.com/reference/transferpayment
+
+        https://docs-en.probit.com/reference/transferpayment
+
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch transactions for
         :param int [limit]: the maximum number of transaction structures to retrieve
-        :param int [params.until]: the latest time in ms to fetch transactions for
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: the latest time in ms to fetch transactions for
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
@@ -1527,7 +1613,9 @@ class probit(Exchange, ImplicitAPI):
 
     def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
         """
-        :see: https://docs-en.probit.com/reference/currency
+
+        https://docs-en.probit.com/reference/currency
+
         fetch deposit and withdraw fees
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1698,7 +1786,9 @@ class probit(Exchange, ImplicitAPI):
 
     def sign_in(self, params={}):
         """
-        :see: https://docs-en.probit.com/reference/token
+
+        https://docs-en.probit.com/reference/token
+
         sign in, must be called prior to using other authenticated methods
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns: response from exchange

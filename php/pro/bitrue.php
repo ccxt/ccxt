@@ -6,12 +6,12 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class bitrue extends \ccxt\async\bitrue {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -35,15 +35,17 @@ class bitrue extends \ccxt\async\bitrue {
             ),
             'api' => array(
                 'open' => array(
-                    'private' => array(
-                        'post' => array(
-                            'poseidon/api/v1/listenKey' => 1,
-                        ),
-                        'put' => array(
-                            'poseidon/api/v1/listenKey/{listenKey}' => 1,
-                        ),
-                        'delete' => array(
-                            'poseidon/api/v1/listenKey/{listenKey}' => 1,
+                    'v1' => array(
+                        'private' => array(
+                            'post' => array(
+                                'poseidon/api/v1/listenKey' => 1,
+                            ),
+                            'put' => array(
+                                'poseidon/api/v1/listenKey/{listenKey}' => 1,
+                            ),
+                            'delete' => array(
+                                'poseidon/api/v1/listenKey/{listenKey}' => 1,
+                            ),
                         ),
                     ),
                 ),
@@ -61,7 +63,9 @@ class bitrue extends \ccxt\async\bitrue {
         return Async\async(function () use ($params) {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
+             *
              * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#balance-update
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
@@ -176,8 +180,10 @@ class bitrue extends \ccxt\async\bitrue {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on user $orders
+             *
              * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#order-update
-             * @param {string[]} symbols unified symbols of the $market to watch the $orders for
+             *
+             * @param {string} $symbol
              * @param {int} [$since] timestamp in ms of the earliest order
              * @param {int} [$limit] the maximum amount of $orders to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -433,14 +439,7 @@ class bitrue extends \ccxt\async\bitrue {
         return Async\async(function () use ($params) {
             $listenKey = $this->safe_value($this->options, 'listenKey');
             if ($listenKey === null) {
-                $response = null;
-                try {
-                    $response = Async\await($this->openPrivatePostPoseidonApiV1ListenKey ($params));
-                } catch (Exception $error) {
-                    $this->options['listenKey'] = null;
-                    $this->options['listenKeyUrl'] = null;
-                    return null;
-                }
+                $response = Async\await($this->openV1PrivatePostPoseidonApiV1ListenKey ($params));
                 //
                 //     {
                 //         "msg" => "succ",
@@ -468,7 +467,7 @@ class bitrue extends \ccxt\async\bitrue {
                 'listenKey' => $listenKey,
             );
             try {
-                Async\await($this->openPrivatePutPoseidonApiV1ListenKeyListenKey ($this->extend($request, $params)));
+                Async\await($this->openV1PrivatePutPoseidonApiV1ListenKeyListenKey ($this->extend($request, $params)));
                 //
                 // ಠ_ಠ
                 //     {

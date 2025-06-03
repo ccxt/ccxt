@@ -9,7 +9,7 @@ use Exception; // a common import
 
 class binancecoinm extends \ccxt\pro\binance {
 
-    public function describe() {
+    public function describe(): mixed {
         // eslint-disable-next-line new-cap
         $restInstance = new \ccxt\async\binancecoinm ();
         $restDescribe = $restInstance->describe ();

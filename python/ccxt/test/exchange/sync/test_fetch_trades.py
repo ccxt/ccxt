@@ -22,5 +22,7 @@ def test_fetch_trades(exchange, skipped_properties, symbol):
     now = exchange.milliseconds()
     for i in range(0, len(trades)):
         test_trade(exchange, skipped_properties, method, trades[i], symbol, now)
+        test_shared_methods.assert_in_array(exchange, skipped_properties, method, trades[i], 'takerOrMaker', ['taker', None])
     if not ('timestamp' in skipped_properties):
         test_shared_methods.assert_timestamp_order(exchange, method, symbol, trades)
+    return True

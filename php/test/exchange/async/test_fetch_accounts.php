@@ -20,5 +20,6 @@ function test_fetch_accounts($exchange, $skipped_properties) {
         for ($i = 0; $i < count($accounts); $i++) {
             test_account($exchange, $skipped_properties, $method, $accounts[$i]);
         }
+        return true;
     }) ();
 }

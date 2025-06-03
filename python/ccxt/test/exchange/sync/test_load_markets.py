@@ -28,3 +28,4 @@ def test_load_markets(exchange, skipped_properties):
     market_values = list(markets.values())
     for i in range(0, len(market_values)):
         test_market(exchange, skipped_properties, method, market_values[i])
+    return True

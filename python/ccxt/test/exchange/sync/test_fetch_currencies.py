@@ -17,11 +17,53 @@ from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
 def test_fetch_currencies(exchange, skipped_properties):
     method = 'fetchCurrencies'
-    # const isNative = exchange.has['fetchCurrencies'] && exchange.has['fetchCurrencies'] !== 'emulated';
     currencies = exchange.fetch_currencies()
     # todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
+    num_inactive_currencies = 0
+    max_inactive_currencies_percentage = 60  # no more than X% currencies should be inactive
+    required_active_currencies = ['BTC', 'ETH', 'USDT', 'USDC']
+    # todo: remove undefined check
     if currencies is not None:
         values = list(currencies.values())
         test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, values)
-        for i in range(0, len(values)):
-            test_currency(exchange, skipped_properties, method, values[i])
+        currencies_length = len(values)
+        # ensure exchange returns enough length of currencies
+        assert currencies_length > 5, exchange.id + ' ' + method + ' must return at least several currencies, but it returned ' + str(currencies_length)
+        # allow skipped exchanges
+        skip_active = ('activeCurrenciesQuota' in skipped_properties)
+        skip_major_currency_check = ('activeMajorCurrencies' in skipped_properties)
+        # loop
+        for i in range(0, currencies_length):
+            currency = values[i]
+            test_currency(exchange, skipped_properties, method, currency)
+            # detailed check for deposit/withdraw
+            active = exchange.safe_bool(currency, 'active')
+            if active is False:
+                num_inactive_currencies = num_inactive_currencies + 1
+            # ensure that major currencies are active and enabled for deposit and withdrawal
+            code = exchange.safe_string(currency, 'code', None)
+            withdraw = exchange.safe_bool(currency, 'withdraw')
+            deposit = exchange.safe_bool(currency, 'deposit')
+            if exchange.in_array(code, required_active_currencies):
+                assert skip_major_currency_check or (withdraw and deposit), 'Major currency ' + code + ' should have withdraw and deposit flags enabled'
+        # check at least X% of currencies are active
+        inactive_currencies_percentage = (num_inactive_currencies / currencies_length) * 100
+        assert skip_active or (inactive_currencies_percentage < max_inactive_currencies_percentage), 'Percentage of inactive currencies is too high at ' + str(inactive_currencies_percentage) + '% that is more than the allowed maximum of ' + str(max_inactive_currencies_percentage) + '%'
+        detect_currency_conflicts(exchange, currencies)
+    return True
+
+
+def detect_currency_conflicts(exchange, currency_values):
+    # detect if there are currencies with different ids for the same code
+    ids = {}
+    keys = list(currency_values.keys())
+    for i in range(0, len(keys)):
+        key = keys[i]
+        currency = currency_values[key]
+        code = currency['code']
+        if not (code in ids):
+            ids[code] = currency['id']
+        else:
+            is_different = ids[code] != currency['id']
+            assert not is_different, exchange.id + ' fetchCurrencies() has different ids for the same code: ' + code + ' ' + ids[code] + ' ' + currency['id']
+    return True

@@ -10,7 +10,7 @@ public partial class kraken
     /// create a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/websockets/#message-addOrder"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/websocket-v2/add_order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -37,7 +37,7 @@ public partial class kraken
     /// edit a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/websockets/#message-editOrder"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/websocket-v2/amend_order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -65,8 +65,14 @@ public partial class kraken
     /// cancel multiple orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/websockets/#message-cancelOrder"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/websocket-v1/cancelorder"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol, default is undefined
+    /// </description>
+    /// </item>
     /// <item>
     /// <term>params</term>
     /// <description>
@@ -85,8 +91,14 @@ public partial class kraken
     /// cancels an open order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/websockets/#message-cancelOrder"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/websocket-v1/cancelorder"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified symbol of the market the order was made in
+    /// </description>
+    /// </item>
     /// <item>
     /// <term>params</term>
     /// <description>
@@ -105,8 +117,14 @@ public partial class kraken
     /// cancel all open orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/websockets/#message-cancelAll"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/websocket-v1/cancelall"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+    /// </description>
+    /// </item>
     /// <item>
     /// <term>params</term>
     /// <description>
@@ -125,6 +143,7 @@ public partial class kraken
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.kraken.com/api/docs/websocket-v1/ticker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -144,6 +163,7 @@ public partial class kraken
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.kraken.com/api/docs/websocket-v1/ticker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -160,10 +180,30 @@ public partial class kraken
         return new Tickers(res);
     }
     /// <summary>
+    /// watches best bid & ask for symbols
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.kraken.com/api/docs/websocket-v1/spread"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    public async Task<Tickers> WatchBidsAsks(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchBidsAsks(symbols, parameters);
+        return new Tickers(res);
+    }
+    /// <summary>
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/websockets/#message-trade"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/websocket-v1/trade"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -197,7 +237,7 @@ public partial class kraken
     /// get the list of most recent trades for a list of symbols
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/websockets/#message-trade"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/websocket-v1/trade"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -231,7 +271,7 @@ public partial class kraken
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/websockets/#message-book"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/websocket-v1/book"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -258,7 +298,7 @@ public partial class kraken
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/websockets/#message-book"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/websocket-v1/book"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -285,6 +325,7 @@ public partial class kraken
     /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.kraken.com/api/docs/websocket-v1/ohlc"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -323,6 +364,7 @@ public partial class kraken
     /// watches information on multiple trades made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.kraken.com/api/docs/websocket-v1/owntrades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -356,7 +398,7 @@ public partial class kraken
     /// watches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/websockets/#message-openOrders"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/websocket-v1/openorders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>

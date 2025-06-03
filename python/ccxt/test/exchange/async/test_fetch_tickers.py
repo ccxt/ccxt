@@ -20,6 +20,7 @@ async def test_fetch_tickers(exchange, skipped_properties, symbol):
     # const withoutSymbol = testFetchTickersHelper (exchange, skippedProperties, undefined);
     # const withSymbol = testFetchTickersHelper (exchange, skippedProperties, [ symbol ]);
     await asyncio.gather(*[test_fetch_tickers_helper(exchange, skipped_properties, None), test_fetch_tickers_helper(exchange, skipped_properties, [symbol])])
+    return True
 
 
 async def test_fetch_tickers_helper(exchange, skipped_properties, arg_symbols, arg_params={}):
@@ -35,3 +36,4 @@ async def test_fetch_tickers_helper(exchange, skipped_properties, arg_symbols, a
         # todo: symbol check here
         ticker = values[i]
         test_ticker(exchange, skipped_properties, method, ticker, checked_symbol)
+    return True

@@ -11,7 +11,7 @@ function testLastPrice (exchange: Exchange, skippedProperties: object, method: s
         'price': exchange.parseNumber ('1.234'), // price of last trade (closing price for current period)
         'side': 'buy', // buy or sell
     };
-    const emptyAllowedFor = [ 'timestamp', 'datetime', 'side' ];
+    const emptyAllowedFor = [ 'timestamp', 'datetime', 'side', 'price' ]; // binance sometimes provides empty prices for old pairs
     testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyAllowedFor);
     testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, entry);
     //

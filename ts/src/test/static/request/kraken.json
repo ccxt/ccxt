@@ -5,6 +5,15 @@
     ],
     "outputType": "urlencoded",
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.kraken.com/0/public/Assets",
+                "input": [],
+                "output": null
+            }
+        ],
         "createOrder": [
             {
                 "description": "Spot market buy",
@@ -199,6 +208,39 @@
                   }
                 ],
                 "output": "nonce=1723192431526&pair=LTCUSDT&type=buy&ordertype=limit&volume=0.5&price=20&oflags=fcib"
+            },
+            {
+                "description": "trailing percent order",
+                "method": "createOrder",
+                "url": "https://api.kraken.com/0/private/AddOrder",
+                "input": [
+                  "BTC/USD",
+                  "market",
+                  "buy",
+                  0.0001,
+                  null,
+                  {
+                    "trailingPercent": 5
+                  }
+                ],
+                "output": "{\"nonce\":\"1727779183078\",\"pair\":\"XXBTZUSD\",\"type\":\"buy\",\"ordertype\":\"trailing-stop\",\"volume\":\"0.0001\",\"trigger\":\"last\",\"price\":\"+5%\"}"
+            },
+            {
+                "description": "trailing limit percent order",
+                "method": "createOrder",
+                "url": "https://api.kraken.com/0/private/AddOrder",
+                "input": [
+                  "BTC/USD",
+                  "limit",
+                  "buy",
+                  0.0001,
+                  null,
+                  {
+                    "trailingPercent": 5,
+                    "trailingLimitPercent": 4
+                  }
+                ],
+                "output": "{\"nonce\":\"1727849333383\",\"pair\":\"XXBTZUSD\",\"type\":\"buy\",\"ordertype\":\"trailing-stop-limit\",\"volume\":\"0.0001\",\"trigger\":\"last\",\"price\":\"+5%\",\"price2\":\"-4%\"}"
             }
         ],
         "createMarketBuyOrderWithCost": [
@@ -234,6 +276,20 @@
                     5
                 ],
                 "output": "nonce=1699458293821&start=1699457638"
+            },
+            {
+                "description": "fetch my trades with since and until parameters",
+                "method": "fetchMyTrades",
+                "url": "https://api.kraken.com/0/private/TradesHistory",
+                "input": [
+                  "BTC/USDT",
+                  1703148143996,
+                  null,
+                  {
+                    "until": 1703148662559
+                  }
+                ],
+                "output": "nonce=1723943525031&start=1703148143&end=1703148663"
             }
         ],
         "fetchOpenOrders": [
@@ -245,6 +301,20 @@
                     "LTC/USDT"
                 ],
                 "output": "nonce=1699458294470"
+            },
+            {
+                "description": "fetch spot open orders by client order id",
+                "method": "fetchOpenOrders",
+                "url": "https://api.kraken.com/0/private/OpenOrders",
+                "input": [
+                  "BTC/USD",
+                  null,
+                  null,
+                  {
+                    "clientOrderId": "1234"
+                  }
+                ],
+                "output": "nonce=1733815452225&cl_ord_id=1234"
             }
         ],
         "fetchClosedOrders": [
@@ -256,6 +326,20 @@
                     "LTC/USDT"
                 ],
                 "output": "nonce=1699458294863"
+            },
+            {
+                "description": "fetch spot closed orders with a limit argument and client order id param",
+                "method": "fetchClosedOrders",
+                "url": "https://api.kraken.com/0/private/ClosedOrders",
+                "input": [
+                  "BTC/USD",
+                  null,
+                  1,
+                  {
+                    "clientOrderId": "1234"
+                  }
+                ],
+                "output": "nonce=1733816591092&cl_ord_id=1234"
             }
         ],
         "cancelAllOrders": [
@@ -307,6 +391,19 @@
                     "OF7S76-H2IMS-N2ML4U"
                 ],
                 "output": "nonce=1706895560930&txid=OF7S76-H2IMS-N2ML4U"
+            },
+            {
+                "description": "spot cancel order by client order id",
+                "method": "cancelOrder",
+                "url": "https://api.kraken.com/0/private/CancelOrder",
+                "input": [
+                  "O45M52-BFD55-YXKQOU",
+                  "BTC/USD",
+                  {
+                    "clientOrderId": "1234"
+                  }
+                ],
+                "output": "nonce=1733816320725&cl_ord_id=1234"
             }
         ],
         "fetchBalance": [
@@ -351,9 +448,30 @@
                     "USDT"
                 ],
                 "output": "nonce=1699460637341&asset=USDT"
+            },
+            {
+                "description": "fetch BTC ledger with since and until parameters",
+                "method": "fetchLedger",
+                "url": "https://api.kraken.com/0/private/Ledgers",
+                "input": [
+                  "BTC",
+                  1653094900345,
+                  null,
+                  {
+                    "until": 1703054504934
+                  }
+                ],
+                "output": "nonce=1723943578678&asset=XXBT&start=1653094900&end=1703054505"
             }
         ],
         "fetchDeposits": [
+            {
+                "description": "fetch deposits without a code",
+                "method": "fetchDeposits",
+                "url": "https://api.kraken.com/0/private/DepositStatus",
+                "input": [],
+                "output": "nonce=1723801422087"
+            },
             {
                 "description": "Fetch deposit",
                 "method": "fetchDeposits",
@@ -364,15 +482,66 @@
                 "output": "nonce=1699458295995&asset=USDT"
             },
             {
-                "description": "Fetch deposit",
+                "description": "fetch deposits with a since argument",
                 "method": "fetchDeposits",
                 "url": "https://api.kraken.com/0/private/DepositStatus",
                 "input": [
-                    "USDT",
-                    1670935203
+                  "USDT",
+                  1671064645000
                 ],
-                "output": "nonce=1699458295995&asset=USDT&start=1670935203"
+                "output": "nonce=1723941524303&asset=USDT&start=1671064645"
+            },
+            {
+                "description": "fetch deposits with an until parameter",
+                "method": "fetchDeposits",
+                "url": "https://api.kraken.com/0/private/DepositStatus",
+                "input": [
+                  "USDT",
+                  null,
+                  null,
+                  {
+                    "until": 1653094102000
+                  }
+                ],
+                "output": "nonce=1723941539991&asset=USDT&end=1653094103"
             }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "fetch withdrawals with code and since arguments",
+                "method": "fetchWithdrawals",
+                "url": "https://api.kraken.com/0/private/WithdrawStatus",
+                "input": [
+                  "USDT",
+                  1671133778000
+                ],
+                "output": "nonce=1723941760936&asset=USDT&start=1671133778"
+            },
+            {
+                "description": "fetch withdrawals with an until parameter",
+                "method": "fetchWithdrawals",
+                "url": "https://api.kraken.com/0/private/WithdrawStatus",
+                "input": [
+                  "USDT",
+                  null,
+                  null,
+                  {
+                    "until": 1671133778000
+                  }
+                ],
+                "output": "nonce=1723941781388&asset=USDT&end=1671133779"
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "coin with space in id",
+                "method": "fetchDepositAddress",
+                "url": "https://api.kraken.com/0/private/DepositAddresses",
+                "input": [
+                  "MATIC"
+                ],
+                "output": "nonce=1724594503685&asset=MATIC&method=Polygon%20%28MATIC%29"
+              }
         ],
         "fetchOHLCV": [
             {
@@ -456,35 +625,69 @@
         ],
         "editOrder": [
             {
-                "description": "editOrder",
+                "description": "edit a limit orders amount and price",
                 "method": "editOrder",
-                "url": "https://api.kraken.com/0/private/EditOrder",
+                "url": "https://api.kraken.com/0/private/AmendOrder",
                 "input": [
-                    "OS7ILF-3M6IY-IYVV65",
-                    "LTC/USDT",
-                    "limit",
-                    "buy",
-                    2,
-                    20
+                  "OP3KR4-WARBU-MOLAZO",
+                  "BTC/USD",
+                  "limit",
+                  "buy",
+                  0.0001,
+                  68000
                 ],
-                "output": "nonce=1723182148790&txid=OS7ILF-3M6IY-IYVV65&pair=LTCUSDT&volume=2&price=20"
+                "output": "nonce=1732915315155&txid=OP3KR4-WARBU-MOLAZO&order_qty=0.0001&limit_price=68000"
             },
             {
-                "description": "editOrder with clientOid",
+                "description": "edit an orders post only parameter",
                 "method": "editOrder",
-                "url": "https://api.kraken.com/0/private/EditOrder",
+                "url": "https://api.kraken.com/0/private/AmendOrder",
                 "input": [
-                    "OS7ILF-3M6IY-IYVV65",
-                    "LTC/USDT",
-                    "limit",
-                    "buy",
-                    2,
-                    20,
-                    {
-                        "clientOrderId": 1234
-                    }
+                  "OC2Z3W-HREW5-IN6YFD",
+                  "BTC/USD",
+                  "limit",
+                  "buy",
+                  0.0001,
+                  71000,
+                  {
+                    "postOnly": true
+                  }
                 ],
-                "output": "nonce=1723182148790&txid=OS7ILF-3M6IY-IYVV65&pair=LTCUSDT&volume=2&userref=1234&price=20"
+                "output": "nonce=1732918147648&txid=OC2Z3W-HREW5-IN6YFD&post_only=true&order_qty=0.0001&limit_price=71000"
+            },
+            {
+                "description": "edit an order using the clientOrderId parameter",
+                "method": "editOrder",
+                "url": "https://api.kraken.com/0/private/AmendOrder",
+                "input": [
+                  "05AMIQ-75QVP-DIFYBG",
+                  "BTC/USD",
+                  "limit",
+                  "buy",
+                  0.0001,
+                  71000,
+                  {
+                    "clientOrderId": "1234"
+                  }
+                ],
+                "output": "nonce=1732919391972&cl_ord_id=1234&order_qty=0.0001&limit_price=71000"
+            },
+            {
+                "description": "edit a stopLossPrice order",
+                "method": "editOrder",
+                "url": "https://api.kraken.com/0/private/AmendOrder",
+                "input": [
+                  "OV4PNR-TU2HK-YRMVWR",
+                  "BTC/USD",
+                  "market",
+                  "sell",
+                  0.0001,
+                  null,
+                  {
+                    "stopLossPrice": "74000"
+                  }
+                ],
+                "output": "nonce=1732937292347&txid=OV4PNR-TU2HK-YRMVWR&order_qty=0.0001&trigger_price=74000"
             }
         ]
     }

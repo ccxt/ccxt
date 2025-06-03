@@ -102,6 +102,8 @@
                     "average": null,
                     "baseVolume": null,
                     "quoteVolume": null,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "market": {
                             "code": "BTC-USDT",

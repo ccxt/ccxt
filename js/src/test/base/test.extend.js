@@ -4,7 +4,6 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-// @ts-nocheck
 // AUTO_TRANSPILE_ENABLED
 import assert from 'assert';
 import ccxt from '../../../ccxt.js';
@@ -48,8 +47,8 @@ function testExtend() {
     const extended = exchange.extend(obj1, obj2);
     tbfeCheckExtended(extended, true);
     // deepExtend
-    const deepExtended = exchange.deepExtend(obj1, obj2);
-    tbfeCheckExtended(extended, true);
+    // const deepExtended = exchange.deepExtend (obj1, obj2);
+    // tbfeCheckExtended (extended, true);
     // todo !
     // tbfeCheckExtended (deepExtended["sub"], false);
 }

@@ -49,6 +49,9 @@ abstract class coinlist extends \ccxt\Exchange {
     public function public_get_v1_competition_competition_id($params = array()) {
         return $this->request('v1/competition/{competition_id}', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function public_get_v1_symbols_symbol_funding($params = array()) {
+        return $this->request('v1/symbols/{symbol}/funding', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_get_v1_fees($params = array()) {
         return $this->request('v1/fees', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -106,6 +109,9 @@ abstract class coinlist extends \ccxt\Exchange {
     public function private_get_v1_accounts_trader_id_competitions($params = array()) {
         return $this->request('v1/accounts/{trader_id}/competitions', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_get_v1_closedpositions($params = array()) {
+        return $this->request('v1/closedPositions', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_post_v1_keys($params = array()) {
         return $this->request('v1/keys', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -144,6 +150,9 @@ abstract class coinlist extends \ccxt\Exchange {
     }
     public function private_patch_v1_orders_bulk($params = array()) {
         return $this->request('v1/orders/bulk', 'private', 'PATCH', $params, null, null, array("cost" => 1));
+    }
+    public function private_put_v1_accounts_trader_id_alias($params = array()) {
+        return $this->request('v1/accounts/{trader_id}/alias', 'private', 'PUT', $params, null, null, array("cost" => 1));
     }
     public function private_delete_v1_keys_key($params = array()) {
         return $this->request('v1/keys/{key}', 'private', 'DELETE', $params, null, null, array("cost" => 1));
@@ -198,6 +207,9 @@ abstract class coinlist extends \ccxt\Exchange {
     }
     public function publicGetV1CompetitionCompetitionId($params = array()) {
         return $this->request('v1/competition/{competition_id}', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetV1SymbolsSymbolFunding($params = array()) {
+        return $this->request('v1/symbols/{symbol}/funding', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetV1Fees($params = array()) {
         return $this->request('v1/fees', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -256,6 +268,9 @@ abstract class coinlist extends \ccxt\Exchange {
     public function privateGetV1AccountsTraderIdCompetitions($params = array()) {
         return $this->request('v1/accounts/{trader_id}/competitions', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function privateGetV1ClosedPositions($params = array()) {
+        return $this->request('v1/closedPositions', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function privatePostV1Keys($params = array()) {
         return $this->request('v1/keys', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -294,6 +309,9 @@ abstract class coinlist extends \ccxt\Exchange {
     }
     public function privatePatchV1OrdersBulk($params = array()) {
         return $this->request('v1/orders/bulk', 'private', 'PATCH', $params, null, null, array("cost" => 1));
+    }
+    public function privatePutV1AccountsTraderIdAlias($params = array()) {
+        return $this->request('v1/accounts/{trader_id}/alias', 'private', 'PUT', $params, null, null, array("cost" => 1));
     }
     public function privateDeleteV1KeysKey($params = array()) {
         return $this->request('v1/keys/{key}', 'private', 'DELETE', $params, null, null, array("cost" => 1));

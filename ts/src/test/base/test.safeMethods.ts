@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 // AUTO_TRANSPILE_ENABLED
 
 import assert from 'assert';
@@ -29,6 +29,13 @@ function testSafeMethods () {
         'dict': { 'a': 1 },
         'str': 'heLlo',
         'strNumber': '3',
+        //
+        'zeroNumeric': 0,
+        'zeroString': '0',
+        'undefined': undefined,
+        'emptyString': '',
+        'floatNumeric': 0.123,
+        'floatString': '0.123',
     };
 
     const inputList = [ 'Hi', 2 ];
@@ -86,6 +93,7 @@ function testSafeMethods () {
     assert (equals (dictObject, compareDict));
     listObject = exchange.safeDict2 (inputDict, 'a', 'list');
     assert (listObject === undefined);
+    // @ts-expect-error
     assert (exchange.safeDict2 (inputList, 2, 1) === undefined);
 
     // safeDictN
@@ -105,6 +113,7 @@ function testSafeMethods () {
     listObject = exchange.safeList2 (inputDict, 'a', 'list');
     assert (equals (dictObject, compareDict));
     assert (exchange.safeList2 (inputDict, 'a', 'dict') === undefined);
+    // @ts-expect-error
     assert (exchange.safeList2 (inputList, 2, 1) === undefined);
 
     // safeListN
@@ -237,21 +246,30 @@ function testSafeMethods () {
     assert (exchange.safeTimestampN (inputList, [ 3, 2, 1 ]) === 2000);
 
     // safeFloat
+    // @ts-expect-error
     assert (exchange.safeFloat (inputDict, 'i') === parseFloat (1));
     assert (exchange.safeFloat (inputDict, 'f') === 0.123);
+    // @ts-expect-error
     assert (exchange.safeFloat (inputDict, 'strNumber') === parseFloat (3));
+    // @ts-expect-error
     assert (exchange.safeFloat (inputList, 1) === parseFloat (2));
 
     // safeFloat2
+    // @ts-expect-error
     assert (exchange.safeFloat2 (inputDict, 'a', 'i') === parseFloat (1));
     assert (exchange.safeFloat2 (inputDict, 'a', 'f') === 0.123);
+    // @ts-expect-error
     assert (exchange.safeFloat2 (inputDict, 'a', 'strNumber') === parseFloat (3));
+    // @ts-expect-error
     assert (exchange.safeFloat2 (inputList, 2, 1) === parseFloat (2));
 
     // safeFloatN
+    // @ts-expect-error
     assert (exchange.safeFloatN (inputDict, [ 'a', 'b', 'i' ]) === parseFloat (1));
     assert (exchange.safeFloatN (inputDict, [ 'a', 'b', 'f' ]) === 0.123);
+    // @ts-expect-error
     assert (exchange.safeFloatN (inputDict, [ 'a', 'b', 'strNumber' ]) === parseFloat (3));
+    // @ts-expect-error
     assert (exchange.safeFloatN (inputList, [ 3, 2, 1 ]) === parseFloat (2));
 
     // safeNumber
@@ -259,6 +277,10 @@ function testSafeMethods () {
     assert (exchange.safeNumber (inputDict, 'f') === exchange.parseNumber (0.123));
     assert (exchange.safeNumber (inputDict, 'strNumber') === exchange.parseNumber (3));
     assert (exchange.safeNumber (inputList, 1) === exchange.parseNumber (2));
+    assert (exchange.safeNumber (inputList, 'bool') === undefined);
+    assert (exchange.safeNumber (inputList, 'list') === undefined);
+    assert (exchange.safeNumber (inputList, 'dict') === undefined);
+    assert (exchange.safeNumber (inputList, 'str') === undefined);
 
     // safeNumber2
     assert (exchange.safeNumber2 (inputDict, 'a', 'i') === exchange.parseNumber (1));
@@ -283,7 +305,16 @@ function testSafeMethods () {
     // safeBoolN
     assert (exchange.safeBoolN (inputDict, [ 'a', 'b', 'bool' ]) === true);
     assert (exchange.safeBoolN (inputList, [ 3, 2, 1 ]) === undefined);
-}
 
+    // safeNumberOmitZero
+    assert (exchange.safeNumberOmitZero (inputDict, 'zeroNumeric') === undefined);
+    assert (exchange.safeNumberOmitZero (inputDict, 'zeroString') === undefined);
+    assert (exchange.safeNumberOmitZero (inputDict, 'undefined') === undefined);
+    assert (exchange.safeNumberOmitZero (inputDict, 'emptyString') === undefined);
+    assert (exchange.safeNumberOmitZero (inputDict, 'floatNumeric') !== undefined);
+    assert (exchange.safeNumberOmitZero (inputDict, 'floatString') !== undefined);
+    // tbd assert (exchange.safeNumberOmitZero (inputDict, 'bool') === undefined);
+    // tbd assert (exchange.safeNumberOmitZero (inputDict, 'str') === undefined);
+}
 
 export default testSafeMethods;

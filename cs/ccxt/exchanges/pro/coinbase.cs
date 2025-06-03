@@ -49,18 +49,19 @@ public partial class coinbase : ccxt.coinbase
         });
     }
 
+    /**
+     * @ignore
+     * @method
+     * @description subscribes to a websocket channel
+     * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-overview#subscribe
+     * @param {string} name the name of the channel
+     * @param {boolean} isPrivate whether the channel is private or not
+     * @param {string} [symbol] unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} subscription to a websocket channel
+     */
     public async virtual Task<object> subscribe(object name, object isPrivate, object symbol = null, object parameters = null)
     {
-        /**
-        * @ignore
-        * @method
-        * @description subscribes to a websocket channel
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-overview#subscribe
-        * @param {string} name the name of the channel
-        * @param {string|string[]} [symbol] unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} subscription to a websocket channel
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -75,7 +76,7 @@ public partial class coinbase : ccxt.coinbase
         } else if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
-            messageHash = add(add(name, "::"), getValue(market, "id"));
+            messageHash = add(add(name, "::"), symbol);
             productIds = new List<object>() {getValue(market, "id")};
         }
         object url = getValue(getValue(this.urls, "api"), "ws");
@@ -91,18 +92,19 @@ public partial class coinbase : ccxt.coinbase
         return await this.watch(url, messageHash, subscribe, messageHash);
     }
 
+    /**
+     * @ignore
+     * @method
+     * @description subscribes to a websocket channel
+     * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-overview#subscribe
+     * @param {string} name the name of the channel
+     * @param {boolean} isPrivate whether the channel is private or not
+     * @param {string[]} [symbols] unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} subscription to a websocket channel
+     */
     public async virtual Task<object> subscribeMultiple(object name, object isPrivate, object symbols = null, object parameters = null)
     {
-        /**
-        * @ignore
-        * @method
-        * @description subscribes to a websocket channel
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-overview#subscribe
-        * @param {string} name the name of the channel
-        * @param {string[]} [symbols] unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} subscription to a websocket channel
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object productIds = new List<object>() {};
@@ -114,7 +116,7 @@ public partial class coinbase : ccxt.coinbase
             object market = this.market(symbol);
             object marketId = getValue(market, "id");
             ((IList<object>)productIds).Add(marketId);
-            ((IList<object>)messageHashes).Add(add(add(name, "::"), marketId));
+            ((IList<object>)messageHashes).Add(add(add(name, "::"), symbol));
         }
         object url = getValue(getValue(this.urls, "api"), "ws");
         object subscribe = new Dictionary<string, object>() {
@@ -162,48 +164,51 @@ public partial class coinbase : ccxt.coinbase
         return subscribe;
     }
 
+    /**
+     * @method
+     * @name coinbase#watchTicker
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#ticker-channel
+     * @param {string} [symbol] unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinbase#watchTicker
-        * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#ticker-channel
-        * @param {string} [symbol] unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object name = "ticker";
         return await this.subscribe(name, false, symbol, parameters);
     }
 
+    /**
+     * @method
+     * @name coinbase#watchTickers
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#ticker-batch-channel
+     * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinbase#watchTickers
-        * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#ticker-batch-channel
-        * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbols, null)))
         {
             symbols = this.symbols;
         }
         object name = "ticker_batch";
-        object tickers = await this.subscribe(name, false, symbols, parameters);
+        object ticker = await this.subscribeMultiple(name, false, symbols, parameters);
         if (isTrue(this.newUpdates))
         {
+            object tickers = new Dictionary<string, object>() {};
+            object symbol = getValue(ticker, "symbol");
+            ((IDictionary<string,object>)tickers)[(string)symbol] = ticker;
             return tickers;
         }
         return this.tickers;
     }
 
-    public virtual object handleTickers(WebSocketClient client, object message)
+    public virtual void handleTickers(WebSocketClient client, object message)
     {
         //
         //    {
@@ -295,7 +300,7 @@ public partial class coinbase : ccxt.coinbase
         //
         //
         object channel = this.safeString(message, "channel");
-        object events = this.safeValue(message, "events", new List<object>() {});
+        object events = this.safeList(message, "events", new List<object>() {});
         object datetime = this.safeString(message, "timestamp");
         object timestamp = this.parse8601(datetime);
         object newTickers = new List<object>() {};
@@ -306,43 +311,22 @@ public partial class coinbase : ccxt.coinbase
             for (object j = 0; isLessThan(j, getArrayLength(tickers)); postFixIncrement(ref j))
             {
                 object ticker = getValue(tickers, j);
-                object result = this.parseWsTicker(ticker);
-                ((IDictionary<string,object>)result)["timestamp"] = timestamp;
-                ((IDictionary<string,object>)result)["datetime"] = datetime;
-                object symbol = getValue(result, "symbol");
-                ((IDictionary<string,object>)this.tickers)[(string)symbol] = result;
                 object wsMarketId = this.safeString(ticker, "product_id");
                 if (isTrue(isEqual(wsMarketId, null)))
                 {
                     continue;
                 }
-                object messageHash = add(add(channel, "::"), wsMarketId);
+                object result = this.parseWsTicker(ticker);
+                ((IDictionary<string,object>)result)["timestamp"] = timestamp;
+                ((IDictionary<string,object>)result)["datetime"] = datetime;
+                object symbol = getValue(result, "symbol");
+                ((IDictionary<string,object>)this.tickers)[(string)symbol] = result;
                 ((IList<object>)newTickers).Add(result);
+                object messageHash = add(add(channel, "::"), symbol);
                 callDynamically(client as WebSocketClient, "resolve", new object[] {result, messageHash});
-                if (isTrue(((string)messageHash).EndsWith(((string)"USD"))))
-                {
-                    callDynamically(client as WebSocketClient, "resolve", new object[] {result, add(messageHash, "C")}); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
-                }
+                this.tryResolveUsdc(client as WebSocketClient, messageHash, result);
             }
         }
-        object messageHashes = this.findMessageHashes(client as WebSocketClient, "ticker_batch::");
-        for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
-        {
-            object messageHash = getValue(messageHashes, i);
-            object parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
-            object symbolsString = getValue(parts, 1);
-            object symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
-            object tickers = this.filterByArray(newTickers, "symbol", symbols);
-            if (!isTrue(this.isEmpty(tickers)))
-            {
-                callDynamically(client as WebSocketClient, "resolve", new object[] {tickers, messageHash});
-                if (isTrue(((string)messageHash).EndsWith(((string)"USD"))))
-                {
-                    callDynamically(client as WebSocketClient, "resolve", new object[] {tickers, add(messageHash, "C")}); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
-                }
-            }
-        }
-        return message;
     }
 
     public virtual object parseWsTicker(object ticker, object market = null)
@@ -392,19 +376,19 @@ public partial class coinbase : ccxt.coinbase
         });
     }
 
+    /**
+     * @method
+     * @name coinbase#watchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#market-trades-channel
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinbase#watchTrades
-        * @description get the list of most recent trades for a particular symbol
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#market-trades-channel
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbol = this.symbol(symbol);
@@ -417,19 +401,19 @@ public partial class coinbase : ccxt.coinbase
         return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
     }
 
+    /**
+     * @method
+     * @name coinbase#watchTradesForSymbols
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#market-trades-channel
+     * @param {string[]} symbols unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinbase#watchTradesForSymbols
-        * @description get the list of most recent trades for a particular symbol
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#market-trades-channel
-        * @param {string[]} symbols unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object name = "market_trades";
@@ -443,19 +427,19 @@ public partial class coinbase : ccxt.coinbase
         return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
     }
 
+    /**
+     * @method
+     * @name coinbase#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#user-channel
+     * @param {string} [symbol] unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinbase#watchOrders
-        * @description watches information on multiple orders made by the user
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#user-channel
-        * @param {string} [symbol] unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object name = "user";
@@ -467,18 +451,18 @@ public partial class coinbase : ccxt.coinbase
         return this.filterBySinceLimit(orders, since, limit, "timestamp", true);
     }
 
+    /**
+     * @method
+     * @name coinbase#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#level2-channel
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinbase#watchOrderBook
-        * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#level2-channel
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object name = "level2";
@@ -488,18 +472,18 @@ public partial class coinbase : ccxt.coinbase
         return (orderbook as IOrderBook).limit();
     }
 
+    /**
+     * @method
+     * @name coinbase#watchOrderBookForSymbols
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#level2-channel
+     * @param {string[]} symbols unified array of symbols
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coinbase#watchOrderBookForSymbols
-        * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#level2-channel
-        * @param {string[]} symbols unified array of symbols
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object name = "level2";
@@ -507,7 +491,7 @@ public partial class coinbase : ccxt.coinbase
         return (orderbook as IOrderBook).limit();
     }
 
-    public virtual object handleTrade(WebSocketClient client, object message)
+    public virtual void handleTrade(WebSocketClient client, object message)
     {
         //
         //    {
@@ -532,13 +516,13 @@ public partial class coinbase : ccxt.coinbase
         //        ]
         //    }
         //
-        object events = this.safeValue(message, "events");
+        object events = this.safeList(message, "events");
         object eventVar = this.safeValue(events, 0);
-        object trades = this.safeValue(eventVar, "trades");
-        object trade = this.safeValue(trades, 0);
+        object trades = this.safeList(eventVar, "trades");
+        object trade = this.safeDict(trades, 0);
         object marketId = this.safeString(trade, "product_id");
-        object messageHash = add("market_trades::", marketId);
         object symbol = this.safeSymbol(marketId);
+        object messageHash = add("market_trades::", symbol);
         object tradesArray = this.safeValue(this.trades, symbol);
         if (isTrue(isEqual(tradesArray, null)))
         {
@@ -549,7 +533,7 @@ public partial class coinbase : ccxt.coinbase
         for (object i = 0; isLessThan(i, getArrayLength(events)); postFixIncrement(ref i))
         {
             object currentEvent = getValue(events, i);
-            object currentTrades = this.safeValue(currentEvent, "trades");
+            object currentTrades = this.safeList(currentEvent, "trades");
             for (object j = 0; isLessThan(j, getArrayLength(currentTrades)); postFixIncrement(ref j))
             {
                 object item = getValue(currentTrades, i);
@@ -557,14 +541,10 @@ public partial class coinbase : ccxt.coinbase
             }
         }
         callDynamically(client as WebSocketClient, "resolve", new object[] {tradesArray, messageHash});
-        if (isTrue(((string)marketId).EndsWith(((string)"USD"))))
-        {
-            callDynamically(client as WebSocketClient, "resolve", new object[] {tradesArray, add(messageHash, "C")}); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
-        }
-        return message;
+        this.tryResolveUsdc(client as WebSocketClient, messageHash, tradesArray);
     }
 
-    public virtual object handleOrder(WebSocketClient client, object message)
+    public virtual void handleOrder(WebSocketClient client, object message)
     {
         //
         //    {
@@ -594,7 +574,7 @@ public partial class coinbase : ccxt.coinbase
         //        ]
         //    }
         //
-        object events = this.safeValue(message, "events");
+        object events = this.safeList(message, "events");
         object marketIds = new List<object>() {};
         if (isTrue(isEqual(this.orders, null)))
         {
@@ -604,7 +584,7 @@ public partial class coinbase : ccxt.coinbase
         for (object i = 0; isLessThan(i, getArrayLength(events)); postFixIncrement(ref i))
         {
             object eventVar = getValue(events, i);
-            object responseOrders = this.safeValue(eventVar, "orders");
+            object responseOrders = this.safeList(eventVar, "orders");
             for (object j = 0; isLessThan(j, getArrayLength(responseOrders)); postFixIncrement(ref j))
             {
                 object responseOrder = getValue(responseOrders, j);
@@ -621,15 +601,12 @@ public partial class coinbase : ccxt.coinbase
         for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
-            object messageHash = add("user::", marketId);
+            object symbol = this.safeSymbol(marketId);
+            object messageHash = add("user::", symbol);
             callDynamically(client as WebSocketClient, "resolve", new object[] {this.orders, messageHash});
-            if (isTrue(((string)messageHash).EndsWith(((string)"USD"))))
-            {
-                callDynamically(client as WebSocketClient, "resolve", new object[] {this.orders, add(messageHash, "C")}); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
-            }
+            this.tryResolveUsdc(client as WebSocketClient, messageHash, this.orders);
         }
         callDynamically(client as WebSocketClient, "resolve", new object[] {this.orders, "user"});
-        return message;
     }
 
     public override object parseWsOrder(object order, object market = null)
@@ -713,7 +690,7 @@ public partial class coinbase : ccxt.coinbase
         //                    {
         //                        "side": "bid",
         //                        "event_time": "1970-01-01T00:00:00Z",
-        //                        "price_level": "21921.73",
+        //                        "price_level": "21921.74",
         //                        "new_quantity": "0.06317902"
         //                    },
         //                    {
@@ -727,44 +704,44 @@ public partial class coinbase : ccxt.coinbase
         //        ]
         //    }
         //
-        object events = this.safeValue(message, "events");
+        object events = this.safeList(message, "events");
         object datetime = this.safeString(message, "timestamp");
         for (object i = 0; isLessThan(i, getArrayLength(events)); postFixIncrement(ref i))
         {
             object eventVar = getValue(events, i);
-            object updates = this.safeValue(eventVar, "updates", new List<object>() {});
+            object updates = this.safeList(eventVar, "updates", new List<object>() {});
             object marketId = this.safeString(eventVar, "product_id");
-            object messageHash = add("level2::", marketId);
+            // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases
+            object market = this.safeMarket(marketId);
+            object symbol = getValue(market, "symbol");
+            object messageHash = add("level2::", symbol);
             object subscription = this.safeValue(((WebSocketClient)client).subscriptions, messageHash, new Dictionary<string, object>() {});
             object limit = this.safeInteger(subscription, "limit");
-            object symbol = this.safeSymbol(marketId);
             object type = this.safeString(eventVar, "type");
             if (isTrue(isEqual(type, "snapshot")))
             {
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
-                object orderbook = getValue(this.orderbooks, symbol);
-                this.handleOrderBookHelper(orderbook, updates);
-                ((IDictionary<string,object>)orderbook)["timestamp"] = this.parse8601(datetime);
-                ((IDictionary<string,object>)orderbook)["datetime"] = datetime;
-                ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
-                callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
-                if (isTrue(((string)messageHash).EndsWith(((string)"USD"))))
-                {
-                    callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, add(messageHash, "C")}); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
-                }
-            } else if (isTrue(isEqual(type, "update")))
-            {
-                object orderbook = getValue(this.orderbooks, symbol);
-                this.handleOrderBookHelper(orderbook, updates);
-                ((IDictionary<string,object>)orderbook)["datetime"] = datetime;
-                ((IDictionary<string,object>)orderbook)["timestamp"] = this.parse8601(datetime);
-                ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
-                callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
-                if (isTrue(((string)messageHash).EndsWith(((string)"USD"))))
-                {
-                    callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, add(messageHash, "C")}); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
-                }
             }
+            // unknown bug, can't reproduce, but sometimes orderbook is undefined
+            if (isTrue(!isTrue((inOp(this.orderbooks, symbol))) && isTrue(isEqual(getValue(this.orderbooks, symbol), null))))
+            {
+                continue;
+            }
+            object orderbook = getValue(this.orderbooks, symbol);
+            this.handleOrderBookHelper(orderbook, updates);
+            ((IDictionary<string,object>)orderbook)["timestamp"] = this.parse8601(datetime);
+            ((IDictionary<string,object>)orderbook)["datetime"] = datetime;
+            ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
+            callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
+            this.tryResolveUsdc(client as WebSocketClient, messageHash, orderbook);
+        }
+    }
+
+    public virtual void tryResolveUsdc(WebSocketClient client, object messageHash, object result)
+    {
+        if (isTrue(isTrue(((string)messageHash).EndsWith(((string)"/USD"))) || isTrue(((string)messageHash).EndsWith(((string)"-USD")))))
+        {
+            callDynamically(client as WebSocketClient, "resolve", new object[] {result, add(messageHash, "C")}); // when subscribing to BTC/USDC and coinbase returns BTC/USD, so resolve USDC too
         }
     }
 

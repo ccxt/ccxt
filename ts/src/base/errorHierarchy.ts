@@ -16,6 +16,7 @@ const errorHierarchy = {
                     'MarginModeAlreadySet': {},
                 },
                 'MarketClosed': {},
+                'ManualInteractionNeeded': {},
             },
             'InsufficientFunds': {},
             'InvalidAddress': {
@@ -50,6 +51,7 @@ const errorHierarchy = {
             },
             'CancelPending': {},
         },
+        'UnsubscribeError': {},
     },
 };
 
