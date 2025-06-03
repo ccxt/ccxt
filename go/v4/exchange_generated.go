@@ -3607,11 +3607,11 @@ func  (this *Exchange) SelectNetworkKeyFromNetworks(currencyCode interface{}, ne
             panic(NotSupported(Add(Add(Add(Add(this.Id, " - "), networkCode), " network did not return any result for "), currencyCode)))
         } else {
             // if networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
-            var networkId interface{} = Ternary(IsTrue(isIndexedByUnifiedNetworkCode), networkCode, this.NetworkCodeToId(networkCode, currencyCode))
-            if IsTrue(InOp(indexedNetworkEntries, networkId)) {
-                chosenNetworkId = networkId
+            var networkIdOrCode interface{} = Ternary(IsTrue(isIndexedByUnifiedNetworkCode), networkCode, this.NetworkCodeToId(networkCode, currencyCode))
+            if IsTrue(InOp(indexedNetworkEntries, networkIdOrCode)) {
+                chosenNetworkId = networkIdOrCode
             } else {
-                panic(NotSupported(Add(Add(Add(Add(Add(Add(this.Id, " - "), networkId), " network was not found for "), currencyCode), ", use one of "), Join(availableNetworkIds, ", "))))
+                panic(NotSupported(Add(Add(Add(Add(Add(Add(this.Id, " - "), networkIdOrCode), " network was not found for "), currencyCode), ", use one of "), Join(availableNetworkIds, ", "))))
             }
         }
     } else {
