@@ -278,7 +278,7 @@ async function executeCCXTCommand (exchange, params:any, methodName: string, cli
         log (
             exchange.iso8601 (end),
             'iteration',
-            i,
+            i + 1,
             'passed in',
             end - start,
             'ms\n'
