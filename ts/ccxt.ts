@@ -129,6 +129,7 @@ import novadax from  './src/novadax.js'
 import oceanex from  './src/oceanex.js'
 import okcoin from  './src/okcoin.js'
 import okx from  './src/okx.js'
+import okxus from  './src/okxus.js'
 import onetrading from  './src/onetrading.js'
 import oxfun from  './src/oxfun.js'
 import p2b from  './src/p2b.js'
@@ -210,6 +211,7 @@ import myokxPro from  './src/pro/myokx.js'
 import ndaxPro from  './src/pro/ndax.js'
 import okcoinPro from  './src/pro/okcoin.js'
 import okxPro from  './src/pro/okx.js'
+import okxusPro from  './src/pro/okxus.js'
 import onetradingPro from  './src/pro/onetrading.js'
 import oxfunPro from  './src/pro/oxfun.js'
 import p2bPro from  './src/pro/p2b.js'
@@ -309,6 +311,7 @@ const exchanges = {
     'oceanex':                oceanex,
     'okcoin':                 okcoin,
     'okx':                    okx,
+    'okxus':                  okxus,
     'onetrading':             onetrading,
     'oxfun':                  oxfun,
     'p2b':                    p2b,
@@ -390,6 +393,7 @@ const pro = {
     'ndax':                   ndaxPro,
     'okcoin':                 okcoinPro,
     'okx':                    okxPro,
+    'okxus':                  okxusPro,
     'onetrading':             onetradingPro,
     'oxfun':                  oxfunPro,
     'p2b':                    p2bPro,
@@ -630,6 +634,7 @@ export {
     oceanex,
     okcoin,
     okx,
+    okxus,
     onetrading,
     oxfun,
     p2b,
