@@ -3327,13 +3327,13 @@ public partial class Exchange
             } else
             {
                 // if networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
-                object networkId = ((bool) isTrue(isIndexedByUnifiedNetworkCode)) ? networkCode : this.networkCodeToId(networkCode, currencyCode);
-                if (isTrue(inOp(indexedNetworkEntries, networkId)))
+                object networkIdOrCode = ((bool) isTrue(isIndexedByUnifiedNetworkCode)) ? networkCode : this.networkCodeToId(networkCode, currencyCode);
+                if (isTrue(inOp(indexedNetworkEntries, networkIdOrCode)))
                 {
-                    chosenNetworkId = networkId;
+                    chosenNetworkId = networkIdOrCode;
                 } else
                 {
-                    throw new NotSupported ((string)add(add(add(add(add(add(this.id, " - "), networkId), " network was not found for "), currencyCode), ", use one of "), String.Join(", ", ((IList<object>)availableNetworkIds).ToArray()))) ;
+                    throw new NotSupported ((string)add(add(add(add(add(add(this.id, " - "), networkIdOrCode), " network was not found for "), currencyCode), ", use one of "), String.Join(", ", ((IList<object>)availableNetworkIds).ToArray()))) ;
                 }
             }
         } else
