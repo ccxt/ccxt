@@ -1947,5 +1947,147 @@
                 "max": null
             }
         }
+    },
+    "MPH": {
+        "info": {
+            "currency": "88MPH",
+            "name": "88mph",
+            "delisted": false,
+            "withdraw_disabled": false,
+            "withdraw_delayed": false,
+            "deposit_disabled": false,
+            "trade_disabled": false,
+            "fixed_rate": "",
+            "chain": "ETH",
+            "chains": [
+                {
+                    "name": "ETH",
+                    "addr": "0x8888801af4d980682e47f1a9036e589479e835c5",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                }
+            ]
+        },
+        "id": "88MPH",
+        "numericId": null,
+        "code": "MPH",
+        "precision": 0.0001,
+        "type": "crypto",
+        "name": "88mph",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": null,
+        "fees": {},
+        "networks": {
+            "ERC20": {
+                "info": {
+                    "name": "ETH",
+                    "addr": "0x8888801af4d980682e47f1a9036e589479e835c5",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                "id": "ETH",
+                "network": "ERC20",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 0.0001,
+                "limits": {
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            }
+        },
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "MORPHER": {
+        "info": {
+            "currency": "MPH",
+            "name": "Morpher",
+            "delisted": false,
+            "withdraw_disabled": false,
+            "withdraw_delayed": false,
+            "deposit_disabled": false,
+            "trade_disabled": false,
+            "fixed_rate": "",
+            "chain": "ETH",
+            "chains": [
+                {
+                    "name": "ETH",
+                    "addr": "0x6369c3dadfc00054a42ba8b2c09c48131dd4aa38",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                }
+            ]
+        },
+        "id": "MPH",
+        "numericId": null,
+        "code": "MORPHER",
+        "precision": 0.0001,
+        "type": "crypto",
+        "name": "Morpher",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": null,
+        "fees": {},
+        "networks": {
+            "ERC20": {
+                "info": {
+                    "name": "ETH",
+                    "addr": "0x6369c3dadfc00054a42ba8b2c09c48131dd4aa38",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                "id": "ETH",
+                "network": "ERC20",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 0.0001,
+                "limits": {
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            }
+        },
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
     }
 }
