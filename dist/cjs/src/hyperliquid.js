@@ -175,12 +175,12 @@ class hyperliquid extends hyperliquid$1 {
             },
             'fees': {
                 'swap': {
-                    'taker': this.parseNumber('0.00035'),
-                    'maker': this.parseNumber('0.0001'),
+                    'taker': this.parseNumber('0.00045'),
+                    'maker': this.parseNumber('0.00015'),
                 },
                 'spot': {
-                    'taker': this.parseNumber('0.00035'),
-                    'maker': this.parseNumber('0.0001'),
+                    'taker': this.parseNumber('0.0007'),
+                    'maker': this.parseNumber('0.0004'),
                 },
             },
             'requiredCredentials': {
@@ -357,7 +357,7 @@ class hyperliquid extends hyperliquid$1 {
             const id = i;
             const name = this.safeString(data, 'name');
             const code = this.safeCurrencyCode(name);
-            result[code] = {
+            result[code] = this.safeCurrencyStructure({
                 'id': id,
                 'name': name,
                 'code': code,
@@ -379,7 +379,7 @@ class hyperliquid extends hyperliquid$1 {
                         'max': undefined,
                     },
                 },
-            };
+            });
         }
         return result;
     }
@@ -1526,7 +1526,9 @@ class hyperliquid extends hyperliquid$1 {
             }
             orderReq.push(orderObj);
         }
-        const vaultAddress = this.formatVaultAddress(this.safeString(params, 'vaultAddress'));
+        let vaultAddress = undefined;
+        [vaultAddress, params] = this.handleOptionAndParams(params, 'createOrder', 'vaultAddress');
+        vaultAddress = this.formatVaultAddress(vaultAddress);
         const orderAction = {
             'type': 'order',
             'orders': orderReq,
@@ -1621,7 +1623,9 @@ class hyperliquid extends hyperliquid$1 {
             }
         }
         cancelAction['cancels'] = cancelReq;
-        const vaultAddress = this.formatVaultAddress(this.safeString(params, 'vaultAddress'));
+        let vaultAddress = undefined;
+        [vaultAddress, params] = this.handleOptionAndParams(params, 'cancelOrders', 'vaultAddress');
+        vaultAddress = this.formatVaultAddress(vaultAddress);
         const signature = this.signL1Action(cancelAction, nonce, vaultAddress);
         request['action'] = cancelAction;
         request['signature'] = signature;
@@ -1705,7 +1709,9 @@ class hyperliquid extends hyperliquid$1 {
         }
         cancelAction['type'] = cancelByCloid ? 'cancelByCloid' : 'cancel';
         cancelAction['cancels'] = cancelReq;
-        const vaultAddress = this.formatVaultAddress(this.safeString(params, 'vaultAddress'));
+        let vaultAddress = undefined;
+        [vaultAddress, params] = this.handleOptionAndParams(params, 'cancelOrdersForSymbols', 'vaultAddress');
+        vaultAddress = this.formatVaultAddress(vaultAddress);
         const signature = this.signL1Action(cancelAction, nonce, vaultAddress);
         request['action'] = cancelAction;
         request['signature'] = signature;
@@ -1751,7 +1757,9 @@ class hyperliquid extends hyperliquid$1 {
             'type': 'scheduleCancel',
             'time': nonce + timeout,
         };
-        const vaultAddress = this.formatVaultAddress(this.safeString(params, 'vaultAddress'));
+        let vaultAddress = undefined;
+        [vaultAddress, params] = this.handleOptionAndParams(params, 'cancelAllOrdersAfter', 'vaultAddress');
+        vaultAddress = this.formatVaultAddress(vaultAddress);
         const signature = this.signL1Action(cancelAction, nonce, vaultAddress);
         request['action'] = cancelAction;
         request['signature'] = signature;
@@ -1876,7 +1884,9 @@ class hyperliquid extends hyperliquid$1 {
             'type': 'batchModify',
             'modifies': modifies,
         };
-        const vaultAddress = this.formatVaultAddress(this.safeString(params, 'vaultAddress'));
+        let vaultAddress = undefined;
+        [vaultAddress, params] = this.handleOptionAndParams(params, 'editOrder', 'vaultAddress');
+        vaultAddress = this.formatVaultAddress(vaultAddress);
         const signature = this.signL1Action(modifyAction, nonce, vaultAddress);
         const request = {
             'action': modifyAction,
@@ -1885,7 +1895,6 @@ class hyperliquid extends hyperliquid$1 {
             // 'vaultAddress': vaultAddress,
         };
         if (vaultAddress !== undefined) {
-            params = this.omit(params, 'vaultAddress');
             request['vaultAddress'] = vaultAddress;
         }
         return request;
@@ -2740,9 +2749,9 @@ class hyperliquid extends hyperliquid$1 {
             'isCross': isCross,
             'leverage': leverage,
         };
-        let vaultAddress = this.safeString(params, 'vaultAddress');
+        let vaultAddress = undefined;
+        [vaultAddress, params] = this.handleOptionAndParams(params, 'setMarginMode', 'vaultAddress');
         if (vaultAddress !== undefined) {
-            params = this.omit(params, 'vaultAddress');
             if (vaultAddress.startsWith('0x')) {
                 vaultAddress = vaultAddress.replace('0x', '');
             }
@@ -2795,7 +2804,9 @@ class hyperliquid extends hyperliquid$1 {
             'isCross': isCross,
             'leverage': leverage,
         };
-        const vaultAddress = this.formatVaultAddress(this.safeString(params, 'vaultAddress'));
+        let vaultAddress = undefined;
+        [vaultAddress, params] = this.handleOptionAndParams(params, 'setLeverage', 'vaultAddress');
+        vaultAddress = this.formatVaultAddress(vaultAddress);
         const signature = this.signL1Action(updateAction, nonce, vaultAddress);
         const request = {
             'action': updateAction,
@@ -2859,7 +2870,9 @@ class hyperliquid extends hyperliquid$1 {
             'isBuy': true,
             'ntli': sz,
         };
-        const vaultAddress = this.formatVaultAddress(this.safeString(params, 'vaultAddress'));
+        let vaultAddress = undefined;
+        [vaultAddress, params] = this.handleOptionAndParams(params, 'modifyMargin', 'vaultAddress');
+        vaultAddress = this.formatVaultAddress(vaultAddress);
         const signature = this.signL1Action(updateAction, nonce, vaultAddress);
         const request = {
             'action': updateAction,
@@ -2868,7 +2881,6 @@ class hyperliquid extends hyperliquid$1 {
             // 'vaultAddress': vaultAddress,
         };
         if (vaultAddress !== undefined) {
-            params = this.omit(params, 'vaultAddress');
             request['vaultAddress'] = vaultAddress;
         }
         const response = await this.privatePostExchange(request);
@@ -2927,8 +2939,9 @@ class hyperliquid extends hyperliquid$1 {
                 throw new errors.NotSupported(this.id + ' transfer() only support spot <> swap transfer');
             }
             let strAmount = this.numberToString(amount);
-            const vaultAddress = this.formatVaultAddress(this.safeString(params, 'vaultAddress'));
-            params = this.omit(params, 'vaultAddress');
+            let vaultAddress = undefined;
+            [vaultAddress, params] = this.handleOptionAndParams(params, 'transfer', 'vaultAddress');
+            vaultAddress = this.formatVaultAddress(vaultAddress);
             if (vaultAddress !== undefined) {
                 strAmount = strAmount + ' subaccount:' + vaultAddress;
             }
@@ -3031,7 +3044,9 @@ class hyperliquid extends hyperliquid$1 {
                 throw new errors.NotSupported(this.id + ' withdraw() only support USDC');
             }
         }
-        const vaultAddress = this.formatVaultAddress(this.safeString(params, 'vaultAddress'));
+        let vaultAddress = undefined;
+        [vaultAddress, params] = this.handleOptionAndParams(params, 'withdraw', 'vaultAddress');
+        vaultAddress = this.formatVaultAddress(vaultAddress);
         params = this.omit(params, 'vaultAddress');
         const nonce = this.milliseconds();
         let action = {};
@@ -3657,8 +3672,9 @@ class hyperliquid extends hyperliquid$1 {
     }
     parseCreateEditOrderArgs(id, symbol, type, side, amount, price = undefined, params = {}) {
         const market = this.market(symbol);
-        const vaultAddress = this.safeString(params, 'vaultAddress');
-        params = this.omit(params, 'vaultAddress');
+        let vaultAddress = undefined;
+        [vaultAddress, params] = this.handleOptionAndParams(params, 'createOrder', 'vaultAddress');
+        vaultAddress = this.formatVaultAddress(vaultAddress);
         symbol = market['symbol'];
         const order = {
             'symbol': symbol,

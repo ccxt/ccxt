@@ -244,7 +244,9 @@ class poloniex(ccxt.async_support.poloniex):
             request['quantity'] = self.amount_to_precision(market['symbol'], amount)
             if price is not None:
                 request['price'] = self.price_to_precision(symbol, price)
-        return await self.trade_request('createOrder', self.extend(request, params))
+        orders = await self.trade_request('createOrder', self.extend(request, params))
+        order = self.safe_dict(orders, 0)
+        return order
 
     async def cancel_order_ws(self, id: str, symbol: Str = None, params={}):
         """
@@ -262,7 +264,9 @@ class poloniex(ccxt.async_support.poloniex):
         if clientOrderId is not None:
             clientOrderIds = self.safe_value(params, 'clientOrderId', [])
             params['clientOrderIds'] = self.array_concat(clientOrderIds, [clientOrderId])
-        return await self.cancel_orders_ws([id], symbol, params)
+        orders = await self.cancel_orders_ws([id], symbol, params)
+        order = self.safe_dict(orders, 0)
+        return order
 
     async def cancel_orders_ws(self, ids: List[str], symbol: Str = None, params={}):
         """

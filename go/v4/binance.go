@@ -5395,7 +5395,6 @@ func  (this *binance) EditSpotOrderRequest(id interface{}, symbol interface{}, t
     if IsTrue(postOnly) {
         uppercaseType = "LIMIT_MAKER"
     }
-    AddElementToObject(request, "type", uppercaseType)
     var triggerPrice interface{} = this.SafeNumber2(params, "stopPrice", "triggerPrice")
     if IsTrue(!IsEqual(triggerPrice, nil)) {
         if IsTrue(IsEqual(uppercaseType, "MARKET")) {
@@ -5404,6 +5403,7 @@ func  (this *binance) EditSpotOrderRequest(id interface{}, symbol interface{}, t
             uppercaseType = "STOP_LOSS_LIMIT"
         }
     }
+    AddElementToObject(request, "type", uppercaseType)
     var validOrderTypes interface{} = this.SafeList(GetValue(market, "info"), "orderTypes")
     if !IsTrue(this.InArray(uppercaseType, validOrderTypes)) {
         if IsTrue(!IsEqual(initialUppercaseType, uppercaseType)) {

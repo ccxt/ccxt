@@ -1,43 +1,45 @@
 {
     "BTC": {
-        "info": [
-            {
-                "currency": "BTC",
-                "name": "Bitcoin",
-                "delisted": false,
-                "withdraw_disabled": false,
-                "withdraw_delayed": true,
-                "deposit_disabled": false,
-                "trade_disabled": false,
-                "chain": "BTC"
-            },
-            {
-                "currency": "BTC_BSC",
-                "name": "Bitcoin",
-                "delisted": false,
-                "withdraw_disabled": false,
-                "withdraw_delayed": false,
-                "deposit_disabled": false,
-                "trade_disabled": true,
-                "chain": "BSC"
-            },
-            {
-                "currency": "BTC_HT",
-                "name": "Bitcoin",
-                "delisted": false,
-                "withdraw_disabled": true,
-                "withdraw_delayed": false,
-                "deposit_disabled": true,
-                "trade_disabled": true,
-                "chain": "HT"
-            }
-        ],
+        "info": {
+            "currency": "BTC",
+            "name": "Bitcoin",
+            "delisted": false,
+            "withdraw_disabled": false,
+            "withdraw_delayed": false,
+            "deposit_disabled": false,
+            "trade_disabled": false,
+            "fixed_rate": "",
+            "chain": "BTC",
+            "chains": [
+                {
+                    "name": "BTC",
+                    "addr": "",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                {
+                    "name": "BSC",
+                    "addr": "0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                {
+                    "name": "HT",
+                    "addr": "0x66a79d23e58475d2738179ca52cd0b41d73f0bea",
+                    "withdraw_disabled": true,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": true
+                }
+            ]
+        },
         "id": "BTC",
         "numericId": null,
         "code": "BTC",
         "precision": 0.0001,
         "type": "crypto",
-        "name": null,
+        "name": "Bitcoin",
         "active": true,
         "deposit": true,
         "withdraw": true,
@@ -46,17 +48,19 @@
         "networks": {
             "BTC": {
                 "info": {
-                    "currency": "BTC",
-                    "name": "Bitcoin",
-                    "delisted": false,
+                    "name": "BTC",
+                    "addr": "",
                     "withdraw_disabled": false,
-                    "withdraw_delayed": true,
-                    "deposit_disabled": false,
-                    "trade_disabled": false,
-                    "chain": "BTC"
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
                 },
                 "id": "BTC",
                 "network": "BTC",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 0.0001,
                 "limits": {
                     "deposit": {
                         "min": null,
@@ -66,55 +70,23 @@
                         "min": null,
                         "max": null
                     }
-                },
-                "active": false,
-                "deposit": true,
-                "withdraw": true,
-                "fee": null,
-                "precision": 0.0001
+                }
             },
             "BEP20": {
                 "info": {
-                    "currency": "BTC_BSC",
-                    "name": "Bitcoin",
-                    "delisted": false,
+                    "name": "BSC",
+                    "addr": "0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c",
                     "withdraw_disabled": false,
                     "withdraw_delayed": false,
-                    "deposit_disabled": false,
-                    "trade_disabled": true,
-                    "chain": "BSC"
+                    "deposit_disabled": false
                 },
                 "id": "BSC",
                 "network": "BEP20",
-                "limits": {
-                    "deposit": {
-                        "min": null,
-                        "max": null
-                    },
-                    "withdraw": {
-                        "min": null,
-                        "max": null
-                    }
-                },
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
                 "fee": null,
-                "precision": 0.0001
-            },
-            "HRC20": {
-                "info": {
-                    "currency": "BTC_HT",
-                    "name": "Bitcoin",
-                    "delisted": false,
-                    "withdraw_disabled": true,
-                    "withdraw_delayed": false,
-                    "deposit_disabled": true,
-                    "trade_disabled": true,
-                    "chain": "HT"
-                },
-                "id": "HT",
-                "network": "HRC20",
+                "precision": 0.0001,
                 "limits": {
                     "deposit": {
                         "min": null,
@@ -124,31 +96,36 @@
                         "min": null,
                         "max": null
                     }
+                }
+            },
+            "HRC20": {
+                "info": {
+                    "name": "HT",
+                    "addr": "0x66a79d23e58475d2738179ca52cd0b41d73f0bea",
+                    "withdraw_disabled": true,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": true
                 },
-                "active": true,
+                "id": "HT",
+                "network": "HRC20",
+                "active": false,
                 "deposit": false,
                 "withdraw": false,
                 "fee": null,
-                "precision": 0.0001
+                "precision": 0.0001,
+                "limits": {
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
             }
         },
         "limits": {
-            "leverage": {
-                "min": null,
-                "max": null
-            },
-            "amount": {
-                "min": null,
-                "max": null
-            },
-            "price": {
-                "min": null,
-                "max": null
-            },
-            "cost": {
-                "min": null,
-                "max": null
-            },
             "deposit": {
                 "min": null,
                 "max": null
@@ -157,247 +134,203 @@
                 "min": null,
                 "max": null
             }
-        },
-        "lowerCaseId": "btc"
+        }
     },
     "USDT": {
-        "info": [
-            {
-                "currency": "USDT",
-                "name": "Tether",
-                "delisted": false,
-                "withdraw_disabled": true,
-                "withdraw_delayed": true,
-                "deposit_disabled": true,
-                "trade_disabled": false,
-                "chain": "BTC"
-            },
-            {
-                "currency": "USDT_ALGO",
-                "name": "Tether",
-                "delisted": false,
-                "withdraw_disabled": true,
-                "withdraw_delayed": false,
-                "deposit_disabled": true,
-                "trade_disabled": true,
-                "chain": "ALGO"
-            },
-            {
-                "currency": "USDT_APT",
-                "name": "Tether",
-                "delisted": false,
-                "withdraw_disabled": false,
-                "withdraw_delayed": false,
-                "deposit_disabled": false,
-                "trade_disabled": true,
-                "chain": "APT"
-            },
-            {
-                "currency": "USDT_ARBEVM",
-                "name": "Tether",
-                "delisted": false,
-                "withdraw_disabled": false,
-                "withdraw_delayed": false,
-                "deposit_disabled": false,
-                "trade_disabled": true,
-                "chain": "ARBEVM"
-            },
-            {
-                "currency": "USDT_BSC",
-                "name": "Tether",
-                "delisted": false,
-                "withdraw_disabled": false,
-                "withdraw_delayed": false,
-                "deposit_disabled": false,
-                "trade_disabled": true,
-                "chain": "BSC"
-            },
-            {
-                "currency": "USDT_C",
-                "name": "Tether",
-                "delisted": false,
-                "withdraw_disabled": false,
-                "withdraw_delayed": false,
-                "deposit_disabled": false,
-                "trade_disabled": true,
-                "chain": "AVAX_C"
-            },
-            {
-                "currency": "USDT_CELO",
-                "name": "Tether",
-                "delisted": false,
-                "withdraw_disabled": false,
-                "withdraw_delayed": false,
-                "deposit_disabled": false,
-                "trade_disabled": true,
-                "chain": "CELO"
-            },
-            {
-                "currency": "USDT_DOTSM",
-                "name": "Tether",
-                "delisted": false,
-                "withdraw_disabled": false,
-                "withdraw_delayed": false,
-                "deposit_disabled": false,
-                "trade_disabled": true,
-                "chain": "DOTSM"
-            },
-            {
-                "currency": "USDT_EOS",
-                "name": "Tether",
-                "delisted": false,
-                "withdraw_disabled": true,
-                "withdraw_delayed": false,
-                "deposit_disabled": true,
-                "trade_disabled": true,
-                "chain": "EOS"
-            },
-            {
-                "currency": "USDT_ETH",
-                "name": "Tether",
-                "delisted": false,
-                "withdraw_disabled": false,
-                "withdraw_delayed": false,
-                "deposit_disabled": false,
-                "trade_disabled": true,
-                "chain": "ETH"
-            },
-            {
-                "currency": "USDT_GTEVM",
-                "name": "Tether",
-                "delisted": false,
-                "withdraw_disabled": false,
-                "withdraw_delayed": false,
-                "deposit_disabled": false,
-                "trade_disabled": true,
-                "chain": "GTEVM"
-            },
-            {
-                "currency": "USDT_KAVAEVM",
-                "name": "Tether",
-                "delisted": false,
-                "withdraw_disabled": false,
-                "withdraw_delayed": false,
-                "deposit_disabled": false,
-                "trade_disabled": true,
-                "chain": "KAVAEVM"
-            },
-            {
-                "currency": "USDT_KSMSM",
-                "name": "Tether",
-                "delisted": false,
-                "withdraw_disabled": true,
-                "withdraw_delayed": false,
-                "deposit_disabled": true,
-                "trade_disabled": true,
-                "chain": "KSMSM"
-            },
-            {
-                "currency": "USDT_MATIC",
-                "name": "Tether",
-                "delisted": false,
-                "withdraw_disabled": false,
-                "withdraw_delayed": false,
-                "deposit_disabled": false,
-                "trade_disabled": true,
-                "chain": "MATIC"
-            },
-            {
-                "currency": "USDT_NEAR",
-                "name": "Tether",
-                "delisted": false,
-                "withdraw_disabled": false,
-                "withdraw_delayed": false,
-                "deposit_disabled": false,
-                "trade_disabled": true,
-                "chain": "NEAR"
-            },
-            {
-                "currency": "USDT_OKT",
-                "name": "Tether",
-                "delisted": false,
-                "withdraw_disabled": true,
-                "withdraw_delayed": false,
-                "deposit_disabled": false,
-                "trade_disabled": true,
-                "chain": "OKT"
-            },
-            {
-                "currency": "USDT_OPETH",
-                "name": "Tether",
-                "delisted": false,
-                "withdraw_disabled": false,
-                "withdraw_delayed": false,
-                "deposit_disabled": false,
-                "trade_disabled": true,
-                "chain": "OPETH"
-            },
-            {
-                "currency": "USDT_SOL",
-                "name": "Tether",
-                "delisted": false,
-                "withdraw_disabled": false,
-                "withdraw_delayed": false,
-                "deposit_disabled": false,
-                "trade_disabled": true,
-                "chain": "SOL"
-            },
-            {
-                "currency": "USDT_TON",
-                "name": "Tether",
-                "delisted": false,
-                "withdraw_disabled": false,
-                "withdraw_delayed": false,
-                "deposit_disabled": false,
-                "trade_disabled": true,
-                "chain": "TON"
-            },
-            {
-                "currency": "USDT_TRX",
-                "name": "Tether",
-                "delisted": false,
-                "withdraw_disabled": false,
-                "withdraw_delayed": false,
-                "deposit_disabled": false,
-                "trade_disabled": true,
-                "chain": "TRX"
-            },
-            {
-                "currency": "USDT_XTZ",
-                "name": "Tether",
-                "delisted": false,
-                "withdraw_disabled": false,
-                "withdraw_delayed": false,
-                "deposit_disabled": false,
-                "trade_disabled": true,
-                "chain": "XTZ"
-            }
-        ],
+        "info": {
+            "currency": "USDT",
+            "name": "Tether",
+            "delisted": false,
+            "withdraw_disabled": false,
+            "withdraw_delayed": false,
+            "deposit_disabled": false,
+            "trade_disabled": false,
+            "fixed_rate": "",
+            "chain": "ETH",
+            "chains": [
+                {
+                    "name": "ETH",
+                    "addr": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                {
+                    "name": "ALGO",
+                    "addr": "312769",
+                    "withdraw_disabled": true,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": true
+                },
+                {
+                    "name": "APT",
+                    "addr": "0x357b0b74bc833e95a115ad22604854d6b0fca151cecd94111770e5d6ffc9dc2b",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                {
+                    "name": "ARBEVM",
+                    "addr": "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                {
+                    "name": "BSC",
+                    "addr": "0x55d398326f99059fF775485246999027B3197955",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                {
+                    "name": "BTC",
+                    "addr": "aaaaa000000111111xxx00000xxx000111",
+                    "withdraw_disabled": true,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": true
+                },
+                {
+                    "name": "AVAX_C",
+                    "addr": "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                {
+                    "name": "CELO",
+                    "addr": "0x48065fbBE25f71C9282ddf5e1cD6D6A887483D5e",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                {
+                    "name": "DOTSM",
+                    "addr": "1984",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                {
+                    "name": "EOS",
+                    "addr": "USDT@tethertether",
+                    "withdraw_disabled": true,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": true
+                },
+                {
+                    "name": "GTEVM",
+                    "addr": "0x4151ab5072198d0843cd2999590ef292f49d6c66",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                {
+                    "name": "KAIA",
+                    "addr": "0xd077a400968890eacc75cdc901f0356c943e4fdb",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                {
+                    "name": "KAVAEVM",
+                    "addr": "0x919C1c267BC06a7039e03fcc2eF738525769109c",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                {
+                    "name": "KSMSM",
+                    "addr": "1984",
+                    "withdraw_disabled": true,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": true
+                },
+                {
+                    "name": "MATIC",
+                    "addr": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                {
+                    "name": "NEAR",
+                    "addr": "usdt.tether-token.near",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                {
+                    "name": "OKT",
+                    "addr": "0x382bb369d343125bfb2117af9c149795c6c65c50",
+                    "withdraw_disabled": true,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                {
+                    "name": "OPETH",
+                    "addr": "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                {
+                    "name": "SOL",
+                    "addr": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                {
+                    "name": "TON",
+                    "addr": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                {
+                    "name": "TRX",
+                    "addr": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                {
+                    "name": "XTZ",
+                    "addr": "KT1XnTn74bUtxHfDtBmm2bGZAQfhPbvKWR8o",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                }
+            ]
+        },
         "id": "USDT",
         "numericId": null,
         "code": "USDT",
         "precision": 0.0001,
         "type": "crypto",
-        "name": null,
+        "name": "Tether",
         "active": true,
         "deposit": true,
         "withdraw": true,
         "fee": null,
         "fees": {},
         "networks": {
-            "BTC": {
+            "ERC20": {
                 "info": {
-                    "currency": "USDT",
-                    "name": "Tether",
-                    "delisted": false,
-                    "withdraw_disabled": true,
-                    "withdraw_delayed": true,
-                    "deposit_disabled": true,
-                    "trade_disabled": false,
-                    "chain": "BTC"
+                    "name": "ETH",
+                    "addr": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
                 },
-                "id": "BTC",
-                "network": "BTC",
+                "id": "ETH",
+                "network": "ERC20",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 0.0001,
                 "limits": {
                     "deposit": {
                         "min": null,
@@ -407,26 +340,23 @@
                         "min": null,
                         "max": null
                     }
+                }
+            },
+            "ALGO": {
+                "info": {
+                    "name": "ALGO",
+                    "addr": "312769",
+                    "withdraw_disabled": true,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": true
                 },
+                "id": "ALGO",
+                "network": "ALGO",
                 "active": false,
                 "deposit": false,
                 "withdraw": false,
                 "fee": null,
-                "precision": 0.0001
-            },
-            "ALGO": {
-                "info": {
-                    "currency": "USDT_ALGO",
-                    "name": "Tether",
-                    "delisted": false,
-                    "withdraw_disabled": true,
-                    "withdraw_delayed": false,
-                    "deposit_disabled": true,
-                    "trade_disabled": true,
-                    "chain": "ALGO"
-                },
-                "id": "ALGO",
-                "network": "ALGO",
+                "precision": 0.0001,
                 "limits": {
                     "deposit": {
                         "min": null,
@@ -436,26 +366,23 @@
                         "min": null,
                         "max": null
                     }
-                },
-                "active": true,
-                "deposit": false,
-                "withdraw": false,
-                "fee": null,
-                "precision": 0.0001
+                }
             },
             "APT": {
                 "info": {
-                    "currency": "USDT_APT",
-                    "name": "Tether",
-                    "delisted": false,
+                    "name": "APT",
+                    "addr": "0x357b0b74bc833e95a115ad22604854d6b0fca151cecd94111770e5d6ffc9dc2b",
                     "withdraw_disabled": false,
                     "withdraw_delayed": false,
-                    "deposit_disabled": false,
-                    "trade_disabled": true,
-                    "chain": "APT"
+                    "deposit_disabled": false
                 },
                 "id": "APT",
                 "network": "APT",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 0.0001,
                 "limits": {
                     "deposit": {
                         "min": null,
@@ -465,26 +392,23 @@
                         "min": null,
                         "max": null
                     }
-                },
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": null,
-                "precision": 0.0001
+                }
             },
             "ARBONE": {
                 "info": {
-                    "currency": "USDT_ARBEVM",
-                    "name": "Tether",
-                    "delisted": false,
+                    "name": "ARBEVM",
+                    "addr": "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
                     "withdraw_disabled": false,
                     "withdraw_delayed": false,
-                    "deposit_disabled": false,
-                    "trade_disabled": true,
-                    "chain": "ARBEVM"
+                    "deposit_disabled": false
                 },
                 "id": "ARBEVM",
                 "network": "ARBONE",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 0.0001,
                 "limits": {
                     "deposit": {
                         "min": null,
@@ -494,26 +418,23 @@
                         "min": null,
                         "max": null
                     }
-                },
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": null,
-                "precision": 0.0001
+                }
             },
             "BEP20": {
                 "info": {
-                    "currency": "USDT_BSC",
-                    "name": "Tether",
-                    "delisted": false,
+                    "name": "BSC",
+                    "addr": "0x55d398326f99059fF775485246999027B3197955",
                     "withdraw_disabled": false,
                     "withdraw_delayed": false,
-                    "deposit_disabled": false,
-                    "trade_disabled": true,
-                    "chain": "BSC"
+                    "deposit_disabled": false
                 },
                 "id": "BSC",
                 "network": "BEP20",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 0.0001,
                 "limits": {
                     "deposit": {
                         "min": null,
@@ -523,26 +444,49 @@
                         "min": null,
                         "max": null
                     }
+                }
+            },
+            "BTC": {
+                "info": {
+                    "name": "BTC",
+                    "addr": "aaaaa000000111111xxx00000xxx000111",
+                    "withdraw_disabled": true,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": true
                 },
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
+                "id": "BTC",
+                "network": "BTC",
+                "active": false,
+                "deposit": false,
+                "withdraw": false,
                 "fee": null,
-                "precision": 0.0001
+                "precision": 0.0001,
+                "limits": {
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
             },
             "AVAXC": {
                 "info": {
-                    "currency": "USDT_C",
-                    "name": "Tether",
-                    "delisted": false,
+                    "name": "AVAX_C",
+                    "addr": "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7",
                     "withdraw_disabled": false,
                     "withdraw_delayed": false,
-                    "deposit_disabled": false,
-                    "trade_disabled": true,
-                    "chain": "AVAX_C"
+                    "deposit_disabled": false
                 },
                 "id": "AVAX_C",
                 "network": "AVAXC",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 0.0001,
                 "limits": {
                     "deposit": {
                         "min": null,
@@ -552,26 +496,23 @@
                         "min": null,
                         "max": null
                     }
-                },
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": null,
-                "precision": 0.0001
+                }
             },
             "CELO": {
                 "info": {
-                    "currency": "USDT_CELO",
-                    "name": "Tether",
-                    "delisted": false,
+                    "name": "CELO",
+                    "addr": "0x48065fbBE25f71C9282ddf5e1cD6D6A887483D5e",
                     "withdraw_disabled": false,
                     "withdraw_delayed": false,
-                    "deposit_disabled": false,
-                    "trade_disabled": true,
-                    "chain": "CELO"
+                    "deposit_disabled": false
                 },
                 "id": "CELO",
                 "network": "CELO",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 0.0001,
                 "limits": {
                     "deposit": {
                         "min": null,
@@ -581,26 +522,23 @@
                         "min": null,
                         "max": null
                     }
-                },
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": null,
-                "precision": 0.0001
+                }
             },
             "POLKADOT": {
                 "info": {
-                    "currency": "USDT_DOTSM",
-                    "name": "Tether",
-                    "delisted": false,
+                    "name": "DOTSM",
+                    "addr": "1984",
                     "withdraw_disabled": false,
                     "withdraw_delayed": false,
-                    "deposit_disabled": false,
-                    "trade_disabled": true,
-                    "chain": "DOTSM"
+                    "deposit_disabled": false
                 },
                 "id": "DOTSM",
                 "network": "POLKADOT",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 0.0001,
                 "limits": {
                     "deposit": {
                         "min": null,
@@ -610,55 +548,23 @@
                         "min": null,
                         "max": null
                     }
-                },
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": null,
-                "precision": 0.0001
+                }
             },
             "EOS": {
                 "info": {
-                    "currency": "USDT_EOS",
-                    "name": "Tether",
-                    "delisted": false,
+                    "name": "EOS",
+                    "addr": "USDT@tethertether",
                     "withdraw_disabled": true,
                     "withdraw_delayed": false,
-                    "deposit_disabled": true,
-                    "trade_disabled": true,
-                    "chain": "EOS"
+                    "deposit_disabled": true
                 },
                 "id": "EOS",
                 "network": "EOS",
-                "limits": {
-                    "deposit": {
-                        "min": null,
-                        "max": null
-                    },
-                    "withdraw": {
-                        "min": null,
-                        "max": null
-                    }
-                },
-                "active": true,
+                "active": false,
                 "deposit": false,
                 "withdraw": false,
                 "fee": null,
-                "precision": 0.0001
-            },
-            "ERC20": {
-                "info": {
-                    "currency": "USDT_ETH",
-                    "name": "Tether",
-                    "delisted": false,
-                    "withdraw_disabled": false,
-                    "withdraw_delayed": false,
-                    "deposit_disabled": false,
-                    "trade_disabled": true,
-                    "chain": "ETH"
-                },
-                "id": "ETH",
-                "network": "ERC20",
+                "precision": 0.0001,
                 "limits": {
                     "deposit": {
                         "min": null,
@@ -668,26 +574,23 @@
                         "min": null,
                         "max": null
                     }
-                },
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": null,
-                "precision": 0.0001
+                }
             },
             "GATECHAIN": {
                 "info": {
-                    "currency": "USDT_GTEVM",
-                    "name": "Tether",
-                    "delisted": false,
+                    "name": "GTEVM",
+                    "addr": "0x4151ab5072198d0843cd2999590ef292f49d6c66",
                     "withdraw_disabled": false,
                     "withdraw_delayed": false,
-                    "deposit_disabled": false,
-                    "trade_disabled": true,
-                    "chain": "GTEVM"
+                    "deposit_disabled": false
                 },
                 "id": "GTEVM",
                 "network": "GATECHAIN",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 0.0001,
                 "limits": {
                     "deposit": {
                         "min": null,
@@ -697,26 +600,49 @@
                         "min": null,
                         "max": null
                     }
+                }
+            },
+            "KAIA": {
+                "info": {
+                    "name": "KAIA",
+                    "addr": "0xd077a400968890eacc75cdc901f0356c943e4fdb",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
                 },
+                "id": "KAIA",
+                "network": "KAIA",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
                 "fee": null,
-                "precision": 0.0001
+                "precision": 0.0001,
+                "limits": {
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
             },
             "KAVAEVM": {
                 "info": {
-                    "currency": "USDT_KAVAEVM",
-                    "name": "Tether",
-                    "delisted": false,
+                    "name": "KAVAEVM",
+                    "addr": "0x919C1c267BC06a7039e03fcc2eF738525769109c",
                     "withdraw_disabled": false,
                     "withdraw_delayed": false,
-                    "deposit_disabled": false,
-                    "trade_disabled": true,
-                    "chain": "KAVAEVM"
+                    "deposit_disabled": false
                 },
                 "id": "KAVAEVM",
                 "network": "KAVAEVM",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 0.0001,
                 "limits": {
                     "deposit": {
                         "min": null,
@@ -726,55 +652,49 @@
                         "min": null,
                         "max": null
                     }
-                },
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": null,
-                "precision": 0.0001
+                }
             },
             "KUSAMA": {
                 "info": {
-                    "currency": "USDT_KSMSM",
-                    "name": "Tether",
-                    "delisted": false,
+                    "name": "KSMSM",
+                    "addr": "1984",
                     "withdraw_disabled": true,
                     "withdraw_delayed": false,
-                    "deposit_disabled": true,
-                    "trade_disabled": true,
-                    "chain": "KSMSM"
+                    "deposit_disabled": true
                 },
                 "id": "KSMSM",
                 "network": "KUSAMA",
-                "limits": {
-                    "deposit": {
-                        "min": null,
-                        "max": null
-                    },
-                    "withdraw": {
-                        "min": null,
-                        "max": null
-                    }
-                },
-                "active": true,
+                "active": false,
                 "deposit": false,
                 "withdraw": false,
                 "fee": null,
-                "precision": 0.0001
+                "precision": 0.0001,
+                "limits": {
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
             },
             "MATIC": {
                 "info": {
-                    "currency": "USDT_MATIC",
-                    "name": "Tether",
-                    "delisted": false,
+                    "name": "MATIC",
+                    "addr": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
                     "withdraw_disabled": false,
                     "withdraw_delayed": false,
-                    "deposit_disabled": false,
-                    "trade_disabled": true,
-                    "chain": "MATIC"
+                    "deposit_disabled": false
                 },
                 "id": "MATIC",
                 "network": "MATIC",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 0.0001,
                 "limits": {
                     "deposit": {
                         "min": null,
@@ -784,26 +704,23 @@
                         "min": null,
                         "max": null
                     }
-                },
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": null,
-                "precision": 0.0001
+                }
             },
             "NEAR": {
                 "info": {
-                    "currency": "USDT_NEAR",
-                    "name": "Tether",
-                    "delisted": false,
+                    "name": "NEAR",
+                    "addr": "usdt.tether-token.near",
                     "withdraw_disabled": false,
                     "withdraw_delayed": false,
-                    "deposit_disabled": false,
-                    "trade_disabled": true,
-                    "chain": "NEAR"
+                    "deposit_disabled": false
                 },
                 "id": "NEAR",
                 "network": "NEAR",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 0.0001,
                 "limits": {
                     "deposit": {
                         "min": null,
@@ -813,55 +730,49 @@
                         "min": null,
                         "max": null
                     }
-                },
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": null,
-                "precision": 0.0001
+                }
             },
             "OKC": {
                 "info": {
-                    "currency": "USDT_OKT",
-                    "name": "Tether",
-                    "delisted": false,
+                    "name": "OKT",
+                    "addr": "0x382bb369d343125bfb2117af9c149795c6c65c50",
                     "withdraw_disabled": true,
                     "withdraw_delayed": false,
-                    "deposit_disabled": false,
-                    "trade_disabled": true,
-                    "chain": "OKT"
+                    "deposit_disabled": false
                 },
                 "id": "OKT",
                 "network": "OKC",
-                "limits": {
-                    "deposit": {
-                        "min": null,
-                        "max": null
-                    },
-                    "withdraw": {
-                        "min": null,
-                        "max": null
-                    }
-                },
-                "active": true,
+                "active": false,
                 "deposit": true,
                 "withdraw": false,
                 "fee": null,
-                "precision": 0.0001
+                "precision": 0.0001,
+                "limits": {
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
             },
             "OP": {
                 "info": {
-                    "currency": "USDT_OPETH",
-                    "name": "Tether",
-                    "delisted": false,
+                    "name": "OPETH",
+                    "addr": "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58",
                     "withdraw_disabled": false,
                     "withdraw_delayed": false,
-                    "deposit_disabled": false,
-                    "trade_disabled": true,
-                    "chain": "OPETH"
+                    "deposit_disabled": false
                 },
                 "id": "OPETH",
                 "network": "OP",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 0.0001,
                 "limits": {
                     "deposit": {
                         "min": null,
@@ -871,26 +782,23 @@
                         "min": null,
                         "max": null
                     }
-                },
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": null,
-                "precision": 0.0001
+                }
             },
             "SOL": {
                 "info": {
-                    "currency": "USDT_SOL",
-                    "name": "Tether",
-                    "delisted": false,
+                    "name": "SOL",
+                    "addr": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
                     "withdraw_disabled": false,
                     "withdraw_delayed": false,
-                    "deposit_disabled": false,
-                    "trade_disabled": true,
-                    "chain": "SOL"
+                    "deposit_disabled": false
                 },
                 "id": "SOL",
                 "network": "SOL",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 0.0001,
                 "limits": {
                     "deposit": {
                         "min": null,
@@ -900,26 +808,23 @@
                         "min": null,
                         "max": null
                     }
-                },
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": null,
-                "precision": 0.0001
+                }
             },
             "TON": {
                 "info": {
-                    "currency": "USDT_TON",
-                    "name": "Tether",
-                    "delisted": false,
+                    "name": "TON",
+                    "addr": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs",
                     "withdraw_disabled": false,
                     "withdraw_delayed": false,
-                    "deposit_disabled": false,
-                    "trade_disabled": true,
-                    "chain": "TON"
+                    "deposit_disabled": false
                 },
                 "id": "TON",
                 "network": "TON",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 0.0001,
                 "limits": {
                     "deposit": {
                         "min": null,
@@ -929,26 +834,23 @@
                         "min": null,
                         "max": null
                     }
-                },
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": null,
-                "precision": 0.0001
+                }
             },
             "TRC20": {
                 "info": {
-                    "currency": "USDT_TRX",
-                    "name": "Tether",
-                    "delisted": false,
+                    "name": "TRX",
+                    "addr": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
                     "withdraw_disabled": false,
                     "withdraw_delayed": false,
-                    "deposit_disabled": false,
-                    "trade_disabled": true,
-                    "chain": "TRX"
+                    "deposit_disabled": false
                 },
                 "id": "TRX",
                 "network": "TRC20",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 0.0001,
                 "limits": {
                     "deposit": {
                         "min": null,
@@ -958,26 +860,23 @@
                         "min": null,
                         "max": null
                     }
-                },
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": null,
-                "precision": 0.0001
+                }
             },
             "XTZ": {
                 "info": {
-                    "currency": "USDT_XTZ",
-                    "name": "Tether",
-                    "delisted": false,
+                    "name": "XTZ",
+                    "addr": "KT1XnTn74bUtxHfDtBmm2bGZAQfhPbvKWR8o",
                     "withdraw_disabled": false,
                     "withdraw_delayed": false,
-                    "deposit_disabled": false,
-                    "trade_disabled": true,
-                    "chain": "XTZ"
+                    "deposit_disabled": false
                 },
                 "id": "XTZ",
                 "network": "XTZ",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 0.0001,
                 "limits": {
                     "deposit": {
                         "min": null,
@@ -987,31 +886,10 @@
                         "min": null,
                         "max": null
                     }
-                },
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": null,
-                "precision": 0.0001
+                }
             }
         },
         "limits": {
-            "leverage": {
-                "min": null,
-                "max": null
-            },
-            "amount": {
-                "min": null,
-                "max": null
-            },
-            "price": {
-                "min": null,
-                "max": null
-            },
-            "cost": {
-                "min": null,
-                "max": null
-            },
             "deposit": {
                 "min": null,
                 "max": null
@@ -1020,29 +898,36 @@
                 "min": null,
                 "max": null
             }
-        },
-        "lowerCaseId": "usdt"
+        }
     },
     "LTC": {
-        "info": [
-            {
-                "currency": "LTC",
-                "name": "Litecoin",
-                "delisted": false,
-                "withdraw_disabled": false,
-                "withdraw_delayed": false,
-                "deposit_disabled": false,
-                "trade_disabled": false,
-                "chain": "LTC"
-            }
-        ],
+        "info": {
+            "currency": "LTC",
+            "name": "Litecoin",
+            "delisted": false,
+            "withdraw_disabled": false,
+            "withdraw_delayed": false,
+            "deposit_disabled": false,
+            "trade_disabled": false,
+            "fixed_rate": "",
+            "chain": "LTC",
+            "chains": [
+                {
+                    "name": "LTC",
+                    "addr": "",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                }
+            ]
+        },
         "id": "LTC",
         "numericId": null,
         "code": "LTC",
         "precision": 0.0001,
         "type": "crypto",
-        "name": null,
-        "active": false,
+        "name": "Litecoin",
+        "active": true,
         "deposit": true,
         "withdraw": true,
         "fee": null,
@@ -1050,17 +935,19 @@
         "networks": {
             "LTC": {
                 "info": {
-                    "currency": "LTC",
-                    "name": "Litecoin",
-                    "delisted": false,
+                    "name": "LTC",
+                    "addr": "",
                     "withdraw_disabled": false,
                     "withdraw_delayed": false,
-                    "deposit_disabled": false,
-                    "trade_disabled": false,
-                    "chain": "LTC"
+                    "deposit_disabled": false
                 },
                 "id": "LTC",
                 "network": "LTC",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 0.0001,
                 "limits": {
                     "deposit": {
                         "min": null,
@@ -1070,31 +957,10 @@
                         "min": null,
                         "max": null
                     }
-                },
-                "active": false,
-                "deposit": true,
-                "withdraw": true,
-                "fee": null,
-                "precision": 0.0001
+                }
             }
         },
         "limits": {
-            "leverage": {
-                "min": null,
-                "max": null
-            },
-            "amount": {
-                "min": null,
-                "max": null
-            },
-            "price": {
-                "min": null,
-                "max": null
-            },
-            "cost": {
-                "min": null,
-                "max": null
-            },
             "deposit": {
                 "min": null,
                 "max": null
@@ -1103,709 +969,91 @@
                 "min": null,
                 "max": null
             }
-        },
-        "lowerCaseId": "ltc"
+        }
     },
     "ETH": {
-        "info": [
-            {
-                "currency": "ETH",
-                "name": "Ethereum",
-                "delisted": false,
-                "withdraw_disabled": false,
-                "withdraw_delayed": true,
-                "deposit_disabled": false,
-                "trade_disabled": false,
-                "chain": "ETH"
-            },
-            {
-                "currency": "ETH_ARBEVM",
-                "name": "Ethereum",
-                "delisted": false,
-                "withdraw_disabled": false,
-                "withdraw_delayed": false,
-                "deposit_disabled": false,
-                "trade_disabled": true,
-                "chain": "ARBEVM"
-            },
-            {
-                "currency": "ETH_ARBNOVA",
-                "name": "Ethereum",
-                "delisted": false,
-                "withdraw_disabled": false,
-                "withdraw_delayed": false,
-                "deposit_disabled": false,
-                "trade_disabled": true,
-                "chain": "ARBNOVA"
-            },
-            {
-                "currency": "ETH_BASEEVM",
-                "name": "Ethereum",
-                "delisted": false,
-                "withdraw_disabled": false,
-                "withdraw_delayed": false,
-                "deposit_disabled": false,
-                "trade_disabled": true,
-                "chain": "BASEEVM"
-            },
-            {
-                "currency": "ETH_BSC",
-                "name": "Ethereum",
-                "delisted": false,
-                "withdraw_disabled": false,
-                "withdraw_delayed": false,
-                "deposit_disabled": false,
-                "trade_disabled": true,
-                "chain": "BSC"
-            },
-            {
-                "currency": "ETH_LINEAETH",
-                "name": "Ethereum",
-                "delisted": false,
-                "withdraw_disabled": false,
-                "withdraw_delayed": false,
-                "deposit_disabled": false,
-                "trade_disabled": true,
-                "chain": "LINEAETH"
-            },
-            {
-                "currency": "ETH_MANTAETH",
-                "name": "Ethereum",
-                "delisted": false,
-                "withdraw_disabled": false,
-                "withdraw_delayed": false,
-                "deposit_disabled": false,
-                "trade_disabled": true,
-                "chain": "MANTAETH"
-            },
-            {
-                "currency": "ETH_OPETH",
-                "name": "Ethereum",
-                "delisted": false,
-                "withdraw_disabled": false,
-                "withdraw_delayed": false,
-                "deposit_disabled": false,
-                "trade_disabled": true,
-                "chain": "OPETH"
-            },
-            {
-                "currency": "ETH_ZKSERA",
-                "name": "Ethereum",
-                "delisted": false,
-                "withdraw_disabled": false,
-                "withdraw_delayed": false,
-                "deposit_disabled": false,
-                "trade_disabled": true,
-                "chain": "ZKSERA"
-            }
-        ],
+        "info": {
+            "currency": "ETH",
+            "name": "Ethereum",
+            "delisted": false,
+            "withdraw_disabled": false,
+            "withdraw_delayed": false,
+            "deposit_disabled": false,
+            "trade_disabled": false,
+            "fixed_rate": "",
+            "chain": "ETH",
+            "chains": [
+                {
+                    "name": "ETH",
+                    "addr": "",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                {
+                    "name": "ARBEVM",
+                    "addr": "",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                {
+                    "name": "ARBNOVA",
+                    "addr": "",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                {
+                    "name": "BASEEVM",
+                    "addr": "",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                {
+                    "name": "BSC",
+                    "addr": "0x2170ed0880ac9a755fd29b2688956bd959f933f8",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                {
+                    "name": "LINEAETH",
+                    "addr": "",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                {
+                    "name": "MANTAETH",
+                    "addr": "",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                {
+                    "name": "OPETH",
+                    "addr": "",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                {
+                    "name": "ZKSERA",
+                    "addr": "",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                }
+            ]
+        },
         "id": "ETH",
         "numericId": null,
         "code": "ETH",
         "precision": 0.0001,
         "type": "crypto",
-        "name": null,
-        "active": true,
-        "deposit": true,
-        "withdraw": true,
-        "fee": null,
-        "fees": {},
-        "networks": {
-            "ETH": {
-                "info": {
-                    "currency": "ETH",
-                    "name": "Ethereum",
-                    "delisted": false,
-                    "withdraw_disabled": false,
-                    "withdraw_delayed": true,
-                    "deposit_disabled": false,
-                    "trade_disabled": false,
-                    "chain": "ETH"
-                },
-                "id": "ETH",
-                "network": "ETH",
-                "limits": {
-                    "deposit": {
-                        "min": null,
-                        "max": null
-                    },
-                    "withdraw": {
-                        "min": null,
-                        "max": null
-                    }
-                },
-                "active": false,
-                "deposit": true,
-                "withdraw": true,
-                "fee": null,
-                "precision": 0.0001
-            },
-            "ARBONE": {
-                "info": {
-                    "currency": "ETH_ARBEVM",
-                    "name": "Ethereum",
-                    "delisted": false,
-                    "withdraw_disabled": false,
-                    "withdraw_delayed": false,
-                    "deposit_disabled": false,
-                    "trade_disabled": true,
-                    "chain": "ARBEVM"
-                },
-                "id": "ARBEVM",
-                "network": "ARBONE",
-                "limits": {
-                    "deposit": {
-                        "min": null,
-                        "max": null
-                    },
-                    "withdraw": {
-                        "min": null,
-                        "max": null
-                    }
-                },
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": null,
-                "precision": 0.0001
-            },
-            "ARBNOVA": {
-                "info": {
-                    "currency": "ETH_ARBNOVA",
-                    "name": "Ethereum",
-                    "delisted": false,
-                    "withdraw_disabled": false,
-                    "withdraw_delayed": false,
-                    "deposit_disabled": false,
-                    "trade_disabled": true,
-                    "chain": "ARBNOVA"
-                },
-                "id": "ARBNOVA",
-                "network": "ARBNOVA",
-                "limits": {
-                    "deposit": {
-                        "min": null,
-                        "max": null
-                    },
-                    "withdraw": {
-                        "min": null,
-                        "max": null
-                    }
-                },
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": null,
-                "precision": 0.0001
-            },
-            "BASE": {
-                "info": {
-                    "currency": "ETH_BASEEVM",
-                    "name": "Ethereum",
-                    "delisted": false,
-                    "withdraw_disabled": false,
-                    "withdraw_delayed": false,
-                    "deposit_disabled": false,
-                    "trade_disabled": true,
-                    "chain": "BASEEVM"
-                },
-                "id": "BASEEVM",
-                "network": "BASE",
-                "limits": {
-                    "deposit": {
-                        "min": null,
-                        "max": null
-                    },
-                    "withdraw": {
-                        "min": null,
-                        "max": null
-                    }
-                },
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": null,
-                "precision": 0.0001
-            },
-            "BEP20": {
-                "info": {
-                    "currency": "ETH_BSC",
-                    "name": "Ethereum",
-                    "delisted": false,
-                    "withdraw_disabled": false,
-                    "withdraw_delayed": false,
-                    "deposit_disabled": false,
-                    "trade_disabled": true,
-                    "chain": "BSC"
-                },
-                "id": "BSC",
-                "network": "BEP20",
-                "limits": {
-                    "deposit": {
-                        "min": null,
-                        "max": null
-                    },
-                    "withdraw": {
-                        "min": null,
-                        "max": null
-                    }
-                },
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": null,
-                "precision": 0.0001
-            },
-            "LINEA": {
-                "info": {
-                    "currency": "ETH_LINEAETH",
-                    "name": "Ethereum",
-                    "delisted": false,
-                    "withdraw_disabled": false,
-                    "withdraw_delayed": false,
-                    "deposit_disabled": false,
-                    "trade_disabled": true,
-                    "chain": "LINEAETH"
-                },
-                "id": "LINEAETH",
-                "network": "LINEA",
-                "limits": {
-                    "deposit": {
-                        "min": null,
-                        "max": null
-                    },
-                    "withdraw": {
-                        "min": null,
-                        "max": null
-                    }
-                },
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": null,
-                "precision": 0.0001
-            },
-            "MANTAETH": {
-                "info": {
-                    "currency": "ETH_MANTAETH",
-                    "name": "Ethereum",
-                    "delisted": false,
-                    "withdraw_disabled": false,
-                    "withdraw_delayed": false,
-                    "deposit_disabled": false,
-                    "trade_disabled": true,
-                    "chain": "MANTAETH"
-                },
-                "id": "MANTAETH",
-                "network": "MANTAETH",
-                "limits": {
-                    "deposit": {
-                        "min": null,
-                        "max": null
-                    },
-                    "withdraw": {
-                        "min": null,
-                        "max": null
-                    }
-                },
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": null,
-                "precision": 0.0001
-            },
-            "OP": {
-                "info": {
-                    "currency": "ETH_OPETH",
-                    "name": "Ethereum",
-                    "delisted": false,
-                    "withdraw_disabled": false,
-                    "withdraw_delayed": false,
-                    "deposit_disabled": false,
-                    "trade_disabled": true,
-                    "chain": "OPETH"
-                },
-                "id": "OPETH",
-                "network": "OP",
-                "limits": {
-                    "deposit": {
-                        "min": null,
-                        "max": null
-                    },
-                    "withdraw": {
-                        "min": null,
-                        "max": null
-                    }
-                },
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": null,
-                "precision": 0.0001
-            },
-            "ZKSERA": {
-                "info": {
-                    "currency": "ETH_ZKSERA",
-                    "name": "Ethereum",
-                    "delisted": false,
-                    "withdraw_disabled": false,
-                    "withdraw_delayed": false,
-                    "deposit_disabled": false,
-                    "trade_disabled": true,
-                    "chain": "ZKSERA"
-                },
-                "id": "ZKSERA",
-                "network": "ZKSERA",
-                "limits": {
-                    "deposit": {
-                        "min": null,
-                        "max": null
-                    },
-                    "withdraw": {
-                        "min": null,
-                        "max": null
-                    }
-                },
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": null,
-                "precision": 0.0001
-            }
-        },
-        "limits": {
-            "leverage": {
-                "min": null,
-                "max": null
-            },
-            "amount": {
-                "min": null,
-                "max": null
-            },
-            "price": {
-                "min": null,
-                "max": null
-            },
-            "cost": {
-                "min": null,
-                "max": null
-            },
-            "deposit": {
-                "min": null,
-                "max": null
-            },
-            "withdraw": {
-                "min": null,
-                "max": null
-            }
-        },
-        "lowerCaseId": "eth"
-    },
-    "ADA": {
-        "info": [
-            {
-                "currency": "ADA",
-                "name": "Cardano",
-                "delisted": false,
-                "withdraw_disabled": false,
-                "withdraw_delayed": false,
-                "deposit_disabled": false,
-                "trade_disabled": false,
-                "chain": "ADA"
-            }
-        ],
-        "id": "ADA",
-        "numericId": null,
-        "code": "ADA",
-        "precision": 0.0001,
-        "type": "crypto",
-        "name": null,
-        "active": false,
-        "deposit": true,
-        "withdraw": true,
-        "fee": null,
-        "fees": {},
-        "networks": {
-            "ADA": {
-                "info": {
-                    "currency": "ADA",
-                    "name": "Cardano",
-                    "delisted": false,
-                    "withdraw_disabled": false,
-                    "withdraw_delayed": false,
-                    "deposit_disabled": false,
-                    "trade_disabled": false,
-                    "chain": "ADA"
-                },
-                "id": "ADA",
-                "network": "ADA",
-                "limits": {
-                    "deposit": {
-                        "min": null,
-                        "max": null
-                    },
-                    "withdraw": {
-                        "min": null,
-                        "max": null
-                    }
-                },
-                "active": false,
-                "deposit": true,
-                "withdraw": true,
-                "fee": null,
-                "precision": 0.0001
-            }
-        },
-        "limits": {
-            "leverage": {
-                "min": null,
-                "max": null
-            },
-            "amount": {
-                "min": null,
-                "max": null
-            },
-            "price": {
-                "min": null,
-                "max": null
-            },
-            "cost": {
-                "min": null,
-                "max": null
-            },
-            "deposit": {
-                "min": null,
-                "max": null
-            },
-            "withdraw": {
-                "min": null,
-                "max": null
-            }
-        },
-        "lowerCaseId": "ada"
-    },
-    "XRP": {
-        "info": [
-            {
-                "currency": "XRP",
-                "name": "XRP",
-                "delisted": false,
-                "withdraw_disabled": false,
-                "withdraw_delayed": true,
-                "deposit_disabled": false,
-                "trade_disabled": false,
-                "chain": "XRP"
-            }
-        ],
-        "id": "XRP",
-        "numericId": null,
-        "code": "XRP",
-        "precision": 0.0001,
-        "type": "crypto",
-        "name": null,
-        "active": false,
-        "deposit": true,
-        "withdraw": true,
-        "fee": null,
-        "fees": {},
-        "networks": {
-            "XRP": {
-                "info": {
-                    "currency": "XRP",
-                    "name": "XRP",
-                    "delisted": false,
-                    "withdraw_disabled": false,
-                    "withdraw_delayed": true,
-                    "deposit_disabled": false,
-                    "trade_disabled": false,
-                    "chain": "XRP"
-                },
-                "id": "XRP",
-                "network": "XRP",
-                "limits": {
-                    "deposit": {
-                        "min": null,
-                        "max": null
-                    },
-                    "withdraw": {
-                        "min": null,
-                        "max": null
-                    }
-                },
-                "active": false,
-                "deposit": true,
-                "withdraw": true,
-                "fee": null,
-                "precision": 0.0001
-            }
-        },
-        "limits": {
-            "leverage": {
-                "min": null,
-                "max": null
-            },
-            "amount": {
-                "min": null,
-                "max": null
-            },
-            "price": {
-                "min": null,
-                "max": null
-            },
-            "cost": {
-                "min": null,
-                "max": null
-            },
-            "deposit": {
-                "min": null,
-                "max": null
-            },
-            "withdraw": {
-                "min": null,
-                "max": null
-            }
-        },
-        "lowerCaseId": "xrp"
-    },
-    "USDC": {
-        "info": [
-            {
-                "currency": "USDC",
-                "name": "USDCoin",
-                "delisted": false,
-                "withdraw_disabled": false,
-                "withdraw_delayed": true,
-                "deposit_disabled": false,
-                "trade_disabled": false,
-                "chain": "ETH"
-            },
-            {
-                "currency": "USDC_APT",
-                "name": "USDCoin",
-                "delisted": false,
-                "withdraw_disabled": false,
-                "withdraw_delayed": false,
-                "deposit_disabled": false,
-                "trade_disabled": true,
-                "chain": "APT"
-            },
-            {
-                "currency": "USDC_ARBEVM",
-                "name": "USDCoin",
-                "delisted": false,
-                "withdraw_disabled": false,
-                "withdraw_delayed": false,
-                "deposit_disabled": false,
-                "trade_disabled": true,
-                "chain": "ARBEVM"
-            },
-            {
-                "currency": "USDC_BASEEVM",
-                "name": "USDCoin",
-                "delisted": false,
-                "withdraw_disabled": false,
-                "withdraw_delayed": false,
-                "deposit_disabled": false,
-                "trade_disabled": true,
-                "chain": "BASEEVM"
-            },
-            {
-                "currency": "USDC_BSC",
-                "name": "USDCoin",
-                "delisted": false,
-                "withdraw_disabled": false,
-                "withdraw_delayed": false,
-                "deposit_disabled": false,
-                "trade_disabled": true,
-                "chain": "BSC"
-            },
-            {
-                "currency": "USDC_C",
-                "name": "USDCoin",
-                "delisted": false,
-                "withdraw_disabled": false,
-                "withdraw_delayed": false,
-                "deposit_disabled": false,
-                "trade_disabled": true,
-                "chain": "AVAX_C"
-            },
-            {
-                "currency": "USDC_DOTSM",
-                "name": "USDCoin",
-                "delisted": false,
-                "withdraw_disabled": false,
-                "withdraw_delayed": false,
-                "deposit_disabled": false,
-                "trade_disabled": true,
-                "chain": "DOTSM"
-            },
-            {
-                "currency": "USDC_MATIC",
-                "name": "USDCoin",
-                "delisted": false,
-                "withdraw_disabled": false,
-                "withdraw_delayed": false,
-                "deposit_disabled": false,
-                "trade_disabled": true,
-                "chain": "MATIC"
-            },
-            {
-                "currency": "USDC_NEAR",
-                "name": "USDCoin",
-                "delisted": false,
-                "withdraw_disabled": false,
-                "withdraw_delayed": false,
-                "deposit_disabled": false,
-                "trade_disabled": true,
-                "chain": "NEAR"
-            },
-            {
-                "currency": "USDC_OPETH",
-                "name": "USDCoin",
-                "delisted": false,
-                "withdraw_disabled": false,
-                "withdraw_delayed": false,
-                "deposit_disabled": false,
-                "trade_disabled": true,
-                "chain": "OPETH"
-            },
-            {
-                "currency": "USDC_SOL",
-                "name": "USDCoin",
-                "delisted": false,
-                "withdraw_disabled": false,
-                "withdraw_delayed": false,
-                "deposit_disabled": false,
-                "trade_disabled": true,
-                "chain": "SOL"
-            },
-            {
-                "currency": "USDC_TRX",
-                "name": "USDCoin",
-                "delisted": false,
-                "withdraw_disabled": true,
-                "withdraw_delayed": false,
-                "deposit_disabled": true,
-                "trade_disabled": true,
-                "chain": "TRX"
-            },
-            {
-                "currency": "USDC_ZKFUSDC",
-                "name": "USDCoin",
-                "delisted": false,
-                "withdraw_disabled": false,
-                "withdraw_delayed": false,
-                "deposit_disabled": false,
-                "trade_disabled": true,
-                "chain": "ZKFUSDC"
-            }
-        ],
-        "id": "USDC",
-        "numericId": null,
-        "code": "USDC",
-        "precision": 0.0001,
-        "type": "crypto",
-        "name": null,
+        "name": "Ethereum",
         "active": true,
         "deposit": true,
         "withdraw": true,
@@ -1814,75 +1062,45 @@
         "networks": {
             "ERC20": {
                 "info": {
-                    "currency": "USDC",
-                    "name": "USDCoin",
-                    "delisted": false,
+                    "name": "ETH",
+                    "addr": "",
                     "withdraw_disabled": false,
-                    "withdraw_delayed": true,
-                    "deposit_disabled": false,
-                    "trade_disabled": false,
-                    "chain": "ETH"
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
                 },
                 "id": "ETH",
                 "network": "ERC20",
-                "limits": {
-                    "deposit": {
-                        "min": null,
-                        "max": null
-                    },
-                    "withdraw": {
-                        "min": null,
-                        "max": null
-                    }
-                },
-                "active": false,
-                "deposit": true,
-                "withdraw": true,
-                "fee": null,
-                "precision": 0.0001
-            },
-            "APT": {
-                "info": {
-                    "currency": "USDC_APT",
-                    "name": "USDCoin",
-                    "delisted": false,
-                    "withdraw_disabled": false,
-                    "withdraw_delayed": false,
-                    "deposit_disabled": false,
-                    "trade_disabled": true,
-                    "chain": "APT"
-                },
-                "id": "APT",
-                "network": "APT",
-                "limits": {
-                    "deposit": {
-                        "min": null,
-                        "max": null
-                    },
-                    "withdraw": {
-                        "min": null,
-                        "max": null
-                    }
-                },
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
                 "fee": null,
-                "precision": 0.0001
+                "precision": 0.0001,
+                "limits": {
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
             },
             "ARBONE": {
                 "info": {
-                    "currency": "USDC_ARBEVM",
-                    "name": "USDCoin",
-                    "delisted": false,
+                    "name": "ARBEVM",
+                    "addr": "",
                     "withdraw_disabled": false,
                     "withdraw_delayed": false,
-                    "deposit_disabled": false,
-                    "trade_disabled": true,
-                    "chain": "ARBEVM"
+                    "deposit_disabled": false
                 },
                 "id": "ARBEVM",
                 "network": "ARBONE",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 0.0001,
                 "limits": {
                     "deposit": {
                         "min": null,
@@ -1892,26 +1110,49 @@
                         "min": null,
                         "max": null
                     }
+                }
+            },
+            "ARBNOVA": {
+                "info": {
+                    "name": "ARBNOVA",
+                    "addr": "",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
                 },
+                "id": "ARBNOVA",
+                "network": "ARBNOVA",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
                 "fee": null,
-                "precision": 0.0001
+                "precision": 0.0001,
+                "limits": {
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
             },
             "BASE": {
                 "info": {
-                    "currency": "USDC_BASEEVM",
-                    "name": "USDCoin",
-                    "delisted": false,
+                    "name": "BASEEVM",
+                    "addr": "",
                     "withdraw_disabled": false,
                     "withdraw_delayed": false,
-                    "deposit_disabled": false,
-                    "trade_disabled": true,
-                    "chain": "BASEEVM"
+                    "deposit_disabled": false
                 },
                 "id": "BASEEVM",
                 "network": "BASE",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 0.0001,
                 "limits": {
                     "deposit": {
                         "min": null,
@@ -1921,26 +1162,23 @@
                         "min": null,
                         "max": null
                     }
-                },
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": null,
-                "precision": 0.0001
+                }
             },
             "BEP20": {
                 "info": {
-                    "currency": "USDC_BSC",
-                    "name": "USDCoin",
-                    "delisted": false,
+                    "name": "BSC",
+                    "addr": "0x2170ed0880ac9a755fd29b2688956bd959f933f8",
                     "withdraw_disabled": false,
                     "withdraw_delayed": false,
-                    "deposit_disabled": false,
-                    "trade_disabled": true,
-                    "chain": "BSC"
+                    "deposit_disabled": false
                 },
                 "id": "BSC",
                 "network": "BEP20",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 0.0001,
                 "limits": {
                     "deposit": {
                         "min": null,
@@ -1950,26 +1188,23 @@
                         "min": null,
                         "max": null
                     }
-                },
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": null,
-                "precision": 0.0001
+                }
             },
-            "AVAXC": {
+            "LINEA": {
                 "info": {
-                    "currency": "USDC_C",
-                    "name": "USDCoin",
-                    "delisted": false,
+                    "name": "LINEAETH",
+                    "addr": "",
                     "withdraw_disabled": false,
                     "withdraw_delayed": false,
-                    "deposit_disabled": false,
-                    "trade_disabled": true,
-                    "chain": "AVAX_C"
+                    "deposit_disabled": false
                 },
-                "id": "AVAX_C",
-                "network": "AVAXC",
+                "id": "LINEAETH",
+                "network": "LINEA",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 0.0001,
                 "limits": {
                     "deposit": {
                         "min": null,
@@ -1979,26 +1214,23 @@
                         "min": null,
                         "max": null
                     }
-                },
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": null,
-                "precision": 0.0001
+                }
             },
-            "POLKADOT": {
+            "MANTAETH": {
                 "info": {
-                    "currency": "USDC_DOTSM",
-                    "name": "USDCoin",
-                    "delisted": false,
+                    "name": "MANTAETH",
+                    "addr": "",
                     "withdraw_disabled": false,
                     "withdraw_delayed": false,
-                    "deposit_disabled": false,
-                    "trade_disabled": true,
-                    "chain": "DOTSM"
+                    "deposit_disabled": false
                 },
-                "id": "DOTSM",
-                "network": "POLKADOT",
+                "id": "MANTAETH",
+                "network": "MANTAETH",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 0.0001,
                 "limits": {
                     "deposit": {
                         "min": null,
@@ -2008,84 +1240,23 @@
                         "min": null,
                         "max": null
                     }
-                },
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": null,
-                "precision": 0.0001
-            },
-            "MATIC": {
-                "info": {
-                    "currency": "USDC_MATIC",
-                    "name": "USDCoin",
-                    "delisted": false,
-                    "withdraw_disabled": false,
-                    "withdraw_delayed": false,
-                    "deposit_disabled": false,
-                    "trade_disabled": true,
-                    "chain": "MATIC"
-                },
-                "id": "MATIC",
-                "network": "MATIC",
-                "limits": {
-                    "deposit": {
-                        "min": null,
-                        "max": null
-                    },
-                    "withdraw": {
-                        "min": null,
-                        "max": null
-                    }
-                },
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": null,
-                "precision": 0.0001
-            },
-            "NEAR": {
-                "info": {
-                    "currency": "USDC_NEAR",
-                    "name": "USDCoin",
-                    "delisted": false,
-                    "withdraw_disabled": false,
-                    "withdraw_delayed": false,
-                    "deposit_disabled": false,
-                    "trade_disabled": true,
-                    "chain": "NEAR"
-                },
-                "id": "NEAR",
-                "network": "NEAR",
-                "limits": {
-                    "deposit": {
-                        "min": null,
-                        "max": null
-                    },
-                    "withdraw": {
-                        "min": null,
-                        "max": null
-                    }
-                },
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": null,
-                "precision": 0.0001
+                }
             },
             "OP": {
                 "info": {
-                    "currency": "USDC_OPETH",
-                    "name": "USDCoin",
-                    "delisted": false,
+                    "name": "OPETH",
+                    "addr": "",
                     "withdraw_disabled": false,
                     "withdraw_delayed": false,
-                    "deposit_disabled": false,
-                    "trade_disabled": true,
-                    "chain": "OPETH"
+                    "deposit_disabled": false
                 },
                 "id": "OPETH",
                 "network": "OP",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 0.0001,
                 "limits": {
                     "deposit": {
                         "min": null,
@@ -2095,55 +1266,23 @@
                         "min": null,
                         "max": null
                     }
-                },
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": null,
-                "precision": 0.0001
+                }
             },
-            "SOL": {
+            "ZKSERA": {
                 "info": {
-                    "currency": "USDC_SOL",
-                    "name": "USDCoin",
-                    "delisted": false,
+                    "name": "ZKSERA",
+                    "addr": "",
                     "withdraw_disabled": false,
                     "withdraw_delayed": false,
-                    "deposit_disabled": false,
-                    "trade_disabled": true,
-                    "chain": "SOL"
+                    "deposit_disabled": false
                 },
-                "id": "SOL",
-                "network": "SOL",
-                "limits": {
-                    "deposit": {
-                        "min": null,
-                        "max": null
-                    },
-                    "withdraw": {
-                        "min": null,
-                        "max": null
-                    }
-                },
+                "id": "ZKSERA",
+                "network": "ZKSERA",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
                 "fee": null,
-                "precision": 0.0001
-            },
-            "TRC20": {
-                "info": {
-                    "currency": "USDC_TRX",
-                    "name": "USDCoin",
-                    "delisted": false,
-                    "withdraw_disabled": true,
-                    "withdraw_delayed": false,
-                    "deposit_disabled": true,
-                    "trade_disabled": true,
-                    "chain": "TRX"
-                },
-                "id": "TRX",
-                "network": "TRC20",
+                "precision": 0.0001,
                 "limits": {
                     "deposit": {
                         "min": null,
@@ -2153,60 +1292,10 @@
                         "min": null,
                         "max": null
                     }
-                },
-                "active": true,
-                "deposit": false,
-                "withdraw": false,
-                "fee": null,
-                "precision": 0.0001
-            },
-            "ZKFUSDC": {
-                "info": {
-                    "currency": "USDC_ZKFUSDC",
-                    "name": "USDCoin",
-                    "delisted": false,
-                    "withdraw_disabled": false,
-                    "withdraw_delayed": false,
-                    "deposit_disabled": false,
-                    "trade_disabled": true,
-                    "chain": "ZKFUSDC"
-                },
-                "id": "ZKFUSDC",
-                "network": "ZKFUSDC",
-                "limits": {
-                    "deposit": {
-                        "min": null,
-                        "max": null
-                    },
-                    "withdraw": {
-                        "min": null,
-                        "max": null
-                    }
-                },
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": null,
-                "precision": 0.0001
+                }
             }
         },
         "limits": {
-            "leverage": {
-                "min": null,
-                "max": null
-            },
-            "amount": {
-                "min": null,
-                "max": null
-            },
-            "price": {
-                "min": null,
-                "max": null
-            },
-            "cost": {
-                "min": null,
-                "max": null
-            },
             "deposit": {
                 "min": null,
                 "max": null
@@ -2215,7 +1304,790 @@
                 "min": null,
                 "max": null
             }
+        }
+    },
+    "ADA": {
+        "info": {
+            "currency": "ADA",
+            "name": "Cardano",
+            "delisted": false,
+            "withdraw_disabled": false,
+            "withdraw_delayed": false,
+            "deposit_disabled": false,
+            "trade_disabled": false,
+            "fixed_rate": "",
+            "chain": "ADA",
+            "chains": [
+                {
+                    "name": "ADA",
+                    "addr": "",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                }
+            ]
         },
-        "lowerCaseId": "usdc"
+        "id": "ADA",
+        "numericId": null,
+        "code": "ADA",
+        "precision": 0.0001,
+        "type": "crypto",
+        "name": "Cardano",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": null,
+        "fees": {},
+        "networks": {
+            "ADA": {
+                "info": {
+                    "name": "ADA",
+                    "addr": "",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                "id": "ADA",
+                "network": "ADA",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 0.0001,
+                "limits": {
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            }
+        },
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "XRP": {
+        "info": {
+            "currency": "XRP",
+            "name": "XRP",
+            "delisted": false,
+            "withdraw_disabled": false,
+            "withdraw_delayed": false,
+            "deposit_disabled": false,
+            "trade_disabled": false,
+            "fixed_rate": "",
+            "chain": "XRP",
+            "chains": [
+                {
+                    "name": "XRP",
+                    "addr": "",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                }
+            ]
+        },
+        "id": "XRP",
+        "numericId": null,
+        "code": "XRP",
+        "precision": 0.0001,
+        "type": "crypto",
+        "name": "XRP",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": null,
+        "fees": {},
+        "networks": {
+            "XRP": {
+                "info": {
+                    "name": "XRP",
+                    "addr": "",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                "id": "XRP",
+                "network": "XRP",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 0.0001,
+                "limits": {
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            }
+        },
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "USDC": {
+        "info": {
+            "currency": "USDC",
+            "name": "USDCoin",
+            "delisted": false,
+            "withdraw_disabled": false,
+            "withdraw_delayed": false,
+            "deposit_disabled": false,
+            "trade_disabled": false,
+            "fixed_rate": "",
+            "chain": "ETH",
+            "chains": [
+                {
+                    "name": "ETH",
+                    "addr": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                {
+                    "name": "APT",
+                    "addr": "0xbae207659db88bea0cbead6da0ed00aac12edcdda169e591cd41c94180b46f3b",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                {
+                    "name": "ARBEVM",
+                    "addr": "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                {
+                    "name": "BASEEVM",
+                    "addr": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                {
+                    "name": "BSC",
+                    "addr": "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                {
+                    "name": "AVAX_C",
+                    "addr": "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                {
+                    "name": "DOTSM",
+                    "addr": "1337",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                {
+                    "name": "MATIC",
+                    "addr": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                {
+                    "name": "NEAR",
+                    "addr": "17208628f84f5d6ad33f0da3bbbeb27ffcb398eac501a31bd6ad2011e36133a1",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                {
+                    "name": "OPETH",
+                    "addr": "0x0b2c639c533813f4aa9d7837caf62653d097ff85",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                {
+                    "name": "S",
+                    "addr": "0x29219dd400f2bf60e5a23d13be72b486d4038894",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                {
+                    "name": "SOL",
+                    "addr": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                {
+                    "name": "TRX",
+                    "addr": "TEkxiTehnzSmSe2XqrBj4w32RUN966rdz8",
+                    "withdraw_disabled": true,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": true
+                },
+                {
+                    "name": "ZKFUSDC",
+                    "addr": "",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                }
+            ]
+        },
+        "id": "USDC",
+        "numericId": null,
+        "code": "USDC",
+        "precision": 0.0001,
+        "type": "crypto",
+        "name": "USDCoin",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": null,
+        "fees": {},
+        "networks": {
+            "ERC20": {
+                "info": {
+                    "name": "ETH",
+                    "addr": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                "id": "ETH",
+                "network": "ERC20",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 0.0001,
+                "limits": {
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "APT": {
+                "info": {
+                    "name": "APT",
+                    "addr": "0xbae207659db88bea0cbead6da0ed00aac12edcdda169e591cd41c94180b46f3b",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                "id": "APT",
+                "network": "APT",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 0.0001,
+                "limits": {
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "ARBONE": {
+                "info": {
+                    "name": "ARBEVM",
+                    "addr": "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                "id": "ARBEVM",
+                "network": "ARBONE",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 0.0001,
+                "limits": {
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "BASE": {
+                "info": {
+                    "name": "BASEEVM",
+                    "addr": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                "id": "BASEEVM",
+                "network": "BASE",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 0.0001,
+                "limits": {
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "BEP20": {
+                "info": {
+                    "name": "BSC",
+                    "addr": "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                "id": "BSC",
+                "network": "BEP20",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 0.0001,
+                "limits": {
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "AVAXC": {
+                "info": {
+                    "name": "AVAX_C",
+                    "addr": "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                "id": "AVAX_C",
+                "network": "AVAXC",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 0.0001,
+                "limits": {
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "POLKADOT": {
+                "info": {
+                    "name": "DOTSM",
+                    "addr": "1337",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                "id": "DOTSM",
+                "network": "POLKADOT",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 0.0001,
+                "limits": {
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "MATIC": {
+                "info": {
+                    "name": "MATIC",
+                    "addr": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                "id": "MATIC",
+                "network": "MATIC",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 0.0001,
+                "limits": {
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "NEAR": {
+                "info": {
+                    "name": "NEAR",
+                    "addr": "17208628f84f5d6ad33f0da3bbbeb27ffcb398eac501a31bd6ad2011e36133a1",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                "id": "NEAR",
+                "network": "NEAR",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 0.0001,
+                "limits": {
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "OP": {
+                "info": {
+                    "name": "OPETH",
+                    "addr": "0x0b2c639c533813f4aa9d7837caf62653d097ff85",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                "id": "OPETH",
+                "network": "OP",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 0.0001,
+                "limits": {
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "S": {
+                "info": {
+                    "name": "S",
+                    "addr": "0x29219dd400f2bf60e5a23d13be72b486d4038894",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                "id": "S",
+                "network": "S",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 0.0001,
+                "limits": {
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "SOL": {
+                "info": {
+                    "name": "SOL",
+                    "addr": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                "id": "SOL",
+                "network": "SOL",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 0.0001,
+                "limits": {
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "TRC20": {
+                "info": {
+                    "name": "TRX",
+                    "addr": "TEkxiTehnzSmSe2XqrBj4w32RUN966rdz8",
+                    "withdraw_disabled": true,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": true
+                },
+                "id": "TRX",
+                "network": "TRC20",
+                "active": false,
+                "deposit": false,
+                "withdraw": false,
+                "fee": null,
+                "precision": 0.0001,
+                "limits": {
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "ZKFUSDC": {
+                "info": {
+                    "name": "ZKFUSDC",
+                    "addr": "",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                "id": "ZKFUSDC",
+                "network": "ZKFUSDC",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 0.0001,
+                "limits": {
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            }
+        },
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "MPH": {
+        "info": {
+            "currency": "88MPH",
+            "name": "88mph",
+            "delisted": false,
+            "withdraw_disabled": false,
+            "withdraw_delayed": false,
+            "deposit_disabled": false,
+            "trade_disabled": false,
+            "fixed_rate": "",
+            "chain": "ETH",
+            "chains": [
+                {
+                    "name": "ETH",
+                    "addr": "0x8888801af4d980682e47f1a9036e589479e835c5",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                }
+            ]
+        },
+        "id": "88MPH",
+        "numericId": null,
+        "code": "MPH",
+        "precision": 0.0001,
+        "type": "crypto",
+        "name": "88mph",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": null,
+        "fees": {},
+        "networks": {
+            "ERC20": {
+                "info": {
+                    "name": "ETH",
+                    "addr": "0x8888801af4d980682e47f1a9036e589479e835c5",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                "id": "ETH",
+                "network": "ERC20",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 0.0001,
+                "limits": {
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            }
+        },
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "MORPHER": {
+        "info": {
+            "currency": "MPH",
+            "name": "Morpher",
+            "delisted": false,
+            "withdraw_disabled": false,
+            "withdraw_delayed": false,
+            "deposit_disabled": false,
+            "trade_disabled": false,
+            "fixed_rate": "",
+            "chain": "ETH",
+            "chains": [
+                {
+                    "name": "ETH",
+                    "addr": "0x6369c3dadfc00054a42ba8b2c09c48131dd4aa38",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                }
+            ]
+        },
+        "id": "MPH",
+        "numericId": null,
+        "code": "MORPHER",
+        "precision": 0.0001,
+        "type": "crypto",
+        "name": "Morpher",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": null,
+        "fees": {},
+        "networks": {
+            "ERC20": {
+                "info": {
+                    "name": "ETH",
+                    "addr": "0x6369c3dadfc00054a42ba8b2c09c48131dd4aa38",
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false
+                },
+                "id": "ETH",
+                "network": "ERC20",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 0.0001,
+                "limits": {
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            }
+        },
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
     }
 }

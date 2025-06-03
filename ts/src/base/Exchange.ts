@@ -1122,13 +1122,28 @@ export default class Exchange {
         // only call if exchange API provides endpoint (true), thus avoid emulated versions ('emulated')
         if (this.has['fetchCurrencies'] === true) {
             currencies = await this.fetchCurrencies ();
+            this.options['cachedCurrencies'] = currencies;
         }
         const markets = await this.fetchMarkets (params);
+        delete this.options['cachedCurrencies'];
         return this.setMarkets (markets, currencies);
     }
 
-    async loadMarkets (reload = false, params = {}): Promise<Dictionary<Market>> {
-        // this method is async, it returns a promise
+    /**
+     * @method
+     * @name Exchange#loadMarkets
+     * @description Loads and prepares the markets for trading.
+     * @param {boolean} reload - If true, the markets will be reloaded from the exchange.
+     * @param {object} params - Additional exchange-specific parameters for the request.
+     * @returns A promise that resolves to a dictionary of markets.
+     * @throws An error if the markets cannot be loaded or prepared.
+     * @remarks This method is asynchronous and returns a promise.
+     *          It ensures that the markets are only loaded once, even if the method is called multiple times.
+     *          If the markets are already loaded and not reloading, the method returns the existing markets.
+     *          If the markets are being reloaded, the method waits for the reload to complete before returning the markets.
+     *          If an error occurs during the loading or preparation of the markets, the promise is rejected with the error.
+     */
+    async loadMarkets (reload: boolean = false, params: object = {}): Promise<Dictionary<Market>> {
         if ((reload && !this.reloadingMarkets) || !this.marketsLoading) {
             this.reloadingMarkets = true;
             this.marketsLoading = this.loadMarketsHelper (reload, params).then ((resolved) => {
@@ -3145,7 +3160,7 @@ export default class Exchange {
                         currency['networks'][key]['active'] = false;
                     }
                 }
-                active = this.safeBool (network, 'active');
+                active = this.safeBool (currency['networks'][key], 'active'); // dict might have been updated on above lines, so access directly instead of `network` variable
                 const currencyActive = this.safeBool (currency, 'active');
                 if (currencyActive === undefined || active) {
                     currency['active'] = active;
@@ -4511,11 +4526,11 @@ export default class Exchange {
                 throw new NotSupported (this.id + ' - ' + networkCode + ' network did not return any result for ' + currencyCode);
             } else {
                 // if networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
-                const networkId = isIndexedByUnifiedNetworkCode ? networkCode : this.networkCodeToId (networkCode, currencyCode);
-                if (networkId in indexedNetworkEntries) {
-                    chosenNetworkId = networkId;
+                const networkIdOrCode = isIndexedByUnifiedNetworkCode ? networkCode : this.networkCodeToId (networkCode, currencyCode);
+                if (networkIdOrCode in indexedNetworkEntries) {
+                    chosenNetworkId = networkIdOrCode;
                 } else {
-                    throw new NotSupported (this.id + ' - ' + networkId + ' network was not found for ' + currencyCode + ', use one of ' + availableNetworkIds.join (', '));
+                    throw new NotSupported (this.id + ' - ' + networkIdOrCode + ' network was not found for ' + currencyCode + ', use one of ' + availableNetworkIds.join (', '));
                 }
             }
         } else {
@@ -4880,15 +4895,15 @@ export default class Exchange {
             const cost = this.calculateRateLimiterCost (api, method, path, params, config);
             await this.throttle (cost);
         }
+        let retries = undefined;
+        [ retries, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailure', 0);
+        let retryDelay = undefined;
+        [ retryDelay, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailureDelay', 0);
         this.lastRestRequestTimestamp = this.milliseconds ();
         const request = this.sign (path, api, method, params, headers, body);
         this.last_request_headers = request['headers'];
         this.last_request_body = request['body'];
         this.last_request_url = request['url'];
-        let retries = undefined;
-        [ retries, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailure', 0);
-        let retryDelay = undefined;
-        [ retryDelay, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailureDelay', 0);
         for (let i = 0; i < retries + 1; i++) {
             try {
                 return await this.fetch (request['url'], request['method'], request['headers'], request['body']);

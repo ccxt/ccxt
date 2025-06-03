@@ -2080,9 +2080,7 @@ export default class bitget extends Exchange {
                 const chain = chains[j];
                 const networkId = this.safeString(chain, 'chain');
                 let network = this.networkIdToCode(networkId, code);
-                if (network !== undefined) {
-                    network = network.toUpperCase();
-                }
+                network = network.toUpperCase();
                 networks[network] = {
                     'info': chain,
                     'id': networkId,
@@ -2395,7 +2393,7 @@ export default class bitget extends Exchange {
             'coin': currency['id'],
             'address': address,
             'chain': networkId,
-            'size': amount,
+            'size': this.currencyToPrecision(code, amount, networkCode),
             'transferType': 'on_chain',
         };
         if (tag !== undefined) {
@@ -2420,8 +2418,6 @@ export default class bitget extends Exchange {
         const fillResponseFromRequest = this.safeBool(withdrawOptions, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
             result['currency'] = code;
-            result['timestamp'] = this.milliseconds();
-            result['datetime'] = this.iso8601(this.milliseconds());
             result['amount'] = amount;
             result['tag'] = tag;
             result['address'] = address;
@@ -2545,7 +2541,10 @@ export default class bitget extends Exchange {
         const status = this.safeString(transaction, 'status');
         const tag = this.safeString(transaction, 'tag');
         const feeCostString = this.safeString(transaction, 'fee');
-        const feeCostAbsString = Precise.stringAbs(feeCostString);
+        let feeCostAbsString = undefined;
+        if (feeCostString !== undefined) {
+            feeCostAbsString = Precise.stringAbs(feeCostString);
+        }
         let fee = undefined;
         let amountString = this.safeString(transaction, 'size');
         if (feeCostAbsString !== undefined) {

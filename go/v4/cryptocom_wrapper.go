@@ -20,6 +20,21 @@ func NewCryptocom(userConfig map[string]interface{}) Cryptocom {
 
 /**
  * @method
+ * @name cryptocom#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-currency-networks
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Cryptocom) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name cryptocom#fetchMarkets
  * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-instruments
  * @description retrieves data on all markets for cryptocom

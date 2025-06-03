@@ -2069,9 +2069,7 @@ class bitget extends Exchange {
                 $chain = $chains[$j];
                 $networkId = $this->safe_string($chain, 'chain');
                 $network = $this->network_id_to_code($networkId, $code);
-                if ($network !== null) {
-                    $network = strtoupper($network);
-                }
+                $network = strtoupper($network);
                 $networks[$network] = array(
                     'info' => $chain,
                     'id' => $networkId,
@@ -2385,7 +2383,7 @@ class bitget extends Exchange {
             'coin' => $currency['id'],
             'address' => $address,
             'chain' => $networkId,
-            'size' => $amount,
+            'size' => $this->currency_to_precision($code, $amount, $networkCode),
             'transferType' => 'on_chain',
         );
         if ($tag !== null) {
@@ -2410,8 +2408,6 @@ class bitget extends Exchange {
         $fillResponseFromRequest = $this->safe_bool($withdrawOptions, 'fillResponseFromRequest', true);
         if ($fillResponseFromRequest) {
             $result['currency'] = $code;
-            $result['timestamp'] = $this->milliseconds();
-            $result['datetime'] = $this->iso8601($this->milliseconds());
             $result['amount'] = $amount;
             $result['tag'] = $tag;
             $result['address'] = $address;
@@ -2537,7 +2533,10 @@ class bitget extends Exchange {
         $status = $this->safe_string($transaction, 'status');
         $tag = $this->safe_string($transaction, 'tag');
         $feeCostString = $this->safe_string($transaction, 'fee');
-        $feeCostAbsString = Precise::string_abs($feeCostString);
+        $feeCostAbsString = null;
+        if ($feeCostString !== null) {
+            $feeCostAbsString = Precise::string_abs($feeCostString);
+        }
         $fee = null;
         $amountString = $this->safe_string($transaction, 'size');
         if ($feeCostAbsString !== null) {

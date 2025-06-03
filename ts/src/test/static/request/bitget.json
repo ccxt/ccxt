@@ -7,6 +7,32 @@
     ],
     "outputType": "json",
     "methods": {
+        "withdraw": [
+            {
+                "description": "with_precision",
+                "method": "withdraw",
+                "url": "https://api.bitget.com/api/v2/spot/wallet/withdrawal",
+                "input": [
+                    "USDT",
+                    11.123456789,
+                    "EBz7xtobD2Rm8aAXH2VHmE2rnePATevbHcWQ3RRo4nqA",
+                    null,
+                    {
+                        "network": "SOL"
+                    }
+                ],
+                "output": "{\"coin\":\"USDT\",\"address\":\"EBz7xtobD2Rm8aAXH2VHmE2rnePATevbHcWQ3RRo4nqA\",\"chain\":\"SOL\",\"size\":\"11.123457\",\"transferType\":\"on_chain\"}"
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.bitget.com/api/v2/spot/public/coins",
+                "input": [],
+                "output": null
+            }
+        ],
         "createOrder": [
             {
                 "description": "Spot limit buy",

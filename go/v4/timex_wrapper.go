@@ -49,6 +49,21 @@ func (this *Timex) FetchMarkets(params ...interface{}) ([]MarketInterface, error
 }
 /**
  * @method
+ * @name timex#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Public/listCurrencies
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Timex) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name timex#fetchDeposits
  * @description fetch all deposits made to an account
  * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Manager/getDeposits

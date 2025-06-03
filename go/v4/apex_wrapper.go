@@ -65,6 +65,21 @@ func (this *Apex) FetchAccount(params ...interface{}) (Account, error) {
 }
 /**
  * @method
+ * @name apex#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-all-config-data-v3
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Apex) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name apex#fetchMarkets
  * @description retrieves data on all markets for apex
  * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-all-config-data-v3

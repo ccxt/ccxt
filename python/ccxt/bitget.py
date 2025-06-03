@@ -2071,8 +2071,7 @@ class bitget(Exchange, ImplicitAPI):
                 chain = chains[j]
                 networkId = self.safe_string(chain, 'chain')
                 network = self.network_id_to_code(networkId, code)
-                if network is not None:
-                    network = network.upper()
+                network = network.upper()
                 networks[network] = {
                     'info': chain,
                     'id': networkId,
@@ -2371,7 +2370,7 @@ class bitget(Exchange, ImplicitAPI):
             'coin': currency['id'],
             'address': address,
             'chain': networkId,
-            'size': amount,
+            'size': self.currency_to_precision(code, amount, networkCode),
             'transferType': 'on_chain',
         }
         if tag is not None:
@@ -2395,8 +2394,6 @@ class bitget(Exchange, ImplicitAPI):
         fillResponseFromRequest = self.safe_bool(withdrawOptions, 'fillResponseFromRequest', True)
         if fillResponseFromRequest:
             result['currency'] = code
-            result['timestamp'] = self.milliseconds()
-            result['datetime'] = self.iso8601(self.milliseconds())
             result['amount'] = amount
             result['tag'] = tag
             result['address'] = address
@@ -2514,7 +2511,9 @@ class bitget(Exchange, ImplicitAPI):
         status = self.safe_string(transaction, 'status')
         tag = self.safe_string(transaction, 'tag')
         feeCostString = self.safe_string(transaction, 'fee')
-        feeCostAbsString = Precise.string_abs(feeCostString)
+        feeCostAbsString = None
+        if feeCostString is not None:
+            feeCostAbsString = Precise.string_abs(feeCostString)
         fee = None
         amountString = self.safe_string(transaction, 'size')
         if feeCostAbsString is not None:

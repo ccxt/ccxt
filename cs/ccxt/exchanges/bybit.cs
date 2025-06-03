@@ -1618,86 +1618,59 @@ public partial class bybit : Exchange
             object name = this.safeString(currency, "name");
             object chains = this.safeList(currency, "chains", new List<object>() {});
             object networks = new Dictionary<string, object>() {};
-            object minPrecision = null;
-            object minWithdrawFeeString = null;
-            object minWithdrawString = null;
-            object minDepositString = null;
-            object deposit = false;
-            object withdraw = false;
             for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
             {
                 object chain = getValue(chains, j);
                 object networkId = this.safeString(chain, "chain");
                 object networkCode = this.networkIdToCode(networkId);
-                object precision = this.parseNumber(this.parsePrecision(this.safeString(chain, "minAccuracy")));
-                minPrecision = ((bool) isTrue((isEqual(minPrecision, null)))) ? precision : mathMin(minPrecision, precision);
-                object depositAllowed = isEqual(this.safeInteger(chain, "chainDeposit"), 1);
-                deposit = ((bool) isTrue((depositAllowed))) ? depositAllowed : deposit;
-                object withdrawAllowed = isEqual(this.safeInteger(chain, "chainWithdraw"), 1);
-                withdraw = ((bool) isTrue((withdrawAllowed))) ? withdrawAllowed : withdraw;
-                object withdrawFeeString = this.safeString(chain, "withdrawFee");
-                if (isTrue(!isEqual(withdrawFeeString, null)))
-                {
-                    minWithdrawFeeString = ((bool) isTrue((isEqual(minWithdrawFeeString, null)))) ? withdrawFeeString : Precise.stringMin(withdrawFeeString, minWithdrawFeeString);
-                }
-                object minNetworkWithdrawString = this.safeString(chain, "withdrawMin");
-                if (isTrue(!isEqual(minNetworkWithdrawString, null)))
-                {
-                    minWithdrawString = ((bool) isTrue((isEqual(minWithdrawString, null)))) ? minNetworkWithdrawString : Precise.stringMin(minNetworkWithdrawString, minWithdrawString);
-                }
-                object minNetworkDepositString = this.safeString(chain, "depositMin");
-                if (isTrue(!isEqual(minNetworkDepositString, null)))
-                {
-                    minDepositString = ((bool) isTrue((isEqual(minDepositString, null)))) ? minNetworkDepositString : Precise.stringMin(minNetworkDepositString, minDepositString);
-                }
                 ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                     { "info", chain },
                     { "id", networkId },
                     { "network", networkCode },
-                    { "active", isTrue(depositAllowed) && isTrue(withdrawAllowed) },
-                    { "deposit", depositAllowed },
-                    { "withdraw", withdrawAllowed },
-                    { "fee", this.parseNumber(withdrawFeeString) },
-                    { "precision", precision },
+                    { "active", null },
+                    { "deposit", isEqual(this.safeInteger(chain, "chainDeposit"), 1) },
+                    { "withdraw", isEqual(this.safeInteger(chain, "chainWithdraw"), 1) },
+                    { "fee", this.safeNumber(chain, "withdrawFee") },
+                    { "precision", this.parseNumber(this.parsePrecision(this.safeString(chain, "minAccuracy"))) },
                     { "limits", new Dictionary<string, object>() {
                         { "withdraw", new Dictionary<string, object>() {
-                            { "min", this.parseNumber(minNetworkWithdrawString) },
+                            { "min", this.safeNumber(chain, "withdrawMin") },
                             { "max", null },
                         } },
                         { "deposit", new Dictionary<string, object>() {
-                            { "min", this.parseNumber(minNetworkDepositString) },
+                            { "min", this.safeNumber(chain, "depositMin") },
                             { "max", null },
                         } },
                     } },
                 };
             }
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "info", currency },
                 { "code", code },
                 { "id", currencyId },
                 { "name", name },
-                { "active", isTrue(deposit) && isTrue(withdraw) },
-                { "deposit", deposit },
-                { "withdraw", withdraw },
-                { "fee", this.parseNumber(minWithdrawFeeString) },
-                { "precision", minPrecision },
+                { "active", null },
+                { "deposit", null },
+                { "withdraw", null },
+                { "fee", null },
+                { "precision", null },
                 { "limits", new Dictionary<string, object>() {
                     { "amount", new Dictionary<string, object>() {
                         { "min", null },
                         { "max", null },
                     } },
                     { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.parseNumber(minWithdrawString) },
+                        { "min", null },
                         { "max", null },
                     } },
                     { "deposit", new Dictionary<string, object>() {
-                        { "min", this.parseNumber(minDepositString) },
+                        { "min", null },
                         { "max", null },
                     } },
                 } },
                 { "networks", networks },
                 { "type", "crypto" },
-            };
+            });
         }
         return result;
     }

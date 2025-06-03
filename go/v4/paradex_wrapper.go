@@ -867,3 +867,30 @@ func (this *Paradex) SetLeverage(leverage int64, options ...SetLeverageOptions) 
     }
     return res.(map[string]interface{}), nil
 }
+/**
+ * @method
+ * @name paradex#fetchGreeks
+ * @description fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+ * @see https://docs.api.testnet.paradex.trade/#list-available-markets-summary
+ * @param {string} symbol unified symbol of the market to fetch greeks for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}
+ */
+func (this *Paradex) FetchGreeks(symbol string, options ...FetchGreeksOptions) (Greeks, error) {
+
+    opts := FetchGreeksOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.FetchGreeks(symbol, params)
+    if IsError(res) {
+        return Greeks{}, CreateReturnError(res)
+    }
+    return NewGreeks(res), nil
+}

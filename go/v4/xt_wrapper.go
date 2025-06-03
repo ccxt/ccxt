@@ -35,6 +35,21 @@ func (this *Xt) FetchTime(params ...interface{}) ( int64, error) {
 }
 /**
  * @method
+ * @name xt#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://doc.xt.com/#deposit_withdrawalsupportedCurrenciesGet
+ * @param {object} params extra parameters specific to the xt api endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Xt) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name xt#fetchMarkets
  * @description retrieves data on all markets for xt
  * @see https://doc.xt.com/#market2symbol

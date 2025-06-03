@@ -11,6 +11,29 @@
     ],
     "outputType": "json",
     "methods": {
+        "cancelAllOrdersAfter": [
+            {
+                "description": "request with vaultAddress in options",
+                "options": {
+                    "vaultAddress": "0xcb4d9044aab9e5aa3965b470ebff554cc8820c7b"
+                },
+                "method": "cancelAllOrdersAfter",
+                "url": "https://api.hyperliquid.xyz/exchange",
+                "input": [
+                    1
+                ],
+                "output": "{\"nonce\":1748964667610,\"action\":{\"type\":\"scheduleCancel\",\"time\":1748964667611},\"signature\":{\"r\":\"0x2097f6619664dc6725d38970768c44094fc48510311b3cdbc2d6ac6396af16a9\",\"s\":\"0x1f0e8d2fee5d26d5c4022a84f3b7ece04e329f7fd8eada3a66d7fb8ab5d06605\",\"v\":28},\"vaultAddress\":\"cb4d9044aab9e5aa3965b470ebff554cc8820c7b\"}"
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [],
+                "output": "{\"type\":\"meta\"}"
+            }
+        ],
         "fetchTickers": [
             {
                 "description": "fetch spot tickers only",
