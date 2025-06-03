@@ -89,6 +89,7 @@ var lbank = require('./src/lbank.js');
 var luno = require('./src/luno.js');
 var mercado = require('./src/mercado.js');
 var mexc = require('./src/mexc.js');
+var modetrade = require('./src/modetrade.js');
 var myokx = require('./src/myokx.js');
 var ndax = require('./src/ndax.js');
 var novadax = require('./src/novadax.js');
@@ -170,6 +171,7 @@ var kucoinfutures$1 = require('./src/pro/kucoinfutures.js');
 var lbank$1 = require('./src/pro/lbank.js');
 var luno$1 = require('./src/pro/luno.js');
 var mexc$1 = require('./src/pro/mexc.js');
+var modetrade$1 = require('./src/pro/modetrade.js');
 var myokx$1 = require('./src/pro/myokx.js');
 var ndax$1 = require('./src/pro/ndax.js');
 var okcoin$1 = require('./src/pro/okcoin.js');
@@ -272,6 +274,7 @@ const exchanges = {
     'luno': luno,
     'mercado': mercado,
     'mexc': mexc,
+    'modetrade': modetrade,
     'myokx': myokx,
     'ndax': ndax,
     'novadax': novadax,
@@ -355,6 +358,7 @@ const pro = {
     'lbank': lbank$1,
     'luno': luno$1,
     'mexc': mexc$1,
+    'modetrade': modetrade$1,
     'myokx': myokx$1,
     'ndax': ndax$1,
     'okcoin': okcoin$1,
@@ -502,6 +506,7 @@ exports.lbank = lbank;
 exports.luno = luno;
 exports.mercado = mercado;
 exports.mexc = mexc;
+exports.modetrade = modetrade;
 exports.myokx = myokx;
 exports.ndax = ndax;
 exports.novadax = novadax;
