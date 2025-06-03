@@ -7,6 +7,8 @@ import { Agent } from 'https';
 import readline from 'readline';
 import { getCacheDirectory, getExchangeSettings, loadConfigFile } from './cache.js';
 
+ansi.nice;
+const log = ololog.configure ({ 'locate': false }).unlimited;
 let add_static_result;
 
 try {
@@ -16,17 +18,18 @@ try {
 }
 let ccxt;
 try {
+    // @ts-ignore
     ccxt = await import ('ccxt');
 } catch (e) {
-// @ts-ignore
-    // @ts-ignore
-    // we import like this to trick tsc and avoid the crawling on the
-    // local ccxt project
-    ccxt = await (Function ('return import("../../ts/ccxt")') ());
+    try {
+        // @ts-ignore
+        // we import like this to trick tsc and avoid the crawling on the
+        // local ccxt project
+        ccxt = await (Function ('return import("../../ts/ccxt")') ());
+    } catch (ee) {
+        log.error ('Neither a local nor a global ccxt installation was detected, please do `npm i` first');
+    }
 }
-
-ansi.nice;
-const log = ololog.configure ({ 'locate': false }).unlimited;
 
 const fsPromises = fs.promises;
 

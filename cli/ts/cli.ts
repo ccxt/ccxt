@@ -5,20 +5,25 @@ import ololog from 'ololog';
 import { parseMethodArgs, printHumanReadable, printSavedCommand, printUsage, loadSettingsAndCreateExchange, collectKeyValue, handleDebug, handleStaticTests, askForArgv, printMethodUsage } from './helpers.js';
 import { changeConfigPath, checkCache, getCacheDirectory, getCachePathForHelp, saveCommand } from './cache.js';
 
+ansi.nice;
+const log = ololog.configure ({ 'locate': false }).unlimited;
 let ccxt;
 let local = false;
 try {
+    // @ts-ignore
     ccxt = await import ('ccxt');
 } catch (e) {
-    // @ts-ignore
-    // we import like this to trick tsc and avoid the crawling on the
-    // local ccxt project
-    ccxt = await (Function ('return import("../../ts/ccxt")') ());
-    local = true;
+    try {
+        // @ts-ignore
+        // we import like this to trick tsc and avoid the crawling on the
+        // local ccxt project
+        ccxt = await (Function ('return import("../../ts/ccxt")') ());
+        local = true;
+    } catch (ee) {
+        log.error ('Neither a local installation nor a CCXT installation was detected, make `npm i` first');
+    }
 }
 
-ansi.nice;
-const log = ololog.configure ({ 'locate': false }).unlimited;
 const { ExchangeError, NetworkError } = ccxt;
 
 //-----------------------------------------------------------------------------
