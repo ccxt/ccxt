@@ -19,7 +19,9 @@ try {
     ccxt = await import ('ccxt');
 } catch (e) {
 // @ts-ignore
-    // ccxt = await import ('../../ts/ccxt');
+    // @ts-ignore
+    // we import like this to trick tsc and avoid the crawling on the
+    // local ccxt project
     ccxt = await (Function ('return import("../../ts/ccxt")') ());
 }
 

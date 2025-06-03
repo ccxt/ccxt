@@ -1,4 +1,3 @@
-
 import fs from 'fs';
 import path from 'path';
 import ansi from 'ansicolor';
@@ -31,6 +30,11 @@ function getCacheDirectory () {
     } else {  // Linux & Others
         return path.join (process.env.XDG_CACHE_HOME || path.join (homeDir, '.cache'), 'ccxt-cli');
     }
+}
+
+function getCachePathForHelp () {
+    loadMainConfigFile ();
+    return getCacheDirectory ();
 }
 
 function loadMainConfigFile () {
@@ -141,4 +145,5 @@ export {
     saveCommand,
     loadMainConfigFile as loadConfigFile,
     getExchangeSettings,
+    getCachePathForHelp,
 };

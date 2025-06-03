@@ -3,15 +3,16 @@ import ansi from 'ansicolor';
 import { Command } from 'commander';
 import ololog from 'ololog';
 import { parseMethodArgs, printHumanReadable, printSavedCommand, printUsage, loadSettingsAndCreateExchange, collectKeyValue, handleDebug, handleStaticTests, askForArgv, printMethodUsage } from './helpers.js';
-import { changeConfigPath, checkCache, getCacheDirectory, saveCommand } from './cache.js';
+import { changeConfigPath, checkCache, getCacheDirectory, getCachePathForHelp, saveCommand } from './cache.js';
 
 let ccxt;
 let local = false;
 try {
     ccxt = await import ('ccxt');
 } catch (e) {
-// @ts-ignore
-    // ccxt = await import ('../../ts/ccxt');
+    // @ts-ignore
+    // we import like this to trick tsc and avoid the crawling on the
+    // local ccxt project
     ccxt = await (Function ('return import("../../ts/ccxt")') ());
     local = true;
 }
@@ -69,7 +70,7 @@ const commandToShow = local ? 'node ./cli' : 'ccxt';
 const program = new Command ();
 
 if (typeof program.addHelpText !== 'function') {
-    console.warn ('You might need to run `npm i` at first');
+    log.warn ('You might need to run `npm i` at first');
     process.exit (1);
 }
 
@@ -85,7 +86,7 @@ Examples:
 
 Notes:
     - Provide apiKeys by setting them as environment variables eg: BINANCE_APIKEY="XXX"
-    - Provide apikeys and other settings by adding them to ${getCacheDirectory ()}/config.json
+    - Provide apikeys and other settings by adding them to ${getCachePathForHelp ()}/config.json
     `);
 
 //-----------------------------------------------------------------------------
