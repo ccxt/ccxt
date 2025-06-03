@@ -778,70 +778,49 @@ class bitrue extends Exchange {
                 $id = $this->safe_string($currency, 'coin');
                 $name = $this->safe_string($currency, 'coinFulName');
                 $code = $this->safe_currency_code($id);
-                $deposit = null;
-                $withdraw = null;
-                $minWithdrawString = null;
-                $maxWithdrawString = null;
-                $minWithdrawFeeString = null;
                 $networkDetails = $this->safe_list($currency, 'chainDetail', array());
                 $networks = array();
                 for ($j = 0; $j < count($networkDetails); $j++) {
                     $entry = $networkDetails[$j];
                     $networkId = $this->safe_string($entry, 'chain');
                     $network = $this->network_id_to_code($networkId, $code);
-                    $enableDeposit = $this->safe_bool($entry, 'enableDeposit');
-                    $deposit = ($enableDeposit) ? $enableDeposit : $deposit;
-                    $enableWithdraw = $this->safe_bool($entry, 'enableWithdraw');
-                    $withdraw = ($enableWithdraw) ? $enableWithdraw : $withdraw;
-                    $networkWithdrawFeeString = $this->safe_string($entry, 'withdrawFee');
-                    if ($networkWithdrawFeeString !== null) {
-                        $minWithdrawFeeString = ($minWithdrawFeeString === null) ? $networkWithdrawFeeString : Precise::string_min($networkWithdrawFeeString, $minWithdrawFeeString);
-                    }
-                    $networkMinWithdrawString = $this->safe_string($entry, 'minWithdraw');
-                    if ($networkMinWithdrawString !== null) {
-                        $minWithdrawString = ($minWithdrawString === null) ? $networkMinWithdrawString : Precise::string_min($networkMinWithdrawString, $minWithdrawString);
-                    }
-                    $networkMaxWithdrawString = $this->safe_string($entry, 'maxWithdraw');
-                    if ($networkMaxWithdrawString !== null) {
-                        $maxWithdrawString = ($maxWithdrawString === null) ? $networkMaxWithdrawString : Precise::string_max($networkMaxWithdrawString, $maxWithdrawString);
-                    }
                     $networks[$network] = array(
                         'info' => $entry,
                         'id' => $networkId,
                         'network' => $network,
-                        'deposit' => $enableDeposit,
-                        'withdraw' => $enableWithdraw,
-                        'active' => $enableDeposit && $enableWithdraw,
-                        'fee' => $this->parse_number($networkWithdrawFeeString),
+                        'deposit' => $this->safe_bool($entry, 'enableDeposit'),
+                        'withdraw' => $this->safe_bool($entry, 'enableWithdraw'),
+                        'active' => null,
+                        'fee' => $this->safe_number($entry, 'withdrawFee'),
                         'precision' => null,
                         'limits' => array(
                             'withdraw' => array(
-                                'min' => $this->parse_number($networkMinWithdrawString),
-                                'max' => $this->parse_number($networkMaxWithdrawString),
+                                'min' => $this->safe_number($entry, 'minWithdraw'),
+                                'max' => $this->safe_number($entry, 'maxWithdraw'),
                             ),
                         ),
                     );
                 }
-                $result[$code] = array(
+                $result[$code] = $this->safe_currency_structure(array(
                     'id' => $id,
                     'name' => $name,
                     'code' => $code,
                     'precision' => null,
                     'info' => $currency,
-                    'active' => $deposit && $withdraw,
-                    'deposit' => $deposit,
-                    'withdraw' => $withdraw,
+                    'active' => null,
+                    'deposit' => null,
+                    'withdraw' => null,
                     'networks' => $networks,
-                    'fee' => $this->parse_number($minWithdrawFeeString),
+                    'fee' => null,
                     'fees' => null,
                     'type' => 'crypto',
                     'limits' => array(
                         'withdraw' => array(
-                            'min' => $this->parse_number($minWithdrawString),
-                            'max' => $this->parse_number($maxWithdrawString),
+                            'min' => null,
+                            'max' => null,
                         ),
                     ),
-                );
+                ));
             }
             return $result;
         }) ();

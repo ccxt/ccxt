@@ -225,6 +225,7 @@ class bitmart(Exchange, ImplicitAPI):
                         'contract/private/order': 1.2,
                         'contract/private/order-history': 10,
                         'contract/private/position': 10,
+                        'contract/private/position-v2': 10,
                         'contract/private/get-open-orders': 1.2,
                         'contract/private/current-plan-order': 1.2,
                         'contract/private/trades': 10,
@@ -2305,7 +2306,7 @@ class bitmart(Exchange, ImplicitAPI):
                 code = self.safe_currency_code(currencyId)
                 account = self.account()
                 account['free'] = self.safe_string_2(balance, 'available', 'available_balance')
-                account['used'] = self.safe_string_2(balance, 'frozen', 'frozen_balance')
+                account['used'] = self.safe_string_n(balance, ['unAvailable', 'frozen', 'frozen_balance'])
                 result[code] = account
             return self.safe_balance(result)
 
@@ -4662,6 +4663,7 @@ class bitmart(Exchange, ImplicitAPI):
         fetch all open contract positions
 
         https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-keyed
+        https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-v2-keyed
 
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -4678,7 +4680,7 @@ class bitmart(Exchange, ImplicitAPI):
         if symbolsLength == 1:
             # only supports symbols or sending one symbol
             request['symbol'] = market['id']
-        response = await self.privateGetContractPrivatePosition(self.extend(request, params))
+        response = await self.privateGetContractPrivatePositionV2(self.extend(request, params))
         #
         #     {
         #         "code": 1000,

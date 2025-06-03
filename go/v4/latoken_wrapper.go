@@ -57,6 +57,20 @@ func (this *Latoken) FetchCurrenciesFromCache(params ...interface{}) (map[string
 }
 /**
  * @method
+ * @name latoken#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Latoken) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name latoken#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://api.latoken.com/doc/v2/#tag/Account/operation/getBalancesByUser

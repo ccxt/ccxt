@@ -23,6 +23,8 @@ export default class ascendex extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
+    fetchSpotMarkets(params?: {}): Promise<Market[]>;
+    fetchContractMarkets(params?: {}): Promise<Market[]>;
     /**
      * @method
      * @name ascendex#fetchTime

@@ -106,14 +106,14 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
         bitteamItf := &bitteam{}
         bitteamItf.Init(exchangeArgs)
         return bitteamItf, true
+    case "bittrade":
+        bittradeItf := &bittrade{}
+        bittradeItf.Init(exchangeArgs)
+        return bittradeItf, true
     case "bitvavo":
         bitvavoItf := &bitvavo{}
         bitvavoItf.Init(exchangeArgs)
         return bitvavoItf, true
-    case "bl3p":
-        bl3pItf := &bl3p{}
-        bl3pItf.Init(exchangeArgs)
-        return bl3pItf, true
     case "blockchaincom":
         blockchaincomItf := &blockchaincom{}
         blockchaincomItf.Init(exchangeArgs)
@@ -270,18 +270,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
         huobiItf := &huobi{}
         huobiItf.Init(exchangeArgs)
         return huobiItf, true
-    case "huobijp":
-        huobijpItf := &huobijp{}
-        huobijpItf.Init(exchangeArgs)
-        return huobijpItf, true
     case "hyperliquid":
         hyperliquidItf := &hyperliquid{}
         hyperliquidItf.Init(exchangeArgs)
         return hyperliquidItf, true
-    case "idex":
-        idexItf := &idex{}
-        idexItf.Init(exchangeArgs)
-        return idexItf, true
     case "independentreserve":
         independentreserveItf := &independentreserve{}
         independentreserveItf.Init(exchangeArgs)
@@ -306,10 +298,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
         kucoinfuturesItf := &kucoinfutures{}
         kucoinfuturesItf.Init(exchangeArgs)
         return kucoinfuturesItf, true
-    case "kuna":
-        kunaItf := &kuna{}
-        kunaItf.Init(exchangeArgs)
-        return kunaItf, true
     case "latoken":
         latokenItf := &latoken{}
         latokenItf.Init(exchangeArgs)
@@ -354,6 +342,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
         okxItf := &okx{}
         okxItf.Init(exchangeArgs)
         return okxItf, true
+    case "okxus":
+        okxusItf := &okxus{}
+        okxusItf.Init(exchangeArgs)
+        return okxusItf, true
     case "onetrading":
         onetradingItf := &onetrading{}
         onetradingItf.Init(exchangeArgs)

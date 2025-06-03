@@ -188,6 +188,7 @@ public partial class bitmart : Exchange
                         { "contract/private/order", 1.2 },
                         { "contract/private/order-history", 10 },
                         { "contract/private/position", 10 },
+                        { "contract/private/position-v2", 10 },
                         { "contract/private/get-open-orders", 1.2 },
                         { "contract/private/current-plan-order", 1.2 },
                         { "contract/private/trades", 10 },
@@ -2266,7 +2267,7 @@ public partial class bitmart : Exchange
                 object code = this.safeCurrencyCode(currencyId);
                 object account = this.account();
                 ((IDictionary<string,object>)account)["free"] = this.safeString2(balance, "available", "available_balance");
-                ((IDictionary<string,object>)account)["used"] = this.safeString2(balance, "frozen", "frozen_balance");
+                ((IDictionary<string,object>)account)["used"] = this.safeStringN(balance, new List<object>() {"unAvailable", "frozen", "frozen_balance"});
                 ((IDictionary<string,object>)result)[(string)code] = account;
             }
             return this.safeBalance(result);
@@ -5091,6 +5092,7 @@ public partial class bitmart : Exchange
      * @name bitmart#fetchPositions
      * @description fetch all open contract positions
      * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-keyed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-v2-keyed
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
@@ -5113,7 +5115,7 @@ public partial class bitmart : Exchange
             // only supports symbols as undefined or sending one symbol
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         }
-        object response = await this.privateGetContractPrivatePosition(this.extend(request, parameters));
+        object response = await this.privateGetContractPrivatePositionV2(this.extend(request, parameters));
         //
         //     {
         //         "code": 1000,

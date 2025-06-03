@@ -177,12 +177,12 @@ export default class hyperliquid extends Exchange {
             },
             'fees': {
                 'swap': {
-                    'taker': this.parseNumber ('0.00035'),
-                    'maker': this.parseNumber ('0.0001'),
+                    'taker': this.parseNumber ('0.00045'),
+                    'maker': this.parseNumber ('0.00015'),
                 },
                 'spot': {
-                    'taker': this.parseNumber ('0.00035'),
-                    'maker': this.parseNumber ('0.0001'),
+                    'taker': this.parseNumber ('0.0007'),
+                    'maker': this.parseNumber ('0.0004'),
                 },
             },
             'requiredCredentials': {
@@ -363,7 +363,7 @@ export default class hyperliquid extends Exchange {
             const id = i;
             const name = this.safeString (data, 'name');
             const code = this.safeCurrencyCode (name);
-            result[code] = {
+            result[code] = this.safeCurrencyStructure ({
                 'id': id,
                 'name': name,
                 'code': code,
@@ -385,7 +385,7 @@ export default class hyperliquid extends Exchange {
                         'max': undefined,
                     },
                 },
-            };
+            });
         }
         return result;
     }
@@ -2304,6 +2304,10 @@ export default class hyperliquid extends Exchange {
 
     parseOrder (order: Dict, market: Market = undefined): Order {
         //
+        // createOrdersWs error
+        //
+        //  {error: 'Insufficient margin to place order. asset=159'}
+        //
         //  fetchOpenOrders
         //
         //     {
@@ -2394,6 +2398,13 @@ export default class hyperliquid extends Exchange {
         //     "triggerPx": "0.6"
         // }
         //
+        const error = this.safeString (order, 'error');
+        if (error !== undefined) {
+            return this.safeOrder ({
+                'info': order,
+                'status': 'rejected',
+            });
+        }
         let entry = this.safeDictN (order, [ 'order', 'resting', 'filled' ]);
         if (entry === undefined) {
             entry = order;
@@ -3670,9 +3681,12 @@ export default class hyperliquid extends Exchange {
         // {"status":"ok","response":{"type":"order","data":{"statuses":[{"error":"Insufficient margin to place order. asset=84"}]}}}
         //
         const status = this.safeString (response, 'status', '');
+        const error = this.safeString (response, 'error');
         let message = undefined;
         if (status === 'err') {
             message = this.safeString (response, 'response');
+        } else if (error !== undefined) {
+            message = error;
         } else {
             const responsePayload = this.safeDict (response, 'response', {});
             const data = this.safeDict (responsePayload, 'data', {});

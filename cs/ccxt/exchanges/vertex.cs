@@ -455,11 +455,10 @@ public partial class vertex : Exchange
             {
                 continue;
             }
-            object id = this.safeString(data, "product_id");
             object name = this.safeString(data, "symbol");
             object code = this.safeCurrencyCode(name);
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
-                { "id", id },
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
+                { "id", this.safeString(data, "product_id") },
                 { "name", name },
                 { "code", code },
                 { "precision", null },
@@ -479,7 +478,7 @@ public partial class vertex : Exchange
                         { "max", null },
                     } },
                 } },
-            };
+            });
         }
         return result;
     }

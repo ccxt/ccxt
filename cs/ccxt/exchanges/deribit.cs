@@ -621,19 +621,18 @@ public partial class deribit : Exchange
         //      "testnet": true
         //    }
         //
-        object data = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object data = this.safeList(response, "result", new List<object>() {});
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object currency = getValue(data, i);
             object currencyId = this.safeString(currency, "currency");
             object code = this.safeCurrencyCode(currencyId);
-            object name = this.safeString(currency, "currency_long");
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "info", currency },
                 { "code", code },
                 { "id", currencyId },
-                { "name", name },
+                { "name", this.safeString(currency, "currency_long") },
                 { "active", null },
                 { "deposit", null },
                 { "withdraw", null },
@@ -655,7 +654,7 @@ public partial class deribit : Exchange
                     } },
                 } },
                 { "networks", null },
-            };
+            });
         }
         return result;
     }

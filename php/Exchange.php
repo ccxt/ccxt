@@ -43,7 +43,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.4.79';
+$version = '4.4.86';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -62,7 +62,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.4.79';
+    const VERSION = '4.4.86';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -361,8 +361,8 @@ class Exchange {
         'bitso',
         'bitstamp',
         'bitteam',
+        'bittrade',
         'bitvavo',
-        'bl3p',
         'blockchaincom',
         'blofin',
         'btcalpha',
@@ -402,16 +402,13 @@ class Exchange {
         'hollaex',
         'htx',
         'huobi',
-        'huobijp',
         'hyperliquid',
-        'idex',
         'independentreserve',
         'indodax',
         'kraken',
         'krakenfutures',
         'kucoin',
         'kucoinfutures',
-        'kuna',
         'latoken',
         'lbank',
         'luno',
@@ -423,6 +420,7 @@ class Exchange {
         'oceanex',
         'okcoin',
         'okx',
+        'okxus',
         'onetrading',
         'oxfun',
         'p2b',
@@ -907,7 +905,7 @@ class Exchange {
         return preg_replace(array('#[=]+$#u', '#\+#u', '#\\/#'), array('', '-', '_'), \base64_encode($string));
     }
 
-    public function urlencode($array) {
+    public function urlencode($array, $sort = false) {
         foreach ($array as $key => $value) {
             if (is_bool($value)) {
                 $array[$key] = var_export($value, true);
@@ -1622,8 +1620,10 @@ class Exchange {
         $currencies = null;
         if (array_key_exists('fetchCurrencies', $this->has) && $this->has['fetchCurrencies'] === true) {
             $currencies = $this->fetch_currencies();
+            $this->options['cachedCurrencies'] = $currencies;
         }
         $markets = $this->fetch_markets($params);
+        unset($this->options['cachedCurrencies']);
         return $this->set_markets($markets, $currencies);
     }
 
@@ -3629,7 +3629,7 @@ class Exchange {
                         $currency['networks'][$key]['active'] = false;
                     }
                 }
-                $active = $this->safe_bool($network, 'active');
+                $active = $this->safe_bool($currency['networks'][$key], 'active'); // dict might have been updated on above lines, so access directly instead of `$network` variable
                 $currencyActive = $this->safe_bool($currency, 'active');
                 if ($currencyActive === null || $active) {
                     $currency['active'] = $active;
@@ -5359,15 +5359,15 @@ class Exchange {
             $cost = $this->calculate_rate_limiter_cost($api, $method, $path, $params, $config);
             $this->throttle($cost);
         }
+        $retries = null;
+        list($retries, $params) = $this->handle_option_and_params($params, $path, 'maxRetriesOnFailure', 0);
+        $retryDelay = null;
+        list($retryDelay, $params) = $this->handle_option_and_params($params, $path, 'maxRetriesOnFailureDelay', 0);
         $this->lastRestRequestTimestamp = $this->milliseconds();
         $request = $this->sign($path, $api, $method, $params, $headers, $body);
         $this->last_request_headers = $request['headers'];
         $this->last_request_body = $request['body'];
         $this->last_request_url = $request['url'];
-        $retries = null;
-        list($retries, $params) = $this->handle_option_and_params($params, $path, 'maxRetriesOnFailure', 0);
-        $retryDelay = null;
-        list($retryDelay, $params) = $this->handle_option_and_params($params, $path, 'maxRetriesOnFailureDelay', 0);
         for ($i = 0; $i < $retries + 1; $i++) {
             try {
                 return $this->fetch($request['url'], $request['method'], $request['headers'], $request['body']);
@@ -6698,6 +6698,29 @@ class Exchange {
 
     public function create_expired_option_market(string $symbol) {
         throw new NotSupported($this->id . ' createExpiredOptionMarket () is not supported yet');
+    }
+
+    public function is_leveraged_currency($currencyCode, Bool $checkBaseCoin = false, ?array $existingCurrencies = null) {
+        $leverageSuffixes = array(
+            '2L', '2S', '3L', '3S', '4L', '4S', '5L', '5S', // Leveraged Tokens (LT)
+            'UP', 'DOWN', // exchange-specific (e.g. BLVT)
+            'BULL', 'BEAR', // similar
+        );
+        for ($i = 0; $i < count($leverageSuffixes); $i++) {
+            $leverageSuffix = $leverageSuffixes[$i];
+            if (str_ends_with($currencyCode, $leverageSuffix)) {
+                if (!$checkBaseCoin) {
+                    return true;
+                } else {
+                    // check if base currency is inside dict
+                    $baseCurrencyCode = str_replace($leverageSuffix, '', $currencyCode);
+                    if (is_array($existingCurrencies) && array_key_exists($baseCurrencyCode, $existingCurrencies)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     public function handle_withdraw_tag_and_params($tag, $params) {

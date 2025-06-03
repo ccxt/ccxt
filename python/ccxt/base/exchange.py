@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.79'
+__version__ = '4.4.86'
 
 # -----------------------------------------------------------------------------
 
@@ -311,6 +311,7 @@ class Exchange(object):
     base_currencies = None
     quote_currencies = None
     currencies = None
+
     options = None  # Python does not allow to define properties in run-time with setattr
     isSandboxModeEnabled = False
     accounts = None
@@ -1000,7 +1001,7 @@ class Exchange(object):
         return string
 
     @staticmethod
-    def urlencode(params={}, doseq=False):
+    def urlencode(params={}, doseq=False, sort=False):
         newParams = params.copy()
         for key, value in params.items():
             if isinstance(value, bool):
@@ -1506,6 +1507,25 @@ class Exchange(object):
         return len(parts[1]) if len(parts) > 1 else 0
 
     def load_markets(self, reload=False, params={}):
+        """
+        Loads and prepares the markets for trading.
+
+        Args:
+            reload (bool): If True, the markets will be reloaded from the exchange.
+            params (dict): Additional exchange-specific parameters for the request.
+
+        Returns:
+            dict: A dictionary of markets.
+
+        Raises:
+            Exception: If the markets cannot be loaded or prepared.
+
+        Notes:
+            It ensures that the markets are only loaded once, even if called multiple times.
+            If the markets are already loaded and `reload` is False or not provided, it returns the existing markets.
+            If a reload is in progress, it waits for completion before returning.
+            If an error occurs during loading or preparation, an exception is raised.
+        """
         if not reload:
             if self.markets:
                 if not self.markets_by_id:
@@ -1514,7 +1534,9 @@ class Exchange(object):
         currencies = None
         if self.has['fetchCurrencies'] is True:
             currencies = self.fetch_currencies()
+            self.options['cachedCurrencies'] = currencies
         markets = self.fetch_markets(params)
+        del self.options['cachedCurrencies']
         return self.set_markets(markets, currencies)
 
     def fetch_markets(self, params={}):
@@ -3008,7 +3030,7 @@ class Exchange(object):
                         currency['networks'][key]['active'] = True
                     elif deposit is not None and withdraw is not None:
                         currency['networks'][key]['active'] = False
-                active = self.safe_bool(network, 'active')
+                active = self.safe_bool(currency['networks'][key], 'active')  # dict might have been updated on above lines, so access directly instead of `network` variable
                 currencyActive = self.safe_bool(currency, 'active')
                 if currencyActive is None or active:
                     currency['active'] = active
@@ -4439,15 +4461,15 @@ class Exchange(object):
         if self.enableRateLimit:
             cost = self.calculate_rate_limiter_cost(api, method, path, params, config)
             self.throttle(cost)
+        retries = None
+        retries, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailure', 0)
+        retryDelay = None
+        retryDelay, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailureDelay', 0)
         self.lastRestRequestTimestamp = self.milliseconds()
         request = self.sign(path, api, method, params, headers, body)
         self.last_request_headers = request['headers']
         self.last_request_body = request['body']
         self.last_request_url = request['url']
-        retries = None
-        retries, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailure', 0)
-        retryDelay = None
-        retryDelay, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailureDelay', 0)
         for i in range(0, retries + 1):
             try:
                 return self.fetch(request['url'], request['method'], request['headers'], request['body'])
@@ -5521,6 +5543,24 @@ class Exchange(object):
 
     def create_expired_option_market(self, symbol: str):
         raise NotSupported(self.id + ' createExpiredOptionMarket() is not supported yet')
+
+    def is_leveraged_currency(self, currencyCode, checkBaseCoin: Bool = False, existingCurrencies: dict = None):
+        leverageSuffixes = [
+            '2L', '2S', '3L', '3S', '4L', '4S', '5L', '5S',  # Leveraged Tokens(LT)
+            'UP', 'DOWN',  # exchange-specific(e.g. BLVT)
+            'BULL', 'BEAR',  # similar
+        ]
+        for i in range(0, len(leverageSuffixes)):
+            leverageSuffix = leverageSuffixes[i]
+            if currencyCode.endswith(leverageSuffix):
+                if not checkBaseCoin:
+                    return True
+                else:
+                    # check if base currency is inside dict
+                    baseCurrencyCode = currencyCode.replace(leverageSuffix, '')
+                    if baseCurrencyCode in existingCurrencies:
+                        return True
+        return False
 
     def handle_withdraw_tag_and_params(self, tag, params):
         if (tag is not None) and (isinstance(tag, dict)):

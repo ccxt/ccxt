@@ -1659,81 +1659,58 @@ class bybit extends Exchange {
                 $name = $this->safe_string($currency, 'name');
                 $chains = $this->safe_list($currency, 'chains', array());
                 $networks = array();
-                $minPrecision = null;
-                $minWithdrawFeeString = null;
-                $minWithdrawString = null;
-                $minDepositString = null;
-                $deposit = false;
-                $withdraw = false;
                 for ($j = 0; $j < count($chains); $j++) {
                     $chain = $chains[$j];
                     $networkId = $this->safe_string($chain, 'chain');
                     $networkCode = $this->network_id_to_code($networkId);
-                    $precision = $this->parse_number($this->parse_precision($this->safe_string($chain, 'minAccuracy')));
-                    $minPrecision = ($minPrecision === null) ? $precision : min ($minPrecision, $precision);
-                    $depositAllowed = $this->safe_integer($chain, 'chainDeposit') === 1;
-                    $deposit = ($depositAllowed) ? $depositAllowed : $deposit;
-                    $withdrawAllowed = $this->safe_integer($chain, 'chainWithdraw') === 1;
-                    $withdraw = ($withdrawAllowed) ? $withdrawAllowed : $withdraw;
-                    $withdrawFeeString = $this->safe_string($chain, 'withdrawFee');
-                    if ($withdrawFeeString !== null) {
-                        $minWithdrawFeeString = ($minWithdrawFeeString === null) ? $withdrawFeeString : Precise::string_min($withdrawFeeString, $minWithdrawFeeString);
-                    }
-                    $minNetworkWithdrawString = $this->safe_string($chain, 'withdrawMin');
-                    if ($minNetworkWithdrawString !== null) {
-                        $minWithdrawString = ($minWithdrawString === null) ? $minNetworkWithdrawString : Precise::string_min($minNetworkWithdrawString, $minWithdrawString);
-                    }
-                    $minNetworkDepositString = $this->safe_string($chain, 'depositMin');
-                    if ($minNetworkDepositString !== null) {
-                        $minDepositString = ($minDepositString === null) ? $minNetworkDepositString : Precise::string_min($minNetworkDepositString, $minDepositString);
-                    }
                     $networks[$networkCode] = array(
                         'info' => $chain,
                         'id' => $networkId,
                         'network' => $networkCode,
-                        'active' => $depositAllowed && $withdrawAllowed,
-                        'deposit' => $depositAllowed,
-                        'withdraw' => $withdrawAllowed,
-                        'fee' => $this->parse_number($withdrawFeeString),
-                        'precision' => $precision,
+                        'active' => null,
+                        'deposit' => $this->safe_integer($chain, 'chainDeposit') === 1,
+                        'withdraw' => $this->safe_integer($chain, 'chainWithdraw') === 1,
+                        'fee' => $this->safe_number($chain, 'withdrawFee'),
+                        'precision' => $this->parse_number($this->parse_precision($this->safe_string($chain, 'minAccuracy'))),
                         'limits' => array(
                             'withdraw' => array(
-                                'min' => $this->parse_number($minNetworkWithdrawString),
+                                'min' => $this->safe_number($chain, 'withdrawMin'),
                                 'max' => null,
                             ),
                             'deposit' => array(
-                                'min' => $this->parse_number($minNetworkDepositString),
+                                'min' => $this->safe_number($chain, 'depositMin'),
                                 'max' => null,
                             ),
                         ),
                     );
                 }
-                $result[$code] = array(
+                $result[$code] = $this->safe_currency_structure(array(
                     'info' => $currency,
                     'code' => $code,
                     'id' => $currencyId,
                     'name' => $name,
-                    'active' => $deposit && $withdraw,
-                    'deposit' => $deposit,
-                    'withdraw' => $withdraw,
-                    'fee' => $this->parse_number($minWithdrawFeeString),
-                    'precision' => $minPrecision,
+                    'active' => null,
+                    'deposit' => null,
+                    'withdraw' => null,
+                    'fee' => null,
+                    'precision' => null,
                     'limits' => array(
                         'amount' => array(
                             'min' => null,
                             'max' => null,
                         ),
                         'withdraw' => array(
-                            'min' => $this->parse_number($minWithdrawString),
+                            'min' => null,
                             'max' => null,
                         ),
                         'deposit' => array(
-                            'min' => $this->parse_number($minDepositString),
+                            'min' => null,
                             'max' => null,
                         ),
                     ),
                     'networks' => $networks,
-                );
+                    'type' => 'crypto', // atm exchange api provides only cryptos
+                ));
             }
             return $result;
         }) ();
@@ -2192,6 +2169,7 @@ class bybit extends Exchange {
                 $strike = $this->safe_string($splitId, 2);
                 $optionLetter = $this->safe_string($splitId, 3);
                 $isActive = ($status === 'Trading');
+                $isInverse = $base === $settle;
                 if ($isActive || ($this->options['loadAllOptions']) || ($this->options['loadExpiredOptions'])) {
                     $result[] = $this->safe_market_structure(array(
                         'id' => $id,
@@ -2203,7 +2181,7 @@ class bybit extends Exchange {
                         'quoteId' => $quoteId,
                         'settleId' => $settleId,
                         'type' => 'option',
-                        'subType' => 'linear',
+                        'subType' => null,
                         'spot' => false,
                         'margin' => false,
                         'swap' => false,
@@ -2211,8 +2189,8 @@ class bybit extends Exchange {
                         'option' => true,
                         'active' => $isActive,
                         'contract' => true,
-                        'linear' => true,
-                        'inverse' => false,
+                        'linear' => !$isInverse,
+                        'inverse' => $isInverse,
                         'taker' => $this->safe_number($market, 'takerFee', $this->parse_number('0.0006')),
                         'maker' => $this->safe_number($market, 'makerFee', $this->parse_number('0.0001')),
                         'contractSize' => $this->parse_number('1'),
@@ -4124,12 +4102,12 @@ class bybit extends Exchange {
         }
         if ($market['spot']) {
             $request['category'] = 'spot';
+        } elseif ($market['option']) {
+            $request['category'] = 'option';
         } elseif ($market['linear']) {
             $request['category'] = 'linear';
         } elseif ($market['inverse']) {
             $request['category'] = 'inverse';
-        } elseif ($market['option']) {
-            $request['category'] = 'option';
         }
         $cost = $this->safe_string($params, 'cost');
         $params = $this->omit($params, 'cost');
@@ -6065,7 +6043,8 @@ class bybit extends Exchange {
             list($subType, $params) = $this->handle_sub_type_and_params('fetchLedger', null, $params);
             $response = null;
             if ($enableUnified[1]) {
-                if ($subType === 'inverse') {
+                $unifiedMarginStatus = $this->safe_integer($this->options, 'unifiedMarginStatus', 5); // 3/4 uta 1.0, 5/6 uta 2.0
+                if ($subType === 'inverse' && ($unifiedMarginStatus < 5)) {
                     $response = Async\await($this->privateGetV5AccountContractTransactionLog ($this->extend($request, $params)));
                 } else {
                     $response = Async\await($this->privateGetV5AccountTransactionLog ($this->extend($request, $params)));

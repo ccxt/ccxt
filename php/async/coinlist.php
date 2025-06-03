@@ -464,30 +464,31 @@ class coinlist extends Exchange {
                 $currency = $currencies[$i];
                 $id = $this->safe_string($currency, 'asset');
                 $code = $this->safe_currency_code($id);
+                $isFiat = $code === 'USD';
                 $isTransferable = $this->safe_bool($currency, 'is_transferable', false);
-                $withdrawEnabled = $isTransferable;
-                $depositEnabled = $isTransferable;
-                $active = $isTransferable;
-                $decimalPlaces = $this->safe_string($currency, 'decimal_places');
-                $precision = $this->parse_number($this->parse_precision($decimalPlaces));
-                $minWithdrawal = $this->safe_string($currency, 'min_withdrawal');
-                $result[$code] = array(
+                $result[$code] = $this->safe_currency_structure(array(
                     'id' => $id,
                     'code' => $code,
                     'name' => $code,
                     'info' => $currency,
-                    'active' => $active,
-                    'deposit' => $depositEnabled,
-                    'withdraw' => $withdrawEnabled,
+                    'active' => null,
+                    'deposit' => $isTransferable,
+                    'withdraw' => $isTransferable,
                     'fee' => null,
-                    'precision' => $precision,
+                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'decimal_places'))),
                     'limits' => array(
-                        'amount' => array( 'min' => null, 'max' => null ),
-                        'withdraw' => array( 'min' => $minWithdrawal, 'max' => null ),
+                        'amount' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'withdraw' => array(
+                            'min' => $this->safe_number($currency, 'min_withdrawal'),
+                            'max' => null,
+                        ),
                     ),
-                    'networks' => array(),
-                    'type' => 'crypto',
-                );
+                    'networks' => array(), // todo
+                    'type' => $isFiat ? 'fiat' : 'crypto',
+                ));
             }
             return $result;
         }) ();

@@ -6,6 +6,15 @@
         "unifiedAccount": false
     },
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.gateio.ws/api/v4/spot/currencies",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchDepositAddress": [
             {
                 "description": "TRC20",

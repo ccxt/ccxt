@@ -240,6 +240,7 @@ class bitopro extends Exchange {
                     'BEP20' => 'BSC',
                     'BSC' => 'BSC',
                 ),
+                'fiatCurrencies' => array( 'TWD' ), // the only fiat currency for exchange
             ),
             'features' => array(
                 'spot' => array(
@@ -370,6 +371,7 @@ class bitopro extends Exchange {
             //     }
             //
             $result = array();
+            $fiatCurrencies = $this->safe_list($this->options, 'fiatCurrencies', array());
             for ($i = 0; $i < count($currencies); $i++) {
                 $currency = $currencies[$i];
                 $currencyId = $this->safe_string($currency, 'currency');
@@ -389,11 +391,12 @@ class bitopro extends Exchange {
                         'max' => null,
                     ),
                 );
+                $isFiat = $this->in_array($code, $fiatCurrencies);
                 $result[$code] = array(
                     'id' => $currencyId,
                     'code' => $code,
                     'info' => $currency,
-                    'type' => null,
+                    'type' => $isFiat ? 'fiat' : 'crypto',
                     'name' => null,
                     'active' => $deposit && $withdraw,
                     'deposit' => $deposit,

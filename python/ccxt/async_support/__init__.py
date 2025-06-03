@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.79'
+__version__ = '4.4.86'
 
 # -----------------------------------------------------------------------------
 
@@ -87,8 +87,8 @@ from ccxt.async_support.bitrue import bitrue                                    
 from ccxt.async_support.bitso import bitso                                      # noqa: F401
 from ccxt.async_support.bitstamp import bitstamp                                # noqa: F401
 from ccxt.async_support.bitteam import bitteam                                  # noqa: F401
+from ccxt.async_support.bittrade import bittrade                                # noqa: F401
 from ccxt.async_support.bitvavo import bitvavo                                  # noqa: F401
-from ccxt.async_support.bl3p import bl3p                                        # noqa: F401
 from ccxt.async_support.blockchaincom import blockchaincom                      # noqa: F401
 from ccxt.async_support.blofin import blofin                                    # noqa: F401
 from ccxt.async_support.btcalpha import btcalpha                                # noqa: F401
@@ -128,16 +128,13 @@ from ccxt.async_support.hitbtc import hitbtc                                    
 from ccxt.async_support.hollaex import hollaex                                  # noqa: F401
 from ccxt.async_support.htx import htx                                          # noqa: F401
 from ccxt.async_support.huobi import huobi                                      # noqa: F401
-from ccxt.async_support.huobijp import huobijp                                  # noqa: F401
 from ccxt.async_support.hyperliquid import hyperliquid                          # noqa: F401
-from ccxt.async_support.idex import idex                                        # noqa: F401
 from ccxt.async_support.independentreserve import independentreserve            # noqa: F401
 from ccxt.async_support.indodax import indodax                                  # noqa: F401
 from ccxt.async_support.kraken import kraken                                    # noqa: F401
 from ccxt.async_support.krakenfutures import krakenfutures                      # noqa: F401
 from ccxt.async_support.kucoin import kucoin                                    # noqa: F401
 from ccxt.async_support.kucoinfutures import kucoinfutures                      # noqa: F401
-from ccxt.async_support.kuna import kuna                                        # noqa: F401
 from ccxt.async_support.latoken import latoken                                  # noqa: F401
 from ccxt.async_support.lbank import lbank                                      # noqa: F401
 from ccxt.async_support.luno import luno                                        # noqa: F401
@@ -149,6 +146,7 @@ from ccxt.async_support.novadax import novadax                                  
 from ccxt.async_support.oceanex import oceanex                                  # noqa: F401
 from ccxt.async_support.okcoin import okcoin                                    # noqa: F401
 from ccxt.async_support.okx import okx                                          # noqa: F401
+from ccxt.async_support.okxus import okxus                                      # noqa: F401
 from ccxt.async_support.onetrading import onetrading                            # noqa: F401
 from ccxt.async_support.oxfun import oxfun                                      # noqa: F401
 from ccxt.async_support.p2b import p2b                                          # noqa: F401
@@ -196,8 +194,8 @@ exchanges = [
     'bitso',
     'bitstamp',
     'bitteam',
+    'bittrade',
     'bitvavo',
-    'bl3p',
     'blockchaincom',
     'blofin',
     'btcalpha',
@@ -237,16 +235,13 @@ exchanges = [
     'hollaex',
     'htx',
     'huobi',
-    'huobijp',
     'hyperliquid',
-    'idex',
     'independentreserve',
     'indodax',
     'kraken',
     'krakenfutures',
     'kucoin',
     'kucoinfutures',
-    'kuna',
     'latoken',
     'lbank',
     'luno',
@@ -258,6 +253,7 @@ exchanges = [
     'oceanex',
     'okcoin',
     'okx',
+    'okxus',
     'onetrading',
     'oxfun',
     'p2b',

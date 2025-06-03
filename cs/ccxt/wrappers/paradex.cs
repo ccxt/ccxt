@@ -765,4 +765,24 @@ public partial class paradex
         var res = await this.setLeverage(leverage, symbol, parameters);
         return ((Dictionary<string, object>)res);
     }
+    /// <summary>
+    /// fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.api.testnet.paradex.trade/#list-available-markets-summary"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}.</returns>
+    public async Task<Greeks> FetchGreeks(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchGreeks(symbol, parameters);
+        return new Greeks(res);
+    }
 }

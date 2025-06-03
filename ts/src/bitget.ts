@@ -1547,6 +1547,8 @@ export default class bitget extends Exchange {
                     'method': 'privateMixGetV2MixPositionAllPosition', // or privateMixGetV2MixPositionHistoryPosition
                 },
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+                // fiat currencies on deposit page
+                'fiatCurrencies': [ 'EUR', 'VND', 'PLN', 'CZK', 'HUF', 'DKK', 'AUD', 'CAD', 'NOK', 'SEK', 'CHF', 'MXN', 'COP', 'ARS', 'GBP', 'BRL', 'UAH', 'ZAR' ],
             },
             'features': {
                 'spot': {
@@ -2061,6 +2063,7 @@ export default class bitget extends Exchange {
         //
         const result: Dict = {};
         const data = this.safeValue (response, 'data', []);
+        const fiatCurrencies = this.safeList (this.options, 'fiatCurrencies', []);
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const id = this.safeString (entry, 'coin'); // we don't use 'coinId' as it has no use. it is 'coin' field that needs to be used in currency related endpoints (deposit, withdraw, etc..)
@@ -2071,9 +2074,7 @@ export default class bitget extends Exchange {
                 const chain = chains[j];
                 const networkId = this.safeString (chain, 'chain');
                 let network = this.networkIdToCode (networkId, code);
-                if (network !== undefined) {
-                    network = network.toUpperCase ();
-                }
+                network = network.toUpperCase ();
                 networks[network] = {
                     'info': chain,
                     'id': networkId,
@@ -2095,12 +2096,13 @@ export default class bitget extends Exchange {
                     'precision': this.parseNumber (this.parsePrecision (this.safeString (chain, 'withdrawMinScale'))),
                 };
             }
+            const isFiat = this.inArray (code, fiatCurrencies);
             result[code] = this.safeCurrencyStructure ({
                 'info': entry,
                 'id': id,
                 'code': code,
                 'networks': networks,
-                'type': undefined,
+                'type': isFiat ? 'fiat' : 'crypto',
                 'name': undefined,
                 'active': undefined,
                 'deposit': undefined,
@@ -2386,7 +2388,7 @@ export default class bitget extends Exchange {
             'coin': currency['id'],
             'address': address,
             'chain': networkId,
-            'size': amount,
+            'size': this.currencyToPrecision (code, amount, networkCode),
             'transferType': 'on_chain',
         };
         if (tag !== undefined) {
@@ -2411,8 +2413,6 @@ export default class bitget extends Exchange {
         const fillResponseFromRequest = this.safeBool (withdrawOptions, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
             result['currency'] = code;
-            result['timestamp'] = this.milliseconds ();
-            result['datetime'] = this.iso8601 (this.milliseconds ());
             result['amount'] = amount;
             result['tag'] = tag;
             result['address'] = address;
@@ -2538,7 +2538,10 @@ export default class bitget extends Exchange {
         const status = this.safeString (transaction, 'status');
         const tag = this.safeString (transaction, 'tag');
         const feeCostString = this.safeString (transaction, 'fee');
-        const feeCostAbsString = Precise.stringAbs (feeCostString);
+        let feeCostAbsString = undefined;
+        if (feeCostString !== undefined) {
+            feeCostAbsString = Precise.stringAbs (feeCostString);
+        }
         let fee = undefined;
         let amountString = this.safeString (transaction, 'size');
         if (feeCostAbsString !== undefined) {
@@ -2774,7 +2777,7 @@ export default class bitget extends Exchange {
         const close = this.safeString (ticker, 'lastPr');
         const timestamp = this.safeIntegerOmitZero (ticker, 'ts'); // exchange bitget provided 0
         const change = this.safeString (ticker, 'change24h');
-        const open24 = this.safeString (ticker, 'open24');
+        const open24 = this.safeString2 (ticker, 'open24', 'open24h');
         const open = this.safeString (ticker, 'open');
         let symbol: string;
         let openValue: string;
@@ -3470,6 +3473,7 @@ export default class bitget extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @param {boolean} [params.useHistoryEndpoint] whether to force to use historical endpoint (it has max limit of 200)
+     * @param {boolean} [params.useHistoryEndpointForPagination] whether to force to use historical endpoint for pagination (default true)
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {string} [params.price] *swap only* "mark" (to fetch mark price candles) or "index" (to fetch index price candles)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -3479,12 +3483,14 @@ export default class bitget extends Exchange {
         const defaultLimit = 100; // default 100, max 1000
         const maxLimitForRecentEndpoint = 1000;
         const maxLimitForHistoryEndpoint = 200; // note, max 1000 bars are supported for "recent-candles" endpoint, but "historical-candles" support only max 200
+        const useHistoryEndpoint = this.safeBool (params, 'useHistoryEndpoint', false);
+        const useHistoryEndpointForPagination = this.safeBool (params, 'useHistoryEndpointForPagination', true);
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimitForRecentEndpoint);
+            const limitForPagination = useHistoryEndpointForPagination ? maxLimitForHistoryEndpoint : maxLimitForRecentEndpoint;
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, limitForPagination);
         }
-        const useHistoryEndpoint = this.safeBool (params, 'useHistoryEndpoint', false);
         const market = this.market (symbol);
         const marketType = market['spot'] ? 'spot' : 'swap';
         const timeframes = this.options['timeframes'][marketType];
@@ -4125,7 +4131,8 @@ export default class bitget extends Exchange {
         market = this.safeMarket (marketId, market, undefined, marketType);
         const timestamp = this.safeInteger2 (order, 'cTime', 'ctime');
         const updateTimestamp = this.safeInteger (order, 'uTime');
-        const rawStatus = this.safeString2 (order, 'status', 'state');
+        let rawStatus = this.safeString2 (order, 'status', 'state');
+        rawStatus = this.safeString (order, 'planStatus', rawStatus);
         let fee = undefined;
         const feeCostString = this.safeString (order, 'fee');
         if (feeCostString !== undefined) {

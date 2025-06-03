@@ -766,7 +766,7 @@ export default class Exchange {
         }
         if (httpProxy) {
             if (this.httpProxyAgentModule === undefined) {
-                throw new NotSupported (this.id + ' you need to load JS proxy modules with `.loadProxyModules()` method at first to use proxies');
+                throw new NotSupported (this.id + ' you need to load JS proxy modules with `await instance.loadProxyModules()` method at first to use proxies');
             }
             if (!(httpProxy in this.proxyDictionaries)) {
                 this.proxyDictionaries[httpProxy] = new this.httpProxyAgentModule.HttpProxyAgent(httpProxy);
@@ -774,7 +774,7 @@ export default class Exchange {
             chosenAgent = this.proxyDictionaries[httpProxy];
         } else if (httpsProxy) {
             if (this.httpsProxyAgentModule === undefined) {
-                throw new NotSupported (this.id + ' you need to load JS proxy modules with `.loadProxyModules()` method at first to use proxies');
+                throw new NotSupported (this.id + ' you need to load JS proxy modules with `await instance.loadProxyModules()` method at first to use proxies');
             }
             if (!(httpsProxy in this.proxyDictionaries)) {
                 this.proxyDictionaries[httpsProxy] = new this.httpsProxyAgentModule.HttpsProxyAgent(httpsProxy);
@@ -783,7 +783,7 @@ export default class Exchange {
             chosenAgent.keepAlive = true;
         } else if (socksProxy) {
             if (this.socksProxyAgentModule === undefined) {
-                throw new NotSupported (this.id + ' - to use SOCKS proxy with ccxt, at first you need install module "npm i socks-proxy-agent" and then initialize proxies with `.loadProxyModules()` method');
+                throw new NotSupported (this.id + ' - to use SOCKS proxy with ccxt, at first you need install module "npm i socks-proxy-agent" and then initialize proxies with `await instance.loadProxyModules()` method');
             }
             if (!(socksProxy in this.proxyDictionaries)) {
                 this.proxyDictionaries[socksProxy] = new this.socksProxyAgentModule.SocksProxyAgent(socksProxy);
@@ -843,7 +843,7 @@ export default class Exchange {
                     httpProxyAgent = this.httpAgent;
                 }
             }
-            url = proxyUrl + this.urlEncoderForProxyUrl (url); 
+            url = proxyUrl + this.urlEncoderForProxyUrl (url);
         }
         // proxy agents
         const [ httpProxy, httpsProxy, socksProxy ] = this.checkProxySettings (url, method, headers, body);
@@ -1013,13 +1013,28 @@ export default class Exchange {
         // only call if exchange API provides endpoint (true), thus avoid emulated versions ('emulated')
         if (this.has['fetchCurrencies'] === true) {
             currencies = await this.fetchCurrencies ()
+            this.options['cachedCurrencies'] = currencies;
         }
         const markets = await this.fetchMarkets (params)
+        delete this.options['cachedCurrencies'];
         return this.setMarkets (markets, currencies)
     }
 
-    async loadMarkets (reload = false, params = {}): Promise<Dictionary<Market>> {
-        // this method is async, it returns a promise
+    /**
+     * @method
+     * @name Exchange#loadMarkets
+     * @description Loads and prepares the markets for trading.
+     * @param {boolean} reload - If true, the markets will be reloaded from the exchange.
+     * @param {object} params - Additional exchange-specific parameters for the request.
+     * @returns A promise that resolves to a dictionary of markets.
+     * @throws An error if the markets cannot be loaded or prepared.
+     * @remarks This method is asynchronous and returns a promise.
+     *          It ensures that the markets are only loaded once, even if the method is called multiple times.
+     *          If the markets are already loaded and not reloading, the method returns the existing markets.
+     *          If the markets are being reloaded, the method waits for the reload to complete before returning the markets.
+     *          If an error occurs during the loading or preparation of the markets, the promise is rejected with the error.
+     */
+    async loadMarkets (reload: boolean = false, params: object = {}): Promise<Dictionary<Market>> {
         if ((reload && !this.reloadingMarkets) || !this.marketsLoading) {
             this.reloadingMarkets = true
             this.marketsLoading = this.loadMarketsHelper (reload, params).then ((resolved) => {
@@ -3035,7 +3050,7 @@ export default class Exchange {
                         currency['networks'][key]['active'] = false;
                     }
                 }
-                active = this.safeBool (network, 'active');
+                active = this.safeBool (currency['networks'][key], 'active'); // dict might have been updated on above lines, so access directly instead of `network` variable
                 const currencyActive = this.safeBool (currency, 'active');
                 if (currencyActive === undefined || active) {
                     currency['active'] = active;
@@ -4770,15 +4785,15 @@ export default class Exchange {
             const cost = this.calculateRateLimiterCost (api, method, path, params, config);
             await this.throttle (cost);
         }
+        let retries = undefined;
+        [ retries, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailure', 0);
+        let retryDelay = undefined;
+        [ retryDelay, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailureDelay', 0);
         this.lastRestRequestTimestamp = this.milliseconds ();
         const request = this.sign (path, api, method, params, headers, body);
         this.last_request_headers = request['headers'];
         this.last_request_body = request['body'];
         this.last_request_url = request['url'];
-        let retries = undefined;
-        [ retries, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailure', 0);
-        let retryDelay = undefined;
-        [ retryDelay, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailureDelay', 0);
         for (let i = 0; i < retries + 1; i++) {
             try {
                 return await this.fetch (request['url'], request['method'], request['headers'], request['body']);
@@ -6151,6 +6166,29 @@ export default class Exchange {
 
     createExpiredOptionMarket (symbol: string): MarketInterface {
         throw new NotSupported (this.id + ' createExpiredOptionMarket () is not supported yet');
+    }
+
+    isLeveragedCurrency (currencyCode, checkBaseCoin: Bool = false, existingCurrencies: Dict = undefined): boolean {
+        const leverageSuffixes = [
+            '2L', '2S', '3L', '3S', '4L', '4S', '5L', '5S', // Leveraged Tokens (LT)
+            'UP', 'DOWN', // exchange-specific (e.g. BLVT)
+            'BULL', 'BEAR', // similar
+        ];
+        for (let i = 0; i < leverageSuffixes.length; i++) {
+            const leverageSuffix = leverageSuffixes[i];
+            if (currencyCode.endsWith (leverageSuffix)) {
+                if (!checkBaseCoin) {
+                    return true;
+                } else {
+                    // check if base currency is inside dict
+                    const baseCurrencyCode = currencyCode.replace (leverageSuffix, '');
+                    if (baseCurrencyCode in existingCurrencies) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     handleWithdrawTagAndParams (tag, params): any {
