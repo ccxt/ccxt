@@ -619,8 +619,6 @@ export default class kraken extends Exchange {
             const quoteId = this.safeString (market, 'quote');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const darkpool = id.indexOf ('.d') >= 0;
-            const altname = this.safeString (market, 'altname');
             const makerFees = this.safeList (market, 'fees_maker', []);
             const firstMakerFee = this.safeList (makerFees, 0, []);
             const firstMakerFeeRate = this.safeString (firstMakerFee, 1);
@@ -640,15 +638,14 @@ export default class kraken extends Exchange {
             result.push ({
                 'id': id,
                 'wsId': this.safeString (market, 'wsname'),
-                'symbol': darkpool ? altname : (base + '/' + quote),
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
                 'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': undefined,
-                'darkpool': darkpool,
-                'altname': market['altname'],
+                'altname': this.safeString (market, 'altname'),
                 'type': 'spot',
                 'spot': true,
                 'margin': (leverageBuyLength > 0),
