@@ -65,7 +65,9 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
     }
 
 
-    private SlimConcurrentList<decimal> __index = new SlimConcurrentList<decimal>(1024);
+    private readonly int MAX_SIZE = 1024; // default max depth
+
+    private SlimConcurrentList<decimal> __index = new SlimConcurrentList<decimal>();
 
     public SlimConcurrentList<decimal> _index
     {
@@ -111,7 +113,12 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
     {
         lock (_syncRoot)
         {
-
+            // Fill the index with elements
+            for (int i = 0; i < MAX_SIZE; i++)
+            {
+                _index.Add(decimal.MaxValue);
+            }
+            
             this.side = side;
             this._depth = (depth == null) ? Int32.MaxValue : Convert.ToInt32(depth);
             // var deltas = (List<object>)deltas2;
