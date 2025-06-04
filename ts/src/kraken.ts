@@ -718,7 +718,6 @@ export default class kraken extends Exchange {
         const amountLimits: Dict = { 'min': precision['amount'], 'max': undefined };
         const limits: Dict = { 'amount': amountLimits, 'price': priceLimits, 'cost': costLimits };
         const defaults: Dict = {
-            'darkpool': false,
             'info': undefined,
             'maker': undefined,
             'taker': undefined,
@@ -986,9 +985,6 @@ export default class kraken extends Exchange {
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (market['darkpool']) {
-            throw new ExchangeError (this.id + ' fetchOrderBook() does not provide an order book for darkpool symbol ' + symbol);
-        }
         const request: Dict = {
             'pair': market['id'],
         };
@@ -1095,7 +1091,7 @@ export default class kraken extends Exchange {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 const market = this.markets[symbol];
-                if (market['active'] && !market['darkpool']) {
+                if (market['active']) {
                     marketIds.push (market['id']);
                 }
             }
@@ -1126,10 +1122,6 @@ export default class kraken extends Exchange {
      */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
-        const darkpool = symbol.indexOf ('.d') >= 0;
-        if (darkpool) {
-            throw new ExchangeError (this.id + ' fetchTicker() does not provide a ticker for darkpool symbol ' + symbol);
-        }
         const market = this.market (symbol);
         const request: Dict = {
             'pair': market['id'],
