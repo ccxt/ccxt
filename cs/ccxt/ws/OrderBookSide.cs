@@ -75,6 +75,11 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
         {
             _index.Add(decimal.MaxValue);
         }
+        // fill current instance too
+        for (int i = 0; i < MAX_SIZE; i++)
+        {
+            this.Add(decimal.MaxValue);
+        }
     }
     private SlimConcurrentList<decimal> __index;
 
