@@ -76,10 +76,10 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
             _index.Add(decimal.MaxValue);
         }
         // fill current instance too
-        for (int i = 0; i < MAX_SIZE; i++)
-        {
-            this.Add(decimal.MaxValue);
-        }
+        //for (int i = 0; i < MAX_SIZE; i++)
+        //{
+        //    this.Add(decimal.MaxValue);
+        //}
     }
     private SlimConcurrentList<decimal> __index;
 
@@ -409,7 +409,7 @@ public class IndexedOrderBookSide : OrderBookSide, IOrderBookSide
             var delta = (IList<object>)delta2;
             var price = Convert.ToDecimal(delta[0]);
             var size = Convert.ToDecimal(delta[1]);
-            var order_id = delta[2];
+            var order_id = delta[2] as string;
             decimal? index_price = -1;
             if (price != 0)
             {
@@ -422,7 +422,7 @@ public class IndexedOrderBookSide : OrderBookSide, IOrderBookSide
             }
             if (size != 0)
             {
-                var stringId = order_id.ToString();
+                var stringId = order_id;
                 if (this.hasmap.ContainsKey(stringId))
                 {
                     var old_price = Convert.ToDecimal(this.hasmap[stringId]);
@@ -439,7 +439,7 @@ public class IndexedOrderBookSide : OrderBookSide, IOrderBookSide
                     if (index_price == old_price)
                     {
                         var index2 = bisectLeft(this._index, Convert.ToDecimal(index_price));
-                        while (((IList<object>)this[index2])[2] != order_id)
+                        while (((IList<object>)this[index2])[2] as string != order_id)
                         {
                             index2++;
                         }
@@ -450,7 +450,7 @@ public class IndexedOrderBookSide : OrderBookSide, IOrderBookSide
                     else
                     {
                         var old_index = bisectLeft(this._index, old_price);
-                        while (((IList<object>)this[old_index])[2] != order_id)
+                        while (((IList<object>)this[old_index])[2] as string != order_id)
                         {
                             old_index++;
                         }
@@ -470,17 +470,17 @@ public class IndexedOrderBookSide : OrderBookSide, IOrderBookSide
                 this._index.Insert(index, index_price.Value);
                 this.Insert(index, delta);
             }
-            else if (this.hasmap.ContainsKey(order_id.ToString()))
+            else if (this.hasmap.ContainsKey(order_id))
             {
-                var old_price2 = Convert.ToDecimal(this.hasmap[order_id.ToString()]);
+                var old_price2 = Convert.ToDecimal(this.hasmap[order_id]);
                 var index3 = bisectLeft(this._index, old_price2);
-                while (((IList<object>)this[index3])[2] != order_id)
+                while (((IList<object>)this[index3])[2] as string != order_id)
                 {
                     index3++;
                 }
                 this._index.RemoveAt(index3);
                 this.RemoveAt(index3);
-                this.hasmap.Remove(order_id.ToString());
+                this.hasmap.Remove(order_id);
             }
         }
     }
