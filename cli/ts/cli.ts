@@ -16,7 +16,7 @@ try {
     try {
         // @ts-ignore
         // we import like this to trick tsc and avoid the crawling on the
-        // local ccxt project
+        // local ccxt project, if any
         ccxt = await (Function ('return import("../../ts/ccxt")') ());
         local = true;
     } catch (ee) {
