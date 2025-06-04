@@ -324,6 +324,8 @@ You don't need the Docker image if you're not going to develop CCXT. If you just
 
 ## CCXT CLI
 
+Read the documentation for more information and details: [docs](https://github.com/ccxt/ccxt/tree/master/cli/README.md)
+
 CCXT also provides a command-line interface (CLI) that enables direct interaction with any supported exchange from the terminal. You can quickly check balances, place orders, or fetch trade data—without the need to write or execute custom code. This is especially useful for simple or time-sensitive tasks that don’t warrant the overhead of building a full application.
 
 ### Installation
@@ -340,11 +342,6 @@ You can use the `--help` option to view a general overview of how the CLI works.
 
 Examples:
 
-```
-ccxt binance fetchBalance // fetches the spot balance
-```
-
-or
 ```
 ccxt binance createOrder BTC/USDT market buy 0.1 // places an order
 ```
@@ -371,10 +368,6 @@ Arguments:
 ```
 
 You can easily provide API keys by setting them as environment varibales eg: `BINANCE_APIKEY="XXXX"` or adding them to the config file located at `$CACHE/config.json`
-
-## Documentation
-
-Read the [Manual](https://github.com/ccxt/ccxt/wiki/) for more details.
 
 ## Usage
 

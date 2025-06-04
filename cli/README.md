@@ -1,6 +1,9 @@
 
 # CCXT Command-Line Interface (CLI)
 
+
+[![npm](https://img.shields.io/npm/v/ccxt.svg)](https://npmjs.com/package/ccxt) [![Discord](https://img.shields.io/discord/690203284119617602?logo=discord&logoColor=white)](https://discord.gg/ccxt) [![Supported Exchanges](https://img.shields.io/badge/exchanges-106-blue.svg)](https://github.com/ccxt/ccxt/wiki/Exchange-Markets) [![Follow CCXT at x.com](https://img.shields.io/twitter/follow/ccxt_official.svg?style=social&label=CCXT)](https://x.com/ccxt_official)
+
 The **CCXT CLI** is a lightweight command-line tool that enables you to interact directly with any supported cryptocurrency exchange using the [CCXT](https://github.com/ccxt/ccxt) library. It provides a convenient way to perform tasks such as checking balances, placing orders, and fetching market data — all from the terminal, with no need to write custom scripts.
 
 ---
@@ -11,6 +14,7 @@ The **CCXT CLI** is a lightweight command-line tool that enables you to interact
 - Call any CCXT method directly from the CLI
 - Send authenticated requests (using API keys)
 - Perform quick actions like fetching balances, trades, tickers, order books, and more
+- Uses positional arguments
 
 ---
 
@@ -80,7 +84,7 @@ Inside `$CACHE/ccxt-cli/config.json` you can add an object with the `exchangeId`
 
 ## Examples
 
-#### Fetch OHLCV
+#### Fetch OHLCV with limit and no since
 
 ```bash
 ccxt binance fetchOHLCV BTC/USDT 1h undefined 10 # we don't want to provide since but we want limit so undefined is provided as the placeholder for since
@@ -116,6 +120,32 @@ ccxt binance createOrder "BTC/USDT" market buy 0.01 undefined --param test=true 
 ```bash
 ccxt binance fetchBalance --swap
 ```
+
+#### Check required args
+
+If you are not sure which arguments should be provided you can always use the `explain` command.
+
+```
+ccxt explain createOrder
+```
+
+Result:
+
+```
+Method: createOrder
+Usage:
+  binance createOrder <symbol> <type> <side> <amount> [price] [params]
+
+Arguments:
+  - symbol       (required) — Market symbol e.g., BTC/USDT
+  - type         (required) — (no description available)
+  - side         (required) — order side e.g., buy or sell
+  - amount       (required) — (no description available)
+  - price        (optional) — Price per unit of asset e.g., 26000.50
+  - params       (optional) — Extra parameters for the exchange e.g., { "recvWindow": 5000 }
+```
+
+If you don't want to provide a value for an optional argument, you should still provide `undefined` as the "placeholder".
 
 ---
 
