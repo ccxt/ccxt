@@ -54,7 +54,7 @@ export default class kraken extends krakenRest {
                 'ordersLimit': 1000,
                 'symbolsByOrderId': {},
                 'watchOrderBook': {
-                    'checksum': true,
+                    'checksum': false,
                 },
             },
             'exceptions': {
@@ -969,9 +969,9 @@ export default class kraken extends krakenRest {
             }
             orderbook['symbol'] = symbol;
         }
-        // TODO: checksum get it working properly
         orderbook.limit ();
-        const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
+        // checksum temporarily disabled because the exchange checksum was not reliable
+        const checksum = this.handleOption ('watchOrderBook', 'checksum', false);
         if (checksum) {
             const payloadArray = [];
             if (c !== undefined) {
