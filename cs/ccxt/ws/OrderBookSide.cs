@@ -69,7 +69,7 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
 
     private void initSlimList()
     {
-        _index = new SlimConcurrentList<decimal>(MAX_SIZE);
+        _index = new SlimConcurrentList<decimal>();
         // Fill the index with elements
         for (int i = 0; i < MAX_SIZE; i++)
         {
