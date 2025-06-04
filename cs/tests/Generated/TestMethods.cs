@@ -2507,7 +2507,7 @@ public partial class testMainClass
     {
         Exchange exchange = this.initOfflineExchange("modetrade");
         exchange.secret = "secretsecretsecretsecretsecretsecretsecrets";
-        object id = "CCXT";
+        object id = "CCXTMODE";
         await exchange.loadMarkets();
         object request = null;
         try

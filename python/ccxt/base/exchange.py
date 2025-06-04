@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.87'
+__version__ = '4.4.88'
 
 # -----------------------------------------------------------------------------
 
@@ -1536,7 +1536,8 @@ class Exchange(object):
             currencies = self.fetch_currencies()
             self.options['cachedCurrencies'] = currencies
         markets = self.fetch_markets(params)
-        del self.options['cachedCurrencies']
+        if 'cachedCurrencies' in self.options:
+            del self.options['cachedCurrencies']
         return self.set_markets(markets, currencies)
 
     def fetch_markets(self, params={}):

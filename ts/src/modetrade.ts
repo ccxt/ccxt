@@ -46,16 +46,16 @@ export default class modetrade extends Exchange {
                 'createConvertTrade': false,
                 'createDepositAddress': false,
                 'createMarketBuyOrderWithCost': false,
-                'createMarketOrder': false,
+                'createMarketOrder': true,
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createOrderWithTakeProfitAndStopLoss': true,
                 'createReduceOnlyOrder': true,
-                'createStopLimitOrder': false,
+                'createStopLimitOrder': true,
                 'createStopLossOrder': true,
-                'createStopMarketOrder': false,
-                'createStopOrder': false,
+                'createStopMarketOrder': true,
+                'createStopOrder': true,
                 'createTakeProfitOrder': true,
                 'createTrailingAmountOrder': false,
                 'createTrailingPercentOrder': false,
@@ -294,7 +294,7 @@ export default class modetrade extends Exchange {
             },
             'options': {
                 'sandboxMode': false,
-                'brokerId': 'CCXT',
+                'brokerId': 'CCXTMODE',
                 'verifyingContractAddress': '0x6F7a338F2aA472838dEFD3283eB360d4Dff5D203',
             },
             'features': {
@@ -2166,7 +2166,7 @@ export default class modetrade extends Exchange {
             const code = this.safeCurrencyCode (this.safeString (balance, 'token'));
             const account = this.account ();
             account['total'] = this.safeString (balance, 'holding');
-            account['frozen'] = this.safeString (balance, 'frozen');
+            account['used'] = this.safeString (balance, 'frozen');
             result[code] = account;
         }
         return this.safeBalance (result);
@@ -2803,7 +2803,7 @@ export default class modetrade extends Exchange {
             if (isPostOrPut && isOrder) {
                 const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
                 if (!isSandboxMode) {
-                    const brokerId = this.safeString (this.options, 'brokerId', 'CCXT');
+                    const brokerId = this.safeString (this.options, 'brokerId', 'CCXTMODE');
                     if (path === 'batch-order') {
                         const ordersList = this.safeList (params, 'orders', []);
                         for (let i = 0; i < ordersList.length; i++) {

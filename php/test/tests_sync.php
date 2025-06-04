@@ -2077,7 +2077,7 @@ class testMainClass {
     public function test_mode_trade() {
         $exchange = $this->init_offline_exchange('modetrade');
         $exchange->secret = 'secretsecretsecretsecretsecretsecretsecrets';
-        $id = 'CCXT';
+        $id = 'CCXTMODE';
         $exchange->load_markets();
         $request = null;
         try {

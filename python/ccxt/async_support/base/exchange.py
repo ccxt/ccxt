@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.87'
+__version__ = '4.4.88'
 
 # -----------------------------------------------------------------------------
 
@@ -282,7 +282,10 @@ class Exchange(BaseExchange):
         currencies = None
         if self.has['fetchCurrencies'] is True:
             currencies = await self.fetch_currencies()
+            self.options['cachedCurrencies'] = currencies
         markets = await self.fetch_markets(params)
+        if 'cachedCurrencies' in self.options:
+            del self.options['cachedCurrencies']
         return self.set_markets(markets, currencies)
 
 

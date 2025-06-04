@@ -2302,15 +2302,9 @@ class bybit(Exchange, ImplicitAPI):
             # 'baseCoin': '', Base coin. For option only
             # 'expDate': '', Expiry date. e.g., 25DEC22. For option only
         }
-        if market['spot']:
-            request['category'] = 'spot'
-        else:
-            if market['option']:
-                request['category'] = 'option'
-            elif market['linear']:
-                request['category'] = 'linear'
-            elif market['inverse']:
-                request['category'] = 'inverse'
+        category = None
+        category, params = self.get_bybit_type('fetchTicker', market, params)
+        request['category'] = category
         response = await self.publicGetV5MarketTickers(self.extend(request, params))
         #
         #     {
@@ -2402,24 +2396,14 @@ class bybit(Exchange, ImplicitAPI):
             # 'baseCoin': '',  # Base coin. For option only
             # 'expDate': '',  # Expiry date. e.g., 25DEC22. For option only
         }
-        type = None
-        type, params = self.handle_market_type_and_params('fetchTickers', market, params)
-        # Calls like `.fetchTickers(None, {subType:'inverse'})` should be supported for self exchange, so
-        # as "options.defaultSubType" is also set in exchange options, we should consider `params.subType`
-        # with higher priority and only default to spot, if `subType` is not set in params
-        passedSubType = self.safe_string(params, 'subType')
-        subType = None
-        subType, params = self.handle_sub_type_and_params('fetchTickers', market, params, 'linear')
-        # only if passedSubType is None, then use spot
-        if type == 'spot' and passedSubType is None:
-            request['category'] = 'spot'
-        elif type == 'option':
+        category = None
+        category, params = self.get_bybit_type('fetchTickers', market, params)
+        request['category'] = category
+        if category == 'option':
             request['category'] = 'option'
             if code is None:
                 code = 'BTC'
             request['baseCoin'] = code
-        elif type == 'swap' or type == 'future' or subType is not None:
-            request['category'] = subType
         response = await self.publicGetV5MarketTickers(self.extend(request, params))
         #
         #     {
@@ -3891,14 +3875,9 @@ class bybit(Exchange, ImplicitAPI):
                 request['orderLinkId'] = self.uuid16()
             if isLimit:
                 request['price'] = priceString
-        if market['spot']:
-            request['category'] = 'spot'
-        elif market['option']:
-            request['category'] = 'option'
-        elif market['linear']:
-            request['category'] = 'linear'
-        elif market['inverse']:
-            request['category'] = 'inverse'
+        category = None
+        category, params = self.get_bybit_type('createOrderRequest', market, params)
+        request['category'] = category
         cost = self.safe_string(params, 'cost')
         params = self.omit(params, 'cost')
         # if the cost is inferable, let's keep the old logic and ignore marketUnit, to minimize the impact of the changes
@@ -4091,14 +4070,9 @@ class bybit(Exchange, ImplicitAPI):
             # Valid for option only.
             # 'orderIv': '0',  # Implied volatility; parameters are passed according to the real value; for example, for 10%, 0.1 is passed
         }
-        if market['spot']:
-            request['category'] = 'spot'
-        elif market['linear']:
-            request['category'] = 'linear'
-        elif market['inverse']:
-            request['category'] = 'inverse'
-        elif market['option']:
-            request['category'] = 'option'
+        category = None
+        category, params = self.get_bybit_type('editOrderRequest', market, params)
+        request['category'] = category
         if amount is not None:
             request['qty'] = self.get_amount(symbol, amount)
         if price is not None:
@@ -4289,14 +4263,9 @@ class bybit(Exchange, ImplicitAPI):
             request['orderFilter'] = 'StopOrder' if isTrigger else 'Order'
         if id is not None:  # The user can also use argument params["orderLinkId"]
             request['orderId'] = id
-        if market['spot']:
-            request['category'] = 'spot'
-        elif market['linear']:
-            request['category'] = 'linear'
-        elif market['inverse']:
-            request['category'] = 'inverse'
-        elif market['option']:
-            request['category'] = 'option'
+        category = None
+        category, params = self.get_bybit_type('cancelOrderRequest', market, params)
+        request['category'] = category
         return self.extend(request, params)
 
     async def cancel_order(self, id: str, symbol: Str = None, params={}) -> Order:
@@ -7189,14 +7158,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'symbol': market['id'],
         }
         category = None
-        if market['linear']:
-            category = 'linear'
-        elif market['inverse']:
-            category = 'inverse'
-        elif market['spot']:
-            category = 'spot'
-        else:
-            category = 'option'
+        category, params = self.get_bybit_type('fetchTradingFee', market, params)
         request['category'] = category
         response = await self.privateGetV5AccountFeeRate(self.extend(request, params))
         #
@@ -7435,9 +7397,9 @@ classic accounts only/ spot not supported*  fetches information on an order made
             request['symbol'] = market['id']
         type = None
         type, params = self.get_bybit_type('fetchMySettlementHistory', market, params)
-        if type == 'spot' or type == 'inverse':
+        if type == 'spot':
             raise NotSupported(self.id + ' fetchMySettlementHistory() is not supported for spot market')
-        request['category'] = 'linear'
+        request['category'] = type
         if limit is not None:
             request['limit'] = limit
         response = await self.privateGetV5AssetDeliveryRecord(self.extend(request, params))
