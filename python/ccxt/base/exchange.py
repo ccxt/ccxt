@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.83'
+__version__ = '4.4.87'
 
 # -----------------------------------------------------------------------------
 
@@ -311,6 +311,7 @@ class Exchange(object):
     base_currencies = None
     quote_currencies = None
     currencies = None
+
     options = None  # Python does not allow to define properties in run-time with setattr
     isSandboxModeEnabled = False
     accounts = None
@@ -1506,6 +1507,25 @@ class Exchange(object):
         return len(parts[1]) if len(parts) > 1 else 0
 
     def load_markets(self, reload=False, params={}):
+        """
+        Loads and prepares the markets for trading.
+
+        Args:
+            reload (bool): If True, the markets will be reloaded from the exchange.
+            params (dict): Additional exchange-specific parameters for the request.
+
+        Returns:
+            dict: A dictionary of markets.
+
+        Raises:
+            Exception: If the markets cannot be loaded or prepared.
+
+        Notes:
+            It ensures that the markets are only loaded once, even if called multiple times.
+            If the markets are already loaded and `reload` is False or not provided, it returns the existing markets.
+            If a reload is in progress, it waits for completion before returning.
+            If an error occurs during loading or preparation, an exception is raised.
+        """
         if not reload:
             if self.markets:
                 if not self.markets_by_id:
@@ -1514,7 +1534,9 @@ class Exchange(object):
         currencies = None
         if self.has['fetchCurrencies'] is True:
             currencies = self.fetch_currencies()
+            self.options['cachedCurrencies'] = currencies
         markets = self.fetch_markets(params)
+        del self.options['cachedCurrencies']
         return self.set_markets(markets, currencies)
 
     def fetch_markets(self, params={}):
@@ -4147,11 +4169,11 @@ class Exchange(object):
                 raise NotSupported(self.id + ' - ' + networkCode + ' network did not return any result for ' + currencyCode)
             else:
                 # if networkCode was provided by user, we should check it after response, referenced exchange doesn't support network-code during request
-                networkId = networkCode if isIndexedByUnifiedNetworkCode else self.network_code_to_id(networkCode, currencyCode)
-                if networkId in indexedNetworkEntries:
-                    chosenNetworkId = networkId
+                networkIdOrCode = networkCode if isIndexedByUnifiedNetworkCode else self.network_code_to_id(networkCode, currencyCode)
+                if networkIdOrCode in indexedNetworkEntries:
+                    chosenNetworkId = networkIdOrCode
                 else:
-                    raise NotSupported(self.id + ' - ' + networkId + ' network was not found for ' + currencyCode + ', use one of ' + ', '.join(availableNetworkIds))
+                    raise NotSupported(self.id + ' - ' + networkIdOrCode + ' network was not found for ' + currencyCode + ', use one of ' + ', '.join(availableNetworkIds))
         else:
             if responseNetworksLength == 0:
                 raise NotSupported(self.id + ' - no networks were returned for ' + currencyCode)
@@ -4439,15 +4461,15 @@ class Exchange(object):
         if self.enableRateLimit:
             cost = self.calculate_rate_limiter_cost(api, method, path, params, config)
             self.throttle(cost)
+        retries = None
+        retries, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailure', 0)
+        retryDelay = None
+        retryDelay, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailureDelay', 0)
         self.lastRestRequestTimestamp = self.milliseconds()
         request = self.sign(path, api, method, params, headers, body)
         self.last_request_headers = request['headers']
         self.last_request_body = request['body']
         self.last_request_url = request['url']
-        retries = None
-        retries, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailure', 0)
-        retryDelay = None
-        retryDelay, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailureDelay', 0)
         for i in range(0, retries + 1):
             try:
                 return self.fetch(request['url'], request['method'], request['headers'], request['body'])

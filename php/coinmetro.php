@@ -384,6 +384,10 @@ class coinmetro extends Exchange {
                 $type = 'fiat';
             }
             $precisionDigits = $this->safe_string_2($currency, 'digits', 'notabeneDecimals');
+            if ($code === 'RENDER') {
+                // RENDER is an exception (with broken info)
+                $precisionDigits = '4';
+            }
             $result[$code] = $this->safe_currency_structure(array(
                 'id' => $id,
                 'code' => $code,

@@ -1,11 +1,14 @@
 {
     "BTC/USDT": {
         "id": "sBTCUSDT",
+        "lowercaseId": null,
         "symbol": "BTC/USDT",
         "base": "BTC",
         "quote": "USDT",
+        "settle": null,
         "baseId": "BTC",
         "quoteId": "USDT",
+        "settleId": null,
         "type": "spot",
         "spot": true,
         "margin": false,
@@ -15,27 +18,42 @@
         "index": false,
         "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
         "taker": 0.001,
         "maker": 0.001,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.000001,
             "price": 0.01
         },
         "limits": {
-            "leverage": {},
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
                 "min": 0.000001,
                 "max": 10
             },
             "price": {
-                "min": 0.01
+                "min": 0.01,
+                "max": null
             },
             "cost": {
                 "min": 1,
                 "max": 500000
             }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
         "created": 1589338800000,
         "info": {
             "symbol": "sBTCUSDT",
@@ -80,11 +98,14 @@
     },
     "ETH/USDT": {
         "id": "sETHUSDT",
+        "lowercaseId": null,
         "symbol": "ETH/USDT",
         "base": "ETH",
         "quote": "USDT",
+        "settle": null,
         "baseId": "ETH",
         "quoteId": "USDT",
+        "settleId": null,
         "type": "spot",
         "spot": true,
         "margin": false,
@@ -94,27 +115,42 @@
         "index": false,
         "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
         "taker": 0.001,
         "maker": 0.001,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.00001,
             "price": 0.01
         },
         "limits": {
-            "leverage": {},
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
                 "min": 0.00001,
                 "max": 150
             },
             "price": {
-                "min": 0.01
+                "min": 0.01,
+                "max": null
             },
             "cost": {
                 "min": 1,
                 "max": 500000
             }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
         "created": 1589338800000,
         "info": {
             "symbol": "sETHUSDT",
@@ -159,11 +195,14 @@
     },
     "ADA/USDT": {
         "id": "sADAUSDT",
+        "lowercaseId": null,
         "symbol": "ADA/USDT",
         "base": "ADA",
         "quote": "USDT",
+        "settle": null,
         "baseId": "ADA",
         "quoteId": "USDT",
+        "settleId": null,
         "type": "spot",
         "spot": true,
         "margin": false,
@@ -173,27 +212,42 @@
         "index": false,
         "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
         "taker": 0.001,
         "maker": 0.001,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.1,
             "price": 0.0001
         },
         "limits": {
-            "leverage": {},
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
                 "min": 0.1,
                 "max": 500000
             },
             "price": {
-                "min": 0.0001
+                "min": 0.0001,
+                "max": null
             },
             "cost": {
                 "min": 1,
                 "max": 500000
             }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
         "created": 1595210400000,
         "info": {
             "symbol": "sADAUSDT",
@@ -238,11 +292,14 @@
     },
     "LTC/USDT": {
         "id": "sLTCUSDT",
+        "lowercaseId": null,
         "symbol": "LTC/USDT",
         "base": "LTC",
         "quote": "USDT",
+        "settle": null,
         "baseId": "LTC",
         "quoteId": "USDT",
+        "settleId": null,
         "type": "spot",
         "spot": true,
         "margin": false,
@@ -252,27 +309,42 @@
         "index": false,
         "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
         "taker": 0.001,
         "maker": 0.001,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.00001,
             "price": 0.01
         },
         "limits": {
-            "leverage": {},
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
                 "min": 0.00001,
                 "max": 4000
             },
             "price": {
-                "min": 0.01
+                "min": 0.01,
+                "max": null
             },
             "cost": {
                 "min": 1,
                 "max": 500000
             }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
         "created": 1596164400000,
         "info": {
             "symbol": "sLTCUSDT",
@@ -317,11 +389,14 @@
     },
     "XRP/USDT": {
         "id": "sXRPUSDT",
+        "lowercaseId": null,
         "symbol": "XRP/USDT",
         "base": "XRP",
         "quote": "USDT",
+        "settle": null,
         "baseId": "XRP",
         "quoteId": "USDT",
+        "settleId": null,
         "type": "spot",
         "spot": true,
         "margin": false,
@@ -331,27 +406,42 @@
         "index": false,
         "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
         "taker": 0.001,
         "maker": 0.001,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.1,
             "price": 0.0001
         },
         "limits": {
-            "leverage": {},
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
                 "min": 0.1,
                 "max": 500000
             },
             "price": {
-                "min": 0.0001
+                "min": 0.0001,
+                "max": null
             },
             "cost": {
                 "min": 1,
                 "max": 500000
             }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
         "created": 1589338800000,
         "info": {
             "symbol": "sXRPUSDT",
@@ -396,11 +486,14 @@
     },
     "DOGE/USDT": {
         "id": "sDOGEUSDT",
+        "lowercaseId": null,
         "symbol": "DOGE/USDT",
         "base": "DOGE",
         "quote": "USDT",
+        "settle": null,
         "baseId": "DOGE",
         "quoteId": "USDT",
+        "settleId": null,
         "type": "spot",
         "spot": true,
         "margin": false,
@@ -410,27 +503,42 @@
         "index": false,
         "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
         "taker": 0.001,
         "maker": 0.001,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 1,
             "price": 0.00001
         },
         "limits": {
-            "leverage": {},
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
                 "min": 1,
                 "max": 4000000
             },
             "price": {
-                "min": 0.00001
+                "min": 0.00001,
+                "max": null
             },
             "cost": {
                 "min": 1,
                 "max": 500000
             }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
         "created": 1615604400000,
         "info": {
             "symbol": "sDOGEUSDT",
@@ -475,11 +583,14 @@
     },
     "TRX/USDT": {
         "id": "sTRXUSDT",
+        "lowercaseId": null,
         "symbol": "TRX/USDT",
         "base": "TRX",
         "quote": "USDT",
+        "settle": null,
         "baseId": "TRX",
         "quoteId": "USDT",
+        "settleId": null,
         "type": "spot",
         "spot": true,
         "margin": false,
@@ -489,27 +600,42 @@
         "index": false,
         "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
         "taker": 0.001,
         "maker": 0.001,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.1,
             "price": 0.0001
         },
         "limits": {
-            "leverage": {},
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
                 "min": 0.1,
                 "max": 7500000
             },
             "price": {
-                "min": 0.0001
+                "min": 0.0001,
+                "max": null
             },
             "cost": {
                 "min": 1,
                 "max": 500000
             }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
         "created": 1594000800000,
         "info": {
             "symbol": "sTRXUSDT",
@@ -554,6 +680,7 @@
     },
     "BTC/USDT:USDT": {
         "id": "BTCUSDT",
+        "lowercaseId": null,
         "symbol": "BTC/USDT:USDT",
         "base": "BTC",
         "quote": "USDT",
@@ -567,12 +694,19 @@
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": true,
         "linear": true,
         "inverse": false,
         "subType": "linear",
+        "taker": null,
+        "maker": null,
         "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.001,
             "price": 0.1
@@ -582,12 +716,26 @@
                 "min": 1,
                 "max": 100
             },
-            "amount": {},
-            "price": {},
-            "cost": {}
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
+            "perpProductSubType": "Normal",
             "symbol": "BTCUSDT",
             "code": "41541",
             "type": "PerpetualV2",
@@ -613,8 +761,9 @@
             "fundingInterval": "28800",
             "maxLeverage": "100",
             "leverageMargin": "1002",
+            "maxOI": "-1.0",
             "maxOrderQtyRq": "1000",
-            "maxPriceRp": "2000000",
+            "maxPriceRp": "500000",
             "minOrderValueRv": "1",
             "minPriceRp": "1000.0",
             "qtyPrecision": "3",
@@ -633,10 +782,12 @@
         "tierBased": false,
         "percentage": true,
         "priceScale": 0,
+        "valueScale": null,
         "ratioScale": 0
     },
     "BTC/USD:USD": {
         "id": "uBTCUSD",
+        "lowercaseId": null,
         "symbol": "BTC/USD:USD",
         "base": "BTC",
         "quote": "USD",
@@ -650,12 +801,19 @@
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
         "active": false,
         "contract": true,
         "linear": true,
         "inverse": false,
         "subType": "linear",
+        "taker": null,
+        "maker": null,
         "contractSize": 0.001,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 1,
             "price": 0.1
@@ -665,16 +823,24 @@
                 "min": 1,
                 "max": 100
             },
-            "amount": {},
+            "amount": {
+                "min": null,
+                "max": null
+            },
             "price": {
-                "min": 0.1,
+                "min": 10,
                 "max": 1000000
             },
             "cost": {
+                "min": null,
                 "max": 100000
             }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "symbol": "uBTCUSD",
             "code": "1021",
@@ -693,7 +859,7 @@
             "priceScale": "4",
             "ratioScale": "8",
             "pricePrecision": "1",
-            "minPriceEp": "1000",
+            "minPriceEp": "100000",
             "maxPriceEp": "10000000000",
             "maxOrderQty": "100000",
             "description": "uBTC/USD perpetual contracts are priced on the .uBTC Index. Each contract is worth 0.001 BTC. Funding fees are paid and received every 8 hours at UTC time: 00:00, 08:00 and 16:00.",
@@ -705,6 +871,7 @@
             "fundingInterval": "28800",
             "maxLeverage": "100",
             "leverageMargin": "1001",
+            "maxOI": "-1.0",
             "steps": "0K",
             "riskLimits": [
                 {
@@ -719,10 +886,12 @@
         "tierBased": false,
         "percentage": true,
         "priceScale": 4,
+        "valueScale": null,
         "ratioScale": 8
     },
     "BTC/USD:BTC": {
         "id": "BTCUSD",
+        "lowercaseId": null,
         "symbol": "BTC/USD:BTC",
         "base": "BTC",
         "quote": "USD",
@@ -736,6 +905,7 @@
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": true,
         "linear": false,
@@ -744,6 +914,10 @@
         "taker": 0.0075,
         "maker": -0.0025,
         "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 1,
             "price": 0.5
@@ -753,16 +927,24 @@
                 "min": 1,
                 "max": 100
             },
-            "amount": {},
+            "amount": {
+                "min": null,
+                "max": null
+            },
             "price": {
-                "min": 0.1,
+                "min": 10,
                 "max": 10000000000
             },
             "cost": {
+                "min": null,
                 "max": 1000000
             }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "symbol": "BTCUSD",
             "code": "1",
@@ -781,87 +963,25 @@
             "priceScale": "4",
             "ratioScale": "8",
             "pricePrecision": "1",
-            "minPriceEp": "1000",
+            "minPriceEp": "100000",
             "maxPriceEp": "100000000000000",
             "maxOrderQty": "1000000",
             "description": "BTCUSD is a BTC/USD perpetual contract priced on the .BTC Index. Each contract is worth 1 USD of Bitcoin. Funding is paid and received every 8 hours. At UTC time: 00:00, 08:00, 16:00.",
             "status": "Listed",
-            "tipOrderQty": "1000000",
+            "tipOrderQty": "5000000",
             "listTime": "1574650800000",
             "majorSymbol": true,
             "defaultLeverage": "0",
             "fundingInterval": "8",
             "maxLeverage": "100",
-            "leverageMargin": "1023",
-            "steps": "50",
+            "leverageMargin": "1034",
+            "maxOI": "-1.0",
+            "steps": "0",
             "riskLimits": [
                 {
-                    "limit": "100",
-                    "initialMargin": "1.0%",
-                    "initialMarginEr": "1000000",
-                    "maintenanceMargin": "0.5%",
-                    "maintenanceMarginEr": "500000"
-                },
-                {
-                    "limit": "150",
-                    "initialMargin": "1.5%",
-                    "initialMarginEr": "1500000",
-                    "maintenanceMargin": "1.0%",
-                    "maintenanceMarginEr": "1000000"
-                },
-                {
-                    "limit": "200",
-                    "initialMargin": "2.0%",
-                    "initialMarginEr": "2000000",
-                    "maintenanceMargin": "1.5%",
-                    "maintenanceMarginEr": "1500000"
-                },
-                {
-                    "limit": "250",
-                    "initialMargin": "2.5%",
-                    "initialMarginEr": "2500000",
-                    "maintenanceMargin": "2.0%",
-                    "maintenanceMarginEr": "2000000"
-                },
-                {
-                    "limit": "300",
-                    "initialMargin": "3.0%",
-                    "initialMarginEr": "3000000",
-                    "maintenanceMargin": "2.5%",
-                    "maintenanceMarginEr": "2500000"
-                },
-                {
-                    "limit": "350",
-                    "initialMargin": "3.5%",
-                    "initialMarginEr": "3500000",
-                    "maintenanceMargin": "3.0%",
-                    "maintenanceMarginEr": "3000000"
-                },
-                {
-                    "limit": "400",
-                    "initialMargin": "4.0%",
-                    "initialMarginEr": "4000000",
-                    "maintenanceMargin": "3.5%",
-                    "maintenanceMarginEr": "3500000"
-                },
-                {
-                    "limit": "450",
-                    "initialMargin": "4.5%",
-                    "initialMarginEr": "4500000",
-                    "maintenanceMargin": "4.0%",
-                    "maintenanceMarginEr": "4000000"
-                },
-                {
-                    "limit": "500",
-                    "initialMargin": "5.0%",
-                    "initialMarginEr": "5000000",
-                    "maintenanceMargin": "4.5%",
-                    "maintenanceMarginEr": "4500000"
-                },
-                {
-                    "limit": "550",
-                    "initialMargin": "5.5%",
-                    "initialMarginEr": "5500000",
+                    "limit": "1500",
+                    "initialMargin": "10.0%",
+                    "initialMarginEr": "10000000",
                     "maintenanceMargin": "5.0%",
                     "maintenanceMarginEr": "5000000"
                 }
@@ -886,6 +1006,7 @@
     },
     "ETH/USDT:USDT": {
         "id": "ETHUSDT",
+        "lowercaseId": null,
         "symbol": "ETH/USDT:USDT",
         "base": "ETH",
         "quote": "USDT",
@@ -899,12 +1020,19 @@
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": true,
         "linear": true,
         "inverse": false,
         "subType": "linear",
+        "taker": null,
+        "maker": null,
         "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.01,
             "price": 0.01
@@ -914,12 +1042,26 @@
                 "min": 1,
                 "max": 100
             },
-            "amount": {},
-            "price": {},
-            "cost": {}
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
+            "perpProductSubType": "Normal",
             "symbol": "ETHUSDT",
             "code": "41641",
             "type": "PerpetualV2",
@@ -945,8 +1087,9 @@
             "fundingInterval": "28800",
             "maxLeverage": "100",
             "leverageMargin": "1007",
+            "maxOI": "-1.0",
             "maxOrderQtyRq": "10000",
-            "maxPriceRp": "2000000",
+            "maxPriceRp": "500000",
             "minOrderValueRv": "1",
             "minPriceRp": "100.0",
             "qtyPrecision": "2",
@@ -965,10 +1108,12 @@
         "tierBased": false,
         "percentage": true,
         "priceScale": 0,
+        "valueScale": null,
         "ratioScale": 0
     },
     "ETH/USD:USD": {
         "id": "ETHUSD",
+        "lowercaseId": null,
         "symbol": "ETH/USD:USD",
         "base": "ETH",
         "quote": "USD",
@@ -982,6 +1127,7 @@
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
         "active": false,
         "contract": true,
         "linear": true,
@@ -990,6 +1136,10 @@
         "taker": 0.0075,
         "maker": -0.0025,
         "contractSize": 0.005,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 1,
             "price": 0.05
@@ -999,16 +1149,24 @@
                 "min": 1,
                 "max": 20
             },
-            "amount": {},
+            "amount": {
+                "min": null,
+                "max": null
+            },
             "price": {
-                "min": 0.01,
+                "min": 1,
                 "max": 20000
             },
             "cost": {
+                "min": null,
                 "max": 500000
             }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "symbol": "ETHUSD",
             "code": "11",
@@ -1027,7 +1185,7 @@
             "priceScale": "4",
             "ratioScale": "8",
             "pricePrecision": "2",
-            "minPriceEp": "100",
+            "minPriceEp": "10000",
             "maxPriceEp": "200000000",
             "maxOrderQty": "500000",
             "description": "ETHUSD is a ETH/USD perpetual contract priced on the .ETH Index. Each contract is worth 0.005 ETH of USD. Funding is paid and received every 8 hours. At UTC time: 00:00, 08:00, 16:00.",
@@ -1039,6 +1197,7 @@
             "fundingInterval": "8",
             "maxLeverage": "20",
             "leverageMargin": "1001",
+            "maxOI": "-1.0",
             "steps": "0K",
             "riskLimits": [
                 {
@@ -1069,6 +1228,7 @@
     },
     "LTC/USDT:USDT": {
         "id": "LTCUSDT",
+        "lowercaseId": null,
         "symbol": "LTC/USDT:USDT",
         "base": "LTC",
         "quote": "USDT",
@@ -1082,12 +1242,19 @@
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": true,
         "linear": true,
         "inverse": false,
         "subType": "linear",
+        "taker": null,
+        "maker": null,
         "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.01,
             "price": 0.01
@@ -1097,12 +1264,26 @@
                 "min": 1,
                 "max": 50
             },
-            "amount": {},
-            "price": {},
-            "cost": {}
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
+            "perpProductSubType": "Normal",
             "symbol": "LTCUSDT",
             "code": "44841",
             "type": "PerpetualV2",
@@ -1128,8 +1309,9 @@
             "fundingInterval": "28800",
             "maxLeverage": "50",
             "leverageMargin": "1005",
+            "maxOI": "-1.0",
             "maxOrderQtyRq": "7000",
-            "maxPriceRp": "2000000",
+            "maxPriceRp": "500000",
             "minOrderValueRv": "1",
             "minPriceRp": "100.0",
             "qtyPrecision": "2",
@@ -1148,10 +1330,12 @@
         "tierBased": false,
         "percentage": true,
         "priceScale": 0,
+        "valueScale": null,
         "ratioScale": 0
     },
     "ADA/USDT:USDT": {
         "id": "ADAUSDT",
+        "lowercaseId": null,
         "symbol": "ADA/USDT:USDT",
         "base": "ADA",
         "quote": "USDT",
@@ -1165,12 +1349,19 @@
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": true,
         "linear": true,
         "inverse": false,
         "subType": "linear",
+        "taker": null,
+        "maker": null,
         "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.01,
             "price": 0.0001
@@ -1180,12 +1371,26 @@
                 "min": 1,
                 "max": 50
             },
-            "amount": {},
-            "price": {},
-            "cost": {}
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
+            "perpProductSubType": "Normal",
             "symbol": "ADAUSDT",
             "code": "41841",
             "type": "PerpetualV2",
@@ -1211,8 +1416,9 @@
             "fundingInterval": "28800",
             "maxLeverage": "50",
             "leverageMargin": "1005",
+            "maxOI": "-1.0",
             "maxOrderQtyRq": "2000000",
-            "maxPriceRp": "2000000",
+            "maxPriceRp": "500000",
             "minOrderValueRv": "1",
             "minPriceRp": "1.0",
             "qtyPrecision": "2",
@@ -1231,10 +1437,12 @@
         "tierBased": false,
         "percentage": true,
         "priceScale": 0,
+        "valueScale": null,
         "ratioScale": 0
     },
     "XRP/USDT:USDT": {
         "id": "XRPUSDT",
+        "lowercaseId": null,
         "symbol": "XRP/USDT:USDT",
         "base": "XRP",
         "quote": "USDT",
@@ -1248,12 +1456,19 @@
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": true,
         "linear": true,
         "inverse": false,
         "subType": "linear",
+        "taker": null,
+        "maker": null,
         "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.01,
             "price": 0.0001
@@ -1263,12 +1478,26 @@
                 "min": 1,
                 "max": 50
             },
-            "amount": {},
-            "price": {},
-            "cost": {}
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
+            "perpProductSubType": "Normal",
             "symbol": "XRPUSDT",
             "code": "41741",
             "type": "PerpetualV2",
@@ -1294,8 +1523,9 @@
             "fundingInterval": "28800",
             "maxLeverage": "50",
             "leverageMargin": "1005",
+            "maxOI": "-1.0",
             "maxOrderQtyRq": "1200000",
-            "maxPriceRp": "2000000",
+            "maxPriceRp": "500000",
             "minOrderValueRv": "1",
             "minPriceRp": "1.0",
             "qtyPrecision": "2",
@@ -1314,10 +1544,12 @@
         "tierBased": false,
         "percentage": true,
         "priceScale": 0,
+        "valueScale": null,
         "ratioScale": 0
     },
     "DOGE/USDT:USDT": {
         "id": "DOGEUSDT",
+        "lowercaseId": null,
         "symbol": "DOGE/USDT:USDT",
         "base": "DOGE",
         "quote": "USDT",
@@ -1331,12 +1563,19 @@
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": true,
         "linear": true,
         "inverse": false,
         "subType": "linear",
+        "taker": null,
+        "maker": null,
         "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 1,
             "price": 0.00001
@@ -1346,12 +1585,26 @@
                 "min": 1,
                 "max": 50
             },
-            "amount": {},
-            "price": {},
-            "cost": {}
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
+            "perpProductSubType": "Normal",
             "symbol": "DOGEUSDT",
             "code": "44941",
             "type": "PerpetualV2",
@@ -1377,6 +1630,7 @@
             "fundingInterval": "28800",
             "maxLeverage": "50",
             "leverageMargin": "1005",
+            "maxOI": "-1.0",
             "maxOrderQtyRq": "8000000",
             "maxPriceRp": "200000",
             "minOrderValueRv": "1",
@@ -1397,10 +1651,12 @@
         "tierBased": false,
         "percentage": true,
         "priceScale": 0,
+        "valueScale": null,
         "ratioScale": 0
     },
     "TRX/USDT:USDT": {
         "id": "TRXUSDT",
+        "lowercaseId": null,
         "symbol": "TRX/USDT:USDT",
         "base": "TRX",
         "quote": "USDT",
@@ -1414,12 +1670,19 @@
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": true,
         "linear": true,
         "inverse": false,
         "subType": "linear",
+        "taker": null,
+        "maker": null,
         "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 1,
             "price": 0.00001
@@ -1429,12 +1692,26 @@
                 "min": 1,
                 "max": 50
             },
-            "amount": {},
-            "price": {},
-            "cost": {}
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
+            "perpProductSubType": "Normal",
             "symbol": "TRXUSDT",
             "code": "47841",
             "type": "PerpetualV2",
@@ -1460,6 +1737,7 @@
             "fundingInterval": "28800",
             "maxLeverage": "50",
             "leverageMargin": "1005",
+            "maxOI": "-1.0",
             "maxOrderQtyRq": "8000000",
             "maxPriceRp": "200000",
             "minOrderValueRv": "1",
@@ -1480,10 +1758,12 @@
         "tierBased": false,
         "percentage": true,
         "priceScale": 0,
+        "valueScale": null,
         "ratioScale": 0
     },
     "SOL/USDT:USDT": {
         "id": "SOLUSDT",
+        "lowercaseId": null,
         "symbol": "SOL/USDT:USDT",
         "base": "SOL",
         "quote": "USDT",
@@ -1497,27 +1777,48 @@
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": true,
         "linear": true,
         "inverse": false,
         "subType": "linear",
+        "taker": null,
+        "maker": null,
         "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.01,
-            "price": 0.001
+            "price": 0.01
         },
         "limits": {
             "leverage": {
                 "min": 1,
                 "max": 50
             },
-            "amount": {},
-            "price": {},
-            "cost": {}
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
+            "perpProductSubType": "Normal",
             "symbol": "SOLUSDT",
             "code": "41941",
             "type": "PerpetualV2",
@@ -1529,10 +1830,10 @@
             "contractUnderlyingAssets": "SOL",
             "settleCurrency": "USDT",
             "quoteCurrency": "USDT",
-            "tickSize": "0.001",
+            "tickSize": "0.01",
             "priceScale": "0",
             "ratioScale": "0",
-            "pricePrecision": "3",
+            "pricePrecision": "2",
             "baseCurrency": "SOL",
             "description": "SOL/USDT perpetual contracts are priced on the .SOLUSDT Index. Each contract is worth 1 SOL. Funding fees are paid and received every 8 hours at UTC time: 00:00, 08:00 and 16:00.",
             "status": "Listed",
@@ -1543,10 +1844,11 @@
             "fundingInterval": "28800",
             "maxLeverage": "50",
             "leverageMargin": "1005",
+            "maxOI": "-1.0",
             "maxOrderQtyRq": "35000",
-            "maxPriceRp": "2000000",
+            "maxPriceRp": "500000",
             "minOrderValueRv": "1",
-            "minPriceRp": "10.0",
+            "minPriceRp": "100.0",
             "qtyPrecision": "2",
             "qtyStepSize": "0.01",
             "tipOrderQtyRq": "7000",
@@ -1563,6 +1865,7 @@
         "tierBased": false,
         "percentage": true,
         "priceScale": 0,
+        "valueScale": null,
         "ratioScale": 0
     }
 }

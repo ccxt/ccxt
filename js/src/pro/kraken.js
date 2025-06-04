@@ -377,21 +377,26 @@ export default class kraken extends krakenRest {
      * @see https://docs.kraken.com/api/docs/websocket-v1/cancelorder
      * @description cancel multiple orders
      * @param {string[]} ids order ids
-     * @param {string} symbol unified market symbol, default is undefined
+     * @param {string} [symbol] unified market symbol, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrdersWs(ids, symbol = undefined, params = {}) {
+        if (symbol !== undefined) {
+            throw new NotSupported(this.id + ' cancelOrdersWs () does not support cancelling orders for a specific symbol.');
+        }
         await this.loadMarkets();
         const token = await this.authenticate();
-        const url = this.urls['api']['ws']['private'];
+        const url = this.urls['api']['ws']['privateV2'];
         const requestId = this.requestId();
         const messageHash = requestId;
         const request = {
-            'event': 'cancelOrder',
-            'token': token,
-            'reqid': requestId,
-            'txid': ids,
+            'method': 'cancel_order',
+            'params': {
+                'order_id': ids,
+                'token': token,
+            },
+            'req_id': requestId,
         };
         return await this.watch(url, messageHash, this.extend(request, params), messageHash);
     }
@@ -401,36 +406,43 @@ export default class kraken extends krakenRest {
      * @see https://docs.kraken.com/api/docs/websocket-v1/cancelorder
      * @description cancels an open order
      * @param {string} id order id
-     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrderWs(id, symbol = undefined, params = {}) {
+        if (symbol !== undefined) {
+            throw new NotSupported(this.id + ' cancelOrderWs () does not support cancelling orders for a specific symbol.');
+        }
         await this.loadMarkets();
         const token = await this.authenticate();
-        const url = this.urls['api']['ws']['private'];
+        const url = this.urls['api']['ws']['privateV2'];
         const requestId = this.requestId();
         const messageHash = requestId;
-        const clientOrderId = this.safeValue2(params, 'userref', 'clientOrderId', id);
-        params = this.omit(params, ['userref', 'clientOrderId']);
         const request = {
-            'event': 'cancelOrder',
-            'token': token,
-            'reqid': requestId,
-            'txid': [clientOrderId],
+            'method': 'cancel_order',
+            'params': {
+                'order_id': [id],
+                'token': token,
+            },
+            'req_id': requestId,
         };
         return await this.watch(url, messageHash, this.extend(request, params), messageHash);
     }
     handleCancelOrder(client, message) {
         //
-        //  success
-        //    {
-        //        "event": "cancelOrderStatus",
-        //        "status": "ok"
-        //        "reqid": 1,
-        //    }
+        //     {
+        //         "method": "cancel_order",
+        //         "req_id": 123456789,
+        //         "result": {
+        //             "order_id": "OKAGJC-YHIWK-WIOZWG"
+        //         },
+        //         "success": true,
+        //         "time_in": "2023-09-21T14:36:57.428972Z",
+        //         "time_out": "2023-09-21T14:36:57.437952Z"
+        //     }
         //
-        const reqId = this.safeValue(message, 'reqid');
+        const reqId = this.safeValue(message, 'req_id');
         client.resolve(message, reqId);
     }
     /**
@@ -438,7 +450,7 @@ export default class kraken extends krakenRest {
      * @name kraken#cancelAllOrdersWs
      * @see https://docs.kraken.com/api/docs/websocket-v1/cancelall
      * @description cancel all open orders
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -448,26 +460,32 @@ export default class kraken extends krakenRest {
         }
         await this.loadMarkets();
         const token = await this.authenticate();
-        const url = this.urls['api']['ws']['private'];
+        const url = this.urls['api']['ws']['privateV2'];
         const requestId = this.requestId();
         const messageHash = requestId;
         const request = {
-            'event': 'cancelAll',
-            'token': token,
-            'reqid': requestId,
+            'method': 'cancel_all',
+            'params': {
+                'token': token,
+            },
+            'req_id': requestId,
         };
         return await this.watch(url, messageHash, this.extend(request, params), messageHash);
     }
     handleCancelAllOrders(client, message) {
         //
-        //    {
-        //        "count": 2,
-        //        "event": "cancelAllStatus",
-        //        "status": "ok",
-        //        "reqId": 1
-        //    }
+        //     {
+        //         "method": "cancel_all",
+        //         "req_id": 123456789,
+        //         "result": {
+        //             "count": 1
+        //         },
+        //         "success": true,
+        //         "time_in": "2023-09-21T14:36:57.428972Z",
+        //         "time_out": "2023-09-21T14:36:57.437952Z"
+        //     }
         //
-        const reqId = this.safeValue(message, 'reqid');
+        const reqId = this.safeValue(message, 'req_id');
         client.resolve(message, reqId);
     }
     handleTicker(client, message, subscription) {
@@ -1774,8 +1792,8 @@ export default class kraken extends krakenRest {
                     'subscriptionStatus': this.handleSubscriptionStatus,
                     'add_order': this.handleCreateEditOrder,
                     'amend_order': this.handleCreateEditOrder,
-                    'cancelOrderStatus': this.handleCancelOrder,
-                    'cancelAllStatus': this.handleCancelAllOrders,
+                    'cancel_order': this.handleCancelOrder,
+                    'cancel_all': this.handleCancelAllOrders,
                 };
                 const method = this.safeValue(methods, event);
                 if (method !== undefined) {

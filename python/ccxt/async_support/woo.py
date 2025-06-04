@@ -5,6 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.woo import ImplicitAPI
+import asyncio
 import hashlib
 from ccxt.base.types import Account, Any, Balances, Bool, Conversion, Currencies, Currency, DepositAddress, Int, LedgerEntry, Leverage, MarginModification, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, FundingRate, FundingRates, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
@@ -311,6 +312,11 @@ class woo(Exchange, ImplicitAPI):
                     'TRC20': 'TRON',
                     'ERC20': 'ETH',
                     'BEP20': 'BSC',
+                    'ARB': 'Arbitrum',
+                },
+                'networksById': {
+                    'TRX': 'TRC20',
+                    'TRON': 'TRC20',
                 },
                 # override defaultNetworkCodePriorities for a specific currency
                 'defaultNetworkCodeForCurrencies': {
@@ -817,33 +823,45 @@ class woo(Exchange, ImplicitAPI):
         :returns dict: an associative dictionary of currencies
         """
         result: dict = {}
-        tokenResponse = await self.v1PublicGetToken(params)
+        tokenResponsePromise = self.v1PublicGetToken(params)
         #
-        # {
-        #     "rows": [
+        #    {
+        #      "rows": [
         #         {
         #             "token": "ETH_USDT",
         #             "fullname": "Tether",
-        #             "decimals": 6,
+        #             "network": "ETH",
+        #             "decimals": "6",
+        #             "delisted": False,
         #             "balance_token": "USDT",
-        #             "created_time": "0",
-        #             "updated_time": "0"
+        #             "created_time": "1710123398",
+        #             "updated_time": "1746528481",
+        #             "can_collateral": True,
+        #             "can_short": True
         #         },
         #         {
         #             "token": "BSC_USDT",
         #             "fullname": "Tether",
-        #             "decimals": 18,
+        #             "network": "BSC",
+        #             "decimals": "18",
+        #             "delisted": False,
         #             "balance_token": "USDT",
-        #             "created_time": "0",
-        #             "updated_time": "0"
+        #             "created_time": "1710123395",
+        #             "updated_time": "1746528601",
+        #             "can_collateral": True,
+        #             "can_short": True
         #         },
         #         {
-        #             "token": "ZEC",
-        #             "fullname": "ZCash",
-        #             "decimals": 8,
-        #             "balance_token": "ZEC",
-        #             "created_time": "0",
-        #             "updated_time": "0"
+        #             "token": "ALGO",
+        #             "fullname": "Algorand",
+        #             "network": "ALGO",
+        #             "decimals": "6",
+        #             "delisted": False,
+        #             "balance_token": "ALGO",
+        #             "created_time": "1710123394",
+        #             "updated_time": "1723087518",
+        #             "can_collateral": True,
+        #             "can_short": True
         #         },
         #         ...
         #     ],
@@ -851,58 +869,66 @@ class woo(Exchange, ImplicitAPI):
         # }
         #
         # only make one request for currrencies...
-        # tokenNetworkResponse = await self.v1PublicGetTokenNetwork(params)
+        tokenNetworkResponsePromise = self.v1PublicGetTokenNetwork(params)
         #
         # {
         #     "rows": [
         #         {
         #             "protocol": "ERC20",
+        #             "network": "ETH",
         #             "token": "USDT",
-        #             "name": "Ethereum",
-        #             "minimum_withdrawal": 30,
-        #             "withdrawal_fee": 25,
-        #             "allow_deposit": 1,
-        #             "allow_withdraw": 1
+        #             "name": "Ethereum(ERC20)",
+        #             "minimum_withdrawal": "10.00000000",
+        #             "withdrawal_fee": "2.00000000",
+        #             "allow_deposit": "1",
+        #             "allow_withdraw": "1"
         #         },
         #         {
         #             "protocol": "TRC20",
+        #             "network": "TRX",
         #             "token": "USDT",
-        #             "name": "Tron",
-        #             "minimum_withdrawal": 30,
-        #             "withdrawal_fee": 1,
-        #             "allow_deposit": 1,
-        #             "allow_withdraw": 1
+        #             "name": "Tron(TRC20)",
+        #             "minimum_withdrawal": "10.00000000",
+        #             "withdrawal_fee": "4.50000000",
+        #             "allow_deposit": "1",
+        #             "allow_withdraw": "1"
         #         },
         #         ...
         #     ],
         #     "success": True
         # }
         #
+        tokenResponse, tokenNetworkResponse = await asyncio.gather(*[tokenResponsePromise, tokenNetworkResponsePromise])
         tokenRows = self.safe_list(tokenResponse, 'rows', [])
-        networksByCurrencyId = self.group_by(tokenRows, 'balance_token')
-        currencyIds = list(networksByCurrencyId.keys())
+        tokenNetworkRows = self.safe_list(tokenNetworkResponse, 'rows', [])
+        networksById = self.group_by(tokenNetworkRows, 'token')
+        tokensById = self.group_by(tokenRows, 'balance_token')
+        currencyIds = list(tokensById.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
-            networks = networksByCurrencyId[currencyId]
             code = self.safe_currency_code(currencyId)
-            name: Str = None
-            minPrecision = None
+            tokensByNetworkId = self.index_by(tokensById[currencyId], 'network')
+            chainsByNetworkId = self.index_by(networksById[currencyId], 'network')
+            keys = list(chainsByNetworkId.keys())
             resultingNetworks: dict = {}
-            for j in range(0, len(networks)):
-                network = networks[j]
-                name = self.safe_string(network, 'fullname')
-                networkId = self.safe_string(network, 'token')
-                splitted = networkId.split('_')
-                unifiedNetwork = splitted[0]
-                precision = self.parse_precision(self.safe_string(network, 'decimals'))
-                if precision is not None:
-                    minPrecision = precision if (minPrecision is None) else Precise.string_min(precision, minPrecision)
-                resultingNetworks[unifiedNetwork] = {
+            for j in range(0, len(keys)):
+                networkId = keys[j]
+                tokenEntry = self.safe_dict(tokensByNetworkId, networkId, {})
+                networkEntry = self.safe_dict(chainsByNetworkId, networkId, {})
+                networkCode = self.network_id_to_code(networkId, code)
+                specialNetworkId = self.safe_string(tokenEntry, 'token')
+                resultingNetworks[networkCode] = {
                     'id': networkId,
-                    'network': unifiedNetwork,
+                    'currencyNetworkId': specialNetworkId,  # exchange uses special crrency-ids(coin + network junction)
+                    'network': networkCode,
+                    'active': None,
+                    'deposit': self.safe_string(networkEntry, 'allow_deposit') == '1',
+                    'withdraw': self.safe_string(networkEntry, 'allow_withdraw') == '1',
+                    'fee': self.safe_number(networkEntry, 'withdrawal_fee'),
+                    'precision': self.parse_number(self.parse_precision(self.safe_string(tokenEntry, 'decimals'))),
                     'limits': {
                         'withdraw': {
-                            'min': None,
+                            'min': self.safe_number(networkEntry, 'minimum_withdrawal'),
                             'max': None,
                         },
                         'deposit': {
@@ -910,18 +936,13 @@ class woo(Exchange, ImplicitAPI):
                             'max': None,
                         },
                     },
-                    'active': None,
-                    'deposit': None,
-                    'withdraw': None,
-                    'fee': None,
-                    'precision': self.parse_number(precision),
-                    'info': network,
+                    'info': [networkEntry, tokenEntry],
                 }
-            result[code] = {
+            result[code] = self.safe_currency_structure({
                 'id': currencyId,
-                'name': name,
+                'name': None,
                 'code': code,
-                'precision': self.parse_number(minPrecision),
+                'precision': None,
                 'active': None,
                 'fee': None,
                 'networks': resultingNetworks,
@@ -938,8 +959,8 @@ class woo(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
-                'info': networks,
-            }
+                'info': [tokensByNetworkId, chainsByNetworkId],
+            })
         return result
 
     async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
@@ -1511,7 +1532,7 @@ class woo(Exchange, ImplicitAPI):
         if limit is not None:
             request['size'] = limit
         else:
-            request['size'] = 500
+            request['size'] = 50 if trailing else 500
         if trigger:
             request['algoType'] = 'stop'
         elif trailing:
@@ -2071,12 +2092,10 @@ class woo(Exchange, ImplicitAPI):
         # self method is TODO because of networks unification
         await self.load_markets()
         currency = self.currency(code)
-        networkCodeDefault = self.default_network_code_for_currency(code)
-        networkCode = self.safe_string(params, 'network', networkCodeDefault)
-        params = self.omit(params, 'network')
-        codeForExchange = networkCode + '_' + currency['code']
+        specialNetworkId: Str = None
+        specialNetworkId, params = self.get_dedicated_network_id(currency, params)
         request: dict = {
-            'token': codeForExchange,
+            'token': specialNetworkId,
         }
         response = await self.v1PrivateGetAssetDeposit(self.extend(request, params))
         # {
@@ -2084,15 +2103,28 @@ class woo(Exchange, ImplicitAPI):
         #     "address": "3Jmtjx5544T4smrit9Eroe4PCrRkpDeKjP",
         #     "extra": ''
         # }
-        tag = self.safe_string(response, 'extra')
-        address = self.safe_string(response, 'address')
+        return self.parse_deposit_address(response, currency)
+
+    def get_dedicated_network_id(self, currency, params: dict) -> Any:
+        networkCode = None
+        networkCode, params = self.handle_network_code_and_params(params)
+        networkCode = self.network_id_to_code(networkCode, currency['code'])
+        networkEntry = self.safe_dict(currency['networks'], networkCode)
+        if networkEntry is None:
+            supportedNetworks = list(currency['networks'].keys())
+            raise BadRequest(self.id + '  can not determine a network code, please provide unified "network" param, one from the following: ' + self.json(supportedNetworks))
+        currentyNetworkId = self.safe_string(networkEntry, 'currencyNetworkId')
+        return [currentyNetworkId, params]
+
+    def parse_deposit_address(self, depositEntry, currency: Currency = None) -> DepositAddress:
+        address = self.safe_string(depositEntry, 'address')
         self.check_address(address)
         return {
-            'info': response,
-            'currency': code,
-            'network': networkCode,
+            'info': depositEntry,
+            'currency': self.safe_string(currency, 'code'),
+            'network': None,
             'address': address,
-            'tag': tag,
+            'tag': self.safe_string(depositEntry, 'extra'),
         }
 
     async def get_asset_history_rows(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> Any:
@@ -2484,15 +2516,9 @@ class woo(Exchange, ImplicitAPI):
         }
         if tag is not None:
             request['extra'] = tag
-        networks = self.safe_dict(self.options, 'networks', {})
-        currencyNetworks = self.safe_dict(currency, 'networks', {})
-        network = self.safe_string_upper(params, 'network')
-        networkId = self.safe_string(networks, network, network)
-        coinNetwork = self.safe_dict(currencyNetworks, networkId, {})
-        coinNetworkId = self.safe_string(coinNetwork, 'id')
-        if coinNetworkId is None:
-            raise BadRequest(self.id + ' withdraw() require network parameter')
-        request['token'] = coinNetworkId
+        specialNetworkId: Str = None
+        specialNetworkId, params = self.get_dedicated_network_id(currency, params)
+        request['token'] = specialNetworkId
         response = await self.v1PrivatePostAssetWithdraw(self.extend(request, params))
         #
         #     {

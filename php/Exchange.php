@@ -43,7 +43,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.4.83';
+$version = '4.4.87';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -62,7 +62,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.4.83';
+    const VERSION = '4.4.87';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -361,6 +361,7 @@ class Exchange {
         'bitso',
         'bitstamp',
         'bitteam',
+        'bittrade',
         'bitvavo',
         'blockchaincom',
         'blofin',
@@ -401,27 +402,26 @@ class Exchange {
         'hollaex',
         'htx',
         'huobi',
-        'huobijp',
         'hyperliquid',
-        'idex',
         'independentreserve',
         'indodax',
         'kraken',
         'krakenfutures',
         'kucoin',
         'kucoinfutures',
-        'kuna',
         'latoken',
         'lbank',
         'luno',
         'mercado',
         'mexc',
+        'modetrade',
         'myokx',
         'ndax',
         'novadax',
         'oceanex',
         'okcoin',
         'okx',
+        'okxus',
         'onetrading',
         'oxfun',
         'p2b',
@@ -1621,8 +1621,10 @@ class Exchange {
         $currencies = null;
         if (array_key_exists('fetchCurrencies', $this->has) && $this->has['fetchCurrencies'] === true) {
             $currencies = $this->fetch_currencies();
+            $this->options['cachedCurrencies'] = $currencies;
         }
         $markets = $this->fetch_markets($params);
+        unset($this->options['cachedCurrencies']);
         return $this->set_markets($markets, $currencies);
     }
 
@@ -4989,11 +4991,11 @@ class Exchange {
                 throw new NotSupported($this->id . ' - ' . $networkCode . ' network did not return any result for ' . $currencyCode);
             } else {
                 // if $networkCode was provided by user, we should check it after response, referenced exchange doesn't support network-code during request
-                $networkId = $isIndexedByUnifiedNetworkCode ? $networkCode : $this->network_code_to_id($networkCode, $currencyCode);
-                if (is_array($indexedNetworkEntries) && array_key_exists($networkId, $indexedNetworkEntries)) {
-                    $chosenNetworkId = $networkId;
+                $networkIdOrCode = $isIndexedByUnifiedNetworkCode ? $networkCode : $this->network_code_to_id($networkCode, $currencyCode);
+                if (is_array($indexedNetworkEntries) && array_key_exists($networkIdOrCode, $indexedNetworkEntries)) {
+                    $chosenNetworkId = $networkIdOrCode;
                 } else {
-                    throw new NotSupported($this->id . ' - ' . $networkId . ' network was not found for ' . $currencyCode . ', use one of ' . implode(', ', $availableNetworkIds));
+                    throw new NotSupported($this->id . ' - ' . $networkIdOrCode . ' network was not found for ' . $currencyCode . ', use one of ' . implode(', ', $availableNetworkIds));
                 }
             }
         } else {
@@ -5358,15 +5360,15 @@ class Exchange {
             $cost = $this->calculate_rate_limiter_cost($api, $method, $path, $params, $config);
             $this->throttle($cost);
         }
+        $retries = null;
+        list($retries, $params) = $this->handle_option_and_params($params, $path, 'maxRetriesOnFailure', 0);
+        $retryDelay = null;
+        list($retryDelay, $params) = $this->handle_option_and_params($params, $path, 'maxRetriesOnFailureDelay', 0);
         $this->lastRestRequestTimestamp = $this->milliseconds();
         $request = $this->sign($path, $api, $method, $params, $headers, $body);
         $this->last_request_headers = $request['headers'];
         $this->last_request_body = $request['body'];
         $this->last_request_url = $request['url'];
-        $retries = null;
-        list($retries, $params) = $this->handle_option_and_params($params, $path, 'maxRetriesOnFailure', 0);
-        $retryDelay = null;
-        list($retryDelay, $params) = $this->handle_option_and_params($params, $path, 'maxRetriesOnFailureDelay', 0);
         for ($i = 0; $i < $retries + 1; $i++) {
             try {
                 return $this->fetch($request['url'], $request['method'], $request['headers'], $request['body']);

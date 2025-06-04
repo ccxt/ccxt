@@ -18,8 +18,8 @@ func  (this *bequant) Describe() interface{}  {
     return this.DeepExtend(this.hitbtc.Describe(), map[string]interface{} {
         "id": "bequant",
         "name": "Bequant",
-        "countries": []interface{}{"MT"},
         "pro": true,
+        "countries": []interface{}{"MT"},
         "urls": map[string]interface{} {
             "logo": "https://github.com/user-attachments/assets/0583ef1f-29fe-4b7c-8189-63565a0e2867",
             "api": map[string]interface{} {

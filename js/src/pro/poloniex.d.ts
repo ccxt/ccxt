@@ -66,7 +66,7 @@ export default class poloniex extends poloniexRest {
      * @param {string} [params.clientOrderId] client order id
      * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    cancelOrderWs(id: string, symbol?: Str, params?: {}): Promise<any>;
+    cancelOrderWs(id: string, symbol?: Str, params?: {}): Promise<Order>;
     /**
      * @method
      * @name poloniex#cancelOrdersWs

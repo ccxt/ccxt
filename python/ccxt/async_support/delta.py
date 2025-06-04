@@ -509,31 +509,49 @@ class delta(Exchange, ImplicitAPI):
         """
         response = await self.publicGetAssets(params)
         #
-        #     {
-        #         "result":[
-        #             {
-        #                 "base_withdrawal_fee":"0.0005",
-        #                 "deposit_status":"enabled",
-        #                 "id":2,
-        #                 "interest_credit":true,
-        #                 "interest_slabs":[
-        #                     {"limit":"0.1","rate":"0"},
-        #                     {"limit":"1","rate":"0.05"},
-        #                     {"limit":"5","rate":"0.075"},
-        #                     {"limit":"10","rate":"0.1"},
-        #                     {"limit":"9999999999999999","rate":"0"}
-        #                 ],
-        #                 "kyc_deposit_limit":"10",
-        #                 "kyc_withdrawal_limit":"2",
-        #                 "min_withdrawal_amount":"0.001",
-        #                 "minimum_precision":4,
-        #                 "name":"Bitcoin",
-        #                 "precision":8,
-        #                 "sort_priority":1,
-        #                 "symbol":"BTC",
-        #                 "variable_withdrawal_fee":"0",
-        #                 "withdrawal_status":"enabled"
-        #             },
+        #    {
+        #        "result": [
+        #            {
+        #                "base_withdrawal_fee": "0.005000000000000000",
+        #                "id": "1",
+        #                "interest_credit": False,
+        #                "interest_slabs": null,
+        #                "kyc_deposit_limit": "0.000000000000000000",
+        #                "kyc_withdrawal_limit": "0.000000000000000000",
+        #                "min_withdrawal_amount": "0.010000000000000000",
+        #                "minimum_precision": "4",
+        #                "name": "Ethereum",
+        #                "networks": [
+        #                    {
+        #                        "allowed_deposit_groups": null,
+        #                        "base_withdrawal_fee": "0.0025",
+        #                        "deposit_status": "enabled",
+        #                        "memo_required": False,
+        #                        "min_deposit_amount": "0.000050000000000000",
+        #                        "min_withdrawal_amount": "0.010000000000000000",
+        #                        "minimum_deposit_confirmations": "12",
+        #                        "network": "ERC20",
+        #                        "variable_withdrawal_fee": "0",
+        #                        "withdrawal_status": "enabled"
+        #                    },
+        #                    {
+        #                        "allowed_deposit_groups": null,
+        #                        "base_withdrawal_fee": "0.0001",
+        #                        "deposit_status": "enabled",
+        #                        "memo_required": False,
+        #                        "min_deposit_amount": "0.000050000000000000",
+        #                        "min_withdrawal_amount": "0.000300000000000000",
+        #                        "minimum_deposit_confirmations": "15",
+        #                        "network": "BEP20(BSC)",
+        #                        "variable_withdrawal_fee": "0",
+        #                        "withdrawal_status": "enabled"
+        #                    }
+        #                ],
+        #                "precision": "18",
+        #                "sort_priority": "3",
+        #                "symbol": "ETH",
+        #                "variable_withdrawal_fee": "0.000000000000000000"
+        #            },
         #         ],
         #         "success":true
         #     }
@@ -545,20 +563,41 @@ class delta(Exchange, ImplicitAPI):
             id = self.safe_string(currency, 'symbol')
             numericId = self.safe_integer(currency, 'id')
             code = self.safe_currency_code(id)
-            depositStatus = self.safe_string(currency, 'deposit_status')
-            withdrawalStatus = self.safe_string(currency, 'withdrawal_status')
-            depositsEnabled = (depositStatus == 'enabled')
-            withdrawalsEnabled = (withdrawalStatus == 'enabled')
-            active = depositsEnabled and withdrawalsEnabled
-            result[code] = {
+            chains = self.safe_list(currency, 'networks', [])
+            networks = {}
+            for j in range(0, len(chains)):
+                chain = chains[j]
+                networkId = self.safe_string(chain, 'network')
+                networkCode = self.network_id_to_code(networkId)
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'name': self.safe_string(chain, 'name'),
+                    'info': chain,
+                    'active': self.safe_string(chain, 'status') == 'enabled',
+                    'deposit': self.safe_string(chain, 'deposit_status') == 'enabled',
+                    'withdraw': self.safe_string(chain, 'withdrawal_status') == 'enabled',
+                    'fee': self.safe_number(chain, 'base_withdrawal_fee'),
+                    'limits': {
+                        'deposit': {
+                            'min': self.safe_number(chain, 'min_deposit_amount'),
+                            'max': None,
+                        },
+                        'withdraw': {
+                            'min': self.safe_number(chain, 'min_withdrawal_amount'),
+                            'max': None,
+                        },
+                    },
+                }
+            result[code] = self.safe_currency_structure({
                 'id': id,
                 'numericId': numericId,
                 'code': code,
                 'name': self.safe_string(currency, 'name'),
                 'info': currency,  # the original payload
-                'active': active,
-                'deposit': depositsEnabled,
-                'withdraw': withdrawalsEnabled,
+                'active': None,
+                'deposit': self.safe_string(currency, 'deposit_status') == 'enabled',
+                'withdraw': self.safe_string(currency, 'withdrawal_status') == 'enabled',
                 'fee': self.safe_number(currency, 'base_withdrawal_fee'),
                 'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'precision'))),
                 'limits': {
@@ -568,9 +607,9 @@ class delta(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
-                'networks': {},
+                'networks': networks,
                 'type': 'crypto',
-            }
+            })
         return result
 
     async def load_markets(self, reload=False, params={}):

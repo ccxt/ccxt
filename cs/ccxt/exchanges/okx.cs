@@ -76,7 +76,7 @@ public partial class okx : Exchange
                 { "fetchFundingIntervals", false },
                 { "fetchFundingRate", true },
                 { "fetchFundingRateHistory", true },
-                { "fetchFundingRates", false },
+                { "fetchFundingRates", true },
                 { "fetchGreeks", true },
                 { "fetchIndexOHLCV", true },
                 { "fetchIsolatedBorrowRate", false },
@@ -99,6 +99,7 @@ public partial class okx : Exchange
                 { "fetchOHLCV", true },
                 { "fetchOpenInterest", true },
                 { "fetchOpenInterestHistory", true },
+                { "fetchOpenInterests", true },
                 { "fetchOpenOrder", null },
                 { "fetchOpenOrders", true },
                 { "fetchOption", true },
@@ -344,6 +345,7 @@ public partial class okx : Exchange
                         { "account/spot-manual-borrow-repay", 10 },
                         { "account/set-auto-repay", 4 },
                         { "account/spot-borrow-repay-history", 4 },
+                        { "account/move-positions-history", 10 },
                         { "users/subaccount/list", 10 },
                         { "account/subaccount/balances", divide(10, 3) },
                         { "asset/subaccount/balances", divide(10, 3) },
@@ -469,6 +471,7 @@ public partial class okx : Exchange
                         { "account/fixed-loan/manual-reborrow", 5 },
                         { "account/fixed-loan/repay-borrowing-order", 5 },
                         { "account/bills-history-archive", 72000 },
+                        { "account/move-positions", 10 },
                         { "users/subaccount/modify-apikey", 10 },
                         { "asset/subaccount/transfer", 10 },
                         { "users/subaccount/set-transfer-out", 10 },
@@ -919,6 +922,13 @@ public partial class okx : Exchange
                     { "70010", typeof(BadRequest) },
                     { "70013", typeof(BadRequest) },
                     { "70016", typeof(BadRequest) },
+                    { "70060", typeof(BadRequest) },
+                    { "70061", typeof(BadRequest) },
+                    { "70062", typeof(BadRequest) },
+                    { "70064", typeof(BadRequest) },
+                    { "70065", typeof(BadRequest) },
+                    { "70066", typeof(BadRequest) },
+                    { "70067", typeof(BadRequest) },
                     { "1009", typeof(BadRequest) },
                     { "4001", typeof(AuthenticationError) },
                     { "4002", typeof(BadRequest) },
@@ -6584,7 +6594,7 @@ public partial class okx : Exchange
         object nextFundingRate = this.safeNumber(contract, "nextFundingRate");
         object fundingTime = this.safeInteger(contract, "fundingTime");
         object fundingTimeString = this.safeString(contract, "fundingTime");
-        object nextFundingTimeString = this.safeString(contract, "nextFundingRate");
+        object nextFundingTimeString = this.safeString(contract, "nextFundingTime");
         object millisecondsInterval = Precise.stringSub(nextFundingTimeString, fundingTimeString);
         // https://www.okx.com/support/hc/en-us/articles/360053909272-Ⅸ-Introduction-to-perpetual-swap-funding-fee
         // > The current interest is 0.
@@ -6678,6 +6688,44 @@ public partial class okx : Exchange
         object data = this.safeList(response, "data", new List<object>() {});
         object entry = this.safeDict(data, 0, new Dictionary<string, object>() {});
         return this.parseFundingRate(entry, market);
+    }
+
+    /**
+     * @method
+     * @name okx#fetchFundingRates
+     * @description fetches the current funding rates for multiple symbols
+     * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate
+     * @param {string[]} symbols unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [funding rates structure]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}
+     */
+    public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, "swap", true);
+        object request = new Dictionary<string, object>() {
+            { "instId", "ANY" },
+        };
+        object response = await this.publicGetPublicFundingRate(this.extend(request, parameters));
+        //
+        //    {
+        //        "code": "0",
+        //        "data": [
+        //            {
+        //                "fundingRate": "0.00027815",
+        //                "fundingTime": "1634256000000",
+        //                "instId": "BTC-USD-SWAP",
+        //                "instType": "SWAP",
+        //                "nextFundingRate": "0.00017",
+        //                "nextFundingTime": "1634284800000"
+        //            }
+        //        ],
+        //        "msg": ""
+        //    }
+        //
+        object data = this.safeList(response, "data", new List<object>() {});
+        return this.parseFundingRates(data, symbols);
     }
 
     /**
@@ -7713,6 +7761,77 @@ public partial class okx : Exchange
         //
         object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOpenInterest(getValue(data, 0), market);
+    }
+
+    /**
+     * @method
+     * @name okx#fetchOpenInterests
+     * @description Retrieves the open interests of some currencies
+     * @see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-open-interest
+     * @param {string[]} symbols Unified CCXT market symbols
+     * @param {object} [params] exchange specific parameters
+     * @param {string} params.instType Instrument type, options: 'SWAP', 'FUTURES', 'OPTION', default to 'SWAP'
+     * @param {string} params.uly Underlying, Applicable to FUTURES/SWAP/OPTION, if instType is 'OPTION', either uly or instFamily is required
+     * @param {string} params.instFamily Instrument family, Applicable to FUTURES/SWAP/OPTION, if instType is 'OPTION', either uly or instFamily is required
+     * @returns {object} an dictionary of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     */
+    public async override Task<object> fetchOpenInterests(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, true, true);
+        object market = null;
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            market = this.market(getValue(symbols, 0));
+        }
+        object marketType = null;
+        var marketTypeparametersVariable = this.handleSubTypeAndParams("fetchOpenInterests", market, parameters, "swap");
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        object instType = "SWAP";
+        if (isTrue(isEqual(marketType, "future")))
+        {
+            instType = "FUTURES";
+        } else if (isTrue(isEqual(instType, "option")))
+        {
+            instType = "OPTION";
+        }
+        object request = new Dictionary<string, object>() {
+            { "instType", instType },
+        };
+        object uly = this.safeString(parameters, "uly");
+        if (isTrue(!isEqual(uly, null)))
+        {
+            ((IDictionary<string,object>)request)["uly"] = uly;
+        }
+        object instFamily = this.safeString(parameters, "instFamily");
+        if (isTrue(!isEqual(instFamily, null)))
+        {
+            ((IDictionary<string,object>)request)["instFamily"] = instFamily;
+        }
+        if (isTrue(isTrue(isTrue(isEqual(instType, "OPTION")) && isTrue(isEqual(uly, null))) && isTrue(isEqual(instFamily, null))))
+        {
+            throw new BadRequest ((string)add(this.id, " fetchOpenInterests() requires either uly or instFamily parameter for OPTION markets")) ;
+        }
+        object response = await this.publicGetPublicOpenInterest(this.extend(request, parameters));
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "instId": "BTC-USDT-SWAP",
+        //                 "instType": "SWAP",
+        //                 "oi": "2125419",
+        //                 "oiCcy": "21254.19",
+        //                 "ts": "1664005108969"
+        //             }
+        //         ],
+        //         "msg": ""
+        //     }
+        //
+        object data = this.safeList(response, "data", new List<object>() {});
+        return this.parseOpenInterests(data, symbols);
     }
 
     /**

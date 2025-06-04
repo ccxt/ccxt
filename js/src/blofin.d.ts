@@ -150,6 +150,7 @@ export default class blofin extends Exchange {
      * @param {float} [params.stopLossPrice] stop loss trigger price (will use privatePostTradeOrderTpsl)
      * @param {float} [params.takeProfitPrice] take profit trigger price (will use privatePostTradeOrderTpsl)
      * @param {string} [params.positionSide] *stopLossPrice/takeProfitPrice orders only* 'long' or 'short' or 'net' default is 'net'
+     * @param {boolean} [params.hedged] if true, the positionSide will be set to long/short instead of net, default is false
      * @param {string} [params.clientOrderId] a unique id for the order
      * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
      * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
@@ -344,6 +345,7 @@ export default class blofin extends Exchange {
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated'
+     * @param {string} [params.positionSide] 'long' or 'short' - required for hedged mode in isolated margin
      * @returns {object} response from the exchange
      */
     setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
@@ -390,7 +392,42 @@ export default class blofin extends Exchange {
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
      */
     fetchMarginMode(symbol: string, params?: {}): Promise<MarginMode>;
-    parseMarginMode(marginMode: Dict, market?: any): MarginMode;
+    parseMarginMode(marginMode: Dict, market?: Market): MarginMode;
+    /**
+     * @method
+     * @name blofin#setMarginMode
+     * @description set margin mode to 'cross' or 'isolated'
+     * @see https://docs.blofin.com/index.html#set-margin-mode
+     * @param {string} marginMode 'cross' or 'isolated'
+     * @param {string} [symbol] unified market symbol (not used in blofin setMarginMode)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<MarginMode>;
+    /**
+     * @method
+     * @name blofin#fetchPositionMode
+     * @description fetchs the position mode, hedged or one way
+     * @see https://docs.blofin.com/index.html#get-position-mode
+     * @param {string} [symbol] unified symbol of the market to fetch the position mode for (not used in blofin fetchPositionMode)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an object detailing whether the market is in hedged or one-way mode
+     */
+    fetchPositionMode(symbol?: Str, params?: {}): Promise<{
+        info: import("./base/types.js").Dictionary<any>;
+        hedged: boolean;
+    }>;
+    /**
+     * @method
+     * @name blofin#setPositionMode
+     * @description set hedged to true or false for a market
+     * @see https://docs.blofin.com/index.html#set-position-mode
+     * @param {bool} hedged set to true to use hedged mode, false for one-way mode
+     * @param {string} [symbol] not used by blofin setPositionMode ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<any>;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
