@@ -156,6 +156,7 @@ If you don't want to provide a value for an optional argument, you should still 
 - Always test with small amounts when placing orders.
 - Use `ccxt explain createOrder` to view the required arguments for createOrder or any other method
 - Use `--param keyA=valueA keyB=valueB ...` to provide the `params` argument.
+- Arguments must follow the correct order. Use `undefined` to skip optional values
 
 ---
 
@@ -163,6 +164,11 @@ If you don't want to provide a value for an optional argument, you should still 
 
 - Full CCXT API Reference: [https://docs.ccxt.com](https://docs.ccxt.com)
 - Supported Exchanges: [https://github.com/ccxt/ccxt#supported-cryptocurrency-exchange-markets](https://github.com/ccxt/ccxt#supported-cryptocurrency-exchange-markets)
+
+---
+
+## 💡 Found a bug or have a feature in mind?
+We’d love to hear from you! Open an issue or suggestion on GitHub and help us improve the CLI for everyone.
 
 ---
 

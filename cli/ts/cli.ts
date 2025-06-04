@@ -93,6 +93,8 @@ Examples:
 Notes:
     - Provide apiKeys by setting them as environment variables eg: BINANCE_APIKEY="XXX"
     - Provide apikeys and other settings by adding them to ${getCachePathForHelp ()}/config.json
+    - Arguments must follow the correct order. Use undefined to skip optional values, eg:
+        $ccxt binance fetchTrades BTC/USDT undefined 5 ## since is undefined but we provided limit=5
     `);
 
 //-----------------------------------------------------------------------------
