@@ -57,7 +57,7 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
         int high = arr.Count - 1;
         while (low <= high)
         {
-            int mid = (low + high) / 2;
+            int mid = (low + high) >> 1;
             if (arr[mid] < x) low = mid + 1;
             else high = mid - 1;
         }
@@ -65,7 +65,7 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
     }
 
 
-    private SlimConcurrentList<decimal> __index = new SlimConcurrentList<decimal>();
+    private SlimConcurrentList<decimal> __index = new SlimConcurrentList<decimal>(1024);
 
     public SlimConcurrentList<decimal> _index
     {
