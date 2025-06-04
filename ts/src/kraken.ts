@@ -668,7 +668,7 @@ export default class kraken extends Exchange {
                 'optionType': undefined,
                 'precision': {
                     'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'lot_decimals'))),
-                    'price':  this.parseNumber (this.parsePrecision (this.safeString (market, 'pair_decimals'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'pair_decimals'))),
                 },
                 'limits': {
                     'leverage': {
