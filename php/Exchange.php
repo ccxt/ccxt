@@ -1623,7 +1623,9 @@ class Exchange {
             $this->options['cachedCurrencies'] = $currencies;
         }
         $markets = $this->fetch_markets($params);
-        unset($this->options['cachedCurrencies']);
+        if (array_key_exists('cachedCurrencies', $this->options)) {
+            unset($this->options['cachedCurrencies']);
+        }
         return $this->set_markets($markets, $currencies);
     }
 
