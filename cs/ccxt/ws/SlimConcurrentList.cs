@@ -11,18 +11,8 @@ namespace ccxt.pro;
 /// <typeparam name="T">The type of elements in the list.</typeparam>
 public class SlimConcurrentList<T> : IList<T>, ICollection<T>, IReadOnlyList<T>, IReadOnlyCollection<T>, IEnumerable<T>, IEnumerable, IDisposable
 {
-    private readonly List<T> _list;
+    private readonly List<T> _list = new List<T>();
     private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
-    
-    public SlimConcurrentList()
-    {
-        _list = new List<T>();
-    }
-    
-    public SlimConcurrentList(int capacity)
-    {
-        _list = new List<T>(capacity);
-    }
 
     #region ICollection<T> implementation
 
