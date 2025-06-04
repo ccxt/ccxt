@@ -69,14 +69,11 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
 
     private void initSlimList()
     {
-        lock (_syncRoot)
+        _index = new SlimConcurrentList<decimal>(MAX_SIZE);
+        // Fill the index with elements
+        for (int i = 0; i < MAX_SIZE; i++)
         {
-            _index = new SlimConcurrentList<decimal>(MAX_SIZE);
-            // Fill the index with elements
-            for (int i = 0; i < MAX_SIZE; i++)
-            {
-                _index.Add(decimal.MaxValue);
-            }
+            _index.Add(decimal.MaxValue);
         }
     }
     private SlimConcurrentList<decimal> __index;
