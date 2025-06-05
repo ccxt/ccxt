@@ -2,6 +2,7 @@
 import ansi from 'ansicolor';
 import { Command, Option } from 'commander';
 import ololog from 'ololog';
+import clipboard from 'clipboardy';
 import { parseMethodArgs, printHumanReadable, printSavedCommand, printUsage, loadSettingsAndCreateExchange, collectKeyValue, handleDebug, handleStaticTests, askForArgv, printMethodUsage, printExchangeMethods } from './helpers.js';
 import { changeConfigPath, checkCache, getCachePathForHelp, saveCommand } from './cache.js';
 
@@ -69,6 +70,7 @@ interface CLIOptions {
     name?: string;
     param?: any;
     config?: any;
+    clipboard?: boolean;
 }
 
 const exchanges = Object.keys (ccxt.exchanges) as string[];
@@ -111,6 +113,7 @@ program
     .option ('--no-keys', 'does not set any apiKeys even if detected')
     .option ('--param <keyValue>', 'Pass key=value pair', collectKeyValue, {})
     .option ('--raw', 'keeps the output pristine without extra logs or formatting')
+    .option ('--clipboard', 'Copies the result to clipboard automatically.')
     .option ('--signIn', 'calls the signIn() method if available')
     .option ('--cache-markets', 'forces markets caching')
     .option ('--history', 'prints the history of executed commands')
@@ -280,6 +283,9 @@ async function executeCCXTCommand (exchange, params:any, methodName: string, cli
     }
 
     const result = await exchange[methodName] (...args);
+    if (cliOptions.clipboard) {
+        clipboard.writeSync (JSON.stringify (result, undefined, 2));
+    }
     end = exchange.milliseconds ();
 
     printHumanReadable (exchange, result, cliOptions);
