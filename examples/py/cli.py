@@ -247,8 +247,11 @@ async def main():
         if argv.table:
             result = list(result.values()) if isinstance(result, dict) else result
             print(table([exchange.omit(v, 'info') for v in result]))
+        elif argv.raw:
+            print(exchange.json(result))
         else:
             pprint(result)
+        await exchange.close()
     else:
         pprint(dir(exchange))
 
