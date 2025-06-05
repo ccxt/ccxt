@@ -26,7 +26,9 @@
     "ccxt": "^4.4.86",
     "clipboardy": "^4.0.0",
     "commander": "^14.0.0",
-    "ololog": "^1.1.175"
+    "ololog": "^1.1.175",
+    "open": "^10.1.2",
+    "ora": "^8.2.0"
   },
   "repository": {
     "type": "git",

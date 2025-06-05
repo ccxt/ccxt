@@ -138,6 +138,35 @@ function changeConfigPath (newPath: string) {
     saveConfigFile (currentConfig);
 }
 
+function getChartsFolder () {
+    const cachePath = getCacheDirectory ();
+    const chartsFolder = path.join (cachePath, 'charts');
+    if (!fs.existsSync (chartsFolder)) {
+        try {
+            fs.mkdirSync (chartsFolder, {
+                'recursive': true,
+            });
+        } catch (e) {
+            log.red ('Error creating cache directory', chartsFolder);
+        }
+    }
+
+    return chartsFolder;
+}
+
+function getDateForNamefile () {
+    const now = new Date ();
+    const timestamp = now.toISOString ().replace (/[:]/g, '-').replace (/\..+/, '');
+    return timestamp;
+}
+
+function saveChart (name: string, content: string) {
+    const folder = getChartsFolder ();
+    const filePath = path.join (folder, getDateForNamefile () + '-' + name);
+    fs.writeFileSync (filePath, content, 'utf8');
+    return filePath;
+}
+
 export {
     changeConfigPath,
     checkCache,
@@ -146,4 +175,6 @@ export {
     loadMainConfigFile as loadConfigFile,
     getExchangeSettings,
     getCachePathForHelp,
+    getChartsFolder,
+    saveChart,
 };

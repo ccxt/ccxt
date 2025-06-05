@@ -5,6 +5,7 @@ import ololog from 'ololog';
 import clipboard from 'clipboardy';
 import { parseMethodArgs, printHumanReadable, printSavedCommand, printUsage, loadSettingsAndCreateExchange, collectKeyValue, handleDebug, handleStaticTests, askForArgv, printMethodUsage, printExchangeMethods } from './helpers.js';
 import { changeConfigPath, checkCache, getCachePathForHelp, saveCommand } from './cache.js';
+import { plotOHLCVChart } from './charts/ohlcv.js';
 
 ansi.nice;
 const log = ololog.configure ({ 'locate': false }).unlimited;
@@ -165,6 +166,18 @@ program
     });
 
 program
+    .command ('ohlcv <exchangeName> <symbol> <timeframe> [args...]')
+    .description ('Plots a OHLCV chart using the provided exchange, symbol and timeframe')
+    .action (async (exchangeName, symbol, timeframe, args) => {
+        try {
+            await plotOHLCVChart (exchangeName, symbol, timeframe, args);
+        } catch (e) {
+            log.error ('Error executing ohlcv command: ', e);
+        }
+        process.exit (0);
+    });
+
+program
     .command ('config <path>')
     .description ('Sets a different path for the config file, eg: "config ./some/path/config.json"')
     .action ((configPath) => {
@@ -184,7 +197,12 @@ let inputArgs = process.argv;
 
 program.showHelpAfterError ();
 
-program.parse (inputArgs);
+try {
+    await program.parseAsync (inputArgs);
+} catch (e) {
+    log.error ('❌ error parseAsync:', e);
+    process.exit (1);
+}
 
 saveCommand (process.argv);
 

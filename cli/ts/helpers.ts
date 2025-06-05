@@ -412,7 +412,7 @@ function setNoSend (exchange: any) {
  * @param methodName
  * @param cliOptions
  */
-function parseMethodArgs (exchange, params, methodName, cliOptions): any[] {
+function parseMethodArgs (exchange, params, methodName, cliOptions, inject = true): any[] {
     let args = params
         .map ((s) => (s.match (
             /^[0-9]{4}[-][0-9]{2}[-][0-9]{2}[T\s]?[0-9]{2}[:][0-9]{2}[:][0-9]{2}/g
@@ -427,11 +427,13 @@ function parseMethodArgs (exchange, params, methodName, cliOptions): any[] {
                 return s;
             }
         }) ());
-    if (Object.keys (cliOptions.param).length > 0) {
+    if (cliOptions.param && Object.keys (cliOptions.param).length > 0) {
     // params were provided like --param a=b
         args.push (cliOptions.param);
     }
-    args = injectMissingUndefined (exchange[methodName], args);
+    if (inject) {
+        args = injectMissingUndefined (exchange[methodName], args);
+    }
     return args;
 }
 
@@ -516,7 +518,7 @@ async function loadSettingsAndCreateExchange (
         }
     } catch (e) {
         log.red (e);
-        printUsage ('');
+        // printUsage ('');
         process.exit ();
     }
 
