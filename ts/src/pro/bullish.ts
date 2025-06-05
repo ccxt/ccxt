@@ -3,7 +3,7 @@
 
 import bullishRest from '../bullish.js';
 import { ArrayCache } from '../base/ws/Cache.js';
-import type { Int, Trade } from '../base/types.js';
+import type { Int, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 // import { ArgumentsRequired, AuthenticationError, ExchangeError } from '../base/errors.js';
 // import { OHLCV, Order, Position, Str } from '../base/types.js';
@@ -132,11 +132,96 @@ export default class bullish extends bullishRest {
         client.resolve (tradesArray, messageHash);
     }
 
+    /**
+     * @method
+     * @name bullish#watchTicker
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#overview--anonymous-market-data-price-tick-unauthenticated
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const url = this.urls['api']['ws']['public'] + '/trading-api/v1/market-data/tick/' + market['id'];
+        const messageHash = 'ticker::' + symbol;
+        return await this.watch (url, messageHash, params, messageHash); // no need to send a subscribe message, the server sends a ticker update on connect
+    }
+
+    handleTicker (client: Client, message) {
+        //
+        //     {
+        //         "type": "update",
+        //         "dataType": "V1TATickerResponse",
+        //         "data": {
+        //             "askVolume": "0.00100822",
+        //             "average": "104423.1806",
+        //             "baseVolume": "472.83799258",
+        //             "bestAsk": "104324.6000",
+        //             "bestBid": "104324.5000",
+        //             "bidVolume": "0.00020146",
+        //             "change": "-198.4864",
+        //             "close": "104323.9374",
+        //             "createdAtTimestamp": "1749132838951",
+        //             "publishedAtTimestamp": "1749132838955",
+        //             "high": "105966.6577",
+        //             "last": "104323.9374",
+        //             "lastTradeDatetime": "2025-06-05T14:13:56.111Z",
+        //             "lastTradeSize": "0.02396100",
+        //             "low": "104246.6662",
+        //             "open": "104522.4238",
+        //             "percentage": "-0.19",
+        //             "quoteVolume": "49662592.6712",
+        //             "symbol": "BTC-USDC-PERP",
+        //             "type": "ticker",
+        //             "vwap": "105030.6996",
+        //             "currentPrice": "104324.7747",
+        //             "ammData": [
+        //                 {
+        //                     "feeTierId": "1",
+        //                     "currentPrice": "104324.7747",
+        //                     "baseReservesQuantity": "8.27911366",
+        //                     "quoteReservesQuantity": "1067283.0234",
+        //                     "bidSpreadFee": "0.00000000",
+        //                     "askSpreadFee": "0.00000000"
+        //                 }
+        //             ],
+        //             "createdAtDatetime": "2025-06-05T14:13:58.951Z",
+        //             "markPrice": "104289.6884",
+        //             "fundingRate": "-0.000192",
+        //             "openInterest": "92.24146651"
+        //         }
+        //     }
+        //
+        const updateType = this.safeString (message, 'type', '');
+        const data = this.safeDict (message, 'data', {});
+        const marketId = this.safeString (data, 'symbol');
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        let parsed = undefined;
+        if ((updateType === 'snapshot')) {
+            parsed = this.parseTicker (data, market);
+        } else if (updateType === 'update') {
+            const ticker = this.safeDict (this.tickers, symbol, {});
+            const rawTicker = this.safeDict (ticker, 'info', {});
+            const merged = this.extend (rawTicker, data);
+            parsed = this.parseTicker (merged, market);
+        }
+        this.tickers[symbol] = parsed;
+        const messageHash = 'ticker::' + symbol;
+        client.resolve (this.tickers[symbol], messageHash);
+    }
+
     handleMessage (client: Client, message) {
         const dataType = this.safeString (message, 'dataType');
         if (dataType !== undefined) {
             if (dataType === 'V1TAAnonymousTradeUpdate') {
                 this.handleTrades (client, message);
+            }
+            if (dataType === 'V1TATickerResponse') {
+                this.handleTicker (client, message);
             }
         }
     }
