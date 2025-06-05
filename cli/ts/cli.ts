@@ -6,6 +6,7 @@ import clipboard from 'clipboardy';
 import { parseMethodArgs, printHumanReadable, printSavedCommand, printUsage, loadSettingsAndCreateExchange, collectKeyValue, handleDebug, handleStaticTests, askForArgv, printMethodUsage, printExchangeMethods } from './helpers.js';
 import { changeConfigPath, checkCache, getCachePathForHelp, saveCommand } from './cache.js';
 import { plotOHLCVChart } from './charts/ohlcv.js';
+import { plotOrderBook } from './charts/orderbook.js';
 
 ansi.nice;
 const log = ololog.configure ({ 'locate': false }).unlimited;
@@ -174,6 +175,15 @@ program
         } catch (e) {
             log.error ('Error executing ohlcv command: ', e);
         }
+        process.exit (0);
+    });
+
+program
+    .command ('orderbook <exchangeName1,exchangeName2> <symbol> [args...]')
+    .description ('Plot an orderbook for one or more exchanges for the provided symbol')
+    .action (async (exchangeNames, symbol, args) => {
+        log.yellow (program.opts ());
+        await plotOrderBook (exchangeNames, symbol, args);
         process.exit (0);
     });
 

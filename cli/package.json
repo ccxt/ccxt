@@ -23,6 +23,7 @@
   "dependencies": {
     "ansicolor": "^2.0.3",
     "as-table": "^1.0.55",
+    "blessed": "^0.1.81",
     "ccxt": "^4.4.86",
     "clipboardy": "^4.0.0",
     "commander": "^14.0.0",
