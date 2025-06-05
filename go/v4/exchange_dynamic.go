@@ -318,6 +318,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
         mexcItf := &mexc{}
         mexcItf.Init(exchangeArgs)
         return mexcItf, true
+    case "modetrade":
+        modetradeItf := &modetrade{}
+        modetradeItf.Init(exchangeArgs)
+        return modetradeItf, true
     case "myokx":
         myokxItf := &myokx{}
         myokxItf.Init(exchangeArgs)
@@ -342,6 +346,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
         okxItf := &okx{}
         okxItf.Init(exchangeArgs)
         return okxItf, true
+    case "okxus":
+        okxusItf := &okxus{}
+        okxusItf.Init(exchangeArgs)
+        return okxusItf, true
     case "onetrading":
         onetradingItf := &onetrading{}
         onetradingItf.Init(exchangeArgs)

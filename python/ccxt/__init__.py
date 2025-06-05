@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.4.86'
+__version__ = '4.4.88'
 
 # ----------------------------------------------------------------------------
 
@@ -160,12 +160,14 @@ from ccxt.lbank import lbank                                          # noqa: F4
 from ccxt.luno import luno                                            # noqa: F401
 from ccxt.mercado import mercado                                      # noqa: F401
 from ccxt.mexc import mexc                                            # noqa: F401
+from ccxt.modetrade import modetrade                                  # noqa: F401
 from ccxt.myokx import myokx                                          # noqa: F401
 from ccxt.ndax import ndax                                            # noqa: F401
 from ccxt.novadax import novadax                                      # noqa: F401
 from ccxt.oceanex import oceanex                                      # noqa: F401
 from ccxt.okcoin import okcoin                                        # noqa: F401
 from ccxt.okx import okx                                              # noqa: F401
+from ccxt.okxus import okxus                                          # noqa: F401
 from ccxt.onetrading import onetrading                                # noqa: F401
 from ccxt.oxfun import oxfun                                          # noqa: F401
 from ccxt.p2b import p2b                                              # noqa: F401
@@ -266,12 +268,14 @@ exchanges = [
     'luno',
     'mercado',
     'mexc',
+    'modetrade',
     'myokx',
     'ndax',
     'novadax',
     'oceanex',
     'okcoin',
     'okx',
+    'okxus',
     'onetrading',
     'oxfun',
     'p2b',

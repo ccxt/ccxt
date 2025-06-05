@@ -287,10 +287,13 @@ func (this *Exchange) LoadMarkets(params ...interface{}) <-chan interface{} {
 		hasFetchCurrencies := this.Has["fetchCurrencies"]
 		if IsBool(hasFetchCurrencies) && IsTrue(hasFetchCurrencies) {
 			currencies = <-this.DerivedExchange.FetchCurrencies(params)
+			this.Options["cachedCurrencies"] = currencies
 		}
 
 		markets := <-this.DerivedExchange.FetchMarkets(params)
 		PanicOnError(markets)
+
+		delete(this.Options, "cachedCurrencies")
 
 		// Lock only for writing
 		this.marketsMutex.Lock()

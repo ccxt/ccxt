@@ -89,12 +89,14 @@ var lbank = require('./src/lbank.js');
 var luno = require('./src/luno.js');
 var mercado = require('./src/mercado.js');
 var mexc = require('./src/mexc.js');
+var modetrade = require('./src/modetrade.js');
 var myokx = require('./src/myokx.js');
 var ndax = require('./src/ndax.js');
 var novadax = require('./src/novadax.js');
 var oceanex = require('./src/oceanex.js');
 var okcoin = require('./src/okcoin.js');
 var okx = require('./src/okx.js');
+var okxus = require('./src/okxus.js');
 var onetrading = require('./src/onetrading.js');
 var oxfun = require('./src/oxfun.js');
 var p2b = require('./src/p2b.js');
@@ -169,10 +171,12 @@ var kucoinfutures$1 = require('./src/pro/kucoinfutures.js');
 var lbank$1 = require('./src/pro/lbank.js');
 var luno$1 = require('./src/pro/luno.js');
 var mexc$1 = require('./src/pro/mexc.js');
+var modetrade$1 = require('./src/pro/modetrade.js');
 var myokx$1 = require('./src/pro/myokx.js');
 var ndax$1 = require('./src/pro/ndax.js');
 var okcoin$1 = require('./src/pro/okcoin.js');
 var okx$1 = require('./src/pro/okx.js');
+var okxus$1 = require('./src/pro/okxus.js');
 var onetrading$1 = require('./src/pro/onetrading.js');
 var oxfun$1 = require('./src/pro/oxfun.js');
 var p2b$1 = require('./src/pro/p2b.js');
@@ -190,7 +194,7 @@ var xt$1 = require('./src/pro/xt.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.4.86';
+const version = '4.4.88';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'alpaca': alpaca,
@@ -270,12 +274,14 @@ const exchanges = {
     'luno': luno,
     'mercado': mercado,
     'mexc': mexc,
+    'modetrade': modetrade,
     'myokx': myokx,
     'ndax': ndax,
     'novadax': novadax,
     'oceanex': oceanex,
     'okcoin': okcoin,
     'okx': okx,
+    'okxus': okxus,
     'onetrading': onetrading,
     'oxfun': oxfun,
     'p2b': p2b,
@@ -352,10 +358,12 @@ const pro = {
     'lbank': lbank$1,
     'luno': luno$1,
     'mexc': mexc$1,
+    'modetrade': modetrade$1,
     'myokx': myokx$1,
     'ndax': ndax$1,
     'okcoin': okcoin$1,
     'okx': okx$1,
+    'okxus': okxus$1,
     'onetrading': onetrading$1,
     'oxfun': oxfun$1,
     'p2b': p2b$1,
@@ -498,12 +506,14 @@ exports.lbank = lbank;
 exports.luno = luno;
 exports.mercado = mercado;
 exports.mexc = mexc;
+exports.modetrade = modetrade;
 exports.myokx = myokx;
 exports.ndax = ndax;
 exports.novadax = novadax;
 exports.oceanex = oceanex;
 exports.okcoin = okcoin;
 exports.okx = okx;
+exports.okxus = okxus;
 exports.onetrading = onetrading;
 exports.oxfun = oxfun;
 exports.p2b = p2b;

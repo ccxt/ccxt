@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.4.86'
+__version__ = '4.4.88'
 
 # ----------------------------------------------------------------------------
 
@@ -55,6 +55,34 @@ from ccxt.base.errors import CancelPending                            # noqa: F4
 from ccxt.base.errors import UnsubscribeError                         # noqa: F401
 from ccxt.base.errors import error_hierarchy                          # noqa: F401
 # DO_NOT_REMOVE__ERROR_IMPORTS_END
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -209,10 +237,12 @@ from ccxt.pro.kucoinfutures import kucoinfutures                          # noqa
 from ccxt.pro.lbank import lbank                                          # noqa: F401
 from ccxt.pro.luno import luno                                            # noqa: F401
 from ccxt.pro.mexc import mexc                                            # noqa: F401
+from ccxt.pro.modetrade import modetrade                                  # noqa: F401
 from ccxt.pro.myokx import myokx                                          # noqa: F401
 from ccxt.pro.ndax import ndax                                            # noqa: F401
 from ccxt.pro.okcoin import okcoin                                        # noqa: F401
 from ccxt.pro.okx import okx                                              # noqa: F401
+from ccxt.pro.okxus import okxus                                          # noqa: F401
 from ccxt.pro.onetrading import onetrading                                # noqa: F401
 from ccxt.pro.oxfun import oxfun                                          # noqa: F401
 from ccxt.pro.p2b import p2b                                              # noqa: F401
@@ -282,10 +312,12 @@ exchanges = [
     'lbank',
     'luno',
     'mexc',
+    'modetrade',
     'myokx',
     'ndax',
     'okcoin',
     'okx',
+    'okxus',
     'onetrading',
     'oxfun',
     'p2b',

@@ -125,7 +125,7 @@ class gate(Exchange, ImplicitAPI):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': False,
-                'fetchDepositAddressesByNetwork': False,
+                'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
@@ -2158,9 +2158,7 @@ class gate(Exchange, ImplicitAPI):
         chains = self.safe_value(response, 'multichain_addresses', [])
         currencyId = self.safe_string(response, 'currency')
         currency = self.safe_currency(currencyId, currency)
-        parsed = self.parse_deposit_addresses(chains, [currency['code']], False, {
-            'currency': currency['id'],
-        })
+        parsed = self.parse_deposit_addresses(chains, None, False)
         return self.index_by(parsed, 'network')
 
     def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
@@ -2178,8 +2176,8 @@ class gate(Exchange, ImplicitAPI):
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
         chainsIndexedById = self.fetch_deposit_addresses_by_network(code, params)
-        selectedNetworkId = self.select_network_code_from_unified_networks(code, networkCode, chainsIndexedById)
-        return chainsIndexedById[selectedNetworkId]
+        selectedNetworkIdOrCode = self.select_network_code_from_unified_networks(code, networkCode, chainsIndexedById)
+        return chainsIndexedById[selectedNetworkIdOrCode]
 
     def parse_deposit_address(self, depositAddress, currency=None):
         #

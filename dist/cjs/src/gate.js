@@ -108,7 +108,7 @@ class gate extends gate$1 {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
-                'fetchDepositAddressesByNetwork': false,
+                'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
@@ -2197,9 +2197,7 @@ class gate extends gate$1 {
         const chains = this.safeValue(response, 'multichain_addresses', []);
         const currencyId = this.safeString(response, 'currency');
         currency = this.safeCurrency(currencyId, currency);
-        const parsed = this.parseDepositAddresses(chains, [currency['code']], false, {
-            'currency': currency['id'],
-        });
+        const parsed = this.parseDepositAddresses(chains, undefined, false);
         return this.indexBy(parsed, 'network');
     }
     /**
@@ -2217,8 +2215,8 @@ class gate extends gate$1 {
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
         const chainsIndexedById = await this.fetchDepositAddressesByNetwork(code, params);
-        const selectedNetworkId = this.selectNetworkCodeFromUnifiedNetworks(code, networkCode, chainsIndexedById);
-        return chainsIndexedById[selectedNetworkId];
+        const selectedNetworkIdOrCode = this.selectNetworkCodeFromUnifiedNetworks(code, networkCode, chainsIndexedById);
+        return chainsIndexedById[selectedNetworkIdOrCode];
     }
     parseDepositAddress(depositAddress, currency = undefined) {
         //
