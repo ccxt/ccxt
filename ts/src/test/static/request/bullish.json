@@ -1,6 +1,6 @@
 {
     "exchange": "bullish",
-    "skipKeys": [],
+    "skipKeys": [ "createdAtDatetime[gte]", "createdAtDatetime[lte]" ],
     "outputType": "urlencoded",
     "methods": {
         "fetchOHLCV": [
