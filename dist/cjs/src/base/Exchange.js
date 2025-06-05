@@ -18,11 +18,12 @@ require('../static_dependencies/ethers/utils/fixednumber.js');
 require('../static_dependencies/ethers/utils/maths.js');
 require('../static_dependencies/ethers/utils/utf8.js');
 require('../static_dependencies/noble-hashes/sha3.js');
-require('../static_dependencies/noble-hashes/sha256.js');
+var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 require('../static_dependencies/ethers/address/address.js');
 var typedData = require('../static_dependencies/ethers/hash/typed-data.js');
 var rng = require('../static_dependencies/jsencrypt/lib/jsbn/rng.js');
 var index$1 = require('../static_dependencies/scure-starknet/index.js');
+var zklinkSdkWeb = require('../static_dependencies/zklink/zklink-sdk-web.js');
 require('../static_dependencies/noble-curves/abstract/modular.js');
 var selector = require('../static_dependencies/starknet/utils/selector.js');
 var classHash = require('../static_dependencies/starknet/utils/hash/classHash.js');
@@ -499,7 +500,7 @@ class Exchange {
         }
         if (httpProxy) {
             if (this.httpProxyAgentModule === undefined) {
-                throw new errors.NotSupported(this.id + ' you need to load JS proxy modules with `.loadProxyModules()` method at first to use proxies');
+                throw new errors.NotSupported(this.id + ' you need to load JS proxy modules with `await instance.loadProxyModules()` method at first to use proxies');
             }
             if (!(httpProxy in this.proxyDictionaries)) {
                 this.proxyDictionaries[httpProxy] = new this.httpProxyAgentModule.HttpProxyAgent(httpProxy);
@@ -508,7 +509,7 @@ class Exchange {
         }
         else if (httpsProxy) {
             if (this.httpsProxyAgentModule === undefined) {
-                throw new errors.NotSupported(this.id + ' you need to load JS proxy modules with `.loadProxyModules()` method at first to use proxies');
+                throw new errors.NotSupported(this.id + ' you need to load JS proxy modules with `await instance.loadProxyModules()` method at first to use proxies');
             }
             if (!(httpsProxy in this.proxyDictionaries)) {
                 this.proxyDictionaries[httpsProxy] = new this.httpsProxyAgentModule.HttpsProxyAgent(httpsProxy);
@@ -518,7 +519,7 @@ class Exchange {
         }
         else if (socksProxy) {
             if (this.socksProxyAgentModule === undefined) {
-                throw new errors.NotSupported(this.id + ' - to use SOCKS proxy with ccxt, at first you need install module "npm i socks-proxy-agent" and then initialize proxies with `.loadProxyModules()` method');
+                throw new errors.NotSupported(this.id + ' - to use SOCKS proxy with ccxt, at first you need install module "npm i socks-proxy-agent" and then initialize proxies with `await instance.loadProxyModules()` method');
             }
             if (!(socksProxy in this.proxyDictionaries)) {
                 this.proxyDictionaries[socksProxy] = new this.socksProxyAgentModule.SocksProxyAgent(socksProxy);
@@ -742,12 +743,29 @@ class Exchange {
         // only call if exchange API provides endpoint (true), thus avoid emulated versions ('emulated')
         if (this.has['fetchCurrencies'] === true) {
             currencies = await this.fetchCurrencies();
+            this.options['cachedCurrencies'] = currencies;
         }
         const markets = await this.fetchMarkets(params);
+        if ('cachedCurrencies' in this.options) {
+            delete this.options['cachedCurrencies'];
+        }
         return this.setMarkets(markets, currencies);
     }
+    /**
+     * @method
+     * @name Exchange#loadMarkets
+     * @description Loads and prepares the markets for trading.
+     * @param {boolean} reload - If true, the markets will be reloaded from the exchange.
+     * @param {object} params - Additional exchange-specific parameters for the request.
+     * @returns A promise that resolves to a dictionary of markets.
+     * @throws An error if the markets cannot be loaded or prepared.
+     * @remarks This method is asynchronous and returns a promise.
+     *          It ensures that the markets are only loaded once, even if the method is called multiple times.
+     *          If the markets are already loaded and not reloading, the method returns the existing markets.
+     *          If the markets are being reloaded, the method waits for the reload to complete before returning the markets.
+     *          If an error occurs during the loading or preparation of the markets, the promise is rejected with the error.
+     */
     async loadMarkets(reload = false, params = {}) {
-        // this method is async, it returns a promise
         if ((reload && !this.reloadingMarkets) || !this.marketsLoading) {
             this.reloadingMarkets = true;
             this.marketsLoading = this.loadMarketsHelper(reload, params).then((resolved) => {
@@ -1216,6 +1234,45 @@ class Exchange {
         // TODO: unify to ecdsa
         const signature = index$1.sign(hash.replace('0x', ''), pri.slice(-64));
         return this.json([signature.r.toString(), signature.s.toString()]);
+    }
+    async getZKContractSignatureObj(seed, params = {}) {
+        const formattedSlotId = BigInt('0x' + this.remove0xPrefix(this.hash(this.encode(this.safeString(params, 'slotId')), sha256.sha256, 'hex'))).toString();
+        const formattedNonce = BigInt('0x' + this.remove0xPrefix(this.hash(this.encode(this.safeString(params, 'nonce')), sha256.sha256, 'hex'))).toString();
+        const formattedUint64 = '18446744073709551615';
+        const formattedUint32 = '4294967295';
+        const accountId = parseInt(Precise["default"].stringMod(this.safeString(params, 'accountId'), formattedUint32), 10);
+        const slotId = parseInt(Precise["default"].stringDiv(Precise["default"].stringMod(formattedSlotId, formattedUint64), formattedUint32), 10);
+        const nonce = parseInt(Precise["default"].stringMod(formattedNonce, formattedUint32), 10);
+        await zklinkSdkWeb["default"]();
+        const _signer = zklinkSdkWeb.newRpcSignerWithProvider({});
+        await _signer.initZklinkSigner(seed);
+        let tx_builder = new zklinkSdkWeb.ContractBuilder(accountId, 0, slotId, nonce, this.safeInteger(params, 'pairId'), Precise["default"].stringMul(this.safeString(params, 'size'), '1e18'), Precise["default"].stringMul(this.safeString(params, 'price'), '1e18'), this.safeString(params, 'direction') === 'BUY', parseInt(Precise["default"].stringMul(this.safeString(params, 'makerFeeRate'), '10000')), parseInt(Precise["default"].stringMul(this.safeString(params, 'takerFeeRate'), '10000')), false);
+        let contractor = zklinkSdkWeb.newContract(tx_builder);
+        //const signer = ZkLinkSigner.ethSig(seed);
+        //const signer = new Signer(seed);
+        contractor?.sign(_signer?.getZkLinkSigner());
+        const tx = contractor.jsValue();
+        const zkSign = tx?.signature?.signature;
+        return zkSign;
+    }
+    async getZKTransferSignatureObj(seed, params = {}) {
+        await zklinkSdkWeb["default"]();
+        const _signer = zklinkSdkWeb.newRpcSignerWithProvider({});
+        await _signer.initZklinkSigner(seed);
+        let nonce = this.safeString(params, 'nonce', '0');
+        if (this.safeBool(params, 'isContract') === true) {
+            const formattedUint32 = '4294967295';
+            const formattedNonce = BigInt('0x' + this.remove0xPrefix(this.hash(this.encode(nonce), sha256.sha256, 'hex'))).toString();
+            nonce = Precise["default"].stringMod(formattedNonce, formattedUint32);
+        }
+        let tx_builder = new zklinkSdkWeb.TransferBuilder(this.safeNumber(params, 'zkAccountId', 0), this.safeString(params, 'receiverAddress'), this.safeNumber(params, 'subAccountId', 0), this.safeNumber(params, 'receiverSubAccountId', 0), this.safeNumber(params, 'tokenId', 0), this.safeString(params, 'fee', '0'), this.safeString(params, 'amount', '0'), this.parseToInt(nonce), this.safeNumber(params, 'timestampSeconds', 0));
+        let contractor = zklinkSdkWeb.newTransfer(tx_builder);
+        //const signer = ZkLinkSigner.ethSig(seed);
+        //const signer = new Signer(seed);
+        contractor?.sign(_signer?.getZkLinkSigner());
+        const tx = contractor.jsValue();
+        const zkSign = tx?.signature?.signature;
+        return zkSign;
     }
     intToBase16(elem) {
         return elem.toString(16);
@@ -2555,7 +2612,7 @@ class Exchange {
                         currency['networks'][key]['active'] = false;
                     }
                 }
-                active = this.safeBool(network, 'active');
+                active = this.safeBool(currency['networks'][key], 'active'); // dict might have been updated on above lines, so access directly instead of `network` variable
                 const currencyActive = this.safeBool(currency, 'active');
                 if (currencyActive === undefined || active) {
                     currency['active'] = active;
@@ -2569,7 +2626,7 @@ class Exchange {
                 // find lowest precision (which is more desired)
                 const precision = this.safeString(network, 'precision');
                 const precisionMain = this.safeString(currency, 'precision');
-                if (precisionMain === undefined || Precise["default"].stringLt(precision, precisionMain)) {
+                if (precisionMain === undefined || Precise["default"].stringGt(precision, precisionMain)) {
                     currency['precision'] = this.parseNumber(precision);
                 }
                 // limits
@@ -3908,12 +3965,12 @@ class Exchange {
             }
             else {
                 // if networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
-                const networkId = isIndexedByUnifiedNetworkCode ? networkCode : this.networkCodeToId(networkCode, currencyCode);
-                if (networkId in indexedNetworkEntries) {
-                    chosenNetworkId = networkId;
+                const networkIdOrCode = isIndexedByUnifiedNetworkCode ? networkCode : this.networkCodeToId(networkCode, currencyCode);
+                if (networkIdOrCode in indexedNetworkEntries) {
+                    chosenNetworkId = networkIdOrCode;
                 }
                 else {
-                    throw new errors.NotSupported(this.id + ' - ' + networkId + ' network was not found for ' + currencyCode + ', use one of ' + availableNetworkIds.join(', '));
+                    throw new errors.NotSupported(this.id + ' - ' + networkIdOrCode + ' network was not found for ' + currencyCode + ', use one of ' + availableNetworkIds.join(', '));
                 }
             }
         }
@@ -4255,15 +4312,15 @@ class Exchange {
             const cost = this.calculateRateLimiterCost(api, method, path, params, config);
             await this.throttle(cost);
         }
+        let retries = undefined;
+        [retries, params] = this.handleOptionAndParams(params, path, 'maxRetriesOnFailure', 0);
+        let retryDelay = undefined;
+        [retryDelay, params] = this.handleOptionAndParams(params, path, 'maxRetriesOnFailureDelay', 0);
         this.lastRestRequestTimestamp = this.milliseconds();
         const request = this.sign(path, api, method, params, headers, body);
         this.last_request_headers = request['headers'];
         this.last_request_body = request['body'];
         this.last_request_url = request['url'];
-        let retries = undefined;
-        [retries, params] = this.handleOptionAndParams(params, path, 'maxRetriesOnFailure', 0);
-        let retryDelay = undefined;
-        [retryDelay, params] = this.handleOptionAndParams(params, path, 'maxRetriesOnFailureDelay', 0);
         for (let i = 0; i < retries + 1; i++) {
             try {
                 return await this.fetch(request['url'], request['method'], request['headers'], request['body']);
@@ -5528,6 +5585,29 @@ class Exchange {
     }
     createExpiredOptionMarket(symbol) {
         throw new errors.NotSupported(this.id + ' createExpiredOptionMarket () is not supported yet');
+    }
+    isLeveragedCurrency(currencyCode, checkBaseCoin = false, existingCurrencies = undefined) {
+        const leverageSuffixes = [
+            '2L', '2S', '3L', '3S', '4L', '4S', '5L', '5S',
+            'UP', 'DOWN',
+            'BULL', 'BEAR', // similar
+        ];
+        for (let i = 0; i < leverageSuffixes.length; i++) {
+            const leverageSuffix = leverageSuffixes[i];
+            if (currencyCode.endsWith(leverageSuffix)) {
+                if (!checkBaseCoin) {
+                    return true;
+                }
+                else {
+                    // check if base currency is inside dict
+                    const baseCurrencyCode = currencyCode.replace(leverageSuffix, '');
+                    if (baseCurrencyCode in existingCurrencies) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
     handleWithdrawTagAndParams(tag, params) {
         if ((tag !== undefined) && (typeof tag === 'object')) {

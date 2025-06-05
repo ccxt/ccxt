@@ -8,7 +8,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
-import type { Market, Ticker, Tickers, TradingFees, Balances, Int, OrderBook, OHLCV, Str, Order, OrderType, OrderSide, Trade, Strings, Dict, Num, Currencies, FundingRate, FundingRates, Currency, Transaction, OpenInterests } from './base/types.js';
+import type { Market, Ticker, Tickers, TradingFees, Balances, Int, OrderBook, OHLCV, Str, Order, OrderType, OrderSide, Trade, Strings, Dict, Num, Currencies, FundingRate, FundingRates, Currency, Transaction, OpenInterests, Position } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -459,11 +459,10 @@ export default class vertex extends Exchange {
             if ((tickerId !== undefined) && (tickerId.indexOf ('PERP') > 0)) {
                 continue;
             }
-            const id = this.safeString (data, 'product_id');
             const name = this.safeString (data, 'symbol');
             const code = this.safeCurrencyCode (name);
-            result[code] = {
-                'id': id,
+            result[code] = this.safeCurrencyStructure ({
+                'id': this.safeString (data, 'product_id'),
                 'name': name,
                 'code': code,
                 'precision': undefined,
@@ -483,7 +482,7 @@ export default class vertex extends Exchange {
                         'max': undefined,
                     },
                 },
-            };
+            });
         }
         return result;
     }
@@ -2990,7 +2989,7 @@ export default class vertex extends Exchange {
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    async fetchPositions (symbols: Strings = undefined, params = {}) {
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         let userAddress = undefined;
         [ userAddress, params ] = this.handlePublicAddress ('fetchPositions', params);
         const request = {

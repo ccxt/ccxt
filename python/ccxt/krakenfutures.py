@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.krakenfutures import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currency, Int, Leverage, Leverages, LeverageTier, LeverageTiers, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TransferEntry
+from ccxt.base.types import Any, Balances, Currency, Int, Leverage, Leverages, LeverageTier, LeverageTiers, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -2287,7 +2287,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         sorted = self.sort_by(result, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def fetch_positions(self, symbols: Strings = None, params={}):
+    def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
 
         https://docs.futures.kraken.com/#http-api-trading-v3-api-account-information-get-open-positions

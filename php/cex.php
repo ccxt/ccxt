@@ -301,8 +301,6 @@ class cex extends Exchange {
         $id = $this->safe_string($rawCurrency, 'currency');
         $code = $this->safe_currency_code($id);
         $type = $this->safe_bool($rawCurrency, 'fiat') ? 'fiat' : 'crypto';
-        $currencyDepositEnabled = $this->safe_bool($rawCurrency, 'walletDeposit');
-        $currencyWithdrawEnabled = $this->safe_bool($rawCurrency, 'walletWithdrawal');
         $currencyPrecision = $this->parse_number($this->parse_precision($this->safe_string($rawCurrency, 'precision')));
         $networks = array();
         $rawNetworks = $this->safe_dict($rawCurrency, 'blockchains', array());
@@ -341,8 +339,8 @@ class cex extends Exchange {
             'name' => null,
             'type' => $type,
             'active' => null,
-            'deposit' => $currencyDepositEnabled,
-            'withdraw' => $currencyWithdrawEnabled,
+            'deposit' => $this->safe_bool($rawCurrency, 'walletDeposit'),
+            'withdraw' => $this->safe_bool($rawCurrency, 'walletWithdrawal'),
             'fee' => null,
             'precision' => $currencyPrecision,
             'limits' => array(
@@ -553,7 +551,7 @@ class cex extends Exchange {
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
-            'close' => $this->safe_string($ticker, 'lastTradePrice'),
+            'close' => $this->safe_string($ticker, 'last'), // last indicative price per api docs (difference also seen here => https://github.com/ccxt/ccxt/actions/runs/14593899575/job/40935513901?pr=25767#step:11:456 )
             'previousClose' => null,
             'change' => $this->safe_number($ticker, 'priceChange'),
             'percentage' => $this->safe_number($ticker, 'priceChangePercentage'),

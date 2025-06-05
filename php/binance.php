@@ -14,7 +14,7 @@ class binance extends Exchange {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'binance',
             'name' => 'Binance',
-            'countries' => array( 'JP', 'MT' ), // Japan, Malta
+            'countries' => array(), // Japan
             'rateLimit' => 50,
             'certified' => true,
             'pro' => true,
@@ -1264,6 +1264,7 @@ class binance extends Exchange {
                     'inverse', // allows CORS in browsers
                     // 'option', // does not allow CORS, enable outside of the browser only
                 ),
+                'loadAllOptions' => false,
                 'fetchCurrencies' => true, // this is a private call and it requires API keys
                 // 'fetchTradesMethod' => 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades, eapiPublicGetTrades
                 // 'repayCrossMarginMethod' => 'papiPostRepayLoan', // papiPostMarginRepayDebt
@@ -3029,6 +3030,13 @@ class binance extends Exchange {
          */
         $promisesRaw = array();
         $rawFetchMarkets = $this->safe_list($this->options, 'fetchMarkets', array( 'spot', 'linear', 'inverse' ));
+        // handle $loadAllOptions option
+        $loadAllOptions = $this->safe_bool($this->options, 'loadAllOptions', false);
+        if ($loadAllOptions) {
+            if (!$this->in_array('option', $rawFetchMarkets)) {
+                $rawFetchMarkets[] = 'option';
+            }
+        }
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         $fetchMarkets = array();
         for ($i = 0; $i < count($rawFetchMarkets); $i++) {
@@ -5131,7 +5139,6 @@ class binance extends Exchange {
         if ($postOnly) {
             $uppercaseType = 'LIMIT_MAKER';
         }
-        $request['type'] = $uppercaseType;
         $triggerPrice = $this->safe_number_2($params, 'stopPrice', 'triggerPrice');
         if ($triggerPrice !== null) {
             if ($uppercaseType === 'MARKET') {
@@ -5140,6 +5147,7 @@ class binance extends Exchange {
                 $uppercaseType = 'STOP_LOSS_LIMIT';
             }
         }
+        $request['type'] = $uppercaseType;
         $validOrderTypes = $this->safe_list($market['info'], 'orderTypes');
         if (!$this->in_array($uppercaseType, $validOrderTypes)) {
             if ($initialUppercaseType !== $uppercaseType) {
@@ -10611,7 +10619,7 @@ class binance extends Exchange {
         ));
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): array {
         /**
          * fetch all open positions
          *

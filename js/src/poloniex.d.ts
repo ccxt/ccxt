@@ -1,5 +1,5 @@
 import Exchange from './abstract/poloniex.js';
-import type { TransferEntry, Int, Leverage, OrderSide, OrderType, OHLCV, Trade, OrderBook, Order, Balances, Str, MarginModification, Transaction, Ticker, Tickers, Market, Strings, Currency, Num, Currencies, TradingFees, Dict, int, DepositAddress } from './base/types.js';
+import type { TransferEntry, Int, Leverage, OrderSide, OrderType, OHLCV, Trade, OrderBook, Order, Balances, Str, MarginModification, Transaction, Ticker, Tickers, Market, Strings, Currency, Num, Currencies, TradingFees, Dict, int, DepositAddress, Position } from './base/types.js';
 /**
  * @class poloniex
  * @augments Exchange
@@ -269,6 +269,8 @@ export default class poloniex extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
      */
     fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
+    prepareRequestForDepositAddress(code: string, params?: Dict): any;
+    parseDepositAddressSpecial(response: any, currency: any, networkEntry: any): DepositAddress;
     /**
      * @method
      * @name poloniex#transfer
@@ -404,8 +406,8 @@ export default class poloniex extends Exchange {
      * @param {boolean} [params.standard] whether to fetch standard contract positions
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
-    parsePosition(position: Dict, market?: Market): import("./base/types.js").Position;
+    fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
+    parsePosition(position: Dict, market?: Market): Position;
     modifyMarginHelper(symbol: string, amount: any, type: any, params?: {}): Promise<MarginModification>;
     parseMarginModification(data: Dict, market?: Market): MarginModification;
     /**

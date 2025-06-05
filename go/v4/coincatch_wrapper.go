@@ -35,6 +35,53 @@ func (this *Coincatch) FetchTime(params ...interface{}) ( int64, error) {
 }
 /**
  * @method
+ * @name coincatch#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://coincatch.github.io/github.io/en/spot/#get-coin-list
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Coincatch) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
+ * @name coincatch#fetchDepositWithdrawFees
+ * @description fetch deposit and withdraw fees
+ * @see https://coincatch.github.io/github.io/en/spot/#get-coin-list
+ * @param {string[]} [codes] list of unified currency codes
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ */
+func (this *Coincatch) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]interface{}, error) {
+
+    opts := FetchDepositWithdrawFeesOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var codes interface{} = nil
+    if opts.Codes != nil {
+        codes = *opts.Codes
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.FetchDepositWithdrawFees(codes, params)
+    if IsError(res) {
+        return map[string]interface{}{}, CreateReturnError(res)
+    }
+    return res.(map[string]interface{}), nil
+}
+/**
+ * @method
  * @name coincatch#fetchMarkets
  * @description retrieves data on all markets for the exchange
  * @see https://coincatch.github.io/github.io/en/spot/#get-all-tickers

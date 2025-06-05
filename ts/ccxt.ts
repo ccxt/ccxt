@@ -40,14 +40,14 @@ import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, Account
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.4.76';
+const version = '4.4.88';
 
 (Exchange as any).ccxtVersion = version
 
 //-----------------------------------------------------------------------------
 
-import ace from  './src/ace.js'
 import alpaca from  './src/alpaca.js'
+import apex from  './src/apex.js'
 import ascendex from  './src/ascendex.js'
 import bequant from  './src/bequant.js'
 import bigone from  './src/bigone.js'
@@ -70,8 +70,8 @@ import bitrue from  './src/bitrue.js'
 import bitso from  './src/bitso.js'
 import bitstamp from  './src/bitstamp.js'
 import bitteam from  './src/bitteam.js'
+import bittrade from  './src/bittrade.js'
 import bitvavo from  './src/bitvavo.js'
-import bl3p from  './src/bl3p.js'
 import blockchaincom from  './src/blockchaincom.js'
 import blofin from  './src/blofin.js'
 import btcalpha from  './src/btcalpha.js'
@@ -111,27 +111,26 @@ import hitbtc from  './src/hitbtc.js'
 import hollaex from  './src/hollaex.js'
 import htx from  './src/htx.js'
 import huobi from  './src/huobi.js'
-import huobijp from  './src/huobijp.js'
 import hyperliquid from  './src/hyperliquid.js'
-import idex from  './src/idex.js'
 import independentreserve from  './src/independentreserve.js'
 import indodax from  './src/indodax.js'
 import kraken from  './src/kraken.js'
 import krakenfutures from  './src/krakenfutures.js'
 import kucoin from  './src/kucoin.js'
 import kucoinfutures from  './src/kucoinfutures.js'
-import kuna from  './src/kuna.js'
 import latoken from  './src/latoken.js'
 import lbank from  './src/lbank.js'
 import luno from  './src/luno.js'
 import mercado from  './src/mercado.js'
 import mexc from  './src/mexc.js'
+import modetrade from  './src/modetrade.js'
 import myokx from  './src/myokx.js'
 import ndax from  './src/ndax.js'
 import novadax from  './src/novadax.js'
 import oceanex from  './src/oceanex.js'
 import okcoin from  './src/okcoin.js'
 import okx from  './src/okx.js'
+import okxus from  './src/okxus.js'
 import onetrading from  './src/onetrading.js'
 import oxfun from  './src/oxfun.js'
 import p2b from  './src/p2b.js'
@@ -157,6 +156,7 @@ import zonda from  './src/zonda.js'
 
 // pro exchanges
 import alpacaPro from  './src/pro/alpaca.js'
+import apexPro from  './src/pro/apex.js'
 import ascendexPro from  './src/pro/ascendex.js'
 import bequantPro from  './src/pro/bequant.js'
 import binancePro from  './src/pro/binance.js'
@@ -172,6 +172,7 @@ import bitmexPro from  './src/pro/bitmex.js'
 import bitoproPro from  './src/pro/bitopro.js'
 import bitruePro from  './src/pro/bitrue.js'
 import bitstampPro from  './src/pro/bitstamp.js'
+import bittradePro from  './src/pro/bittrade.js'
 import bitvavoPro from  './src/pro/bitvavo.js'
 import blockchaincomPro from  './src/pro/blockchaincom.js'
 import blofinPro from  './src/pro/blofin.js'
@@ -198,9 +199,7 @@ import hitbtcPro from  './src/pro/hitbtc.js'
 import hollaexPro from  './src/pro/hollaex.js'
 import htxPro from  './src/pro/htx.js'
 import huobiPro from  './src/pro/huobi.js'
-import huobijpPro from  './src/pro/huobijp.js'
 import hyperliquidPro from  './src/pro/hyperliquid.js'
-import idexPro from  './src/pro/idex.js'
 import independentreservePro from  './src/pro/independentreserve.js'
 import krakenPro from  './src/pro/kraken.js'
 import krakenfuturesPro from  './src/pro/krakenfutures.js'
@@ -209,10 +208,12 @@ import kucoinfuturesPro from  './src/pro/kucoinfutures.js'
 import lbankPro from  './src/pro/lbank.js'
 import lunoPro from  './src/pro/luno.js'
 import mexcPro from  './src/pro/mexc.js'
+import modetradePro from  './src/pro/modetrade.js'
 import myokxPro from  './src/pro/myokx.js'
 import ndaxPro from  './src/pro/ndax.js'
 import okcoinPro from  './src/pro/okcoin.js'
 import okxPro from  './src/pro/okx.js'
+import okxusPro from  './src/pro/okxus.js'
 import onetradingPro from  './src/pro/onetrading.js'
 import oxfunPro from  './src/pro/oxfun.js'
 import p2bPro from  './src/pro/p2b.js'
@@ -220,6 +221,7 @@ import paradexPro from  './src/pro/paradex.js'
 import phemexPro from  './src/pro/phemex.js'
 import poloniexPro from  './src/pro/poloniex.js'
 import probitPro from  './src/pro/probit.js'
+import tradeogrePro from  './src/pro/tradeogre.js'
 import upbitPro from  './src/pro/upbit.js'
 import vertexPro from  './src/pro/vertex.js'
 import whitebitPro from  './src/pro/whitebit.js'
@@ -228,8 +230,8 @@ import woofiproPro from  './src/pro/woofipro.js'
 import xtPro from  './src/pro/xt.js'
 
 const exchanges = {
-    'ace':                    ace,
     'alpaca':                 alpaca,
+    'apex':                   apex,
     'ascendex':               ascendex,
     'bequant':                bequant,
     'bigone':                 bigone,
@@ -252,8 +254,8 @@ const exchanges = {
     'bitso':                  bitso,
     'bitstamp':               bitstamp,
     'bitteam':                bitteam,
+    'bittrade':               bittrade,
     'bitvavo':                bitvavo,
-    'bl3p':                   bl3p,
     'blockchaincom':          blockchaincom,
     'blofin':                 blofin,
     'btcalpha':               btcalpha,
@@ -293,27 +295,26 @@ const exchanges = {
     'hollaex':                hollaex,
     'htx':                    htx,
     'huobi':                  huobi,
-    'huobijp':                huobijp,
     'hyperliquid':            hyperliquid,
-    'idex':                   idex,
     'independentreserve':     independentreserve,
     'indodax':                indodax,
     'kraken':                 kraken,
     'krakenfutures':          krakenfutures,
     'kucoin':                 kucoin,
     'kucoinfutures':          kucoinfutures,
-    'kuna':                   kuna,
     'latoken':                latoken,
     'lbank':                  lbank,
     'luno':                   luno,
     'mercado':                mercado,
     'mexc':                   mexc,
+    'modetrade':              modetrade,
     'myokx':                  myokx,
     'ndax':                   ndax,
     'novadax':                novadax,
     'oceanex':                oceanex,
     'okcoin':                 okcoin,
     'okx':                    okx,
+    'okxus':                  okxus,
     'onetrading':             onetrading,
     'oxfun':                  oxfun,
     'p2b':                    p2b,
@@ -339,6 +340,7 @@ const exchanges = {
 
 const pro = {
     'alpaca':                 alpacaPro,
+    'apex':                   apexPro,
     'ascendex':               ascendexPro,
     'bequant':                bequantPro,
     'binance':                binancePro,
@@ -354,6 +356,7 @@ const pro = {
     'bitopro':                bitoproPro,
     'bitrue':                 bitruePro,
     'bitstamp':               bitstampPro,
+    'bittrade':               bittradePro,
     'bitvavo':                bitvavoPro,
     'blockchaincom':          blockchaincomPro,
     'blofin':                 blofinPro,
@@ -380,9 +383,7 @@ const pro = {
     'hollaex':                hollaexPro,
     'htx':                    htxPro,
     'huobi':                  huobiPro,
-    'huobijp':                huobijpPro,
     'hyperliquid':            hyperliquidPro,
-    'idex':                   idexPro,
     'independentreserve':     independentreservePro,
     'kraken':                 krakenPro,
     'krakenfutures':          krakenfuturesPro,
@@ -391,10 +392,12 @@ const pro = {
     'lbank':                  lbankPro,
     'luno':                   lunoPro,
     'mexc':                   mexcPro,
+    'modetrade':              modetradePro,
     'myokx':                  myokxPro,
     'ndax':                   ndaxPro,
     'okcoin':                 okcoinPro,
     'okx':                    okxPro,
+    'okxus':                  okxusPro,
     'onetrading':             onetradingPro,
     'oxfun':                  oxfunPro,
     'p2b':                    p2bPro,
@@ -402,6 +405,7 @@ const pro = {
     'phemex':                 phemexPro,
     'poloniex':               poloniexPro,
     'probit':                 probitPro,
+    'tradeogre':              tradeogrePro,
     'upbit':                  upbitPro,
     'vertex':                 vertexPro,
     'whitebit':               whitebitPro,
@@ -551,8 +555,8 @@ export {
     IsolatedBorrowRates,
     CrossBorrowRates,
     LeverageTiers,
-    ace,
     alpaca,
+    apex,
     ascendex,
     bequant,
     bigone,
@@ -575,8 +579,8 @@ export {
     bitso,
     bitstamp,
     bitteam,
+    bittrade,
     bitvavo,
-    bl3p,
     blockchaincom,
     blofin,
     btcalpha,
@@ -616,27 +620,26 @@ export {
     hollaex,
     htx,
     huobi,
-    huobijp,
     hyperliquid,
-    idex,
     independentreserve,
     indodax,
     kraken,
     krakenfutures,
     kucoin,
     kucoinfutures,
-    kuna,
     latoken,
     lbank,
     luno,
     mercado,
     mexc,
+    modetrade,
     myokx,
     ndax,
     novadax,
     oceanex,
     okcoin,
     okx,
+    okxus,
     onetrading,
     oxfun,
     p2b,

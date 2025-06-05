@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.76'
+__version__ = '4.4.88'
 
 # -----------------------------------------------------------------------------
 
@@ -63,8 +63,8 @@ from ccxt.base.errors import UnsubscribeError                         # noqa: F4
 from ccxt.base.errors import error_hierarchy                          # noqa: F401
 
 
-from ccxt.async_support.ace import ace                                          # noqa: F401
 from ccxt.async_support.alpaca import alpaca                                    # noqa: F401
+from ccxt.async_support.apex import apex                                        # noqa: F401
 from ccxt.async_support.ascendex import ascendex                                # noqa: F401
 from ccxt.async_support.bequant import bequant                                  # noqa: F401
 from ccxt.async_support.bigone import bigone                                    # noqa: F401
@@ -87,8 +87,8 @@ from ccxt.async_support.bitrue import bitrue                                    
 from ccxt.async_support.bitso import bitso                                      # noqa: F401
 from ccxt.async_support.bitstamp import bitstamp                                # noqa: F401
 from ccxt.async_support.bitteam import bitteam                                  # noqa: F401
+from ccxt.async_support.bittrade import bittrade                                # noqa: F401
 from ccxt.async_support.bitvavo import bitvavo                                  # noqa: F401
-from ccxt.async_support.bl3p import bl3p                                        # noqa: F401
 from ccxt.async_support.blockchaincom import blockchaincom                      # noqa: F401
 from ccxt.async_support.blofin import blofin                                    # noqa: F401
 from ccxt.async_support.btcalpha import btcalpha                                # noqa: F401
@@ -128,27 +128,26 @@ from ccxt.async_support.hitbtc import hitbtc                                    
 from ccxt.async_support.hollaex import hollaex                                  # noqa: F401
 from ccxt.async_support.htx import htx                                          # noqa: F401
 from ccxt.async_support.huobi import huobi                                      # noqa: F401
-from ccxt.async_support.huobijp import huobijp                                  # noqa: F401
 from ccxt.async_support.hyperliquid import hyperliquid                          # noqa: F401
-from ccxt.async_support.idex import idex                                        # noqa: F401
 from ccxt.async_support.independentreserve import independentreserve            # noqa: F401
 from ccxt.async_support.indodax import indodax                                  # noqa: F401
 from ccxt.async_support.kraken import kraken                                    # noqa: F401
 from ccxt.async_support.krakenfutures import krakenfutures                      # noqa: F401
 from ccxt.async_support.kucoin import kucoin                                    # noqa: F401
 from ccxt.async_support.kucoinfutures import kucoinfutures                      # noqa: F401
-from ccxt.async_support.kuna import kuna                                        # noqa: F401
 from ccxt.async_support.latoken import latoken                                  # noqa: F401
 from ccxt.async_support.lbank import lbank                                      # noqa: F401
 from ccxt.async_support.luno import luno                                        # noqa: F401
 from ccxt.async_support.mercado import mercado                                  # noqa: F401
 from ccxt.async_support.mexc import mexc                                        # noqa: F401
+from ccxt.async_support.modetrade import modetrade                              # noqa: F401
 from ccxt.async_support.myokx import myokx                                      # noqa: F401
 from ccxt.async_support.ndax import ndax                                        # noqa: F401
 from ccxt.async_support.novadax import novadax                                  # noqa: F401
 from ccxt.async_support.oceanex import oceanex                                  # noqa: F401
 from ccxt.async_support.okcoin import okcoin                                    # noqa: F401
 from ccxt.async_support.okx import okx                                          # noqa: F401
+from ccxt.async_support.okxus import okxus                                      # noqa: F401
 from ccxt.async_support.onetrading import onetrading                            # noqa: F401
 from ccxt.async_support.oxfun import oxfun                                      # noqa: F401
 from ccxt.async_support.p2b import p2b                                          # noqa: F401
@@ -172,8 +171,8 @@ from ccxt.async_support.zaif import zaif                                        
 from ccxt.async_support.zonda import zonda                                      # noqa: F401
 
 exchanges = [
-    'ace',
     'alpaca',
+    'apex',
     'ascendex',
     'bequant',
     'bigone',
@@ -196,8 +195,8 @@ exchanges = [
     'bitso',
     'bitstamp',
     'bitteam',
+    'bittrade',
     'bitvavo',
-    'bl3p',
     'blockchaincom',
     'blofin',
     'btcalpha',
@@ -237,27 +236,26 @@ exchanges = [
     'hollaex',
     'htx',
     'huobi',
-    'huobijp',
     'hyperliquid',
-    'idex',
     'independentreserve',
     'indodax',
     'kraken',
     'krakenfutures',
     'kucoin',
     'kucoinfutures',
-    'kuna',
     'latoken',
     'lbank',
     'luno',
     'mercado',
     'mexc',
+    'modetrade',
     'myokx',
     'ndax',
     'novadax',
     'oceanex',
     'okcoin',
     'okx',
+    'okxus',
     'onetrading',
     'oxfun',
     'p2b',

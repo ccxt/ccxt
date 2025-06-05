@@ -188,7 +188,7 @@ public partial class btcalpha : Exchange
                         { "symbolRequired", false },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
-                        { "max", 720 },
+                        { "limit", 720 },
                     } },
                 } },
                 { "swap", new Dictionary<string, object>() {

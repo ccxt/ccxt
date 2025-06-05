@@ -1113,9 +1113,7 @@ public partial class phemex : Exchange
         {
             object currency = getValue(currencies, i);
             object id = this.safeString(currency, "currency");
-            object name = this.safeString(currency, "name");
             object code = this.safeCurrencyCode(id);
-            object status = this.safeString(currency, "status");
             object valueScaleString = this.safeString(currency, "valueScale");
             object valueScale = parseInt(valueScaleString);
             object minValueEv = this.safeString(currency, "minValueEv");
@@ -1130,12 +1128,12 @@ public partial class phemex : Exchange
                 minAmount = this.parseNumber(Precise.stringMul(minValueEv, precisionString));
                 maxAmount = this.parseNumber(Precise.stringMul(maxValueEv, precisionString));
             }
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "info", currency },
                 { "code", code },
-                { "name", name },
-                { "active", isEqual(status, "Listed") },
+                { "name", this.safeString(currency, "name") },
+                { "active", isEqual(this.safeString(currency, "status"), "Listed") },
                 { "deposit", null },
                 { "withdraw", null },
                 { "fee", null },
@@ -1151,8 +1149,9 @@ public partial class phemex : Exchange
                     } },
                 } },
                 { "valueScale", valueScale },
-                { "networks", new Dictionary<string, object>() {} },
-            };
+                { "networks", null },
+                { "type", "crypto" },
+            });
         }
         return result;
     }

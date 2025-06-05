@@ -83,7 +83,7 @@ class okx extends okx$1 {
                 'fetchFundingIntervals': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
-                'fetchFundingRates': false,
+                'fetchFundingRates': true,
                 'fetchGreeks': true,
                 'fetchIndexOHLCV': true,
                 'fetchIsolatedBorrowRate': false,
@@ -106,6 +106,7 @@ class okx extends okx$1 {
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': true,
+                'fetchOpenInterests': true,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': true,
                 'fetchOption': true,
@@ -363,6 +364,7 @@ class okx extends okx$1 {
                         'account/spot-manual-borrow-repay': 10,
                         'account/set-auto-repay': 4,
                         'account/spot-borrow-repay-history': 4,
+                        'account/move-positions-history': 10,
                         // subaccount
                         'users/subaccount/list': 10,
                         'account/subaccount/balances': 10 / 3,
@@ -372,6 +374,7 @@ class okx extends okx$1 {
                         'asset/subaccount/managed-subaccount-bills': 5 / 3,
                         'users/entrust-subaccount-list': 10,
                         'account/subaccount/interest-limits': 4,
+                        'users/subaccount/apikey': 10,
                         // grid trading
                         'tradingBot/grid/orders-algo-pending': 1,
                         'tradingBot/grid/orders-algo-history': 1,
@@ -499,11 +502,15 @@ class okx extends okx$1 {
                         'account/fixed-loan/manual-reborrow': 5,
                         'account/fixed-loan/repay-borrowing-order': 5,
                         'account/bills-history-archive': 72000,
+                        'account/move-positions': 10,
                         // subaccount
                         'users/subaccount/modify-apikey': 10,
                         'asset/subaccount/transfer': 10,
                         'users/subaccount/set-transfer-out': 10,
                         'account/subaccount/set-loan-allocation': 4,
+                        'users/subaccount/create-subaccount': 10,
+                        'users/subaccount/subaccount-apikey': 10,
+                        'users/subaccount/delete-apikey': 10,
                         // grid trading
                         'tradingBot/grid/order-algo': 1,
                         'tradingBot/grid/amend-order-algo': 1,
@@ -914,6 +921,11 @@ class okx extends okx$1 {
                     '59506': errors.ExchangeError,
                     '59507': errors.ExchangeError,
                     '59508': errors.AccountSuspended,
+                    '59515': errors.ExchangeError,
+                    '59516': errors.ExchangeError,
+                    '59517': errors.ExchangeError,
+                    '59518': errors.ExchangeError,
+                    '59519': errors.ExchangeError,
                     '59642': errors.BadRequest,
                     '59643': errors.ExchangeError,
                     // WebSocket error Codes from 60000-63999
@@ -957,6 +969,13 @@ class okx extends okx$1 {
                     '70010': errors.BadRequest,
                     '70013': errors.BadRequest,
                     '70016': errors.BadRequest,
+                    '70060': errors.BadRequest,
+                    '70061': errors.BadRequest,
+                    '70062': errors.BadRequest,
+                    '70064': errors.BadRequest,
+                    '70065': errors.BadRequest,
+                    '70066': errors.BadRequest,
+                    '70067': errors.BadRequest,
                     '1009': errors.BadRequest,
                     '4001': errors.AuthenticationError,
                     '4002': errors.BadRequest,
@@ -1596,8 +1615,8 @@ class okx extends okx$1 {
         const swap = (type === 'swap');
         const option = (type === 'option');
         const contract = swap || future || option;
-        let baseId = this.safeString(market, 'baseCcy');
-        let quoteId = this.safeString(market, 'quoteCcy');
+        let baseId = this.safeString(market, 'baseCcy', ''); // defaulting to '' because some weird preopen markets have empty baseId
+        let quoteId = this.safeString(market, 'quoteCcy', '');
         const settleId = this.safeString(market, 'settleCcy');
         const settle = this.safeCurrencyCode(settleId);
         const underlying = this.safeString(market, 'uly');
@@ -1613,22 +1632,27 @@ class okx extends okx$1 {
         let strikePrice = undefined;
         let optionType = undefined;
         if (contract) {
-            symbol = symbol + ':' + settle;
+            if (settle !== undefined) {
+                symbol = symbol + ':' + settle;
+            }
             if (future) {
                 expiry = this.safeInteger(market, 'expTime');
-                const ymd = this.yymmdd(expiry);
-                symbol = symbol + '-' + ymd;
+                if (expiry !== undefined) {
+                    const ymd = this.yymmdd(expiry);
+                    symbol = symbol + '-' + ymd;
+                }
             }
             else if (option) {
                 expiry = this.safeInteger(market, 'expTime');
                 strikePrice = this.safeString(market, 'stk');
                 optionType = this.safeString(market, 'optType');
-                const ymd = this.yymmdd(expiry);
-                symbol = symbol + '-' + ymd + '-' + strikePrice + '-' + optionType;
-                optionType = (optionType === 'P') ? 'put' : 'call';
+                if (expiry !== undefined) {
+                    const ymd = this.yymmdd(expiry);
+                    symbol = symbol + '-' + ymd + '-' + strikePrice + '-' + optionType;
+                    optionType = (optionType === 'P') ? 'put' : 'call';
+                }
             }
         }
-        const tickSize = this.safeString(market, 'tickSz');
         const fees = this.safeDict2(this.fees, type, 'trading', {});
         let maxLeverage = this.safeString(market, 'lever', '1');
         maxLeverage = Precise["default"].stringMax(maxLeverage, '1');
@@ -1660,7 +1684,7 @@ class okx extends okx$1 {
             'created': this.safeInteger(market, 'listTime'),
             'precision': {
                 'amount': this.safeNumber(market, 'lotSz'),
-                'price': this.parseNumber(tickSize),
+                'price': this.safeNumber(market, 'tickSz'),
             },
             'limits': {
                 'leverage': {
@@ -5060,7 +5084,7 @@ class okx extends okx$1 {
      */
     async fetchDepositAddress(code, params = {}) {
         await this.loadMarkets();
-        const rawNetwork = this.safeStringUpper(params, 'network');
+        const rawNetwork = this.safeString(params, 'network'); // some networks are like "Dora Vota Mainnet"
         params = this.omit(params, 'network');
         code = this.safeCurrencyCode(code);
         const network = this.networkIdToCode(rawNetwork, code);
@@ -6274,7 +6298,7 @@ class okx extends okx$1 {
         const nextFundingRate = this.safeNumber(contract, 'nextFundingRate');
         const fundingTime = this.safeInteger(contract, 'fundingTime');
         const fundingTimeString = this.safeString(contract, 'fundingTime');
-        const nextFundingTimeString = this.safeString(contract, 'nextFundingRate');
+        const nextFundingTimeString = this.safeString(contract, 'nextFundingTime');
         const millisecondsInterval = Precise["default"].stringSub(nextFundingTimeString, fundingTimeString);
         // https://www.okx.com/support/hc/en-us/articles/360053909272-Ⅸ-Introduction-to-perpetual-swap-funding-fee
         // > The current interest is 0.
@@ -6359,6 +6383,39 @@ class okx extends okx$1 {
         const data = this.safeList(response, 'data', []);
         const entry = this.safeDict(data, 0, {});
         return this.parseFundingRate(entry, market);
+    }
+    /**
+     * @method
+     * @name okx#fetchFundingRates
+     * @description fetches the current funding rates for multiple symbols
+     * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate
+     * @param {string[]} symbols unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [funding rates structure]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}
+     */
+    async fetchFundingRates(symbols = undefined, params = {}) {
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, 'swap', true);
+        const request = { 'instId': 'ANY' };
+        const response = await this.publicGetPublicFundingRate(this.extend(request, params));
+        //
+        //    {
+        //        "code": "0",
+        //        "data": [
+        //            {
+        //                "fundingRate": "0.00027815",
+        //                "fundingTime": "1634256000000",
+        //                "instId": "BTC-USD-SWAP",
+        //                "instType": "SWAP",
+        //                "nextFundingRate": "0.00017",
+        //                "nextFundingTime": "1634284800000"
+        //            }
+        //        ],
+        //        "msg": ""
+        //    }
+        //
+        const data = this.safeList(response, 'data', []);
+        return this.parseFundingRates(data, symbols);
     }
     /**
      * @method
@@ -7363,6 +7420,65 @@ class okx extends okx$1 {
         //
         const data = this.safeList(response, 'data', []);
         return this.parseOpenInterest(data[0], market);
+    }
+    /**
+     * @method
+     * @name okx#fetchOpenInterests
+     * @description Retrieves the open interests of some currencies
+     * @see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-open-interest
+     * @param {string[]} symbols Unified CCXT market symbols
+     * @param {object} [params] exchange specific parameters
+     * @param {string} params.instType Instrument type, options: 'SWAP', 'FUTURES', 'OPTION', default to 'SWAP'
+     * @param {string} params.uly Underlying, Applicable to FUTURES/SWAP/OPTION, if instType is 'OPTION', either uly or instFamily is required
+     * @param {string} params.instFamily Instrument family, Applicable to FUTURES/SWAP/OPTION, if instType is 'OPTION', either uly or instFamily is required
+     * @returns {object} an dictionary of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     */
+    async fetchOpenInterests(symbols = undefined, params = {}) {
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, true, true);
+        let market = undefined;
+        if (symbols !== undefined) {
+            market = this.market(symbols[0]);
+        }
+        let marketType = undefined;
+        [marketType, params] = this.handleSubTypeAndParams('fetchOpenInterests', market, params, 'swap');
+        let instType = 'SWAP';
+        if (marketType === 'future') {
+            instType = 'FUTURES';
+        }
+        else if (instType === 'option') {
+            instType = 'OPTION';
+        }
+        const request = { 'instType': instType };
+        const uly = this.safeString(params, 'uly');
+        if (uly !== undefined) {
+            request['uly'] = uly;
+        }
+        const instFamily = this.safeString(params, 'instFamily');
+        if (instFamily !== undefined) {
+            request['instFamily'] = instFamily;
+        }
+        if (instType === 'OPTION' && uly === undefined && instFamily === undefined) {
+            throw new errors.BadRequest(this.id + ' fetchOpenInterests() requires either uly or instFamily parameter for OPTION markets');
+        }
+        const response = await this.publicGetPublicOpenInterest(this.extend(request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "instId": "BTC-USDT-SWAP",
+        //                 "instType": "SWAP",
+        //                 "oi": "2125419",
+        //                 "oiCcy": "21254.19",
+        //                 "ts": "1664005108969"
+        //             }
+        //         ],
+        //         "msg": ""
+        //     }
+        //
+        const data = this.safeList(response, 'data', []);
+        return this.parseOpenInterests(data, symbols);
     }
     /**
      * @method

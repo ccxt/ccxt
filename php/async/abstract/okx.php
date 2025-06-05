@@ -484,6 +484,9 @@ abstract class okx extends \ccxt\async\Exchange {
     public function private_get_account_spot_borrow_repay_history($params = array()) {
         return $this->request('account/spot-borrow-repay-history', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
+    public function private_get_account_move_positions_history($params = array()) {
+        return $this->request('account/move-positions-history', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
     public function private_get_users_subaccount_list($params = array()) {
         return $this->request('users/subaccount/list', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
@@ -507,6 +510,9 @@ abstract class okx extends \ccxt\async\Exchange {
     }
     public function private_get_account_subaccount_interest_limits($params = array()) {
         return $this->request('account/subaccount/interest-limits', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function private_get_users_subaccount_apikey($params = array()) {
+        return $this->request('users/subaccount/apikey', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
     public function private_get_tradingbot_grid_orders_algo_pending($params = array()) {
         return $this->request('tradingBot/grid/orders-algo-pending', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -850,6 +856,9 @@ abstract class okx extends \ccxt\async\Exchange {
     public function private_post_account_bills_history_archive($params = array()) {
         return $this->request('account/bills-history-archive', 'private', 'POST', $params, null, null, array("cost" => 72000));
     }
+    public function private_post_account_move_positions($params = array()) {
+        return $this->request('account/move-positions', 'private', 'POST', $params, null, null, array("cost" => 10));
+    }
     public function private_post_users_subaccount_modify_apikey($params = array()) {
         return $this->request('users/subaccount/modify-apikey', 'private', 'POST', $params, null, null, array("cost" => 10));
     }
@@ -861,6 +870,15 @@ abstract class okx extends \ccxt\async\Exchange {
     }
     public function private_post_account_subaccount_set_loan_allocation($params = array()) {
         return $this->request('account/subaccount/set-loan-allocation', 'private', 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function private_post_users_subaccount_create_subaccount($params = array()) {
+        return $this->request('users/subaccount/create-subaccount', 'private', 'POST', $params, null, null, array("cost" => 10));
+    }
+    public function private_post_users_subaccount_subaccount_apikey($params = array()) {
+        return $this->request('users/subaccount/subaccount-apikey', 'private', 'POST', $params, null, null, array("cost" => 10));
+    }
+    public function private_post_users_subaccount_delete_apikey($params = array()) {
+        return $this->request('users/subaccount/delete-apikey', 'private', 'POST', $params, null, null, array("cost" => 10));
     }
     public function private_post_tradingbot_grid_order_algo($params = array()) {
         return $this->request('tradingBot/grid/order-algo', 'private', 'POST', $params, null, null, array("cost" => 1));
@@ -1501,6 +1519,9 @@ abstract class okx extends \ccxt\async\Exchange {
     public function privateGetAccountSpotBorrowRepayHistory($params = array()) {
         return $this->request('account/spot-borrow-repay-history', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
+    public function privateGetAccountMovePositionsHistory($params = array()) {
+        return $this->request('account/move-positions-history', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
     public function privateGetUsersSubaccountList($params = array()) {
         return $this->request('users/subaccount/list', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
@@ -1524,6 +1545,9 @@ abstract class okx extends \ccxt\async\Exchange {
     }
     public function privateGetAccountSubaccountInterestLimits($params = array()) {
         return $this->request('account/subaccount/interest-limits', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function privateGetUsersSubaccountApikey($params = array()) {
+        return $this->request('users/subaccount/apikey', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
     public function privateGetTradingBotGridOrdersAlgoPending($params = array()) {
         return $this->request('tradingBot/grid/orders-algo-pending', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -1867,6 +1891,9 @@ abstract class okx extends \ccxt\async\Exchange {
     public function privatePostAccountBillsHistoryArchive($params = array()) {
         return $this->request('account/bills-history-archive', 'private', 'POST', $params, null, null, array("cost" => 72000));
     }
+    public function privatePostAccountMovePositions($params = array()) {
+        return $this->request('account/move-positions', 'private', 'POST', $params, null, null, array("cost" => 10));
+    }
     public function privatePostUsersSubaccountModifyApikey($params = array()) {
         return $this->request('users/subaccount/modify-apikey', 'private', 'POST', $params, null, null, array("cost" => 10));
     }
@@ -1878,6 +1905,15 @@ abstract class okx extends \ccxt\async\Exchange {
     }
     public function privatePostAccountSubaccountSetLoanAllocation($params = array()) {
         return $this->request('account/subaccount/set-loan-allocation', 'private', 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function privatePostUsersSubaccountCreateSubaccount($params = array()) {
+        return $this->request('users/subaccount/create-subaccount', 'private', 'POST', $params, null, null, array("cost" => 10));
+    }
+    public function privatePostUsersSubaccountSubaccountApikey($params = array()) {
+        return $this->request('users/subaccount/subaccount-apikey', 'private', 'POST', $params, null, null, array("cost" => 10));
+    }
+    public function privatePostUsersSubaccountDeleteApikey($params = array()) {
+        return $this->request('users/subaccount/delete-apikey', 'private', 'POST', $params, null, null, array("cost" => 10));
     }
     public function privatePostTradingBotGridOrderAlgo($params = array()) {
         return $this->request('tradingBot/grid/order-algo', 'private', 'POST', $params, null, null, array("cost" => 1));

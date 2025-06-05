@@ -252,7 +252,7 @@ export default class Exchange {
     }, digest?: "binary" | "hex" | "base64") => any;
     arrayConcat: (a: any[], b: any[]) => any[];
     encode: (str: string) => Uint8Array;
-    urlencode: (object: object) => string;
+    urlencode: (object: object, sort?: boolean) => string;
     hmac: (request: import("../static_dependencies/noble-hashes/utils.js").Input, secret: import("../static_dependencies/noble-hashes/utils.js").Input, hash: {
         (message: import("../static_dependencies/noble-hashes/utils.js").Input): Uint8Array;
         outputLen: number;
@@ -335,7 +335,21 @@ export default class Exchange {
     onRestResponse(statusCode: any, statusText: any, url: any, method: any, responseHeaders: any, responseBody: any, requestHeaders: any, requestBody: any): any;
     onJsonResponse(responseBody: any): any;
     loadMarketsHelper(reload?: boolean, params?: {}): Promise<Dictionary<any>>;
-    loadMarkets(reload?: boolean, params?: {}): Promise<Dictionary<Market>>;
+    /**
+     * @method
+     * @name Exchange#loadMarkets
+     * @description Loads and prepares the markets for trading.
+     * @param {boolean} reload - If true, the markets will be reloaded from the exchange.
+     * @param {object} params - Additional exchange-specific parameters for the request.
+     * @returns A promise that resolves to a dictionary of markets.
+     * @throws An error if the markets cannot be loaded or prepared.
+     * @remarks This method is asynchronous and returns a promise.
+     *          It ensures that the markets are only loaded once, even if the method is called multiple times.
+     *          If the markets are already loaded and not reloading, the method returns the existing markets.
+     *          If the markets are being reloaded, the method waits for the reload to complete before returning the markets.
+     *          If an error occurs during the loading or preparation of the markets, the promise is rejected with the error.
+     */
+    loadMarkets(reload?: boolean, params?: object): Promise<Dictionary<Market>>;
     fetchCurrencies(params?: {}): Promise<Currencies>;
     fetchCurrenciesWs(params?: {}): Promise<unknown>;
     fetchMarkets(params?: {}): Promise<Market[]>;
@@ -377,6 +391,8 @@ export default class Exchange {
     };
     starknetEncodeStructuredData(domain: any, messageTypes: any, messageData: any, address: any): string;
     starknetSign(hash: any, pri: any): string;
+    getZKContractSignatureObj(seed: any, params?: {}): Promise<any>;
+    getZKTransferSignatureObj(seed: any, params?: {}): Promise<any>;
     intToBase16(elem: any): string;
     extendExchangeOptions(newOptions: Dict): void;
     createSafeDictionary(): {};
@@ -762,6 +778,7 @@ export default class Exchange {
     currency(code: string): any;
     market(symbol: string): MarketInterface;
     createExpiredOptionMarket(symbol: string): MarketInterface;
+    isLeveragedCurrency(currencyCode: any, checkBaseCoin?: Bool, existingCurrencies?: Dict): boolean;
     handleWithdrawTagAndParams(tag: any, params: any): any;
     createLimitOrder(symbol: string, side: OrderSide, amount: number, price: number, params?: {}): Promise<Order>;
     createLimitOrderWs(symbol: string, side: OrderSide, amount: number, price: number, params?: {}): Promise<Order>;

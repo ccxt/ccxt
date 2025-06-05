@@ -20,6 +20,20 @@ func NewGemini(userConfig map[string]interface{}) Gemini {
 
 /**
  * @method
+ * @name gemini#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @param {object} [params] extra parameters specific to the endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Gemini) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name gemini#fetchCurrenciesFromWeb
  * @ignore
  * @description fetches all available currencies on an exchange

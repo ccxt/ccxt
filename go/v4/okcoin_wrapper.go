@@ -49,6 +49,20 @@ func (this *Okcoin) FetchMarkets(params ...interface{}) ([]MarketInterface, erro
 }
 /**
  * @method
+ * @name okcoin#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Okcoin) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name okcoin#fetchOrderBook
  * @see https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-order-book
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data

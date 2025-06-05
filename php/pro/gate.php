@@ -1308,8 +1308,32 @@ class gate extends \ccxt\async\gate {
         for ($i = 0; $i < count($data); $i++) {
             $rawPosition = $data[$i];
             $position = $this->parse_position($rawPosition);
-            $newPositions[] = $position;
-            $cache->append ($position);
+            $symbol = $this->safe_string($position, 'symbol');
+            $side = $this->safe_string($position, 'side');
+            // Control when $position is closed no $side is returned
+            if ($side === null) {
+                $prevLongPosition = $this->safe_dict($cache, $symbol . 'long');
+                if ($prevLongPosition !== null) {
+                    $position['side'] = $prevLongPosition['side'];
+                    $newPositions[] = $position;
+                    $cache->append ($position);
+                }
+                $prevShortPosition = $this->safe_dict($cache, $symbol . 'short');
+                if ($prevShortPosition !== null) {
+                    $position['side'] = $prevShortPosition['side'];
+                    $newPositions[] = $position;
+                    $cache->append ($position);
+                }
+                // if no prev $position is found, default to long
+                if ($prevLongPosition === null && $prevShortPosition === null) {
+                    $position['side'] = 'long';
+                    $newPositions[] = $position;
+                    $cache->append ($position);
+                }
+            } else {
+                $newPositions[] = $position;
+                $cache->append ($position);
+            }
         }
         $messageHashes = $this->find_message_hashes($client, $type . ':$positions::');
         for ($i = 0; $i < count($messageHashes); $i++) {

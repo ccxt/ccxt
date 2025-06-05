@@ -20,6 +20,21 @@ func NewHyperliquid(userConfig map[string]interface{}) Hyperliquid {
 
 /**
  * @method
+ * @name hyperliquid#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-metadata
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Hyperliquid) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name hyperliquid#fetchMarkets
  * @description retrieves data on all markets for hyperliquid
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
@@ -73,6 +88,7 @@ func (this *Hyperliquid) FetchSpotMarkets(params ...interface{}) ([]MarketInterf
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.user] user address, will default to this.walletAddress if not provided
  * @param {string} [params.type] wallet type, ['spot', 'swap'], defaults to swap
+ * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
  */
 func (this *Hyperliquid) FetchBalance(params ...interface{}) (Balances, error) {

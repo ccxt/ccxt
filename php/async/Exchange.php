@@ -44,11 +44,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.4.76';
+$version = '4.4.88';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.4.76';
+    const VERSION = '4.4.88';
 
     public $browser;
     public $marketsLoading = null;
@@ -249,8 +249,10 @@ class Exchange extends \ccxt\Exchange {
             $currencies = null;
             if (array_key_exists('fetchCurrencies', $this->has) && $this->has['fetchCurrencies'] === true) {
                 $currencies = React\Async\await($this->fetch_currencies());
+                $this->options['cachedCurrencies'] = $currencies;
             }
             $markets = React\Async\await($this->fetch_markets($params));
+            unset($this->options['cachedCurrencies']);
             return $this->set_markets ($markets, $currencies);
         }) ();
     }
@@ -1721,7 +1723,7 @@ class Exchange extends \ccxt\Exchange {
                         $currency['networks'][$key]['active'] = false;
                     }
                 }
-                $active = $this->safe_bool($network, 'active');
+                $active = $this->safe_bool($currency['networks'][$key], 'active'); // dict might have been updated on above lines, so access directly instead of `$network` variable
                 $currencyActive = $this->safe_bool($currency, 'active');
                 if ($currencyActive === null || $active) {
                     $currency['active'] = $active;
@@ -1735,7 +1737,7 @@ class Exchange extends \ccxt\Exchange {
                 // find lowest $precision (which is more desired)
                 $precision = $this->safe_string($network, 'precision');
                 $precisionMain = $this->safe_string($currency, 'precision');
-                if ($precisionMain === null || Precise::string_lt($precision, $precisionMain)) {
+                if ($precisionMain === null || Precise::string_gt($precision, $precisionMain)) {
                     $currency['precision'] = $this->parse_number($precision);
                 }
                 // $limits
@@ -3086,11 +3088,11 @@ class Exchange extends \ccxt\Exchange {
                 throw new NotSupported($this->id . ' - ' . $networkCode . ' network did not return any result for ' . $currencyCode);
             } else {
                 // if $networkCode was provided by user, we should check it after response, referenced exchange doesn't support network-code during request
-                $networkId = $isIndexedByUnifiedNetworkCode ? $networkCode : $this->network_code_to_id($networkCode, $currencyCode);
-                if (is_array($indexedNetworkEntries) && array_key_exists($networkId, $indexedNetworkEntries)) {
-                    $chosenNetworkId = $networkId;
+                $networkIdOrCode = $isIndexedByUnifiedNetworkCode ? $networkCode : $this->network_code_to_id($networkCode, $currencyCode);
+                if (is_array($indexedNetworkEntries) && array_key_exists($networkIdOrCode, $indexedNetworkEntries)) {
+                    $chosenNetworkId = $networkIdOrCode;
                 } else {
-                    throw new NotSupported($this->id . ' - ' . $networkId . ' network was not found for ' . $currencyCode . ', use one of ' . implode(', ', $availableNetworkIds));
+                    throw new NotSupported($this->id . ' - ' . $networkIdOrCode . ' network was not found for ' . $currencyCode . ', use one of ' . implode(', ', $availableNetworkIds));
                 }
             }
         } else {
@@ -3458,15 +3460,15 @@ class Exchange extends \ccxt\Exchange {
                 $cost = $this->calculate_rate_limiter_cost($api, $method, $path, $params, $config);
                 Async\await($this->throttle($cost));
             }
+            $retries = null;
+            list($retries, $params) = $this->handle_option_and_params($params, $path, 'maxRetriesOnFailure', 0);
+            $retryDelay = null;
+            list($retryDelay, $params) = $this->handle_option_and_params($params, $path, 'maxRetriesOnFailureDelay', 0);
             $this->lastRestRequestTimestamp = $this->milliseconds();
             $request = $this->sign($path, $api, $method, $params, $headers, $body);
             $this->last_request_headers = $request['headers'];
             $this->last_request_body = $request['body'];
             $this->last_request_url = $request['url'];
-            $retries = null;
-            list($retries, $params) = $this->handle_option_and_params($params, $path, 'maxRetriesOnFailure', 0);
-            $retryDelay = null;
-            list($retryDelay, $params) = $this->handle_option_and_params($params, $path, 'maxRetriesOnFailureDelay', 0);
             for ($i = 0; $i < $retries + 1; $i++) {
                 try {
                     return Async\await($this->fetch($request['url'], $request['method'], $request['headers'], $request['body']));
@@ -4882,6 +4884,29 @@ class Exchange extends \ccxt\Exchange {
 
     public function create_expired_option_market(string $symbol) {
         throw new NotSupported($this->id . ' createExpiredOptionMarket () is not supported yet');
+    }
+
+    public function is_leveraged_currency($currencyCode, Bool $checkBaseCoin = false, ?array $existingCurrencies = null) {
+        $leverageSuffixes = array(
+            '2L', '2S', '3L', '3S', '4L', '4S', '5L', '5S', // Leveraged Tokens (LT)
+            'UP', 'DOWN', // exchange-specific (e.g. BLVT)
+            'BULL', 'BEAR', // similar
+        );
+        for ($i = 0; $i < count($leverageSuffixes); $i++) {
+            $leverageSuffix = $leverageSuffixes[$i];
+            if (str_ends_with($currencyCode, $leverageSuffix)) {
+                if (!$checkBaseCoin) {
+                    return true;
+                } else {
+                    // check if base currency is inside dict
+                    $baseCurrencyCode = str_replace($leverageSuffix, '', $currencyCode);
+                    if (is_array($existingCurrencies) && array_key_exists($baseCurrencyCode, $existingCurrencies)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     public function handle_withdraw_tag_and_params($tag, $params) {

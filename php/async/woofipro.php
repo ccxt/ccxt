@@ -13,6 +13,7 @@ use ccxt\BadRequest;
 use ccxt\NotSupported;
 use ccxt\Precise;
 use \React\Async;
+use \React\Promise;
 use \React\Promise\PromiseInterface;
 
 class woofipro extends Exchange {
@@ -642,13 +643,14 @@ class woofipro extends Exchange {
             /**
              * fetches all available currencies on an exchange
              *
-             * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-$token-info
+             * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-supported-collateral-info#get-supported-collateral-info
+             * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-supported-chains-per-builder#get-supported-chains-per-builder
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of currencies
              */
             $result = array();
-            $response = Async\await($this->v1PublicGetPublicToken ($params));
+            $tokenPromise = $this->v1PublicGetPublicToken ($params);
             //
             // {
             //     "success" => true,
@@ -671,26 +673,28 @@ class woofipro extends Exchange {
             //     }
             // }
             //
-            $data = $this->safe_dict($response, 'data', array());
-            $tokenRows = $this->safe_list($data, 'rows', array());
+            $chainPromise = $this->v1PublicGetPublicChainInfo ($params);
+            list($tokenResponse, $chainResponse) = Async\await(Promise\all(array( $tokenPromise, $chainPromise )));
+            $tokenData = $this->safe_dict($tokenResponse, 'data', array());
+            $tokenRows = $this->safe_list($tokenData, 'rows', array());
+            $chainData = $this->safe_dict($chainResponse, 'data', array());
+            $chainRows = $this->safe_list($chainData, 'rows', array());
+            $indexedChains = $this->index_by($chainRows, 'chain_id');
             for ($i = 0; $i < count($tokenRows); $i++) {
                 $token = $tokenRows[$i];
                 $currencyId = $this->safe_string($token, 'token');
                 $networks = $this->safe_list($token, 'chain_details');
                 $code = $this->safe_currency_code($currencyId);
-                $minPrecision = null;
                 $resultingNetworks = array();
                 for ($j = 0; $j < count($networks); $j++) {
-                    $network = $networks[$j];
-                    // TODO => transform chain id to human readable name
-                    $networkId = $this->safe_string($network, 'chain_id');
-                    $precision = $this->parse_precision($this->safe_string($network, 'decimals'));
-                    if ($precision !== null) {
-                        $minPrecision = ($minPrecision === null) ? $precision : Precise::string_min($precision, $minPrecision);
-                    }
-                    $resultingNetworks[$networkId] = array(
+                    $networkEntry = $networks[$j];
+                    $networkId = $this->safe_string($networkEntry, 'chain_id');
+                    $networkRow = $this->safe_dict($indexedChains, $networkId);
+                    $networkName = $this->safe_string($networkRow, 'name');
+                    $networkCode = $this->network_id_to_code($networkName, $code);
+                    $resultingNetworks[$networkCode] = array(
                         'id' => $networkId,
-                        'network' => $networkId,
+                        'network' => $networkCode,
                         'limits' => array(
                             'withdraw' => array(
                                 'min' => null,
@@ -704,16 +708,16 @@ class woofipro extends Exchange {
                         'active' => null,
                         'deposit' => null,
                         'withdraw' => null,
-                        'fee' => $this->safe_number($network, 'withdrawal_fee'),
-                        'precision' => $this->parse_number($precision),
-                        'info' => $network,
+                        'fee' => $this->safe_number($networkEntry, 'withdrawal_fee'),
+                        'precision' => $this->parse_number($this->parse_precision($this->safe_string($networkEntry, 'decimals'))),
+                        'info' => array( $networkEntry, $networkRow ),
                     );
                 }
-                $result[$code] = array(
+                $result[$code] = $this->safe_currency_structure(array(
                     'id' => $currencyId,
-                    'name' => $currencyId,
+                    'name' => null,
                     'code' => $code,
-                    'precision' => $this->parse_number($minPrecision),
+                    'precision' => null,
                     'active' => null,
                     'fee' => null,
                     'networks' => $resultingNetworks,
@@ -730,7 +734,7 @@ class woofipro extends Exchange {
                         ),
                     ),
                     'info' => $token,
-                );
+                ));
             }
             return $result;
         }) ();
@@ -2795,7 +2799,7 @@ class woofipro extends Exchange {
         }) ();
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open $positions

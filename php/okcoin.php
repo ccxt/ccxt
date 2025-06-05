@@ -822,48 +822,30 @@ class okcoin extends Exchange {
             return null;
         } else {
             $response = $this->privateGetAssetCurrencies ($params);
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             $result = array();
             $dataByCurrencyId = $this->group_by($data, 'ccy');
             $currencyIds = is_array($dataByCurrencyId) ? array_keys($dataByCurrencyId) : array();
             for ($i = 0; $i < count($currencyIds); $i++) {
                 $currencyId = $currencyIds[$i];
-                $currency = $this->safe_currency($currencyId);
-                $code = $currency['code'];
+                $code = $this->safe_currency_code($currencyId);
                 $chains = $dataByCurrencyId[$currencyId];
                 $networks = array();
-                $currencyActive = false;
-                $depositEnabled = false;
-                $withdrawEnabled = false;
-                $maxPrecision = null;
                 for ($j = 0; $j < count($chains); $j++) {
                     $chain = $chains[$j];
-                    $canDeposit = $this->safe_value($chain, 'canDep');
-                    $depositEnabled = ($canDeposit) ? $canDeposit : $depositEnabled;
-                    $canWithdraw = $this->safe_value($chain, 'canWd');
-                    $withdrawEnabled = ($canWithdraw) ? $canWithdraw : $withdrawEnabled;
-                    $canInternal = $this->safe_value($chain, 'canInternal');
-                    $active = ($canDeposit && $canWithdraw && $canInternal) ? true : false;
-                    $currencyActive = ($active) ? $active : $currencyActive;
                     $networkId = $this->safe_string($chain, 'chain');
                     if (($networkId !== null) && (mb_strpos($networkId, '-') !== false)) {
                         $parts = explode('-', $networkId);
                         $chainPart = $this->safe_string($parts, 1, $networkId);
                         $networkCode = $this->network_id_to_code($chainPart);
-                        $precision = $this->parse_precision($this->safe_string($chain, 'wdTickSz'));
-                        if ($maxPrecision === null) {
-                            $maxPrecision = $precision;
-                        } else {
-                            $maxPrecision = Precise::string_min($maxPrecision, $precision);
-                        }
                         $networks[$networkCode] = array(
                             'id' => $networkId,
                             'network' => $networkCode,
-                            'active' => $active,
-                            'deposit' => $canDeposit,
-                            'withdraw' => $canWithdraw,
+                            'active' => null,
+                            'deposit' => $this->safe_bool($chain, 'canDep'),
+                            'withdraw' => $this->safe_bool($chain, 'canWd'),
                             'fee' => $this->safe_number($chain, 'minFee'),
-                            'precision' => $this->parse_number($precision),
+                            'precision' => $this->parse_number($this->parse_precision($this->safe_string($chain, 'wdTickSz'))),
                             'limits' => array(
                                 'withdraw' => array(
                                     'min' => $this->safe_number($chain, 'minWd'),
@@ -875,16 +857,16 @@ class okcoin extends Exchange {
                     }
                 }
                 $firstChain = $this->safe_value($chains, 0);
-                $result[$code] = array(
+                $result[$code] = $this->safe_currency_structure(array(
                     'info' => $chains,
                     'code' => $code,
                     'id' => $currencyId,
                     'name' => $this->safe_string($firstChain, 'name'),
-                    'active' => $currencyActive,
-                    'deposit' => $depositEnabled,
-                    'withdraw' => $withdrawEnabled,
+                    'active' => null,
+                    'deposit' => null,
+                    'withdraw' => null,
                     'fee' => null,
-                    'precision' => $this->parse_number($maxPrecision),
+                    'precision' => null,
                     'limits' => array(
                         'amount' => array(
                             'min' => null,
@@ -892,7 +874,7 @@ class okcoin extends Exchange {
                         ),
                     ),
                     'networks' => $networks,
-                );
+                ));
             }
             return $result;
         }

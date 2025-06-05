@@ -1029,9 +1029,6 @@ class bybit extends Exchange {
                 'usePrivateInstrumentsInfo' => false,
                 'enableDemoTrading' => false,
                 'fetchMarkets' => array( 'spot', 'linear', 'inverse', 'option' ),
-                'createOrder' => array(
-                    'method' => 'privatePostV5OrderCreate', // 'privatePostV5PositionTradingStop'
-                ),
                 'enableUnifiedMargin' => null,
                 'enableUnifiedAccount' => null,
                 'unifiedMarginStatus' => null,
@@ -1662,81 +1659,58 @@ class bybit extends Exchange {
                 $name = $this->safe_string($currency, 'name');
                 $chains = $this->safe_list($currency, 'chains', array());
                 $networks = array();
-                $minPrecision = null;
-                $minWithdrawFeeString = null;
-                $minWithdrawString = null;
-                $minDepositString = null;
-                $deposit = false;
-                $withdraw = false;
                 for ($j = 0; $j < count($chains); $j++) {
                     $chain = $chains[$j];
                     $networkId = $this->safe_string($chain, 'chain');
                     $networkCode = $this->network_id_to_code($networkId);
-                    $precision = $this->parse_number($this->parse_precision($this->safe_string($chain, 'minAccuracy')));
-                    $minPrecision = ($minPrecision === null) ? $precision : min ($minPrecision, $precision);
-                    $depositAllowed = $this->safe_integer($chain, 'chainDeposit') === 1;
-                    $deposit = ($depositAllowed) ? $depositAllowed : $deposit;
-                    $withdrawAllowed = $this->safe_integer($chain, 'chainWithdraw') === 1;
-                    $withdraw = ($withdrawAllowed) ? $withdrawAllowed : $withdraw;
-                    $withdrawFeeString = $this->safe_string($chain, 'withdrawFee');
-                    if ($withdrawFeeString !== null) {
-                        $minWithdrawFeeString = ($minWithdrawFeeString === null) ? $withdrawFeeString : Precise::string_min($withdrawFeeString, $minWithdrawFeeString);
-                    }
-                    $minNetworkWithdrawString = $this->safe_string($chain, 'withdrawMin');
-                    if ($minNetworkWithdrawString !== null) {
-                        $minWithdrawString = ($minWithdrawString === null) ? $minNetworkWithdrawString : Precise::string_min($minNetworkWithdrawString, $minWithdrawString);
-                    }
-                    $minNetworkDepositString = $this->safe_string($chain, 'depositMin');
-                    if ($minNetworkDepositString !== null) {
-                        $minDepositString = ($minDepositString === null) ? $minNetworkDepositString : Precise::string_min($minNetworkDepositString, $minDepositString);
-                    }
                     $networks[$networkCode] = array(
                         'info' => $chain,
                         'id' => $networkId,
                         'network' => $networkCode,
-                        'active' => $depositAllowed && $withdrawAllowed,
-                        'deposit' => $depositAllowed,
-                        'withdraw' => $withdrawAllowed,
-                        'fee' => $this->parse_number($withdrawFeeString),
-                        'precision' => $precision,
+                        'active' => null,
+                        'deposit' => $this->safe_integer($chain, 'chainDeposit') === 1,
+                        'withdraw' => $this->safe_integer($chain, 'chainWithdraw') === 1,
+                        'fee' => $this->safe_number($chain, 'withdrawFee'),
+                        'precision' => $this->parse_number($this->parse_precision($this->safe_string($chain, 'minAccuracy'))),
                         'limits' => array(
                             'withdraw' => array(
-                                'min' => $this->parse_number($minNetworkWithdrawString),
+                                'min' => $this->safe_number($chain, 'withdrawMin'),
                                 'max' => null,
                             ),
                             'deposit' => array(
-                                'min' => $this->parse_number($minNetworkDepositString),
+                                'min' => $this->safe_number($chain, 'depositMin'),
                                 'max' => null,
                             ),
                         ),
                     );
                 }
-                $result[$code] = array(
+                $result[$code] = $this->safe_currency_structure(array(
                     'info' => $currency,
                     'code' => $code,
                     'id' => $currencyId,
                     'name' => $name,
-                    'active' => $deposit && $withdraw,
-                    'deposit' => $deposit,
-                    'withdraw' => $withdraw,
-                    'fee' => $this->parse_number($minWithdrawFeeString),
-                    'precision' => $minPrecision,
+                    'active' => null,
+                    'deposit' => null,
+                    'withdraw' => null,
+                    'fee' => null,
+                    'precision' => null,
                     'limits' => array(
                         'amount' => array(
                             'min' => null,
                             'max' => null,
                         ),
                         'withdraw' => array(
-                            'min' => $this->parse_number($minWithdrawString),
+                            'min' => null,
                             'max' => null,
                         ),
                         'deposit' => array(
-                            'min' => $this->parse_number($minDepositString),
+                            'min' => null,
                             'max' => null,
                         ),
                     ),
                     'networks' => $networks,
-                );
+                    'type' => 'crypto', // atm exchange api provides only cryptos
+                ));
             }
             return $result;
         }) ();
@@ -2195,6 +2169,7 @@ class bybit extends Exchange {
                 $strike = $this->safe_string($splitId, 2);
                 $optionLetter = $this->safe_string($splitId, 3);
                 $isActive = ($status === 'Trading');
+                $isInverse = $base === $settle;
                 if ($isActive || ($this->options['loadAllOptions']) || ($this->options['loadExpiredOptions'])) {
                     $result[] = $this->safe_market_structure(array(
                         'id' => $id,
@@ -2206,7 +2181,7 @@ class bybit extends Exchange {
                         'quoteId' => $quoteId,
                         'settleId' => $settleId,
                         'type' => 'option',
-                        'subType' => 'linear',
+                        'subType' => null,
                         'spot' => false,
                         'margin' => false,
                         'swap' => false,
@@ -2214,8 +2189,8 @@ class bybit extends Exchange {
                         'option' => true,
                         'active' => $isActive,
                         'contract' => true,
-                        'linear' => true,
-                        'inverse' => false,
+                        'linear' => !$isInverse,
+                        'inverse' => $isInverse,
                         'taker' => $this->safe_number($market, 'takerFee', $this->parse_number('0.0006')),
                         'maker' => $this->safe_number($market, 'makerFee', $this->parse_number('0.0001')),
                         'contractSize' => $this->parse_number('1'),
@@ -2395,17 +2370,9 @@ class bybit extends Exchange {
                 // 'baseCoin' => '', Base coin. For option only
                 // 'expDate' => '', Expiry date. e.g., 25DEC22. For option only
             );
-            if ($market['spot']) {
-                $request['category'] = 'spot';
-            } else {
-                if ($market['option']) {
-                    $request['category'] = 'option';
-                } elseif ($market['linear']) {
-                    $request['category'] = 'linear';
-                } elseif ($market['inverse']) {
-                    $request['category'] = 'inverse';
-                }
-            }
+            $category = null;
+            list($category, $params) = $this->get_bybit_type('fetchTicker', $market, $params);
+            $request['category'] = $category;
             $response = Async\await($this->publicGetV5MarketTickers ($this->extend($request, $params)));
             //
             //     {
@@ -2478,7 +2445,7 @@ class bybit extends Exchange {
                 for ($i = 0; $i < count($symbols); $i++) {
                     $symbol = $symbols[$i];
                     // using safeMarket here because if the user provides for instance BTCUSDT and "type" => "spot" in $params we should
-                    // infer the $market $type from the $type provided and not from the conflicting id (BTCUSDT might be swap or spot)
+                    // infer the $market type from the type provided and not from the conflicting id (BTCUSDT might be swap or spot)
                     $isExchangeSpecificSymbol = (mb_strpos($symbol, '/') === -1);
                     if ($isExchangeSpecificSymbol) {
                         $market = $this->safe_market($symbol, null, null, $defaultType);
@@ -2507,25 +2474,15 @@ class bybit extends Exchange {
                 // 'baseCoin' => '', // Base coin. For option only
                 // 'expDate' => '', // Expiry date. e.g., 25DEC22. For option only
             );
-            $type = null;
-            list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
-            // Calls like `.fetchTickers (null, array($subType:'inverse'))` should be supported for this exchange, so
-            // as "options.defaultSubType" is also set in exchange options, we should consider `$params->subType`
-            // with higher priority and only default to spot, if `$subType` is not set in $params
-            $passedSubType = $this->safe_string($params, 'subType');
-            $subType = null;
-            list($subType, $params) = $this->handle_sub_type_and_params('fetchTickers', $market, $params, 'linear');
-            // only if $passedSubType is null, then use spot
-            if ($type === 'spot' && $passedSubType === null) {
-                $request['category'] = 'spot';
-            } elseif ($type === 'option') {
+            $category = null;
+            list($category, $params) = $this->get_bybit_type('fetchTickers', $market, $params);
+            $request['category'] = $category;
+            if ($category === 'option') {
                 $request['category'] = 'option';
                 if ($code === null) {
                     $code = 'BTC';
                 }
                 $request['baseCoin'] = $code;
-            } elseif ($type === 'swap' || $type === 'future' || $subType !== null) {
-                $request['category'] = $subType;
             }
             $response = Async\await($this->publicGetV5MarketTickers ($this->extend($request, $params)));
             //
@@ -3970,12 +3927,22 @@ class bybit extends Exchange {
             $parts = Async\await($this->is_unified_enabled());
             $enableUnifiedAccount = $parts[1];
             $trailingAmount = $this->safe_string_2($params, 'trailingAmount', 'trailingStop');
+            $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
+            $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
             $isTrailingAmountOrder = $trailingAmount !== null;
+            $isStopLoss = $stopLossPrice !== null;
+            $isTakeProfit = $takeProfitPrice !== null;
             $orderRequest = $this->create_order_request($symbol, $type, $side, $amount, $price, $params, $enableUnifiedAccount);
-            $options = $this->safe_dict($this->options, 'createOrder', array());
-            $defaultMethod = $this->safe_string($options, 'method', 'privatePostV5OrderCreate');
+            $defaultMethod = null;
+            if ($isTrailingAmountOrder || $isStopLoss || $isTakeProfit) {
+                $defaultMethod = 'privatePostV5PositionTradingStop';
+            } else {
+                $defaultMethod = 'privatePostV5OrderCreate';
+            }
+            $method = null;
+            list($method, $params) = $this->handle_option_and_params($params, 'createOrder', 'method', $defaultMethod);
             $response = null;
-            if ($isTrailingAmountOrder || ($defaultMethod === 'privatePostV5PositionTradingStop')) {
+            if ($method === 'privatePostV5PositionTradingStop') {
                 $response = Async\await($this->privatePostV5PositionTradingStop ($orderRequest));
             } else {
                 $response = Async\await($this->privatePostV5OrderCreate ($orderRequest)); // already extended inside createOrderRequest
@@ -4004,8 +3971,6 @@ class bybit extends Exchange {
         if (($price === null) && ($lowerCaseType === 'limit')) {
             throw new ArgumentsRequired($this->id . ' createOrder requires a $price argument for limit orders');
         }
-        $defaultMethod = null;
-        list($defaultMethod, $params) = $this->handle_option_and_params($params, 'createOrder', 'method', 'privatePostV5OrderCreate');
         $request = array(
             'symbol' => $market['id'],
             // 'side' => $this->capitalize($side),
@@ -4049,7 +4014,15 @@ class bybit extends Exchange {
         $isMarket = $lowerCaseType === 'market';
         $isLimit = $lowerCaseType === 'limit';
         $isBuy = $side === 'buy';
-        $isAlternativeEndpoint = $defaultMethod === 'privatePostV5PositionTradingStop';
+        $defaultMethod = null;
+        if ($isTrailingAmountOrder || $isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
+            $defaultMethod = 'privatePostV5PositionTradingStop';
+        } else {
+            $defaultMethod = 'privatePostV5OrderCreate';
+        }
+        $method = null;
+        list($method, $params) = $this->handle_option_and_params($params, 'createOrder', 'method', $defaultMethod);
+        $isAlternativeEndpoint = $method === 'privatePostV5PositionTradingStop';
         $amountString = $this->get_amount($symbol, $amount);
         $priceString = ($price !== null) ? $this->get_price($symbol, $this->number_to_string($price)) : null;
         if ($isTrailingAmountOrder || $isAlternativeEndpoint) {
@@ -4109,15 +4082,9 @@ class bybit extends Exchange {
                 $request['price'] = $priceString;
             }
         }
-        if ($market['spot']) {
-            $request['category'] = 'spot';
-        } elseif ($market['linear']) {
-            $request['category'] = 'linear';
-        } elseif ($market['inverse']) {
-            $request['category'] = 'inverse';
-        } elseif ($market['option']) {
-            $request['category'] = 'option';
-        }
+        $category = null;
+        list($category, $params) = $this->get_bybit_type('createOrderRequest', $market, $params);
+        $request['category'] = $category;
         $cost = $this->safe_string($params, 'cost');
         $params = $this->omit($params, 'cost');
         // if the $cost is inferable, let's keep the old logic and ignore marketUnit, to minimize the impact of the changes
@@ -4338,15 +4305,9 @@ class bybit extends Exchange {
             // Valid for option only.
             // 'orderIv' => '0', // Implied volatility; parameters are passed according to the real value; for example, for 10%, 0.1 is passed
         );
-        if ($market['spot']) {
-            $request['category'] = 'spot';
-        } elseif ($market['linear']) {
-            $request['category'] = 'linear';
-        } elseif ($market['inverse']) {
-            $request['category'] = 'inverse';
-        } elseif ($market['option']) {
-            $request['category'] = 'option';
-        }
+        $category = null;
+        list($category, $params) = $this->get_bybit_type('editOrderRequest', $market, $params);
+        $request['category'] = $category;
         if ($amount !== null) {
             $request['qty'] = $this->get_amount($symbol, $amount);
         }
@@ -4559,15 +4520,9 @@ class bybit extends Exchange {
         if ($id !== null) { // The user can also use argument $params["orderLinkId"]
             $request['orderId'] = $id;
         }
-        if ($market['spot']) {
-            $request['category'] = 'spot';
-        } elseif ($market['linear']) {
-            $request['category'] = 'linear';
-        } elseif ($market['inverse']) {
-            $request['category'] = 'inverse';
-        } elseif ($market['option']) {
-            $request['category'] = 'option';
-        }
+        $category = null;
+        list($category, $params) = $this->get_bybit_type('cancelOrderRequest', $market, $params);
+        $request['category'] = $category;
         return $this->extend($request, $params);
     }
 
@@ -6052,7 +6007,8 @@ class bybit extends Exchange {
             list($subType, $params) = $this->handle_sub_type_and_params('fetchLedger', null, $params);
             $response = null;
             if ($enableUnified[1]) {
-                if ($subType === 'inverse') {
+                $unifiedMarginStatus = $this->safe_integer($this->options, 'unifiedMarginStatus', 5); // 3/4 uta 1.0, 5/6 uta 2.0
+                if ($subType === 'inverse' && ($unifiedMarginStatus < 5)) {
                     $response = Async\await($this->privateGetV5AccountContractTransactionLog ($this->extend($request, $params)));
                 } else {
                     $response = Async\await($this->privateGetV5AccountTransactionLog ($this->extend($request, $params)));
@@ -7730,15 +7686,7 @@ class bybit extends Exchange {
                 'symbol' => $market['id'],
             );
             $category = null;
-            if ($market['linear']) {
-                $category = 'linear';
-            } elseif ($market['inverse']) {
-                $category = 'inverse';
-            } elseif ($market['spot']) {
-                $category = 'spot';
-            } else {
-                $category = 'option';
-            }
+            list($category, $params) = $this->get_bybit_type('fetchTradingFee', $market, $params);
             $request['category'] = $category;
             $response = Async\await($this->privateGetV5AccountFeeRate ($this->extend($request, $params)));
             //
@@ -7999,10 +7947,10 @@ class bybit extends Exchange {
             }
             $type = null;
             list($type, $params) = $this->get_bybit_type('fetchMySettlementHistory', $market, $params);
-            if ($type === 'spot' || $type === 'inverse') {
+            if ($type === 'spot') {
                 throw new NotSupported($this->id . ' fetchMySettlementHistory() is not supported for spot market');
             }
-            $request['category'] = 'linear';
+            $request['category'] = $type;
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }

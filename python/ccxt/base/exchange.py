@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.76'
+__version__ = '4.4.88'
 
 # -----------------------------------------------------------------------------
 
@@ -67,6 +67,10 @@ from ccxt.static_dependencies.starknet.hash.address import compute_address
 from ccxt.static_dependencies.starknet.hash.selector import get_selector_from_name
 from ccxt.static_dependencies.starknet.hash.utils import message_signature, private_to_stark_key
 from ccxt.static_dependencies.starknet.utils.typed_data import TypedData as TypedDataDataclass
+try:
+    import apexpro.zklink_sdk as zklink_sdk
+except ImportError:
+    zklink_sdk = None
 
 # -----------------------------------------------------------------------------
 
@@ -307,6 +311,7 @@ class Exchange(object):
     base_currencies = None
     quote_currencies = None
     currencies = None
+
     options = None  # Python does not allow to define properties in run-time with setattr
     isSandboxModeEnabled = False
     accounts = None
@@ -996,7 +1001,7 @@ class Exchange(object):
         return string
 
     @staticmethod
-    def urlencode(params={}, doseq=False):
+    def urlencode(params={}, doseq=False, sort=False):
         newParams = params.copy()
         for key, value in params.items():
             if isinstance(value, bool):
@@ -1502,6 +1507,25 @@ class Exchange(object):
         return len(parts[1]) if len(parts) > 1 else 0
 
     def load_markets(self, reload=False, params={}):
+        """
+        Loads and prepares the markets for trading.
+
+        Args:
+            reload (bool): If True, the markets will be reloaded from the exchange.
+            params (dict): Additional exchange-specific parameters for the request.
+
+        Returns:
+            dict: A dictionary of markets.
+
+        Raises:
+            Exception: If the markets cannot be loaded or prepared.
+
+        Notes:
+            It ensures that the markets are only loaded once, even if called multiple times.
+            If the markets are already loaded and `reload` is False or not provided, it returns the existing markets.
+            If a reload is in progress, it waits for completion before returning.
+            If an error occurs during loading or preparation, an exception is raised.
+        """
         if not reload:
             if self.markets:
                 if not self.markets_by_id:
@@ -1510,7 +1534,10 @@ class Exchange(object):
         currencies = None
         if self.has['fetchCurrencies'] is True:
             currencies = self.fetch_currencies()
+            self.options['cachedCurrencies'] = currencies
         markets = self.fetch_markets(params)
+        if 'cachedCurrencies' in self.options:
+            del self.options['cachedCurrencies']
         return self.set_markets(markets, currencies)
 
     def fetch_markets(self, params={}):
@@ -1754,6 +1781,69 @@ class Exchange(object):
 
     def binary_length(self, binary):
         return len(binary)
+
+    def get_zk_contract_signature_obj(self, seeds: str, params={}):
+        if zklink_sdk is None:
+            raise Exception('zklink_sdk is not installed, please do pip3 install apexomni-arm or apexomni-x86-mac or apexomni-x86-windows-linux')
+
+        slotId = self.safe_string(params, 'slotId')
+        nonceInt = int(self.remove0x_prefix(self.hash(self.encode(slotId), 'sha256', 'hex')), 16)
+
+        maxUint64 = 18446744073709551615
+        maxUint32 = 4294967295
+
+        slotId = (nonceInt % maxUint64) / maxUint32
+        nonce = nonceInt % maxUint32
+        accountId = int(self.safe_string(params, 'accountId'), 10) % maxUint32
+
+        priceStr = (Decimal(self.safe_string(params, 'price')) * Decimal(10) ** Decimal('18')).quantize(Decimal(0), rounding='ROUND_DOWN')
+        sizeStr = (Decimal(self.safe_string(params, 'size')) * Decimal(10) ** Decimal('18')).quantize(Decimal(0), rounding='ROUND_DOWN')
+
+        takerFeeRateStr = (Decimal(self.safe_string(params, 'takerFeeRate')) * Decimal(10000)).quantize(Decimal(0), rounding='ROUND_UP')
+        makerFeeRateStr = (Decimal(self.safe_string(params, 'makerFeeRate')) * Decimal(10000)).quantize(Decimal(0), rounding='ROUND_UP')
+
+        builder = zklink_sdk.ContractBuilder(
+            int(accountId), int(0), int(slotId), int(nonce), int(self.safe_number(params, 'pairId')),
+            sizeStr.__str__(), priceStr.__str__(), self.safe_string(params, 'direction') == "BUY",
+            int(takerFeeRateStr), int(makerFeeRateStr), False)
+
+
+        tx = zklink_sdk.Contract(builder)
+        seedsByte = bytes.fromhex(seeds.removeprefix('0x'))
+        signerSeed = zklink_sdk.ZkLinkSigner().new_from_seed(seedsByte)
+        auth_data = signerSeed.sign_musig(tx.get_bytes())
+        signature = auth_data.signature
+        return signature
+
+    def get_zk_transfer_signature_obj(self, seeds: str, params={}):
+        if zklink_sdk is None:
+            raise Exception('zklink_sdk is not installed, please do pip3 install apexomni-arm or apexomni-x86-mac or apexomni-x86-windows-linux')
+
+        nonce = self.safe_string(params, 'nonce', '0')
+        if self.safe_bool(params, 'isContract'):
+            formattedUint32 = '4294967295'
+            formattedNonce = int(self.remove0x_prefix(self.hash(self.encode(nonce), 'sha256', 'hex')), 16)
+            nonce = Precise.string_mod(str(formattedNonce), formattedUint32)
+
+        tx_builder = zklink_sdk.TransferBuilder(
+            int(self.safe_number(params, 'zkAccountId', 0)),
+            self.safe_string(params, 'receiverAddress'),
+            int(self.safe_number(params, 'subAccountId', 0)),
+            int(self.safe_number(params, 'receiverSubAccountId', 0)),
+            int(self.safe_number(params, 'tokenId', 0)),
+            self.safe_string(params, 'amount', '0'),
+            self.safe_string(params, 'fee', '0'),
+            self.parse_to_int(nonce),
+            int(self.safe_number(params, 'timestampSeconds', 0))
+        )
+
+        tx = zklink_sdk.Transfer(tx_builder)
+        seedsByte = bytes.fromhex(seeds.removeprefix('0x'))
+        signerSeed = zklink_sdk.ZkLinkSigner().new_from_seed(seedsByte)
+        auth_data = signerSeed.sign_musig(tx.get_bytes())
+        signature = auth_data.signature
+        return signature
+
 
     # ########################################################################
     # ########################################################################
@@ -2941,7 +3031,7 @@ class Exchange(object):
                         currency['networks'][key]['active'] = True
                     elif deposit is not None and withdraw is not None:
                         currency['networks'][key]['active'] = False
-                active = self.safe_bool(network, 'active')
+                active = self.safe_bool(currency['networks'][key], 'active')  # dict might have been updated on above lines, so access directly instead of `network` variable
                 currencyActive = self.safe_bool(currency, 'active')
                 if currencyActive is None or active:
                     currency['active'] = active
@@ -2953,7 +3043,7 @@ class Exchange(object):
                 # find lowest precision(which is more desired)
                 precision = self.safe_string(network, 'precision')
                 precisionMain = self.safe_string(currency, 'precision')
-                if precisionMain is None or Precise.string_lt(precision, precisionMain):
+                if precisionMain is None or Precise.string_gt(precision, precisionMain):
                     currency['precision'] = self.parse_number(precision)
                 # limits
                 limits = self.safe_dict(network, 'limits')
@@ -4080,11 +4170,11 @@ class Exchange(object):
                 raise NotSupported(self.id + ' - ' + networkCode + ' network did not return any result for ' + currencyCode)
             else:
                 # if networkCode was provided by user, we should check it after response, referenced exchange doesn't support network-code during request
-                networkId = networkCode if isIndexedByUnifiedNetworkCode else self.network_code_to_id(networkCode, currencyCode)
-                if networkId in indexedNetworkEntries:
-                    chosenNetworkId = networkId
+                networkIdOrCode = networkCode if isIndexedByUnifiedNetworkCode else self.network_code_to_id(networkCode, currencyCode)
+                if networkIdOrCode in indexedNetworkEntries:
+                    chosenNetworkId = networkIdOrCode
                 else:
-                    raise NotSupported(self.id + ' - ' + networkId + ' network was not found for ' + currencyCode + ', use one of ' + ', '.join(availableNetworkIds))
+                    raise NotSupported(self.id + ' - ' + networkIdOrCode + ' network was not found for ' + currencyCode + ', use one of ' + ', '.join(availableNetworkIds))
         else:
             if responseNetworksLength == 0:
                 raise NotSupported(self.id + ' - no networks were returned for ' + currencyCode)
@@ -4372,15 +4462,15 @@ class Exchange(object):
         if self.enableRateLimit:
             cost = self.calculate_rate_limiter_cost(api, method, path, params, config)
             self.throttle(cost)
+        retries = None
+        retries, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailure', 0)
+        retryDelay = None
+        retryDelay, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailureDelay', 0)
         self.lastRestRequestTimestamp = self.milliseconds()
         request = self.sign(path, api, method, params, headers, body)
         self.last_request_headers = request['headers']
         self.last_request_body = request['body']
         self.last_request_url = request['url']
-        retries = None
-        retries, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailure', 0)
-        retryDelay = None
-        retryDelay, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailureDelay', 0)
         for i in range(0, retries + 1):
             try:
                 return self.fetch(request['url'], request['method'], request['headers'], request['body'])
@@ -5454,6 +5544,24 @@ class Exchange(object):
 
     def create_expired_option_market(self, symbol: str):
         raise NotSupported(self.id + ' createExpiredOptionMarket() is not supported yet')
+
+    def is_leveraged_currency(self, currencyCode, checkBaseCoin: Bool = False, existingCurrencies: dict = None):
+        leverageSuffixes = [
+            '2L', '2S', '3L', '3S', '4L', '4S', '5L', '5S',  # Leveraged Tokens(LT)
+            'UP', 'DOWN',  # exchange-specific(e.g. BLVT)
+            'BULL', 'BEAR',  # similar
+        ]
+        for i in range(0, len(leverageSuffixes)):
+            leverageSuffix = leverageSuffixes[i]
+            if currencyCode.endswith(leverageSuffix):
+                if not checkBaseCoin:
+                    return True
+                else:
+                    # check if base currency is inside dict
+                    baseCurrencyCode = currencyCode.replace(leverageSuffix, '')
+                    if baseCurrencyCode in existingCurrencies:
+                        return True
+        return False
 
     def handle_withdraw_tag_and_params(self, tag, params):
         if (tag is not None) and (isinstance(tag, dict)):

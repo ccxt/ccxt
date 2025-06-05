@@ -62,6 +62,9 @@ def assert_structure(exchange, skipped_properties, method, entry, format, empty_
     log_text = log_template(exchange, method, entry)
     assert entry is not None, 'item is null/undefined' + log_text
     # get all expected & predefined keys for this specific item and ensure thos ekeys exist in parsed structure
+    allow_empty_skips = exchange.safe_list(skipped_properties, 'allowNull', [])
+    if empty_allowed_for is not None:
+        empty_allowed_for = concat(empty_allowed_for, allow_empty_skips)
     if isinstance(format, list):
         assert isinstance(entry, list), 'entry is not an array' + log_text
         real_length = len(entry)
@@ -494,6 +497,21 @@ def set_proxy_options(exchange, skipped_properties, proxy_url, http_proxy, https
     exchange.http_proxy = http_proxy
     exchange.https_proxy = https_proxy
     exchange.socks_proxy = socks_proxy
+
+
+def concat(a=None, b=None):
+    # we use this method temporarily, because of ast-transpiler issue across langs
+    if a is None:
+        return b
+    elif b is None:
+        return a
+    else:
+        result = []
+        for i in range(0, len(a)):
+            result.append(a[i])
+        for j in range(0, len(b)):
+            result.append(b[j])
+        return result
 
 
 def assert_non_emtpy_array(exchange, skipped_properties, method, entry, hint=None):

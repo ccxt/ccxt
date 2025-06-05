@@ -3,6 +3,79 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": {
+                        "currencies": [
+                            {
+                                "currency": "BTC",
+                                "name": "Bitcoin",
+                                "code": "1",
+                                "valueScale": "8",
+                                "minValueEv": "1",
+                                "maxValueEv": "5000000000000000000",
+                                "needAddrTag": "0",
+                                "status": "Listed",
+                                "displayCurrency": "BTC",
+                                "inAssetsDisplay": "1",
+                                "perpetual": "0",
+                                "stableCoin": "0",
+                                "assetsPrecision": "8"
+                            }
+                        ],
+                        "md5Checksum": "c65e09baebada10bb048ae45585a5ee7"
+                    }
+                },
+                "parsedResponse": {
+                    "BTC": {
+                        "info": {
+                            "currency": "BTC",
+                            "name": "Bitcoin",
+                            "code": "1",
+                            "valueScale": "8",
+                            "minValueEv": "1",
+                            "maxValueEv": "5000000000000000000",
+                            "needAddrTag": "0",
+                            "status": "Listed",
+                            "displayCurrency": "BTC",
+                            "inAssetsDisplay": "1",
+                            "perpetual": "0",
+                            "stableCoin": "0",
+                            "assetsPrecision": "8"
+                        },
+                        "id": "BTC",
+                        "numericId": null,
+                        "code": "BTC",
+                        "precision": 1e-8,
+                        "type": "crypto",
+                        "name": "Bitcoin",
+                        "active": true,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": null,
+                        "fees": {},
+                        "networks": null,
+                        "limits": {
+                            "amount": {
+                                "min": 1e-8,
+                                "max": 50000000000
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "valueScale": 8
+                    }
+                }
+            }
+        ],
         "createOrder": [
             {
                 "description": "swap +buy +limit +triggerPrice +triggerDirection +reduceOnly",

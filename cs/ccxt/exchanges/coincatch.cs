@@ -66,6 +66,7 @@ public partial class coincatch : Exchange
                 { "fetchDepositAddress", true },
                 { "fetchDeposits", true },
                 { "fetchDepositsWithdrawals", false },
+                { "fetchDepositWithdrawFees", true },
                 { "fetchFundingHistory", false },
                 { "fetchFundingRate", true },
                 { "fetchFundingRateHistory", true },
@@ -356,56 +357,18 @@ public partial class coincatch : Exchange
                     { "CRO", "CronosChain" },
                 } },
                 { "networksById", new Dictionary<string, object>() {
-                    { "BITCOIN", "BTC" },
-                    { "ERC20", "ERC20" },
                     { "TRC20", "TRC20" },
                     { "TRX(TRC20)", "TRC20" },
-                    { "BEP20", "BEP20" },
                     { "ArbitrumOne", "ARB" },
-                    { "Optimism", "OPTIMISM" },
-                    { "LTC", "LTC" },
-                    { "BCH", "BCH" },
-                    { "ETC", "ETC" },
-                    { "SOL", "SOL" },
-                    { "NEO3", "NEO3" },
-                    { "stacks", "STX" },
-                    { "Elrond", "EGLD" },
-                    { "NEARProtocol", "NEAR" },
-                    { "AcalaToken", "ACA" },
-                    { "Klaytn", "KLAY" },
-                    { "Fantom", "FTM" },
-                    { "Terra", "TERRA" },
-                    { "WAVES", "WAVES" },
-                    { "TAO", "TAO" },
-                    { "SUI", "SUI" },
-                    { "SEI", "SEI" },
                     { "THORChain", "RUNE" },
-                    { "ZIL", "ZIL" },
                     { "Solar", "SXP" },
-                    { "FET", "FET" },
                     { "C-Chain", "AVAX" },
-                    { "XRP", "XRP" },
-                    { "EOS", "EOS" },
-                    { "DOGECOIN", "DOGE" },
                     { "CAP20", "CAP20" },
-                    { "Polygon", "MATIC" },
-                    { "CSPR", "CSPR" },
-                    { "Moonbeam", "GLMR" },
-                    { "MINA", "MINA" },
                     { "CFXeSpace", "CFX" },
                     { "CFX", "CFX" },
                     { "StratisEVM", "STRAT" },
-                    { "Celestia", "TIA" },
                     { "ChilizChain", "ChilizChain" },
-                    { "Aptos", "APT" },
-                    { "Ontology", "ONT" },
-                    { "ICP", "ICP" },
-                    { "Cardano", "ADA" },
-                    { "FIL", "FIL" },
-                    { "CELO", "CELO" },
-                    { "DOT", "DOT" },
                     { "StellarLumens", "XLM" },
-                    { "ATOM", "ATOM" },
                     { "CronosChain", "CRO" },
                 } },
             } },
@@ -648,77 +611,142 @@ public partial class coincatch : Exchange
             object currencyId = this.safeString(currecy, "coinName");
             ((IList<object>)currenciesIds).Add(currencyId);
             object code = this.safeCurrencyCode(currencyId);
-            object allowDeposit = false;
-            object allowWithdraw = false;
-            object minDeposit = null;
-            object minWithdraw = null;
             object networks = this.safeList(currecy, "chains");
-            object networksById = this.safeDict(this.options, "networksById");
             object parsedNetworks = new Dictionary<string, object>() {};
             for (object j = 0; isLessThan(j, getArrayLength(networks)); postFixIncrement(ref j))
             {
                 object network = getValue(networks, j);
                 object networkId = this.safeString(network, "chain");
-                object networkName = this.safeString(networksById, networkId, networkId);
-                object networkDepositString = this.safeString(network, "rechargeable");
-                object networkDeposit = isEqual(networkDepositString, "true");
-                object networkWithdrawString = this.safeString(network, "withdrawable");
-                object networkWithdraw = isEqual(networkWithdrawString, "true");
-                object networkMinDeposit = this.safeString(network, "minDepositAmount");
-                object networkMinWithdraw = this.safeString(network, "minWithdrawAmount");
+                object networkCode = this.networkCodeToId(networkId);
                 ((IDictionary<string,object>)parsedNetworks)[(string)networkId] = new Dictionary<string, object>() {
                     { "id", networkId },
-                    { "network", networkName },
+                    { "network", networkCode },
                     { "limits", new Dictionary<string, object>() {
                         { "deposit", new Dictionary<string, object>() {
-                            { "min", this.parseNumber(networkMinDeposit) },
+                            { "min", this.safeNumber(network, "minDepositAmount") },
                             { "max", null },
                         } },
                         { "withdraw", new Dictionary<string, object>() {
-                            { "min", this.parseNumber(networkMinWithdraw) },
+                            { "min", this.safeNumber(network, "minWithdrawAmount") },
                             { "max", null },
                         } },
                     } },
-                    { "active", isTrue(networkDeposit) && isTrue(networkWithdraw) },
-                    { "deposit", networkDeposit },
-                    { "withdraw", networkWithdraw },
+                    { "active", null },
+                    { "deposit", isEqual(this.safeString(network, "rechargeable"), "true") },
+                    { "withdraw", isEqual(this.safeString(network, "withdrawable"), "true") },
                     { "fee", this.safeNumber(network, "withdrawFee") },
                     { "precision", null },
                     { "info", network },
                 };
-                allowDeposit = ((bool) isTrue(allowDeposit)) ? allowDeposit : networkDeposit;
-                allowWithdraw = ((bool) isTrue(allowWithdraw)) ? allowWithdraw : networkWithdraw;
-                minDeposit = ((bool) isTrue(minDeposit)) ? Precise.stringMin(networkMinDeposit, minDeposit) : networkMinDeposit;
-                minWithdraw = ((bool) isTrue(minWithdraw)) ? Precise.stringMin(networkMinWithdraw, minWithdraw) : networkMinWithdraw;
             }
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", currencyId },
                 { "numericId", this.safeInteger(currecy, "coinId") },
                 { "code", code },
                 { "precision", null },
                 { "type", null },
                 { "name", null },
-                { "active", isTrue(allowWithdraw) && isTrue(allowDeposit) },
-                { "deposit", allowDeposit },
-                { "withdraw", allowWithdraw },
+                { "active", null },
+                { "deposit", null },
+                { "withdraw", null },
                 { "fee", null },
                 { "limits", new Dictionary<string, object>() {
                     { "deposit", new Dictionary<string, object>() {
-                        { "min", this.parseNumber(minDeposit) },
+                        { "min", null },
                         { "max", null },
                     } },
                     { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.parseNumber(minWithdraw) },
+                        { "min", null },
                         { "max", null },
                     } },
                 } },
                 { "networks", parsedNetworks },
                 { "info", currecy },
-            };
+            });
         }
         if (isTrue(isEqual(this.safeList(this.options, "currencyIdsListForParseMarket"), null)))
         {
             ((IDictionary<string,object>)this.options)["currencyIdsListForParseMarket"] = currenciesIds;
+        }
+        return result;
+    }
+
+    /**
+     * @method
+     * @name coincatch#fetchDepositWithdrawFees
+     * @description fetch deposit and withdraw fees
+     * @see https://coincatch.github.io/github.io/en/spot/#get-coin-list
+     * @param {string[]} [codes] list of unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
+    public async override Task<object> fetchDepositWithdrawFees(object codes = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object response = await this.publicGetApiSpotV1PublicCurrencies(parameters);
+        object data = this.safeList(response, "data", new List<object>() {});
+        return this.parseDepositWithdrawFees(data, codes, "coinName");
+    }
+
+    public override object parseDepositWithdrawFee(object fee, object currency = null)
+    {
+        //
+        // {
+        //     "coinId":"1",
+        //     "coinName":"BTC",
+        //     "transfer":"true",
+        //     "chains":[
+        //         {
+        //             "chain":null,
+        //             "needTag":"false",
+        //             "withdrawable":"true",
+        //             "rechargeAble":"true",
+        //             "withdrawFee":"0.005",
+        //             "depositConfirm":"1",
+        //             "withdrawConfirm":"1",
+        //             "minDepositAmount":"0.001",
+        //             "minWithdrawAmount":"0.001",
+        //             "browserUrl":"https://blockchair.com/bitcoin/testnet/transaction/"
+        //         }
+        //     ]
+        // }
+        //
+        object chains = this.safeList(fee, "chains", new List<object>() {});
+        object chainsLength = getArrayLength(chains);
+        object result = new Dictionary<string, object>() {
+            { "info", fee },
+            { "withdraw", new Dictionary<string, object>() {
+                { "fee", null },
+                { "percentage", null },
+            } },
+            { "deposit", new Dictionary<string, object>() {
+                { "fee", null },
+                { "percentage", null },
+            } },
+            { "networks", new Dictionary<string, object>() {} },
+        };
+        for (object i = 0; isLessThan(i, chainsLength); postFixIncrement(ref i))
+        {
+            object chain = getValue(chains, i);
+            object networkId = this.safeString(chain, "chain");
+            object currencyCode = this.safeString(currency, "code");
+            object networkCode = this.networkIdToCode(networkId, currencyCode);
+            ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
+                { "deposit", new Dictionary<string, object>() {
+                    { "fee", null },
+                    { "percentage", null },
+                } },
+                { "withdraw", new Dictionary<string, object>() {
+                    { "fee", this.safeNumber(chain, "withdrawFee") },
+                    { "percentage", false },
+                } },
+            };
+            if (isTrue(isEqual(chainsLength, 1)))
+            {
+                ((IDictionary<string,object>)getValue(result, "withdraw"))["fee"] = this.safeNumber(chain, "withdrawFee");
+                ((IDictionary<string,object>)getValue(result, "withdraw"))["percentage"] = false;
+            }
         }
         return result;
     }

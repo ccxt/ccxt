@@ -876,7 +876,7 @@ class lbank extends Exchange {
         if ($market['swap']) {
             return $this->parse_order_book($orderbook, $market['symbol'], $timestamp, 'bids', 'asks', 'price', 'volume');
         }
-        return $this->parse_order_book($orderbook, $market['symbol'], $timestamp);
+        return $this->parse_order_book($orderbook, $market['symbol'], $timestamp, 'bids', 'asks', 1, 0);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {

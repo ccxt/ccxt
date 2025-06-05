@@ -7,7 +7,7 @@ on:
     branches: [ main, master ]
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     if: ${{ !startsWith(github.event.head_commit.message, '[Automated changes]') && !contains(github.event.head_commit.message, 'Merge branch ''master'' of https://github.com/ccxt/ccxt') }}
     timeout-minutes: 60
     steps:

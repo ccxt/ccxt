@@ -3,6 +3,15 @@
     "skipKeys": ["start_time", "end_time"],
     "outputType": "json",
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.probit.com/api/exchange/v1/currency_with_platform",
+                "input": [],
+                "output": null
+            }
+        ],
         "createOrder": [
             {
                 "description": "Spot limit buy order",

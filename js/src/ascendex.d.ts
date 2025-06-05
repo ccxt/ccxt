@@ -1,5 +1,5 @@
 import Exchange from './abstract/ascendex.js';
-import type { TransferEntry, FundingHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Strings, Num, Currency, Market, Leverage, Leverages, Account, MarginModes, MarginMode, MarginModification, Currencies, TradingFees, Dict, LeverageTier, LeverageTiers, int, FundingRate, FundingRates, DepositAddress } from './base/types.js';
+import type { TransferEntry, FundingHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Strings, Num, Currency, Market, Leverage, Leverages, Account, MarginModes, MarginMode, MarginModification, Currencies, TradingFees, Dict, LeverageTier, LeverageTiers, int, FundingRate, FundingRates, DepositAddress, Position } from './base/types.js';
 /**
  * @class ascendex
  * @augments Exchange
@@ -23,6 +23,8 @@ export default class ascendex extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
+    fetchSpotMarkets(params?: {}): Promise<Market[]>;
+    fetchContractMarkets(params?: {}): Promise<Market[]>;
     /**
      * @method
      * @name ascendex#fetchTime
@@ -277,8 +279,8 @@ export default class ascendex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
-    parsePosition(position: Dict, market?: Market): import("./base/types.js").Position;
+    fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
+    parsePosition(position: Dict, market?: Market): Position;
     parseFundingRate(contract: any, market?: Market): FundingRate;
     /**
      * @method

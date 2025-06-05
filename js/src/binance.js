@@ -23,7 +23,7 @@ export default class binance extends Exchange {
         return this.deepExtend(super.describe(), {
             'id': 'binance',
             'name': 'Binance',
-            'countries': ['JP', 'MT'],
+            'countries': [],
             'rateLimit': 50,
             'certified': true,
             'pro': true,
@@ -1273,6 +1273,7 @@ export default class binance extends Exchange {
                     'inverse', // allows CORS in browsers
                     // 'option', // does not allow CORS, enable outside of the browser only
                 ],
+                'loadAllOptions': false,
                 'fetchCurrencies': true,
                 // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades, eapiPublicGetTrades
                 // 'repayCrossMarginMethod': 'papiPostRepayLoan', // papiPostMarginRepayDebt
@@ -3039,6 +3040,13 @@ export default class binance extends Exchange {
     async fetchMarkets(params = {}) {
         const promisesRaw = [];
         const rawFetchMarkets = this.safeList(this.options, 'fetchMarkets', ['spot', 'linear', 'inverse']);
+        // handle loadAllOptions option
+        const loadAllOptions = this.safeBool(this.options, 'loadAllOptions', false);
+        if (loadAllOptions) {
+            if (!this.inArray('option', rawFetchMarkets)) {
+                rawFetchMarkets.push('option');
+            }
+        }
         const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         const fetchMarkets = [];
         for (let i = 0; i < rawFetchMarkets.length; i++) {
@@ -5190,7 +5198,6 @@ export default class binance extends Exchange {
         if (postOnly) {
             uppercaseType = 'LIMIT_MAKER';
         }
-        request['type'] = uppercaseType;
         const triggerPrice = this.safeNumber2(params, 'stopPrice', 'triggerPrice');
         if (triggerPrice !== undefined) {
             if (uppercaseType === 'MARKET') {
@@ -5200,6 +5207,7 @@ export default class binance extends Exchange {
                 uppercaseType = 'STOP_LOSS_LIMIT';
             }
         }
+        request['type'] = uppercaseType;
         const validOrderTypes = this.safeList(market['info'], 'orderTypes');
         if (!this.inArray(uppercaseType, validOrderTypes)) {
             if (initialUppercaseType !== uppercaseType) {

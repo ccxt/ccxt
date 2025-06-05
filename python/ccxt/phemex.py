@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.phemex import ImplicitAPI
 import hashlib
 import numbers
-from ccxt.base.types import Any, Balances, Conversion, Currencies, Currency, DepositAddress, Int, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Conversion, Currencies, Currency, DepositAddress, Int, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1130,9 +1130,7 @@ class phemex(Exchange, ImplicitAPI):
         for i in range(0, len(currencies)):
             currency = currencies[i]
             id = self.safe_string(currency, 'currency')
-            name = self.safe_string(currency, 'name')
             code = self.safe_currency_code(id)
-            status = self.safe_string(currency, 'status')
             valueScaleString = self.safe_string(currency, 'valueScale')
             valueScale = int(valueScaleString)
             minValueEv = self.safe_string(currency, 'minValueEv')
@@ -1145,12 +1143,12 @@ class phemex(Exchange, ImplicitAPI):
                 precision = self.parse_number(precisionString)
                 minAmount = self.parse_number(Precise.string_mul(minValueEv, precisionString))
                 maxAmount = self.parse_number(Precise.string_mul(maxValueEv, precisionString))
-            result[code] = {
+            result[code] = self.safe_currency_structure({
                 'id': id,
                 'info': currency,
                 'code': code,
-                'name': name,
-                'active': status == 'Listed',
+                'name': self.safe_string(currency, 'name'),
+                'active': self.safe_string(currency, 'status') == 'Listed',
                 'deposit': None,
                 'withdraw': None,
                 'fee': None,
@@ -1166,8 +1164,9 @@ class phemex(Exchange, ImplicitAPI):
                     },
                 },
                 'valueScale': valueScale,
-                'networks': {},
-            }
+                'networks': None,
+                'type': 'crypto',
+            })
         return result
 
     def custom_parse_bid_ask(self, bidask, priceKey=0, amountKey=1, market: Market = None):
@@ -3570,7 +3569,7 @@ class phemex(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def fetch_positions(self, symbols: Strings = None, params={}):
+    def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open positions
 
