@@ -39,8 +39,6 @@ const httpsAgent = new Agent ({
     'keepAlive': true,
 });
 
-const timeout = 30000;
-
 //-----------------------------------------------------------------------------
 
 /**
@@ -624,6 +622,27 @@ function askForArgv (prompt: string): Promise<string[]> {
     });
 }
 
+function createCCXTExchange (exchangeId: string) {
+    let exchange = undefined;
+    try {
+        if ((ccxt.pro as any).exchanges.includes (exchangeId)) {
+            exchange = new ccxt.pro[exchangeId] ();
+        } else {
+            exchange = new ccxt[exchangeId] ();
+        }
+    } catch (e) {
+        log.error ('Error creating exchange:', e);
+        process.exit (1);
+    }
+    return exchange;
+}
+
+function printExchangeMethods (exchangeId: string) {
+    const exchange = createCCXTExchange (exchangeId);
+    const methods = Object.keys (exchange.has).filter ((methodName) => exchange.has[methodName]);
+    log (methods);
+}
+
 function printMethodUsage (methodName: string) {
     const exchange = new ccxt.Exchange ();
     const method = exchange[methodName];
@@ -763,4 +782,5 @@ export {
     askForArgv,
     printMethodUsage,
     parseValue,
+    printExchangeMethods,
 };

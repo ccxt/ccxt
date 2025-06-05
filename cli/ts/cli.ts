@@ -2,7 +2,7 @@
 import ansi from 'ansicolor';
 import { Command, Option } from 'commander';
 import ololog from 'ololog';
-import { parseMethodArgs, printHumanReadable, printSavedCommand, printUsage, loadSettingsAndCreateExchange, collectKeyValue, handleDebug, handleStaticTests, askForArgv, printMethodUsage } from './helpers.js';
+import { parseMethodArgs, printHumanReadable, printSavedCommand, printUsage, loadSettingsAndCreateExchange, collectKeyValue, handleDebug, handleStaticTests, askForArgv, printMethodUsage, printExchangeMethods } from './helpers.js';
 import { changeConfigPath, checkCache, getCachePathForHelp, saveCommand } from './cache.js';
 
 ansi.nice;
@@ -150,6 +150,14 @@ program
     .description ('Explain how a method is used, eg: "explain createOrder"')
     .action ((method) => {
         printMethodUsage (method);
+        process.exit (0);
+    });
+
+program
+    .command ('methods <exchangeName>')
+    .description ('Shows the available methods in an exchange, eg: "methods binance"')
+    .action ((exchangeName) => {
+        printExchangeMethods (exchangeName);
         process.exit (0);
     });
 
