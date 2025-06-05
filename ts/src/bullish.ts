@@ -936,7 +936,7 @@ export default class bullish extends Exchange {
     }
 
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
-        const marketId = this.safeString (market, 'id');
+        const marketId = this.safeString (ticker, 'symbol');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (ticker, 'createdAtTimestamp');
         return this.safeTicker ({
