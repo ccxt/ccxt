@@ -959,6 +959,7 @@ export default class bullish extends Exchange {
             'average': this.safeString (ticker, 'average'),
             'baseVolume': this.safeString (ticker, 'baseVolume'),
             'quoteVolume': this.safeString (ticker, 'quoteVolume'),
+            'markPrice': this.safeString (ticker, 'markPrice'),
             'info': ticker,
         }, market);
     }
