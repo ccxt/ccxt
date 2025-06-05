@@ -728,7 +728,9 @@ export default class Exchange {
             this.options['cachedCurrencies'] = currencies;
         }
         const markets = await this.fetchMarkets(params);
-        delete this.options['cachedCurrencies'];
+        if ('cachedCurrencies' in this.options) {
+            delete this.options['cachedCurrencies'];
+        }
         return this.setMarkets(markets, currencies);
     }
     /**
