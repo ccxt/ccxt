@@ -26,7 +26,6 @@
     "ccxt": "^4.4.86",
     "clipboardy": "^4.0.0",
     "commander": "^14.0.0",
-    "i": "^0.3.7",
     "ololog": "^1.1.175"
   },
   "repository": {
