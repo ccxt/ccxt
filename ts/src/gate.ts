@@ -1307,7 +1307,7 @@ export default class gate extends Exchange {
             const leverage = this.safeNumber (market, 'leverage');
             const margin = leverage !== undefined;
             const buyStart = this.safeIntegerProduct (spotMarket, 'buy_start', 1000); // buy_start is the trading start time, while sell_start is offline orders start time
-            const createdTs = buyStart === 0 ? undefined : buyStart;
+            const createdTs = (buyStart !== 0) ? buyStart : undefined;
             result.push ({
                 'id': id,
                 'symbol': base + '/' + quote,
