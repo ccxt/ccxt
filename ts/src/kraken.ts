@@ -606,7 +606,8 @@ export default class kraken extends Exchange {
         //         }
         //     }
         //
-        const markets = this.safeValue (response, 'result', {});
+        const markets = this.safeDict (response, 'result', {});
+        const cachedCurrencies = this.safeDict (this.options, 'cachedCurrencies', {});
         const keys = Object.keys (markets);
         let result = [];
         for (let i = 0; i < keys.length; i++) {
@@ -616,8 +617,6 @@ export default class kraken extends Exchange {
             const quoteId = this.safeString (market, 'quote');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const darkpool = id.indexOf ('.d') >= 0;
-            const altname = this.safeString (market, 'altname');
             const makerFees = this.safeValue (market, 'fees_maker', []);
             const firstMakerFee = this.safeValue (makerFees, 0, []);
             const firstMakerFeeRate = this.safeString (firstMakerFee, 1);
@@ -635,22 +634,32 @@ export default class kraken extends Exchange {
             const leverageBuy = this.safeValue (market, 'leverage_buy', []);
             const leverageBuyLength = leverageBuy.length;
             const precisionPrice = this.parseNumber (this.parsePrecision (this.safeString (market, 'pair_decimals')));
+            let precisionAmount = this.parseNumber (this.parsePrecision (this.safeString (market, 'lot_decimals')));
+            const spot = true;
+            // fix https://github.com/freqtrade/freqtrade/issues/11765#issuecomment-2894224103
+            if (spot && (base in cachedCurrencies)) {
+                const currency = cachedCurrencies[base];
+                const currencyPrecision = this.safeNumber (currency, 'precision');
+                // if currency precision is greater (e.g. 0.01) than market precision (e.g. 0.001)
+                if (currencyPrecision > precisionAmount) {
+                    precisionAmount = currencyPrecision;
+                }
+            }
             const status = this.safeString (market, 'status');
             const isActive = status === 'online';
             result.push ({
                 'id': id,
                 'wsId': this.safeString (market, 'wsname'),
-                'symbol': darkpool ? altname : (base + '/' + quote),
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
                 'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': undefined,
-                'darkpool': darkpool,
                 'altname': market['altname'],
                 'type': 'spot',
-                'spot': true,
+                'spot': spot,
                 'margin': (leverageBuyLength > 0),
                 'swap': false,
                 'future': false,
@@ -667,7 +676,7 @@ export default class kraken extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'lot_decimals'))),
+                    'amount': precisionAmount,
                     'price': precisionPrice,
                 },
                 'limits': {
@@ -680,7 +689,7 @@ export default class kraken extends Exchange {
                         'max': undefined,
                     },
                     'price': {
-                        'min': precisionPrice,
+                        'min': undefined,
                         'max': undefined,
                     },
                     'cost': {
