@@ -23,7 +23,7 @@ The **CCXT CLI** is a lightweight command-line tool that enables you to interact
 You can install the CLI globally with `npm`.
 
 ```bash
-npm install -g ccxt
+npm install -g ccxt-cli
 ```
 
 ---
