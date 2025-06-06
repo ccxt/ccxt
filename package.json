@@ -10,9 +10,6 @@
       "require": "./dist/ccxt.cjs"
     }
   },
-  "bin": {
-    "ccxt": "examples/js/cli.js"
-  },
   "engines": {
     "node": ">=15.0.0"
   },
@@ -47,10 +44,10 @@
     "cleanup-old-tags": "tsx ./build/cleanup-old-tags.ts",
     "cli.cs": "dotnet run --project \"./cs/cli/cli.csproj\"",
     "cli.go": "go run ./go/cli/main.go",
-    "cli.js": "node ./examples/js/cli.js",
+    "cli.js": "node ./cli/js/cli.js",
     "cli.php": "php ./examples/php/cli.php",
     "cli.py": "python3 ./examples/py/cli.py",
-    "cli.ts": "tsx examples/ts/cli.ts",
+    "cli.ts": "tsx ./cli/ts/cli.ts",
     "commonjs-test": "node ./utils/test-commonjs.cjs",
     "copy-python-files": "npm run copy-python-package && npm run copy-python-license && npm run copy-python-keys && npm run copy-python-readme",
     "copy-python-keys": "node build/copy keys.json python/keys.json",
