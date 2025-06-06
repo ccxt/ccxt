@@ -13,8 +13,8 @@ async function plotTicker (exchangeNames: string, symbol: string, args: any) {
 
     const exchanges = await Promise.all (exchangePromises);
 
-    const boxWidth = 35;
-    const boxHeight = 18 * 2 + 6;
+    const boxWidth = 32;
+    const boxHeight = 10 * 2 + 5;
 
     const screen = blessed.screen ({
         'smartCSR': true,
@@ -112,6 +112,7 @@ async function renderTicker (screen, exchange, symbol, box, name) {
             }
 
             function addLine (content: string) {
+                return content;
                 // content += '{center}{gray-fg}─────────────────────{/gray-fg}{/center}\n';
                 const line = '─'.repeat (33); // 35 - 2 (for borders)
                 content += `{center}{gray-fg}${line}{/gray-fg}{/center}\n`;
@@ -166,7 +167,7 @@ async function renderTicker (screen, exchange, symbol, box, name) {
             content += colorize ('Ask Vol', fmt (askVolume)) + '\n';
 
             content = addLine (content);
-            content += colorize ('Datetime', fmtDate (datetime), 'blue') + '\n';
+            content += colorize ('Datetime', formatShortDate (datetime), 'cyan') + '\n';
 
             box.setContent (content);
             screen.render ();
@@ -176,6 +177,28 @@ async function renderTicker (screen, exchange, symbol, box, name) {
         screen.render ();
         setTimeout (() => renderTicker (screen, exchange, symbol, box, name), 3000);
     }
+}
+
+function formatShortDate (input) {
+    if (!input) {
+        return undefined;
+    }
+    // Fill in missing seconds if needed
+    let normalized = input;
+    if (input.endsWith (':')) {
+        normalized += '01';
+    }
+
+    const date = new Date (normalized);
+    const pad = (n) => String (n).padStart (2, '0');
+
+    const month = pad (date.getMonth () + 1);
+    const day = pad (date.getDate ());
+    const hours = pad (date.getHours ());
+    const minutes = pad (date.getMinutes ());
+    const seconds = date.getSeconds (); // no padding
+
+    return `${month}/${day} ${hours}:${minutes}:${seconds}`;
 }
 
 export {
