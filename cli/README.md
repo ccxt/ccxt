@@ -18,7 +18,7 @@ The **CCXT CLI** is a lightweight command-line tool that enables you to interact
 - Render live ticker/orderbook updates from one or more exchanges
 ---
 
-## 📦 Installation
+## 📦 Install
 
 You can install the CLI globally with `npm`.
 
@@ -28,7 +28,7 @@ npm install -g ccxt
 
 ---
 
-## DEMO
+## Demo
 
 https://github.com/user-attachments/assets/5631e28c-4c82-4b04-840f-e1021ed42c93
 
@@ -96,6 +96,13 @@ ccxt ohlcv binance BTC/USDT 1h
 
 🔍 Ideal for visualizing recent price action.
 
+<details>
+  <summary>Result</summary>
+
+  ![OHLCV](https://github.com/user-attachments/assets/ee550b73-75a9-42dd-86ce-0fb6717dd944)
+
+</details>
+
 ## 📟 Live Ticker
 
 You can stream live ticker updates (websockets) from one or more exchanges:
@@ -105,6 +112,13 @@ ccxt ticker binance BTC/USDT
 ccxt ticker binance,bybit,okx BTC/USDT
 ```
 
+<details>
+  <summary>Result</summary>
+
+  ![ticker](https://github.com/user-attachments/assets/1406b1e1-e80f-4f69-9017-178be84b0a67)
+
+</details>
+
 ## 📊 Live OrderBook
 
 Render a live orderbook (websockets) for one or more exchanges:
@@ -113,6 +127,13 @@ Render a live orderbook (websockets) for one or more exchanges:
 ccxt orderbook binance BTC/USDT
 ccxt orderbook binance,bybit,okx BTC/USDT
 ```
+
+<details>
+  <summary>Result</summary>
+
+  ![orderbook](https://github.com/user-attachments/assets/9436b1c2-0b0d-43c4-ac91-847be84edb14)
+
+</details>
 
 ## Examples
 
