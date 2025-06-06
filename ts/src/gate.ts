@@ -1306,6 +1306,8 @@ export default class gate extends Exchange {
             const tradeStatus = this.safeString (market, 'trade_status');
             const leverage = this.safeNumber (market, 'leverage');
             const margin = leverage !== undefined;
+            const buyStart = this.safeIntegerProduct (spotMarket, 'buy_start', 1000); // buy_start is the trading start time, while sell_start is offline orders start time
+            const createdTs = buyStart === 0 ? undefined : buyStart;
             result.push ({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -1355,7 +1357,7 @@ export default class gate extends Exchange {
                         'max': margin ? this.safeNumber (market, 'max_quote_amount') : undefined,
                     },
                 },
-                'created': this.safeIntegerProduct (spotMarket, 'buy_start', 1000), // buy_start is the trading start time, while sell_start is offline orders start time
+                'created': createdTs,
                 'info': market,
             });
         }
