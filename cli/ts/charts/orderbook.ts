@@ -17,7 +17,7 @@ async function plotOrderBook (exchangeNames: string, symbol: string, args: any) 
 
     const depth = args[0] ?? defaultDepth;
     const boxWidth = 35;
-    const boxHeight = depth * 2 + 6;
+    const boxHeight = depth * 2 + 7;
 
     const screen = blessed.screen ({
         'smartCSR': true,
