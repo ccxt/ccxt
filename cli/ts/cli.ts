@@ -180,7 +180,7 @@ program
 
 program
     .command ('orderbook <exchangeName1,exchangeName2> <symbol> [args...]')
-    .description ('Plot an orderbook for one or more exchanges for the provided symbol')
+    .description ('Render a live orderbook for one or more exchanges for the provided symbol (ws)')
     .action (async (exchangeNames, symbol, args) => {
         await plotOrderBook (exchangeNames, symbol, args);
         process.exit (0);

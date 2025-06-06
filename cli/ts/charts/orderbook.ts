@@ -87,7 +87,7 @@ async function renderOrderBook (screen, exchange, symbol, box, name, depth) {
             const mid = (bestAsk + bestBid) / 2;
 
             let content = `{center}{bold}${name} - ${symbol}{/bold}{/center}\n`;
-            content += `{bold}${center ('Price', 12)} ${center ('Size', 10)}{/bold}\n`;
+            content += `{center}{bold}${center ('Price', 12)} ${center ('Size', 10)}{/bold}\n`;
 
             for (const [ price, amount ] of asks.slice ().reverse ()) {
                 content += `{red-fg}${center (price.toFixed (2), 12)} ${center (amount.toFixed (4), 10)}{/red-fg}\n`;
