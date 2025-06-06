@@ -3,8 +3,8 @@ import ololog from 'ololog';
 import open from 'open';
 import ansi from 'ansicolor';
 import ora from 'ora';
-import { saveChart } from '../cache';
-import { loadSettingsAndCreateExchange, parseMethodArgs } from '../helpers';
+import { saveChart } from '../cache.js';
+import { loadSettingsAndCreateExchange, parseMethodArgs } from '../helpers.js';
 
 const log = ololog.configure ({ 'locate': false }).unlimited;
 ansi.nice;

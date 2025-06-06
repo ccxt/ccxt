@@ -1,7 +1,7 @@
 
 import ora from 'ora';
 import blessed from 'blessed';
-import { loadSettingsAndCreateExchange } from '../helpers';
+import { loadSettingsAndCreateExchange } from '../helpers.js';
 
 const spinner = ora ('Loading Orderbook...');
 
