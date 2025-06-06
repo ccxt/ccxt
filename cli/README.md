@@ -2,7 +2,7 @@
 # CCXT Command-Line Interface (CLI)
 
 
-[![npm](https://img.shields.io/npm/v/ccxt.svg)](https://npmjs.com/package/ccxt) [![Discord](https://img.shields.io/discord/690203284119617602?logo=discord&logoColor=white)](https://discord.gg/ccxt) [![Supported Exchanges](https://img.shields.io/badge/exchanges-106-blue.svg)](https://github.com/ccxt/ccxt/wiki/Exchange-Markets) [![Follow CCXT at x.com](https://img.shields.io/twitter/follow/ccxt_official.svg?style=social&label=CCXT)](https://x.com/ccxt_official)
+[![npm](https://img.shields.io/npm/v/ccxt-cli.svg)](https://npmjs.com/package/ccxt-cli) [![Discord](https://img.shields.io/discord/690203284119617602?logo=discord&logoColor=white)](https://discord.gg/ccxt) [![Supported Exchanges](https://img.shields.io/badge/exchanges-106-blue.svg)](https://github.com/ccxt/ccxt/wiki/Exchange-Markets) [![Follow CCXT at x.com](https://img.shields.io/twitter/follow/ccxt_official.svg?style=social&label=CCXT)](https://x.com/ccxt_official)
 
 The **CCXT CLI** is a lightweight command-line tool that enables you to interact directly with any supported cryptocurrency exchange using the [CCXT](https://github.com/ccxt/ccxt) library. It provides a convenient way to perform tasks such as checking balances, placing orders, and fetching market data — all from the terminal, with no need to write custom scripts.
 
@@ -30,7 +30,7 @@ npm install -g ccxt
 
 ## Demo
 
-https://github.com/user-attachments/assets/5631e28c-4c82-4b04-840f-e1021ed42c93
+https://github.com/user-attachments/assets/09999217-07ee-4a0d-8bd9-715d4fe7f5a4
 
 ## 🛠️ Usage
 
