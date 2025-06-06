@@ -44,7 +44,7 @@ You can get a quick overview by using the `--help` flag:
 ccxt --help
 ```
 
-### Parameters
+### Parameters for calling a ccxt method
 
 - `<exchange_id>`: The ID of the exchange (e.g., `binance`, `kraken`, `coinbasepro`)
 - `<methodName>`: Any method name available in the CCXT API (e.g., `fetchBalance`, `createOrder`, `fetchTrades`)
