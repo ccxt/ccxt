@@ -467,6 +467,14 @@ class digifinex(Exchange, ImplicitAPI):
                     'TRX': 'TRC20',
                     'VECHAIN': 'Vechain',  # VET
                 },
+                'networksById': {
+                    'TRC20': 'TRC20',
+                    'TRX': 'TRC20',
+                    'BEP20': 'BEP20',
+                    'BSC': 'BEP20',
+                    'ERC20': 'ERC20',
+                    'ETH': 'ERC20',
+                },
             },
             'commonCurrencies': {
                 'BHT': 'Black House Test',
@@ -494,6 +502,7 @@ class digifinex(Exchange, ImplicitAPI):
         #                 "min_withdraw_amount":10,
         #                 "min_withdraw_fee":5,
         #                 "currency":"USDT",
+        #                 "withdraw_fee_currency":"USDT",
         #                 "withdraw_status":0,
         #                 "chain":"OMNI"
         #             },
@@ -504,6 +513,7 @@ class digifinex(Exchange, ImplicitAPI):
         #                 "min_withdraw_amount":10,
         #                 "min_withdraw_fee":3,
         #                 "currency":"USDT",
+        #                 "withdraw_fee_currency":"USDT",
         #                 "withdraw_status":1,
         #                 "chain":"ERC20"
         #             },
@@ -514,6 +524,7 @@ class digifinex(Exchange, ImplicitAPI):
         #                 "min_withdraw_amount":0,
         #                 "min_withdraw_fee":0,
         #                 "currency":"DGF13",
+        #                 "withdraw_fee_currency":"DGF13",
         #                 "withdraw_status":0,
         #                 "chain":""
         #             },
@@ -521,79 +532,23 @@ class digifinex(Exchange, ImplicitAPI):
         #         "code":200
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         result: dict = {}
         for i in range(0, len(data)):
-            currency = data[i]
-            id = self.safe_string(currency, 'currency')
+            networkEntry = data[i]
+            id = self.safe_string(networkEntry, 'currency')
             code = self.safe_currency_code(id)
-            depositStatus = self.safe_integer(currency, 'deposit_status', 1)
-            withdrawStatus = self.safe_integer(currency, 'withdraw_status', 1)
-            deposit = depositStatus > 0
-            withdraw = withdrawStatus > 0
-            active = deposit and withdraw
-            feeString = self.safe_string(currency, 'min_withdraw_fee')  # withdraw_fee_rate was zero for all currencies, so self was the worst case scenario
-            minWithdrawString = self.safe_string(currency, 'min_withdraw_amount')
-            minDepositString = self.safe_string(currency, 'min_deposit_amount')
-            minDeposit = self.parse_number(minDepositString)
-            minWithdraw = self.parse_number(minWithdrawString)
-            fee = self.parse_number(feeString)
-            # define precision with temporary way
-            minFoundPrecision = Precise.string_min(feeString, Precise.string_min(minDepositString, minWithdrawString))
-            precision = self.parse_number(minFoundPrecision)
-            networkId = self.safe_string(currency, 'chain')
-            networkCode = None
-            if networkId is not None:
-                networkCode = self.network_id_to_code(networkId)
-            network: dict = {
-                'info': currency,
-                'id': networkId,
-                'network': networkCode,
-                'active': active,
-                'fee': fee,
-                'precision': precision,
-                'deposit': deposit,
-                'withdraw': withdraw,
-                'limits': {
-                    'amount': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'withdraw': {
-                        'min': minWithdraw,
-                        'max': None,
-                    },
-                    'deposit': {
-                        'min': minDeposit,
-                        'max': None,
-                    },
-                },
-            }
-            if code in result:
-                resultCodeInfo = result[code]['info']
-                if isinstance(resultCodeInfo, list):
-                    resultCodeInfo.append(currency)
-                else:
-                    resultCodeInfo = [resultCodeInfo, currency]
-                if withdraw:
-                    result[code]['withdraw'] = True
-                    result[code]['limits']['withdraw']['min'] = min(result[code]['limits']['withdraw']['min'], minWithdraw)
-                if deposit:
-                    result[code]['deposit'] = True
-                    result[code]['limits']['deposit']['min'] = min(result[code]['limits']['deposit']['min'], minDeposit)
-                if active:
-                    result[code]['active'] = True
-            else:
+            if not (code in result):
                 result[code] = {
                     'id': id,
                     'code': code,
-                    'info': currency,
+                    'info': [],
                     'type': None,
                     'name': None,
-                    'active': active,
-                    'deposit': deposit,
-                    'withdraw': withdraw,
-                    'fee': self.parse_number(feeString),
+                    'active': None,
+                    'deposit': None,
+                    'withdraw': None,
+                    'fee': None,
                     'precision': None,
                     'limits': {
                         'amount': {
@@ -601,38 +556,45 @@ class digifinex(Exchange, ImplicitAPI):
                             'max': None,
                         },
                         'withdraw': {
-                            'min': minWithdraw,
+                            'min': None,
                             'max': None,
                         },
                         'deposit': {
-                            'min': minDeposit,
+                            'min': None,
                             'max': None,
                         },
                     },
                     'networks': {},
                 }
-            if networkId is not None:
-                result[code]['networks'][networkId] = network
-            else:
-                result[code]['active'] = active
-                result[code]['fee'] = self.parse_number(feeString)
-                result[code]['deposit'] = deposit
-                result[code]['withdraw'] = withdraw
-                result[code]['limits'] = {
-                    'amount': {
-                        'min': None,
-                        'max': None,
-                    },
+            networkId = self.safe_string(networkEntry, 'chain')
+            networkCode = self.network_id_to_code(networkId)
+            result[code]['networks'][networkCode] = {
+                'id': networkId,
+                'network': networkCode,
+                'active': self.safe_integer(networkEntry, 'deposit_status') == 1,
+                'deposit': self.safe_integer(networkEntry, 'deposit_status') == 1,
+                'withdraw': self.safe_integer(networkEntry, 'withdraw_status') == 1,
+                'fee': self.safe_number(networkEntry, 'min_withdraw_fee'),
+                'precision': None,
+                'limits': {
                     'withdraw': {
-                        'min': minWithdraw,
+                        'min': self.safe_number(networkEntry, 'min_withdraw_amount'),
                         'max': None,
                     },
                     'deposit': {
-                        'min': minDeposit,
+                        'min': self.safe_number(networkEntry, 'min_deposit_amount'),
                         'max': None,
                     },
-                }
-            result[code]['precision'] = precision if (result[code]['precision'] is None) else max(result[code]['precision'], precision)
+                },
+            }
+            infos = self.safe_list(result[code], 'info', [])
+            infos.append(networkEntry)
+            result[code]['info'] = infos
+        # only after all entries are formed in currencies, restructure each entry
+        allKeys = list(result.keys())
+        for i in range(0, len(allKeys)):
+            code = allKeys[i]
+            result[code] = self.safe_currency_structure(result[code])  # self is needed after adding network entry
         return result
 
     async def fetch_markets(self, params={}) -> List[Market]:
