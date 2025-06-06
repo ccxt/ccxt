@@ -183,7 +183,7 @@ program
     .command ('orderbook <exchangeName1,exchangeName2> <symbol> [args...]')
     .description ('Render a live orderbook for one or more exchanges for the provided symbol (ws)')
     .action (async (exchangeNames, symbol, args) => {
-        await plotOrderBook (exchangeNames, symbol, args);
+        await plotOrderBook (exchangeNames, symbol, args, program.opts ());
         process.exit (0);
     });
 

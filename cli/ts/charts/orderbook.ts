@@ -7,11 +7,11 @@ const spinner = ora ('Loading Orderbook...');
 
 const defaultDepth = 15;
 
-async function plotOrderBook (exchangeNames: string, symbol: string, args: any) {
+async function plotOrderBook (exchangeNames: string, symbol: string, args: any, cliOptions: any) {
     spinner.start ();
     const exchangeIds = exchangeNames.split (',');
 
-    const exchangePromises = exchangeIds.map ((id) => loadSettingsAndCreateExchange (id, {}));
+    const exchangePromises = exchangeIds.map ((id) => loadSettingsAndCreateExchange (id, cliOptions));
 
     const exchanges = await Promise.all (exchangePromises);
 
