@@ -16,17 +16,42 @@ function jsonStringify (obj: any, indent = undefined) {
     return JSON.stringify (obj, function(k, v) { return v === undefined ? null : v; }, indent);
 }
 
-function countAllParams(fn) {
-    const fnStr = fn.toString()
-      .replace(/\/\/.*$/mg, '')
-      .replace(/\/\*[\s\S]*?\*\//mg, '')
-      .replace(/\s+/g, '');
+/**
+ * This function retrieves the index and count of parameters in a given function.
+ * It is used to determine the position and total number of parameters in the function
+ * when the 'params={}' parameter is present.
+ *
+ * @param [method] - The function for which to retrieve the 'params' index and parameters count.
+ *
+ * @throws Error - If the provided method is not a function.
+ *
+ * @returns An object containing the count of parameters and the index of the 'params={}' parameter.
+ *          If the method does not contain a 'params={}' parameter, the index is set to 'undefined'.
+ *          If an error occurs during parsing, the function logs the error and returns an object
+ *          with both default parameters {paramsCount: 0, paramsIndex: -1}.
+ */
+function getParamsIndexAndCount(method?: any) {
+    let paramsCount = 0;
+    let paramsIndex = -1;
+    if (!method || typeof method !== 'function') {
+        throw new Error (`Invalid method: ${method === undefined? 'undefined' : typeof method}`);
+    }
+    try {
+        const fnStr = method.toString()
+        .replace(/\/\/.*$/mg, '')
+        .replace(/\/\*[\s\S]*?\*\//mg, '')
+        .replace(/\s+/g, '');
 
-    const match = fnStr.match(/^[^(]*\(([^)]*)\)/);
-    if (!match) return 0;
-
-    const params = match[1].split(',').filter(p => p);
-    return params.length;
+        const match = fnStr.match(/^[^(]*\(([^)]*)\)/);
+        if (match) {
+            const params = match[1].split(',').filter(p => p);
+            paramsIndex = params.indexOf('params={}');
+            paramsCount = params.length;
+        }
+    } catch (e) {
+        log.error (`Error parsing function parameters: ${(e as Error).message} method name: ${method.name}`);
+    }
+    return { paramsCount, paramsIndex };
 }
 
 //-----------------------------------------------------------------------------
@@ -105,14 +130,6 @@ for (let i = 0; i < process.argv.length; i++) {
         } else {
             throw new Error ('Invalid usage of --param. Please provide a value after --param.')
         }
-    }
-}
-
-let lastParam = params[params.length - 1]
-// exclude parasitic single quotes. Can happen on some shell processors
-if (lastParam?.includes('{') && lastParam?.includes('}')) {
-    if (lastParam.startsWith('\'{') && lastParam.endsWith('}\'')) {
-        lastParam = params[params.length - 1] = lastParam.substring(1, lastParam.length - 1)
     }
 }
 
@@ -276,19 +293,19 @@ function printUsage () {
     log ('--debug           Print debugging output')
     log ('--poll            Repeat continuously in rate-limited mode')
     log ('--no-send         Print the request but do not actually send it to the exchange (sets verbose and load-markets)')
-    log ('--no-load-markets Do not pre-load markets (for debugging)')
     log ('--details         Print detailed fetch responses')
     log ('--no-table        Do not print the fetch response as a table')
     log ('--table           Print the fetch response as a table')
-    log ('--iso8601         Print timestamps as ISO8601 datetimes')
-    log ('--param key=value Set a custom key=value pair for the last method\'s argument. Can be repeated multiple times')
-    log ('                  NOTE: don\'t forget to fill up missed arguments with "undefined" before last options parameter')
+    log ('--iso8601         Print timestamps as ISO8601 datetime')
+    log ('--param key[=value] Set a custom key=value pair for the "params" argument. Can be repeated multiple times')
+    log ('                  Parameter \'key\' without \'value\' parsed as key=true')
     log ('--cors            use CORS proxy for debugging')
     log ('--sign-in         Call signIn() if any')
     log ('--sandbox         Use the exchange sandbox if available, same as --testnet')
     log ('--testnet         Use the exchange testnet if available, same as --sandbox')
     log ('--test            Use the exchange testnet if available, same as --sandbox')
     log ('--cache-markets   Cache the loaded markets in the .cache folder in the current directory')
+    log ('--no-load-markets Do not pre-load markets (for debugging)')
 }
 
 //-----------------------------------------------------------------------------
@@ -362,10 +379,14 @@ async function run () {
     } else {
 
         let args = params
-            .map (s => s.match (/^[0-9]{4}[-][0-9]{2}[-][0-9]{2}[T\s]?[0-9]{2}[:][0-9]{2}[:][0-9]{2}/g) ? exchange.parse8601 (s) : s)
+            .map (s => s.match (/[0-9]{4}[-][0-9]{2}[-][0-9]{2}[T\s]?[0-9]{2}[:][0-9]{2}[:][0-9]{2}/g) ? exchange.parse8601 (s) : s)
             .map (s => {
                 return (() => {
-                    if (s.match(/^\d+$/g)) return s < Number.MAX_SAFE_INTEGER ? Number(s) : s
+                    if (s.match(/^\d+$/g)) {
+                        return s < Number.MAX_SAFE_INTEGER ? Number (s) : s;
+                    }
+                    // exclude parasitic single quotes around object, ie. '{\"till\":1747727879219}'. Can happen on some shell processors
+                    s = s.replace (/^'(\{.*})'$/, '$1')
                     try {
                         return eval('(() => (' + s + ')) ()')
                     } catch (e) {
@@ -421,15 +442,6 @@ async function run () {
             }
         }
 
-        if (typeof lastParamObject === 'object') {
-            const lastArgument = args[args.length - 1];
-            if (lastParam && typeof lastArgument === 'object') {
-                args[args.length - 1]  = Object.assign (lastArgument, lastParamObject)
-            } else {
-                args.push (lastParamObject)
-            }
-        }
-
         if (signIn && exchange.has.signIn) {
             await exchange.signIn ()
         }
@@ -455,39 +467,38 @@ async function run () {
 
             if (typeof exchange[methodName] === 'function') {
 
+                let start = exchange.milliseconds ()
+                let end = exchange.milliseconds ()
+                let isWsMethod = methodName.startsWith("watch") // handle WS methods
+                const method = exchange[methodName]
+                const { paramsIndex, paramsCount } = getParamsIndexAndCount(method)
+                if (typeof lastParamObject === 'object') {
+                    const paramsArgumentIndex = args.findIndex( arg=> typeof arg === 'object' && !Array.isArray(arg))
+                    const paramsArgument = paramsArgumentIndex >= 0 ? args[paramsArgumentIndex] : undefined
+                    if (typeof paramsArgument === 'object' && !Array.isArray(paramsArgument)) {
+                        args[paramsArgumentIndex]  = Object.assign (paramsArgument, lastParamObject)
+                        const artLength = args.length;
+                        if (artLength < paramsCount) {
+                            const tailLength = artLength - paramsArgumentIndex
+                            const headLength = artLength - tailLength
+                            const missingBeforeParams = paramsIndex - paramsArgumentIndex
+                            for (let i = 0; i < missingBeforeParams; i++) {
+                                args.splice (headLength, 0, undefined)
+                            }
+                        }
+                    } else if (paramsIndex >= 0) {
+                        args[paramsIndex] = lastParamObject
+                    }
+                }
+
                 if (!raw || details) {
                     const methodArgsPrint = JSON.stringify(args);
                     log(exchange.id + '.' + methodName, '(' + methodArgsPrint.substring(1, methodArgsPrint.length - 1) + ')')
                 }
 
-                let start = exchange.milliseconds ()
-                let end = exchange.milliseconds ()
-
                 let i = 0;
-
-                let isWsMethod = false
-                if (methodName.startsWith("watch")) { // handle WS methods
-                    isWsMethod = true;
-                }
-
                 while (true) {
                     try {
-                        const fn = exchange[methodName]
-                        const fnParams = countAllParams(fn)
-                        const argsContainsParams = args.find( arg=> arg && typeof arg === 'object' && !Array.isArray(arg) && Object.keys(arg).length > 0)
-                        if (argsContainsParams && fnParams !== args.length) {
-                            // populate the missing params with undefined
-                            const missingParams = fnParams - args.length
-                            const paramsObj = args[args.length - 1]
-                            args.pop()
-                            const newArgsArray = args;
-                            for (let i = 0; i < missingParams; i++) {
-                                newArgsArray.push(undefined)
-                            }
-                            newArgsArray.push(paramsObj)
-                            args = newArgsArray
-                        }
-
                         const result = await exchange[methodName] (... args)
                         end = exchange.milliseconds ()
                         if (!isWsMethod && !raw) {
