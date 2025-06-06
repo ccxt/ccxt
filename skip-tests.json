@@ -64,7 +64,9 @@
             },
             "orderBook": {
                 "timestamp": "not present https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3539 & https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4119"
-            }
+            },
+            "watchOrderBook.php": "todo: weird https://app.travis-ci.com/github/ccxt/ccxt/builds/271520319#L5498",
+            "watchOrderBookForSymbols.php": "same"
         }
     },
     "binanceus": {
@@ -103,7 +105,9 @@
             },
             "watchOrderBookForSymbols": {
                 "timestamp": "same"
-            }
+            },
+            "watchOrderBook.php": "todo: weird https://app.travis-ci.com/github/ccxt/ccxt/builds/271520319#L5498",
+            "watchOrderBookForSymbols.php": "same"
         }
     },
     "bingx": {
