@@ -7,6 +7,7 @@ import { parseMethodArgs, printHumanReadable, printSavedCommand, printUsage, loa
 import { changeConfigPath, checkCache, getCachePathForHelp, saveCommand } from './cache.js';
 import { plotOHLCVChart } from './charts/ohlcv.js';
 import { plotOrderBook } from './charts/orderbook.js';
+import { plotTicker } from './charts/ticker.js';
 
 ansi.nice;
 const log = ololog.configure ({ 'locate': false }).unlimited;
@@ -183,6 +184,14 @@ program
     .description ('Render a live orderbook for one or more exchanges for the provided symbol (ws)')
     .action (async (exchangeNames, symbol, args) => {
         await plotOrderBook (exchangeNames, symbol, args);
+        process.exit (0);
+    });
+
+program
+    .command ('ticker <exchangeName1,exchangeName2> <symbol> [args...]')
+    .description ('Render a live ticker for one or more exchanges for the provided symbol (ws)')
+    .action (async (exchangeNames, symbol, args) => {
+        await plotTicker (exchangeNames, symbol, args);
         process.exit (0);
     });
 

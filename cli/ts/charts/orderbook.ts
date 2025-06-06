@@ -102,12 +102,12 @@ async function renderOrderBook (screen, exchange, symbol, box, name, depth) {
 
             box.setContent (content);
             screen.render ();
-            await new Promise ((resolve) => setTimeout (resolve, 10));
+            // await new Promise ((resolve) => setTimeout (resolve, 10));
         }
 
         // setTimeout (() => renderOrderBook (screen, exchange, box, name), 100);
     } catch (err) {
-        console.log ('error inside loops');
+        // console.log ('error inside loops');
         box.setContent (`{red-fg}Error: ${err.message}{/red-fg}`);
         screen.render ();
         setTimeout (() => renderOrderBook (screen, exchange, symbol, box, name, depth), 3000);
