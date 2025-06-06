@@ -5024,13 +5024,13 @@ class binance(Exchange, ImplicitAPI):
         postOnly = self.is_post_only(initialUppercaseType == 'MARKET', initialUppercaseType == 'LIMIT_MAKER', params)
         if postOnly:
             uppercaseType = 'LIMIT_MAKER'
-        request['type'] = uppercaseType
         triggerPrice = self.safe_number_2(params, 'stopPrice', 'triggerPrice')
         if triggerPrice is not None:
             if uppercaseType == 'MARKET':
                 uppercaseType = 'STOP_LOSS'
             elif uppercaseType == 'LIMIT':
                 uppercaseType = 'STOP_LOSS_LIMIT'
+        request['type'] = uppercaseType
         validOrderTypes = self.safe_list(market['info'], 'orderTypes')
         if not self.in_array(uppercaseType, validOrderTypes):
             if initialUppercaseType != uppercaseType:

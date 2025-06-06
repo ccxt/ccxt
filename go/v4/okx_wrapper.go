@@ -2061,6 +2061,41 @@ func (this *Okx) FetchOpenInterest(symbol string, options ...FetchOpenInterestOp
 }
 /**
  * @method
+ * @name okx#fetchOpenInterests
+ * @description Retrieves the open interests of some currencies
+ * @see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-open-interest
+ * @param {string[]} symbols Unified CCXT market symbols
+ * @param {object} [params] exchange specific parameters
+ * @param {string} params.instType Instrument type, options: 'SWAP', 'FUTURES', 'OPTION', default to 'SWAP'
+ * @param {string} params.uly Underlying, Applicable to FUTURES/SWAP/OPTION, if instType is 'OPTION', either uly or instFamily is required
+ * @param {string} params.instFamily Instrument family, Applicable to FUTURES/SWAP/OPTION, if instType is 'OPTION', either uly or instFamily is required
+ * @returns {object} an dictionary of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+ */
+func (this *Okx) FetchOpenInterests(options ...FetchOpenInterestsOptions) (OpenInterests, error) {
+
+    opts := FetchOpenInterestsOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var symbols interface{} = nil
+    if opts.Symbols != nil {
+        symbols = *opts.Symbols
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.FetchOpenInterests(symbols, params)
+    if IsError(res) {
+        return OpenInterests{}, CreateReturnError(res)
+    }
+    return NewOpenInterests(res), nil
+}
+/**
+ * @method
  * @name okx#fetchOpenInterestHistory
  * @description Retrieves the open interest history of a currency
  * @see https://www.okx.com/docs-v5/en/#rest-api-trading-data-get-contracts-open-interest-and-volume

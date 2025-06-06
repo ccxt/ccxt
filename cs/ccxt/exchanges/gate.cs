@@ -102,7 +102,7 @@ public partial class gate : Exchange
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
                 { "fetchDepositAddresses", false },
-                { "fetchDepositAddressesByNetwork", false },
+                { "fetchDepositAddressesByNetwork", true },
                 { "fetchDeposits", true },
                 { "fetchDepositWithdrawFee", "emulated" },
                 { "fetchDepositWithdrawFees", true },
@@ -2218,9 +2218,7 @@ public partial class gate : Exchange
         object chains = this.safeValue(response, "multichain_addresses", new List<object>() {});
         object currencyId = this.safeString(response, "currency");
         currency = this.safeCurrency(currencyId, currency);
-        object parsed = this.parseDepositAddresses(chains, new List<object>() {getValue(currency, "code")}, false, new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
-        });
+        object parsed = this.parseDepositAddresses(chains, null, false);
         return this.indexBy(parsed, "network");
     }
 
@@ -2243,8 +2241,8 @@ public partial class gate : Exchange
         networkCode = ((IList<object>)networkCodeparametersVariable)[0];
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         object chainsIndexedById = await this.fetchDepositAddressesByNetwork(code, parameters);
-        object selectedNetworkId = this.selectNetworkCodeFromUnifiedNetworks(code, networkCode, chainsIndexedById);
-        return getValue(chainsIndexedById, selectedNetworkId);
+        object selectedNetworkIdOrCode = this.selectNetworkCodeFromUnifiedNetworks(code, networkCode, chainsIndexedById);
+        return getValue(chainsIndexedById, selectedNetworkIdOrCode);
     }
 
     public override object parseDepositAddress(object depositAddress, object currency = null)
