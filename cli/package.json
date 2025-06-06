@@ -9,7 +9,7 @@
     "publishPackage": "npm run build && npm publish"
   },
   "bin": {
-    "ccxt": "./js/cli.js"
+    "ccxt": "js/cli.js"
   },
   "author": "CCXT",
   "license": "MIT",
@@ -33,12 +33,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/ccxt/ccxt.git"
+    "url": "git+https://github.com/ccxt/ccxt.git"
   },
   "readme": "README.md",
-  "publishConfig": {
-    "registry": "https://registry.npmjs.com"
-  },
   "bugs": {
     "url": "https://github.com/ccxt/ccxt/issues"
   },
