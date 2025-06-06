@@ -182,7 +182,6 @@ program
     .command ('orderbook <exchangeName1,exchangeName2> <symbol> [args...]')
     .description ('Plot an orderbook for one or more exchanges for the provided symbol')
     .action (async (exchangeNames, symbol, args) => {
-        log.yellow (program.opts ());
         await plotOrderBook (exchangeNames, symbol, args);
         process.exit (0);
     });

@@ -45,7 +45,16 @@ async function plotOrderBook (exchangeNames: string, symbol: string, args: any) 
         boxes.push (box);
         screen.append (box);
     }
-    screen.key ([ 'escape', 'q', 'C-c' ], () => process.exit (0));
+    screen.key ([ 'escape', 'q', 'C-c' ], () => {
+        process.exit (0);
+    });
+
+    process.on ('SIGINT', () => {
+        screen.destroy (); // cleanup blessed screen
+        spinner.clear ();
+        process.exit (0);
+    });
+    // screen.render ();
     const renderPromises = [];
     for (let i = 0; i < exchanges.length; i++) {
         renderPromises.push (renderOrderBook (screen, exchanges[i], symbol, boxes[i], exchanges[i].id, depth));
@@ -66,6 +75,7 @@ async function renderOrderBook (screen, exchange, symbol, box, name, depth) {
         while (true) {
             const ob = await exchange.watchOrderBook (symbol);
             if (spinner.isSpinning) {
+                spinner.clear ();
                 spinner.stop ();
             }
             const asks = ob.asks.slice (0, depth);
@@ -92,10 +102,12 @@ async function renderOrderBook (screen, exchange, symbol, box, name, depth) {
 
             box.setContent (content);
             screen.render ();
+            await new Promise ((resolve) => setTimeout (resolve, 10));
         }
 
         // setTimeout (() => renderOrderBook (screen, exchange, box, name), 100);
     } catch (err) {
+        console.log ('error inside loops');
         box.setContent (`{red-fg}Error: ${err.message}{/red-fg}`);
         screen.render ();
         setTimeout (() => renderOrderBook (screen, exchange, symbol, box, name, depth), 3000);
