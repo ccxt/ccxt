@@ -14,8 +14,8 @@ The **CCXT CLI** is a lightweight command-line tool that enables you to interact
 - Call any CCXT method directly from the CLI
 - Send authenticated requests (using API keys)
 - Perform quick actions like fetching balances, trades, tickers, order books, and more
-- Uses positional arguments
-
+- Plot interactive OHLCV charts
+- Render live ticker/orderbook updates from one or more exchanges
 ---
 
 ## 📦 Installation
@@ -23,7 +23,7 @@ The **CCXT CLI** is a lightweight command-line tool that enables you to interact
 You can install the CLI globally with `npm`.
 
 ```bash
-npm install -g ccxt-cli
+npm install -g ccxt
 ```
 
 ---
@@ -65,7 +65,7 @@ export BINANCE_SECRET=your_secret
 
 ### Config files
 
-Inside `$CACHE/ccxt-cli/config.json` you can add an object with the `exchangeId` as the key and apikeys/options inside.
+Inside `$CACHE/ccxt/config.json` you can add an object with the `exchangeId` as the key and apikeys/options inside.
 
 ```Json
 {
@@ -81,6 +81,38 @@ Inside `$CACHE/ccxt-cli/config.json` you can add an object with the `exchangeId`
 `$CACHE` varies from OS to OS but by doing `--help` you can see which path is being used. You can also use the `config` command to set a different path for the config file.
 
 ---
+
+
+## 📈 Plot Interactive OHLCV Charts
+
+You can generate and open interactive candlestick charts with volume in your browser using:
+
+```bash
+ccxt ohlcv binance BTC/USDT 1h
+```
+
+- Uses `fetchOHLCV` from the exchange's REST API
+- Automatically generates a self-contained HTML file
+
+🔍 Ideal for visualizing recent price action.
+
+## 📟 Live Ticker
+
+You can stream live ticker updates (websockets) from one or more exchanges:
+
+```bash
+ccxt ticker binance BTC/USDT
+ccxt ticker binance,bybit,okx BTC/USDT
+```
+
+## 📊 Live OrderBook
+
+Render a live orderbook (websockets) for one or more exchanges:
+
+```bash
+ccxt orderbook binance BTC/USDT
+ccxt orderbook binance,bybit,okx BTC/USDT
+```
 
 ## Examples
 
