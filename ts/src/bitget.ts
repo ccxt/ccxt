@@ -175,6 +175,7 @@ export default class bitget extends Exchange {
                     'convert': 'https://api.{hostname}',
                     'copy': 'https://api.{hostname}',
                     'earn': 'https://api.{hostname}',
+                    'uta': 'https://api.{hostname}',
                 },
                 'www': 'https://www.bitget.com',
                 'doc': [
@@ -289,6 +290,24 @@ export default class bitget extends Exchange {
                         'get': {
                             'v2/earn/loan/public/coinInfos': 2,
                             'v2/earn/loan/public/hour-interest': 2,
+                        },
+                    },
+                    'uta': {
+                        'get': {
+                            'v3/market/instruments': 1,
+                            'v3/market/tickers': 1,
+                            'v3/market/orderbook': 1,
+                            'v3/market/fills': 1,
+                            'v3/market/open-interest': 1,
+                            'v3/market/candles': 1,
+                            'v3/market/history-candles': 1,
+                            'v3/market/current-fund-rate': 1,
+                            'v3/market/history-fund-rate': 1,
+                            'v3/market/risk-reserve': 1,
+                            'v3/market/discount-rate': 1,
+                            'v3/market/margin-loans': 1,
+                            'v3/market/position-tier': 1,
+                            'v3/market/oi-limit': 2,
                         },
                     },
                 },
@@ -782,6 +801,56 @@ export default class bitget extends Exchange {
                     'common': {
                         'get': {
                             'v2/common/trade-rate': 2,
+                        },
+                    },
+                    'uta': {
+                        'get': {
+                            'v3/account/assets': 1,
+                            'v3/account/settings': 1,
+                            'v3/account/financial-records': 1,
+                            'v3/account/repayable-coins': 2,
+                            'v3/account/payment-coins': 2,
+                            'v3/account/convert-records': 1,
+                            'v3/account/transferable-coins': 2,
+                            'v3/account/sub-transfer-record': 4,
+                            'v3/ins-loan/transfered': 6.6667,
+                            'v3/ins-loan/symbols': 6.6667,
+                            'v3/ins-loan/risk-unit': 6.6667,
+                            'v3/ins-loan/repaid-history': 6.6667,
+                            'v3/ins-loan/product-infos': 6.6667,
+                            'v3/ins-loan/loan-order': 6.6667,
+                            'v3/ins-loan/ltv-convert': 6.6667,
+                            'v3/ins-loan/ensure-coins-convert': 6.6667,
+                            'v3/position/current-position': 1,
+                            'v3/position/history-position': 1,
+                            'v3/trade/order-info': 1,
+                            'v3/trade/unfilled-orders': 1,
+                            'v3/trade/history-orders': 1,
+                            'v3/trade/fills': 1,
+                            'v3/user/sub-list': 2,
+                            'v3/user/sub-api-list': 2,
+                        },
+                        'post': {
+                            'v3/account/set-leverage': 2,
+                            'v3/account/set-hold-mode': 2,
+                            'v3/account/repay': 4,
+                            'v3/account/transfer': 4,
+                            'v3/account/sub-transfer': 4,
+                            'v3/account/max-open-available': 4,
+                            'v3/ins-loan/bind-uid': 6.6667,
+                            'v3/trade/place-order': 2,
+                            'v3/trade/modify-order': 2,
+                            'v3/trade/cancel-order': 2,
+                            'v3/trade/place-batch': 4,
+                            'v3/trade/batch-modify-order': 2,
+                            'v3/trade/cancel-batch': 4,
+                            'v3/trade/cancel-symbol-order': 4,
+                            'v3/trade/close-positions': 4,
+                            'v3/user/create-sub': 2,
+                            'v3/user/freeze-sub': 2,
+                            'v3/user/create-sub-api': 2,
+                            'v3/user/update-sub-api': 2,
+                            'v3/user/delete-sub-api': 2,
                         },
                     },
                 },
@@ -1762,19 +1831,31 @@ export default class bitget extends Exchange {
      * @see https://www.bitget.com/api-doc/spot/market/Get-Symbols
      * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbols-Contracts
      * @see https://www.bitget.com/api-doc/margin/common/support-currencies
+     * @see https://www.bitget.bike/api-doc/uta/public/Instruments
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.uta] set to true to fetch markets for the unified trading account (uta), defaults to false
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference ();
         }
+        let uta = undefined;
+        [ uta, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'uta', false);
+        params = this.omit (params, 'uta');
         const types = this.safeValue (this.options, 'fetchMarkets', [ 'spot', 'swap' ]);
         const promises = [];
         let fetchMargins = false;
         for (let i = 0; i < types.length; i++) {
             const type = types[i];
-            if ((type === 'swap') || (type === 'future')) {
+            if (uta) {
+                const subTypes = [ 'SPOT', 'USDT-FUTURES', 'COIN-FUTURES', 'USDC-FUTURES' ];
+                for (let j = 0; j < subTypes.length; j++) {
+                    promises.push (this.publicUtaGetV3MarketInstruments (this.extend (params, {
+                        'category': subTypes[j],
+                    })));
+                }
+            } else if ((type === 'swap') || (type === 'future')) {
                 const subTypes = [ 'USDT-FUTURES', 'COIN-FUTURES', 'USDC-FUTURES', 'SUSDT-FUTURES', 'SCOIN-FUTURES', 'SUSDC-FUTURES' ];
                 for (let j = 0; j < subTypes.length; j++) {
                     promises.push (this.publicMixGetV2MixMarketContracts (this.extend (params, {
@@ -1871,21 +1952,124 @@ export default class bitget extends Exchange {
         //         "maintainTime": ""
         //     }
         //
+        // spot uta
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "category": "SPOT",
+        //         "baseCoin": "BTC",
+        //         "quoteCoin": "USDT",
+        //         "buyLimitPriceRatio": "0.05",
+        //         "sellLimitPriceRatio": "0.05",
+        //         "minOrderQty": "0.000001",
+        //         "maxOrderQty": "0",
+        //         "pricePrecision": "2",
+        //         "quantityPrecision": "6",
+        //         "quotePrecision": "8",
+        //         "minOrderAmount": "1",
+        //         "maxSymbolOrderNum": "400",
+        //         "maxProductOrderNum": "400",
+        //         "status": "online",
+        //         "maintainTime": ""
+        //     }
+        //
+        // margin uta
+        //
+        //     {
+        //         "symbol": "BTCUSDC",
+        //         "category": "MARGIN",
+        //         "baseCoin": "BTC",
+        //         "quoteCoin": "USDC",
+        //         "buyLimitPriceRatio": "0.05",
+        //         "sellLimitPriceRatio": "0.05",
+        //         "minOrderQty": "0.00001",
+        //         "maxOrderQty": "0",
+        //         "pricePrecision": "2",
+        //         "quantityPrecision": "5",
+        //         "quotePrecision": "7",
+        //         "minOrderAmount": "1",
+        //         "maxSymbolOrderNum": "400",
+        //         "maxProductOrderNum": "400",
+        //         "status": "online",
+        //         "maintainTime": "",
+        //         "isIsolatedBaseBorrowable": "NO",
+        //         "isIsolatedQuotedBorrowable": "NO",
+        //         "warningRiskRatio": "0.8",
+        //         "liquidationRiskRatio": "1",
+        //         "maxCrossedLeverage": "3",
+        //         "maxIsolatedLeverage": "0",
+        //         "userMinBorrow": "0.00000001",
+        //         "areaSymbol": "no"
+        //     }
+        //
+        // swap and future uta
+        //
+        //     {
+        //         "symbol": "BTCPERP",
+        //         "category": "USDC-FUTURES",
+        //         "baseCoin": "BTC",
+        //         "quoteCoin": "USDC",
+        //         "buyLimitPriceRatio": "0.02",
+        //         "sellLimitPriceRatio": "0.02",
+        //         "feeRateUpRatio": "0.005",
+        //         "makerFeeRate": "0.0002",
+        //         "takerFeeRate": "0.0006",
+        //         "openCostUpRatio": "0.01",
+        //         "minOrderQty": "0.0001",
+        //         "maxOrderQty": "",
+        //         "pricePrecision": "1",
+        //         "quantityPrecision": "4",
+        //         "quotePrecision": null,
+        //         "priceMultiplier": "0.5",
+        //         "quantityMultiplier": "0.0001",
+        //         "type": "perpetual",
+        //         "minOrderAmount": "5",
+        //         "maxSymbolOrderNum": "200",
+        //         "maxProductOrderNum": "1000",
+        //         "maxPositionNum": "150",
+        //         "status": "online",
+        //         "offTime": "-1",
+        //         "limitOpenTime": "-1",
+        //         "deliveryTime": "",
+        //         "deliveryStartTime": "",
+        //         "deliveryPeriod": "",
+        //         "launchTime": "",
+        //         "fundInterval": "8",
+        //         "minLeverage": "1",
+        //         "maxLeverage": "125",
+        //         "maintainTime": ""
+        //     }
+        //
+        const category = this.safeString (market, 'category');
+        const isUta = (category !== undefined);
         const marketId = this.safeString (market, 'symbol');
         const quoteId = this.safeString (market, 'quoteCoin');
         const baseId = this.safeString (market, 'baseCoin');
         const quote = this.safeCurrencyCode (quoteId);
         const base = this.safeCurrencyCode (baseId);
-        const supportMarginCoins = this.safeValue (market, 'supportMarginCoins', []);
         let settleId = undefined;
-        if (this.inArray (baseId, supportMarginCoins)) {
-            settleId = baseId;
-        } else if (this.inArray (quoteId, supportMarginCoins)) {
-            settleId = quoteId;
+        let settle = undefined;
+        if (!isUta) {
+            const supportMarginCoins = this.safeValue (market, 'supportMarginCoins', []);
+            if (this.inArray (baseId, supportMarginCoins)) {
+                settleId = baseId;
+            } else if (this.inArray (quoteId, supportMarginCoins)) {
+                settleId = quoteId;
+            } else {
+                settleId = this.safeString (supportMarginCoins, 0);
+            }
         } else {
-            settleId = this.safeString (supportMarginCoins, 0);
+            if (category === 'USDT-FUTURES') {
+                settleId = 'USDT';
+            } else if (category === 'USDC-FUTURES') {
+                settleId = 'USDC';
+            } else if (category === 'COIN-FUTURES') {
+                settleId = base;
+            }
         }
-        const settle = this.safeCurrencyCode (settleId);
+        if (settleId !== undefined) {
+            settle = this.safeCurrencyCode (settleId);
+        }
         let symbol = base + '/' + quote;
         let type = undefined;
         let swap = false;
@@ -1898,10 +2082,56 @@ export default class bitget extends Exchange {
         let inverse = undefined;
         let expiry = undefined;
         let expiryDatetime = undefined;
-        const symbolType = this.safeString (market, 'symbolType');
+        const symbolType = this.safeString2 (market, 'symbolType', 'type');
         let marginModes = undefined;
         let isMarginTradingAllowed = false;
-        if (symbolType === undefined) {
+        if (isUta) {
+            const isUtaMargin = (category === 'MARGIN');
+            if (isUtaMargin || (category === 'SPOT')) {
+                type = 'spot';
+                spot = true;
+                if (isUtaMargin) {
+                    const isolatedBase = this.safeString (market, 'isIsolatedBaseBorrowable');
+                    const isolatedQuote = this.safeString (market, 'isIsolatedQuotedBorrowable');
+                    const isolated = (isolatedBase === 'YES') || (isolatedQuote === 'YES');
+                    const maxCrossLeverage = this.safeString (market, 'maxCrossedLeverage');
+                    const cross = (maxCrossLeverage !== '0');
+                    marginModes = {
+                        'cross': cross,
+                        'isolated': isolated,
+                    };
+                    isMarginTradingAllowed = true;
+                }
+            } else {
+                if (symbolType === 'perpetual') {
+                    type = 'swap';
+                    swap = true;
+                    symbol = symbol + ':' + settle;
+                } else if (symbolType === 'delivery') {
+                    expiry = this.safeInteger (market, 'deliveryTime');
+                    expiryDatetime = this.iso8601 (expiry);
+                    const expiryParts = expiryDatetime.split ('-');
+                    const yearPart = this.safeString (expiryParts, 0);
+                    const dayPart = this.safeString (expiryParts, 2);
+                    const year = yearPart.slice (2, 4);
+                    const month = this.safeString (expiryParts, 1);
+                    const day = dayPart.slice (0, 2);
+                    const expiryString = year + month + day;
+                    type = 'future';
+                    future = true;
+                    symbol = symbol + ':' + settle + '-' + expiryString;
+                }
+                contract = true;
+                inverse = (base === settle);
+                linear = !inverse;
+                marginModes = {
+                    'cross': true,
+                    'isolated': true,
+                };
+            }
+            pricePrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'pricePrecision')));
+            amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'quantityPrecision')));
+        } else if (symbolType === undefined) {
             type = 'spot';
             spot = true;
             pricePrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'pricePrecision')));
@@ -1997,12 +2227,12 @@ export default class bitget extends Exchange {
             },
             'limits': {
                 'leverage': {
-                    'min': this.safeNumber (market, 'minLever'),
-                    'max': this.safeNumber (market, 'maxLever'),
+                    'min': this.safeNumber2 (market, 'minLever', 'minLeverage'),
+                    'max': this.safeNumber2 (market, 'maxLever', 'maxLeverage'),
                 },
                 'amount': {
-                    'min': this.safeNumber2 (market, 'minTradeNum', 'minTradeAmount'),
-                    'max': this.safeNumber (market, 'maxTradeAmount'),
+                    'min': this.safeNumberN (market, [ 'minTradeNum', 'minTradeAmount', 'minOrderQty' ]),
+                    'max': this.safeNumber2 (market, 'maxTradeAmount', 'maxOrderQty'),
                 },
                 'price': {
                     'min': undefined,
