@@ -259,17 +259,42 @@ export default class bullish extends bullishRest {
         //         }
         //     }
         //
+        // current channel is 'l2Orderbook' which returns only snapshots
         const data = this.safeDict (message, 'data', {});
         const marketId = this.safeString (data, 'symbol');
         const symbol = this.safeSymbol (marketId);
         const messageHash = 'orderbook::' + symbol;
-        const datetime = this.safeString (data, 'timestamp');
-        const timestamp = this.parse8601 (datetime);
+        const timestamp = this.safeInteger (data, 'timestamp');
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook ();
         }
         const orderbook = this.orderbooks[symbol];
+        const bids = this.separateBidsOrAsks (this.safeList (data, 'bids', []));
+        const asks = this.separateBidsOrAsks (this.safeList (data, 'asks', []));
+        const snapshot = {
+            'bids': bids,
+            'asks': asks,
+        };
+        const parsed = this.parseOrderBook (snapshot, symbol, timestamp);
+        const sequenceNumberRange = this.safeList (data, 'sequenceNumberRange', []);
+        if (sequenceNumberRange.length > 0) {
+            const lastIndex = sequenceNumberRange.length - 1;
+            parsed['nonce'] = this.safeInteger (sequenceNumberRange, lastIndex);
+        }
+        orderbook.reset (parsed);
+        this.orderbooks[symbol] = orderbook;
         client.resolve (orderbook, messageHash);
+    }
+
+    separateBidsOrAsks (entry) {
+        const result = [];
+        const lastIndex = entry.length - 1;
+        for (let i = 0; i < lastIndex; i += 2) {
+            const price = this.safeString (entry, i);
+            const amount = this.safeString (entry, i + 1);
+            result.push ([ price, amount ]);
+        }
+        return result;
     }
 
     handleMessage (client: Client, message) {
