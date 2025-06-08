@@ -662,7 +662,7 @@ export default class bullish extends Exchange {
         //         "sequenceNumber": 999
         //     }
         //
-        const timestamp = this.safeTimestamp (response, 'timestamp');
+        const timestamp = this.safeInteger (response, 'timestamp');
         return this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks', 'price', 'priceLevelQuantity');
     }
 
