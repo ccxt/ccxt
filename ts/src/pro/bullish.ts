@@ -3,7 +3,7 @@
 
 import bullishRest from '../bullish.js';
 import { ArrayCache } from '../base/ws/Cache.js';
-import type { Int, Ticker, Trade } from '../base/types.js';
+import type { Dict, Int, OrderBook, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 // import { ArgumentsRequired, AuthenticationError, ExchangeError } from '../base/errors.js';
 // import { OHLCV, Order, Position, Str } from '../base/types.js';
@@ -214,6 +214,64 @@ export default class bullish extends bullishRest {
         client.resolve (this.tickers[symbol], messageHash);
     }
 
+    /**
+     * @method
+     * @name bullish#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#overview--multi-orderbook-websocket-unauthenticated
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const url = '/trading-api/v1/market-data/orderbook';
+        const messageHash = 'orderbook::' + symbol;
+        const request: Dict = {
+            'topic': 'l2Orderbook', // 'l2Orderbook' returns only snapshots while 'l1Orderbook' returns only updates
+            'symbol': market['id'],
+        };
+        const orderbook = await this.watchPublic (url, messageHash, request, params);
+        return orderbook.limit ();
+    }
+
+    handleOrderBook (client: Client, message) {
+        //
+        //     {
+        //         "type": "snapshot",
+        //         "dataType": "V1TALevel2",
+        //         "data": {
+        //             "timestamp": "1749372632028",
+        //             "bids": [
+        //                 "105523.3000",
+        //                 "0.00046045",
+        //             ],
+        //             "asks": [
+        //                 "105523.4000",
+        //                 "0.00117112",
+        //             ],
+        //             "publishedAtTimestamp": "1749372632073",
+        //             "datetime": "2025-06-08T08:50:32.028Z",
+        //             "sequenceNumberRange": [ 1967862061, 1967862062 ],
+        //             "symbol": "BTCUSDC"
+        //         }
+        //     }
+        //
+        const data = this.safeDict (message, 'data', {});
+        const marketId = this.safeString (data, 'symbol');
+        const symbol = this.safeSymbol (marketId);
+        const messageHash = 'orderbook::' + symbol;
+        const datetime = this.safeString (data, 'timestamp');
+        const timestamp = this.parse8601 (datetime);
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook ();
+        }
+        const orderbook = this.orderbooks[symbol];
+        client.resolve (orderbook, messageHash);
+    }
+
     handleMessage (client: Client, message) {
         const dataType = this.safeString (message, 'dataType');
         if (dataType !== undefined) {
@@ -222,6 +280,9 @@ export default class bullish extends bullishRest {
             }
             if (dataType === 'V1TATickerResponse') {
                 this.handleTicker (client, message);
+            }
+            if (dataType === 'V1TALevel2') {
+                this.handleOrderBook (client, message);
             }
         }
     }
