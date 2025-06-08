@@ -1,16 +1,17 @@
-import commonjs from "@rollup/plugin-commonjs";
-import json from "@rollup/plugin-json";
-import execute from 'rollup-plugin-execute';
+import commonjs from "@rollup/plugin-commonjs"
+import json from "@rollup/plugin-json"
+import execute from 'rollup-plugin-execute'
 import nodeResolve from '@rollup/plugin-node-resolve'
+import rename from './rollup.rename.js'
 
 export default [
   {
-    preserveModules: true,
     input: "./js/ccxt.js",
     output: [
       {
         dir: "./dist/cjs/",
         format: "cjs",
+        preserveModules: true,
       }
     ],
     plugins: [
@@ -24,6 +25,7 @@ export default [
         transformMixedEsModules: true,
         dynamicRequireTargets: ["**/js/src/static_dependencies/**/*.cjs"],
       }),
+      rename,
       execute("echo '{ \"type\": \"commonjs\" }' > ./dist/cjs/package.json") // this is needed to make node treat files inside dist/cjs as CJS modules
     ],
     onwarn: ( warning, next ) => {
