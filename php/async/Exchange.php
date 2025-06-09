@@ -247,13 +247,32 @@ class Exchange extends \ccxt\Exchange {
                 return $this->markets;
             }
             $currencies = null;
-            if (array_key_exists('fetchCurrencies', $this->has) && $this->has['fetchCurrencies'] === true) {
-                $currencies = React\Async\await($this->fetch_currencies());
-                $this->options['cachedCurrencies'] = $currencies;
+            $markets = null;
+            $cacheEnabled = $this->safeBool($this->marketsCache, 'enable', false);
+            if ($cacheEnabled) {
+                $getter = $this->marketsCache['getter'];
+                $values = $getter('ccxt_' . $this->id . '_markets_and_currencies');
+                if ($values) {
+                    $markets = $values['markets'];
+                    $currencies = $values['currencies'];
+                }
             }
-            $markets = React\Async\await($this->fetch_markets($params));
-            unset($this->options['cachedCurrencies']);
-            return $this->set_markets ($markets, $currencies);
+            if ($markets === null) {
+                if (array_key_exists('fetchCurrencies', $this->has) && $this->has['fetchCurrencies'] === true) {
+                    $currencies = \React\Async\await($this->fetch_currencies());
+                    $this->options['cachedCurrencies'] = $currencies;
+                }
+                $markets = \React\Async\await($this->fetch_markets($params));
+                if (array_key_exists('cachedCurrencies', $this->options)) {
+                    unset($this->options['cachedCurrencies']);
+                }
+                // write new cache
+                if ($cacheEnabled) {
+                    $setter = $this->marketsCache['setter'];
+                    $setter('ccxt_' . $this->id . '_markets_and_currencies', ['markets' => $markets, 'currencies' => $currencies]);
+                }
+            }
+            return $this->set_markets($markets, $currencies);
         }) ();
     }
 

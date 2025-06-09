@@ -251,6 +251,8 @@ class Exchange {
         '407' => 'AuthenticationError',
         '511' => 'AuthenticationError',
     );
+    public $marketsCache = array();
+
     public $verbose = false;
     public $apiKey = '';
     public $secret = '';
