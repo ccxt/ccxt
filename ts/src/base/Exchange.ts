@@ -336,6 +336,7 @@ export default class Exchange {
     enableRateLimit: boolean = undefined;
 
     httpExceptions = undefined
+    cacheOptions = {}
 
     limits: {
         amount?: MinMax,
@@ -1009,17 +1010,30 @@ export default class Exchange {
             }
             return this.markets
         }
-        let currencies = undefined
+        let currencies = undefined;
+        let markets = undefined;
         // only call if exchange API provides endpoint (true), thus avoid emulated versions ('emulated')
-        if (this.has['fetchCurrencies'] === true) {
-            currencies = await this.fetchCurrencies ()
-            this.options['cachedCurrencies'] = currencies;
+        const cacheEnabled = this.safeBool (this.cacheOptions, 'enabled', false);
+        if (cacheEnabled) {
+            const getter = this.cacheOptions['getter'];
+            const values = getter('ccxt_' + this.id + '_markets_and_currencies');
+            markets = values.markets;
+            currencies = values.currencies;
+        } else {
+            if (this.has['fetchCurrencies'] === true) {
+                currencies = await this.fetchCurrencies ()
+                this.options['cachedCurrencies'] = currencies;
+            }
+            markets = await this.fetchMarkets (params);
+            if ('cachedCurrencies' in this.options) {
+                delete this.options['cachedCurrencies'];
+            }
         }
-        const markets = await this.fetchMarkets (params);
-        if ('cachedCurrencies' in this.options) {
-            delete this.options['cachedCurrencies'];
+        if (cacheEnabled) {
+            const setter = this.cacheOptions['setter'];
+            setter('ccxt_' + this.id + '_markets_and_currencies', {markets:markets, currencies:currencies});
         }
-        return this.setMarkets (markets, currencies)
+        return this.setMarkets (markets, currencies);
     }
 
     /**
