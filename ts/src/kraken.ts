@@ -237,7 +237,7 @@ export default class kraken extends Exchange {
                 'XDG': 'DOGE',
             },
             'options': {
-                'timeDifference': 0, // the difference between system clock and Binance clock
+                'timeDifference': 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'marketsByAltname': {},
                 'delistedMarketsById': {},
@@ -555,10 +555,13 @@ export default class kraken extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
+        const promises = [];
+        promises.push (this.publicGetAssets (params));
         if (this.options['adjustForTimeDifference']) {
-            await this.loadTimeDifference ();
+            promises.push (this.loadTimeDifference ());
         }
-        const response = await this.publicGetAssetPairs (params);
+        const responses = await Promise.all (promises);
+        const assetsResponse = responses[0];
         //
         //     {
         //         "error": [],
@@ -606,7 +609,7 @@ export default class kraken extends Exchange {
         //         }
         //     }
         //
-        const markets = this.safeDict (response, 'result', {});
+        const markets = this.safeDict (assetsResponse, 'result', {});
         const cachedCurrencies = this.safeDict (this.options, 'cachedCurrencies', {});
         const keys = Object.keys (markets);
         let result = [];
