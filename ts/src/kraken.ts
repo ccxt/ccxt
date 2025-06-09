@@ -556,7 +556,7 @@ export default class kraken extends Exchange {
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
         const promises = [];
-        promises.push (this.publicGetAssets (params));
+        promises.push (this.publicGetAssetPairs (params));
         if (this.options['adjustForTimeDifference']) {
             promises.push (this.loadTimeDifference ());
         }
