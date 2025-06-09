@@ -2008,7 +2008,7 @@ class bitget extends Exchange {
                     'max' => null,
                 ),
             ),
-            'created' => $this->safe_integer($market, 'launchTime'),
+            'created' => $this->safe_integer($market, 'openTime'),
             'info' => $market,
         );
     }
