@@ -2011,7 +2011,7 @@ class bitget(Exchange, ImplicitAPI):
                     'max': None,
                 },
             },
-            'created': self.safe_integer(market, 'launchTime'),
+            'created': self.safe_integer(market, 'openTime'),
             'info': market,
         }
 
