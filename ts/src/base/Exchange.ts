@@ -1016,7 +1016,7 @@ export default class Exchange {
         const cacheEnabled = this.safeBool (this.marketsCache, 'enable', false);
         if (cacheEnabled) {
             const getter = this.marketsCache['getter'];
-            const values = getter('ccxt_' + this.id + '_markets_and_currencies');
+            const values = await getter('ccxt_' + this.id + '_markets_and_currencies');
             if (values) {
                 markets = values.markets;
                 currencies = values.currencies;
@@ -1034,7 +1034,7 @@ export default class Exchange {
             // write new cache
             if (cacheEnabled) {
                 const setter = this.marketsCache['setter'];
-                setter('ccxt_' + this.id + '_markets_and_currencies', {markets:markets, currencies:currencies});
+                await setter('ccxt_' + this.id + '_markets_and_currencies', {markets:markets, currencies:currencies});
             }
         }
         return this.setMarkets (markets, currencies);
