@@ -3,9 +3,9 @@
 
 import bullishRest from '../bullish.js';
 import { ArrayCache } from '../base/ws/Cache.js';
-import type { Dict, Int, OrderBook, Ticker, Trade } from '../base/types.js';
+import type { Dict, Int, OrderBook, Str, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-// import { ArgumentsRequired, AuthenticationError, ExchangeError } from '../base/errors.js';
+import { ArgumentsRequired } from '../base/errors.js';
 // import { OHLCV, Order, Position, Str } from '../base/types.js';
 // import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 
@@ -16,9 +16,9 @@ export default class bullish extends bullishRest {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
-                'watchTicker': false,
+                'watchTicker': true,
                 'watchTickers': false,
-                'watchOrderBook': false,
+                'watchOrderBook': true,
                 'watchOrders': false,
                 'watchTrades': true,
                 'watchPositions': false,
@@ -30,17 +30,23 @@ export default class bullish extends bullishRest {
                 'api': {
                     'ws': {
                         'public': 'wss://api.exchange.bullish.com',
-                        'private': 'wss://api.exchange.bullish.com',
+                        'private': 'wss://api.exchange.bullish.com/trading-api/v1/private-data',
                     },
                 },
                 'test': {
                     'ws': {
                         'public': 'wss://api.simnext.bullish-test.com',
-                        'private': 'wss://api.simnext.bullish-test.com',
+                        'private': 'wss://api.simnext.bullish-test.com/trading-api/v1/private-data',
                     },
                 },
             },
-            'options': {},
+            'options': {
+                'ws': {
+                    'options': {
+                        'headers': {},
+                    },
+                },
+            },
             'streaming': {
                 'ping': this.ping,
                 'keepAlive': 299000,
@@ -58,6 +64,33 @@ export default class bullish extends bullishRest {
         };
         const fullUrl = this.urls['api']['ws']['public'] + url;
         return await this.watch (fullUrl, messageHash, this.deepExtend (message, params), messageHash);
+    }
+
+    async watchPrivate (methodName: string, messageHash: string, request = {}, params = {}): Promise<any> {
+        const url = this.urls['api']['ws']['private'];
+        await this.signIn ();
+        let tradingAccountId: Str = undefined;
+        [ tradingAccountId, params ] = this.handleOptionAndParams (params, methodName, 'tradingAccountId');
+        if (tradingAccountId === undefined) {
+            throw new ArgumentsRequired (this.id + ' ' + methodName + ' requires a tradingAccountId parameter');
+        }
+        const token = this.token;
+        const originalHeaders = this.options['ws']['options']['headers'];
+        const newHeaders = {
+            'JWT_COOKIE': token,
+        };
+        this.options['ws']['headers'] = this.deepExtend (originalHeaders, newHeaders);
+        request['topic'] = 'orders';
+        const message = {
+            'jsonrpc': '2.0',
+            'type': 'command',
+            'method': 'subscribe',
+            'params': request,
+            'id': this.milliseconds (),
+        };
+        const result = await this.watch (url, messageHash, this.deepExtend (message, params), messageHash);
+        this.options['ws']['options']['headers'] = originalHeaders;
+        return result;
     }
 
     /**
