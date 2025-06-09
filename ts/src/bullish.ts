@@ -2,7 +2,7 @@
 
 import { Precise } from '../ccxt.js';
 import Exchange from './abstract/bullish.js';
-import { AuthenticationError, ArgumentsRequired, BadRequest } from './base/errors.js';
+import { AuthenticationError, ArgumentsRequired, BadRequest, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Account, Balances, Bool, Currencies, Currency, DepositAddress, Dict, Int, FundingRateHistory, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry } from './base/types.js';
@@ -964,6 +964,33 @@ export default class bullish extends Exchange {
         }, market);
     }
 
+    async safeDeterministicCall (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, timeframe: Str = undefined, params = {}) {
+        let maxRetries = undefined;
+        [ maxRetries, params ] = this.handleOptionAndParams (params, method, 'maxRetries', 3);
+        let errors = 0;
+        params = this.omit (params, 'until');
+        // the exchange returns the most recent data, so we do not need to pass until into paginated calls
+        // the correct util value will be calculated inside of the method
+        while (errors <= maxRetries) {
+            try {
+                if (timeframe && method !== 'fetchFundingRateHistory') {
+                    return await this[method] (symbol, timeframe, since, limit, params);
+                } else {
+                    return await this[method] (symbol, since, limit, params);
+                }
+            } catch (e) {
+                if (e instanceof RateLimitExceeded) {
+                    throw e; // if we are rate limited, we should not retry and fail fast
+                }
+                errors += 1;
+                if (errors > maxRetries) {
+                    throw e;
+                }
+            }
+        }
+        return [];
+    }
+
     /**
      * @method
      * @name bullish#fetchOHLCV
@@ -972,23 +999,31 @@ export default class bullish extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
-     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch (max 100)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest entry
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
-        // todo handle since and until
         const market = this.market (symbol);
+        const maxLimit = 100;
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit) as OHLCV[];
+        }
         let until: Int = undefined;
         [ until, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'until');
-        if (until === undefined) {
+        const duration = this.parseTimeframe (timeframe);
+        const maxDelta = 1000 * duration * maxLimit;
+        if (since === undefined && until === undefined) {
             until = this.milliseconds ();
-        }
-        if (since === undefined) {
-            const duration = this.parseTimeframe (timeframe);
-            since = until - (duration * 1000 * 1000);
+            since = until - maxDelta;
+        } else if (since === undefined) {
+            since = until - maxDelta;
+        } else if (until === undefined) {
+            until = this.sum (since, maxDelta);
         }
         timeframe = this.safeString (this.timeframes, timeframe, timeframe);
         const request: Dict = {
@@ -996,6 +1031,7 @@ export default class bullish extends Exchange {
             'timeBucket': timeframe,
             'createdAtDatetime[gte]': this.iso8601 (since),
             'createdAtDatetime[lte]': this.iso8601 (until),
+            '_pageSize': maxLimit,
         };
         const response = await this.publicGetV1MarketsSymbolCandle (this.extend (request, params));
         //
