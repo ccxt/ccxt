@@ -456,6 +456,8 @@ export default class digifinex extends Exchange {
                     'BSC': 'BEP20',
                     'ERC20': 'ERC20',
                     'ETH': 'ERC20',
+                    'Polygon': 'POLYGON',
+                    'Crypto.com': 'CRONOS',
                 },
             },
             'commonCurrencies': {
