@@ -674,9 +674,10 @@ export default class bullish extends Exchange {
      * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/history/markets/-symbol-/trades
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
-     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch (max 100)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest trade to fetch
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -685,6 +686,12 @@ export default class bullish extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
+        const maxLimit = 100;
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, params, maxLimit) as Trade[];
+        }
         if (since !== undefined) {
             request['createdAtDatetime[gte]'] = this.iso8601 (since);
         }
@@ -692,11 +699,10 @@ export default class bullish extends Exchange {
         if (until !== undefined) {
             request['createdAtDatetime[lte]'] = this.iso8601 (until);
             params = this.omit (params, 'until');
-        } else if (since !== undefined) {
-            request['createdAtDatetime[lte]'] = this.iso8601 (this.sum (since, 7 * 24 * 60 * 60 * 1000)); // for the exchange not to throw an exception if since is younger than 7 days
         }
         let response = undefined;
-        if (since !== undefined) {
+        if ((since !== undefined) || (until !== undefined)) {
+            request['_pageSize'] = maxLimit;
             response = await this.publicGetV1HistoryMarketsSymbolTrades (this.extend (request, params));
             //
             //     [
@@ -838,7 +844,6 @@ export default class bullish extends Exchange {
         //         }, ...
         //     ]
         //
-        const id = this.safeString (trade, 'symbol');
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
@@ -866,7 +871,7 @@ export default class bullish extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'id': id,
+            'id': this.safeString (trade, 'tradeId'),
             'order': orderId,
             'type': undefined,
             'takerOrMaker': takerOrMaker,
@@ -1002,6 +1007,7 @@ export default class bullish extends Exchange {
      * @param {int} [limit] the maximum amount of candles to fetch (max 100)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest entry
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
