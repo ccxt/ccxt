@@ -553,7 +553,9 @@ export default class digifinex extends Exchange {
             }
             result[code] = this.safeCurrencyStructure ({
                 'id': id,
+                'code': code,
                 'info': networkEntries,
+                'networks': networks,
             });
         }
         return result;
