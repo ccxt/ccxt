@@ -45,9 +45,9 @@ def decimal_to_precision(n, rounding_mode=ROUND, numPrecisionDigits=None, counti
     else:
         assert isinstance(numPrecisionDigits, numbers.Integral), 'numPrecisionDigits must be an integer with DECIMAL_PLACES or SIGNIFICANT_DIGITS precisionMode'
 
-    assert rounding_mode in [TRUNCATE, ROUND], 'invalid rounding_mode provided'
-    assert counting_mode in [DECIMAL_PLACES, SIGNIFICANT_DIGITS, TICK_SIZE], 'invalid counting_mode provided'
-    assert padding_mode in [NO_PADDING, PAD_WITH_ZERO], 'invalid padding_mode provided'
+    assert rounding_mode in [TRUNCATE, ROUND]
+    assert counting_mode in [DECIMAL_PLACES, SIGNIFICANT_DIGITS, TICK_SIZE]
+    assert padding_mode in [NO_PADDING, PAD_WITH_ZERO]
     # end of checks
 
     precision = numPrecisionDigits  # "precision" variable name was in signature, but to make function signature similar to php/js, I had to change the argument name to "numPrecisionDigits". however, the below codes use "precision" variable name, so we have to assign that name here (you can change the usage of 'precision' variable name below everywhere, but i've refrained to do that to avoid many changes)
