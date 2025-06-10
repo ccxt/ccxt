@@ -9,7 +9,7 @@ const PHP_PATH = './php/abstract/'
 const ASYNC_PHP_PATH = './php/async/abstract/'
 const CSHARP_PATH = './cs/ccxt/api/';
 const PY_PATH = './python/ccxt/abstract/'
-const GO_PATH = './go/v4/'
+const GO_PATH = './go/v4beta/'
 const IDEN = '    ';
 
 
@@ -219,17 +219,17 @@ function createImplicitMethodsGo(){
         const methods = methodNames.map(method=> {
             return [
                 `func (this *${exchange}) ${capitalize(method)} (args ...interface{}) <-chan interface{} {`,
-                `   parameters := GetArg(args, 0, nil)`,
+                `   parameters := ccxt.GetArg(args, 0, nil)`,
                 `   ch := make(chan interface{})`,
                 `   go func() {`,
                 `       defer close(ch)`,
                 `       defer func() {`,
                 `           if r := recover(); r != nil {`,
-                `               ch <- "panic:" + ToString(r)`,
+                `               ch <- "panic:" + ccxt.ToString(r)`,
                 `           }`,
                 `       }()`,
-                `       ch <- (<-this.callEndpoint ("${method}", parameters))`,
-                `       PanicOnError(ch)`,
+                `       ch <- (<-this.CallEndpoint ("${method}", parameters))`,
+                `       ccxt.PanicOnError(ch)`,
                 `   }()`,
                 `   return ch`,
                 `}`,
@@ -275,8 +275,8 @@ async function editAPIFilesCSharp(){
 // -------------------------------------------------------------------------
 
 async function editAPIFilesGo(){
-    const exchanges = Object.keys(storedCamelCaseMethods);
-    const files = exchanges.map(ex => GO_PATH + ex + '_api.go');
+    const exchanges = Object.keys(storedCamelCaseMethods).filter((ex) => ex === 'vertex');
+    const files = exchanges.map(ex => GO_PATH + ex + '/' + ex + '_api.go');
     await Promise.all(files.map((path, idx) => promisedWriteFile(path, storedGoMethods[exchanges[idx]].join ('\n'))))
 }
 
@@ -328,7 +328,11 @@ function createCSharpHeader(exchange, parent){
 // -------------------------------------------------------------------------
 
 function createGoHeader(exchange, parent){
-    const namespace = 'package ccxt'
+    const namespace = `package ccxt
+
+import (
+    "github.com/ccxt/ccxt/go/v4beta"
+)`
     storedGoMethods[exchange.id] = [ getPreamble(), namespace, ''];
 }
 
