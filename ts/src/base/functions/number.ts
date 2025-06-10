@@ -1,5 +1,3 @@
-import assert from 'assert';
-
 // ------------------------------------------------------------------------
 //
 //  NB: initially, I used objects for options passing:
@@ -33,6 +31,8 @@ const precisionConstants = {
     NO_PADDING,
     PAD_WITH_ZERO,
 };
+
+const assert = (x, y) => { if (!x) throw new Error (y || 'assertion failed'); };
 
 /*  ------------------------------------------------------------------------ */
 
