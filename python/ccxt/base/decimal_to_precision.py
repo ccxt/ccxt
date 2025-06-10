@@ -43,7 +43,7 @@ def decimal_to_precision(n, rounding_mode=ROUND, numPrecisionDigits=None, counti
     if counting_mode == TICK_SIZE:
         assert numPrecisionDigits > 0, 'negative or zero numPrecisionDigits can not be used with TICK_SIZE precisionMode'
     else:
-        assert isinstance(numPrecisionDigits, numbers.Integral), 'numPrecisionDigits must be an integer with DECIMAL_PLACES or SIGNIFICANT_DIGITS precisionMode'
+        assert isinstance(numPrecisionDigits, numbers.Integral)
 
     assert rounding_mode in [TRUNCATE, ROUND]
     assert counting_mode in [DECIMAL_PLACES, SIGNIFICANT_DIGITS, TICK_SIZE]
