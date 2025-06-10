@@ -167,7 +167,7 @@ function testNumber () {
     assert (exchange.decimalToPrecision ('2.46225', ROUND, 7, SIGNIFICANT_DIGITS) === '2.46225');
     assert (exchange.decimalToPrecision ('20.46225', ROUND, 5, SIGNIFICANT_DIGITS) === '20.462');
     assert (exchange.decimalToPrecision ('20.46225', ROUND, 6, SIGNIFICANT_DIGITS) === '20.4623');
-    assert (exchange.decimalToPrecision ('20.46225', ROUND, 7, SIGNIFICANT_DIGITS) === '20.4622');
+    assert (exchange.decimalToPrecision ('20.46225', ROUND, 7, SIGNIFICANT_DIGITS) === '20.46225');
 
     // ----------------------------------------------------------------------------
     // testDecimalToPrecisionRoundingToTickSize
