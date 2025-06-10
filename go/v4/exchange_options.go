@@ -377,6 +377,9 @@ func (this *Exchange) initializeProperties(extendedProperties map[string]interfa
 	}
 	this.EnableRateLimit = SafeValue(extendedProperties, "enableRateLimit", true).(bool)
 	this.RateLimit = SafeFloat(extendedProperties, "rateLimit", -1).(float64)
+	this.RateLimiterAlgorithm = SafeString(extendedProperties, "rateLimiterAlgorithm", "leakyBucket").(string)
+	this.MaxLimiterRequests = int(SafeInteger(extendedProperties, "maxLimiterRequests", 1000).(int64))
+	this.RollingWindowSize = int(SafeInteger(extendedProperties, "rollingWindowSize", 60000).(int64))
 	// this.status = SafeValue(extendedProperties, "status",map[string]interface{}{}).(map[string]interface{})
 	this.PrecisionMode = int(SafeInteger(extendedProperties, "precisionMode", this.PrecisionMode).(int64))
 	this.PaddingMode = int(SafeInteger(extendedProperties, "paddingMode", this.PaddingMode).(int64))
