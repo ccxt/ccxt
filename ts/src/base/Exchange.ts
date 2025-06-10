@@ -1034,7 +1034,7 @@ export default class Exchange {
             // write new cache
             if (cacheEnabled) {
                 const setter = this.marketsCache['setter'];
-                await setter('ccxt_' + this.id + '_markets_and_currencies', {markets:markets, currencies:currencies});
+                await setter('ccxt_' + this.id + '_markets_and_currencies', {markets:markets, currencies:currencies, timestamp: this.milliseconds ()});
             }
         }
         return this.setMarkets (markets, currencies);
