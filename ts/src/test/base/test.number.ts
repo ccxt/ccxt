@@ -136,7 +136,6 @@ function testNumber () {
     assert (exchange.decimalToPrecision ('0.000123456700', ROUND, 100, SIGNIFICANT_DIGITS) === '0.0001234567');
     assert (exchange.decimalToPrecision ('0.0001234567', ROUND, 100, SIGNIFICANT_DIGITS) === '0.0001234567');
     assert (exchange.decimalToPrecision ('0.0001234567', ROUND, 7, SIGNIFICANT_DIGITS) === '0.0001234567');
-
     assert (exchange.decimalToPrecision ('0.000123456', ROUND, 6, SIGNIFICANT_DIGITS) === '0.000123456');
     assert (exchange.decimalToPrecision ('0.000123456', ROUND, 5, SIGNIFICANT_DIGITS) === '0.00012346');
     assert (exchange.decimalToPrecision ('0.000123456', ROUND, 4, SIGNIFICANT_DIGITS) === '0.0001235');
@@ -158,6 +157,17 @@ function testNumber () {
     assert (exchange.decimalToPrecision ('-0.123', ROUND, 0, SIGNIFICANT_DIGITS) === '0');
 
     assert (exchange.decimalToPrecision ('0.00000044', ROUND, 5, SIGNIFICANT_DIGITS) === '0.00000044');
+
+
+    assert (exchange.decimalToPrecision ('0.246225', ROUND, 5, SIGNIFICANT_DIGITS) === '0.24623');
+    assert (exchange.decimalToPrecision ('0.246225', ROUND, 6, SIGNIFICANT_DIGITS) === '0.246225');
+    assert (exchange.decimalToPrecision ('0.246225', ROUND, 7, SIGNIFICANT_DIGITS) === '0.246225');
+    assert (exchange.decimalToPrecision ('2.46225', ROUND, 5, SIGNIFICANT_DIGITS) === '2.4623');
+    assert (exchange.decimalToPrecision ('2.46225', ROUND, 6, SIGNIFICANT_DIGITS) === '2.46225');
+    assert (exchange.decimalToPrecision ('2.46225', ROUND, 7, SIGNIFICANT_DIGITS) === '2.46225');
+    assert (exchange.decimalToPrecision ('20.46225', ROUND, 5, SIGNIFICANT_DIGITS) === '20.462');
+    assert (exchange.decimalToPrecision ('20.46225', ROUND, 6, SIGNIFICANT_DIGITS) === '20.46225');
+    assert (exchange.decimalToPrecision ('20.46225', ROUND, 7, SIGNIFICANT_DIGITS) === '20.46225');
 
     // ----------------------------------------------------------------------------
     // testDecimalToPrecisionRoundingToTickSize
