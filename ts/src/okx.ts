@@ -1602,6 +1602,7 @@ export default class okx extends Exchange {
         //         "instType": "OPTION",
         //         "lever": "",
         //         "listTime": "1631262612280",
+        //         "contTdSwTime": "1631262812280",
         //         "lotSz": "1",
         //         "minSz": "1",
         //         "optType": "P",
@@ -1688,7 +1689,7 @@ export default class okx extends Exchange {
             'expiryDatetime': this.iso8601 (expiry),
             'strike': this.parseNumber (strikePrice),
             'optionType': optionType,
-            'created': this.safeInteger (market, 'listTime'),
+            'created': this.safeInteger2 (market, 'contTdSwTime', 'listTime'), // contTdSwTime is public trading start time, while listTime considers pre-trading too
             'precision': {
                 'amount': this.safeNumber (market, 'lotSz'),
                 'price': this.safeNumber (market, 'tickSz'),
