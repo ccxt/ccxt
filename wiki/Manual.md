@@ -1590,7 +1590,7 @@ You should pass your preferred callbacks in `marketsCache` property when instant
 
 #### **Javascript**
 ```javascript
-import fs, { statSync } from 'fs';
+import fs from 'fs';
 
 async function my_cache_setter (key, marketsAndCurrencies) {
     fs.writeFileSync(key, JSON.stringify(marketsAndCurrencies));
@@ -1598,8 +1598,11 @@ async function my_cache_setter (key, marketsAndCurrencies) {
 
 async function my_cache_getter (key) {
     const expirationMinutes = 60;
-    if (fs.existsSync(key) && Date.now() - statSync(key).mtime.getTime() < expirationMinutes * 60 * 1000) {
-        return JSON.parse(fs.readFileSync(key, 'utf8'));
+    if (fs.existsSync(key)) {
+        const parsed = JSON.parse(fs.readFileSync(key, 'utf8'));
+        if (Date.now() - parsed.timestamp < expirationMinutes * 60 * 1000) {
+            return parsed;
+        }
     } else {
         return undefined;
     }
