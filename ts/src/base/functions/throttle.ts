@@ -93,7 +93,7 @@ class Throttler {
     }    
 
     async loop () {
-        if (this.config['rateLimiterAlogorithm'] === 'leakyBucket') {
+        if (this.config['algorithm'] === 'leakyBucket') {
             await this.leakyBucketLoop ();
         } else {
             await this.rollingWindowLoop ();
