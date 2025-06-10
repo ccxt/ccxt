@@ -293,5 +293,8 @@ public partial class Exchange
         this.newUpdates = SafeValue(extendedProperties, "newUpdates") as bool? ?? true;
         this.accounts = SafeValue(extendedProperties, "accounts") as List<object>;
         this.features = SafeValue(extendedProperties, "features", features) as dict;
+        this.rateLimiterAlgorithm = SafeString(extendedProperties, "rateLimiterAlgorithm", "leakyBucket");
+        this.maxLimiterRequests = (int)(SafeInteger(extendedProperties, "maxLimiterRequests") ?? 1000);
+        this.rollingWindowSize = (int)(SafeInteger(extendedProperties, "rollingWindowSize") ?? 60000);
     }
 }

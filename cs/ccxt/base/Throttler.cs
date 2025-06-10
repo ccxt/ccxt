@@ -8,6 +8,7 @@ public class Throttler
 
     private dict config = new dict();
     private Queue<(Task, double)> queue = new Queue<(Task, double)>();
+    private readonly object queueLock = new object();
 
     private bool running = false;
     private List<(long timestamp, double cost)> timestamps = new List<(long, double)>();
@@ -37,12 +38,19 @@ public class Throttler
         while (this.running)
         {
             // do we need this check here?
-            if (this.queue.Count == 0)
+            lock (queueLock)
             {
-                this.running = false;
-                continue;
+                if (this.queue.Count == 0)
+                {
+                    this.running = false;
+                    continue;
+                }
             }
-            var first = this.queue.Peek();
+            (Task, double) first;
+            lock (queueLock)
+            {
+                first = this.queue.Peek();
+            }
             var task = first.Item1;
             var cost = first.Item2;
             var tokensAsString = Convert.ToString(this.config["tokens"], CultureInfo.InvariantCulture);
@@ -58,11 +66,14 @@ public class Throttler
                         task.Start();
                     }
                 }
-                this.queue.Dequeue();
-
-                if (this.queue.Count == 0)
+                lock (queueLock)
                 {
-                    this.running = false;
+                    this.queue.Dequeue();
+
+                    if (this.queue.Count == 0)
+                    {
+                        this.running = false;
+                    }
                 }
             }
             else
@@ -82,12 +93,19 @@ public class Throttler
     {
         while (this.running)
         {
-            if (this.queue.Count == 0)
+            lock (queueLock)
             {
-                this.running = false;
-                continue;
+                if (this.queue.Count == 0)
+                {
+                    this.running = false;
+                    continue;
+                }
             }
-            var first = this.queue.Peek();
+            (Task, double) first;
+            lock (queueLock)
+            {
+                first = this.queue.Peek();
+            }
             var task = first.Item1;
             var cost = first.Item2;
             var now = milliseconds();
@@ -101,8 +119,11 @@ public class Throttler
                 {
                     task.Start();
                 }
-                this.queue.Dequeue();
-                if (this.queue.Count == 0) this.running = false;
+                lock (queueLock)
+                {
+                    this.queue.Dequeue();
+                    if (this.queue.Count == 0) this.running = false;
+                }
             }
             else
             {
@@ -131,19 +152,22 @@ public class Throttler
     public async Task<Task> throttle(object cost2)
     {
         var cost = (cost2 != null) ? Convert.ToDouble(cost2) : Convert.ToDouble(this.config["cost"]);
-        if (this.queue.Count > (int)this.config["maxLimiterRequests"])
+        lock (queueLock)
         {
-            throw new Exception("throttle queue is over maxLimiterRequests (" + this.config["maxLimiterRequests"].ToString() + "), see https://github.com/ccxt/ccxt/issues/11645#issuecomment-1195695526");
+            if (this.queue.Count > (int)this.config["maxLimiterRequests"])
+            {
+                throw new Exception("throttle queue is over maxLimiterRequests (" + this.config["maxLimiterRequests"].ToString() + "), see https://github.com/ccxt/ccxt/issues/11645#issuecomment-1195695526");
+            }
+            var t = new Task(() => { });
+            this.queue.Enqueue((t, cost));
+            if (!this.running)
+            {
+                this.running = true;
+                // Task.Run(() => { this.loop(); });
+                this.loop();
+            }
+            return t;
         }
-        var t = new Task(() => { });
-        this.queue.Enqueue((t, cost));
-        if (!this.running)
-        {
-            this.running = true;
-            // Task.Run(() => { this.loop(); });
-            this.loop();
-        }
-        return t;
     }
 
     // move this elsewhere later
