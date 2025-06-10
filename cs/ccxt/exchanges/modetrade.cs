@@ -34,16 +34,16 @@ public partial class modetrade : Exchange
                 { "createConvertTrade", false },
                 { "createDepositAddress", false },
                 { "createMarketBuyOrderWithCost", false },
-                { "createMarketOrder", false },
+                { "createMarketOrder", true },
                 { "createMarketOrderWithCost", false },
                 { "createMarketSellOrderWithCost", false },
                 { "createOrder", true },
                 { "createOrderWithTakeProfitAndStopLoss", true },
                 { "createReduceOnlyOrder", true },
-                { "createStopLimitOrder", false },
+                { "createStopLimitOrder", true },
                 { "createStopLossOrder", true },
-                { "createStopMarketOrder", false },
-                { "createStopOrder", false },
+                { "createStopMarketOrder", true },
+                { "createStopOrder", true },
                 { "createTakeProfitOrder", true },
                 { "createTrailingAmountOrder", false },
                 { "createTrailingPercentOrder", false },
@@ -282,7 +282,7 @@ public partial class modetrade : Exchange
             } },
             { "options", new Dictionary<string, object>() {
                 { "sandboxMode", false },
-                { "brokerId", "CCXT" },
+                { "brokerId", "CCXTMODE" },
                 { "verifyingContractAddress", "0x6F7a338F2aA472838dEFD3283eB360d4Dff5D203" },
             } },
             { "features", new Dictionary<string, object>() {
@@ -2282,7 +2282,7 @@ public partial class modetrade : Exchange
             object code = this.safeCurrencyCode(this.safeString(balance, "token"));
             object account = this.account();
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "holding");
-            ((IDictionary<string,object>)account)["frozen"] = this.safeString(balance, "frozen");
+            ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "frozen");
             ((IDictionary<string,object>)result)[(string)code] = account;
         }
         return this.safeBalance(result);
@@ -2986,7 +2986,7 @@ public partial class modetrade : Exchange
                 object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
                 if (!isTrue(isSandboxMode))
                 {
-                    object brokerId = this.safeString(this.options, "brokerId", "CCXT");
+                    object brokerId = this.safeString(this.options, "brokerId", "CCXTMODE");
                     if (isTrue(isEqual(path, "batch-order")))
                     {
                         object ordersList = this.safeList(parameters, "orders", new List<object>() {});

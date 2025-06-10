@@ -2017,7 +2017,7 @@ class bitget extends bitget$1 {
                     'max': undefined,
                 },
             },
-            'created': this.safeInteger(market, 'launchTime'),
+            'created': this.safeInteger(market, 'openTime'),
             'info': market,
         };
     }

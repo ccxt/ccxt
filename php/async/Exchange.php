@@ -44,11 +44,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.4.86';
+$version = '4.4.88';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.4.86';
+    const VERSION = '4.4.88';
 
     public $browser;
     public $marketsLoading = null;
@@ -249,8 +249,10 @@ class Exchange extends \ccxt\Exchange {
             $currencies = null;
             if (array_key_exists('fetchCurrencies', $this->has) && $this->has['fetchCurrencies'] === true) {
                 $currencies = React\Async\await($this->fetch_currencies());
+                $this->options['cachedCurrencies'] = $currencies;
             }
             $markets = React\Async\await($this->fetch_markets($params));
+            unset($this->options['cachedCurrencies']);
             return $this->set_markets ($markets, $currencies);
         }) ();
     }

@@ -444,6 +444,14 @@ class digifinex extends Exchange {
                     'TRX' => 'TRC20',
                     'VECHAIN' => 'Vechain', // VET
                 ),
+                'networksById' => array(
+                    'TRC20' => 'TRC20',
+                    'TRX' => 'TRC20',
+                    'BEP20' => 'BEP20',
+                    'BSC' => 'BEP20',
+                    'ERC20' => 'ERC20',
+                    'ETH' => 'ERC20',
+                ),
             ),
             'commonCurrencies' => array(
                 'BHT' => 'Black House Test',
@@ -472,6 +480,7 @@ class digifinex extends Exchange {
         //                 "min_withdraw_amount":10,
         //                 "min_withdraw_fee":5,
         //                 "currency":"USDT",
+        //                 "withdraw_fee_currency":"USDT",
         //                 "withdraw_status":0,
         //                 "chain":"OMNI"
         //             ),
@@ -482,6 +491,7 @@ class digifinex extends Exchange {
         //                 "min_withdraw_amount":10,
         //                 "min_withdraw_fee":3,
         //                 "currency":"USDT",
+        //                 "withdraw_fee_currency":"USDT",
         //                 "withdraw_status":1,
         //                 "chain":"ERC20"
         //             ),
@@ -492,6 +502,7 @@ class digifinex extends Exchange {
         //                 "min_withdraw_amount":0,
         //                 "min_withdraw_fee":0,
         //                 "currency":"DGF13",
+        //                 "withdraw_fee_currency":"DGF13",
         //                 "withdraw_status":0,
         //                 "chain":""
         //             ),
@@ -499,84 +510,23 @@ class digifinex extends Exchange {
         //         "code":200
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
-            $currency = $data[$i];
-            $id = $this->safe_string($currency, 'currency');
+            $networkEntry = $data[$i];
+            $id = $this->safe_string($networkEntry, 'currency');
             $code = $this->safe_currency_code($id);
-            $depositStatus = $this->safe_integer($currency, 'deposit_status', 1);
-            $withdrawStatus = $this->safe_integer($currency, 'withdraw_status', 1);
-            $deposit = $depositStatus > 0;
-            $withdraw = $withdrawStatus > 0;
-            $active = $deposit && $withdraw;
-            $feeString = $this->safe_string($currency, 'min_withdraw_fee'); // withdraw_fee_rate was zero for all currencies, so this was the worst case scenario
-            $minWithdrawString = $this->safe_string($currency, 'min_withdraw_amount');
-            $minDepositString = $this->safe_string($currency, 'min_deposit_amount');
-            $minDeposit = $this->parse_number($minDepositString);
-            $minWithdraw = $this->parse_number($minWithdrawString);
-            $fee = $this->parse_number($feeString);
-            // define $precision with temporary way
-            $minFoundPrecision = Precise::string_min($feeString, Precise::string_min($minDepositString, $minWithdrawString));
-            $precision = $this->parse_number($minFoundPrecision);
-            $networkId = $this->safe_string($currency, 'chain');
-            $networkCode = null;
-            if ($networkId !== null) {
-                $networkCode = $this->network_id_to_code($networkId);
-            }
-            $network = array(
-                'info' => $currency,
-                'id' => $networkId,
-                'network' => $networkCode,
-                'active' => $active,
-                'fee' => $fee,
-                'precision' => $precision,
-                'deposit' => $deposit,
-                'withdraw' => $withdraw,
-                'limits' => array(
-                    'amount' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'withdraw' => array(
-                        'min' => $minWithdraw,
-                        'max' => null,
-                    ),
-                    'deposit' => array(
-                        'min' => $minDeposit,
-                        'max' => null,
-                    ),
-                ),
-            );
-            if (is_array($result) && array_key_exists($code, $result)) {
-                $resultCodeInfo = $result[$code]['info'];
-                if (gettype($resultCodeInfo) === 'array' && array_keys($resultCodeInfo) === array_keys(array_keys($resultCodeInfo))) {
-                    $resultCodeInfo[] = $currency;
-                } else {
-                    $resultCodeInfo = array( $resultCodeInfo, $currency );
-                }
-                if ($withdraw) {
-                    $result[$code]['withdraw'] = true;
-                    $result[$code]['limits']['withdraw']['min'] = min ($result[$code]['limits']['withdraw']['min'], $minWithdraw);
-                }
-                if ($deposit) {
-                    $result[$code]['deposit'] = true;
-                    $result[$code]['limits']['deposit']['min'] = min ($result[$code]['limits']['deposit']['min'], $minDeposit);
-                }
-                if ($active) {
-                    $result[$code]['active'] = true;
-                }
-            } else {
+            if (!(is_array($result) && array_key_exists($code, $result))) {
                 $result[$code] = array(
                     'id' => $id,
                     'code' => $code,
-                    'info' => $currency,
+                    'info' => array(),
                     'type' => null,
                     'name' => null,
-                    'active' => $active,
-                    'deposit' => $deposit,
-                    'withdraw' => $withdraw,
-                    'fee' => $this->parse_number($feeString),
+                    'active' => null,
+                    'deposit' => null,
+                    'withdraw' => null,
+                    'fee' => null,
                     'precision' => null,
                     'limits' => array(
                         'amount' => array(
@@ -584,40 +534,47 @@ class digifinex extends Exchange {
                             'max' => null,
                         ),
                         'withdraw' => array(
-                            'min' => $minWithdraw,
+                            'min' => null,
                             'max' => null,
                         ),
                         'deposit' => array(
-                            'min' => $minDeposit,
+                            'min' => null,
                             'max' => null,
                         ),
                     ),
                     'networks' => array(),
                 );
             }
-            if ($networkId !== null) {
-                $result[$code]['networks'][$networkId] = $network;
-            } else {
-                $result[$code]['active'] = $active;
-                $result[$code]['fee'] = $this->parse_number($feeString);
-                $result[$code]['deposit'] = $deposit;
-                $result[$code]['withdraw'] = $withdraw;
-                $result[$code]['limits'] = array(
-                    'amount' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
+            $networkId = $this->safe_string($networkEntry, 'chain');
+            $networkCode = $this->network_id_to_code($networkId);
+            $result[$code]['networks'][$networkCode] = array(
+                'id' => $networkId,
+                'network' => $networkCode,
+                'active' => $this->safe_integer($networkEntry, 'deposit_status') === 1,
+                'deposit' => $this->safe_integer($networkEntry, 'deposit_status') === 1,
+                'withdraw' => $this->safe_integer($networkEntry, 'withdraw_status') === 1,
+                'fee' => $this->safe_number($networkEntry, 'min_withdraw_fee'),
+                'precision' => null,
+                'limits' => array(
                     'withdraw' => array(
-                        'min' => $minWithdraw,
+                        'min' => $this->safe_number($networkEntry, 'min_withdraw_amount'),
                         'max' => null,
                     ),
                     'deposit' => array(
-                        'min' => $minDeposit,
+                        'min' => $this->safe_number($networkEntry, 'min_deposit_amount'),
                         'max' => null,
                     ),
-                );
-            }
-            $result[$code]['precision'] = ($result[$code]['precision'] === null) ? $precision : max ($result[$code]['precision'], $precision);
+                ),
+            );
+            $infos = $this->safe_list($result[$code], 'info', array());
+            $infos[] = $networkEntry;
+            $result[$code]['info'] = $infos;
+        }
+        // only after all entries are formed in currencies, restructure each entry
+        $allKeys = is_array($result) ? array_keys($result) : array();
+        for ($i = 0; $i < count($allKeys); $i++) {
+            $code = $allKeys[$i];
+            $result[$code] = $this->safe_currency_structure($result[$code]); // this is needed after adding network entry
         }
         return $result;
     }

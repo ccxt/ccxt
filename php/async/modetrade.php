@@ -45,16 +45,16 @@ class modetrade extends Exchange {
                 'createConvertTrade' => false,
                 'createDepositAddress' => false,
                 'createMarketBuyOrderWithCost' => false,
-                'createMarketOrder' => false,
+                'createMarketOrder' => true,
                 'createMarketOrderWithCost' => false,
                 'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createOrderWithTakeProfitAndStopLoss' => true,
                 'createReduceOnlyOrder' => true,
-                'createStopLimitOrder' => false,
+                'createStopLimitOrder' => true,
                 'createStopLossOrder' => true,
-                'createStopMarketOrder' => false,
-                'createStopOrder' => false,
+                'createStopMarketOrder' => true,
+                'createStopOrder' => true,
                 'createTakeProfitOrder' => true,
                 'createTrailingAmountOrder' => false,
                 'createTrailingPercentOrder' => false,
@@ -293,7 +293,7 @@ class modetrade extends Exchange {
             ),
             'options' => array(
                 'sandboxMode' => false,
-                'brokerId' => 'CCXT',
+                'brokerId' => 'CCXTMODE',
                 'verifyingContractAddress' => '0x6F7a338F2aA472838dEFD3283eB360d4Dff5D203',
             ),
             'features' => array(
@@ -2211,7 +2211,7 @@ class modetrade extends Exchange {
             $code = $this->safe_currency_code($this->safe_string($balance, 'token'));
             $account = $this->account();
             $account['total'] = $this->safe_string($balance, 'holding');
-            $account['frozen'] = $this->safe_string($balance, 'frozen');
+            $account['used'] = $this->safe_string($balance, 'frozen');
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
@@ -2872,7 +2872,7 @@ class modetrade extends Exchange {
             if ($isPostOrPut && $isOrder) {
                 $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
                 if (!$isSandboxMode) {
-                    $brokerId = $this->safe_string($this->options, 'brokerId', 'CCXT');
+                    $brokerId = $this->safe_string($this->options, 'brokerId', 'CCXTMODE');
                     if ($path === 'batch-order') {
                         $ordersList = $this->safe_list($params, 'orders', array());
                         for ($i = 0; $i < count($ordersList); $i++) {
