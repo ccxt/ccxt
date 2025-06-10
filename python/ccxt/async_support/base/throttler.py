@@ -66,7 +66,7 @@ class Throttler:
                     await asyncio.sleep(wait_time / 1000)
 
     async def looper(self):
-        if self.config.get('rateLimiterAlogorithm', 'leakyBucket') == 'leakyBucket':
+        if self.config['algorithm'] == 'leakyBucket':
             await self.leaky_bucket_loop()
         else:
             await self.rolling_window_loop()
