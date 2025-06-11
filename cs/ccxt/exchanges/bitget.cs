@@ -1979,7 +1979,7 @@ public partial class bitget : Exchange
                     { "max", null },
                 } },
             } },
-            { "created", this.safeInteger(market, "launchTime") },
+            { "created", this.safeInteger(market, "openTime") },
             { "info", market },
         };
     }

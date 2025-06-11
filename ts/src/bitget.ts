@@ -2014,7 +2014,7 @@ export default class bitget extends Exchange {
                     'max': undefined,
                 },
             },
-            'created': this.safeInteger (market, 'launchTime'),
+            'created': this.safeInteger (market, 'openTime'),
             'info': market,
         };
     }

@@ -555,6 +555,7 @@ public partial class phemex : Exchange
                 } },
                 { "defaultNetworks", new Dictionary<string, object>() {
                     { "USDT", "ETH" },
+                    { "MKR", "ETH" },
                 } },
                 { "defaultSubType", "linear" },
                 { "accountsByType", new Dictionary<string, object>() {
@@ -1113,9 +1114,7 @@ public partial class phemex : Exchange
         {
             object currency = getValue(currencies, i);
             object id = this.safeString(currency, "currency");
-            object name = this.safeString(currency, "name");
             object code = this.safeCurrencyCode(id);
-            object status = this.safeString(currency, "status");
             object valueScaleString = this.safeString(currency, "valueScale");
             object valueScale = parseInt(valueScaleString);
             object minValueEv = this.safeString(currency, "minValueEv");
@@ -1130,12 +1129,12 @@ public partial class phemex : Exchange
                 minAmount = this.parseNumber(Precise.stringMul(minValueEv, precisionString));
                 maxAmount = this.parseNumber(Precise.stringMul(maxValueEv, precisionString));
             }
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "info", currency },
                 { "code", code },
-                { "name", name },
-                { "active", isEqual(status, "Listed") },
+                { "name", this.safeString(currency, "name") },
+                { "active", isEqual(this.safeString(currency, "status"), "Listed") },
                 { "deposit", null },
                 { "withdraw", null },
                 { "fee", null },
@@ -1153,7 +1152,7 @@ public partial class phemex : Exchange
                 { "valueScale", valueScale },
                 { "networks", null },
                 { "type", "crypto" },
-            };
+            });
         }
         return result;
     }
@@ -3732,13 +3731,19 @@ public partial class phemex : Exchange
             ((IDictionary<string,object>)request)["chainName"] = network;
             parameters = this.omit(parameters, "network");
         }
-        object response = await this.privateGetPhemexUserWalletsV2DepositAddress(this.extend(request, parameters));
+        object response = await this.privateGetExchangeWalletsV2DepositAddress(this.extend(request, parameters));
+        //
         //     {
-        //         "code":0,
-        //         "msg":"OK",
-        //         "data":{
-        //             "address":"0x5bfbf60e0fa7f63598e6cfd8a7fd3ffac4ccc6ad",
-        //             "tag":null
+        //         "code": 0,
+        //         "msg": "OK",
+        //         "data": {
+        //             "address": "tb1qxel5wq5gumt",
+        //             "tag": "",
+        //             "notice": false,
+        //             "accountType": 1,
+        //             "contractName": null,
+        //             "chainTokenUrl": null,
+        //             "sign": null
         //         }
         //     }
         //

@@ -554,10 +554,13 @@ export default class kraken extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
+        const promises = [];
+        promises.push(this.publicGetAssetPairs(params));
         if (this.options['adjustForTimeDifference']) {
-            await this.loadTimeDifference();
+            promises.push(this.loadTimeDifference());
         }
-        const response = await this.publicGetAssetPairs(params);
+        const responses = await Promise.all(promises);
+        const assetsResponse = responses[0];
         //
         //     {
         //         "error": [],
@@ -605,7 +608,7 @@ export default class kraken extends Exchange {
         //         }
         //     }
         //
-        const markets = this.safeValue(response, 'result', {});
+        const markets = this.safeDict(assetsResponse, 'result', {});
         const keys = Object.keys(markets);
         let result = [];
         for (let i = 0; i < keys.length; i++) {
@@ -617,21 +620,21 @@ export default class kraken extends Exchange {
             const quote = this.safeCurrencyCode(quoteId);
             const darkpool = id.indexOf('.d') >= 0;
             const altname = this.safeString(market, 'altname');
-            const makerFees = this.safeValue(market, 'fees_maker', []);
-            const firstMakerFee = this.safeValue(makerFees, 0, []);
+            const makerFees = this.safeList(market, 'fees_maker', []);
+            const firstMakerFee = this.safeList(makerFees, 0, []);
             const firstMakerFeeRate = this.safeString(firstMakerFee, 1);
             let maker = undefined;
             if (firstMakerFeeRate !== undefined) {
                 maker = this.parseNumber(Precise.stringDiv(firstMakerFeeRate, '100'));
             }
-            const takerFees = this.safeValue(market, 'fees', []);
-            const firstTakerFee = this.safeValue(takerFees, 0, []);
+            const takerFees = this.safeList(market, 'fees', []);
+            const firstTakerFee = this.safeList(takerFees, 0, []);
             const firstTakerFeeRate = this.safeString(firstTakerFee, 1);
             let taker = undefined;
             if (firstTakerFeeRate !== undefined) {
                 taker = this.parseNumber(Precise.stringDiv(firstTakerFeeRate, '100'));
             }
-            const leverageBuy = this.safeValue(market, 'leverage_buy', []);
+            const leverageBuy = this.safeList(market, 'leverage_buy', []);
             const leverageBuyLength = leverageBuy.length;
             const precisionPrice = this.parseNumber(this.parsePrecision(this.safeString(market, 'pair_decimals')));
             const status = this.safeString(market, 'status');
@@ -3501,7 +3504,7 @@ export default class kraken extends Exchange {
                         for (let i = 0; i < response['error'].length; i++) {
                             const error = response['error'][i];
                             this.throwExactlyMatchedException(this.exceptions['exact'], error, message);
-                            this.throwExactlyMatchedException(this.exceptions['broad'], error, message);
+                            this.throwBroadlyMatchedException(this.exceptions['broad'], error, message);
                         }
                         throw new ExchangeError(message);
                     }

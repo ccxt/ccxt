@@ -5,6 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.kraken import ImplicitAPI
+import asyncio
 import hashlib
 from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, IndexType, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
@@ -569,9 +570,12 @@ class kraken(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
+        promises = []
+        promises.append(self.publicGetAssetPairs(params))
         if self.options['adjustForTimeDifference']:
-            await self.load_time_difference()
-        response = await self.publicGetAssetPairs(params)
+            promises.append(self.load_time_difference())
+        responses = await asyncio.gather(*promises)
+        assetsResponse = responses[0]
         #
         #     {
         #         "error": [],
@@ -619,7 +623,7 @@ class kraken(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        markets = self.safe_value(response, 'result', {})
+        markets = self.safe_dict(assetsResponse, 'result', {})
         keys = list(markets.keys())
         result = []
         for i in range(0, len(keys)):
@@ -631,19 +635,19 @@ class kraken(Exchange, ImplicitAPI):
             quote = self.safe_currency_code(quoteId)
             darkpool = id.find('.d') >= 0
             altname = self.safe_string(market, 'altname')
-            makerFees = self.safe_value(market, 'fees_maker', [])
-            firstMakerFee = self.safe_value(makerFees, 0, [])
+            makerFees = self.safe_list(market, 'fees_maker', [])
+            firstMakerFee = self.safe_list(makerFees, 0, [])
             firstMakerFeeRate = self.safe_string(firstMakerFee, 1)
             maker = None
             if firstMakerFeeRate is not None:
                 maker = self.parse_number(Precise.string_div(firstMakerFeeRate, '100'))
-            takerFees = self.safe_value(market, 'fees', [])
-            firstTakerFee = self.safe_value(takerFees, 0, [])
+            takerFees = self.safe_list(market, 'fees', [])
+            firstTakerFee = self.safe_list(takerFees, 0, [])
             firstTakerFeeRate = self.safe_string(firstTakerFee, 1)
             taker = None
             if firstTakerFeeRate is not None:
                 taker = self.parse_number(Precise.string_div(firstTakerFeeRate, '100'))
-            leverageBuy = self.safe_value(market, 'leverage_buy', [])
+            leverageBuy = self.safe_list(market, 'leverage_buy', [])
             leverageBuyLength = len(leverageBuy)
             precisionPrice = self.parse_number(self.parse_precision(self.safe_string(market, 'pair_decimals')))
             status = self.safe_string(market, 'status')
@@ -3329,6 +3333,6 @@ class kraken(Exchange, ImplicitAPI):
                         for i in range(0, len(response['error'])):
                             error = response['error'][i]
                             self.throw_exactly_matched_exception(self.exceptions['exact'], error, message)
-                            self.throw_exactly_matched_exception(self.exceptions['broad'], error, message)
+                            self.throw_broadly_matched_exception(self.exceptions['broad'], error, message)
                         raise ExchangeError(message)
         return None

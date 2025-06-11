@@ -20,6 +20,20 @@ func NewLuno(userConfig map[string]interface{}) Luno {
 
 /**
  * @method
+ * @name luno#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @param {dict} [params] extra parameters specific to the exchange API endpoint
+ * @returns {dict} an associative dictionary of currencies
+ */
+func (this *Luno) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name luno#fetchMarkets
  * @description retrieves data on all markets for luno
  * @see https://www.luno.com/en/developers/api#tag/Market/operation/Markets
