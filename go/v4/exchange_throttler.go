@@ -13,30 +13,30 @@ type TimestampedCost struct {
 }
 
 type Throttler struct {
-	Queue      Queue
-	Running    bool
-	Config     map[string]interface{}
+	Queue   Queue
+	Running bool
+	Config  map[string]interface{}
 	Timestamps []TimestampedCost
 	Mutex      sync.Mutex
 }
 
 func NewThrottler(config map[string]interface{}) Throttler {
 	defaultConfig := map[string]interface{}{
-		"refillRate":         1.0,
-		"delay":              0.001,
-		"capacity":           1.0,
+		"refillRate":  1.0,
+		"delay":       0.001,
+		"capacity":    1.0,
 		"maxLimiterRequests": 2000,
-		"tokens":             0,
-		"cost":               1.0,
-		"algorithm":          "leakyBucket",
-		"rateLimit":          0.0,
-		"windowSize":         60000.0,
+		"tokens":      0,
+		"cost":        1.0,
+		"algorithm":   "leakyBucket",
+		"rateLimit":   0.0,
+		"windowSize":  60000.0,
 	}
 
 	return Throttler{
-		Queue:      NewQueue(),
-		Running:    false,
-		Config:     ExtendMap(defaultConfig, config),
+		Queue:   NewQueue(),
+		Running: false,
+		Config:  ExtendMap(defaultConfig, config),
 		Timestamps: []TimestampedCost{},
 	}
 }
