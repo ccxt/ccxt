@@ -2,6 +2,69 @@
     "exchange": "cryptocom",
     "options": {},
     "methods": {
+        "editOrder": [
+            {
+                "description": "edit spot order",
+                "method": "editOrder",
+                "input": [
+                    "6142909930407395481",
+                    null,
+                    null,
+                    null,
+                    0.001,
+                    1000
+                ],
+                "httpResponse": {
+                    "id": 1749672833590,
+                    "method": "private/amend-order",
+                    "code" : 0,
+                    "result" : {
+                        "client_oid" : "1749672833590",
+                        "order_id" : "6142909930407395481"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "client_oid": "1749672833590",
+                        "order_id": "6142909930407395481"
+                    },
+                    "id": "6142909930407395481",
+                    "clientOrderId": "1749672833590",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "status": null,
+                    "symbol": null,
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": null,
+                    "price": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "average": null,
+                    "cost": null,
+                    "fee": {
+                        "currency": null,
+                        "cost": null
+                    },
+                    "trades": [],
+                    "fees": [
+                        {
+                            "currency": null,
+                            "cost": null
+                        }
+                    ],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "fetchCurrencies",
