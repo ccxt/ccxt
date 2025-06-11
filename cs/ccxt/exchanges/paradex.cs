@@ -1331,7 +1331,18 @@ public partial class paradex : Exchange
         object price = this.safeString(order, "price");
         object amount = this.safeString(order, "size");
         object orderType = this.safeString(order, "type");
+        object cancelReason = this.safeString(order, "cancel_reason");
         object status = this.safeString(order, "status");
+        if (isTrue(!isEqual(cancelReason, null)))
+        {
+            if (isTrue(isEqual(cancelReason, "NOT_ENOUGH_MARGIN")))
+            {
+                status = "rejected";
+            } else
+            {
+                status = "canceled";
+            }
+        }
         object side = this.safeStringLower(order, "side");
         object average = this.omitZero(this.safeString(order, "avg_fill_price"));
         object remaining = this.omitZero(this.safeString(order, "remaining_size"));

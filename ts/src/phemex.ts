@@ -583,6 +583,7 @@ export default class phemex extends Exchange {
                 },
                 'defaultNetworks': {
                     'USDT': 'ETH',
+                    'MKR': 'ETH',
                 },
                 'defaultSubType': 'linear',
                 'accountsByType': {
@@ -1129,9 +1130,7 @@ export default class phemex extends Exchange {
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const id = this.safeString (currency, 'currency');
-            const name = this.safeString (currency, 'name');
             const code = this.safeCurrencyCode (id);
-            const status = this.safeString (currency, 'status');
             const valueScaleString = this.safeString (currency, 'valueScale');
             const valueScale = parseInt (valueScaleString);
             const minValueEv = this.safeString (currency, 'minValueEv');
@@ -1145,12 +1144,12 @@ export default class phemex extends Exchange {
                 minAmount = this.parseNumber (Precise.stringMul (minValueEv, precisionString));
                 maxAmount = this.parseNumber (Precise.stringMul (maxValueEv, precisionString));
             }
-            result[code] = {
+            result[code] = this.safeCurrencyStructure ({
                 'id': id,
                 'info': currency,
                 'code': code,
-                'name': name,
-                'active': status === 'Listed',
+                'name': this.safeString (currency, 'name'),
+                'active': this.safeString (currency, 'status') === 'Listed',
                 'deposit': undefined,
                 'withdraw': undefined,
                 'fee': undefined,
@@ -1168,7 +1167,7 @@ export default class phemex extends Exchange {
                 'valueScale': valueScale,
                 'networks': undefined,
                 'type': 'crypto',
-            };
+            });
         }
         return result;
     }
@@ -3522,13 +3521,19 @@ export default class phemex extends Exchange {
             request['chainName'] = network;
             params = this.omit (params, 'network');
         }
-        const response = await this.privateGetPhemexUserWalletsV2DepositAddress (this.extend (request, params));
+        const response = await this.privateGetExchangeWalletsV2DepositAddress (this.extend (request, params));
+        //
         //     {
-        //         "code":0,
-        //         "msg":"OK",
-        //         "data":{
-        //             "address":"0x5bfbf60e0fa7f63598e6cfd8a7fd3ffac4ccc6ad",
-        //             "tag":null
+        //         "code": 0,
+        //         "msg": "OK",
+        //         "data": {
+        //             "address": "tb1qxel5wq5gumt",
+        //             "tag": "",
+        //             "notice": false,
+        //             "accountType": 1,
+        //             "contractName": null,
+        //             "chainTokenUrl": null,
+        //             "sign": null
         //         }
         //     }
         //

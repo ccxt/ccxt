@@ -632,13 +632,14 @@ export default class woofipro extends Exchange {
      * @method
      * @name woofipro#fetchCurrencies
      * @description fetches all available currencies on an exchange
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-token-info
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-supported-collateral-info#get-supported-collateral-info
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-supported-chains-per-builder#get-supported-chains-per-builder
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies(params = {}) {
         const result = {};
-        const response = await this.v1PublicGetPublicToken(params);
+        const tokenPromise = this.v1PublicGetPublicToken(params);
         //
         // {
         //     "success": true,
@@ -661,26 +662,28 @@ export default class woofipro extends Exchange {
         //     }
         // }
         //
-        const data = this.safeDict(response, 'data', {});
-        const tokenRows = this.safeList(data, 'rows', []);
+        const chainPromise = this.v1PublicGetPublicChainInfo(params);
+        const [tokenResponse, chainResponse] = await Promise.all([tokenPromise, chainPromise]);
+        const tokenData = this.safeDict(tokenResponse, 'data', {});
+        const tokenRows = this.safeList(tokenData, 'rows', []);
+        const chainData = this.safeDict(chainResponse, 'data', {});
+        const chainRows = this.safeList(chainData, 'rows', []);
+        const indexedChains = this.indexBy(chainRows, 'chain_id');
         for (let i = 0; i < tokenRows.length; i++) {
             const token = tokenRows[i];
             const currencyId = this.safeString(token, 'token');
             const networks = this.safeList(token, 'chain_details');
             const code = this.safeCurrencyCode(currencyId);
-            let minPrecision = undefined;
             const resultingNetworks = {};
             for (let j = 0; j < networks.length; j++) {
-                const network = networks[j];
-                // TODO: transform chain id to human readable name
-                const networkId = this.safeString(network, 'chain_id');
-                const precision = this.parsePrecision(this.safeString(network, 'decimals'));
-                if (precision !== undefined) {
-                    minPrecision = (minPrecision === undefined) ? precision : Precise.stringMin(precision, minPrecision);
-                }
-                resultingNetworks[networkId] = {
+                const networkEntry = networks[j];
+                const networkId = this.safeString(networkEntry, 'chain_id');
+                const networkRow = this.safeDict(indexedChains, networkId);
+                const networkName = this.safeString(networkRow, 'name');
+                const networkCode = this.networkIdToCode(networkName, code);
+                resultingNetworks[networkCode] = {
                     'id': networkId,
-                    'network': networkId,
+                    'network': networkCode,
                     'limits': {
                         'withdraw': {
                             'min': undefined,
@@ -694,16 +697,16 @@ export default class woofipro extends Exchange {
                     'active': undefined,
                     'deposit': undefined,
                     'withdraw': undefined,
-                    'fee': this.safeNumber(network, 'withdrawal_fee'),
-                    'precision': this.parseNumber(precision),
-                    'info': network,
+                    'fee': this.safeNumber(networkEntry, 'withdrawal_fee'),
+                    'precision': this.parseNumber(this.parsePrecision(this.safeString(networkEntry, 'decimals'))),
+                    'info': [networkEntry, networkRow],
                 };
             }
-            result[code] = {
+            result[code] = this.safeCurrencyStructure({
                 'id': currencyId,
-                'name': currencyId,
+                'name': undefined,
                 'code': code,
-                'precision': this.parseNumber(minPrecision),
+                'precision': undefined,
                 'active': undefined,
                 'fee': undefined,
                 'networks': resultingNetworks,
@@ -720,7 +723,7 @@ export default class woofipro extends Exchange {
                     },
                 },
                 'info': token,
-            };
+            });
         }
         return result;
     }

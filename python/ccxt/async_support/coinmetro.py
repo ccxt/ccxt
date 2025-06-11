@@ -394,6 +394,9 @@ class coinmetro(Exchange, ImplicitAPI):
             elif typeRaw == 'fiat':
                 type = 'fiat'
             precisionDigits = self.safe_string_2(currency, 'digits', 'notabeneDecimals')
+            if code == 'RENDER':
+                # RENDER is an exception(with broken info)
+                precisionDigits = '4'
             result[code] = self.safe_currency_structure({
                 'id': id,
                 'code': code,

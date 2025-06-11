@@ -2008,7 +2008,7 @@ class bitget extends Exchange {
                     'max' => null,
                 ),
             ),
-            'created' => $this->safe_integer($market, 'launchTime'),
+            'created' => $this->safe_integer($market, 'openTime'),
             'info' => $market,
         );
     }
@@ -2383,7 +2383,7 @@ class bitget extends Exchange {
             'coin' => $currency['id'],
             'address' => $address,
             'chain' => $networkId,
-            'size' => $amount,
+            'size' => $this->currency_to_precision($code, $amount, $networkCode),
             'transferType' => 'on_chain',
         );
         if ($tag !== null) {
@@ -2408,8 +2408,6 @@ class bitget extends Exchange {
         $fillResponseFromRequest = $this->safe_bool($withdrawOptions, 'fillResponseFromRequest', true);
         if ($fillResponseFromRequest) {
             $result['currency'] = $code;
-            $result['timestamp'] = $this->milliseconds();
-            $result['datetime'] = $this->iso8601($this->milliseconds());
             $result['amount'] = $amount;
             $result['tag'] = $tag;
             $result['address'] = $address;
@@ -2535,7 +2533,10 @@ class bitget extends Exchange {
         $status = $this->safe_string($transaction, 'status');
         $tag = $this->safe_string($transaction, 'tag');
         $feeCostString = $this->safe_string($transaction, 'fee');
-        $feeCostAbsString = Precise::string_abs($feeCostString);
+        $feeCostAbsString = null;
+        if ($feeCostString !== null) {
+            $feeCostAbsString = Precise::string_abs($feeCostString);
+        }
         $fee = null;
         $amountString = $this->safe_string($transaction, 'size');
         if ($feeCostAbsString !== null) {

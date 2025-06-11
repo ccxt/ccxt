@@ -523,14 +523,15 @@ func  (this *kraken) FetchMarkets(optionalArgs ...interface{}) <- chan interface
                 defer ReturnPanicError(ch)
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
+            var promises interface{} = []interface{}{}
+            AppendToArray(&promises,this.PublicGetAssetPairs(params))
             if IsTrue(GetValue(this.Options, "adjustForTimeDifference")) {
-        
-                retRes55812 := (<-this.LoadTimeDifference())
-                PanicOnError(retRes55812)
+                AppendToArray(&promises,this.LoadTimeDifference())
             }
         
-            response:= (<-this.PublicGetAssetPairs(params))
-            PanicOnError(response)
+            responses:= (<-promiseAll(promises))
+            PanicOnError(responses)
+            var assetsResponse interface{} = GetValue(responses, 0)
             //
             //     {
             //         "error": [],
@@ -578,7 +579,7 @@ func  (this *kraken) FetchMarkets(optionalArgs ...interface{}) <- chan interface
             //         }
             //     }
             //
-            var markets interface{} = this.SafeValue(response, "result", map[string]interface{} {})
+            var markets interface{} = this.SafeDict(assetsResponse, "result", map[string]interface{} {})
             var keys interface{} = ObjectKeys(markets)
             var result interface{} = []interface{}{}
             for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
@@ -590,21 +591,21 @@ func  (this *kraken) FetchMarkets(optionalArgs ...interface{}) <- chan interface
                 var quote interface{} = this.SafeCurrencyCode(quoteId)
                 var darkpool interface{} = IsGreaterThanOrEqual(GetIndexOf(id, ".d"), 0)
                 var altname interface{} = this.SafeString(market, "altname")
-                var makerFees interface{} = this.SafeValue(market, "fees_maker", []interface{}{})
-                var firstMakerFee interface{} = this.SafeValue(makerFees, 0, []interface{}{})
+                var makerFees interface{} = this.SafeList(market, "fees_maker", []interface{}{})
+                var firstMakerFee interface{} = this.SafeList(makerFees, 0, []interface{}{})
                 var firstMakerFeeRate interface{} = this.SafeString(firstMakerFee, 1)
                 var maker interface{} = nil
                 if IsTrue(!IsEqual(firstMakerFeeRate, nil)) {
                     maker = this.ParseNumber(Precise.StringDiv(firstMakerFeeRate, "100"))
                 }
-                var takerFees interface{} = this.SafeValue(market, "fees", []interface{}{})
-                var firstTakerFee interface{} = this.SafeValue(takerFees, 0, []interface{}{})
+                var takerFees interface{} = this.SafeList(market, "fees", []interface{}{})
+                var firstTakerFee interface{} = this.SafeList(takerFees, 0, []interface{}{})
                 var firstTakerFeeRate interface{} = this.SafeString(firstTakerFee, 1)
                 var taker interface{} = nil
                 if IsTrue(!IsEqual(firstTakerFeeRate, nil)) {
                     taker = this.ParseNumber(Precise.StringDiv(firstTakerFeeRate, "100"))
                 }
-                var leverageBuy interface{} = this.SafeValue(market, "leverage_buy", []interface{}{})
+                var leverageBuy interface{} = this.SafeList(market, "leverage_buy", []interface{}{})
                 var leverageBuyLength interface{} =         GetArrayLength(leverageBuy)
                 var precisionPrice interface{} = this.ParseNumber(this.ParsePrecision(this.SafeString(market, "pair_decimals")))
                 var status interface{} = this.SafeString(market, "status")
@@ -869,24 +870,21 @@ func  (this *kraken) FetchCurrencies(optionalArgs ...interface{}) <- chan interf
                         code = this.SafeCurrencyCode(id)
                     }
                 }
-                var precision interface{} = this.ParseNumber(this.ParsePrecision(this.SafeString(currency, "decimals")))
-                // assumes all currencies are active except those listed above
-                var active interface{} = IsEqual(this.SafeString(currency, "status"), "enabled")
                 var isFiat interface{} = IsGreaterThanOrEqual(GetIndexOf(code, ".HOLD"), 0)
-                AddElementToObject(result, code, map[string]interface{} {
+                AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]interface{} {
             "id": id,
             "code": code,
             "info": currency,
             "name": this.SafeString(currency, "altname"),
-            "active": active,
+            "active": IsEqual(this.SafeString(currency, "status"), "enabled"),
             "type": Ternary(IsTrue(isFiat), "fiat", "crypto"),
             "deposit": nil,
             "withdraw": nil,
             "fee": nil,
-            "precision": precision,
+            "precision": this.ParseNumber(this.ParsePrecision(this.SafeString(currency, "decimals"))),
             "limits": map[string]interface{} {
                 "amount": map[string]interface{} {
-                    "min": precision,
+                    "min": nil,
                     "max": nil,
                 },
                 "withdraw": map[string]interface{} {
@@ -895,7 +893,7 @@ func  (this *kraken) FetchCurrencies(optionalArgs ...interface{}) <- chan interf
                 },
             },
             "networks": map[string]interface{} {},
-        })
+        }))
             }
         
             ch <- result
@@ -4145,7 +4143,7 @@ func  (this *kraken) HandleErrors(code interface{}, reason interface{}, url inte
                     for i := 0; IsLessThan(i, GetArrayLength(GetValue(response, "error"))); i++ {
                         var error interface{} = GetValue(GetValue(response, "error"), i)
                         this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), error, message)
-                        this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "broad"), error, message)
+                        this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), error, message)
                     }
                     panic(ExchangeError(message))
                 }

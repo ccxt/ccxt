@@ -578,6 +578,7 @@ class phemex extends Exchange {
                 ),
                 'defaultNetworks' => array(
                     'USDT' => 'ETH',
+                    'MKR' => 'ETH',
                 ),
                 'defaultSubType' => 'linear',
                 'accountsByType' => array(
@@ -1122,9 +1123,7 @@ class phemex extends Exchange {
         for ($i = 0; $i < count($currencies); $i++) {
             $currency = $currencies[$i];
             $id = $this->safe_string($currency, 'currency');
-            $name = $this->safe_string($currency, 'name');
             $code = $this->safe_currency_code($id);
-            $status = $this->safe_string($currency, 'status');
             $valueScaleString = $this->safe_string($currency, 'valueScale');
             $valueScale = intval($valueScaleString);
             $minValueEv = $this->safe_string($currency, 'minValueEv');
@@ -1138,12 +1137,12 @@ class phemex extends Exchange {
                 $minAmount = $this->parse_number(Precise::string_mul($minValueEv, $precisionString));
                 $maxAmount = $this->parse_number(Precise::string_mul($maxValueEv, $precisionString));
             }
-            $result[$code] = array(
+            $result[$code] = $this->safe_currency_structure(array(
                 'id' => $id,
                 'info' => $currency,
                 'code' => $code,
-                'name' => $name,
-                'active' => $status === 'Listed',
+                'name' => $this->safe_string($currency, 'name'),
+                'active' => $this->safe_string($currency, 'status') === 'Listed',
                 'deposit' => null,
                 'withdraw' => null,
                 'fee' => null,
@@ -1161,7 +1160,7 @@ class phemex extends Exchange {
                 'valueScale' => $valueScale,
                 'networks' => null,
                 'type' => 'crypto',
-            );
+            ));
         }
         return $result;
     }
@@ -3509,13 +3508,19 @@ class phemex extends Exchange {
             $request['chainName'] = $network;
             $params = $this->omit($params, 'network');
         }
-        $response = $this->privateGetPhemexUserWalletsV2DepositAddress ($this->extend($request, $params));
+        $response = $this->privateGetExchangeWalletsV2DepositAddress ($this->extend($request, $params));
+        //
         //     {
-        //         "code":0,
-        //         "msg":"OK",
-        //         "data":{
-        //             "address":"0x5bfbf60e0fa7f63598e6cfd8a7fd3ffac4ccc6ad",
-        //             "tag":null
+        //         "code" => 0,
+        //         "msg" => "OK",
+        //         "data" => {
+        //             "address" => "tb1qxel5wq5gumt",
+        //             "tag" => "",
+        //             "notice" => false,
+        //             "accountType" => 1,
+        //             "contractName" => null,
+        //             "chainTokenUrl" => null,
+        //             "sign" => null
         //         }
         //     }
         //

@@ -30,8 +30,9 @@
             },
             "fetchCurrencies": {
                 "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269432480#L3364",
-                "networks": "not provided",
-                "type": "todo"
+                "type": "todo",
+                "withdraw": "not provided for empty chains",
+                "deposit": "not provided for empty chains"
             },
             "watchOrderBook": {
                 "spread": " bid > ask issue, https://github.com/ccxt/ccxt/actions/runs/14316810634/job/40125014500?pr=25623#step:11:420"
@@ -1126,7 +1127,7 @@
             }
         }
     },
-    "huobijp": {
+    "bittrade": {
         "skipWs": "timeouts",
         "skipMethods": {
             "loadMarkets": {
@@ -1439,7 +1440,8 @@
         "skipCSharp": true,
         "skipMethods": {
             "loadMarkets": {
-                "currencyIdAndCode": "messed"
+                "currencyIdAndCode": "messed",
+                "contractSize": "broken for some markets"
             },
             "fetchCurrencies": {
                 "precision": "undefined",
@@ -1756,6 +1758,15 @@
             "fetchCurrencies": {
                 "activeMajorCurrencies": "todo"
             }
+        }
+    },
+    "modetrade": {
+        "skipMethods": {
+            "loadMarkets": {
+                "active": "undefined",
+                "currencyIdAndCode": "lev curr"
+            },
+            "fetchCurrencies": "only 1 curr"
         }
     }
 }

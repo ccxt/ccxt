@@ -14,8 +14,8 @@ class bequant extends hitbtc {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bequant',
             'name' => 'Bequant',
-            'countries' => array( 'MT' ), // Malta
             'pro' => true,
+            'countries' => array( 'MT' ), // Malta
             'urls' => array(
                 'logo' => 'https://github.com/user-attachments/assets/0583ef1f-29fe-4b7c-8189-63565a0e2867',
                 'api' => array(

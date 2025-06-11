@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.4.85'
+__version__ = '4.4.88'
 
 # ----------------------------------------------------------------------------
 
@@ -56,34 +56,6 @@ from ccxt.base.errors import UnsubscribeError                         # noqa: F4
 from ccxt.base.errors import error_hierarchy                          # noqa: F401
 # DO_NOT_REMOVE__ERROR_IMPORTS_END
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 from ccxt.pro.alpaca import alpaca                                        # noqa: F401
 from ccxt.pro.apex import apex                                            # noqa: F401
 from ccxt.pro.ascendex import ascendex                                    # noqa: F401
@@ -101,6 +73,7 @@ from ccxt.pro.bitmex import bitmex                                        # noqa
 from ccxt.pro.bitopro import bitopro                                      # noqa: F401
 from ccxt.pro.bitrue import bitrue                                        # noqa: F401
 from ccxt.pro.bitstamp import bitstamp                                    # noqa: F401
+from ccxt.pro.bittrade import bittrade                                    # noqa: F401
 from ccxt.pro.bitvavo import bitvavo                                      # noqa: F401
 from ccxt.pro.blockchaincom import blockchaincom                          # noqa: F401
 from ccxt.pro.blofin import blofin                                        # noqa: F401
@@ -127,7 +100,6 @@ from ccxt.pro.hitbtc import hitbtc                                        # noqa
 from ccxt.pro.hollaex import hollaex                                      # noqa: F401
 from ccxt.pro.htx import htx                                              # noqa: F401
 from ccxt.pro.huobi import huobi                                          # noqa: F401
-from ccxt.pro.huobijp import huobijp                                      # noqa: F401
 from ccxt.pro.hyperliquid import hyperliquid                              # noqa: F401
 from ccxt.pro.independentreserve import independentreserve                # noqa: F401
 from ccxt.pro.kraken import kraken                                        # noqa: F401
@@ -137,10 +109,12 @@ from ccxt.pro.kucoinfutures import kucoinfutures                          # noqa
 from ccxt.pro.lbank import lbank                                          # noqa: F401
 from ccxt.pro.luno import luno                                            # noqa: F401
 from ccxt.pro.mexc import mexc                                            # noqa: F401
+from ccxt.pro.modetrade import modetrade                                  # noqa: F401
 from ccxt.pro.myokx import myokx                                          # noqa: F401
 from ccxt.pro.ndax import ndax                                            # noqa: F401
 from ccxt.pro.okcoin import okcoin                                        # noqa: F401
 from ccxt.pro.okx import okx                                              # noqa: F401
+from ccxt.pro.okxus import okxus                                          # noqa: F401
 from ccxt.pro.onetrading import onetrading                                # noqa: F401
 from ccxt.pro.oxfun import oxfun                                          # noqa: F401
 from ccxt.pro.p2b import p2b                                              # noqa: F401
@@ -174,6 +148,7 @@ exchanges = [
     'bitopro',
     'bitrue',
     'bitstamp',
+    'bittrade',
     'bitvavo',
     'blockchaincom',
     'blofin',
@@ -200,7 +175,6 @@ exchanges = [
     'hollaex',
     'htx',
     'huobi',
-    'huobijp',
     'hyperliquid',
     'independentreserve',
     'kraken',
@@ -210,10 +184,12 @@ exchanges = [
     'lbank',
     'luno',
     'mexc',
+    'modetrade',
     'myokx',
     'ndax',
     'okcoin',
     'okx',
+    'okxus',
     'onetrading',
     'oxfun',
     'p2b',

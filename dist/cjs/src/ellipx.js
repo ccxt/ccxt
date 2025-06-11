@@ -2,12 +2,11 @@
 
 var ellipx$1 = require('./abstract/ellipx.js');
 var errors = require('./base/errors.js');
-var number = require('./base/functions/number.js');
-require('../ccxt.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var ed25519 = require('./static_dependencies/noble-curves/ed25519.js');
 var crypto = require('./base/functions/crypto.js');
 var Precise = require('./base/Precise.js');
+var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
+var number = require('./base/functions/number.js');
 
 // ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------

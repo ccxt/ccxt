@@ -482,8 +482,10 @@ public partial class Exchange
         if (has["fetchCurrencies"] != null)
         {
             currencies = await this.fetchCurrencies();
+            this.options.TryAdd("cachedCurrencies", currencies);
         }
         var markets = await this.fetchMarkets();
+        this.options.TryRemove("cachedCurrencies", out _);
         return this.setMarkets(markets, currencies);
     }
 

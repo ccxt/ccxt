@@ -597,6 +597,7 @@ class phemex(Exchange, ImplicitAPI):
                 },
                 'defaultNetworks': {
                     'USDT': 'ETH',
+                    'MKR': 'ETH',
                 },
                 'defaultSubType': 'linear',
                 'accountsByType': {
@@ -1130,9 +1131,7 @@ class phemex(Exchange, ImplicitAPI):
         for i in range(0, len(currencies)):
             currency = currencies[i]
             id = self.safe_string(currency, 'currency')
-            name = self.safe_string(currency, 'name')
             code = self.safe_currency_code(id)
-            status = self.safe_string(currency, 'status')
             valueScaleString = self.safe_string(currency, 'valueScale')
             valueScale = int(valueScaleString)
             minValueEv = self.safe_string(currency, 'minValueEv')
@@ -1145,12 +1144,12 @@ class phemex(Exchange, ImplicitAPI):
                 precision = self.parse_number(precisionString)
                 minAmount = self.parse_number(Precise.string_mul(minValueEv, precisionString))
                 maxAmount = self.parse_number(Precise.string_mul(maxValueEv, precisionString))
-            result[code] = {
+            result[code] = self.safe_currency_structure({
                 'id': id,
                 'info': currency,
                 'code': code,
-                'name': name,
-                'active': status == 'Listed',
+                'name': self.safe_string(currency, 'name'),
+                'active': self.safe_string(currency, 'status') == 'Listed',
                 'deposit': None,
                 'withdraw': None,
                 'fee': None,
@@ -1168,7 +1167,7 @@ class phemex(Exchange, ImplicitAPI):
                 'valueScale': valueScale,
                 'networks': None,
                 'type': 'crypto',
-            }
+            })
         return result
 
     def custom_parse_bid_ask(self, bidask, priceKey=0, amountKey=1, market: Market = None):
@@ -3340,13 +3339,19 @@ class phemex(Exchange, ImplicitAPI):
         else:
             request['chainName'] = network
             params = self.omit(params, 'network')
-        response = self.privateGetPhemexUserWalletsV2DepositAddress(self.extend(request, params))
+        response = self.privateGetExchangeWalletsV2DepositAddress(self.extend(request, params))
+        #
         #     {
-        #         "code":0,
-        #         "msg":"OK",
-        #         "data":{
-        #             "address":"0x5bfbf60e0fa7f63598e6cfd8a7fd3ffac4ccc6ad",
-        #             "tag":null
+        #         "code": 0,
+        #         "msg": "OK",
+        #         "data": {
+        #             "address": "tb1qxel5wq5gumt",
+        #             "tag": "",
+        #             "notice": False,
+        #             "accountType": 1,
+        #             "contractName": null,
+        #             "chainTokenUrl": null,
+        #             "sign": null
         #         }
         #     }
         #

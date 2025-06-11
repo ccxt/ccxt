@@ -83,7 +83,7 @@ class okx extends okx$1 {
                 'fetchFundingIntervals': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
-                'fetchFundingRates': false,
+                'fetchFundingRates': true,
                 'fetchGreeks': true,
                 'fetchIndexOHLCV': true,
                 'fetchIsolatedBorrowRate': false,
@@ -106,6 +106,7 @@ class okx extends okx$1 {
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': true,
+                'fetchOpenInterests': true,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': true,
                 'fetchOption': true,
@@ -1593,6 +1594,7 @@ class okx extends okx$1 {
         //         "instType": "OPTION",
         //         "lever": "",
         //         "listTime": "1631262612280",
+        //         "contTdSwTime": "1631262812280",
         //         "lotSz": "1",
         //         "minSz": "1",
         //         "optType": "P",
@@ -1680,7 +1682,7 @@ class okx extends okx$1 {
             'expiryDatetime': this.iso8601(expiry),
             'strike': this.parseNumber(strikePrice),
             'optionType': optionType,
-            'created': this.safeInteger(market, 'listTime'),
+            'created': this.safeInteger2(market, 'contTdSwTime', 'listTime'),
             'precision': {
                 'amount': this.safeNumber(market, 'lotSz'),
                 'price': this.safeNumber(market, 'tickSz'),
@@ -6297,7 +6299,7 @@ class okx extends okx$1 {
         const nextFundingRate = this.safeNumber(contract, 'nextFundingRate');
         const fundingTime = this.safeInteger(contract, 'fundingTime');
         const fundingTimeString = this.safeString(contract, 'fundingTime');
-        const nextFundingTimeString = this.safeString(contract, 'nextFundingRate');
+        const nextFundingTimeString = this.safeString(contract, 'nextFundingTime');
         const millisecondsInterval = Precise["default"].stringSub(nextFundingTimeString, fundingTimeString);
         // https://www.okx.com/support/hc/en-us/articles/360053909272-Ⅸ-Introduction-to-perpetual-swap-funding-fee
         // > The current interest is 0.
@@ -6382,6 +6384,39 @@ class okx extends okx$1 {
         const data = this.safeList(response, 'data', []);
         const entry = this.safeDict(data, 0, {});
         return this.parseFundingRate(entry, market);
+    }
+    /**
+     * @method
+     * @name okx#fetchFundingRates
+     * @description fetches the current funding rates for multiple symbols
+     * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate
+     * @param {string[]} symbols unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [funding rates structure]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}
+     */
+    async fetchFundingRates(symbols = undefined, params = {}) {
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, 'swap', true);
+        const request = { 'instId': 'ANY' };
+        const response = await this.publicGetPublicFundingRate(this.extend(request, params));
+        //
+        //    {
+        //        "code": "0",
+        //        "data": [
+        //            {
+        //                "fundingRate": "0.00027815",
+        //                "fundingTime": "1634256000000",
+        //                "instId": "BTC-USD-SWAP",
+        //                "instType": "SWAP",
+        //                "nextFundingRate": "0.00017",
+        //                "nextFundingTime": "1634284800000"
+        //            }
+        //        ],
+        //        "msg": ""
+        //    }
+        //
+        const data = this.safeList(response, 'data', []);
+        return this.parseFundingRates(data, symbols);
     }
     /**
      * @method
@@ -7386,6 +7421,65 @@ class okx extends okx$1 {
         //
         const data = this.safeList(response, 'data', []);
         return this.parseOpenInterest(data[0], market);
+    }
+    /**
+     * @method
+     * @name okx#fetchOpenInterests
+     * @description Retrieves the open interests of some currencies
+     * @see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-open-interest
+     * @param {string[]} symbols Unified CCXT market symbols
+     * @param {object} [params] exchange specific parameters
+     * @param {string} params.instType Instrument type, options: 'SWAP', 'FUTURES', 'OPTION', default to 'SWAP'
+     * @param {string} params.uly Underlying, Applicable to FUTURES/SWAP/OPTION, if instType is 'OPTION', either uly or instFamily is required
+     * @param {string} params.instFamily Instrument family, Applicable to FUTURES/SWAP/OPTION, if instType is 'OPTION', either uly or instFamily is required
+     * @returns {object} an dictionary of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     */
+    async fetchOpenInterests(symbols = undefined, params = {}) {
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, true, true);
+        let market = undefined;
+        if (symbols !== undefined) {
+            market = this.market(symbols[0]);
+        }
+        let marketType = undefined;
+        [marketType, params] = this.handleSubTypeAndParams('fetchOpenInterests', market, params, 'swap');
+        let instType = 'SWAP';
+        if (marketType === 'future') {
+            instType = 'FUTURES';
+        }
+        else if (instType === 'option') {
+            instType = 'OPTION';
+        }
+        const request = { 'instType': instType };
+        const uly = this.safeString(params, 'uly');
+        if (uly !== undefined) {
+            request['uly'] = uly;
+        }
+        const instFamily = this.safeString(params, 'instFamily');
+        if (instFamily !== undefined) {
+            request['instFamily'] = instFamily;
+        }
+        if (instType === 'OPTION' && uly === undefined && instFamily === undefined) {
+            throw new errors.BadRequest(this.id + ' fetchOpenInterests() requires either uly or instFamily parameter for OPTION markets');
+        }
+        const response = await this.publicGetPublicOpenInterest(this.extend(request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "instId": "BTC-USDT-SWAP",
+        //                 "instType": "SWAP",
+        //                 "oi": "2125419",
+        //                 "oiCcy": "21254.19",
+        //                 "ts": "1664005108969"
+        //             }
+        //         ],
+        //         "msg": ""
+        //     }
+        //
+        const data = this.safeList(response, 'data', []);
+        return this.parseOpenInterests(data, symbols);
     }
     /**
      * @method

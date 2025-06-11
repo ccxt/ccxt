@@ -16,6 +16,7 @@ use ccxt\NotSupported;
 use ccxt\ExchangeNotAvailable;
 use ccxt\Precise;
 use \React\Async;
+use \React\Promise;
 use \React\Promise\PromiseInterface;
 
 class kraken extends Exchange {
@@ -559,10 +560,13 @@ class kraken extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing $market data
              */
+            $promises = array();
+            $promises[] = $this->publicGetAssetPairs ($params);
             if ($this->options['adjustForTimeDifference']) {
-                Async\await($this->load_time_difference());
+                $promises[] = $this->load_time_difference();
             }
-            $response = Async\await($this->publicGetAssetPairs ($params));
+            $responses = Async\await(Promise\all($promises));
+            $assetsResponse = $responses[0];
             //
             //     {
             //         "error" => array(),
@@ -610,7 +614,7 @@ class kraken extends Exchange {
             //         }
             //     }
             //
-            $markets = $this->safe_value($response, 'result', array());
+            $markets = $this->safe_dict($assetsResponse, 'result', array());
             $keys = is_array($markets) ? array_keys($markets) : array();
             $result = array();
             for ($i = 0; $i < count($keys); $i++) {
@@ -622,21 +626,21 @@ class kraken extends Exchange {
                 $quote = $this->safe_currency_code($quoteId);
                 $darkpool = mb_strpos($id, '.d') !== false;
                 $altname = $this->safe_string($market, 'altname');
-                $makerFees = $this->safe_value($market, 'fees_maker', array());
-                $firstMakerFee = $this->safe_value($makerFees, 0, array());
+                $makerFees = $this->safe_list($market, 'fees_maker', array());
+                $firstMakerFee = $this->safe_list($makerFees, 0, array());
                 $firstMakerFeeRate = $this->safe_string($firstMakerFee, 1);
                 $maker = null;
                 if ($firstMakerFeeRate !== null) {
                     $maker = $this->parse_number(Precise::string_div($firstMakerFeeRate, '100'));
                 }
-                $takerFees = $this->safe_value($market, 'fees', array());
-                $firstTakerFee = $this->safe_value($takerFees, 0, array());
+                $takerFees = $this->safe_list($market, 'fees', array());
+                $firstTakerFee = $this->safe_list($takerFees, 0, array());
                 $firstTakerFeeRate = $this->safe_string($firstTakerFee, 1);
                 $taker = null;
                 if ($firstTakerFeeRate !== null) {
                     $taker = $this->parse_number(Precise::string_div($firstTakerFeeRate, '100'));
                 }
-                $leverageBuy = $this->safe_value($market, 'leverage_buy', array());
+                $leverageBuy = $this->safe_list($market, 'leverage_buy', array());
                 $leverageBuyLength = count($leverageBuy);
                 $precisionPrice = $this->parse_number($this->parse_precision($this->safe_string($market, 'pair_decimals')));
                 $status = $this->safe_string($market, 'status');
@@ -870,24 +874,21 @@ class kraken extends Exchange {
                         $code = $this->safe_currency_code($id);
                     }
                 }
-                $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'decimals')));
-                // assumes all $currencies are $active except those listed above
-                $active = $this->safe_string($currency, 'status') === 'enabled';
                 $isFiat = mb_strpos($code, '.HOLD') !== false;
-                $result[$code] = array(
+                $result[$code] = $this->safe_currency_structure(array(
                     'id' => $id,
                     'code' => $code,
                     'info' => $currency,
                     'name' => $this->safe_string($currency, 'altname'),
-                    'active' => $active,
+                    'active' => $this->safe_string($currency, 'status') === 'enabled',
                     'type' => $isFiat ? 'fiat' : 'crypto',
                     'deposit' => null,
                     'withdraw' => null,
                     'fee' => null,
-                    'precision' => $precision,
+                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'decimals'))),
                     'limits' => array(
                         'amount' => array(
-                            'min' => $precision,
+                            'min' => null,
                             'max' => null,
                         ),
                         'withdraw' => array(
@@ -896,7 +897,7 @@ class kraken extends Exchange {
                         ),
                     ),
                     'networks' => array(),
-                );
+                ));
             }
             return $result;
         }) ();
@@ -3610,7 +3611,7 @@ class kraken extends Exchange {
                         for ($i = 0; $i < count($response['error']); $i++) {
                             $error = $response['error'][$i];
                             $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $message);
-                            $this->throw_exactly_matched_exception($this->exceptions['broad'], $error, $message);
+                            $this->throw_broadly_matched_exception($this->exceptions['broad'], $error, $message);
                         }
                         throw new ExchangeError($message);
                     }

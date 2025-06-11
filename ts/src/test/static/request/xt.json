@@ -150,6 +150,20 @@
         ],
         "fetchOpenOrders": [
             {
+                "description": "swap open orders no symbol",
+                "method": "fetchOpenOrders",
+                "url": "https://fapi.xt.com/future/trade/v1/order/list?state=NEW",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "Spot open orders",
                 "method": "fetchOpenOrders",
                 "url": "https://sapi.xt.com/v4/open-order?bizType=SPOT&symbol=ltc_usdt",

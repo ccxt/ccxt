@@ -205,16 +205,17 @@ export default class luno extends lunoRest {
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.indexedOrderBook ({});
         }
-        const orderbook = this.orderbooks[symbol];
         const asks = this.safeValue (message, 'asks');
         if (asks !== undefined) {
             const snapshot = this.customParseOrderBook (message, symbol, timestamp, 'bids', 'asks', 'price', 'volume', 'id');
-            orderbook.reset (snapshot);
+            this.orderbooks[symbol] = this.indexedOrderBook (snapshot);
         } else {
-            this.handleDelta (orderbook, message);
-            orderbook['timestamp'] = timestamp;
-            orderbook['datetime'] = this.iso8601 (timestamp);
+            const ob = this.orderbooks[symbol];
+            this.handleDelta (ob, message);
+            ob['timestamp'] = timestamp;
+            ob['datetime'] = this.iso8601 (timestamp);
         }
+        const orderbook = this.orderbooks[symbol];
         const nonce = this.safeInteger (message, 'sequence');
         orderbook['nonce'] = nonce;
         this.streamProduce ('orderbooks', orderbook);

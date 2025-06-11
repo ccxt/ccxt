@@ -1979,7 +1979,7 @@ public partial class bitget : Exchange
                     { "max", null },
                 } },
             } },
-            { "created", this.safeInteger(market, "launchTime") },
+            { "created", this.safeInteger(market, "openTime") },
             { "info", market },
         };
     }
@@ -2387,7 +2387,7 @@ public partial class bitget : Exchange
             { "coin", getValue(currency, "id") },
             { "address", address },
             { "chain", networkId },
-            { "size", amount },
+            { "size", this.currencyToPrecision(code, amount, networkCode) },
             { "transferType", "on_chain" },
         };
         if (isTrue(!isEqual(tag, null)))
@@ -2414,8 +2414,6 @@ public partial class bitget : Exchange
         if (isTrue(fillResponseFromRequest))
         {
             ((IDictionary<string,object>)result)["currency"] = code;
-            ((IDictionary<string,object>)result)["timestamp"] = this.milliseconds();
-            ((IDictionary<string,object>)result)["datetime"] = this.iso8601(this.milliseconds());
             ((IDictionary<string,object>)result)["amount"] = amount;
             ((IDictionary<string,object>)result)["tag"] = tag;
             ((IDictionary<string,object>)result)["address"] = address;
@@ -2553,7 +2551,11 @@ public partial class bitget : Exchange
         object status = this.safeString(transaction, "status");
         object tag = this.safeString(transaction, "tag");
         object feeCostString = this.safeString(transaction, "fee");
-        object feeCostAbsString = Precise.stringAbs(feeCostString);
+        object feeCostAbsString = null;
+        if (isTrue(!isEqual(feeCostString, null)))
+        {
+            feeCostAbsString = Precise.stringAbs(feeCostString);
+        }
         object fee = null;
         object amountString = this.safeString(transaction, "size");
         if (isTrue(!isEqual(feeCostAbsString, null)))
