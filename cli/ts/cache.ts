@@ -39,15 +39,6 @@ function getCachePathForHelp () {
 
 function loadMainConfigFile () {
     const cachePath = getCacheDirectory ();
-    if (!fs.existsSync (cachePath)) {
-        try {
-            fs.mkdirSync (cachePath, {
-                'recursive': true,
-            });
-        } catch (e) {
-            log.red ('Error creating cache directory', cachePath);
-        }
-    }
     const configFilePath = path.join (cachePath, 'config.json');
     if (!fs.existsSync (configFilePath)) {
         fs.writeFileSync (configFilePath, JSON.stringify (defaultConfig, null, 2));
