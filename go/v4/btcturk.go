@@ -251,7 +251,7 @@ func  (this *btcturk) FetchMarkets(optionalArgs ...interface{}) <- chan interfac
             //                            "minPrice": "0.0000000000001",
             //                            "maxPrice": "10000000",
             //                            "tickSize": "10",
-            //                            "minExchangeValue": "99.91",
+            //                            "minExchangeValue": "99.92",
             //                            "minAmount": null,
             //                            "maxAmount": null
             //                        }

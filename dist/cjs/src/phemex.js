@@ -1125,9 +1125,7 @@ class phemex extends phemex$1 {
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const id = this.safeString(currency, 'currency');
-            const name = this.safeString(currency, 'name');
             const code = this.safeCurrencyCode(id);
-            const status = this.safeString(currency, 'status');
             const valueScaleString = this.safeString(currency, 'valueScale');
             const valueScale = parseInt(valueScaleString);
             const minValueEv = this.safeString(currency, 'minValueEv');
@@ -1141,12 +1139,12 @@ class phemex extends phemex$1 {
                 minAmount = this.parseNumber(Precise["default"].stringMul(minValueEv, precisionString));
                 maxAmount = this.parseNumber(Precise["default"].stringMul(maxValueEv, precisionString));
             }
-            result[code] = {
+            result[code] = this.safeCurrencyStructure({
                 'id': id,
                 'info': currency,
                 'code': code,
-                'name': name,
-                'active': status === 'Listed',
+                'name': this.safeString(currency, 'name'),
+                'active': this.safeString(currency, 'status') === 'Listed',
                 'deposit': undefined,
                 'withdraw': undefined,
                 'fee': undefined,
@@ -1164,7 +1162,7 @@ class phemex extends phemex$1 {
                 'valueScale': valueScale,
                 'networks': undefined,
                 'type': 'crypto',
-            };
+            });
         }
         return result;
     }

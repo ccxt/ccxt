@@ -1488,6 +1488,7 @@ public partial class bitget : Exchange
                     { "method", "privateMixGetV2MixPositionAllPosition" },
                 } },
                 { "defaultTimeInForce", "GTC" },
+                { "fiatCurrencies", new List<object>() {"EUR", "VND", "PLN", "CZK", "HUF", "DKK", "AUD", "CAD", "NOK", "SEK", "CHF", "MXN", "COP", "ARS", "GBP", "BRL", "UAH", "ZAR"} },
             } },
             { "features", new Dictionary<string, object>() {
                 { "spot", new Dictionary<string, object>() {
@@ -1978,7 +1979,7 @@ public partial class bitget : Exchange
                     { "max", null },
                 } },
             } },
-            { "created", this.safeInteger(market, "launchTime") },
+            { "created", this.safeInteger(market, "openTime") },
             { "info", market },
         };
     }
@@ -1996,36 +1997,41 @@ public partial class bitget : Exchange
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicSpotGetV2SpotPublicCoins(parameters);
         //
-        //     {
-        //         "code": "00000",
-        //         "data": [
-        //             {
-        //                 "chains": [
-        //                     {
-        //                         "browserUrl": "https://blockchair.com/bitcoin/transaction/",
-        //                         "chain": "BTC",
-        //                         "depositConfirm": "1",
-        //                         "extraWithdrawFee": "0",
-        //                         "minDepositAmount": "0.0001",
-        //                         "minWithdrawAmount": "0.005",
-        //                         "needTag": "false",
-        //                         "rechargeable": "true",
-        //                         "withdrawConfirm": "1",
-        //                         "withdrawFee": "0.0004",
-        //                         "withdrawable": "true"
-        //                     },
-        //                 ],
-        //                 "coin": "BTC",
-        //                 "coinId": "1",
-        //                 "transfer": "true""
-        //             }
-        //         ],
-        //         "msg": "success",
-        //         "requestTime": "1700120731773"
-        //     }
+        //    {
+        //        "code": "00000",
+        //        "msg": "success",
+        //        "requestTime": "1746195617812",
+        //        "data": [
+        //            {
+        //                "coinId": "1456",
+        //                "coin": "NEIROETH",
+        //                "transfer": "false",
+        //                "chains": [
+        //                    {
+        //                        "chain": "ERC20",
+        //                        "needTag": "false",
+        //                        "withdrawable": "true",
+        //                        "rechargeable": "true",
+        //                        "withdrawFee": "44.91017965",
+        //                        "extraWithdrawFee": "0",
+        //                        "depositConfirm": "12",
+        //                        "withdrawConfirm": "64",
+        //                        "minDepositAmount": "0.06",
+        //                        "minWithdrawAmount": "60",
+        //                        "browserUrl": "https://etherscan.io/tx/",
+        //                        "contractAddress": "0xee2a03aa6dacf51c18679c516ad5283d8e7c2637",
+        //                        "withdrawStep": "0",
+        //                        "withdrawMinScale": "8",
+        //                        "congestion": "normal"
+        //                    }
+        //                ],
+        //                "areaCoin": "no"
+        //            },
+        //            ...
         //
         object result = new Dictionary<string, object>() {};
         object data = this.safeValue(response, "data", new List<object>() {});
+        object fiatCurrencies = this.safeList(this.options, "fiatCurrencies", new List<object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
@@ -2033,73 +2039,45 @@ public partial class bitget : Exchange
             object code = this.safeCurrencyCode(id);
             object chains = this.safeValue(entry, "chains", new List<object>() {});
             object networks = new Dictionary<string, object>() {};
-            object deposit = false;
-            object withdraw = false;
-            object minWithdrawString = null;
-            object minDepositString = null;
-            object minWithdrawFeeString = null;
             for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
             {
                 object chain = getValue(chains, j);
                 object networkId = this.safeString(chain, "chain");
                 object network = this.networkIdToCode(networkId, code);
-                if (isTrue(!isEqual(network, null)))
-                {
-                    network = ((string)network).ToUpper();
-                }
-                object withdrawEnabled = this.safeString(chain, "withdrawable");
-                object canWithdraw = isEqual(withdrawEnabled, "true");
-                withdraw = ((bool) isTrue((canWithdraw))) ? canWithdraw : withdraw;
-                object depositEnabled = this.safeString(chain, "rechargeable");
-                object canDeposit = isEqual(depositEnabled, "true");
-                deposit = ((bool) isTrue((canDeposit))) ? canDeposit : deposit;
-                object networkWithdrawFeeString = this.safeString(chain, "withdrawFee");
-                if (isTrue(!isEqual(networkWithdrawFeeString, null)))
-                {
-                    minWithdrawFeeString = ((bool) isTrue((isEqual(minWithdrawFeeString, null)))) ? networkWithdrawFeeString : Precise.stringMin(networkWithdrawFeeString, minWithdrawFeeString);
-                }
-                object networkMinWithdrawString = this.safeString(chain, "minWithdrawAmount");
-                if (isTrue(!isEqual(networkMinWithdrawString, null)))
-                {
-                    minWithdrawString = ((bool) isTrue((isEqual(minWithdrawString, null)))) ? networkMinWithdrawString : Precise.stringMin(networkMinWithdrawString, minWithdrawString);
-                }
-                object networkMinDepositString = this.safeString(chain, "minDepositAmount");
-                if (isTrue(!isEqual(networkMinDepositString, null)))
-                {
-                    minDepositString = ((bool) isTrue((isEqual(minDepositString, null)))) ? networkMinDepositString : Precise.stringMin(networkMinDepositString, minDepositString);
-                }
+                network = ((string)network).ToUpper();
                 ((IDictionary<string,object>)networks)[(string)network] = new Dictionary<string, object>() {
                     { "info", chain },
                     { "id", networkId },
                     { "network", network },
                     { "limits", new Dictionary<string, object>() {
                         { "withdraw", new Dictionary<string, object>() {
-                            { "min", this.parseNumber(networkMinWithdrawString) },
+                            { "min", this.safeNumber(chain, "minWithdrawAmount") },
                             { "max", null },
                         } },
                         { "deposit", new Dictionary<string, object>() {
-                            { "min", this.parseNumber(networkMinDepositString) },
+                            { "min", this.safeNumber(chain, "minDepositAmount") },
                             { "max", null },
                         } },
                     } },
-                    { "active", isTrue(canWithdraw) && isTrue(canDeposit) },
-                    { "withdraw", canWithdraw },
-                    { "deposit", canDeposit },
-                    { "fee", this.parseNumber(networkWithdrawFeeString) },
-                    { "precision", null },
+                    { "active", null },
+                    { "withdraw", isEqual(this.safeString(chain, "withdrawable"), "true") },
+                    { "deposit", isEqual(this.safeString(chain, "rechargeable"), "true") },
+                    { "fee", this.safeNumber(chain, "withdrawFee") },
+                    { "precision", this.parseNumber(this.parsePrecision(this.safeString(chain, "withdrawMinScale"))) },
                 };
             }
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            object isFiat = this.inArray(code, fiatCurrencies);
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "info", entry },
                 { "id", id },
                 { "code", code },
                 { "networks", networks },
-                { "type", null },
+                { "type", ((bool) isTrue(isFiat)) ? "fiat" : "crypto" },
                 { "name", null },
-                { "active", isTrue(deposit) && isTrue(withdraw) },
-                { "deposit", deposit },
-                { "withdraw", withdraw },
-                { "fee", this.parseNumber(minWithdrawFeeString) },
+                { "active", null },
+                { "deposit", null },
+                { "withdraw", null },
+                { "fee", null },
                 { "precision", null },
                 { "limits", new Dictionary<string, object>() {
                     { "amount", new Dictionary<string, object>() {
@@ -2107,16 +2085,16 @@ public partial class bitget : Exchange
                         { "max", null },
                     } },
                     { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.parseNumber(minWithdrawString) },
+                        { "min", null },
                         { "max", null },
                     } },
                     { "deposit", new Dictionary<string, object>() {
-                        { "min", this.parseNumber(minDepositString) },
+                        { "min", null },
                         { "max", null },
                     } },
                 } },
                 { "created", null },
-            };
+            });
         }
         return result;
     }
@@ -2409,7 +2387,7 @@ public partial class bitget : Exchange
             { "coin", getValue(currency, "id") },
             { "address", address },
             { "chain", networkId },
-            { "size", amount },
+            { "size", this.currencyToPrecision(code, amount, networkCode) },
             { "transferType", "on_chain" },
         };
         if (isTrue(!isEqual(tag, null)))
@@ -2436,8 +2414,6 @@ public partial class bitget : Exchange
         if (isTrue(fillResponseFromRequest))
         {
             ((IDictionary<string,object>)result)["currency"] = code;
-            ((IDictionary<string,object>)result)["timestamp"] = this.milliseconds();
-            ((IDictionary<string,object>)result)["datetime"] = this.iso8601(this.milliseconds());
             ((IDictionary<string,object>)result)["amount"] = amount;
             ((IDictionary<string,object>)result)["tag"] = tag;
             ((IDictionary<string,object>)result)["address"] = address;
@@ -2575,7 +2551,11 @@ public partial class bitget : Exchange
         object status = this.safeString(transaction, "status");
         object tag = this.safeString(transaction, "tag");
         object feeCostString = this.safeString(transaction, "fee");
-        object feeCostAbsString = Precise.stringAbs(feeCostString);
+        object feeCostAbsString = null;
+        if (isTrue(!isEqual(feeCostString, null)))
+        {
+            feeCostAbsString = Precise.stringAbs(feeCostString);
+        }
         object fee = null;
         object amountString = this.safeString(transaction, "size");
         if (isTrue(!isEqual(feeCostAbsString, null)))
@@ -2831,7 +2811,7 @@ public partial class bitget : Exchange
         object close = this.safeString(ticker, "lastPr");
         object timestamp = this.safeIntegerOmitZero(ticker, "ts"); // exchange bitget provided 0
         object change = this.safeString(ticker, "change24h");
-        object open24 = this.safeString(ticker, "open24");
+        object open24 = this.safeString2(ticker, "open24", "open24h");
         object open = this.safeString(ticker, "open");
         object symbol = null;
         object openValue = null;
@@ -3593,6 +3573,7 @@ public partial class bitget : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @param {boolean} [params.useHistoryEndpoint] whether to force to use historical endpoint (it has max limit of 200)
+     * @param {boolean} [params.useHistoryEndpointForPagination] whether to force to use historical endpoint for pagination (default true)
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {string} [params.price] *swap only* "mark" (to fetch mark price candles) or "index" (to fetch index price candles)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -3605,15 +3586,17 @@ public partial class bitget : Exchange
         object defaultLimit = 100; // default 100, max 1000
         object maxLimitForRecentEndpoint = 1000;
         object maxLimitForHistoryEndpoint = 200; // note, max 1000 bars are supported for "recent-candles" endpoint, but "historical-candles" support only max 200
+        object useHistoryEndpoint = this.safeBool(parameters, "useHistoryEndpoint", false);
+        object useHistoryEndpointForPagination = this.safeBool(parameters, "useHistoryEndpointForPagination", true);
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, maxLimitForRecentEndpoint);
+            object limitForPagination = ((bool) isTrue(useHistoryEndpointForPagination)) ? maxLimitForHistoryEndpoint : maxLimitForRecentEndpoint;
+            return await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, limitForPagination);
         }
-        object useHistoryEndpoint = this.safeBool(parameters, "useHistoryEndpoint", false);
         object market = this.market(symbol);
         object marketType = ((bool) isTrue(getValue(market, "spot"))) ? "spot" : "swap";
         object timeframes = getValue(getValue(this.options, "timeframes"), marketType);
@@ -4302,6 +4285,7 @@ public partial class bitget : Exchange
         object timestamp = this.safeInteger2(order, "cTime", "ctime");
         object updateTimestamp = this.safeInteger(order, "uTime");
         object rawStatus = this.safeString2(order, "status", "state");
+        rawStatus = this.safeString(order, "planStatus", rawStatus);
         object fee = null;
         object feeCostString = this.safeString(order, "fee");
         if (isTrue(!isEqual(feeCostString, null)))

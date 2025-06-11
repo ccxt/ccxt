@@ -457,11 +457,10 @@ class vertex(Exchange, ImplicitAPI):
             tickerId = self.safe_string(data, 'ticker_id')
             if (tickerId is not None) and (tickerId.find('PERP') > 0):
                 continue
-            id = self.safe_string(data, 'product_id')
             name = self.safe_string(data, 'symbol')
             code = self.safe_currency_code(name)
-            result[code] = {
-                'id': id,
+            result[code] = self.safe_currency_structure({
+                'id': self.safe_string(data, 'product_id'),
                 'name': name,
                 'code': code,
                 'precision': None,
@@ -481,7 +480,7 @@ class vertex(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
-            }
+            })
         return result
 
     def parse_market(self, market) -> Market:

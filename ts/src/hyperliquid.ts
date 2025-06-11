@@ -1,4 +1,3 @@
-
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/hyperliquid.js';
@@ -177,12 +176,12 @@ export default class hyperliquid extends Exchange {
             },
             'fees': {
                 'swap': {
-                    'taker': this.parseNumber ('0.00035'),
-                    'maker': this.parseNumber ('0.0001'),
+                    'taker': this.parseNumber ('0.00045'),
+                    'maker': this.parseNumber ('0.00015'),
                 },
                 'spot': {
-                    'taker': this.parseNumber ('0.00035'),
-                    'maker': this.parseNumber ('0.0001'),
+                    'taker': this.parseNumber ('0.0007'),
+                    'maker': this.parseNumber ('0.0004'),
                 },
             },
             'requiredCredentials': {
@@ -363,7 +362,7 @@ export default class hyperliquid extends Exchange {
             const id = i;
             const name = this.safeString (data, 'name');
             const code = this.safeCurrencyCode (name);
-            result[code] = {
+            result[code] = this.safeCurrencyStructure ({
                 'id': id,
                 'name': name,
                 'code': code,
@@ -385,7 +384,7 @@ export default class hyperliquid extends Exchange {
                         'max': undefined,
                     },
                 },
-            };
+            });
         }
         return result;
     }
@@ -1556,7 +1555,9 @@ export default class hyperliquid extends Exchange {
             }
             orderReq.push (orderObj);
         }
-        const vaultAddress = this.formatVaultAddress (this.safeString (params, 'vaultAddress'));
+        let vaultAddress = undefined;
+        [ vaultAddress, params ] = this.handleOptionAndParams (params, 'createOrder', 'vaultAddress');
+        vaultAddress = this.formatVaultAddress (vaultAddress);
         const orderAction: Dict = {
             'type': 'order',
             'orders': orderReq,
@@ -1652,7 +1653,9 @@ export default class hyperliquid extends Exchange {
             }
         }
         cancelAction['cancels'] = cancelReq;
-        const vaultAddress = this.formatVaultAddress (this.safeString (params, 'vaultAddress'));
+        let vaultAddress = undefined;
+        [ vaultAddress, params ] = this.handleOptionAndParams (params, 'cancelOrders', 'vaultAddress');
+        vaultAddress = this.formatVaultAddress (vaultAddress);
         const signature = this.signL1Action (cancelAction, nonce, vaultAddress);
         request['action'] = cancelAction;
         request['signature'] = signature;
@@ -1737,7 +1740,9 @@ export default class hyperliquid extends Exchange {
         }
         cancelAction['type'] = cancelByCloid ? 'cancelByCloid' : 'cancel';
         cancelAction['cancels'] = cancelReq;
-        const vaultAddress = this.formatVaultAddress (this.safeString (params, 'vaultAddress'));
+        let vaultAddress = undefined;
+        [ vaultAddress, params ] = this.handleOptionAndParams (params, 'cancelOrdersForSymbols', 'vaultAddress');
+        vaultAddress = this.formatVaultAddress (vaultAddress);
         const signature = this.signL1Action (cancelAction, nonce, vaultAddress);
         request['action'] = cancelAction;
         request['signature'] = signature;
@@ -1784,7 +1789,9 @@ export default class hyperliquid extends Exchange {
             'type': 'scheduleCancel',
             'time': nonce + timeout,
         };
-        const vaultAddress = this.formatVaultAddress (this.safeString (params, 'vaultAddress'));
+        let vaultAddress = undefined;
+        [ vaultAddress, params ] = this.handleOptionAndParams (params, 'cancelAllOrdersAfter', 'vaultAddress');
+        vaultAddress = this.formatVaultAddress (vaultAddress);
         const signature = this.signL1Action (cancelAction, nonce, vaultAddress);
         request['action'] = cancelAction;
         request['signature'] = signature;
@@ -1907,7 +1914,9 @@ export default class hyperliquid extends Exchange {
             'type': 'batchModify',
             'modifies': modifies,
         };
-        const vaultAddress = this.formatVaultAddress (this.safeString (params, 'vaultAddress'));
+        let vaultAddress = undefined;
+        [ vaultAddress, params ] = this.handleOptionAndParams (params, 'editOrder', 'vaultAddress');
+        vaultAddress = this.formatVaultAddress (vaultAddress);
         const signature = this.signL1Action (modifyAction, nonce, vaultAddress);
         const request: Dict = {
             'action': modifyAction,
@@ -1916,7 +1925,6 @@ export default class hyperliquid extends Exchange {
             // 'vaultAddress': vaultAddress,
         };
         if (vaultAddress !== undefined) {
-            params = this.omit (params, 'vaultAddress');
             request['vaultAddress'] = vaultAddress;
         }
         return request;
@@ -2304,6 +2312,10 @@ export default class hyperliquid extends Exchange {
 
     parseOrder (order: Dict, market: Market = undefined): Order {
         //
+        // createOrdersWs error
+        //
+        //  {error: 'Insufficient margin to place order. asset=159'}
+        //
         //  fetchOpenOrders
         //
         //     {
@@ -2394,6 +2406,13 @@ export default class hyperliquid extends Exchange {
         //     "triggerPx": "0.6"
         // }
         //
+        const error = this.safeString (order, 'error');
+        if (error !== undefined) {
+            return this.safeOrder ({
+                'info': order,
+                'status': 'rejected',
+            });
+        }
         let entry = this.safeDictN (order, [ 'order', 'resting', 'filled' ]);
         if (entry === undefined) {
             entry = order;
@@ -2776,9 +2795,9 @@ export default class hyperliquid extends Exchange {
             'isCross': isCross,
             'leverage': leverage,
         };
-        let vaultAddress = this.safeString (params, 'vaultAddress');
+        let vaultAddress = undefined;
+        [ vaultAddress, params ] = this.handleOptionAndParams (params, 'setMarginMode', 'vaultAddress');
         if (vaultAddress !== undefined) {
-            params = this.omit (params, 'vaultAddress');
             if (vaultAddress.startsWith ('0x')) {
                 vaultAddress = vaultAddress.replace ('0x', '');
             }
@@ -2832,7 +2851,9 @@ export default class hyperliquid extends Exchange {
             'isCross': isCross,
             'leverage': leverage,
         };
-        const vaultAddress = this.formatVaultAddress (this.safeString (params, 'vaultAddress'));
+        let vaultAddress = undefined;
+        [ vaultAddress, params ] = this.handleOptionAndParams (params, 'setLeverage', 'vaultAddress');
+        vaultAddress = this.formatVaultAddress (vaultAddress);
         const signature = this.signL1Action (updateAction, nonce, vaultAddress);
         const request: Dict = {
             'action': updateAction,
@@ -2899,7 +2920,9 @@ export default class hyperliquid extends Exchange {
             'isBuy': true,
             'ntli': sz,
         };
-        const vaultAddress = this.formatVaultAddress (this.safeString (params, 'vaultAddress'));
+        let vaultAddress = undefined;
+        [ vaultAddress, params ] = this.handleOptionAndParams (params, 'modifyMargin', 'vaultAddress');
+        vaultAddress = this.formatVaultAddress (vaultAddress);
         const signature = this.signL1Action (updateAction, nonce, vaultAddress);
         const request: Dict = {
             'action': updateAction,
@@ -2908,7 +2931,6 @@ export default class hyperliquid extends Exchange {
             // 'vaultAddress': vaultAddress,
         };
         if (vaultAddress !== undefined) {
-            params = this.omit (params, 'vaultAddress');
             request['vaultAddress'] = vaultAddress;
         }
         const response = await this.privatePostExchange (request);
@@ -2969,8 +2991,9 @@ export default class hyperliquid extends Exchange {
                 throw new NotSupported (this.id + ' transfer() only support spot <> swap transfer');
             }
             let strAmount = this.numberToString (amount);
-            const vaultAddress = this.formatVaultAddress (this.safeString (params, 'vaultAddress'));
-            params = this.omit (params, 'vaultAddress');
+            let vaultAddress = undefined;
+            [ vaultAddress, params ] = this.handleOptionAndParams (params, 'transfer', 'vaultAddress');
+            vaultAddress = this.formatVaultAddress (vaultAddress);
             if (vaultAddress !== undefined) {
                 strAmount = strAmount + ' subaccount:' + vaultAddress;
             }
@@ -3075,7 +3098,9 @@ export default class hyperliquid extends Exchange {
                 throw new NotSupported (this.id + ' withdraw() only support USDC');
             }
         }
-        const vaultAddress = this.formatVaultAddress (this.safeString (params, 'vaultAddress'));
+        let vaultAddress = undefined;
+        [ vaultAddress, params ] = this.handleOptionAndParams (params, 'withdraw', 'vaultAddress');
+        vaultAddress = this.formatVaultAddress (vaultAddress);
         params = this.omit (params, 'vaultAddress');
         const nonce = this.milliseconds ();
         let action: Dict = {};
@@ -3670,9 +3695,12 @@ export default class hyperliquid extends Exchange {
         // {"status":"ok","response":{"type":"order","data":{"statuses":[{"error":"Insufficient margin to place order. asset=84"}]}}}
         //
         const status = this.safeString (response, 'status', '');
+        const error = this.safeString (response, 'error');
         let message = undefined;
         if (status === 'err') {
             message = this.safeString (response, 'response');
+        } else if (error !== undefined) {
+            message = error;
         } else {
             const responsePayload = this.safeDict (response, 'response', {});
             const data = this.safeDict (responsePayload, 'data', {});
@@ -3716,8 +3744,9 @@ export default class hyperliquid extends Exchange {
 
     parseCreateEditOrderArgs (id: Str, symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         const market = this.market (symbol);
-        const vaultAddress = this.safeString (params, 'vaultAddress');
-        params = this.omit (params, 'vaultAddress');
+        let vaultAddress = undefined;
+        [ vaultAddress, params ] = this.handleOptionAndParams (params, 'createOrder', 'vaultAddress');
+        vaultAddress = this.formatVaultAddress (vaultAddress);
         symbol = market['symbol'];
         const order = {
             'symbol': symbol,

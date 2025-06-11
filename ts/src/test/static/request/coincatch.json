@@ -13,6 +13,13 @@
         ],
         "fetchCurrencies": [
             {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.coincatch.com/api/spot/v1/public/currencies",
+                "input": [],
+                "output": null
+            },
+            {
                 "description": "Fetch currencies",
                 "method": "fetchCurrencies",
                 "url": "https://api.coincatch.com/api/spot/v1/public/currencies",

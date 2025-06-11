@@ -50,6 +50,21 @@ func (this *Bitfinex) FetchMarkets(params ...interface{}) ([]MarketInterface, er
 }
 /**
  * @method
+ * @name bitfinex#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://docs.bitfinex.com/reference/rest-public-conf
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Bitfinex) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name bitfinex#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://docs.bitfinex.com/reference/rest-auth-wallets

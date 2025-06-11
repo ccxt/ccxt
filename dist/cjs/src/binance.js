@@ -1270,6 +1270,7 @@ class binance extends binance$1 {
                     'inverse', // allows CORS in browsers
                     // 'option', // does not allow CORS, enable outside of the browser only
                 ],
+                'loadAllOptions': false,
                 'fetchCurrencies': true,
                 // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades, eapiPublicGetTrades
                 // 'repayCrossMarginMethod': 'papiPostRepayLoan', // papiPostMarginRepayDebt
@@ -3036,6 +3037,13 @@ class binance extends binance$1 {
     async fetchMarkets(params = {}) {
         const promisesRaw = [];
         const rawFetchMarkets = this.safeList(this.options, 'fetchMarkets', ['spot', 'linear', 'inverse']);
+        // handle loadAllOptions option
+        const loadAllOptions = this.safeBool(this.options, 'loadAllOptions', false);
+        if (loadAllOptions) {
+            if (!this.inArray('option', rawFetchMarkets)) {
+                rawFetchMarkets.push('option');
+            }
+        }
         const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         const fetchMarkets = [];
         for (let i = 0; i < rawFetchMarkets.length; i++) {
@@ -5187,7 +5195,6 @@ class binance extends binance$1 {
         if (postOnly) {
             uppercaseType = 'LIMIT_MAKER';
         }
-        request['type'] = uppercaseType;
         const triggerPrice = this.safeNumber2(params, 'stopPrice', 'triggerPrice');
         if (triggerPrice !== undefined) {
             if (uppercaseType === 'MARKET') {
@@ -5197,6 +5204,7 @@ class binance extends binance$1 {
                 uppercaseType = 'STOP_LOSS_LIMIT';
             }
         }
+        request['type'] = uppercaseType;
         const validOrderTypes = this.safeList(market['info'], 'orderTypes');
         if (!this.inArray(uppercaseType, validOrderTypes)) {
             if (initialUppercaseType !== uppercaseType) {

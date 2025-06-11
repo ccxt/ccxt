@@ -5,6 +5,15 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.phemex.com/public/products",
+                "input": [],
+                "output": null
+            }
+        ],
         "createOrder": [
             {
                 "description": "swap +buy +limit +triggerPrice +triggerDirection +reduceOnly",

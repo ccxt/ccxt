@@ -42,6 +42,21 @@ func (this *Bitstamp) FetchMarketsFromCache(params ...interface{}) (map[string]i
 }
 /**
  * @method
+ * @name bitstamp#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://www.bitstamp.net/api/#tag/Market-info/operation/GetTradingPairsInfo
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Bitstamp) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name bitstamp#fetchOrderBook
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
  * @see https://www.bitstamp.net/api/#tag/Order-book/operation/GetOrderBook

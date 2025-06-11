@@ -1552,6 +1552,8 @@ class bitget extends Exchange {
                     'method' => 'privateMixGetV2MixPositionAllPosition', // or privateMixGetV2MixPositionHistoryPosition
                 ),
                 'defaultTimeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+                // fiat currencies on deposit page
+                'fiatCurrencies' => array( 'EUR', 'VND', 'PLN', 'CZK', 'HUF', 'DKK', 'AUD', 'CAD', 'NOK', 'SEK', 'CHF', 'MXN', 'COP', 'ARS', 'GBP', 'BRL', 'UAH', 'ZAR' ),
             ),
             'features' => array(
                 'spot' => array(
@@ -2020,7 +2022,7 @@ class bitget extends Exchange {
                     'max' => null,
                 ),
             ),
-            'created' => $this->safe_integer($market, 'launchTime'),
+            'created' => $this->safe_integer($market, 'openTime'),
             'info' => $market,
         );
     }
@@ -2037,104 +2039,85 @@ class bitget extends Exchange {
              */
             $response = Async\await($this->publicSpotGetV2SpotPublicCoins ($params));
             //
-            //     {
-            //         "code" => "00000",
-            //         "data" => array(
-            //             {
-            //                 "chains" => array(
-            //                     array(
-            //                         "browserUrl" => "https://blockchair.com/bitcoin/transaction/",
-            //                         "chain" => "BTC",
-            //                         "depositConfirm" => "1",
-            //                         "extraWithdrawFee" => "0",
-            //                         "minDepositAmount" => "0.0001",
-            //                         "minWithdrawAmount" => "0.005",
-            //                         "needTag" => "false",
-            //                         "rechargeable" => "true",
-            //                         "withdrawConfirm" => "1",
-            //                         "withdrawFee" => "0.0004",
-            //                         "withdrawable" => "true"
-            //                     ),
-            //                 ),
-            //                 "coin" => "BTC",
-            //                 "coinId" => "1",
-            //                 "transfer" => "true""
-            //             }
-            //         ),
-            //         "msg" => "success",
-            //         "requestTime" => "1700120731773"
-            //     }
+            //    {
+            //        "code" => "00000",
+            //        "msg" => "success",
+            //        "requestTime" => "1746195617812",
+            //        "data" => array(
+            //            {
+            //                "coinId" => "1456",
+            //                "coin" => "NEIROETH",
+            //                "transfer" => "false",
+            //                "chains" => [
+            //                    array(
+            //                        "chain" => "ERC20",
+            //                        "needTag" => "false",
+            //                        "withdrawable" => "true",
+            //                        "rechargeable" => "true",
+            //                        "withdrawFee" => "44.91017965",
+            //                        "extraWithdrawFee" => "0",
+            //                        "depositConfirm" => "12",
+            //                        "withdrawConfirm" => "64",
+            //                        "minDepositAmount" => "0.06",
+            //                        "minWithdrawAmount" => "60",
+            //                        "browserUrl" => "https://etherscan.io/tx/",
+            //                        "contractAddress" => "0xee2a03aa6dacf51c18679c516ad5283d8e7c2637",
+            //                        "withdrawStep" => "0",
+            //                        "withdrawMinScale" => "8",
+            //                        "congestion" => "normal"
+            //                    }
+            //                ),
+            //                "areaCoin" => "no"
+            //            ),
+            //            ...
             //
             $result = array();
             $data = $this->safe_value($response, 'data', array());
+            $fiatCurrencies = $this->safe_list($this->options, 'fiatCurrencies', array());
             for ($i = 0; $i < count($data); $i++) {
                 $entry = $data[$i];
-                $id = $this->safe_string($entry, 'coin'); // we don't use 'coinId' has no use. it is 'coin' field that needs to be used in currency related endpoints ($deposit, $withdraw, etc..)
+                $id = $this->safe_string($entry, 'coin'); // we don't use 'coinId' has no use. it is 'coin' field that needs to be used in currency related endpoints (deposit, withdraw, etc..)
                 $code = $this->safe_currency_code($id);
                 $chains = $this->safe_value($entry, 'chains', array());
                 $networks = array();
-                $deposit = false;
-                $withdraw = false;
-                $minWithdrawString = null;
-                $minDepositString = null;
-                $minWithdrawFeeString = null;
                 for ($j = 0; $j < count($chains); $j++) {
                     $chain = $chains[$j];
                     $networkId = $this->safe_string($chain, 'chain');
                     $network = $this->network_id_to_code($networkId, $code);
-                    if ($network !== null) {
-                        $network = strtoupper($network);
-                    }
-                    $withdrawEnabled = $this->safe_string($chain, 'withdrawable');
-                    $canWithdraw = $withdrawEnabled === 'true';
-                    $withdraw = ($canWithdraw) ? $canWithdraw : $withdraw;
-                    $depositEnabled = $this->safe_string($chain, 'rechargeable');
-                    $canDeposit = $depositEnabled === 'true';
-                    $deposit = ($canDeposit) ? $canDeposit : $deposit;
-                    $networkWithdrawFeeString = $this->safe_string($chain, 'withdrawFee');
-                    if ($networkWithdrawFeeString !== null) {
-                        $minWithdrawFeeString = ($minWithdrawFeeString === null) ? $networkWithdrawFeeString : Precise::string_min($networkWithdrawFeeString, $minWithdrawFeeString);
-                    }
-                    $networkMinWithdrawString = $this->safe_string($chain, 'minWithdrawAmount');
-                    if ($networkMinWithdrawString !== null) {
-                        $minWithdrawString = ($minWithdrawString === null) ? $networkMinWithdrawString : Precise::string_min($networkMinWithdrawString, $minWithdrawString);
-                    }
-                    $networkMinDepositString = $this->safe_string($chain, 'minDepositAmount');
-                    if ($networkMinDepositString !== null) {
-                        $minDepositString = ($minDepositString === null) ? $networkMinDepositString : Precise::string_min($networkMinDepositString, $minDepositString);
-                    }
+                    $network = strtoupper($network);
                     $networks[$network] = array(
                         'info' => $chain,
                         'id' => $networkId,
                         'network' => $network,
                         'limits' => array(
                             'withdraw' => array(
-                                'min' => $this->parse_number($networkMinWithdrawString),
+                                'min' => $this->safe_number($chain, 'minWithdrawAmount'),
                                 'max' => null,
                             ),
                             'deposit' => array(
-                                'min' => $this->parse_number($networkMinDepositString),
+                                'min' => $this->safe_number($chain, 'minDepositAmount'),
                                 'max' => null,
                             ),
                         ),
-                        'active' => $canWithdraw && $canDeposit,
-                        'withdraw' => $canWithdraw,
-                        'deposit' => $canDeposit,
-                        'fee' => $this->parse_number($networkWithdrawFeeString),
-                        'precision' => null,
+                        'active' => null,
+                        'withdraw' => $this->safe_string($chain, 'withdrawable') === 'true',
+                        'deposit' => $this->safe_string($chain, 'rechargeable') === 'true',
+                        'fee' => $this->safe_number($chain, 'withdrawFee'),
+                        'precision' => $this->parse_number($this->parse_precision($this->safe_string($chain, 'withdrawMinScale'))),
                     );
                 }
-                $result[$code] = array(
+                $isFiat = $this->in_array($code, $fiatCurrencies);
+                $result[$code] = $this->safe_currency_structure(array(
                     'info' => $entry,
                     'id' => $id,
                     'code' => $code,
                     'networks' => $networks,
-                    'type' => null,
+                    'type' => $isFiat ? 'fiat' : 'crypto',
                     'name' => null,
-                    'active' => $deposit && $withdraw,
-                    'deposit' => $deposit,
-                    'withdraw' => $withdraw,
-                    'fee' => $this->parse_number($minWithdrawFeeString),
+                    'active' => null,
+                    'deposit' => null,
+                    'withdraw' => null,
+                    'fee' => null,
                     'precision' => null,
                     'limits' => array(
                         'amount' => array(
@@ -2142,16 +2125,16 @@ class bitget extends Exchange {
                             'max' => null,
                         ),
                         'withdraw' => array(
-                            'min' => $this->parse_number($minWithdrawString),
+                            'min' => null,
                             'max' => null,
                         ),
                         'deposit' => array(
-                            'min' => $this->parse_number($minDepositString),
+                            'min' => null,
                             'max' => null,
                         ),
                     ),
                     'created' => null,
-                );
+                ));
             }
             return $result;
         }) ();
@@ -2421,7 +2404,7 @@ class bitget extends Exchange {
                 'coin' => $currency['id'],
                 'address' => $address,
                 'chain' => $networkId,
-                'size' => $amount,
+                'size' => $this->currency_to_precision($code, $amount, $networkCode),
                 'transferType' => 'on_chain',
             );
             if ($tag !== null) {
@@ -2446,8 +2429,6 @@ class bitget extends Exchange {
             $fillResponseFromRequest = $this->safe_bool($withdrawOptions, 'fillResponseFromRequest', true);
             if ($fillResponseFromRequest) {
                 $result['currency'] = $code;
-                $result['timestamp'] = $this->milliseconds();
-                $result['datetime'] = $this->iso8601($this->milliseconds());
                 $result['amount'] = $amount;
                 $result['tag'] = $tag;
                 $result['address'] = $address;
@@ -2576,7 +2557,10 @@ class bitget extends Exchange {
         $status = $this->safe_string($transaction, 'status');
         $tag = $this->safe_string($transaction, 'tag');
         $feeCostString = $this->safe_string($transaction, 'fee');
-        $feeCostAbsString = Precise::string_abs($feeCostString);
+        $feeCostAbsString = null;
+        if ($feeCostString !== null) {
+            $feeCostAbsString = Precise::string_abs($feeCostString);
+        }
         $fee = null;
         $amountString = $this->safe_string($transaction, 'size');
         if ($feeCostAbsString !== null) {
@@ -2816,7 +2800,7 @@ class bitget extends Exchange {
         $close = $this->safe_string($ticker, 'lastPr');
         $timestamp = $this->safe_integer_omit_zero($ticker, 'ts'); // exchange bitget provided 0
         $change = $this->safe_string($ticker, 'change24h');
-        $open24 = $this->safe_string($ticker, 'open24');
+        $open24 = $this->safe_string_2($ticker, 'open24', 'open24h');
         $open = $this->safe_string($ticker, 'open');
         if ($open === null) {
             $symbol = $this->safe_symbol($marketId, $market, null, 'contract');
@@ -3524,6 +3508,7 @@ class bitget extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
              * @param {boolean} [$params->useHistoryEndpoint] whether to force to use historical endpoint (it has max $limit of 200)
+             * @param {boolean} [$params->useHistoryEndpointForPagination] whether to force to use historical endpoint for pagination (default true)
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @param {string} [$params->price] *swap only* "mark" (to fetch mark price candles) or "index" (to fetch index price candles)
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
@@ -3532,12 +3517,14 @@ class bitget extends Exchange {
             $defaultLimit = 100; // default 100, max 1000
             $maxLimitForRecentEndpoint = 1000;
             $maxLimitForHistoryEndpoint = 200; // note, max 1000 bars are supported for "recent-candles" endpoint, but "historical-candles" support only max 200
+            $useHistoryEndpoint = $this->safe_bool($params, 'useHistoryEndpoint', false);
+            $useHistoryEndpointForPagination = $this->safe_bool($params, 'useHistoryEndpointForPagination', true);
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
             if ($paginate) {
-                return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, $maxLimitForRecentEndpoint));
+                $limitForPagination = $useHistoryEndpointForPagination ? $maxLimitForHistoryEndpoint : $maxLimitForRecentEndpoint;
+                return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, $limitForPagination));
             }
-            $useHistoryEndpoint = $this->safe_bool($params, 'useHistoryEndpoint', false);
             $market = $this->market($symbol);
             $marketType = $market['spot'] ? 'spot' : 'swap';
             $timeframes = $this->options['timeframes'][$marketType];
@@ -4182,6 +4169,7 @@ class bitget extends Exchange {
         $timestamp = $this->safe_integer_2($order, 'cTime', 'ctime');
         $updateTimestamp = $this->safe_integer($order, 'uTime');
         $rawStatus = $this->safe_string_2($order, 'status', 'state');
+        $rawStatus = $this->safe_string($order, 'planStatus', $rawStatus);
         $fee = null;
         $feeCostString = $this->safe_string($order, 'fee');
         if ($feeCostString !== null) {

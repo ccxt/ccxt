@@ -41,6 +41,7 @@ class luno extends luno$1 {
                 'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
+                'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -122,6 +123,7 @@ class luno extends luno$1 {
                         'accounts/{id}/transactions': 1,
                         'balance': 1,
                         'beneficiaries': 1,
+                        'send/networks': 1,
                         'fee_info': 1,
                         'funding_address': 1,
                         'listorders': 1,
@@ -261,6 +263,96 @@ class luno extends luno$1 {
                 },
             },
         });
+    }
+    /**
+     * @method
+     * @name luno#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @param {dict} [params] extra parameters specific to the exchange API endpoint
+     * @returns {dict} an associative dictionary of currencies
+     */
+    async fetchCurrencies(params = {}) {
+        if (!this.checkRequiredCredentials(false)) {
+            return undefined;
+        }
+        const response = await this.privateGetSendNetworks(params);
+        //
+        //     {
+        //         "networks": [
+        //           {
+        //             "id": 0,
+        //             "name": "Ethereum",
+        //             "native_currency": "ETH"
+        //           },
+        //           ...
+        //         ]
+        //     }
+        //
+        const currenciesData = this.safeList(response, 'data', []);
+        const result = {};
+        for (let i = 0; i < currenciesData.length; i++) {
+            const networkEntry = currenciesData[i];
+            const id = this.safeString(networkEntry, 'native_currency');
+            const code = this.safeCurrencyCode(id);
+            if (!(code in result)) {
+                result[code] = {
+                    'id': id,
+                    'code': code,
+                    'precision': undefined,
+                    'type': undefined,
+                    'name': undefined,
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                    },
+                    'networks': {},
+                    'info': {},
+                };
+            }
+            const networkId = this.safeString(networkEntry, 'name');
+            const networkCode = this.networkIdToCode(networkId);
+            result[code]['networks'][networkCode] = {
+                'id': networkId,
+                'network': networkCode,
+                'limits': {
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
+                'fee': undefined,
+                'precision': undefined,
+                'info': networkEntry,
+            };
+            // add entry in info
+            const info = this.safeList(result[code], 'info', []);
+            info.push(networkEntry);
+            result[code]['info'] = info;
+        }
+        // only after all entries are formed in currencies, restructure each entry
+        const allKeys = Object.keys(result);
+        for (let i = 0; i < allKeys.length; i++) {
+            const code = allKeys[i];
+            result[code] = this.safeCurrencyStructure(result[code]); // this is needed after adding network entry
+        }
+        return result;
     }
     /**
      * @method

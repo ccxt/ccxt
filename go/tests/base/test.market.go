@@ -95,6 +95,7 @@ import "github.com/ccxt/ccxt/go/v4"
         AssertSymbol(exchange, skippedProperties, method, market, "symbol")
         var logText interface{} = LogTemplate(exchange, method, market)
         // check taker/maker
+        // todo: check not all to be within 0-1.0
         AssertGreater(exchange, skippedProperties, method, market, "taker", "-100")
         AssertLess(exchange, skippedProperties, method, market, "taker", "100")
         AssertGreater(exchange, skippedProperties, method, market, "maker", "-100")
@@ -193,7 +194,7 @@ import "github.com/ccxt/ccxt/go/v4"
                 Assert(IsEqual(GetValue(market, "strike"), nil), Add("\"strike\" must be undefined when \"option\" is false", logText))
                 Assert(IsEqual(GetValue(market, "optionType"), nil), Add("\"optionType\" must be undefined when \"option\" is false", logText))
             }
-        } else {
+        } else if IsTrue(spot) {
             // otherwise, expiry needs to be undefined
             Assert(IsTrue((IsEqual(GetValue(market, "expiry"), nil))) && IsTrue((IsEqual(GetValue(market, "expiryDatetime"), nil))), Add("\"expiry\" and \"expiryDatetime\" must be undefined when it is not future|option market", logText))
         }

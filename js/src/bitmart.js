@@ -209,6 +209,7 @@ export default class bitmart extends Exchange {
                         'contract/private/order': 1.2,
                         'contract/private/order-history': 10,
                         'contract/private/position': 10,
+                        'contract/private/position-v2': 10,
                         'contract/private/get-open-orders': 1.2,
                         'contract/private/current-plan-order': 1.2,
                         'contract/private/trades': 10,
@@ -2373,7 +2374,7 @@ export default class bitmart extends Exchange {
                 const code = this.safeCurrencyCode(currencyId);
                 const account = this.account();
                 account['free'] = this.safeString2(balance, 'available', 'available_balance');
-                account['used'] = this.safeString2(balance, 'frozen', 'frozen_balance');
+                account['used'] = this.safeStringN(balance, ['unAvailable', 'frozen', 'frozen_balance']);
                 result[code] = account;
             }
             return this.safeBalance(result);
@@ -4902,6 +4903,7 @@ export default class bitmart extends Exchange {
      * @name bitmart#fetchPositions
      * @description fetch all open contract positions
      * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-keyed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-v2-keyed
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
@@ -4920,7 +4922,7 @@ export default class bitmart extends Exchange {
             // only supports symbols as undefined or sending one symbol
             request['symbol'] = market['id'];
         }
-        const response = await this.privateGetContractPrivatePosition(this.extend(request, params));
+        const response = await this.privateGetContractPrivatePositionV2(this.extend(request, params));
         //
         //     {
         //         "code": 1000,
