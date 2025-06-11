@@ -4143,7 +4143,7 @@ func  (this *kraken) HandleErrors(code interface{}, reason interface{}, url inte
                     for i := 0; IsLessThan(i, GetArrayLength(GetValue(response, "error"))); i++ {
                         var error interface{} = GetValue(GetValue(response, "error"), i)
                         this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), error, message)
-                        this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "broad"), error, message)
+                        this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), error, message)
                     }
                     panic(ExchangeError(message))
                 }

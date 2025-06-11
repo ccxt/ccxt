@@ -578,6 +578,7 @@ class phemex extends Exchange {
                 ),
                 'defaultNetworks' => array(
                     'USDT' => 'ETH',
+                    'MKR' => 'ETH',
                 ),
                 'defaultSubType' => 'linear',
                 'accountsByType' => array(
@@ -3507,13 +3508,19 @@ class phemex extends Exchange {
             $request['chainName'] = $network;
             $params = $this->omit($params, 'network');
         }
-        $response = $this->privateGetPhemexUserWalletsV2DepositAddress ($this->extend($request, $params));
+        $response = $this->privateGetExchangeWalletsV2DepositAddress ($this->extend($request, $params));
+        //
         //     {
-        //         "code":0,
-        //         "msg":"OK",
-        //         "data":{
-        //             "address":"0x5bfbf60e0fa7f63598e6cfd8a7fd3ffac4ccc6ad",
-        //             "tag":null
+        //         "code" => 0,
+        //         "msg" => "OK",
+        //         "data" => {
+        //             "address" => "tb1qxel5wq5gumt",
+        //             "tag" => "",
+        //             "notice" => false,
+        //             "accountType" => 1,
+        //             "contractName" => null,
+        //             "chainTokenUrl" => null,
+        //             "sign" => null
         //         }
         //     }
         //
