@@ -42,7 +42,7 @@
                 "max": null
             },
             "price": {
-                "min": 0.1,
+                "min": null,
                 "max": null
             },
             "cost": {
@@ -250,7 +250,6 @@
             ]
         },
         "wsId": "XBT/USDT",
-        "darkpool": false,
         "altname": "XBTUSDT"
     },
     "BTC/USD": {
@@ -296,7 +295,7 @@
                 "max": null
             },
             "price": {
-                "min": 0.1,
+                "min": null,
                 "max": null
             },
             "cost": {
@@ -508,7 +507,6 @@
             ]
         },
         "wsId": "XBT/USD",
-        "darkpool": false,
         "altname": "XBTUSD"
     },
     "ETH/USDT": {
@@ -554,7 +552,7 @@
                 "max": null
             },
             "price": {
-                "min": 0.01,
+                "min": null,
                 "max": null
             },
             "cost": {
@@ -762,7 +760,6 @@
             ]
         },
         "wsId": "ETH/USDT",
-        "darkpool": false,
         "altname": "ETHUSDT"
     },
     "ADA/USDT": {
@@ -808,7 +805,7 @@
                 "max": null
             },
             "price": {
-                "min": 0.000001,
+                "min": null,
                 "max": null
             },
             "cost": {
@@ -1018,7 +1015,6 @@
             ]
         },
         "wsId": "ADA/USDT",
-        "darkpool": false,
         "altname": "ADAUSDT"
     },
     "LTC/USDT": {
@@ -1064,7 +1060,7 @@
                 "max": null
             },
             "price": {
-                "min": 0.00001,
+                "min": null,
                 "max": null
             },
             "cost": {
@@ -1272,7 +1268,6 @@
             ]
         },
         "wsId": "LTC/USDT",
-        "darkpool": false,
         "altname": "LTCUSDT"
     },
     "XRP/USDT": {
@@ -1318,7 +1313,7 @@
                 "max": null
             },
             "price": {
-                "min": 0.00001,
+                "min": null,
                 "max": null
             },
             "cost": {
@@ -1526,7 +1521,6 @@
             ]
         },
         "wsId": "XRP/USDT",
-        "darkpool": false,
         "altname": "XRPUSDT"
     },
     "DOGE/USDT": {
@@ -1572,7 +1566,7 @@
                 "max": null
             },
             "price": {
-                "min": 0.00001,
+                "min": null,
                 "max": null
             },
             "cost": {
@@ -1782,7 +1776,6 @@
             ]
         },
         "wsId": "XDG/USDT",
-        "darkpool": false,
         "altname": "XDGUSDT"
     },
     "XRP/USD": {
@@ -1828,7 +1821,7 @@
                 "max": null
             },
             "price": {
-                "min": 0.00001,
+                "min": null,
                 "max": null
             },
             "cost": {
@@ -2040,7 +2033,6 @@
             ]
         },
         "wsId": "XRP/USD",
-        "darkpool": false,
         "altname": "XRPUSD"
     },
     "LTC/USD": {
@@ -2086,7 +2078,7 @@
                 "max": null
             },
             "price": {
-                "min": 0.01,
+                "min": null,
                 "max": null
             },
             "cost": {
@@ -2294,7 +2286,6 @@
             ]
         },
         "wsId": "LTC/USD",
-        "darkpool": false,
         "altname": "LTCUSD"
     }
 }
