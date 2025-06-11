@@ -3810,7 +3810,7 @@ public partial class kraken : Exchange
                         {
                             object error = getValue(getValue(response, "error"), i);
                             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), error, message);
-                            this.throwExactlyMatchedException(getValue(this.exceptions, "broad"), error, message);
+                            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), error, message);
                         }
                         throw new ExchangeError ((string)message) ;
                     }

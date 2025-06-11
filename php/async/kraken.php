@@ -3611,7 +3611,7 @@ class kraken extends Exchange {
                         for ($i = 0; $i < count($response['error']); $i++) {
                             $error = $response['error'][$i];
                             $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $message);
-                            $this->throw_exactly_matched_exception($this->exceptions['broad'], $error, $message);
+                            $this->throw_broadly_matched_exception($this->exceptions['broad'], $error, $message);
                         }
                         throw new ExchangeError($message);
                     }
