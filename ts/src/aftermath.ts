@@ -1,6 +1,7 @@
 import Exchange from './abstract/aftermath.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import type { Account, Balances, Currencies, Currency, Market, Dict, Int, Strings, OHLCV, Order, OrderBook, OrderRequest, Str, Ticker, Trade, TradingFeeInterface, MarginModification, TransferEntry, Position, Transaction } from './base/types.js';
+import { eddsa } from './base/functions/crypto.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { ArgumentsRequired, NotSupported, ExchangeError } from './base/errors.js';
 
@@ -1162,9 +1163,11 @@ export default class aftermath extends Exchange {
         const signingDigest = this.safeString (tx, 'signingDigest');
         const hexDigest = this.binaryToBase16 (this.base64ToBinary (signingDigest));
         const privateKey = this.base16ToBinary (this.privateKey);
-        const signature = ed25519.sign (hexDigest, privateKey);
+        // const seed = this.arraySlice (secretBytes, 0, 32); // Extract first 32 bytes as seed
+        const signature = eddsa (hexDigest, privateKey, ed25519);
+        // const signature = ed25519.sign (hexDigest, privateKey);
         const publicKey = ed25519.getPublicKey (privateKey);
-        const suiSignature = this.binaryConcat (this.base16ToBinary ('00'), this.binaryConcat (signature, publicKey));
+        const suiSignature = this.binaryConcat (this.base16ToBinary ('00'), this.binaryConcat (this.base64ToBinary (signature), publicKey));
         const base64Sig = this.binaryToBase64 (suiSignature);
         const transactionBytes = this.safeString (tx, 'transactionBytes');
         return { 'transactionBytes': transactionBytes, 'signatures': [ base64Sig ] };
