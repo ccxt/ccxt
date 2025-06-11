@@ -73,7 +73,7 @@
             "display_decimals": "2",
             "collateral_value": "1.0",
             "status": "enabled",
-            "margin_rate": "0.04"
+            "margin_rate": "0.025"
         },
         "id": "ZEUR",
         "numericId": null,
@@ -106,7 +106,7 @@
             "display_decimals": "2",
             "collateral_value": "1.0",
             "status": "enabled",
-            "margin_rate": "0.033"
+            "margin_rate": "0.034"
         },
         "id": "ZUSD",
         "numericId": null,
@@ -311,6 +311,37 @@
         "precision": 1e-10,
         "type": "crypto",
         "name": "MATIC",
+        "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "ALPHA": {
+        "info": {
+            "aclass": "currency",
+            "altname": "ALPHA",
+            "decimals": "5",
+            "display_decimals": "3",
+            "status": "enabled"
+        },
+        "id": "ALPHA",
+        "numericId": null,
+        "code": "ALPHA",
+        "precision": 0.00001,
+        "type": "crypto",
+        "name": "ALPHA",
         "active": true,
         "deposit": null,
         "withdraw": null,
