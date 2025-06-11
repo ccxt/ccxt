@@ -1597,8 +1597,8 @@ async function my_cache_setter (key, marketsAndCurrencies) {
 }
 
 async function my_cache_getter (key) {
-    const expirationMinutes = 60;
-    if (fs.existsSync(key) && Date.now() - statSync(key).mtime.getTime() < expirationMinutes * 60 * 1000) {
+    const expirationSeconds = 3600; // 1 hour
+    if (fs.existsSync(key) && Date.now() - statSync(key).mtime.getTime() < expirationSeconds * 1000) {
         return JSON.parse(fs.readFileSync(key, 'utf8'));
     } else {
         return undefined;
