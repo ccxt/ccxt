@@ -1978,7 +1978,7 @@ func  (this *bitget) ParseMarket(market interface{}) interface{}  {
                 "max": nil,
             },
         },
-        "created": this.SafeInteger(market, "launchTime"),
+        "created": this.SafeInteger(market, "openTime"),
         "info": market,
     }
 }

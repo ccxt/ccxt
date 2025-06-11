@@ -2155,7 +2155,7 @@ class testMainClass {
     async testModeTrade() {
         const exchange = this.initOfflineExchange('modetrade');
         exchange.secret = 'secretsecretsecretsecretsecretsecretsecrets';
-        const id = 'CCXT';
+        const id = 'CCXTMODE';
         await exchange.loadMarkets();
         let request = undefined;
         try {

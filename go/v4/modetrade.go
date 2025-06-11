@@ -42,16 +42,16 @@ func  (this *modetrade) Describe() interface{}  {
             "createConvertTrade": false,
             "createDepositAddress": false,
             "createMarketBuyOrderWithCost": false,
-            "createMarketOrder": false,
+            "createMarketOrder": true,
             "createMarketOrderWithCost": false,
             "createMarketSellOrderWithCost": false,
             "createOrder": true,
             "createOrderWithTakeProfitAndStopLoss": true,
             "createReduceOnlyOrder": true,
-            "createStopLimitOrder": false,
+            "createStopLimitOrder": true,
             "createStopLossOrder": true,
-            "createStopMarketOrder": false,
-            "createStopOrder": false,
+            "createStopMarketOrder": true,
+            "createStopOrder": true,
             "createTakeProfitOrder": true,
             "createTrailingAmountOrder": false,
             "createTrailingPercentOrder": false,
@@ -290,7 +290,7 @@ func  (this *modetrade) Describe() interface{}  {
         },
         "options": map[string]interface{} {
             "sandboxMode": false,
-            "brokerId": "CCXT",
+            "brokerId": "CCXTMODE",
             "verifyingContractAddress": "0x6F7a338F2aA472838dEFD3283eB360d4Dff5D203",
         },
         "features": map[string]interface{} {
@@ -2566,7 +2566,7 @@ func  (this *modetrade) ParseBalance(response interface{}) interface{}  {
         var code interface{} = this.SafeCurrencyCode(this.SafeString(balance, "token"))
         var account interface{} = this.Account()
         AddElementToObject(account, "total", this.SafeString(balance, "holding"))
-        AddElementToObject(account, "frozen", this.SafeString(balance, "frozen"))
+        AddElementToObject(account, "used", this.SafeString(balance, "frozen"))
         AddElementToObject(result, code, account)
     }
     return this.SafeBalance(result)
@@ -3419,7 +3419,7 @@ func  (this *modetrade) Sign(path interface{}, optionalArgs ...interface{}) inte
         if IsTrue(IsTrue(isPostOrPut) && IsTrue(isOrder)) {
             var isSandboxMode interface{} = this.SafeBool(this.Options, "sandboxMode", false)
             if !IsTrue(isSandboxMode) {
-                var brokerId interface{} = this.SafeString(this.Options, "brokerId", "CCXT")
+                var brokerId interface{} = this.SafeString(this.Options, "brokerId", "CCXTMODE")
                 if IsTrue(IsEqual(path, "batch-order")) {
                     var ordersList interface{} = this.SafeList(params, "orders", []interface{}{})
                     for i := 0; IsLessThan(i, GetArrayLength(ordersList)); i++ {

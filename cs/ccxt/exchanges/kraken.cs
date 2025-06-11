@@ -514,11 +514,14 @@ public partial class kraken : Exchange
     public async override Task<object> fetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        object promises = new List<object>() {};
+        ((IList<object>)promises).Add(this.publicGetAssetPairs(parameters));
         if (isTrue(getValue(this.options, "adjustForTimeDifference")))
         {
-            await this.loadTimeDifference();
+            ((IList<object>)promises).Add(this.loadTimeDifference());
         }
-        object response = await this.publicGetAssetPairs(parameters);
+        object responses = await promiseAll(promises);
+        object assetsResponse = getValue(responses, 0);
         //
         //     {
         //         "error": [],
@@ -566,7 +569,7 @@ public partial class kraken : Exchange
         //         }
         //     }
         //
-        object markets = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object markets = this.safeDict(assetsResponse, "result", new Dictionary<string, object>() {});
         object keys = new List<object>(((IDictionary<string,object>)markets).Keys);
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
@@ -579,23 +582,23 @@ public partial class kraken : Exchange
             object quote = this.safeCurrencyCode(quoteId);
             object darkpool = isGreaterThanOrEqual(getIndexOf(id, ".d"), 0);
             object altname = this.safeString(market, "altname");
-            object makerFees = this.safeValue(market, "fees_maker", new List<object>() {});
-            object firstMakerFee = this.safeValue(makerFees, 0, new List<object>() {});
+            object makerFees = this.safeList(market, "fees_maker", new List<object>() {});
+            object firstMakerFee = this.safeList(makerFees, 0, new List<object>() {});
             object firstMakerFeeRate = this.safeString(firstMakerFee, 1);
             object maker = null;
             if (isTrue(!isEqual(firstMakerFeeRate, null)))
             {
                 maker = this.parseNumber(Precise.stringDiv(firstMakerFeeRate, "100"));
             }
-            object takerFees = this.safeValue(market, "fees", new List<object>() {});
-            object firstTakerFee = this.safeValue(takerFees, 0, new List<object>() {});
+            object takerFees = this.safeList(market, "fees", new List<object>() {});
+            object firstTakerFee = this.safeList(takerFees, 0, new List<object>() {});
             object firstTakerFeeRate = this.safeString(firstTakerFee, 1);
             object taker = null;
             if (isTrue(!isEqual(firstTakerFeeRate, null)))
             {
                 taker = this.parseNumber(Precise.stringDiv(firstTakerFeeRate, "100"));
             }
-            object leverageBuy = this.safeValue(market, "leverage_buy", new List<object>() {});
+            object leverageBuy = this.safeList(market, "leverage_buy", new List<object>() {});
             object leverageBuyLength = getArrayLength(leverageBuy);
             object precisionPrice = this.parseNumber(this.parsePrecision(this.safeString(market, "pair_decimals")));
             object status = this.safeString(market, "status");

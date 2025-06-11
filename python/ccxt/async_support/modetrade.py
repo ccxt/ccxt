@@ -50,16 +50,16 @@ class modetrade(Exchange, ImplicitAPI):
                 'createConvertTrade': False,
                 'createDepositAddress': False,
                 'createMarketBuyOrderWithCost': False,
-                'createMarketOrder': False,
+                'createMarketOrder': True,
                 'createMarketOrderWithCost': False,
                 'createMarketSellOrderWithCost': False,
                 'createOrder': True,
                 'createOrderWithTakeProfitAndStopLoss': True,
                 'createReduceOnlyOrder': True,
-                'createStopLimitOrder': False,
+                'createStopLimitOrder': True,
                 'createStopLossOrder': True,
-                'createStopMarketOrder': False,
-                'createStopOrder': False,
+                'createStopMarketOrder': True,
+                'createStopOrder': True,
                 'createTakeProfitOrder': True,
                 'createTrailingAmountOrder': False,
                 'createTrailingPercentOrder': False,
@@ -298,7 +298,7 @@ class modetrade(Exchange, ImplicitAPI):
             },
             'options': {
                 'sandboxMode': False,
-                'brokerId': 'CCXT',
+                'brokerId': 'CCXTMODE',
                 'verifyingContractAddress': '0x6F7a338F2aA472838dEFD3283eB360d4Dff5D203',
             },
             'features': {
@@ -2069,7 +2069,7 @@ class modetrade(Exchange, ImplicitAPI):
             code = self.safe_currency_code(self.safe_string(balance, 'token'))
             account = self.account()
             account['total'] = self.safe_string(balance, 'holding')
-            account['frozen'] = self.safe_string(balance, 'frozen')
+            account['used'] = self.safe_string(balance, 'frozen')
             result[code] = account
         return self.safe_balance(result)
 
@@ -2671,7 +2671,7 @@ class modetrade(Exchange, ImplicitAPI):
             if isPostOrPut and isOrder:
                 isSandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
                 if not isSandboxMode:
-                    brokerId = self.safe_string(self.options, 'brokerId', 'CCXT')
+                    brokerId = self.safe_string(self.options, 'brokerId', 'CCXTMODE')
                     if path == 'batch-order':
                         ordersList = self.safe_list(params, 'orders', [])
                         for i in range(0, len(ordersList)):
