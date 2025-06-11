@@ -2,7 +2,7 @@ import Exchange from './abstract/aftermath.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import type { Account, Balances, Currencies, Currency, Market, Dict, Int, Strings, OHLCV, Order, OrderBook, OrderRequest, Str, Ticker, Trade, TradingFeeInterface, MarginModification, TransferEntry, Position, Transaction } from './base/types.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
-import { NotSupported } from './base/errors.js';
+import { ArgumentsRequired, NotSupported } from './base/errors.js';
 
 export default class aftermath extends Exchange {
     describe (): any {
@@ -238,6 +238,50 @@ export default class aftermath extends Exchange {
     }
 
     parseMarket (market: Dict): Market {
+        //
+        //     {
+        //         "id": "0x49bd40cc7880bd358465116157f0271c25d23361b94eace9a25dc2019b449bfc",
+        //         "symbol": "BTC/USD:USDC",
+        //         "base": "BTC",
+        //         "quote": "USD",
+        //         "baseId": "BTC",
+        //         "quoteId": "USD",
+        //         "active": true,
+        //         "type": "swap",
+        //         "spot": false,
+        //         "margin": false,
+        //         "swap": true,
+        //         "future": false,
+        //         "option": false,
+        //         "contract": true,
+        //         "settle": "USDC",
+        //         "settleId": "0x457049371f5b5dc2bda857bb804ca6e93c5a3cae1636d0cd17bb6b6070d19458::usdc::USDC",
+        //         "contractSize": 0.00001,
+        //         "linear": true,
+        //         "inverse": false,
+        //         "taker": 0.001,
+        //         "maker": 0.0,
+        //         "percentage": true,
+        //         "tierBased": false,
+        //         "precision": {
+        //             "amount": 0.00001,
+        //             "price": 0.0001
+        //         },
+        //         "limits": {
+        //             "cost": {
+        //                 "min": 1.0
+        //             },
+        //             "leverage": {
+        //                 "max": 50.0
+        //             }
+        //         },
+        //         "marginModes": {
+        //             "isolated": true,
+        //             "cross": false
+        //         },
+        //         "subType": "linear"
+        //     }
+        //
         const precision = this.safeDict (market, 'precision');
         const limits = this.safeDict (market, 'limits');
         return this.safeMarketStructure ({
@@ -621,6 +665,9 @@ export default class aftermath extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const accountNumber = this.safeNumber (params, 'accountNumber');
+        if (accountNumber === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires an accountNumber parameter in params');
+        }
         const request = {
             'chId': this.safeString (market, 'id'),
             'accountNumber': accountNumber,
@@ -663,6 +710,9 @@ export default class aftermath extends Exchange {
     async fetchPositions (symbols: Strings = undefined, params = {}) {
         await this.loadMarkets ();
         const accountNumber = this.safeNumber (params, 'accountNumber');
+        if (accountNumber === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchPositions() requires an accountNumber parameter in params');
+        }
         const request = {
             'accountNumber': accountNumber,
         };
@@ -1035,6 +1085,7 @@ export default class aftermath extends Exchange {
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subaccount] *subaccount*
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
@@ -1042,6 +1093,9 @@ export default class aftermath extends Exchange {
         const currency = this.currency (code);
         const subaccount = this.safeString (params, 'subaccount');
         params = this.omit (params, [ 'subaccount' ]);
+        if (subaccount === undefined) {
+            throw new ArgumentsRequired (this.id + ' withdraw() requires a subaccount parameter in params');
+        }
         const txRequest = {
             'metadata': {
                 'sender': this.walletAddress,
