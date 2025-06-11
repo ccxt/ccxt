@@ -3533,7 +3533,7 @@ export default class kraken extends Exchange {
                         for (let i = 0; i < response['error'].length; i++) {
                             const error = response['error'][i];
                             this.throwExactlyMatchedException (this.exceptions['exact'], error, message);
-                            this.throwExactlyMatchedException (this.exceptions['broad'], error, message);
+                            this.throwBroadlyMatchedException (this.exceptions['broad'], error, message);
                         }
                         throw new ExchangeError (message);
                     }
