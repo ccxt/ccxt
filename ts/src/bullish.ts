@@ -345,185 +345,183 @@ export default class bullish extends Exchange {
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
         const response = await this.publicGetV1Markets (params);
-        //
-        //     [
-        //         {
-        //             "marketId": "20069",
-        //             "symbol": "BTC-USDC-20250516",
-        //             "quoteAssetId": "5",
-        //             "baseAssetId": "1",
-        //             "quoteSymbol": "USDC",
-        //             "baseSymbol": "BTC",
-        //             "quotePrecision": "4",
-        //             "basePrecision": "8",
-        //             "pricePrecision": "4",
-        //             "quantityPrecision": "8",
-        //             "costPrecision": "4",
-        //             "minQuantityLimit": "0.00050000",
-        //             "maxQuantityLimit": "200.00000000",
-        //             "maxPriceLimit": null,
-        //             "minPriceLimit": null,
-        //             "maxCostLimit": null,
-        //             "minCostLimit": null,
-        //             "timeZone": "Etc/UTC",
-        //             "tickSize": "0.1000",
-        //             "liquidityTickSize": "100.0000",
-        //             "liquidityPrecision": "4",
-        //             "makerFee": "0",
-        //             "takerFee": "2",
-        //             "roundingCorrectionFactor": "0.00000100",
-        //             "makerMinLiquidityAddition": "1000000",
-        //             "orderTypes":
-        //                 [
-        //                     "LMT",
-        //                     "MKT",
-        //                     "STOP_LIMIT",
-        //                     "POST_ONLY"
-        //                 ],
-        //             "spotTradingEnabled": true,
-        //             "marginTradingEnabled": true,
-        //             "marketEnabled": true,
-        //             "createOrderEnabled": true,
-        //             "cancelOrderEnabled": true,
-        //             "liquidityInvestEnabled": true,
-        //             "liquidityWithdrawEnabled": true,
-        //             "feeTiers":
-        //                 [
-        //                     {
-        //                         "feeTierId": "1",
-        //                         "staticSpreadFee": "0.00000000",
-        //                         "isDislocationEnabled": false
-        //                     },
-        //                     {
-        //                         "feeTierId": "10",
-        //                         "staticSpreadFee": "0.00100000",
-        //                         "isDislocationEnabled": true
-        //                     },
-        //                     {
-        //                         "feeTierId": "11",
-        //                         "staticSpreadFee": "0.00150000",
-        //                         "isDislocationEnabled": false
-        //                     },
-        //                     {
-        //                         "feeTierId": "12",
-        //                         "staticSpreadFee": "0.00150000",
-        //                         "isDislocationEnabled": true
-        //                     },
-        //                     {
-        //                         "feeTierId": "13",
-        //                         "staticSpreadFee": "0.00300000",
-        //                         "isDislocationEnabled": false
-        //                     },
-        //                     {
-        //                         "feeTierId": "14",
-        //                         "staticSpreadFee": "0.00300000",
-        //                         "isDislocationEnabled": true
-        //                     },
-        //                     {
-        //                         "feeTierId": "15",
-        //                         "staticSpreadFee": "0.00500000",
-        //                         "isDislocationEnabled": false
-        //                     },
-        //                     {
-        //                         "feeTierId": "16",
-        //                         "staticSpreadFee": "0.00500000",
-        //                         "isDislocationEnabled": true
-        //                     },
-        //                     {
-        //                         "feeTierId": "17",
-        //                         "staticSpreadFee": "0.01000000",
-        //                         "isDislocationEnabled": false
-        //                     },
-        //                     {
-        //                         "feeTierId": "18",
-        //                         "staticSpreadFee": "0.01000000",
-        //                         "isDislocationEnabled": true
-        //                     },
-        //                     {
-        //                         "feeTierId": "19",
-        //                         "staticSpreadFee": "0.01500000",
-        //                         "isDislocationEnabled": false
-        //                     },
-        //                     {
-        //                         "feeTierId": "2",
-        //                         "staticSpreadFee": "0.00000000",
-        //                         "isDislocationEnabled": true
-        //                     },
-        //                     {
-        //                         "feeTierId": "20",
-        //                         "staticSpreadFee": "0.01500000",
-        //                         "isDislocationEnabled": true
-        //                     },
-        //                     {
-        //                         "feeTierId": "21",
-        //                         "staticSpreadFee": "0.02000000",
-        //                         "isDislocationEnabled": false
-        //                     },
-        //                     {
-        //                         "feeTierId": "22",
-        //                         "staticSpreadFee": "0.02000000",
-        //                         "isDislocationEnabled": true
-        //                     },
-        //                     {
-        //                         "feeTierId": "3",
-        //                         "staticSpreadFee": "0.00010000",
-        //                         "isDislocationEnabled": false
-        //                     },
-        //                     {
-        //                         "feeTierId": "4",
-        //                         "staticSpreadFee": "0.00010000",
-        //                         "isDislocationEnabled": true
-        //                     },
-        //                     {
-        //                         "feeTierId": "5",
-        //                         "staticSpreadFee": "0.00020000",
-        //                         "isDislocationEnabled": false
-        //                     },
-        //                     {
-        //                         "feeTierId": "6",
-        //                         "staticSpreadFee": "0.00020000",
-        //                         "isDislocationEnabled": true
-        //                     },
-        //                     {
-        //                         "feeTierId": "7",
-        //                         "staticSpreadFee": "0.00060000",
-        //                         "isDislocationEnabled": false
-        //                     },
-        //                     {
-        //                         "feeTierId": "8",
-        //                         "staticSpreadFee": "0.00060000",
-        //                         "isDislocationEnabled": true
-        //                     },
-        //                     {
-        //                         "feeTierId": "9",
-        //                         "staticSpreadFee": "0.00100000",
-        //                         "isDislocationEnabled": false
-        //                     }
-        //                 ],
-        //             "marketType": "DATED_FUTURE",
-        //             "contractMultiplier": "1",
-        //             "settlementAssetSymbol": "USDC",
-        //             "underlyingQuoteSymbol": "USDC",
-        //             "underlyingBaseSymbol": "BTC",
-        //             "openInterestLimitUSD": "100000000.0000",
-        //             "concentrationRiskPercentage": "100.00",
-        //             "concentrationRiskThresholdUSD": "30000000.0000",
-        //             "expiryDatetime": "2025-05-16T08:00:00.000Z",
-        //             "priceBuffer": "0.1",
-        //             "feeGroupId": "4"
-        //         },
-        //     ]...
-        //
         return this.parseMarkets (response);
     }
 
     parseMarket (market: Dict): Market {
+        //
+        //     {
+        //         "marketId": "20069",
+        //         "symbol": "BTC-USDC-20250516",
+        //         "quoteAssetId": "5",
+        //         "baseAssetId": "1",
+        //         "quoteSymbol": "USDC",
+        //         "baseSymbol": "BTC",
+        //         "quotePrecision": "4",
+        //         "basePrecision": "8",
+        //         "pricePrecision": "4",
+        //         "quantityPrecision": "8",
+        //         "costPrecision": "4",
+        //         "minQuantityLimit": "0.00050000",
+        //         "maxQuantityLimit": "200.00000000",
+        //         "maxPriceLimit": null,
+        //         "minPriceLimit": null,
+        //         "maxCostLimit": null,
+        //         "minCostLimit": null,
+        //         "timeZone": "Etc/UTC",
+        //         "tickSize": "0.1000",
+        //         "liquidityTickSize": "100.0000",
+        //         "liquidityPrecision": "4",
+        //         "makerFee": "0",
+        //         "takerFee": "2",
+        //         "roundingCorrectionFactor": "0.00000100",
+        //         "makerMinLiquidityAddition": "1000000",
+        //         "orderTypes":
+        //             [
+        //                 "LMT",
+        //                 "MKT",
+        //                 "STOP_LIMIT",
+        //                 "POST_ONLY"
+        //             ],
+        //         "spotTradingEnabled": true,
+        //         "marginTradingEnabled": true,
+        //         "marketEnabled": true,
+        //         "createOrderEnabled": true,
+        //         "cancelOrderEnabled": true,
+        //         "liquidityInvestEnabled": true,
+        //         "liquidityWithdrawEnabled": true,
+        //         "feeTiers":
+        //             [
+        //                 {
+        //                     "feeTierId": "1",
+        //                     "staticSpreadFee": "0.00000000",
+        //                     "isDislocationEnabled": false
+        //                 },
+        //                 {
+        //                     "feeTierId": "10",
+        //                     "staticSpreadFee": "0.00100000",
+        //                     "isDislocationEnabled": true
+        //                 },
+        //                 {
+        //                     "feeTierId": "11",
+        //                     "staticSpreadFee": "0.00150000",
+        //                     "isDislocationEnabled": false
+        //                 },
+        //                 {
+        //                     "feeTierId": "12",
+        //                     "staticSpreadFee": "0.00150000",
+        //                     "isDislocationEnabled": true
+        //                 },
+        //                 {
+        //                     "feeTierId": "13",
+        //                     "staticSpreadFee": "0.00300000",
+        //                     "isDislocationEnabled": false
+        //                 },
+        //                 {
+        //                     "feeTierId": "14",
+        //                     "staticSpreadFee": "0.00300000",
+        //                     "isDislocationEnabled": true
+        //                 },
+        //                 {
+        //                     "feeTierId": "15",
+        //                     "staticSpreadFee": "0.00500000",
+        //                     "isDislocationEnabled": false
+        //                 },
+        //                 {
+        //                     "feeTierId": "16",
+        //                     "staticSpreadFee": "0.00500000",
+        //                     "isDislocationEnabled": true
+        //                 },
+        //                 {
+        //                     "feeTierId": "17",
+        //                     "staticSpreadFee": "0.01000000",
+        //                     "isDislocationEnabled": false
+        //                 },
+        //                 {
+        //                     "feeTierId": "18",
+        //                     "staticSpreadFee": "0.01000000",
+        //                     "isDislocationEnabled": true
+        //                 },
+        //                 {
+        //                     "feeTierId": "19",
+        //                     "staticSpreadFee": "0.01500000",
+        //                     "isDislocationEnabled": false
+        //                 },
+        //                 {
+        //                     "feeTierId": "2",
+        //                     "staticSpreadFee": "0.00000000",
+        //                     "isDislocationEnabled": true
+        //                 },
+        //                 {
+        //                     "feeTierId": "20",
+        //                     "staticSpreadFee": "0.01500000",
+        //                     "isDislocationEnabled": true
+        //                 },
+        //                 {
+        //                     "feeTierId": "21",
+        //                     "staticSpreadFee": "0.02000000",
+        //                     "isDislocationEnabled": false
+        //                 },
+        //                 {
+        //                     "feeTierId": "22",
+        //                     "staticSpreadFee": "0.02000000",
+        //                     "isDislocationEnabled": true
+        //                 },
+        //                 {
+        //                     "feeTierId": "3",
+        //                     "staticSpreadFee": "0.00010000",
+        //                     "isDislocationEnabled": false
+        //                 },
+        //                 {
+        //                     "feeTierId": "4",
+        //                     "staticSpreadFee": "0.00010000",
+        //                     "isDislocationEnabled": true
+        //                 },
+        //                 {
+        //                     "feeTierId": "5",
+        //                     "staticSpreadFee": "0.00020000",
+        //                     "isDislocationEnabled": false
+        //                 },
+        //                 {
+        //                     "feeTierId": "6",
+        //                     "staticSpreadFee": "0.00020000",
+        //                     "isDislocationEnabled": true
+        //                 },
+        //                 {
+        //                     "feeTierId": "7",
+        //                     "staticSpreadFee": "0.00060000",
+        //                     "isDislocationEnabled": false
+        //                 },
+        //                 {
+        //                     "feeTierId": "8",
+        //                     "staticSpreadFee": "0.00060000",
+        //                     "isDislocationEnabled": true
+        //                 },
+        //                 {
+        //                     "feeTierId": "9",
+        //                     "staticSpreadFee": "0.00100000",
+        //                     "isDislocationEnabled": false
+        //                 }
+        //             ],
+        //         "marketType": "DATED_FUTURE",
+        //         "contractMultiplier": "1",
+        //         "settlementAssetSymbol": "USDC",
+        //         "underlyingQuoteSymbol": "USDC",
+        //         "underlyingBaseSymbol": "BTC",
+        //         "openInterestLimitUSD": "100000000.0000",
+        //         "concentrationRiskPercentage": "100.00",
+        //         "concentrationRiskThresholdUSD": "30000000.0000",
+        //         "expiryDatetime": "2025-05-16T08:00:00.000Z",
+        //         "priceBuffer": "0.1",
+        //         "feeGroupId": "4"
+        //     }
+        //
         const id = this.safeString (market, 'symbol');
         let symbol = undefined;
         const baseId = this.safeString (market, 'baseSymbol');
         const quoteId = this.safeString (market, 'quoteSymbol');
-        const base = this.safeString (market, 'baseSymbol');
-        const quote = this.safeString (market, 'quoteSymbol');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
         symbol = base + '/' + quote;
         const basePrecision = this.safeString (market, 'basePrecision');
         const quotePrecision = this.safeString (market, 'quotePrecision');
@@ -611,7 +609,7 @@ export default class bullish extends Exchange {
                 'base': this.parseNumber (this.parsePrecision (basePrecision)),
                 'quote': this.parseNumber (this.parsePrecision (quotePrecision)),
             },
-            'active': true,
+            'active': undefined,
             'created': undefined,
             'info': market,
         });
@@ -941,6 +939,44 @@ export default class bullish extends Exchange {
     }
 
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+        //
+        //     {
+        //         "createdAtDatetime": "2021-05-20T01:01:01.000Z",
+        //         "createdAtTimestamp": "1621490985000",
+        //         "high": "1.00000000",
+        //         "low": "1.00000000",
+        //         "bestBid": "1.00000000",
+        //         "bidVolume": "1.00000000",
+        //         "bestAsk": "1.00000000",
+        //         "askVolume": "1.00000000",
+        //         "vwap": "1.00000000",
+        //         "open": "1.00000000",
+        //         "close": "1.00000000",
+        //         "last": "1.00000000",
+        //         "change": "1.00000000",
+        //         "percentage": "1.00000000",
+        //         "average": "1.00000000",
+        //         "baseVolume": "1.00000000",
+        //         "quoteVolume": "1.00000000",
+        //         "bancorPrice": "1.00000000",
+        //         "markPrice": "19999.00",
+        //         "fundingRate": "0.01",
+        //         "openInterest": "100000.32452",
+        //         "lastTradeDatetime": "2021-05-20T01:01:01.000Z",
+        //         "lastTradeTimestamp": "1621490985000",
+        //         "lastTradeQuantity": "1.00000000",
+        //         "ammData": [
+        //             {
+        //                 "feeTierId": "1",
+        //                 "bidSpreadFee": "0.00040000",
+        //                 "askSpreadFee": "0.00040000",
+        //                 "baseReservesQuantity": "245.56257825",
+        //                 "quoteReservesQuantity": "3424383.3629",
+        //                 "currentPrice": "16856.0000"
+        //             }
+        //         ]
+        //     }
+        //
         const marketId = this.safeString (ticker, 'symbol');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (ticker, 'createdAtTimestamp');
@@ -1019,26 +1055,27 @@ export default class bullish extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit) as OHLCV[];
         }
-        let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'until');
-        const duration = this.parseTimeframe (timeframe);
-        const maxDelta = 1000 * duration * maxLimit;
-        if (since === undefined && until === undefined) {
-            until = this.milliseconds ();
-            since = until - maxDelta;
-        } else if (since === undefined) {
-            since = until - maxDelta;
-        } else if (until === undefined) {
-            until = this.sum (since, maxDelta);
-        }
-        timeframe = this.safeString (this.timeframes, timeframe, timeframe);
-        const request: Dict = {
+        let request: Dict = {
             'symbol': market['id'],
-            'timeBucket': timeframe,
-            'createdAtDatetime[gte]': this.iso8601 (since),
-            'createdAtDatetime[lte]': this.iso8601 (until),
+            'timeBucket': this.safeString (this.timeframes, timeframe, timeframe),
             '_pageSize': maxLimit,
         };
+        [ request, params ] = this.handleUntilOption ('createdAtDatetime[lte]', request, params);
+        let until = this.safeInteger (request, 'createdAtDatetime[lte]');
+        const duration = this.parseTimeframe (timeframe);
+        const maxDelta = 1000 * duration * maxLimit;
+        let startTime = since;
+        // both of since and until are required
+        if (startTime === undefined && until === undefined) {
+            until = this.milliseconds ();
+            startTime = until - maxDelta;
+        } else if (startTime === undefined) {
+            startTime = until - maxDelta;
+        } else if (until === undefined) {
+            until = this.sum (startTime, maxDelta);
+        }
+        request['createdAtDatetime[gte]'] = this.iso8601 (startTime);
+        request['createdAtDatetime[lte]'] = this.iso8601 (until);
         const response = await this.publicGetV1MarketsSymbolCandle (this.extend (request, params));
         //
         //     [
@@ -1084,24 +1121,25 @@ export default class bullish extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
         await this.loadMarkets ();
-        const maxLimit = 100;
+        const maxLimit = 25; // current endpoint supports a maximum of 25 entries per request
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params, maxLimit) as FundingRateHistory[];
+            return await this.fetchPaginatedCallDynamic ('fetchFundingRateHistory', symbol, since, limit, params, maxLimit) as FundingRateHistory[];
         }
         const market = this.market (symbol);
         if (!market['swap']) {
             throw new BadRequest (this.id + ' fetchFundingRateHistory() supports swap markets only');
         }
-        const request: Dict = {
+        let request: Dict = {
             'symbol': market['id'],
+            '_pageSize': maxLimit,
         };
         if (since !== undefined) {
             request['updatedAtDatetime[gte]'] = this.iso8601 (since);
         }
-        let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'until');
+        [ request, params ] = this.handleUntilOption ('updatedAtDatetime[lte]', request, params);
+        const until = this.safeInteger (request, 'updatedAtDatetime[lte]');
         if (until !== undefined) {
             request['updatedAtDatetime[lte]'] = this.iso8601 (until);
         }
@@ -1266,7 +1304,7 @@ export default class bullish extends Exchange {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] a custom client order id
-     * @param {float} [params.stopPrice] the price at which a stop order is triggered at
+     * @param {float} [params.triggerPrice] the price at which a stop order is triggered at
      * @param {string} [params.timeInForce] the time in force for the order, either 'GTC' (Good Till Cancelled) or 'IOC' (Immediate or Cancel), default is 'GTC'
      * @param {bool} [params.allowBorrow] if true, the order will be allowed to borrow assets to fulfill the order (default is false)
      * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately (default is false)
@@ -1300,11 +1338,11 @@ export default class bullish extends Exchange {
         } else {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a tradingAccountId parameter');
         }
-        const stopPrice = this.safeString (params, 'stopPrice');
-        if (stopPrice !== undefined) {
-            request['stopPrice'] = stopPrice;
+        const triggerPrice = this.safeString (params, 'triggerPrice');
+        if (triggerPrice !== undefined) {
+            request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
             type = 'STOP_LIMIT';
-            params = this.omit (params, 'stopPrice');
+            params = this.omit (params, 'triggerPrice');
         }
         request['type'] = type.toUpperCase ();
         const response = await this.privatePostV2Orders (this.extend (request, params));
@@ -1337,9 +1375,6 @@ export default class bullish extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
         const market = this.market (symbol);
-        if (id === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires an id argument');
-        }
         let tradingAccountId: Str = undefined;
         [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'tradingAccountId');
         if (tradingAccountId === undefined) {
@@ -1530,15 +1565,14 @@ export default class bullish extends Exchange {
      */
     async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         await this.loadMarkets ();
-        await this.signIn ();
-        let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams (params, 'fetchDepositsWithdrawals', 'until');
-        const request: Dict = {};
+        let request: Dict = {};
+        [ request, params ] = this.handleUntilOption ('updatedAtDatetime[lte]', request, params);
+        const until = this.safeInteger (request, 'updatedAtDatetime[lte]');
+        if (until !== undefined) {
+            request['updatedAtDatetime[lte]'] = this.iso8601 (until);
+        }
         if (since !== undefined) {
             request['createdAtDatetime[gte]'] = this.iso8601 (since);
-        }
-        if (until !== undefined) {
-            request['createdAtDatetime[lte]'] = this.iso8601 (until);
         }
         const response = await this.privateGetV1WalletsTransactions (this.extend (request, params));
         //
@@ -1588,7 +1622,6 @@ export default class bullish extends Exchange {
      */
     async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         await this.loadMarkets ();
-        await this.signIn ();
         const currency = this.currency (code);
         const request: Dict = {
             'command': {
@@ -1933,7 +1966,6 @@ export default class bullish extends Exchange {
      */
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
-        await this.signIn ();
         let tradingAccountId: Str = undefined;
         [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'tradingAccountId');
         if (tradingAccountId === undefined) {
@@ -1983,9 +2015,8 @@ export default class bullish extends Exchange {
      */
     async fetchPositionHistory (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
-        await this.signIn ();
         const market = this.market (symbol);
-        const request: Dict = {
+        let request: Dict = {
             'symbol': market['id'],
         };
         let tradingAccountId: Str = undefined;
@@ -1997,10 +2028,10 @@ export default class bullish extends Exchange {
         if (since !== undefined) {
             request['createdAtDatetime[gte]'] = this.iso8601 (since);
         }
-        let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams (params, 'fetchPositionHistory', 'until');
+        [ request, params ] = this.handleUntilOption ('updatedAtDatetime[lte]', request, params);
+        const until = this.safeInteger (request, 'updatedAtDatetime[lte]');
         if (until !== undefined) {
-            request['createdAtDatetime[lte]'] = this.iso8601 (until);
+            request['updatedAtDatetime[lte]'] = this.iso8601 (until);
         }
         const response = await this.privateGetV1HistoryDerivativesSettlement (this.extend (request, params));
         //
@@ -2105,8 +2136,8 @@ export default class bullish extends Exchange {
      */
     async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
         await this.loadMarkets ();
-        await this.signIn ();
-        const request: Dict = {};
+        // todo add pagination support
+        let request: Dict = {};
         let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -2121,10 +2152,10 @@ export default class bullish extends Exchange {
         if (since !== undefined) {
             request['createdAtDatetime[gte]'] = this.iso8601 (since);
         }
-        let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams (params, 'fetchTransfers', 'until');
+        [ request, params ] = this.handleUntilOption ('updatedAtDatetime[lte]', request, params);
+        const until = this.safeInteger (request, 'updatedAtDatetime[lte]');
         if (until !== undefined) {
-            request['createdAtDatetime[lte]'] = this.iso8601 (until);
+            request['updatedAtDatetime[lte]'] = this.iso8601 (until);
         }
         const response = await this.privateGetV1HistoryTransfer (this.extend (request, params));
         //
@@ -2160,7 +2191,6 @@ export default class bullish extends Exchange {
      */
     async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         await this.loadMarkets ();
-        await this.signIn ();
         const currency = this.currency (code);
         const request: Dict = {
             'command': {
@@ -2256,9 +2286,8 @@ export default class bullish extends Exchange {
      */
     async fetchBorrowRateHistory (code: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        await this.signIn ();
         const currency = this.currency (code);
-        const request: Dict = {
+        let request: Dict = {
             'assetSymbol': currency['id'],
         };
         let tradingAccountId: Str = undefined;
@@ -2270,10 +2299,10 @@ export default class bullish extends Exchange {
         if (since !== undefined) {
             request['createdAtDatetime[gte]'] = this.iso8601 (since);
         }
-        let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams (params, 'fetchBorrowRateHistory', 'until');
+        [ request, params ] = this.handleUntilOption ('updatedAtDatetime[lte]', request, params);
+        const until = this.safeInteger (request, 'updatedAtDatetime[lte]');
         if (until !== undefined) {
-            request['createdAtDatetime[lte]'] = this.iso8601 (until);
+            request['updatedAtDatetime[lte]'] = this.iso8601 (until);
         }
         const response = await this.privateGetV1HistoryBorrowInterest (this.extend (request, params));
         //
