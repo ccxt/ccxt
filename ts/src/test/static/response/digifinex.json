@@ -199,6 +199,17 @@
                                         "min": 10,
                                         "max": null
                                     }
+                                },
+                                "info": {
+                                    "deposit_status": "0",
+                                    "min_withdraw_fee": "5",
+                                    "withdraw_fee_currency": "USDT",
+                                    "chain": "OMNI",
+                                    "withdraw_fee_rate": "0",
+                                    "min_withdraw_amount": "10",
+                                    "currency": "USDT",
+                                    "withdraw_status": "0",
+                                    "min_deposit_amount": "10"
                                 }
                             },
                             "ERC20": {
@@ -218,6 +229,17 @@
                                         "min": 10,
                                         "max": null
                                     }
+                                },
+                                "info": {
+                                    "deposit_status": "1",
+                                    "min_withdraw_fee": "5",
+                                    "withdraw_fee_currency": "USDT",
+                                    "chain": "ERC20",
+                                    "withdraw_fee_rate": "0",
+                                    "min_withdraw_amount": "10",
+                                    "currency": "USDT",
+                                    "withdraw_status": "1",
+                                    "min_deposit_amount": "10"
                                 }
                             },
                             "TRC20": {
@@ -237,6 +259,17 @@
                                         "min": 10,
                                         "max": null
                                     }
+                                },
+                                "info": {
+                                    "deposit_status": "1",
+                                    "min_withdraw_fee": "1",
+                                    "withdraw_fee_currency": "USDT",
+                                    "chain": "TRC20",
+                                    "withdraw_fee_rate": "0",
+                                    "min_withdraw_amount": "10",
+                                    "currency": "USDT",
+                                    "withdraw_status": "1",
+                                    "min_deposit_amount": "10"
                                 }
                             },
                             "BEP20": {
@@ -256,6 +289,17 @@
                                         "min": 10,
                                         "max": null
                                     }
+                                },
+                                "info": {
+                                    "deposit_status": "1",
+                                    "min_withdraw_fee": "1",
+                                    "withdraw_fee_currency": "USDT",
+                                    "chain": "BEP20",
+                                    "withdraw_fee_rate": "0",
+                                    "min_withdraw_amount": "10",
+                                    "currency": "USDT",
+                                    "withdraw_status": "1",
+                                    "min_deposit_amount": "10"
                                 }
                             },
                             "POLYGON": {
@@ -275,6 +319,17 @@
                                         "min": 10,
                                         "max": null
                                     }
+                                },
+                                "info": {
+                                    "deposit_status": "1",
+                                    "min_withdraw_fee": "2",
+                                    "withdraw_fee_currency": "USDT",
+                                    "chain": "Polygon",
+                                    "withdraw_fee_rate": "0",
+                                    "min_withdraw_amount": "10",
+                                    "currency": "USDT",
+                                    "withdraw_status": "1",
+                                    "min_deposit_amount": "10"
                                 }
                             },
                             "Arbitrum-One": {
@@ -294,6 +349,17 @@
                                         "min": 10,
                                         "max": null
                                     }
+                                },
+                                "info": {
+                                    "deposit_status": "1",
+                                    "min_withdraw_fee": "0.1",
+                                    "withdraw_fee_currency": "USDT",
+                                    "chain": "Arbitrum-One",
+                                    "withdraw_fee_rate": "0",
+                                    "min_withdraw_amount": "10",
+                                    "currency": "USDT",
+                                    "withdraw_status": "1",
+                                    "min_deposit_amount": "10"
                                 }
                             },
                             "TON": {
@@ -313,19 +379,26 @@
                                         "min": 10,
                                         "max": null
                                     }
+                                },
+                                "info": {
+                                    "deposit_status": "1",
+                                    "min_withdraw_fee": "1",
+                                    "withdraw_fee_currency": "USDT",
+                                    "chain": "Ton",
+                                    "withdraw_fee_rate": "0",
+                                    "min_withdraw_amount": "10",
+                                    "currency": "USDT",
+                                    "withdraw_status": "1",
+                                    "min_deposit_amount": "10"
                                 }
                             }
                         },
                         "limits": {
-                            "amount": {
-                                "min": null,
-                                "max": null
-                            },
-                            "withdraw": {
+                            "deposit": {
                                 "min": 10,
                                 "max": null
                             },
-                            "deposit": {
+                            "withdraw": {
                                 "min": 10,
                                 "max": null
                             }
