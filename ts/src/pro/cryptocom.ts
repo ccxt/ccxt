@@ -1383,6 +1383,7 @@ export default class cryptocom extends cryptocomRest {
             'public/heartbeat': this.handlePing,
             'public/auth': this.handleAuthenticate,
             'private/create-order': this.handleOrder,
+            'private/amend-order': this.handleOrder,
             'private/cancel-order': this.handleOrder,
             'private/cancel-all-orders': this.handleCancelAllOrders,
             'private/close-position': this.handleOrder,
