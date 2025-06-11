@@ -4,32 +4,32 @@
     "methods": {
         "editOrder": [
             {
-                "description": "edit spot order",
+                "description": "Edit spot order",
                 "method": "editOrder",
                 "input": [
-                    "6142909930407395481",
-                    null,
-                    null,
-                    null,
+                    "6142909930410561608",
+                    "ETH/USDT",
+                    "limit",
+                    "buy",
                     0.001,
-                    1000
+                    1100
                 ],
                 "httpResponse": {
-                    "id": 1749672833590,
+                    "id": 1749674362537,
                     "method": "private/amend-order",
-                    "code" : 0,
-                    "result" : {
-                        "client_oid" : "1749672833590",
-                        "order_id" : "6142909930407395481"
+                    "code": 0,
+                    "result": {
+                        "client_oid": "1749674362537",
+                        "order_id": "6142909930410561608"
                     }
                 },
                 "parsedResponse": {
                     "info": {
-                        "client_oid": "1749672833590",
-                        "order_id": "6142909930407395481"
+                        "client_oid": "1749674362537",
+                        "order_id": "6142909930410561608"
                     },
-                    "id": "6142909930407395481",
-                    "clientOrderId": "1749672833590",
+                    "id": "6142909930410561608",
+                    "clientOrderId": "1749674362537",
                     "timestamp": null,
                     "datetime": null,
                     "lastTradeTimestamp": null,
