@@ -178,6 +178,7 @@ export default class cryptocom extends Exchange {
                             'private/user-balance-history': 10 / 3,
                             'private/get-positions': 10 / 3,
                             'private/create-order': 2 / 3,
+                            'private/amend-order': 4 / 3, // no description of rate limit
                             'private/create-order-list': 10 / 3,
                             'private/cancel-order': 2 / 3,
                             'private/cancel-order-list': 10 / 3,
@@ -1607,6 +1608,47 @@ export default class cryptocom extends Exchange {
         }
         params = this.omit (params, [ 'postOnly', 'clientOrderId', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
         return this.extend (request, params);
+    }
+
+    /**
+     * @method
+     * @name cryptocom#editOrder
+     * @description edit a trade order
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-amend-order
+     * @param {string} id order id
+     * @param {string} [symbol] unified market symbol of the order to edit
+     * @param {string} [type] not used by cryptocom editOrder
+     * @param {string} [side] not used by cryptocom editOrder
+     * @param {float} amount how much of the currency you want to trade in units of the base currency
+     * @param {float} price the price for the order, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] the original client order id of the order to edit, required if id is not provided
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request: Dict = {};
+        if (id !== undefined) {
+            request['order_id'] = id;
+        } else {
+            const originalClientOrderId = this.safeStringN (params, [ 'orig_client_oid', 'client_oid', 'origClientOid', 'clientOrderId', 'client_order_id' ]);
+            if (originalClientOrderId === undefined) {
+                throw new ArgumentsRequired (this.id + ' editOrder() requires an id argument or orig_client_oid parameter');
+            } else {
+                request['orig_client_oid'] = originalClientOrderId;
+                params = this.omit (params, [ 'orig_client_oid', 'client_oid', 'origClientOid', 'clientOrderId', 'client_order_id' ]);
+            }
+        }
+        if (symbol === undefined) {
+            request['new_quantity'] = amount.toString ();
+            request['new_price'] = price.toString ();
+        } else {
+            request['new_quantity'] = this.amountToPrecision (symbol, amount);
+            request['new_price'] = this.priceToPrecision (symbol, price);
+        }
+        const response = await this.v1PrivatePostPrivateAmendOrder (this.extend (request, params));
+        const result = this.safeDict (response, 'result', {});
+        return this.parseOrder (result);
     }
 
     /**
