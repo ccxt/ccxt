@@ -581,6 +581,7 @@ class phemex extends phemex$1 {
                 },
                 'defaultNetworks': {
                     'USDT': 'ETH',
+                    'MKR': 'ETH',
                 },
                 'defaultSubType': 'linear',
                 'accountsByType': {
@@ -3551,13 +3552,19 @@ class phemex extends phemex$1 {
             request['chainName'] = network;
             params = this.omit(params, 'network');
         }
-        const response = await this.privateGetPhemexUserWalletsV2DepositAddress(this.extend(request, params));
+        const response = await this.privateGetExchangeWalletsV2DepositAddress(this.extend(request, params));
+        //
         //     {
-        //         "code":0,
-        //         "msg":"OK",
-        //         "data":{
-        //             "address":"0x5bfbf60e0fa7f63598e6cfd8a7fd3ffac4ccc6ad",
-        //             "tag":null
+        //         "code": 0,
+        //         "msg": "OK",
+        //         "data": {
+        //             "address": "tb1qxel5wq5gumt",
+        //             "tag": "",
+        //             "notice": false,
+        //             "accountType": 1,
+        //             "contractName": null,
+        //             "chainTokenUrl": null,
+        //             "sign": null
         //         }
         //     }
         //

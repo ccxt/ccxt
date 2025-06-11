@@ -3501,7 +3501,7 @@ class kraken extends kraken$1 {
                         for (let i = 0; i < response['error'].length; i++) {
                             const error = response['error'][i];
                             this.throwExactlyMatchedException(this.exceptions['exact'], error, message);
-                            this.throwExactlyMatchedException(this.exceptions['broad'], error, message);
+                            this.throwBroadlyMatchedException(this.exceptions['broad'], error, message);
                         }
                         throw new errors.ExchangeError(message);
                     }
