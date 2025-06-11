@@ -2,7 +2,7 @@ import Exchange from './abstract/aftermath.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import type { Account, Balances, Currencies, Currency, Market, Dict, Int, Strings, OHLCV, Order, OrderBook, OrderRequest, Str, Ticker, Trade, TradingFeeInterface, MarginModification, TransferEntry, Position, Transaction } from './base/types.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
-import { ArgumentsRequired, NotSupported } from './base/errors.js';
+import { ArgumentsRequired, NotSupported, ExchangeError } from './base/errors.js';
 
 export default class aftermath extends Exchange {
     describe (): any {
@@ -1172,6 +1172,20 @@ export default class aftermath extends Exchange {
 
     parseOrder (order: Dict, market: Market = undefined): Order {
         return this.safeOrder (order, market);
+    }
+
+    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+        if (!response) {
+            return undefined; // fallback to default error handler
+        }
+        //
+        // Error with ID: #68498f1e536664f31a7b1aa7
+        //
+        if (body.indexOf ('Error') >= 0) {
+            this.throwBroadlyMatchedException (this.exceptions['broad'], body, '');
+            throw new ExchangeError (body);
+        }
+        return undefined;
     }
 
     sign (path, api = 'public', method = 'POST', params = {}, headers = undefined, body = undefined) {
