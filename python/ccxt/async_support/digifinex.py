@@ -474,6 +474,8 @@ class digifinex(Exchange, ImplicitAPI):
                     'BSC': 'BEP20',
                     'ERC20': 'ERC20',
                     'ETH': 'ERC20',
+                    'Polygon': 'POLYGON',
+                    'Crypto.com': 'CRONOS',
                 },
             },
             'commonCurrencies': {
@@ -533,68 +535,44 @@ class digifinex(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
+        groupedById = self.group_by(data, 'currency')
+        keys = list(groupedById.keys())
         result: dict = {}
-        for i in range(0, len(data)):
-            networkEntry = data[i]
-            id = self.safe_string(networkEntry, 'currency')
+        for i in range(0, len(keys)):
+            id = keys[i]
+            networkEntries = groupedById[id]
             code = self.safe_currency_code(id)
-            if not (code in result):
-                result[code] = {
-                    'id': id,
-                    'code': code,
-                    'info': [],
-                    'type': None,
-                    'name': None,
+            networks = {}
+            for j in range(0, len(networkEntries)):
+                networkEntry = networkEntries[j]
+                networkId = self.safe_string(networkEntry, 'chain')
+                networkCode = self.network_id_to_code(networkId)
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
                     'active': None,
-                    'deposit': None,
-                    'withdraw': None,
-                    'fee': None,
+                    'deposit': self.safe_integer(networkEntry, 'deposit_status') == 1,
+                    'withdraw': self.safe_integer(networkEntry, 'withdraw_status') == 1,
+                    'fee': self.safe_number(networkEntry, 'min_withdraw_fee'),
                     'precision': None,
                     'limits': {
-                        'amount': {
-                            'min': None,
-                            'max': None,
-                        },
                         'withdraw': {
-                            'min': None,
+                            'min': self.safe_number(networkEntry, 'min_withdraw_amount'),
                             'max': None,
                         },
                         'deposit': {
-                            'min': None,
+                            'min': self.safe_number(networkEntry, 'min_deposit_amount'),
                             'max': None,
                         },
                     },
-                    'networks': {},
+                    'info': networkEntry,
                 }
-            networkId = self.safe_string(networkEntry, 'chain')
-            networkCode = self.network_id_to_code(networkId)
-            result[code]['networks'][networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'active': self.safe_integer(networkEntry, 'deposit_status') == 1,
-                'deposit': self.safe_integer(networkEntry, 'deposit_status') == 1,
-                'withdraw': self.safe_integer(networkEntry, 'withdraw_status') == 1,
-                'fee': self.safe_number(networkEntry, 'min_withdraw_fee'),
-                'precision': None,
-                'limits': {
-                    'withdraw': {
-                        'min': self.safe_number(networkEntry, 'min_withdraw_amount'),
-                        'max': None,
-                    },
-                    'deposit': {
-                        'min': self.safe_number(networkEntry, 'min_deposit_amount'),
-                        'max': None,
-                    },
-                },
-            }
-            infos = self.safe_list(result[code], 'info', [])
-            infos.append(networkEntry)
-            result[code]['info'] = infos
-        # only after all entries are formed in currencies, restructure each entry
-        allKeys = list(result.keys())
-        for i in range(0, len(allKeys)):
-            code = allKeys[i]
-            result[code] = self.safe_currency_structure(result[code])  # self is needed after adding network entry
+            result[code] = self.safe_currency_structure({
+                'id': id,
+                'code': code,
+                'info': networkEntries,
+                'networks': networks,
+            })
         return result
 
     async def fetch_markets(self, params={}) -> List[Market]:
