@@ -1490,8 +1490,11 @@
     },
     "paradex": {
         "skipMethods": {
-            "loadMarkets": "perp options not handled well by tests"
-	      }
+            "loadMarkets": "perp options not handled well by tests",
+            "watchTickers": {
+                "bid": "equal to ask https://github.com/ccxt/ccxt/actions/runs/15595034293/job/43923530003?pr=26177#step:9:504"
+            }
+	    }
     },
     "p2b": {
         "skip": "temp issues",
