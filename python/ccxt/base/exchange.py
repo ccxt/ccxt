@@ -959,7 +959,7 @@ class Exchange(object):
 
     @staticmethod
     def index_by_safe(array, key):
-        return Exchange.index_by(array, key) # wrapper for go
+        return Exchange.index_by(array, key)  # wrapper for go
 
     @staticmethod
     def index_by(array, key):
