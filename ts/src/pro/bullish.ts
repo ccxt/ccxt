@@ -6,8 +6,6 @@ import { ArrayCache } from '../base/ws/Cache.js';
 import type { Dict, Int, OrderBook, Str, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArgumentsRequired } from '../base/errors.js';
-// import { OHLCV, Order, Position, Str } from '../base/types.js';
-// import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -261,7 +259,7 @@ export default class bullish extends bullishRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const url = '/trading-api/v1/market-data/orderbook';
-        const messageHash = 'orderbook::' + symbol;
+        const messageHash = 'orderbook::' + market['symbol'];
         const request: Dict = {
             'topic': 'l2Orderbook', // 'l2Orderbook' returns only snapshots while 'l1Orderbook' returns only updates
             'symbol': market['id'],
