@@ -8,6 +8,23 @@
     ],
     "outputType": "urlencoded",
     "methods": {
+        "fetchTransfers": [
+            {
+                "description": "fetch transfers from spot to swap",
+                "method": "fetchTransfers",
+                "url": "https://open-api.bingx.com/openApi/api/v3/asset/transfer?timestamp=1749733844965&type=SPOT_PFUTURES&signature=3d9306381ddb1ba6ec0374ba69c6c776166d4c103986bcea858e1df1a9fe5531",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "fromAccount": "spot",
+                        "toAccount": "swap"
+                    }
+                ],
+                "output": null
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "fetchCurrencies",
