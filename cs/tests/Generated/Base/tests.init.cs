@@ -14,7 +14,9 @@ public partial class BaseTest
             testDeepExtend();
             testCryptography();
             testDatetime();
-            testNumber();
+            testDecimalToPrecision();
+            testNumberToString();
+            testPrecise();
             testSafeMethods();
             // testJson ();
             testSortBy();
