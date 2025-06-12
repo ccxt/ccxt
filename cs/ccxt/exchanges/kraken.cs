@@ -570,6 +570,7 @@ public partial class kraken : Exchange
         //     }
         //
         object markets = this.safeDict(assetsResponse, "result", new Dictionary<string, object>() {});
+        object cachedCurrencies = this.safeDict(this.options, "cachedCurrencies", new Dictionary<string, object>() {});
         object keys = new List<object>(((IDictionary<string,object>)markets).Keys);
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
@@ -580,8 +581,6 @@ public partial class kraken : Exchange
             object quoteId = this.safeString(market, "quote");
             object bs = this.safeCurrencyCode(baseId);
             object quote = this.safeCurrencyCode(quoteId);
-            object darkpool = isGreaterThanOrEqual(getIndexOf(id, ".d"), 0);
-            object altname = this.safeString(market, "altname");
             object makerFees = this.safeList(market, "fees_maker", new List<object>() {});
             object firstMakerFee = this.safeList(makerFees, 0, new List<object>() {});
             object firstMakerFeeRate = this.safeString(firstMakerFee, 1);
@@ -601,22 +600,34 @@ public partial class kraken : Exchange
             object leverageBuy = this.safeList(market, "leverage_buy", new List<object>() {});
             object leverageBuyLength = getArrayLength(leverageBuy);
             object precisionPrice = this.parseNumber(this.parsePrecision(this.safeString(market, "pair_decimals")));
+            object precisionAmount = this.parseNumber(this.parsePrecision(this.safeString(market, "lot_decimals")));
+            object spot = true;
+            // fix https://github.com/freqtrade/freqtrade/issues/11765#issuecomment-2894224103
+            if (isTrue(isTrue(spot) && isTrue((inOp(cachedCurrencies, bs)))))
+            {
+                object currency = getValue(cachedCurrencies, bs);
+                object currencyPrecision = this.safeNumber(currency, "precision");
+                // if currency precision is greater (e.g. 0.01) than market precision (e.g. 0.001)
+                if (isTrue(isGreaterThan(currencyPrecision, precisionAmount)))
+                {
+                    precisionAmount = currencyPrecision;
+                }
+            }
             object status = this.safeString(market, "status");
             object isActive = isEqual(status, "online");
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "wsId", this.safeString(market, "wsname") },
-                { "symbol", ((bool) isTrue(darkpool)) ? altname : (add(add(bs, "/"), quote)) },
+                { "symbol", add(add(bs, "/"), quote) },
                 { "base", bs },
                 { "quote", quote },
                 { "settle", null },
                 { "baseId", baseId },
                 { "quoteId", quoteId },
                 { "settleId", null },
-                { "darkpool", darkpool },
                 { "altname", getValue(market, "altname") },
                 { "type", "spot" },
-                { "spot", true },
+                { "spot", spot },
                 { "margin", (isGreaterThan(leverageBuyLength, 0)) },
                 { "swap", false },
                 { "future", false },
@@ -633,7 +644,7 @@ public partial class kraken : Exchange
                 { "strike", null },
                 { "optionType", null },
                 { "precision", new Dictionary<string, object>() {
-                    { "amount", this.parseNumber(this.parsePrecision(this.safeString(market, "lot_decimals"))) },
+                    { "amount", precisionAmount },
                     { "price", precisionPrice },
                 } },
                 { "limits", new Dictionary<string, object>() {
@@ -646,7 +657,7 @@ public partial class kraken : Exchange
                         { "max", null },
                     } },
                     { "price", new Dictionary<string, object>() {
-                        { "min", precisionPrice },
+                        { "min", null },
                         { "max", null },
                     } },
                     { "cost", new Dictionary<string, object>() {
@@ -658,7 +669,6 @@ public partial class kraken : Exchange
                 { "info", market },
             });
         }
-        result = this.appendInactiveMarkets(result);
         ((IDictionary<string,object>)this.options)["marketsByAltname"] = this.indexBy(result, "altname");
         return result;
     }
@@ -679,47 +689,6 @@ public partial class kraken : Exchange
             }
         }
         return base.safeCurrency(currencyId, currency);
-    }
-
-    public virtual object appendInactiveMarkets(object result)
-    {
-        // result should be an array to append to
-        object precision = new Dictionary<string, object>() {
-            { "amount", this.parseNumber("1e-8") },
-            { "price", this.parseNumber("1e-8") },
-        };
-        object costLimits = new Dictionary<string, object>() {
-            { "min", null },
-            { "max", null },
-        };
-        object priceLimits = new Dictionary<string, object>() {
-            { "min", getValue(precision, "price") },
-            { "max", null },
-        };
-        object amountLimits = new Dictionary<string, object>() {
-            { "min", getValue(precision, "amount") },
-            { "max", null },
-        };
-        object limits = new Dictionary<string, object>() {
-            { "amount", amountLimits },
-            { "price", priceLimits },
-            { "cost", costLimits },
-        };
-        object defaults = new Dictionary<string, object>() {
-            { "darkpool", false },
-            { "info", null },
-            { "maker", null },
-            { "taker", null },
-            { "active", false },
-            { "precision", precision },
-            { "limits", limits },
-        };
-        object markets = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
-        {
-            ((IList<object>)result).Add(this.extend(defaults, getValue(markets, i)));
-        }
-        return result;
     }
 
     /**
@@ -993,10 +962,6 @@ public partial class kraken : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
-        if (isTrue(getValue(market, "darkpool")))
-        {
-            throw new ExchangeError ((string)add(add(this.id, " fetchOrderBook() does not provide an order book for darkpool symbol "), symbol)) ;
-        }
         object request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
         };
@@ -1110,7 +1075,7 @@ public partial class kraken : Exchange
             {
                 object symbol = getValue(symbols, i);
                 object market = getValue(this.markets, symbol);
-                if (isTrue(isTrue(getValue(market, "active")) && !isTrue(getValue(market, "darkpool"))))
+                if (isTrue(getValue(market, "active")))
                 {
                     ((IList<object>)marketIds).Add(getValue(market, "id"));
                 }
@@ -1145,11 +1110,6 @@ public partial class kraken : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object darkpool = isGreaterThanOrEqual(getIndexOf(symbol, ".d"), 0);
-        if (isTrue(darkpool))
-        {
-            throw new ExchangeError ((string)add(add(this.id, " fetchTicker() does not provide a ticker for darkpool symbol "), symbol)) ;
-        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
