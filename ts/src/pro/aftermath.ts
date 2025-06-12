@@ -361,6 +361,7 @@ export default class aftermath extends aftermathRest {
                 }
             }
         }
+        return false;
     }
 
     handleMessage (client: Client, message) {

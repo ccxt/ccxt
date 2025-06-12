@@ -1172,7 +1172,8 @@ export default class aftermath extends Exchange {
         const suiSignature = this.binaryConcat (this.base16ToBinary ('00'), this.binaryConcat (this.base64ToBinary (signature), publicKey));
         const base64Sig = this.binaryToBase64 (suiSignature);
         const transactionBytes = this.safeString (tx, 'transactionBytes');
-        return { 'transactionBytes': transactionBytes, 'signatures': [ base64Sig ] };
+        const signatures = [ base64Sig ];
+        return { 'transactionBytes': transactionBytes, 'signatures': signatures };
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
