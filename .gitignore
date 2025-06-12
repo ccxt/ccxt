@@ -43,3 +43,4 @@ obj/
 __debug*
 *.o
 .custom_gitignore
+swift-wrapper/.build
