@@ -1,6 +1,6 @@
 {
     "exchange": "bingx",
-    "skipKeys": [ "tranId" ],
+    "skipKeys": [ "tranId", "timestamp" ],
     "options": {},
     "methods": {
         "fetchTransfers": [
