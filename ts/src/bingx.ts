@@ -4886,8 +4886,11 @@ export default class bingx extends Exchange {
      * @see https://bingx-api.github.io/docs/#/spot/account-api.html#Query%20User%20Universal%20Transfer%20History%20(USER_DATA)
      * @param {string} [code] unified currency code of the currency transferred
      * @param {int} [since] the earliest time in ms to fetch transfers for
-     * @param {int} [limit] the maximum number of transfers structures to retrieve
+     * @param {int} [limit] the maximum number of transfers structures to retrieve (default 10, max 100)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.fromAccount (mandatory) transfer from (spot, swap, futures, or funding)
+     * @param {string} params.toAccount (mandatory) transfer to (spot, swap, futures, or funding)
+     * @param {boolean} [params.paginate] whether to paginate the results (default false)
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
      */
     async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
@@ -4904,7 +4907,14 @@ export default class bingx extends Exchange {
         if (fromId === undefined || toId === undefined) {
             throw new ExchangeError (this.id + ' fromAccount & toAccount parameter are required');
         }
-        const request: Dict = {
+        params = this.omit (params, [ 'fromAccount', 'toAccount' ]);
+        const maxLimit = 100;
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate', false);
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchTransfers', undefined, since, limit, params, maxLimit);
+        }
+        let request: Dict = {
             'type': fromId + '_' + toId,
         };
         if (since !== undefined) {
@@ -4913,18 +4923,19 @@ export default class bingx extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit;
         }
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
         const response = await this.spotV3PrivateGetAssetTransfer (this.extend (request, params));
         //
         //     {
         //         "total": 3,
         //         "rows": [
         //             {
-        //                 "asset":"USDT",
-        //                 "amount":"-100.00000000000000000000",
-        //                 "type":"FUND_SFUTURES",
-        //                 "status":"CONFIRMED",
-        //                 "tranId":1067594500957016069,
-        //                 "timestamp":1658388859000
+        //                 "asset": "USDT",
+        //                 "amount": "100.00000000000000000000",
+        //                 "type": "FUND_SFUTURES",
+        //                 "status": "CONFIRMED",
+        //                 "tranId": 1067594500957016069,
+        //                 "timestamp": 1658388859000
         //             },
         //         ]
         //     }
@@ -4942,7 +4953,7 @@ export default class bingx extends Exchange {
         const typeId = this.safeString (transfer, 'type');
         const typeIdSplit = typeId.split ('_');
         const fromId = this.safeString (typeIdSplit, 0);
-        const toId = this.safeString (typeId, 1);
+        const toId = this.safeString (typeIdSplit, 1);
         const fromAccount = this.safeString (accountsById, fromId, fromId);
         const toAccount = this.safeString (accountsById, toId, toId);
         return {
@@ -4954,8 +4965,15 @@ export default class bingx extends Exchange {
             'amount': this.safeNumber (transfer, 'amount'),
             'fromAccount': fromAccount,
             'toAccount': toAccount,
-            'status': status,
+            'status': this.parseTransferStatus (status),
         };
+    }
+
+    parseTransferStatus (status: Str): string {
+        const statuses: Dict = {
+            'CONFIRMED': 'ok',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     /**
