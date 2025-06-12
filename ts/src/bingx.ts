@@ -513,12 +513,14 @@ export default class bingx extends Exchange {
             'options': {
                 'defaultType': 'spot',
                 'accountsByType': {
-                    'spot': 'FUND',
+                    'funding': 'FUND',
+                    'spot': 'SPOT',
                     'swap': 'PFUTURES',
                     'future': 'SFUTURES',
                 },
                 'accountsById': {
-                    'FUND': 'spot',
+                    'FUND': 'funding',
+                    'SPOT': 'spot',
                     'PFUTURES': 'swap',
                     'SFUTURES': 'future',
                 },
