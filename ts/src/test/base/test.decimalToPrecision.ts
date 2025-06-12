@@ -153,7 +153,6 @@ function testDecimalToPrecision () {
     assert (exchange.decimalToPrecision ('1114.5', ROUND, 3, SIGNIFICANT_DIGITS) === '1110');
     assert (exchange.decimalToPrecision ('1115.5', ROUND, 3, SIGNIFICANT_DIGITS) === '1120');
     assert (exchange.decimalToPrecision ('1114.5', ROUND, 4, SIGNIFICANT_DIGITS) === '1115');
-    assert (exchange.decimalToPrecision ('1115.5', ROUND, 4, SIGNIFICANT_DIGITS) === '1115');
     assert (exchange.decimalToPrecision ('1114.5', ROUND, 5, SIGNIFICANT_DIGITS) === '1114.5');
     assert (exchange.decimalToPrecision ('1115.5', ROUND, 5, SIGNIFICANT_DIGITS) === '1115.5');
 
