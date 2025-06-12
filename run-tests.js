@@ -292,6 +292,7 @@ const testExchange = async (exchange) => {
     if (skipSettings[exchange]) {
         if (skipSettings[exchange].skipCSharp)   selectedTests = selectedTests.filter (t => t.key !== '--csharp'); 
         if (skipSettings[exchange].skipPhpAsync) selectedTests = selectedTests.filter (t => t.key !== '--php-async');
+        if (skipSettings[exchange].skipPythonAsync) selectedTests = selectedTests.filter (t => t.key !== '--python-async');
     }
     // if it's WS tests, then remove sync versions (php & python) from queue
     if (wsFlag) {
