@@ -2,10 +2,10 @@
 
 import { Precise } from '../ccxt.js';
 import Exchange from './abstract/bullish.js';
-import { AuthenticationError, ArgumentsRequired, BadRequest, RateLimitExceeded } from './base/errors.js';
+import { AuthenticationError, ArgumentsRequired, BadRequest, BadSymbol, BaseError, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InvalidNonce, InvalidOrder, InsufficientFunds, OperationFailed, OperationRejected, OrderNotFound, RateLimitExceeded, UnsubscribeError } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Account, Balances, Bool, Currencies, Currency, DepositAddress, Dict, Int, FundingRateHistory, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry } from './base/types.js';
+import { Account, Balances, Bool, Currencies, Currency, DepositAddress, Dict, Int, int, FundingRateHistory, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -226,8 +226,92 @@ export default class bullish extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    '400': BadRequest,
+                    '1': BadSymbol,
+                    '5': InvalidOrder,
+                    '6': DuplicateOrderId,
+                    '13': BadRequest,
+                    '15': BadRequest,
+                    '18': BadRequest,
+                    '1002': BadRequest,
+                    '2001': BadRequest,
+                    '2002': BadRequest,
+                    '2003': BadRequest,
+                    '2004': BadRequest,
+                    '2005': ExchangeError,
+                    '2006': BadRequest,
+                    '2007': AuthenticationError,
+                    '2008': BadRequest,
+                    '2009': BadRequest,
+                    '2010': AuthenticationError,
+                    '2011': BadRequest,
+                    '2012': BadRequest,
+                    '2013': BadRequest,
+                    '2015': RateLimitExceeded,
+                    '2016': BadRequest,
+                    '2017': InvalidOrder,
+                    '2018': BadRequest,
+                    '2020': OperationRejected,
+                    '2021': RateLimitExceeded,
+                    '2029': BadRequest,
+                    '2035': InvalidNonce,
+                    '3001': InsufficientFunds,
+                    '3002': OrderNotFound,
+                    '3003': ExchangeNotAvailable,
+                    '3004': ExchangeNotAvailable,
+                    '3005': InsufficientFunds,
+                    '3006': InsufficientFunds,
+                    '3007': DuplicateOrderId,
+                    '3020': OperationFailed,
+                    '3021': OperationFailed,
+                    '3023': DuplicateOrderId,
+                    '3031': BadRequest,
+                    '3032': OperationRejected,
+                    '3033': OperationRejected,
+                    '3034': RateLimitExceeded,
+                    '3035': RateLimitExceeded,
+                    '3064': OperationFailed,
+                    '3065': RateLimitExceeded,
+                    '3066': RateLimitExceeded,
+                    '3067': ExchangeError,
+                    '6002': ExchangeError,
+                    '6003': ExchangeError,
+                    '6004': ExchangeError,
+                    '6005': BaseError,
+                    '6007': BaseError,
+                    '6011': BaseError,
+                    '6012': BaseError,
+                    '6023': BadRequest,
+                    '6105': OperationRejected,
+                    '8301': UnsubscribeError,
+                    '8305': OperationFailed,
+                    '8306': AuthenticationError,
+                    '8307': OperationFailed,
+                    '8310': OperationFailed,
+                    '8311': BadRequest,
+                    '8313': BadRequest,
+                    '8315': BadRequest,
+                    '8316': ExchangeError,
+                    '8317': ExchangeError,
+                    '8318': ExchangeError,
+                    '8319': ExchangeError,
+                    '8320': AuthenticationError,
+                    '8322': BadRequest,
+                    '8327': AuthenticationError,
+                    '8329': ExchangeError,
+                    '8331': BadRequest,
+                    '8332': BadRequest,
+                    '8333': BadRequest,
+                    '8334': BadRequest,
+                    '8335': BadRequest,
+                    '8336': BadRequest,
+                    '8399': UnsubscribeError,
+                    '20999': ExchangeError,
+                    '23001': BadRequest,
+                    '30001': BadRequest,
                 },
                 'broad': {
+                    'HttpInvalidParameterException': BadRequest,
                 },
             },
         });
@@ -2429,5 +2513,34 @@ export default class bullish extends Exchange {
         result = result.replace ('%3A', ':');
         result = result.replace ('%3A', ':');
         return result;
+    }
+
+    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return undefined; // fallback to default error handler
+        }
+        //
+        //         {
+        //             "type": "HttpInvalidParameterException",
+        //             "message": "HTTP_INVALID_PARAMETER: '100m' is not a valid time bucket"
+        //         }
+        //
+        //         {
+        //             "message": "Order size outside valid range",
+        //             "raw": null,
+        //             "errorCode": 6023,
+        //             "errorCodeName": "ORDER_SIZE_OUTSIDE_VALID_RANGE"
+        //         }
+        //
+        const code = this.safeString (response, 'errorCode');
+        const type = this.safeString (response, 'type');
+        if ((code !== undefined && code !== '0') || (type !== undefined && type === 'HttpInvalidParameterException')) {
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], type, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], type, feedback);
+            throw new ExchangeError (feedback); // unknown message
+        }
+        return undefined;
     }
 }
