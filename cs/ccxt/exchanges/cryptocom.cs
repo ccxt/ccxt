@@ -1752,7 +1752,7 @@ public partial class cryptocom : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = this.editOrderRequest(id, symbol, amount, price, parameters);
-        object response = await ((Task<object>)callDynamically(this, "v1PrivatePostPrivateAmendOrder", new object[] { request }));
+        object response = await this.v1PrivatePostPrivateAmendOrder(request);
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         return this.parseOrder(result);
     }

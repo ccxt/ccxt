@@ -1848,7 +1848,7 @@ func  (this *cryptocom) EditOrder(id interface{}, symbol interface{}, typeVar in
             PanicOnError(retRes16378)
             var request interface{} = this.EditOrderRequest(id, symbol, amount, price, params)
         
-            response:= (<-this.callDynamically("v1PrivatePostPrivateAmendOrder", request))
+            response:= (<-this.V1PrivatePostPrivateAmendOrder(request))
             PanicOnError(response)
             var result interface{} = this.SafeDict(response, "result", map[string]interface{} {})
         
