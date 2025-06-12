@@ -121,6 +121,7 @@ export default class aftermath extends Exchange {
                 'secret': false,
                 'walletAddress': true,
                 'privateKey': true,
+		'publicKey': true,
             },
             'precisionMode': TICK_SIZE,
             'options': {
@@ -1161,12 +1162,10 @@ export default class aftermath extends Exchange {
             throw new NotSupported (this.id + ' only support hex encoding private key, please transform bech32 encoding private key');
         }
         const signingDigest = this.safeString (tx, 'signingDigest');
-        const hexDigest = this.binaryToBase16 (this.base64ToBinary (signingDigest));
+        const digest = this.base64ToBinary (signingDigest);
         const privateKey = this.base16ToBinary (this.privateKey);
-        // const seed = this.arraySlice (secretBytes, 0, 32); // Extract first 32 bytes as seed
-        const signature = eddsa (hexDigest, privateKey, ed25519);
-        // const signature = ed25519.sign (hexDigest, privateKey);
-        const publicKey = ed25519.getPublicKey (privateKey);
+        const signature = eddsa (digest, privateKey, ed25519);
+        const publicKey = this.base16ToBinary (this.publicKey);
         const suiSignature = this.binaryConcat (this.base16ToBinary ('00'), this.binaryConcat (this.base64ToBinary (signature), publicKey));
         const base64Sig = this.binaryToBase64 (suiSignature);
         const transactionBytes = this.safeString (tx, 'transactionBytes');
