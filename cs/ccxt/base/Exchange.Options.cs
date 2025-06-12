@@ -36,7 +36,7 @@ public partial class Exchange
 
     public bool reduceFees { get; set; } = true;
 
-    public ConcurrentDictionary<string, object> markets_by_id { get; set; } = null;
+    public IDictionary<string, object> markets_by_id { get; set; } = null;
 
     public List<object> symbols { get; set; } = new list();
 
