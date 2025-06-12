@@ -204,6 +204,14 @@ function testNumber () {
     // https://github.com/ccxt/ccxt/issues/6731
     assert (exchange.decimalToPrecision ('20', TRUNCATE, 0.00000001, TICK_SIZE) === '20');
 
+    // https://github.com/ccxt/ccxt/issues/11765
+    assert (exchange.decimalToPrecision ('123456.12345678912', TRUNCATE, 0.00000001, TICK_SIZE) === '123456.12345678');
+    assert (exchange.decimalToPrecision ('123456.12345674999', TRUNCATE, 0.00000005, TICK_SIZE) === '123456.1234567');
+    assert (exchange.decimalToPrecision ('123456.12345674999', TRUNCATE, 0.00000005, TICK_SIZE, PAD_WITH_ZERO) === '123456.12345670');
+    assert (exchange.decimalToPrecision ('123456.12345675001', TRUNCATE, 0.00000005, TICK_SIZE) === '123456.12345675');
+    assert (exchange.decimalToPrecision ('123456.50000000001', TRUNCATE, 0.5, TICK_SIZE, PAD_WITH_ZERO) === '123456.5');
+    assert (exchange.decimalToPrecision ('123456.49999999999', TRUNCATE, 0.5, TICK_SIZE, PAD_WITH_ZERO) === '123456.0');
+
     // ----------------------------------------------------------------------------
     // testDecimalToPrecisionNegativeNumbers
 
@@ -256,6 +264,8 @@ function testNumber () {
     assert (exchange.decimalToPrecision ('-0.000123456789', TRUNCATE, '0.00000012', TICK_SIZE) === '-0.00012336');
     assert (exchange.decimalToPrecision ('-165', TRUNCATE, '110', TICK_SIZE) === '-110');
     assert (exchange.decimalToPrecision ('-165', ROUND, '110', TICK_SIZE) === '-220');
+
+    assert (exchange.decimalToPrecision ('123456.12345678912', TRUNCATE, '0.00000001', TICK_SIZE) === '123456.12345678');
 
     // ----------------------------------------------------------------------------
     // testDecimalToPrecisionErrorHandling (todo)
