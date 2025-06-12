@@ -1,8 +1,9 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/aster.js';
+import { ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Currencies, Dict, Int, Market } from './base/types.js';
+import type { Currencies, Dict, Int, Market, OHLCV } from './base/types.js';
 
 //  ---------------------------------------------------------------------------xs
 /**
@@ -532,6 +533,88 @@ export default class aster extends Exchange {
         //     }
         //
         return this.safeInteger (response, 'serverTime');
+    }
+
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+        //
+        //     [
+        //         1631158560000,
+        //         "208.1850",
+        //         "208.1850",
+        //         "208.1850",
+        //         "208.1850",
+        //         "11.84",
+        //         1631158619999,
+        //         "2464.910400",
+        //         1,
+        //         "11.84",
+        //         "2464.910400",
+        //         "0"
+        //     ]
+        //
+        return [
+            this.safeInteger (ohlcv, 0),
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 5),
+        ];
+    }
+
+    /**
+     * @method
+     * @name aster#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#klinecandlestick-data
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch orders for
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let request: Dict = {
+            'symbol': market['id'],
+        };
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            if (limit > 1500) {
+                limit = 1500; // Default 500; max 1500.
+            }
+            request['limit'] = limit;
+        }
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        request['interval'] = this.safeString (this.timeframes, timeframe, timeframe);
+        const response = await this.publicGetFapiV1Klines (this.extend (request, params));
+        //
+        //     [
+        //         [
+        //             1631158560000,
+        //             "208.1850",
+        //             "208.1850",
+        //             "208.1850",
+        //             "208.1850",
+        //             "11.84",
+        //             1631158619999,
+        //             "2464.910400",
+        //             1,
+        //             "11.84",
+        //             "2464.910400",
+        //             "0"
+        //         ]
+        //     ]
+        //
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
