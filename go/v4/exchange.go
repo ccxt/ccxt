@@ -31,8 +31,8 @@ type Exchange struct {
 	Api                 map[string]interface{}
 	TransformedApi      map[string]interface{}
 	Markets             map[string]interface{}
-	Markets_by_id       map[string]interface{}
-	Currencies_by_id    map[string]interface{}
+	Markets_by_id       *sync.Map
+	Currencies_by_id    *sync.Map
 	Currencies          map[string]interface{}
 	RequiredCredentials map[string]interface{}
 	HttpExceptions      map[string]interface{}
@@ -427,6 +427,11 @@ func (this *Exchange) ConvertToBigInt(data interface{}) interface{} {
 	return ParseInt(data)
 }
 
+func (this *Exchange) CreateSafeDictionary() *sync.Map {
+	// Create a new sync.Map to hold the safe dictionary
+	return &sync.Map{}
+}
+
 // error related functions
 
 type ErrorType string
@@ -529,9 +534,9 @@ func (this *Exchange) ValueIsDefined(v interface{}) bool {
 	return v != nil
 }
 
-func (this *Exchange) CreateSafeDictionary() interface{} {
-	return map[string]interface{}{}
-}
+// func (this *Exchange) CreateSafeDictionary() interface{} {
+// 	return map[string]interface{}{}
+// }
 
 func (this *Exchange) ConvertToSafeDictionary(data interface{}) interface{} {
 	return data

@@ -172,7 +172,7 @@ type IExchange interface {
 	WarmUpCache()
 	GetItf() interface{}
 	ConvertToSafeDictionary(data interface{}) interface{}
-	CreateSafeDictionary() interface{}
+	CreateSafeDictionary() *sync.Map
 	SetOptions(options interface{})
 	CreateOrders(orders interface{}, optionalArgs ...interface{}) <-chan interface{}
 }
