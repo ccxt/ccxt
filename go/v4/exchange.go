@@ -20,6 +20,10 @@ import (
 type Exchange struct {
 	marketsMutex          sync.Mutex
 	cachedCurrenciesMutex sync.Mutex
+	loadMu        sync.Mutex
+	marketsLoading		bool
+	marketsLoaded bool
+	loadMarketsSubscribers   []chan interface{}
 	Itf                   interface{}
 	DerivedExchange       IDerivedExchange
 	methodCache           sync.Map
@@ -257,6 +261,39 @@ func (this *Exchange) InitThrottler() {
   - @throws An error if the markets cannot be loaded or prepared.
 */
 func (this *Exchange) LoadMarkets(params ...interface{}) <-chan interface{} {
+	reload := GetArg(params, 0, false).(bool)
+	this.loadMu.Lock()
+
+	if this.marketsLoaded && !reload {
+		out := make(chan interface{}, 1)
+		out <- this.Markets
+		close(out)
+		this.loadMu.Unlock()
+		return out
+	}
+
+	ch := make(chan interface{}, 1)
+	this.loadMarketsSubscribers = append(this.loadMarketsSubscribers, ch)
+
+	if !this.marketsLoading || reload {
+		this.marketsLoading = true
+		markets := <- this.LoadMarketsHelper(params...)
+		this.marketsLoaded = true
+		this.marketsLoading = false
+		for _, ch := range this.loadMarketsSubscribers {
+			ch <- markets
+			close(ch)
+		}
+		this.loadMarketsSubscribers = nil
+	}
+
+	this.loadMu.Unlock()
+	return ch
+
+}
+
+
+func (this *Exchange) LoadMarketsHelper(params ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
 
 	go func() {
