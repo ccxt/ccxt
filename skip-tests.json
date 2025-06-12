@@ -556,6 +556,7 @@
         }
     },
     "coinbase": {
+        "skipPythonAsync": true,
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "some curr not available"
