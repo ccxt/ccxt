@@ -3333,6 +3333,6 @@ class kraken(Exchange, ImplicitAPI):
                         for i in range(0, len(response['error'])):
                             error = response['error'][i]
                             self.throw_exactly_matched_exception(self.exceptions['exact'], error, message)
-                            self.throw_exactly_matched_exception(self.exceptions['broad'], error, message)
+                            self.throw_broadly_matched_exception(self.exceptions['broad'], error, message)
                         raise ExchangeError(message)
         return None

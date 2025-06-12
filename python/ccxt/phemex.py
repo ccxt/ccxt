@@ -597,6 +597,7 @@ class phemex(Exchange, ImplicitAPI):
                 },
                 'defaultNetworks': {
                     'USDT': 'ETH',
+                    'MKR': 'ETH',
                 },
                 'defaultSubType': 'linear',
                 'accountsByType': {
@@ -3338,13 +3339,19 @@ class phemex(Exchange, ImplicitAPI):
         else:
             request['chainName'] = network
             params = self.omit(params, 'network')
-        response = self.privateGetPhemexUserWalletsV2DepositAddress(self.extend(request, params))
+        response = self.privateGetExchangeWalletsV2DepositAddress(self.extend(request, params))
+        #
         #     {
-        #         "code":0,
-        #         "msg":"OK",
-        #         "data":{
-        #             "address":"0x5bfbf60e0fa7f63598e6cfd8a7fd3ffac4ccc6ad",
-        #             "tag":null
+        #         "code": 0,
+        #         "msg": "OK",
+        #         "data": {
+        #             "address": "tb1qxel5wq5gumt",
+        #             "tag": "",
+        #             "notice": False,
+        #             "accountType": 1,
+        #             "contractName": null,
+        #             "chainTokenUrl": null,
+        #             "sign": null
         #         }
         #     }
         #
