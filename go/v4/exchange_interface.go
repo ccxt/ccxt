@@ -234,4 +234,5 @@ type IDerivedExchange interface {
 	Market(symbol interface{}) interface{}
 	ParseConversion(conversion interface{}, optionalArgs ...interface{}) interface{}
 	SafeCurrencyCode(currencyId interface{}, optionalArgs ...interface{}) interface{}
+	HandleErrors(statusCode interface{}, statusText interface{}, url interface{}, method interface{}, responseHeaders interface{}, responseBody interface{}, response interface{}, requestHeaders interface{}, requestBody interface{}) interface{}
 }
