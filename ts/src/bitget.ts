@@ -1429,10 +1429,9 @@ export default class bitget extends Exchange {
                         '1M': '1Mutc',
                     },
                 },
-                'fetchMarkets': [
-                    'spot',
-                    'swap', // there is future markets but they use the same endpoints as swap
-                ],
+                'fetchMarkets': {
+                    'types': [ 'spot', 'swap' ], // there is future markets but they use the same endpoints as swap
+                },
                 'defaultType': 'spot', // 'spot', 'swap', 'future'
                 'defaultSubType': 'linear', // 'linear', 'inverse'
                 'createMarketBuyOrderRequiresPrice': true,
@@ -1850,7 +1849,14 @@ export default class bitget extends Exchange {
     }
 
     async fetchDefaultMarkets (params): Promise<Market[]> {
-        const types = this.safeValue (this.options, 'fetchMarkets', [ 'spot', 'swap' ]);
+        let types = undefined;
+        const fetchMarketsOptions = this.safeDict (this.options, 'fetchMarkets');
+        if (fetchMarketsOptions !== undefined) {
+            types = this.safeList (fetchMarketsOptions, 'types', []);
+        } else {
+            // for backward-compatibility
+            types = this.safeList (this.options, 'fetchMarkets', []);
+        }
         const promises = [];
         let fetchMargins = false;
         for (let i = 0; i < types.length; i++) {
