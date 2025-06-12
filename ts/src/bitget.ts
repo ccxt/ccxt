@@ -1430,6 +1430,7 @@ export default class bitget extends Exchange {
                     },
                 },
                 'fetchMarkets': {
+                    'uta': false,
                     'types': [ 'spot', 'swap' ], // there is future markets but they use the same endpoints as swap
                 },
                 'defaultType': 'spot', // 'spot', 'swap', 'future'
