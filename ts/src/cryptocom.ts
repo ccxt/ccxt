@@ -1647,13 +1647,16 @@ export default class cryptocom extends Exchange {
         if (id !== undefined) {
             request['order_id'] = id;
         } else {
-            const originalClientOrderId = this.safeStringN (params, [ 'orig_client_oid', 'client_oid', 'origClientOid', 'clientOrderId', 'client_order_id' ]);
+            const originalClientOrderId = this.safeString2 (params, 'orig_client_oid', 'clientOrderId');
             if (originalClientOrderId === undefined) {
                 throw new ArgumentsRequired (this.id + ' editOrder() requires an id argument or orig_client_oid parameter');
             } else {
                 request['orig_client_oid'] = originalClientOrderId;
-                params = this.omit (params, [ 'orig_client_oid', 'client_oid', 'origClientOid', 'clientOrderId', 'client_order_id' ]);
+                params = this.omit (params, [ 'orig_client_oid', 'clientOrderId' ]);
             }
+        }
+        if ((amount === undefined) || (price === undefined)) {
+            throw new ArgumentsRequired (this.id + ' editOrder() requires both amount and price arguments. If you do not want to change the amount or price, you should pass the original values');
         }
         request['new_quantity'] = this.amountToPrecision (symbol, amount);
         request['new_price'] = this.priceToPrecision (symbol, price);
