@@ -956,6 +956,11 @@ class Exchange(object):
     def groupBy(array, key):
         return Exchange.group_by(array, key)
 
+
+    @staticmethod
+    def index_by_safe(array, key):
+        return Exchange.index_by(array, key) # wrapper for go
+
     @staticmethod
     def index_by(array, key):
         result = {}
