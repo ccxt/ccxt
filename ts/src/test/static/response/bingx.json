@@ -2,6 +2,36 @@
     "exchange": "bingx",
     "options": {},
     "methods": {
+        "transfer": [
+            {
+                "description": "transfer from funding to spot",
+                "method": "transfer",
+                "input": [
+                    "USDT",
+                    10,
+                    "funding",
+                    "spot"
+                ],
+                "httpResponse": {
+                    "tranId": 1933134535059443712,
+                    "transferId": "1051450707684874297365"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "tranId": "1933134535059443712",
+                        "transferId": "1051450707684874297365"
+                    },
+                    "id": "1933134535059443712",
+                    "timestamp": null,
+                    "datetime": null,
+                    "currency": "USDT",
+                    "amount": 10,
+                    "fromAccount": "funding",
+                    "toAccount": "spot",
+                    "status": null
+                }
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "fetchCurrencies",
