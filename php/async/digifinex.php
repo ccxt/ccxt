@@ -464,6 +464,8 @@ class digifinex extends Exchange {
                     'BSC' => 'BEP20',
                     'ERC20' => 'ERC20',
                     'ETH' => 'ERC20',
+                    'Polygon' => 'POLYGON',
+                    'Crypto.com' => 'CRONOS',
                 ),
             ),
             'commonCurrencies' => array(
@@ -525,70 +527,45 @@ class digifinex extends Exchange {
             //     }
             //
             $data = $this->safe_list($response, 'data', array());
+            $groupedById = $this->group_by($data, 'currency');
+            $keys = is_array($groupedById) ? array_keys($groupedById) : array();
             $result = array();
-            for ($i = 0; $i < count($data); $i++) {
-                $networkEntry = $data[$i];
-                $id = $this->safe_string($networkEntry, 'currency');
+            for ($i = 0; $i < count($keys); $i++) {
+                $id = $keys[$i];
+                $networkEntries = $groupedById[$id];
                 $code = $this->safe_currency_code($id);
-                if (!(is_array($result) && array_key_exists($code, $result))) {
-                    $result[$code] = array(
-                        'id' => $id,
-                        'code' => $code,
-                        'info' => array(),
-                        'type' => null,
-                        'name' => null,
+                $networks = array();
+                for ($j = 0; $j < count($networkEntries); $j++) {
+                    $networkEntry = $networkEntries[$j];
+                    $networkId = $this->safe_string($networkEntry, 'chain');
+                    $networkCode = $this->network_id_to_code($networkId);
+                    $networks[$networkCode] = array(
+                        'id' => $networkId,
+                        'network' => $networkCode,
                         'active' => null,
-                        'deposit' => null,
-                        'withdraw' => null,
-                        'fee' => null,
+                        'deposit' => $this->safe_integer($networkEntry, 'deposit_status') === 1,
+                        'withdraw' => $this->safe_integer($networkEntry, 'withdraw_status') === 1,
+                        'fee' => $this->safe_number($networkEntry, 'min_withdraw_fee'),
                         'precision' => null,
                         'limits' => array(
-                            'amount' => array(
-                                'min' => null,
-                                'max' => null,
-                            ),
                             'withdraw' => array(
-                                'min' => null,
+                                'min' => $this->safe_number($networkEntry, 'min_withdraw_amount'),
                                 'max' => null,
                             ),
                             'deposit' => array(
-                                'min' => null,
+                                'min' => $this->safe_number($networkEntry, 'min_deposit_amount'),
                                 'max' => null,
                             ),
                         ),
-                        'networks' => array(),
+                        'info' => $networkEntry,
                     );
                 }
-                $networkId = $this->safe_string($networkEntry, 'chain');
-                $networkCode = $this->network_id_to_code($networkId);
-                $result[$code]['networks'][$networkCode] = array(
-                    'id' => $networkId,
-                    'network' => $networkCode,
-                    'active' => $this->safe_integer($networkEntry, 'deposit_status') === 1,
-                    'deposit' => $this->safe_integer($networkEntry, 'deposit_status') === 1,
-                    'withdraw' => $this->safe_integer($networkEntry, 'withdraw_status') === 1,
-                    'fee' => $this->safe_number($networkEntry, 'min_withdraw_fee'),
-                    'precision' => null,
-                    'limits' => array(
-                        'withdraw' => array(
-                            'min' => $this->safe_number($networkEntry, 'min_withdraw_amount'),
-                            'max' => null,
-                        ),
-                        'deposit' => array(
-                            'min' => $this->safe_number($networkEntry, 'min_deposit_amount'),
-                            'max' => null,
-                        ),
-                    ),
-                );
-                $infos = $this->safe_list($result[$code], 'info', array());
-                $infos[] = $networkEntry;
-                $result[$code]['info'] = $infos;
-            }
-            // only after all entries are formed in currencies, restructure each entry
-            $allKeys = is_array($result) ? array_keys($result) : array();
-            for ($i = 0; $i < count($allKeys); $i++) {
-                $code = $allKeys[$i];
-                $result[$code] = $this->safe_currency_structure($result[$code]); // this is needed after adding network entry
+                $result[$code] = $this->safe_currency_structure(array(
+                    'id' => $id,
+                    'code' => $code,
+                    'info' => $networkEntries,
+                    'networks' => $networks,
+                ));
             }
             return $result;
         }) ();
