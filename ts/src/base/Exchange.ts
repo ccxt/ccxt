@@ -404,6 +404,7 @@ export default class Exchange {
     alias: boolean = false;
 
     deepExtend = deepExtend
+    deepExtendSafe = deepExtend
     isNode = isNode
     keys = keysFunc
     values = valuesFunc
@@ -412,6 +413,7 @@ export default class Exchange {
     flatten = flatten
     unique = unique
     indexBy = indexBy
+    indexBySafe = indexBy
     roundTimeframe = roundTimeframe
     sortBy = sortBy
     sortBy2 = sortBy2
@@ -3229,7 +3231,7 @@ export default class Exchange {
 
     setMarkets (markets, currencies = undefined) {
         const values = [];
-        this.markets_by_id = {};
+        this.markets_by_id = this.createSafeDictionary ();
         // handle marketId conflicts
         // we insert spot markets first
         const marketValues = this.sortBy (this.toArray (markets), 'spot', true, true);
@@ -3314,7 +3316,7 @@ export default class Exchange {
             const sortedCurrencies = this.sortBy (resultingCurrencies, 'code');
             this.currencies = this.deepExtend (this.currencies, this.indexBy (sortedCurrencies, 'code'));
         }
-        this.currencies_by_id = this.indexBy (this.currencies, 'id');
+        this.currencies_by_id = this.indexBySafe (this.currencies, 'id');
         const currenciesSortedByCode = this.keysort (this.currencies);
         this.codes = Object.keys (currenciesSortedByCode);
         return this.markets;
