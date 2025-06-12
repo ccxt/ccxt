@@ -18,56 +18,57 @@ import (
 )
 
 type Exchange struct {
-	marketsMutex        sync.Mutex
-	Itf                 interface{}
-	DerivedExchange     IDerivedExchange
-	methodCache         sync.Map
-	cacheLoaded         bool
-	Version             string
-	Id                  string
-	Name                string
-	Options             map[string]interface{}
-	Has                 map[string]interface{}
-	Api                 map[string]interface{}
-	TransformedApi      map[string]interface{}
-	Markets             map[string]interface{}
-	Markets_by_id       *sync.Map
-	Currencies_by_id    *sync.Map
-	Currencies          map[string]interface{}
-	RequiredCredentials map[string]interface{}
-	HttpExceptions      map[string]interface{}
-	MarketsById         map[string]interface{}
-	Timeframes          map[string]interface{}
-	Features            map[string]interface{}
-	Exceptions          map[string]interface{}
-	Precision           map[string]interface{}
-	Urls                interface{}
-	UserAgents          map[string]interface{}
-	Timeout             int64
-	MAX_VALUE           float64
-	RateLimit           float64
-	TokenBucket         map[string]interface{}
-	Throttler           Throttler
-	NewUpdates          bool
-	Alias               bool
-	Verbose             bool
-	UserAgent           string
-	EnableRateLimit     bool
-	Url                 string
-	Hostname            string
-	BaseCurrencies      map[string]interface{}
-	QuoteCurrencies     map[string]interface{}
-	ReloadingMarkets    bool
-	MarketsLoading      bool
-	Symbols             []string
-	Codes               []string
-	Ids                 []string
-	CommonCurrencies    map[string]interface{}
-	PrecisionMode       int
-	Limits              map[string]interface{}
-	Fees                map[string]interface{}
-	CurrenciesById      map[string]interface{}
-	ReduceFees          bool
+	marketsMutex          sync.Mutex
+	cachedCurrenciesMutex sync.Mutex
+	Itf                   interface{}
+	DerivedExchange       IDerivedExchange
+	methodCache           sync.Map
+	cacheLoaded           bool
+	Version               string
+	Id                    string
+	Name                  string
+	Options               map[string]interface{}
+	Has                   map[string]interface{}
+	Api                   map[string]interface{}
+	TransformedApi        map[string]interface{}
+	Markets               map[string]interface{}
+	Markets_by_id         *sync.Map
+	Currencies_by_id      *sync.Map
+	Currencies            map[string]interface{}
+	RequiredCredentials   map[string]interface{}
+	HttpExceptions        map[string]interface{}
+	MarketsById           map[string]interface{}
+	Timeframes            map[string]interface{}
+	Features              map[string]interface{}
+	Exceptions            map[string]interface{}
+	Precision             map[string]interface{}
+	Urls                  interface{}
+	UserAgents            map[string]interface{}
+	Timeout               int64
+	MAX_VALUE             float64
+	RateLimit             float64
+	TokenBucket           map[string]interface{}
+	Throttler             Throttler
+	NewUpdates            bool
+	Alias                 bool
+	Verbose               bool
+	UserAgent             string
+	EnableRateLimit       bool
+	Url                   string
+	Hostname              string
+	BaseCurrencies        map[string]interface{}
+	QuoteCurrencies       map[string]interface{}
+	ReloadingMarkets      bool
+	MarketsLoading        bool
+	Symbols               []string
+	Codes                 []string
+	Ids                   []string
+	CommonCurrencies      map[string]interface{}
+	PrecisionMode         int
+	Limits                map[string]interface{}
+	Fees                  map[string]interface{}
+	CurrenciesById        map[string]interface{}
+	ReduceFees            bool
 
 	AccountsById interface{}
 	Accounts     interface{}
@@ -287,13 +288,17 @@ func (this *Exchange) LoadMarkets(params ...interface{}) <-chan interface{} {
 		hasFetchCurrencies := this.Has["fetchCurrencies"]
 		if IsBool(hasFetchCurrencies) && IsTrue(hasFetchCurrencies) {
 			currencies = <-this.DerivedExchange.FetchCurrencies(params)
+			this.cachedCurrenciesMutex.Lock()
 			this.Options["cachedCurrencies"] = currencies
+			this.cachedCurrenciesMutex.Unlock()
 		}
 
 		markets := <-this.DerivedExchange.FetchMarkets(params)
 		PanicOnError(markets)
 
+		this.cachedCurrenciesMutex.Lock()
 		delete(this.Options, "cachedCurrencies")
+		this.cachedCurrenciesMutex.Unlock()
 
 		// Lock only for writing
 		this.marketsMutex.Lock()
