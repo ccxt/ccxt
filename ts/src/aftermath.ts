@@ -1,6 +1,6 @@
 import Exchange from './abstract/aftermath.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Account, Balances, Currencies, Currency, Market, Dict, Int, Strings, OHLCV, Order, OrderBook, OrderRequest, Str, Ticker, Trade, TradingFeeInterface, MarginModification, TransferEntry, Position, Transaction } from './base/types.js';
+import type { Account, Balances, Currencies, Currency, Market, Dict, int, Int, Strings, OHLCV, Order, OrderBook, OrderRequest, Str, Ticker, Trade, TradingFeeInterface, MarginModification, TransferEntry, Position, Transaction } from './base/types.js';
 import { eddsa } from './base/functions/crypto.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { ArgumentsRequired, NotSupported, ExchangeError } from './base/errors.js';
@@ -121,7 +121,6 @@ export default class aftermath extends Exchange {
                 'secret': false,
                 'walletAddress': true,
                 'privateKey': true,
-		'publicKey': true,
             },
             'precisionMode': TICK_SIZE,
             'options': {
@@ -1165,7 +1164,11 @@ export default class aftermath extends Exchange {
         const digest = this.base64ToBinary (signingDigest);
         const privateKey = this.base16ToBinary (this.privateKey);
         const signature = eddsa (digest, privateKey, ed25519);
-        const publicKey = this.base16ToBinary (this.publicKey);
+        const hexPublicKey = this.safeString (this.options, 'publicKey');
+        if (hexPublicKey === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires hex encoding public key in options');
+        }
+        const publicKey = this.base16ToBinary (hexPublicKey);
         const suiSignature = this.binaryConcat (this.base16ToBinary ('00'), this.binaryConcat (this.base64ToBinary (signature), publicKey));
         const base64Sig = this.binaryToBase64 (suiSignature);
         const transactionBytes = this.safeString (tx, 'transactionBytes');
