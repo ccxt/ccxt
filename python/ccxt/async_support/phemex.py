@@ -3323,6 +3323,7 @@ class phemex(Exchange, ImplicitAPI):
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.network]: the chain name to fetch the deposit address e.g. ETH, TRX, EOS, SOL, etc.
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         await self.load_markets()
@@ -3333,10 +3334,10 @@ class phemex(Exchange, ImplicitAPI):
         defaultNetworks = self.safe_dict(self.options, 'defaultNetworks')
         defaultNetwork = self.safe_string_upper(defaultNetworks, code)
         networks = self.safe_dict(self.options, 'networks', {})
-        network = self.safe_string_upper(params, 'network', defaultNetwork)
+        network = self.safe_string_upper_2(params, 'network', 'chainName', defaultNetwork)
         network = self.safe_string(networks, network, network)
         if network is None:
-            request['chainName'] = currency['id']
+            raise ArgumentsRequired(self.id + ' fetchDepositAddress() requires a network parameter')
         else:
             request['chainName'] = network
             params = self.omit(params, 'network')

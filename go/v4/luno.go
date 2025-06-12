@@ -272,7 +272,7 @@ func  (this *luno) FetchCurrencies(optionalArgs ...interface{}) <- chan interfac
                 return nil
             }
         
-            response:= (<-this.callDynamically("privateGetSendNetworks", params))
+            response:= (<-this.PrivateGetSendNetworks(params))
             PanicOnError(response)
             //
             //     {

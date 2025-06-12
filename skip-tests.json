@@ -572,7 +572,8 @@
             },
             "watchOrderBookForSymbols": {
                 "spread": "broken bid-ask: https://github.com/ccxt/ccxt/actions/runs/14995105728/job/42127573821?pr=25943#step:9:382"
-            }
+            },
+            "watchTickers": "closes connection"
         }
     },
     "coinbaseexchange": {

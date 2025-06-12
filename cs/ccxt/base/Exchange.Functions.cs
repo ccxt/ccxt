@@ -17,7 +17,7 @@ public partial class Exchange
 
     public dict keysort(object parameters2)
     {
-        var parameters = (dict)parameters2;
+        var parameters = (IDictionary<string, object>)parameters2;
         var keys = new List<string>(parameters.Keys);
         keys.Sort();
         var outDict = new dict();

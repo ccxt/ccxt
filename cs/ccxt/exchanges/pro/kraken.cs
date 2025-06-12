@@ -961,18 +961,9 @@ public partial class kraken : ccxt.kraken
             {
                 object symbol = getValue(this.symbols, i);
                 object market = getValue(this.markets, symbol);
-                if (isTrue(getValue(market, "darkpool")))
-                {
-                    object info = this.safeValue(market, "info", new Dictionary<string, object>() {});
-                    object altname = this.safeString(info, "altname");
-                    object wsName = add(add(slice(altname, 0, 3), "/"), slice(altname, 3, null));
-                    ((IDictionary<string,object>)marketsByWsName)[(string)wsName] = market;
-                } else
-                {
-                    object info = this.safeValue(market, "info", new Dictionary<string, object>() {});
-                    object wsName = this.safeString(info, "wsname");
-                    ((IDictionary<string,object>)marketsByWsName)[(string)wsName] = market;
-                }
+                object info = this.safeValue(market, "info", new Dictionary<string, object>() {});
+                object wsName = this.safeString(info, "wsname");
+                ((IDictionary<string,object>)marketsByWsName)[(string)wsName] = market;
             }
             ((IDictionary<string,object>)this.options)["marketsByWsName"] = marketsByWsName;
         }
