@@ -1,8 +1,8 @@
 //  ---------------------------------------------------------------------------
 
-import { Int, Market } from '../ccxt.js';
 import Exchange from './abstract/aster.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import type { Dict, Int, Market } from './base/types.js';
 
 //  ---------------------------------------------------------------------------xs
 /**
@@ -117,7 +117,7 @@ export default class aster extends Exchange {
                 'fetchMarginMode': false,
                 'fetchMarginModes': false,
                 'fetchMarketLeverageTiers': 'emulated',
-                'fetchMarkets': false,
+                'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMarkPrice': false,
                 'fetchMarkPrices': false,
@@ -147,7 +147,7 @@ export default class aster extends Exchange {
                 'fetchStatus': false,
                 'fetchTicker': false,
                 'fetchTickers': false,
-                'fetchTime': false,
+                'fetchTime': true,
                 'fetchTrades': false,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
@@ -304,11 +304,193 @@ export default class aster extends Exchange {
      * @method
      * @name aster#fetchMarkets
      * @description retrieves data on all markets for bigone
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#exchange-information
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        return [];
+        const response: Dict = await this.publicGetFapiV1ExchangeInfo (params);
+        //
+        //     {
+        //         "timezone": "UTC",
+        //         "serverTime": 1749708381352,
+        //         "futuresType": "U_MARGINED",
+        //         "rateLimits": [
+        //             {
+        //                 "rateLimitType": "REQUEST_WEIGHT",
+        //                 "interval": "MINUTE",
+        //                 "intervalNum": 1,
+        //                 "limit": 2400
+        //             },
+        //             {
+        //                 "rateLimitType": "ORDERS",
+        //                 "interval": "MINUTE",
+        //                 "intervalNum": 1,
+        //                 "limit": 1200
+        //             },
+        //             {
+        //                 "rateLimitType": "ORDERS",
+        //                 "interval": "SECOND",
+        //                 "intervalNum": 10,
+        //                 "limit": 300
+        //             }
+        //         ],
+        //         "exchangeFilters": [],
+        //         "assets": [
+        //             {
+        //                 "asset": "USDT",
+        //                 "marginAvailable": true,
+        //                 "autoAssetExchange": "-10000"
+        //             }
+        //         ],
+        //         "symbols": [
+        //             {
+        //                 "symbol": "BTCUSDT",
+        //                 "pair": "BTCUSDT",
+        //                 "contractType": "PERPETUAL",
+        //                 "deliveryDate": 4133404800000,
+        //                 "onboardDate": 1627628400000,
+        //                 "status": "TRADING",
+        //                 "maintMarginPercent": "2.5000",
+        //                 "requiredMarginPercent": "5.0000",
+        //                 "baseAsset": "BTC",
+        //                 "quoteAsset": "USDT",
+        //                 "marginAsset": "USDT",
+        //                 "pricePrecision": 1,
+        //                 "quantityPrecision": 3,
+        //                 "baseAssetPrecision": 8,
+        //                 "quotePrecision": 8,
+        //                 "underlyingType": "COIN",
+        //                 "underlyingSubType": [],
+        //                 "settlePlan": 0,
+        //                 "triggerProtect": "0.0200",
+        //                 "liquidationFee": "0.025000",
+        //                 "marketTakeBound": "0.02",
+        //                 "filters": [
+        //                     {
+        //                         "minPrice": "1",
+        //                         "maxPrice": "1000000",
+        //                         "filterType": "PRICE_FILTER",
+        //                         "tickSize": "0.1"
+        //                     },
+        //                     {
+        //                         "stepSize": "0.001",
+        //                         "filterType": "LOT_SIZE",
+        //                         "maxQty": "100",
+        //                         "minQty": "0.001"
+        //                     },
+        //                     {
+        //                         "stepSize": "0.001",
+        //                         "filterType": "MARKET_LOT_SIZE",
+        //                         "maxQty": "10",
+        //                         "minQty": "0.001"
+        //                     },
+        //                     {
+        //                         "limit": 200,
+        //                         "filterType": "MAX_NUM_ORDERS"
+        //                     },
+        //                     {
+        //                         "limit": 10,
+        //                         "filterType": "MAX_NUM_ALGO_ORDERS"
+        //                     },
+        //                     {
+        //                         "notional": "5",
+        //                         "filterType": "MIN_NOTIONAL"
+        //                     },
+        //                     {
+        //                         "multiplierDown": "0.9800",
+        //                         "multiplierUp": "1.0200",
+        //                         "multiplierDecimal": "4",
+        //                         "filterType": "PERCENT_PRICE"
+        //                     }
+        //                 ],
+        //                 "orderTypes": [
+        //                     "LIMIT",
+        //                     "MARKET",
+        //                     "STOP",
+        //                     "STOP_MARKET",
+        //                     "TAKE_PROFIT",
+        //                     "TAKE_PROFIT_MARKET",
+        //                     "TRAILING_STOP_MARKET"
+        //                 ],
+        //                 "timeInForce": [
+        //                     "GTC",
+        //                     "IOC",
+        //                     "FOK",
+        //                     "GTX",
+        //                     "RPI"
+        //                 ]
+        //             }
+        //         ]
+        //     }
+        //
+        const markets = this.safeList (response, 'symbols', []);
+        const result = [];
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            const id = this.safeString (market, 'symbol');
+            const baseId = this.safeString (market, 'baseAsset');
+            const quoteId = this.safeString (market, 'quoteAsset');
+            const settleId = this.safeString (market, 'marginAsset');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const settle = this.safeCurrencyCode (settleId);
+            const symbol = base + '/' + quote + ':' + settle;
+            const status = this.safeString (market, 'status');
+            const active = status === 'TRADING';
+            result.push (this.safeMarketStructure ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'settle': settle,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': settleId,
+                'type': 'swap',
+                'spot': false,
+                'margin': true,
+                'swap': true,
+                'future': true,
+                'option': false,
+                'active': active,
+                'contract': false,
+                'linear': true,
+                'inverse': undefined,
+                'taker': undefined,
+                'maker': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.safeNumber (market, 'quantityPrecision'),
+                    'price': this.safeNumber (market, 'pricePrecision'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'created': undefined,
+                'info': market,
+            }));
+        }
+        return result;
     }
 
     /**
