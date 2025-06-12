@@ -1816,7 +1816,7 @@ class Exchange {
                 $result = number_format(round($x, $numPrecisionDigits, PHP_ROUND_HALF_UP), $numPrecisionDigits, '.', '');
             } elseif ($countingMode === SIGNIFICANT_DIGITS) {
                 $significantPosition = ((int) log( abs($x), 10)) % 10;
-                if ($significantPosition >= 1) {
+                if ($x >= 1) {
                     ++$significantPosition;
                 }
                 $result = static::number_to_string(round($x, $numPrecisionDigits - $significantPosition, PHP_ROUND_HALF_UP));

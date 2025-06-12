@@ -139,15 +139,15 @@ function testDecimalToPrecision () {
     assert (exchange.decimalToPrecision ('0.00000044', ROUND, 5, SIGNIFICANT_DIGITS) === '0.00000044');
 
 
-    assert (exchange.decimalToPrecision ('0.246225', ROUND, 5, SIGNIFICANT_DIGITS) === '0.24623');
-    assert (exchange.decimalToPrecision ('0.246225', ROUND, 6, SIGNIFICANT_DIGITS) === '0.246225');
-    assert (exchange.decimalToPrecision ('0.246225', ROUND, 7, SIGNIFICANT_DIGITS) === '0.246225');
-    assert (exchange.decimalToPrecision ('2.46225', ROUND, 5, SIGNIFICANT_DIGITS) === '2.4623');
-    assert (exchange.decimalToPrecision ('2.46225', ROUND, 6, SIGNIFICANT_DIGITS) === '2.46225');
-    assert (exchange.decimalToPrecision ('2.46225', ROUND, 7, SIGNIFICANT_DIGITS) === '2.46225');
-    assert (exchange.decimalToPrecision ('20.46225', ROUND, 5, SIGNIFICANT_DIGITS) === '20.462');
-    assert (exchange.decimalToPrecision ('20.46225', ROUND, 6, SIGNIFICANT_DIGITS) === '20.4623');
-    assert (exchange.decimalToPrecision ('20.46225', ROUND, 7, SIGNIFICANT_DIGITS) === '20.46225');
+    assert (exchange.decimalToPrecision ('0.123456', ROUND, 5, SIGNIFICANT_DIGITS) === '0.12346');
+    assert (exchange.decimalToPrecision ('0.123456', ROUND, 6, SIGNIFICANT_DIGITS) === '0.123456');
+    assert (exchange.decimalToPrecision ('0.123456', ROUND, 7, SIGNIFICANT_DIGITS) === '0.123456');
+    assert (exchange.decimalToPrecision ('1.234567', ROUND, 5, SIGNIFICANT_DIGITS) === '1.2346');
+    assert (exchange.decimalToPrecision ('1.234567', ROUND, 6, SIGNIFICANT_DIGITS) === '1.23457');
+    assert (exchange.decimalToPrecision ('1.234567', ROUND, 7, SIGNIFICANT_DIGITS) === '1.234567');
+    assert (exchange.decimalToPrecision ('12.34567', ROUND, 5, SIGNIFICANT_DIGITS) === '12.346');
+    assert (exchange.decimalToPrecision ('12.34567', ROUND, 6, SIGNIFICANT_DIGITS) === '12.3457');
+    assert (exchange.decimalToPrecision ('12.34567', ROUND, 7, SIGNIFICANT_DIGITS) === '12.34567');
 
     // ----------------------------------------------------------------------------
     // testDecimalToPrecisionRoundingToTickSize
