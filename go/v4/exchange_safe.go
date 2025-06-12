@@ -188,6 +188,9 @@ func SafeValueN(obj interface{}, keys []interface{}, defaultValue ...interface{}
 		}
 		return defVal
 	} else if syncDict, ok := obj.(*sync.Map); ok {
+		if syncDict == nil {
+			return defVal
+		}
 		for _, key := range keys {
 			if key == nil {
 				continue

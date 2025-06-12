@@ -88,6 +88,9 @@ func EvalTruthy(val interface{}) bool {
 	case map[string]interface{}:
 		return len(v) > 0
 	case *sync.Map:
+		if v == nil {
+			return false
+		}
 		hasAny := false
 		v.Range(func(_, _ interface{}) bool {
 			hasAny = true
@@ -298,6 +301,9 @@ func GetValue(collection interface{}, key interface{}) interface{} {
 			return val
 		}
 	case *sync.Map:
+		if v == nil {
+			return nil
+		}
 		if !isStr {
 			return nil
 		}
@@ -704,6 +710,10 @@ func IsEqual(a, b interface{}) bool {
 		if bVal, ok := b.(string); ok {
 			return aVal == bVal
 		}
+	case *sync.Map:
+		if aVal == nil && b == nil {
+			return true
+		}
 	}
 
 	// If types don't match or aren't handled, return false
@@ -998,6 +1008,9 @@ func InOp(dict interface{}, key interface{}) bool {
 			return true
 		}
 	case *sync.Map:
+		if v == nil {
+			return false
+		}
 		if keyStr, ok := key.(string); ok {
 			if _, ok := v.Load(keyStr); ok {
 				return true
@@ -1110,6 +1123,9 @@ func IsDictionary(v interface{}) bool {
 	case map[string]interface{}:
 		return true
 	case *sync.Map:
+		if v == nil {
+			return false
+		}
 		return true
 	case Dict:
 		return true
