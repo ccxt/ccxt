@@ -32,6 +32,18 @@ public class Throttler
 
     }
 
+    private async Task loop()
+    {
+        if (this.config["algorithm"] as string == "leakyBucket")
+        {
+            await leakyBucketLoop();
+        }
+        else
+        {
+            await rollingWindowLoop();
+        }
+    }
+
     private async Task leakyBucketLoop()
     {
         var lastTimestamp = milliseconds();
@@ -89,27 +101,6 @@ public class Throttler
 
     }
 
-    public async Task<Task> throttle(object cost2)
-    {
-        var cost = (cost2 != null) ? Convert.ToDouble(cost2) : Convert.ToDouble(this.config["cost"]);
-        lock (queueLock)
-        {
-            if (this.queue.Count > (int)this.config["maxLimiterRequests"])
-            {
-                throw new Exception("throttle queue is over maxLimiterRequests (" + this.config["maxLimiterRequests"].ToString() + "), see https://github.com/ccxt/ccxt/issues/11645#issuecomment-1195695526");
-            }
-            var t = new Task(() => { });
-            this.queue.Enqueue((t, cost));
-            if (!this.running)
-            {
-                this.running = true;
-                // Task.Run(() => { this.loop(); });
-                this.loop();
-            }
-            return t;
-        }
-    }
-
     private async Task rollingWindowLoop()
     {
         while (this.running)
@@ -158,15 +149,24 @@ public class Throttler
         }
     }
 
-    private async Task loop()
+    public async Task<Task> throttle(object cost2)
     {
-        if (this.config["algorithm"].ToString() == "leakyBucket")
+        var cost = (cost2 != null) ? Convert.ToDouble(cost2) : Convert.ToDouble(this.config["cost"]);
+        lock (queueLock)
         {
-            await leakyBucketLoop();
-        }
-        else
-        {
-            await rollingWindowLoop();
+            if (this.queue.Count > (int)this.config["maxLimiterRequests"])
+            {
+                throw new Exception("throttle queue is over maxLimiterRequests (" + this.config["maxLimiterRequests"].ToString() + "), see https://github.com/ccxt/ccxt/issues/11645#issuecomment-1195695526");
+            }
+            var t = new Task(() => { });
+            this.queue.Enqueue((t, cost));
+            if (!this.running)
+            {
+                this.running = true;
+                // Task.Run(() => { this.loop(); });
+                this.loop();
+            }
+            return t;
         }
     }
 
