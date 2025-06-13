@@ -1444,9 +1444,6 @@ public partial class Exchange
             { "cost", 1 },
             { "maxLimiterRequests", this.maxLimiterRequests },
             { "refillRate", refillRate },
-            { "algorithm", this.rateLimiterAlgorithm },
-            { "windowSize", this.rollingWindowSize },
-            { "maxWeight", this.rollingWindowSize / this.rateLimit },   // ms_of_window / ms_of_rate_limit
         };
         object existingBucket = ((bool) isTrue((isEqual(this.tokenBucket, null)))) ? new Dictionary<string, object>() {} : this.tokenBucket;
         this.tokenBucket = this.extend(defaultBucket, existingBucket);
