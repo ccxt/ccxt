@@ -18,64 +18,64 @@ import (
 )
 
 type Exchange struct {
-	marketsMutex        sync.Mutex
-	cachedCurrenciesMutex  sync.Mutex
-	loadMu                 sync.Mutex
-	marketsLoading         bool
-	marketsLoaded          bool
-	loadMarketsSubscribers []chan interface{}
-	Itf                 interface{}
-	DerivedExchange     IDerivedExchange
-	methodCache         sync.Map
-	cacheLoaded         bool
-	Version             string
-	Id                  string
-	Name                string
-	Options             map[string]interface{}
-	Has                 map[string]interface{}
-	Api                 map[string]interface{}
-	TransformedApi      map[string]interface{}
-	Markets             map[string]interface{}
-	Markets_by_id       *sync.Map
-	Currencies_by_id    *sync.Map
-	Currencies          map[string]interface{}
-	RequiredCredentials map[string]interface{}
-	HttpExceptions      map[string]interface{}
-	MarketsById         map[string]interface{}
-	Timeframes          map[string]interface{}
-	Features            map[string]interface{}
-	Exceptions          map[string]interface{}
-	Precision           map[string]interface{}
-	Urls                interface{}
-	UserAgents          map[string]interface{}
-	Timeout             int64
-	MAX_VALUE           float64
-	RateLimit           float64
-	TokenBucket         map[string]interface{}
-	Throttler           Throttler
-	NewUpdates          bool
-	Alias               bool
-	Verbose             bool
-	UserAgent           string
-	EnableRateLimit     bool
+	marketsMutex          sync.Mutex
+	cachedCurrenciesMutex sync.Mutex
+	loadMu        sync.Mutex
+	marketsLoading		bool
+	marketsLoaded bool
+	loadMarketsSubscribers   []chan interface{}
+	Itf                   interface{}
+	DerivedExchange       IDerivedExchange
+	methodCache           sync.Map
+	cacheLoaded           bool
+	Version               string
+	Id                    string
+	Name                  string
+	Options               map[string]interface{}
+	Has                   map[string]interface{}
+	Api                   map[string]interface{}
+	TransformedApi        map[string]interface{}
+	Markets               map[string]interface{}
+	Markets_by_id         *sync.Map
+	Currencies_by_id      *sync.Map
+	Currencies            map[string]interface{}
+	RequiredCredentials   map[string]interface{}
+	HttpExceptions        map[string]interface{}
+	MarketsById           map[string]interface{}
+	Timeframes            map[string]interface{}
+	Features              map[string]interface{}
+	Exceptions            map[string]interface{}
+	Precision             map[string]interface{}
+	Urls                  interface{}
+	UserAgents            map[string]interface{}
+	Timeout               int64
+	MAX_VALUE             float64
+	RateLimit             float64
+	TokenBucket           map[string]interface{}
+	Throttler             Throttler
+	NewUpdates            bool
+	Alias                 bool
+	Verbose               bool
+	UserAgent             string
+	EnableRateLimit       bool
 	RateLimiterAlgorithm	string  // rollingWindow or leakyBucket
-	MaxLimiterRequests	int
-	RollingWindowSize	int
-	Url                 string
-	Hostname            string
-	BaseCurrencies      map[string]interface{}
-	QuoteCurrencies     map[string]interface{}
-	ReloadingMarkets    bool
-	MarketsLoading      bool
-	Symbols             []string
-	Codes               []string
-	Ids                 []string
-	CommonCurrencies    map[string]interface{}
-	PrecisionMode       int
-	Limits              map[string]interface{}
-	Fees                map[string]interface{}
-	CurrenciesById      map[string]interface{}
-	ReduceFees          bool
+	MaxLimiterRequests	  int
+	RollingWindowSize	    int
+	Url                   string
+	Hostname              string
+	BaseCurrencies        map[string]interface{}
+	QuoteCurrencies       map[string]interface{}
+	ReloadingMarkets      bool
+	MarketsLoading        bool
+	Symbols               []string
+	Codes                 []string
+	Ids                   []string
+	CommonCurrencies      map[string]interface{}
+	PrecisionMode         int
+	Limits                map[string]interface{}
+	Fees                  map[string]interface{}
+	CurrenciesById        map[string]interface{}
+	ReduceFees            bool
 
 	AccountsById interface{}
 	Accounts     interface{}
@@ -280,7 +280,7 @@ func (this *Exchange) LoadMarkets(params ...interface{}) <-chan interface{} {
 
 	if !this.marketsLoading || reload {
 		this.marketsLoading = true
-		markets := <-this.LoadMarketsHelper(params...)
+		markets := <- this.LoadMarketsHelper(params...)
 		this.marketsLoaded = true
 		this.marketsLoading = false
 		for _, ch := range this.loadMarketsSubscribers {
@@ -294,6 +294,7 @@ func (this *Exchange) LoadMarkets(params ...interface{}) <-chan interface{} {
 	return ch
 
 }
+
 
 func (this *Exchange) LoadMarketsHelper(params ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})

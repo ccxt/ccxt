@@ -14,9 +14,6 @@ public partial class Exchange
             { "countries", null },
             { "enableRateLimit", true },
             { "rateLimit", 2000 },
-            { "rateLimiterAlgorithm", "leakyBucket" },  // rollingWindow or leakyBucket
-            { "maxLimiterRequests", 1000 },
-            { "rollingWindowSize", 60000 },
             { "timeout", this.timeout },
             { "certified", false },
             { "pro", false },
@@ -1442,11 +1439,8 @@ public partial class Exchange
             { "delay", 0.001 },
             { "capacity", 1 },
             { "cost", 1 },
-            { "maxLimiterRequests", this.maxLimiterRequests },
+            { "maxCapacity", 1000 },
             { "refillRate", refillRate },
-            { "algorithm", this.rateLimiterAlgorithm },
-            { "windowSize", this.rollingWindowSize },
-            { "maxWeight", this.rollingWindowSize / this.rateLimit },   // ms_of_window / ms_of_rate_limit
         };
         object existingBucket = ((bool) isTrue((isEqual(this.tokenBucket, null)))) ? new Dictionary<string, object>() {} : this.tokenBucket;
         this.tokenBucket = this.extend(defaultBucket, existingBucket);
