@@ -71,6 +71,7 @@ export default class aftermath extends Exchange {
                 '1M': '1M',
             },
             'urls': {
+                'logo': 'https://github.com/user-attachments/assets/70e5ae86-2f3a-4755-976b-aedb9d3c2807',
                 'api': {
                     'rest': 'https://aftermath.finance/iperps-api/ccxt',
                 },
