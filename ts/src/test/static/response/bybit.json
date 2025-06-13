@@ -2,6 +2,58 @@
     "exchange": "bybit",
     "options": {},
     "methods": {
+        "createMarketBuyOrderWithCost": [
+            {
+                "description": "order with cost, using a decimal amount",
+                "method": "createMarketBuyOrderWithCost",
+                "input": [
+                    "DOGE/USDT",
+                    12.45
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "OK",
+                    "result": {
+                        "orderId": "1971981115648733696",
+                        "orderLinkId": "1971981115648733697"
+                    },
+                    "retExtInfo": {},
+                    "time": "1749814467805"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderId": "1971981115648733696",
+                        "orderLinkId": "1971981115648733697"
+                    },
+                    "id": "1971981115648733696",
+                    "clientOrderId": "1971981115648733697",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "DOGE/USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "fetchCurrencies",
