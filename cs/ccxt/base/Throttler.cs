@@ -20,7 +20,7 @@ public class Throttler
             {"refillRate",1.0},
             {"delay", 0.001},
             {"cost", 1.0},
-            {"tokens", 0},
+            {"tokens", 0.0},
             {"maxLimiterRequests", 2000},
             {"capacity", 1.0},
             {"algorithm", "leakyBucket"},
@@ -53,8 +53,7 @@ public class Throttler
             }
             var task = first.Item1;
             var cost = first.Item2;
-            var tokensAsString = Convert.ToString(this.config["tokens"], CultureInfo.InvariantCulture);
-            var floatTokens = double.Parse(tokensAsString, CultureInfo.InvariantCulture);
+            var floatTokens = Convert.ToDouble(this.config["tokens"]);
             if (floatTokens >= cost)
             {
                 this.config["tokens"] = floatTokens - cost;
@@ -83,7 +82,7 @@ public class Throttler
                 var elapsed = current - lastTimestamp;
                 lastTimestamp = current;
                 var tokens = (double)this.config["tokens"] + ((double)this.config["refillRate"] * elapsed);
-                this.config["tokens"] = Math.Min(tokens, (int)this.config["capacity"]);
+                this.config["tokens"] = Math.Min(tokens, (double)this.config["capacity"]);
             }
         }
 
@@ -127,6 +126,10 @@ public class Throttler
             }
             else
             {
+                if (timestamps.Count <= 0)
+                {
+                    continue;
+                }
                 var earliest = timestamps[0].timestamp;
                 var waitTime = (earliest + Convert.ToDouble(this.config["windowSize"])) - now;
                 if (waitTime > 0)
