@@ -55,7 +55,7 @@ public class Throttler
             var cost = first.Item2;
             var tokensAsString = Convert.ToString(this.config["tokens"], CultureInfo.InvariantCulture);
             var floatTokens = double.Parse(tokensAsString, CultureInfo.InvariantCulture);
-            if (floatTokens >= 0)
+            if (floatTokens >= cost)
             {
                 this.config["tokens"] = floatTokens - cost;
                 await Task.Delay(0);
