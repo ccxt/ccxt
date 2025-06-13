@@ -12,10 +12,10 @@ The wrapper is packaged as a **Swift Package**:
 
 ## Features
 
-✅ Swift wrapper class (`CCXTExchange`)  
-✅ Works on iOS and macOS  
-✅ Clean object-oriented API in Swift  
-✅ Supports multiple exchange instances via `InitExchange`
+Swift wrapper class (`CCXTExchange`)  
+Works on iOS and macOS  
+Clean object-oriented API in Swift  
+Supports multiple exchange instances via `InitExchange`
 
 ---
 
@@ -25,5 +25,6 @@ The wrapper is packaged as a **Swift Package**:
 
 ```bash
 cd ccxt/swift-wrapper
-./build/build_xcframework.sh
+./build/transpileSwift.ts
+./build/buildXcframework.sh
 ```

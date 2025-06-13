@@ -44,7 +44,7 @@ export interface TradingFeeInterface {
     tierBased: Bool;
 }
 
-export type Fee = FeeInterface | undefined
+export type Fee = FeeInterface | undefined;
 
 export interface MarketMarginModes {
     isolated: boolean;
