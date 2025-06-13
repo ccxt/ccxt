@@ -32,18 +32,6 @@ public class Throttler
 
     }
 
-    private async Task loop()
-    {
-        if (this.config["algorithm"] as string == "leakyBucket")
-        {
-            await leakyBucketLoop();
-        }
-        else
-        {
-            await rollingWindowLoop();
-        }
-    }
-
     private async Task leakyBucketLoop()
     {
         var lastTimestamp = milliseconds();
@@ -146,6 +134,18 @@ public class Throttler
                     await Task.Delay((int)waitTime);
                 }
             }
+        }
+    }
+
+    private async Task loop()
+    {
+        if (this.config["algorithm"].ToString() == "leakyBucket")
+        {
+            await leakyBucketLoop();
+        }
+        else
+        {
+            await rollingWindowLoop();
         }
     }
 
