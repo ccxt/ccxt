@@ -1,6 +1,8 @@
 {
     "exchange": "aftermath",
-    "skipKeys": [],
+    "skipKeys": [
+        "precision"
+    ],
     "options": {},
     "methods": {
         "fetchCurrencies": [
@@ -327,7 +329,10 @@
                         "optionType": null,
                         "precision": {
                             "amount": 0.00001,
-                            "price": 0.0001
+                            "price": 0.0001,
+                            "cost": null,
+                            "base": null,
+                            "quote": null
                         },
                         "limits": {
                             "leverage": {
@@ -702,68 +707,21 @@
                         },
                         "fees": [],
                         "cost": 920.09333
-                    },
-                    {
-                        "amount": 0.01,
-                        "price": 91959.467,
-                        "timestamp": "1740440760610",
-                        "symbol": "BTC/USD:USDC",
-                        "fee": {
-                            "cost": null,
-                            "currency": null
-                        },
-                        "fees": [],
-                        "cost": 919.59467
-                    },
-                    {
-                        "amount": 0.01,
-                        "price": 92026.88,
-                        "timestamp": "1740440772787",
-                        "symbol": "BTC/USD:USDC",
-                        "fee": {
-                            "cost": null,
-                            "currency": null
-                        },
-                        "fees": [],
-                        "cost": 920.2688
                     }
                 ],
                 "parsedResponse": [
                     {
                         "amount": 0.01,
                         "price": 92009.333,
-                        "timestamp": "1740440755362",
+                        "timestamp": 1740440755362,
                         "symbol": "BTC/USD:USDC",
                         "fee": {
                             "cost": null,
                             "currency": null
                         },
                         "fees": [],
-                        "cost": 920.09333
-                    },
-                    {
-                        "amount": 0.01,
-                        "price": 91959.467,
-                        "timestamp": "1740440760610",
-                        "symbol": "BTC/USD:USDC",
-                        "fee": {
-                            "cost": null,
-                            "currency": null
-                        },
-                        "fees": [],
-                        "cost": 919.59467
-                    },
-                    {
-                        "amount": 0.01,
-                        "price": 92026.88,
-                        "timestamp": "1740440772787",
-                        "symbol": "BTC/USD:USDC",
-                        "fee": {
-                            "cost": null,
-                            "currency": null
-                        },
-                        "fees": [],
-                        "cost": 920.2688
+                        "cost": 920.09333,
+                        "id": ""
                     }
                 ]
             }
@@ -1561,13 +1519,34 @@
                 ],
                 "httpResponse": {
                     "timestamp": 1740442548050,
+                    "balances": {
+                        "USDC": {
+                            "free": 0,
+                            "used": 96.74101276197834,
+                            "total": 96.74101276197834
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "timestamp": 1740442548050,
+                        "balances": {
+                            "USDC": {
+                                "free": 0,
+                                "used": 96.74101276197834,
+                                "total": 96.74101276197834
+                            }
+                        }
+                    },
                     "USDC": {
-                        "free": 0,
+                        "free": 0.0,
                         "used": 96.74101276197834,
                         "total": 96.74101276197834
                     },
+                    "timestamp": 1740442548050,
+                    "datetime": "2025-02-25T00:15:48.050Z",
                     "free": {
-                        "USDC": 0
+                        "USDC": 0.0
                     },
                     "used": {
                         "USDC": 96.74101276197834
@@ -1575,30 +1554,6 @@
                     "total": {
                         "USDC": 96.74101276197834
                     }
-                },
-                "parsedResponse": {
-                    "info": {
-                        "timestamp": 1740442548050,
-                        "USDC": {
-                            "free": 0,
-                            "used": 96.74101276197834,
-                            "total": 96.74101276197834
-                        },
-                        "free": {
-                            "USDC": 0
-                        },
-                        "used": {
-                            "USDC": 96.74101276197834
-                        },
-                        "total": {
-                            "USDC": 96.74101276197834
-                        }
-                    },
-                    "timestamp": 1740442548050,
-                    "datetime": "2025-02-25T00:15:48.050Z",
-                    "free": {},
-                    "used": {},
-                    "total": {}
                 }
             }
         ]

@@ -516,8 +516,11 @@ export default class aftermath extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseTrade (trade: Dict, market: Market = undefined): Trade {
-        return this.safeTrade (trade);
+    parseTrade (rawTrade: Dict, market: Market = undefined): Trade {
+        const trade = this.safeTrade (rawTrade);
+        trade['id'] = '';
+        trade['timestamp'] = this.safeInteger (rawTrade, 'timestamp');
+        return trade;
     }
 
     /**
