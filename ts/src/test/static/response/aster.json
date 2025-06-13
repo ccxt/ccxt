@@ -1,0 +1,557 @@
+{
+    "exchange": "aster",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": {
+                    "timezone": "UTC",
+                    "serverTime": 1749733490340,
+                    "futuresType": "U_MARGINED",
+                    "rateLimits": [
+                        {
+                            "rateLimitType": "REQUEST_WEIGHT",
+                            "interval": "MINUTE",
+                            "intervalNum": 1,
+                            "limit": 2400
+                        },
+                        {
+                            "rateLimitType": "ORDERS",
+                            "interval": "MINUTE",
+                            "intervalNum": 1,
+                            "limit": 1200
+                        },
+                        {
+                            "rateLimitType": "ORDERS",
+                            "interval": "SECOND",
+                            "intervalNum": 10,
+                            "limit": 300
+                        }
+                    ],
+                    "exchangeFilters": [],
+                    "assets": [
+                        {
+                            "asset": "USDT",
+                            "marginAvailable": true,
+                            "autoAssetExchange": "-10000"
+                        },
+                        {
+                            "asset": "BTC",
+                            "marginAvailable": true,
+                            "autoAssetExchange": "0"
+                        }
+                    ],
+                    "symbols": [
+                        {
+                            "symbol": "BTCUSDT",
+                            "pair": "BTCUSDT",
+                            "contractType": "PERPETUAL",
+                            "deliveryDate": 4133404800000,
+                            "onboardDate": 1627628400000,
+                            "status": "TRADING",
+                            "maintMarginPercent": "2.5000",
+                            "requiredMarginPercent": "5.0000",
+                            "baseAsset": "BTC",
+                            "quoteAsset": "USDT",
+                            "marginAsset": "USDT",
+                            "pricePrecision": 1,
+                            "quantityPrecision": 3,
+                            "baseAssetPrecision": 8,
+                            "quotePrecision": 8,
+                            "underlyingType": "COIN",
+                            "underlyingSubType": [],
+                            "settlePlan": 0,
+                            "triggerProtect": "0.0200",
+                            "liquidationFee": "0.025000",
+                            "marketTakeBound": "0.02",
+                            "filters": [
+                                {
+                                    "minPrice": "1",
+                                    "maxPrice": "1000000",
+                                    "filterType": "PRICE_FILTER",
+                                    "tickSize": "0.1"
+                                },
+                                {
+                                    "stepSize": "0.001",
+                                    "filterType": "LOT_SIZE",
+                                    "maxQty": "100",
+                                    "minQty": "0.001"
+                                },
+                                {
+                                    "stepSize": "0.001",
+                                    "filterType": "MARKET_LOT_SIZE",
+                                    "maxQty": "10",
+                                    "minQty": "0.001"
+                                },
+                                {
+                                    "limit": 200,
+                                    "filterType": "MAX_NUM_ORDERS"
+                                },
+                                {
+                                    "limit": 10,
+                                    "filterType": "MAX_NUM_ALGO_ORDERS"
+                                },
+                                {
+                                    "notional": "5",
+                                    "filterType": "MIN_NOTIONAL"
+                                },
+                                {
+                                    "multiplierDown": "0.9800",
+                                    "multiplierUp": "1.0200",
+                                    "multiplierDecimal": "4",
+                                    "filterType": "PERCENT_PRICE"
+                                }
+                            ],
+                            "orderTypes": [
+                                "LIMIT",
+                                "MARKET",
+                                "STOP",
+                                "STOP_MARKET",
+                                "TAKE_PROFIT",
+                                "TAKE_PROFIT_MARKET",
+                                "TRAILING_STOP_MARKET"
+                            ],
+                            "timeInForce": [
+                                "GTC",
+                                "IOC",
+                                "FOK",
+                                "GTX",
+                                "RPI"
+                            ]
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "USDT": {
+                        "info": {
+                            "asset": "USDT",
+                            "marginAvailable": true,
+                            "autoAssetExchange": "-10000"
+                        },
+                        "id": "USDT",
+                        "numericId": null,
+                        "code": "USDT",
+                        "precision": null,
+                        "type": "crypto",
+                        "name": "USDT",
+                        "active": null,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": null,
+                        "fees": {},
+                        "networks": null,
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    },
+                    "BTC": {
+                        "info": {
+                            "asset": "BTC",
+                            "marginAvailable": true,
+                            "autoAssetExchange": "0"
+                        },
+                        "id": "BTC",
+                        "numericId": null,
+                        "code": "BTC",
+                        "precision": null,
+                        "type": "crypto",
+                        "name": "BTC",
+                        "active": null,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": null,
+                        "fees": {},
+                        "networks": null,
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    }
+                }
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets",
+                "method": "fetchMarkets",
+                "input": [],
+                "httpResponse": {
+                    "timezone": "UTC",
+                    "serverTime": 1749733490340,
+                    "futuresType": "U_MARGINED",
+                    "rateLimits": [
+                        {
+                            "rateLimitType": "REQUEST_WEIGHT",
+                            "interval": "MINUTE",
+                            "intervalNum": 1,
+                            "limit": 2400
+                        },
+                        {
+                            "rateLimitType": "ORDERS",
+                            "interval": "MINUTE",
+                            "intervalNum": 1,
+                            "limit": 1200
+                        },
+                        {
+                            "rateLimitType": "ORDERS",
+                            "interval": "SECOND",
+                            "intervalNum": 10,
+                            "limit": 300
+                        }
+                    ],
+                    "exchangeFilters": [],
+                    "assets": [
+                        {
+                            "asset": "USDT",
+                            "marginAvailable": true,
+                            "autoAssetExchange": "-10000"
+                        },
+                        {
+                            "asset": "BTC",
+                            "marginAvailable": true,
+                            "autoAssetExchange": "0"
+                        }
+                    ],
+                    "symbols": [
+                        {
+                            "symbol": "BTCUSDT",
+                            "pair": "BTCUSDT",
+                            "contractType": "PERPETUAL",
+                            "deliveryDate": 4133404800000,
+                            "onboardDate": 1627628400000,
+                            "status": "TRADING",
+                            "maintMarginPercent": "2.5000",
+                            "requiredMarginPercent": "5.0000",
+                            "baseAsset": "BTC",
+                            "quoteAsset": "USDT",
+                            "marginAsset": "USDT",
+                            "pricePrecision": 1,
+                            "quantityPrecision": 3,
+                            "baseAssetPrecision": 8,
+                            "quotePrecision": 8,
+                            "underlyingType": "COIN",
+                            "underlyingSubType": [],
+                            "settlePlan": 0,
+                            "triggerProtect": "0.0200",
+                            "liquidationFee": "0.025000",
+                            "marketTakeBound": "0.02",
+                            "filters": [
+                                {
+                                    "minPrice": "1",
+                                    "maxPrice": "1000000",
+                                    "filterType": "PRICE_FILTER",
+                                    "tickSize": "0.1"
+                                },
+                                {
+                                    "stepSize": "0.001",
+                                    "filterType": "LOT_SIZE",
+                                    "maxQty": "100",
+                                    "minQty": "0.001"
+                                },
+                                {
+                                    "stepSize": "0.001",
+                                    "filterType": "MARKET_LOT_SIZE",
+                                    "maxQty": "10",
+                                    "minQty": "0.001"
+                                },
+                                {
+                                    "limit": 200,
+                                    "filterType": "MAX_NUM_ORDERS"
+                                },
+                                {
+                                    "limit": 10,
+                                    "filterType": "MAX_NUM_ALGO_ORDERS"
+                                },
+                                {
+                                    "notional": "5",
+                                    "filterType": "MIN_NOTIONAL"
+                                },
+                                {
+                                    "multiplierDown": "0.9800",
+                                    "multiplierUp": "1.0200",
+                                    "multiplierDecimal": "4",
+                                    "filterType": "PERCENT_PRICE"
+                                }
+                            ],
+                            "orderTypes": [
+                                "LIMIT",
+                                "MARKET",
+                                "STOP",
+                                "STOP_MARKET",
+                                "TAKE_PROFIT",
+                                "TAKE_PROFIT_MARKET",
+                                "TRAILING_STOP_MARKET"
+                            ],
+                            "timeInForce": [
+                                "GTC",
+                                "IOC",
+                                "FOK",
+                                "GTX",
+                                "RPI"
+                            ]
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "BTCUSDT",
+                        "lowercaseId": null,
+                        "symbol": "BTC/USDT:USDT",
+                        "base": "BTC",
+                        "quote": "USDT",
+                        "settle": "USDT",
+                        "baseId": "BTC",
+                        "quoteId": "USDT",
+                        "settleId": "USDT",
+                        "type": "swap",
+                        "spot": false,
+                        "margin": false,
+                        "swap": true,
+                        "future": false,
+                        "option": false,
+                        "index": null,
+                        "active": true,
+                        "contract": true,
+                        "linear": true,
+                        "inverse": false,
+                        "subType": null,
+                        "taker": 0.00035,
+                        "maker": 0.0001,
+                        "contractSize": 1,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 3,
+                            "price": 1
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "created": null,
+                        "info": {
+                            "symbol": "BTCUSDT",
+                            "pair": "BTCUSDT",
+                            "contractType": "PERPETUAL",
+                            "deliveryDate": 4133404800000,
+                            "onboardDate": 1627628400000,
+                            "status": "TRADING",
+                            "maintMarginPercent": "2.5000",
+                            "requiredMarginPercent": "5.0000",
+                            "baseAsset": "BTC",
+                            "quoteAsset": "USDT",
+                            "marginAsset": "USDT",
+                            "pricePrecision": 1,
+                            "quantityPrecision": 3,
+                            "baseAssetPrecision": 8,
+                            "quotePrecision": 8,
+                            "underlyingType": "COIN",
+                            "underlyingSubType": [],
+                            "settlePlan": 0,
+                            "triggerProtect": "0.0200",
+                            "liquidationFee": "0.025000",
+                            "marketTakeBound": "0.02",
+                            "filters": [
+                                {
+                                    "minPrice": "1",
+                                    "maxPrice": "1000000",
+                                    "filterType": "PRICE_FILTER",
+                                    "tickSize": "0.1"
+                                },
+                                {
+                                    "stepSize": "0.001",
+                                    "filterType": "LOT_SIZE",
+                                    "maxQty": "100",
+                                    "minQty": "0.001"
+                                },
+                                {
+                                    "stepSize": "0.001",
+                                    "filterType": "MARKET_LOT_SIZE",
+                                    "maxQty": "10",
+                                    "minQty": "0.001"
+                                },
+                                {
+                                    "limit": 200,
+                                    "filterType": "MAX_NUM_ORDERS"
+                                },
+                                {
+                                    "limit": 10,
+                                    "filterType": "MAX_NUM_ALGO_ORDERS"
+                                },
+                                {
+                                    "notional": "5",
+                                    "filterType": "MIN_NOTIONAL"
+                                },
+                                {
+                                    "multiplierDown": "0.9800",
+                                    "multiplierUp": "1.0200",
+                                    "multiplierDecimal": "4",
+                                    "filterType": "PERCENT_PRICE"
+                                }
+                            ],
+                            "orderTypes": [
+                                "LIMIT",
+                                "MARKET",
+                                "STOP",
+                                "STOP_MARKET",
+                                "TAKE_PROFIT",
+                                "TAKE_PROFIT_MARKET",
+                                "TRAILING_STOP_MARKET"
+                            ],
+                            "timeInForce": [
+                                "GTC",
+                                "IOC",
+                                "FOK",
+                                "GTX",
+                                "RPI"
+                            ]
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "input": [],
+                "httpResponse": {
+                    "serverTime": 1749806368527
+                },
+                "parsedResponse": 1749806368527
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "5m",
+                    1749806347909,
+                    1
+                ],
+                "httpResponse": [
+                    [
+                        1749806400000,
+                        "104577.2",
+                        "104625.0",
+                        "104563.5",
+                        "104587.3",
+                        "17.771",
+                        1749806699999,
+                        "1858831.3349",
+                        766,
+                        "11.144",
+                        "1165659.7745",
+                        "0"
+                    ]
+                ],
+                "parsedResponse": [
+                    [
+                        1749806400000,
+                        104577.2,
+                        104625,
+                        104563.5,
+                        104587.3,
+                        17.771
+                    ]
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetchTrades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "id": 23424931,
+                        "price": "104613.1",
+                        "qty": "0.009",
+                        "quoteQty": "941.5",
+                        "time": 1749806461198,
+                        "isBuyerMaker": true
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "23424931",
+                        "info": {
+                            "id": 23424931,
+                            "price": "104613.1",
+                            "qty": "0.009",
+                            "quoteQty": "941.5",
+                            "time": 1749806461198,
+                            "isBuyerMaker": true
+                        },
+                        "timestamp": 1749806461198,
+                        "datetime": "2025-06-13T09:21:01.198Z",
+                        "symbol": "BTC/USDT:USDT",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 104613.1,
+                        "amount": 0.009,
+                        "cost": 941.5,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
+            }
+        ]
+    }
+}

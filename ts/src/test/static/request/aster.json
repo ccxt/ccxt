@@ -1,0 +1,56 @@
+{
+    "exchange": "aster",
+    "skipKeys": [],
+    "outputType": "json",
+    "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://fapi.asterdex.com/fapi/v1/exchangeInfo",
+                "input": []
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets",
+                "method": "fetchMarkets",
+                "url": "https://fapi.asterdex.com/fapi/v1/exchangeInfo",
+                "input": []
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://fapi.asterdex.com/fapi/v1/time",
+                "input": []
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://fapi.asterdex.com/fapi/v1/klines?symbol=BTCUSDT&startTime=1749806347909&limit=1&interval=5m",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "5m",
+                    1749806347909,
+                    1
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://fapi.asterdex.com/fapi/v1/trades?symbol=BTCUSDT&limit=1",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    1
+                ]
+            }
+        ]
+    }
+}
