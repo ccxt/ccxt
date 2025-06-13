@@ -5,8 +5,8 @@ designed for use in **iOS** and **macOS** apps via a native static library and a
 
 The wrapper is packaged as a **Swift Package**:
 
-- `CCXTPodCore` → XCFramework (CCXT.xcframework) generated from Go via gomobile bind
-- `CCXTPod` → Swift wrapper (CCXTExchange.swift) → depends on `CCXTPodCore`
+- `CCXTSwiftCore` → XCFramework (CCXT.xcframework) generated from Go via gomobile bind
+- `CCXTSwift` → Swift wrapper (CCXTExchange.swift) → depends on `CCXTSwiftCore`
 
 ---
 
@@ -24,6 +24,6 @@ The wrapper is packaged as a **Swift Package**:
 ### 1️⃣ Build the static library
 
 ```bash
-cd ccxt/go/mobile_wrapper
-./build_xcframework.sh
+cd ccxt/swift-wrapper
+./build/build_xcframework.sh
 ```

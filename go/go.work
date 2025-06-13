@@ -2,7 +2,7 @@ go 1.24.3
 
 use (
 	./cli
-	./mobile_wrapper
+	../swift-wrapper
 	./tests
 	./tests/base
 	./v4
