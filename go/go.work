@@ -1,8 +1,9 @@
-go 1.23.4
+go 1.24.3
 
 use (
-	./v4
+	./cli
+	./mobile_wrapper
 	./tests
 	./tests/base
-	./cli
+	./v4
 )

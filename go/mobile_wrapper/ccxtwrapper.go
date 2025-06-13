@@ -1,0 +1,41 @@
+// wrapper.go  – DROP IN AS–IS
+package ccxt
+
+import (
+	"encoding/json"
+
+	ccxt "github.com/ccxt/ccxt/go/v4"
+)
+
+type Exchange struct {
+	exchange ccxt.IExchange
+}
+
+func NewExchange(exchangeName string, configJson string) *Exchange {
+	var config map[string]interface{}
+	_ = json.Unmarshal([]byte(configJson), &config)
+
+	ex := ccxt.Exchange{}
+	inst, ok := ccxt.DynamicallyCreateInstance(exchangeName, ex.DeepExtend(nil, config))
+	if !ok {
+		return nil
+	}
+
+	return &Exchange{exchange: inst}
+}
+
+func (e *Exchange) FetchMarkets() ([]byte, error) {
+	res := <-e.exchange.FetchMarkets(nil)
+	if err, ok := res.(error); ok {
+		return nil, err
+	}
+	return json.Marshal(res)
+}
+
+func (e *Exchange) FetchTicker(symbol string) ([]byte, error) {
+	res := <-e.exchange.FetchTicker(symbol, nil)
+	if err, ok := res.(error); ok {
+		return nil, err
+	}
+	return json.Marshal(res)
+}
