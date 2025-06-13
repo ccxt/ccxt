@@ -1395,6 +1395,7 @@ export default class bitget extends Exchange {
                 'TONCOIN': 'TON',
             },
             'options': {
+                'uta': false,
                 'timeDifference': 0, // the difference between system clock and Binance clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'timeframes': {
@@ -1430,7 +1431,6 @@ export default class bitget extends Exchange {
                     },
                 },
                 'fetchMarkets': {
-                    'uta': false,
                     'types': [ 'spot', 'swap' ], // there is future markets but they use the same endpoints as swap
                 },
                 'defaultType': 'spot', // 'spot', 'swap', 'future'
@@ -1841,7 +1841,6 @@ export default class bitget extends Exchange {
         }
         let uta = undefined;
         [ uta, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'uta', false);
-        params = this.omit (params, 'uta');
         if (uta) {
             return await this.fetchUtaMarkets (params);
         } else {
@@ -1852,11 +1851,12 @@ export default class bitget extends Exchange {
     async fetchDefaultMarkets (params): Promise<Market[]> {
         let types = undefined;
         const fetchMarketsOptions = this.safeDict (this.options, 'fetchMarkets');
+        const defaultMarkets = [ 'spot', 'swap' ];
         if (fetchMarketsOptions !== undefined) {
-            types = this.safeList (fetchMarketsOptions, 'types', []);
+            types = this.safeList (fetchMarketsOptions, 'types', defaultMarkets);
         } else {
             // for backward-compatibility
-            types = this.safeList (this.options, 'fetchMarkets', []);
+            types = this.safeList (this.options, 'fetchMarkets', defaultMarkets);
         }
         const promises = [];
         let fetchMargins = false;
