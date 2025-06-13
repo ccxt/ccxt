@@ -139,7 +139,7 @@ public class Throttler
 
     private async Task loop()
     {
-        if (this.config["algorithm"].ToString() == "leakyBucket")
+        if (this.config["algorithm"] as string == "leakyBucket")
         {
             await leakyBucketLoop();
         }
