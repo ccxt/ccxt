@@ -1606,6 +1606,7 @@ class okx(Exchange, ImplicitAPI):
         #         "instType": "OPTION",
         #         "lever": "",
         #         "listTime": "1631262612280",
+        #         "contTdSwTime": "1631262812280",
         #         "lotSz": "1",
         #         "minSz": "1",
         #         "optType": "P",
@@ -1685,7 +1686,7 @@ class okx(Exchange, ImplicitAPI):
             'expiryDatetime': self.iso8601(expiry),
             'strike': self.parse_number(strikePrice),
             'optionType': optionType,
-            'created': self.safe_integer(market, 'listTime'),
+            'created': self.safe_integer_2(market, 'contTdSwTime', 'listTime'),  # contTdSwTime is public trading start time, while listTime considers pre-trading too
             'precision': {
                 'amount': self.safe_number(market, 'lotSz'),
                 'price': self.safe_number(market, 'tickSz'),

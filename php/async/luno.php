@@ -44,6 +44,7 @@ class luno extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
+                'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
@@ -125,6 +126,7 @@ class luno extends Exchange {
                         'accounts/{id}/transactions' => 1,
                         'balance' => 1,
                         'beneficiaries' => 1,
+                        'send/networks' => 1,
                         'fee_info' => 1,
                         'funding_address' => 1,
                         'listorders' => 1,
@@ -264,6 +266,97 @@ class luno extends Exchange {
                 ),
             ),
         ));
+    }
+
+    public function fetch_currencies($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
+            /**
+             * fetches all available currencies on an exchange
+             * @param {dict} [$params] extra parameters specific to the exchange API endpoint
+             * @return {dict} an associative dictionary of currencies
+             */
+            if (!$this->check_required_credentials(false)) {
+                return null;
+            }
+            $response = Async\await($this->privateGetSendNetworks ($params));
+            //
+            //     {
+            //         "networks" => array(
+            //           array(
+            //             "id" => 0,
+            //             "name" => "Ethereum",
+            //             "native_currency" => "ETH"
+            //           ),
+            //           ...
+            //         )
+            //     }
+            //
+            $currenciesData = $this->safe_list($response, 'data', array());
+            $result = array();
+            for ($i = 0; $i < count($currenciesData); $i++) {
+                $networkEntry = $currenciesData[$i];
+                $id = $this->safe_string($networkEntry, 'native_currency');
+                $code = $this->safe_currency_code($id);
+                if (!(is_array($result) && array_key_exists($code, $result))) {
+                    $result[$code] = array(
+                        'id' => $id,
+                        'code' => $code,
+                        'precision' => null,
+                        'type' => null,
+                        'name' => null,
+                        'active' => null,
+                        'deposit' => null,
+                        'withdraw' => null,
+                        'fee' => null,
+                        'limits' => array(
+                            'withdraw' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
+                            'deposit' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
+                        ),
+                        'networks' => array(),
+                        'info' => array(),
+                    );
+                }
+                $networkId = $this->safe_string($networkEntry, 'name');
+                $networkCode = $this->network_id_to_code($networkId);
+                $result[$code]['networks'][$networkCode] = array(
+                    'id' => $networkId,
+                    'network' => $networkCode,
+                    'limits' => array(
+                        'withdraw' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'deposit' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                    ),
+                    'active' => null,
+                    'deposit' => null,
+                    'withdraw' => null,
+                    'fee' => null,
+                    'precision' => null,
+                    'info' => $networkEntry,
+                );
+                // add entry in $info
+                $info = $this->safe_list($result[$code], 'info', array());
+                $info[] = $networkEntry;
+                $result[$code]['info'] = $info;
+            }
+            // only after all entries are formed in currencies, restructure each entry
+            $allKeys = is_array($result) ? array_keys($result) : array();
+            for ($i = 0; $i < count($allKeys); $i++) {
+                $code = $allKeys[$i];
+                $result[$code] = $this->safe_currency_structure($result[$code]); // this is needed after adding network entry
+            }
+            return $result;
+        }) ();
     }
 
     public function fetch_markets($params = array ()): PromiseInterface {

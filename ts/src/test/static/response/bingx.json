@@ -1,7 +1,86 @@
 {
     "exchange": "bingx",
+    "skipKeys": [ "tranId", "timestamp", "id" ],
     "options": {},
     "methods": {
+        "fetchTransfers": [
+            {
+                "description": "fetch transfers from spot to swap",
+                "method": "fetchTransfers",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "fromAccount": "spot",
+                        "toAccount": "swap"
+                    }
+                ],
+                "httpResponse": {
+                    "total": 1,
+                    "rows": [
+                        {
+                            "asset": "USDT",
+                            "amount": "10.00000000000000000000",
+                            "type": "SPOT_PFUTURES",
+                            "status": "CONFIRMED",
+                            "tranId": 907272517,
+                            "timestamp": 1749731424000
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "asset": "USDT",
+                            "amount": "10.00000000000000000000",
+                            "type": "SPOT_PFUTURES",
+                            "status": "CONFIRMED",
+                            "tranId": "907272517",
+                            "timestamp": "1749731424000"
+                        },
+                        "id": "907272517",
+                        "timestamp": 1749731424000,
+                        "datetime": "2025-06-12T12:30:24.000Z",
+                        "currency": null,
+                        "amount": 10,
+                        "fromAccount": "spot",
+                        "toAccount": "swap",
+                        "status": "ok"
+                    }
+                ]
+            }
+        ],
+        "transfer": [
+            {
+                "description": "transfer from funding to spot",
+                "method": "transfer",
+                "input": [
+                    "USDT",
+                    10,
+                    "funding",
+                    "spot"
+                ],
+                "httpResponse": {
+                    "tranId": 1933134535059443712,
+                    "transferId": "1051450707684874297365"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "tranId": "1933134535059443712",
+                        "transferId": "1051450707684874297365"
+                    },
+                    "id": "1933134535059443712",
+                    "timestamp": null,
+                    "datetime": null,
+                    "currency": "USDT",
+                    "amount": 10,
+                    "fromAccount": "funding",
+                    "toAccount": "spot",
+                    "status": null
+                }
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "fetchCurrencies",

@@ -3676,7 +3676,10 @@ class bybit(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
-        return await self.create_order(symbol, 'market', 'buy', cost, 1, params)
+        req = {
+            'cost': cost,
+        }
+        return await self.create_order(symbol, 'market', 'buy', -1, None, self.extend(req, params))
 
     async def create_market_sell_order_with_cost(self, symbol: str, cost: float, params={}) -> Order:
         """
@@ -3697,7 +3700,10 @@ class bybit(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' createMarketSellOrderWithCost() supports spot orders only')
-        return await self.create_order(symbol, 'market', 'sell', cost, 1, params)
+        req = {
+            'cost': cost,
+        }
+        return await self.create_order(symbol, 'market', 'sell', -1, None, self.extend(req, params))
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """
@@ -3905,7 +3911,7 @@ class bybit(Exchange, ImplicitAPI):
                 if (price is None) and (cost is None):
                     raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
                 else:
-                    quoteAmount = Precise.string_mul(amountString, priceString)
+                    quoteAmount = Precise.string_mul(self.number_to_string(amount), priceString)
                     costRequest = cost if (cost is not None) else quoteAmount
                     request['qty'] = self.get_cost(symbol, costRequest)
             else:

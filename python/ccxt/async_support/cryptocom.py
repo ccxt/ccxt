@@ -60,6 +60,7 @@ class cryptocom(Exchange, ImplicitAPI):
                 'createOrders': True,
                 'createStopOrder': True,
                 'createTriggerOrder': True,
+                'editOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': False,
@@ -152,6 +153,7 @@ class cryptocom(Exchange, ImplicitAPI):
                     'derivatives': 'https://uat-api.3ona.co/v2',
                 },
                 'api': {
+                    'base': 'https://api.crypto.com',
                     'v1': 'https://api.crypto.com/exchange/v1',
                     'v2': 'https://api.crypto.com/v2',
                     'derivatives': 'https://deriv-api.crypto.com/v1',
@@ -169,6 +171,13 @@ class cryptocom(Exchange, ImplicitAPI):
                 'fees': 'https://crypto.com/exchange/document/fees-limits',
             },
             'api': {
+                'base': {
+                    'public': {
+                        'get': {
+                            'v1/public/get-announcements': 1,  # no description of rate limit
+                        },
+                    },
+                },
                 'v1': {
                     'public': {
                         'get': {
@@ -195,6 +204,7 @@ class cryptocom(Exchange, ImplicitAPI):
                             'private/user-balance-history': 10 / 3,
                             'private/get-positions': 10 / 3,
                             'private/create-order': 2 / 3,
+                            'private/amend-order': 4 / 3,  # no description of rate limit
                             'private/create-order-list': 10 / 3,
                             'private/cancel-order': 2 / 3,
                             'private/cancel-order-list': 10 / 3,
@@ -1549,6 +1559,45 @@ class cryptocom(Exchange, ImplicitAPI):
         else:
             request['quantity'] = self.amount_to_precision(symbol, amount)
         params = self.omit(params, ['postOnly', 'clientOrderId', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice'])
+        return self.extend(request, params)
+
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
+        """
+        edit a trade order
+
+        https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-amend-order
+
+        :param str id: order id
+        :param str symbol: unified market symbol of the order to edit
+        :param str [type]: not used by cryptocom editOrder
+        :param str [side]: not used by cryptocom editOrder
+        :param float amount:(mandatory) how much of the currency you want to trade in units of the base currency
+        :param float price:(mandatory) the price for the order, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.clientOrderId]: the original client order id of the order to edit, required if id is not provided
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        request = self.edit_order_request(id, symbol, amount, price, params)
+        response = await self.v1PrivatePostPrivateAmendOrder(request)
+        result = self.safe_dict(response, 'result', {})
+        return self.parse_order(result)
+
+    def edit_order_request(self, id: str, symbol: str, amount: float, price: Num = None, params={}):
+        request: dict = {}
+        if id is not None:
+            request['order_id'] = id
+        else:
+            originalClientOrderId = self.safe_string_2(params, 'orig_client_oid', 'clientOrderId')
+            if originalClientOrderId is None:
+                raise ArgumentsRequired(self.id + ' editOrder() requires an id argument or orig_client_oid parameter')
+            else:
+                request['orig_client_oid'] = originalClientOrderId
+                params = self.omit(params, ['orig_client_oid', 'clientOrderId'])
+        if (amount is None) or (price is None):
+            raise ArgumentsRequired(self.id + ' editOrder() requires both amount and price arguments. If you do not want to change the amount or price, you should pass the original values')
+        request['new_quantity'] = self.amount_to_precision(symbol, amount)
+        request['new_price'] = self.price_to_precision(symbol, price)
         return self.extend(request, params)
 
     async def cancel_all_orders(self, symbol: Str = None, params={}):

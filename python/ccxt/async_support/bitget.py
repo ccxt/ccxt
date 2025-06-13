@@ -195,6 +195,7 @@ class bitget(Exchange, ImplicitAPI):
                     'convert': 'https://api.{hostname}',
                     'copy': 'https://api.{hostname}',
                     'earn': 'https://api.{hostname}',
+                    'uta': 'https://api.{hostname}',
                 },
                 'www': 'https://www.bitget.com',
                 'doc': [
@@ -309,6 +310,24 @@ class bitget(Exchange, ImplicitAPI):
                         'get': {
                             'v2/earn/loan/public/coinInfos': 2,
                             'v2/earn/loan/public/hour-interest': 2,
+                        },
+                    },
+                    'uta': {
+                        'get': {
+                            'v3/market/instruments': 1,
+                            'v3/market/tickers': 1,
+                            'v3/market/orderbook': 1,
+                            'v3/market/fills': 1,
+                            'v3/market/open-interest': 1,
+                            'v3/market/candles': 1,
+                            'v3/market/history-candles': 1,
+                            'v3/market/current-fund-rate': 1,
+                            'v3/market/history-fund-rate': 1,
+                            'v3/market/risk-reserve': 1,
+                            'v3/market/discount-rate': 1,
+                            'v3/market/margin-loans': 1,
+                            'v3/market/position-tier': 1,
+                            'v3/market/oi-limit': 2,
                         },
                     },
                 },
@@ -802,6 +821,56 @@ class bitget(Exchange, ImplicitAPI):
                     'common': {
                         'get': {
                             'v2/common/trade-rate': 2,
+                        },
+                    },
+                    'uta': {
+                        'get': {
+                            'v3/account/assets': 1,
+                            'v3/account/settings': 1,
+                            'v3/account/financial-records': 1,
+                            'v3/account/repayable-coins': 2,
+                            'v3/account/payment-coins': 2,
+                            'v3/account/convert-records': 1,
+                            'v3/account/transferable-coins': 2,
+                            'v3/account/sub-transfer-record': 4,
+                            'v3/ins-loan/transfered': 6.6667,
+                            'v3/ins-loan/symbols': 6.6667,
+                            'v3/ins-loan/risk-unit': 6.6667,
+                            'v3/ins-loan/repaid-history': 6.6667,
+                            'v3/ins-loan/product-infos': 6.6667,
+                            'v3/ins-loan/loan-order': 6.6667,
+                            'v3/ins-loan/ltv-convert': 6.6667,
+                            'v3/ins-loan/ensure-coins-convert': 6.6667,
+                            'v3/position/current-position': 1,
+                            'v3/position/history-position': 1,
+                            'v3/trade/order-info': 1,
+                            'v3/trade/unfilled-orders': 1,
+                            'v3/trade/history-orders': 1,
+                            'v3/trade/fills': 1,
+                            'v3/user/sub-list': 2,
+                            'v3/user/sub-api-list': 2,
+                        },
+                        'post': {
+                            'v3/account/set-leverage': 2,
+                            'v3/account/set-hold-mode': 2,
+                            'v3/account/repay': 4,
+                            'v3/account/transfer': 4,
+                            'v3/account/sub-transfer': 4,
+                            'v3/account/max-open-available': 4,
+                            'v3/ins-loan/bind-uid': 6.6667,
+                            'v3/trade/place-order': 2,
+                            'v3/trade/modify-order': 2,
+                            'v3/trade/cancel-order': 2,
+                            'v3/trade/place-batch': 4,
+                            'v3/trade/batch-modify-order': 2,
+                            'v3/trade/cancel-batch': 4,
+                            'v3/trade/cancel-symbol-order': 4,
+                            'v3/trade/close-positions': 4,
+                            'v3/user/create-sub': 2,
+                            'v3/user/freeze-sub': 2,
+                            'v3/user/create-sub-api': 2,
+                            'v3/user/update-sub-api': 2,
+                            'v3/user/delete-sub-api': 2,
                         },
                     },
                 },
@@ -1347,6 +1416,7 @@ class bitget(Exchange, ImplicitAPI):
                 'TONCOIN': 'TON',
             },
             'options': {
+                'uta': False,
                 'timeDifference': 0,  # the difference between system clock and Binance clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'timeframes': {
@@ -1381,10 +1451,9 @@ class bitget(Exchange, ImplicitAPI):
                         '1M': '1Mutc',
                     },
                 },
-                'fetchMarkets': [
-                    'spot',
-                    'swap',  # there is future markets but they use the same endpoints
-                ],
+                'fetchMarkets': {
+                    'types': ['spot', 'swap'],  # there is future markets but they use the same endpoints
+                },
                 'defaultType': 'spot',  # 'spot', 'swap', 'future'
                 'defaultSubType': 'linear',  # 'linear', 'inverse'
                 'createMarketBuyOrderRequiresPrice': True,
@@ -1774,13 +1843,30 @@ class bitget(Exchange, ImplicitAPI):
         https://www.bitget.com/api-doc/spot/market/Get-Symbols
         https://www.bitget.com/api-doc/contract/market/Get-All-Symbols-Contracts
         https://www.bitget.com/api-doc/margin/common/support-currencies
+        https://www.bitget.bike/api-doc/uta/public/Instruments
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.uta]: set to True to fetch markets for the unified trading account(uta), defaults to False
         :returns dict[]: an array of objects representing market data
         """
         if self.options['adjustForTimeDifference']:
             await self.load_time_difference()
-        types = self.safe_value(self.options, 'fetchMarkets', ['spot', 'swap'])
+        uta = None
+        uta, params = self.handle_option_and_params(params, 'fetchMarkets', 'uta', False)
+        if uta:
+            return await self.fetch_uta_markets(params)
+        else:
+            return await self.fetch_default_markets(params)
+
+    async def fetch_default_markets(self, params) -> List[Market]:
+        types = None
+        fetchMarketsOptions = self.safe_dict(self.options, 'fetchMarkets')
+        defaultMarkets = ['spot', 'swap']
+        if fetchMarketsOptions is not None:
+            types = self.safe_list(fetchMarketsOptions, 'types', defaultMarkets)
+        else:
+            # for backward-compatibility
+            types = self.safe_list(self.options, 'fetchMarkets', defaultMarkets)
         promises = []
         fetchMargins = False
         for i in range(0, len(types)):
@@ -1812,12 +1898,6 @@ class bitget(Exchange, ImplicitAPI):
                 self.options['isolatedMarginPairsData'] = keysList
             else:
                 markets = self.array_concat(markets, data)
-        result = []
-        for i in range(0, len(markets)):
-            result.append(self.parse_market(markets[i]))
-        return result
-
-    def parse_market(self, market: dict) -> Market:
         #
         # spot
         #
@@ -1875,146 +1955,387 @@ class bitget(Exchange, ImplicitAPI):
         #         "maintainTime": ""
         #     }
         #
-        marketId = self.safe_string(market, 'symbol')
-        quoteId = self.safe_string(market, 'quoteCoin')
-        baseId = self.safe_string(market, 'baseCoin')
-        quote = self.safe_currency_code(quoteId)
-        base = self.safe_currency_code(baseId)
-        supportMarginCoins = self.safe_value(market, 'supportMarginCoins', [])
-        settleId = None
-        if self.in_array(baseId, supportMarginCoins):
-            settleId = baseId
-        elif self.in_array(quoteId, supportMarginCoins):
-            settleId = quoteId
-        else:
-            settleId = self.safe_string(supportMarginCoins, 0)
-        settle = self.safe_currency_code(settleId)
-        symbol = base + '/' + quote
-        type = None
-        swap = False
-        spot = False
-        future = False
-        contract = False
-        pricePrecision = None
-        amountPrecision = None
-        linear = None
-        inverse = None
-        expiry = None
-        expiryDatetime = None
-        symbolType = self.safe_string(market, 'symbolType')
-        marginModes = None
-        isMarginTradingAllowed = False
-        if symbolType is None:
-            type = 'spot'
-            spot = True
+        result = []
+        for i in range(0, len(markets)):
+            market = markets[i]
+            marketId = self.safe_string(market, 'symbol')
+            quoteId = self.safe_string(market, 'quoteCoin')
+            baseId = self.safe_string(market, 'baseCoin')
+            quote = self.safe_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            supportMarginCoins = self.safe_value(market, 'supportMarginCoins', [])
+            settleId = None
+            if self.in_array(baseId, supportMarginCoins):
+                settleId = baseId
+            elif self.in_array(quoteId, supportMarginCoins):
+                settleId = quoteId
+            else:
+                settleId = self.safe_string(supportMarginCoins, 0)
+            settle = self.safe_currency_code(settleId)
+            symbol = base + '/' + quote
+            type = None
+            swap = False
+            spot = False
+            future = False
+            contract = False
+            pricePrecision = None
+            amountPrecision = None
+            linear = None
+            inverse = None
+            expiry = None
+            expiryDatetime = None
+            symbolType = self.safe_string(market, 'symbolType')
+            marginModes = None
+            isMarginTradingAllowed = False
+            if symbolType is None:
+                type = 'spot'
+                spot = True
+                pricePrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'pricePrecision')))
+                amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'quantityPrecision')))
+                hasCrossMargin = self.in_array(marketId, self.options['crossMarginPairsData'])
+                hasIsolatedMargin = self.in_array(marketId, self.options['isolatedMarginPairsData'])
+                marginModes = {
+                    'cross': hasCrossMargin,
+                    'isolated': hasIsolatedMargin,
+                }
+                isMarginTradingAllowed = hasCrossMargin or hasCrossMargin
+            else:
+                if symbolType == 'perpetual':
+                    type = 'swap'
+                    swap = True
+                    symbol = symbol + ':' + settle
+                elif symbolType == 'delivery':
+                    expiry = self.safe_integer(market, 'deliveryTime')
+                    expiryDatetime = self.iso8601(expiry)
+                    expiryParts = expiryDatetime.split('-')
+                    yearPart = self.safe_string(expiryParts, 0)
+                    dayPart = self.safe_string(expiryParts, 2)
+                    year = yearPart[2:4]
+                    month = self.safe_string(expiryParts, 1)
+                    day = dayPart[0:2]
+                    expiryString = year + month + day
+                    type = 'future'
+                    future = True
+                    symbol = symbol + ':' + settle + '-' + expiryString
+                contract = True
+                inverse = (base == settle)
+                linear = not inverse
+                priceDecimals = self.safe_integer(market, 'pricePlace')
+                amountDecimals = self.safe_integer(market, 'volumePlace')
+                priceStep = self.safe_string(market, 'priceEndStep')
+                amountStep = self.safe_string(market, 'sizeMultiplier')
+                precise = Precise(priceStep)
+                precise.decimals = max(precise.decimals, priceDecimals)
+                precise.reduce()
+                priceString = str(precise)
+                pricePrecision = self.parse_number(priceString)
+                preciseAmount = Precise(amountStep)
+                preciseAmount.decimals = max(preciseAmount.decimals, amountDecimals)
+                preciseAmount.reduce()
+                amountString = str(preciseAmount)
+                amountPrecision = self.parse_number(amountString)
+                marginModes = {
+                    'cross': True,
+                    'isolated': True,
+                }
+            status = self.safe_string_2(market, 'status', 'symbolStatus')
+            active = None
+            if status is not None:
+                active = ((status == 'online') or (status == 'normal'))
+            minCost = None
+            if quote == 'USDT':
+                minCost = self.safe_number(market, 'minTradeUSDT')
+            contractSize = 1 if contract else None
+            result.append(self.safe_market_structure({
+                'id': marketId,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'settle': settle,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': settleId,
+                'type': type,
+                'spot': spot,
+                'margin': spot and isMarginTradingAllowed,
+                'marginModes': marginModes,
+                'swap': swap,
+                'future': future,
+                'option': False,
+                'active': active,
+                'contract': contract,
+                'linear': linear,
+                'inverse': inverse,
+                'taker': self.safe_number(market, 'takerFeeRate'),
+                'maker': self.safe_number(market, 'makerFeeRate'),
+                'contractSize': contractSize,
+                'expiry': expiry,
+                'expiryDatetime': expiryDatetime,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': amountPrecision,
+                    'price': pricePrecision,
+                },
+                'limits': {
+                    'leverage': {
+                        'min': self.safe_number(market, 'minLever'),
+                        'max': self.safe_number(market, 'maxLever'),
+                    },
+                    'amount': {
+                        'min': self.safe_number_2(market, 'minTradeNum', 'minTradeAmount'),
+                        'max': self.safe_number(market, 'maxTradeAmount'),
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': minCost,
+                        'max': None,
+                    },
+                },
+                'created': self.safe_integer(market, 'launchTime'),
+                'info': market,
+            }))
+        return result
+
+    async def fetch_uta_markets(self, params) -> List[Market]:
+        subTypes = ['SPOT', 'USDT-FUTURES', 'COIN-FUTURES', 'USDC-FUTURES']
+        promises = []
+        for i in range(0, len(subTypes)):
+            promises.append(self.publicUtaGetV3MarketInstruments(self.extend(params, {
+                'category': subTypes[i],
+            })))
+        results = await asyncio.gather(*promises)
+        markets = []
+        for i in range(0, len(results)):
+            res = self.safe_dict(results, i)
+            data = self.safe_list(res, 'data', [])
+            markets = self.array_concat(markets, data)
+        #
+        # spot uta
+        #
+        #     {
+        #         "symbol": "BTCUSDT",
+        #         "category": "SPOT",
+        #         "baseCoin": "BTC",
+        #         "quoteCoin": "USDT",
+        #         "buyLimitPriceRatio": "0.05",
+        #         "sellLimitPriceRatio": "0.05",
+        #         "minOrderQty": "0.000001",
+        #         "maxOrderQty": "0",
+        #         "pricePrecision": "2",
+        #         "quantityPrecision": "6",
+        #         "quotePrecision": "8",
+        #         "minOrderAmount": "1",
+        #         "maxSymbolOrderNum": "400",
+        #         "maxProductOrderNum": "400",
+        #         "status": "online",
+        #         "maintainTime": ""
+        #     }
+        #
+        # margin uta
+        #
+        #     {
+        #         "symbol": "BTCUSDC",
+        #         "category": "MARGIN",
+        #         "baseCoin": "BTC",
+        #         "quoteCoin": "USDC",
+        #         "buyLimitPriceRatio": "0.05",
+        #         "sellLimitPriceRatio": "0.05",
+        #         "minOrderQty": "0.00001",
+        #         "maxOrderQty": "0",
+        #         "pricePrecision": "2",
+        #         "quantityPrecision": "5",
+        #         "quotePrecision": "7",
+        #         "minOrderAmount": "1",
+        #         "maxSymbolOrderNum": "400",
+        #         "maxProductOrderNum": "400",
+        #         "status": "online",
+        #         "maintainTime": "",
+        #         "isIsolatedBaseBorrowable": "NO",
+        #         "isIsolatedQuotedBorrowable": "NO",
+        #         "warningRiskRatio": "0.8",
+        #         "liquidationRiskRatio": "1",
+        #         "maxCrossedLeverage": "3",
+        #         "maxIsolatedLeverage": "0",
+        #         "userMinBorrow": "0.00000001",
+        #         "areaSymbol": "no"
+        #     }
+        #
+        # swap and future uta
+        #
+        #     {
+        #         "symbol": "BTCPERP",
+        #         "category": "USDC-FUTURES",
+        #         "baseCoin": "BTC",
+        #         "quoteCoin": "USDC",
+        #         "buyLimitPriceRatio": "0.02",
+        #         "sellLimitPriceRatio": "0.02",
+        #         "feeRateUpRatio": "0.005",
+        #         "makerFeeRate": "0.0002",
+        #         "takerFeeRate": "0.0006",
+        #         "openCostUpRatio": "0.01",
+        #         "minOrderQty": "0.0001",
+        #         "maxOrderQty": "",
+        #         "pricePrecision": "1",
+        #         "quantityPrecision": "4",
+        #         "quotePrecision": null,
+        #         "priceMultiplier": "0.5",
+        #         "quantityMultiplier": "0.0001",
+        #         "type": "perpetual",
+        #         "minOrderAmount": "5",
+        #         "maxSymbolOrderNum": "200",
+        #         "maxProductOrderNum": "1000",
+        #         "maxPositionNum": "150",
+        #         "status": "online",
+        #         "offTime": "-1",
+        #         "limitOpenTime": "-1",
+        #         "deliveryTime": "",
+        #         "deliveryStartTime": "",
+        #         "deliveryPeriod": "",
+        #         "launchTime": "",
+        #         "fundInterval": "8",
+        #         "minLeverage": "1",
+        #         "maxLeverage": "125",
+        #         "maintainTime": ""
+        #     }
+        #
+        result = []
+        for i in range(0, len(markets)):
+            market = markets[i]
+            category = self.safe_string(market, 'category')
+            marketId = self.safe_string(market, 'symbol')
+            quoteId = self.safe_string(market, 'quoteCoin')
+            baseId = self.safe_string(market, 'baseCoin')
+            quote = self.safe_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            settleId = None
+            settle = None
+            if category == 'USDT-FUTURES':
+                settleId = 'USDT'
+            elif category == 'USDC-FUTURES':
+                settleId = 'USDC'
+            elif category == 'COIN-FUTURES':
+                settleId = base
+            if settleId is not None:
+                settle = self.safe_currency_code(settleId)
+            symbol = base + '/' + quote
+            type = None
+            swap = False
+            spot = False
+            future = False
+            contract = False
+            pricePrecision = None
+            amountPrecision = None
+            linear = None
+            inverse = None
+            expiry = None
+            expiryDatetime = None
+            symbolType = self.safe_string(market, 'type')
+            marginModes = None
+            isMarginTradingAllowed = False
+            isUtaMargin = (category == 'MARGIN')
+            if isUtaMargin or (category == 'SPOT'):
+                type = 'spot'
+                spot = True
+                if isUtaMargin:
+                    isolatedBase = self.safe_string(market, 'isIsolatedBaseBorrowable')
+                    isolatedQuote = self.safe_string(market, 'isIsolatedQuotedBorrowable')
+                    isolated = (isolatedBase == 'YES') or (isolatedQuote == 'YES')
+                    maxCrossLeverage = self.safe_string(market, 'maxCrossedLeverage')
+                    cross = (maxCrossLeverage != '0')
+                    marginModes = {
+                        'cross': cross,
+                        'isolated': isolated,
+                    }
+                    isMarginTradingAllowed = True
+            else:
+                if symbolType == 'perpetual':
+                    type = 'swap'
+                    swap = True
+                    symbol = symbol + ':' + settle
+                elif symbolType == 'delivery':
+                    expiry = self.safe_integer(market, 'deliveryTime')
+                    expiryDatetime = self.iso8601(expiry)
+                    expiryParts = expiryDatetime.split('-')
+                    yearPart = self.safe_string(expiryParts, 0)
+                    dayPart = self.safe_string(expiryParts, 2)
+                    year = yearPart[2:4]
+                    month = self.safe_string(expiryParts, 1)
+                    day = dayPart[0:2]
+                    expiryString = year + month + day
+                    type = 'future'
+                    future = True
+                    symbol = symbol + ':' + settle + '-' + expiryString
+                contract = True
+                inverse = (base == settle)
+                linear = not inverse
+                marginModes = {
+                    'cross': True,
+                    'isolated': True,
+                }
             pricePrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'pricePrecision')))
             amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'quantityPrecision')))
-            hasCrossMargin = self.in_array(marketId, self.options['crossMarginPairsData'])
-            hasIsolatedMargin = self.in_array(marketId, self.options['isolatedMarginPairsData'])
-            marginModes = {
-                'cross': hasCrossMargin,
-                'isolated': hasIsolatedMargin,
-            }
-            isMarginTradingAllowed = hasCrossMargin or hasCrossMargin
-        else:
-            if symbolType == 'perpetual':
-                type = 'swap'
-                swap = True
-                symbol = symbol + ':' + settle
-            elif symbolType == 'delivery':
-                expiry = self.safe_integer(market, 'deliveryTime')
-                expiryDatetime = self.iso8601(expiry)
-                expiryParts = expiryDatetime.split('-')
-                yearPart = self.safe_string(expiryParts, 0)
-                dayPart = self.safe_string(expiryParts, 2)
-                year = yearPart[2:4]
-                month = self.safe_string(expiryParts, 1)
-                day = dayPart[0:2]
-                expiryString = year + month + day
-                type = 'future'
-                future = True
-                symbol = symbol + ':' + settle + '-' + expiryString
-            contract = True
-            inverse = (base == settle)
-            linear = not inverse
-            priceDecimals = self.safe_integer(market, 'pricePlace')
-            amountDecimals = self.safe_integer(market, 'volumePlace')
-            priceStep = self.safe_string(market, 'priceEndStep')
-            amountStep = self.safe_string(market, 'sizeMultiplier')
-            precise = Precise(priceStep)
-            precise.decimals = max(precise.decimals, priceDecimals)
-            precise.reduce()
-            priceString = str(precise)
-            pricePrecision = self.parse_number(priceString)
-            preciseAmount = Precise(amountStep)
-            preciseAmount.decimals = max(preciseAmount.decimals, amountDecimals)
-            preciseAmount.reduce()
-            amountString = str(preciseAmount)
-            amountPrecision = self.parse_number(amountString)
-            marginModes = {
-                'cross': True,
-                'isolated': True,
-            }
-        status = self.safe_string_2(market, 'status', 'symbolStatus')
-        active = None
-        if status is not None:
-            active = ((status == 'online') or (status == 'normal'))
-        minCost = None
-        if quote == 'USDT':
-            minCost = self.safe_number(market, 'minTradeUSDT')
-        contractSize = 1 if contract else None
-        return {
-            'id': marketId,
-            'symbol': symbol,
-            'base': base,
-            'quote': quote,
-            'settle': settle,
-            'baseId': baseId,
-            'quoteId': quoteId,
-            'settleId': settleId,
-            'type': type,
-            'spot': spot,
-            'margin': spot and isMarginTradingAllowed,
-            'marginModes': marginModes,
-            'swap': swap,
-            'future': future,
-            'option': False,
-            'active': active,
-            'contract': contract,
-            'linear': linear,
-            'inverse': inverse,
-            'taker': self.safe_number(market, 'takerFeeRate'),
-            'maker': self.safe_number(market, 'makerFeeRate'),
-            'contractSize': contractSize,
-            'expiry': expiry,
-            'expiryDatetime': expiryDatetime,
-            'strike': None,
-            'optionType': None,
-            'precision': {
-                'amount': amountPrecision,
-                'price': pricePrecision,
-            },
-            'limits': {
-                'leverage': {
-                    'min': self.safe_number(market, 'minLever'),
-                    'max': self.safe_number(market, 'maxLever'),
+            status = self.safe_string(market, 'status')
+            active = None
+            if status is not None:
+                active = ((status == 'online') or (status == 'normal'))
+            contractSize = 1 if contract else None
+            result.append(self.safe_market_structure({
+                'id': marketId,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'settle': settle,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': settleId,
+                'type': type,
+                'spot': spot,
+                'margin': spot and isMarginTradingAllowed,
+                'marginModes': marginModes,
+                'swap': swap,
+                'future': future,
+                'option': False,
+                'active': active,
+                'contract': contract,
+                'linear': linear,
+                'inverse': inverse,
+                'taker': self.safe_number(market, 'takerFeeRate'),
+                'maker': self.safe_number(market, 'makerFeeRate'),
+                'contractSize': contractSize,
+                'expiry': expiry,
+                'expiryDatetime': expiryDatetime,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': amountPrecision,
+                    'price': pricePrecision,
                 },
-                'amount': {
-                    'min': self.safe_number_2(market, 'minTradeNum', 'minTradeAmount'),
-                    'max': self.safe_number(market, 'maxTradeAmount'),
+                'limits': {
+                    'leverage': {
+                        'min': self.safe_number(market, 'minLeverage'),
+                        'max': self.safe_number(market, 'maxLeverage'),
+                    },
+                    'amount': {
+                        'min': self.safe_number(market, 'minOrderQty'),
+                        'max': self.safe_number(market, 'maxOrderQty'),
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
                 },
-                'price': {
-                    'min': None,
-                    'max': None,
-                },
-                'cost': {
-                    'min': minCost,
-                    'max': None,
-                },
-            },
-            'created': self.safe_integer(market, 'launchTime'),
-            'info': market,
-        }
+                'created': self.safe_integer(market, 'launchTime'),
+                'info': market,
+            }))
+        return result
 
     async def fetch_currencies(self, params={}) -> Currencies:
         """

@@ -584,6 +584,7 @@ export default class phemex extends Exchange {
                 },
                 'defaultNetworks': {
                     'USDT': 'ETH',
+                    'MKR': 'ETH',
                 },
                 'defaultSubType': 'linear',
                 'accountsByType': {
@@ -3534,6 +3535,7 @@ export default class phemex extends Exchange {
      * @description fetch the deposit address for a currency associated with this account
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] the chain name to fetch the deposit address e.g. ETH, TRX, EOS, SOL, etc.
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
      */
     async fetchDepositAddress(code, params = {}) {
@@ -3545,22 +3547,28 @@ export default class phemex extends Exchange {
         const defaultNetworks = this.safeDict(this.options, 'defaultNetworks');
         const defaultNetwork = this.safeStringUpper(defaultNetworks, code);
         const networks = this.safeDict(this.options, 'networks', {});
-        let network = this.safeStringUpper(params, 'network', defaultNetwork);
+        let network = this.safeStringUpper2(params, 'network', 'chainName', defaultNetwork);
         network = this.safeString(networks, network, network);
         if (network === undefined) {
-            request['chainName'] = currency['id'];
+            throw new ArgumentsRequired(this.id + ' fetchDepositAddress() requires a network parameter');
         }
         else {
             request['chainName'] = network;
             params = this.omit(params, 'network');
         }
-        const response = await this.privateGetPhemexUserWalletsV2DepositAddress(this.extend(request, params));
+        const response = await this.privateGetExchangeWalletsV2DepositAddress(this.extend(request, params));
+        //
         //     {
-        //         "code":0,
-        //         "msg":"OK",
-        //         "data":{
-        //             "address":"0x5bfbf60e0fa7f63598e6cfd8a7fd3ffac4ccc6ad",
-        //             "tag":null
+        //         "code": 0,
+        //         "msg": "OK",
+        //         "data": {
+        //             "address": "tb1qxel5wq5gumt",
+        //             "tag": "",
+        //             "notice": false,
+        //             "accountType": 1,
+        //             "contractName": null,
+        //             "chainTokenUrl": null,
+        //             "sign": null
         //         }
         //     }
         //

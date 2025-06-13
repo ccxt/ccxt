@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"sort"
 	"strconv"
+	"sync"
 )
 
 func (this *Exchange) SortBy(array interface{}, value1 interface{}, desc2 ...interface{}) []interface{} {
@@ -435,6 +436,55 @@ func (this *Exchange) IndexBy(a interface{}, key interface{}) map[string]interfa
 			// Handle slices of []int
 			if idx, ok := key.(int); ok && idx >= 0 && idx < len(v) {
 				outDict[fmt.Sprintf("%d", v[idx])] = v
+			}
+		}
+	}
+
+	return outDict
+}
+
+func (this *Exchange) IndexBySafe(a interface{}, key interface{}) *sync.Map {
+	outDict := &sync.Map{}
+	var targetX []interface{}
+
+	switch val := a.(type) {
+	case []interface{}:
+		targetX = val
+
+	case map[string]interface{}:
+		for _, v := range val {
+			targetX = append(targetX, v)
+		}
+
+	case *sync.Map:
+		val.Range(func(_, v interface{}) bool {
+			targetX = append(targetX, v)
+			return true
+		})
+
+	default:
+		return outDict // unsupported type
+	}
+
+	for _, elem := range targetX {
+		switch v := elem.(type) {
+		case map[string]interface{}:
+			if val, ok := v[ToString(key)]; ok {
+				outDict.Store(ToString(val), v)
+			}
+		case []interface{}:
+			if idx, ok := key.(int); ok && idx >= 0 && idx < len(v) {
+				if keyStr, ok := v[idx].(string); ok {
+					outDict.Store(keyStr, v)
+				}
+			}
+		case []string:
+			if idx, ok := key.(int); ok && idx >= 0 && idx < len(v) {
+				outDict.Store(v[idx], v)
+			}
+		case []int:
+			if idx, ok := key.(int); ok && idx >= 0 && idx < len(v) {
+				outDict.Store(fmt.Sprintf("%d", v[idx]), v)
 			}
 		}
 	}

@@ -199,6 +199,7 @@ export default class Exchange {
     streaming: {};
     alias: boolean;
     deepExtend: (...xs: any) => any;
+    deepExtendSafe: (...xs: any) => any;
     isNode: boolean;
     keys: {
         (o: object): string[];
@@ -210,6 +211,7 @@ export default class Exchange {
     flatten: (x: any[], out?: any[]) => any[];
     unique: (x: any[]) => any[];
     indexBy: (x: Dictionary<any>, k: IndexType, out?: Dictionary<any>) => Dictionary<any>;
+    indexBySafe: (x: Dictionary<any>, k: IndexType, out?: Dictionary<any>) => Dictionary<any>;
     roundTimeframe: (timeframe: string, timestamp: number, direction?: number) => number;
     sortBy: (array: any[], key: IndexType, descending?: boolean, defaultValue?: any, direction?: number) => any[];
     sortBy2: (array: any[], key1: IndexType, key2: IndexType, descending?: boolean, direction?: number) => any[];

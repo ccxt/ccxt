@@ -864,17 +864,9 @@ export default class kraken extends krakenRest {
             for (let i = 0; i < this.symbols.length; i++) {
                 const symbol = this.symbols[i];
                 const market = this.markets[symbol];
-                if (market['darkpool']) {
-                    const info = this.safeValue(market, 'info', {});
-                    const altname = this.safeString(info, 'altname');
-                    const wsName = altname.slice(0, 3) + '/' + altname.slice(3);
-                    marketsByWsName[wsName] = market;
-                }
-                else {
-                    const info = this.safeValue(market, 'info', {});
-                    const wsName = this.safeString(info, 'wsname');
-                    marketsByWsName[wsName] = market;
-                }
+                const info = this.safeValue(market, 'info', {});
+                const wsName = this.safeString(info, 'wsname');
+                marketsByWsName[wsName] = market;
             }
             this.options['marketsByWsName'] = marketsByWsName;
         }
