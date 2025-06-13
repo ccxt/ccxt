@@ -152,22 +152,22 @@ public class Throttler
     public async Task<Task> throttle(object cost2)
     {
         var cost = (cost2 != null) ? Convert.ToDouble(cost2) : Convert.ToDouble(this.config["cost"]);
+        var t = new Task(() => { });
         lock (queueLock)
         {
             if (this.queue.Count > (int)this.config["maxLimiterRequests"])
             {
                 throw new Exception("throttle queue is over maxLimiterRequests (" + this.config["maxLimiterRequests"].ToString() + "), see https://github.com/ccxt/ccxt/issues/11645#issuecomment-1195695526");
             }
-            var t = new Task(() => { });
             this.queue.Enqueue((t, cost));
-            if (!this.running)
-            {
-                this.running = true;
-                // Task.Run(() => { this.loop(); });
-                this.loop();
-            }
-            return t;
         }
+        if (!this.running)
+        {
+            this.running = true;
+            // Task.Run(() => { this.loop(); });
+            this.loop();
+        }
+        return t;
     }
 
     // move this elsewhere later
