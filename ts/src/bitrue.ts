@@ -201,12 +201,12 @@ export default class bitrue extends Exchange {
                                 'account': 25,
                                 'myTrades': 25,
                                 'etf/net-value/{symbol}': 0.24,
-                                'withdraw/history': 8640,
-                                'deposit/history': 8640,
+                                'withdraw/history': 120,
+                                'deposit/history': 120,
                             },
                             'post': {
                                 'order': 5,
-                                'withdraw/commit': 8640,
+                                'withdraw/commit': 120,
                             },
                             'delete': {
                                 'order': 5,
