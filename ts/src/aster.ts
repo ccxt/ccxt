@@ -3,7 +3,7 @@
 import Exchange from './abstract/aster.js';
 import { ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Currencies, Dict, Int, Market, OHLCV } from './base/types.js';
+import type { Currencies, Dict, Int, Market, OHLCV, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------xs
 /**
@@ -125,7 +125,7 @@ export default class aster extends Exchange {
                 'fetchMyLiquidations': false,
                 'fetchMySettlementHistory': false,
                 'fetchMyTrades': false,
-                'fetchOHLCV': false,
+                'fetchOHLCV': true,
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': false,
@@ -149,7 +149,7 @@ export default class aster extends Exchange {
                 'fetchTicker': false,
                 'fetchTickers': false,
                 'fetchTime': true,
-                'fetchTrades': false,
+                'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTradingLimits': 'emulated',
@@ -260,36 +260,14 @@ export default class aster extends Exchange {
                 'apiKey': true,
                 'secret': true,
             },
-            // 'fees': {
-            //     'trading': {
-            //         'tierBased': true,
-            //         'percentage': true,
-            //         'maker': this.parseNumber ('0.0015'),
-            //         'taker': this.parseNumber ('0.0025'),
-            //         'tiers': {
-            //             'taker': [
-            //                 [ this.parseNumber ('0'), this.parseNumber ('0.0025') ],
-            //                 [ this.parseNumber ('100000'), this.parseNumber ('0.0022') ],
-            //                 [ this.parseNumber ('500000'), this.parseNumber ('0.0020') ],
-            //                 [ this.parseNumber ('1000000'), this.parseNumber ('0.0018') ],
-            //                 [ this.parseNumber ('10000000'), this.parseNumber ('0.0015') ],
-            //                 [ this.parseNumber ('25000000'), this.parseNumber ('0.0013') ],
-            //                 [ this.parseNumber ('50000000'), this.parseNumber ('0.0012') ],
-            //                 [ this.parseNumber ('100000000'), this.parseNumber ('0.001') ],
-            //             ],
-            //             'maker': [
-            //                 [ this.parseNumber ('0'), this.parseNumber ('0.0015') ],
-            //                 [ this.parseNumber ('100000'), this.parseNumber ('0.0012') ],
-            //                 [ this.parseNumber ('500000'), this.parseNumber ('0.001') ],
-            //                 [ this.parseNumber ('1000000'), this.parseNumber ('0.0008') ],
-            //                 [ this.parseNumber ('10000000'), this.parseNumber ('0.0005') ],
-            //                 [ this.parseNumber ('25000000'), this.parseNumber ('0.0002') ],
-            //                 [ this.parseNumber ('50000000'), this.parseNumber ('0.0002') ],
-            //                 [ this.parseNumber ('100000000'), this.parseNumber ('0.00') ],
-            //             ],
-            //         },
-            //     },
-            // },
+            'fees': {
+                'trading': {
+                    'tierBased': true,
+                    'percentage': true,
+                    'maker': this.parseNumber ('0.0001'),
+                    'taker': this.parseNumber ('0.00035'),
+                },
+            },
             'options': {
             },
             'exceptions': {
@@ -449,6 +427,7 @@ export default class aster extends Exchange {
         //         }
         //     ]
         //
+        const fees = this.fees;
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -478,11 +457,11 @@ export default class aster extends Exchange {
                 'future': true,
                 'option': false,
                 'active': active,
-                'contract': false,
+                'contract': true,
                 'linear': true,
                 'inverse': undefined,
-                'taker': undefined,
-                'maker': undefined,
+                'taker': fees['trading']['taker'],
+                'maker': fees['trading']['maker'],
                 'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
@@ -617,13 +596,89 @@ export default class aster extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
+        //
+        //     {
+        //         "id": 3913206,
+        //         "price": "644.100",
+        //         "qty": "0.08",
+        //         "quoteQty": "51.528",
+        //         "time": 1749784506633,
+        //         "isBuyerMaker": true
+        //     }
+        //
+        const id = this.safeString (trade, 'id');
+        const symbol = market['symbol'];
+        const amountString = this.safeString (trade, 'qty');
+        const priceString = this.safeString (trade, 'price');
+        const costString = this.safeString (trade, 'quoteQty');
+        const timestamp = this.safeInteger (trade, 'time');
+        const isBuyerMaker = this.safeBool (trade, 'isBuyerMaker');
+        const side = isBuyerMaker ? 'sell' : 'buy';
+        return this.safeTrade ({
+            'id': id,
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'order': this.safeString (trade, 'orderId'),
+            'type': undefined,
+            'side': side,
+            'takerOrMaker': undefined,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
+            'fee': undefined,
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name aster#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#recent-trades-list
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTrades() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            if (limit > 1000) {
+                limit = 1000; // Default 500; max 1000.
+            }
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetFapiV1Trades (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "id": 3913206,
+        //             "price": "644.100",
+        //             "qty": "0.08",
+        //             "quoteQty": "51.528",
+        //             "time": 1749784506633,
+        //             "isBuyerMaker": true
+        //         }
+        //     ]
+        //
+        return this.parseTrades (response, market, since, limit);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const request = this.implodeParams (path, params);
-        const query = this.omit (params, this.extractParams (path));
-        let url = this.implodeHostname (this.urls['api']['rest']) + '/' + request;
+        let url = this.implodeHostname (this.urls['api']['rest']) + '/' + path;
         if (api === 'public') {
-            if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
+            if (Object.keys (params).length) {
+                url += '?' + this.rawencode (params);
             }
         // } else if (api === 'private') {
             //
