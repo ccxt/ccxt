@@ -32,54 +32,6 @@ public class Throttler
 
     }
 
-    private async Task rollingWindowLoop()
-    {
-        while (this.running)
-        {
-            lock (queueLock)
-            {
-                if (this.queue.Count == 0)
-                {
-                    this.running = false;
-                    continue;
-                }
-            }
-            (Task, double) first;
-            lock (queueLock)
-            {
-                first = this.queue.Peek();
-            }
-            var task = first.Item1;
-            var cost = first.Item2;
-            var now = milliseconds();
-            timestamps = timestamps.Where(t => now - t.timestamp < Convert.ToDouble(this.config["windowSize"])).ToList();
-            var totalCost = timestamps.Sum(t => t.cost);
-            if (totalCost + cost <= Convert.ToDouble(this.config["maxWeight"]))
-            {
-                timestamps.Add((now, cost));
-                await Task.Delay(0);
-                if (task != null && task.Status == TaskStatus.Created)
-                {
-                    task.Start();
-                }
-                lock (queueLock)
-                {
-                    this.queue.Dequeue();
-                    if (this.queue.Count == 0) this.running = false;
-                }
-            }
-            else
-            {
-                var earliest = timestamps[0].timestamp;
-                var waitTime = (earliest + Convert.ToDouble(this.config["windowSize"])) - now;
-                if (waitTime > 0)
-                {
-                    await Task.Delay((int)waitTime);
-                }
-            }
-        }
-    }
-
     private async Task leakyBucketLoop()
     {
         var lastTimestamp = milliseconds();
@@ -137,18 +89,6 @@ public class Throttler
 
     }
 
-    private async Task loop()
-    {
-        if (this.config["algorithm"].ToString() == "leakyBucket")
-        {
-            await leakyBucketLoop();
-        }
-        else
-        {
-            await rollingWindowLoop();
-        }
-    }
-
     public async Task<Task> throttle(object cost2)
     {
         var cost = (cost2 != null) ? Convert.ToDouble(cost2) : Convert.ToDouble(this.config["cost"]);
@@ -167,6 +107,66 @@ public class Throttler
                 this.loop();
             }
             return t;
+        }
+    }
+
+    private async Task rollingWindowLoop()
+    {
+        while (this.running)
+        {
+            lock (queueLock)
+            {
+                if (this.queue.Count == 0)
+                {
+                    this.running = false;
+                    continue;
+                }
+            }
+            (Task, double) first;
+            lock (queueLock)
+            {
+                first = this.queue.Peek();
+            }
+            var task = first.Item1;
+            var cost = first.Item2;
+            var now = milliseconds();
+            timestamps = timestamps.Where(t => now - t.timestamp < Convert.ToDouble(this.config["windowSize"])).ToList();
+            var totalCost = timestamps.Sum(t => t.cost);
+            if (totalCost + cost <= Convert.ToDouble(this.config["maxWeight"]))
+            {
+                timestamps.Add((now, cost));
+                await Task.Delay(0);
+                if (task != null && task.Status == TaskStatus.Created)
+                {
+                    task.Start();
+                }
+                lock (queueLock)
+                {
+                    this.queue.Dequeue();
+                    if (this.queue.Count == 0) this.running = false;
+                }
+            }
+            else
+            {
+                var earliest = timestamps[0].timestamp;
+                var waitTime = (earliest + Convert.ToDouble(this.config["windowSize"])) - now;
+                if (waitTime > 0)
+                {
+                    await Task.Delay((int)waitTime);
+                }
+            }
+        }
+    }
+
+    private async Task loop()
+    {
+        if (this.config["algorithm"].ToString() == "leakyBucket")
+        {
+            await leakyBucketLoop();
+        }
+        else
+        {
+            await rollingWindowLoop();
         }
     }
 
