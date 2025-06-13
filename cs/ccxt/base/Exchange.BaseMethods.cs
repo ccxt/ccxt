@@ -1439,6 +1439,7 @@ public partial class Exchange
             { "delay", 0.001 },
             { "capacity", 1 },
             { "cost", 1 },
+            { "maxCapacity", 1000 },
             { "refillRate", refillRate },
         };
         object existingBucket = ((bool) isTrue((isEqual(this.tokenBucket, null)))) ? new Dictionary<string, object>() {} : this.tokenBucket;
