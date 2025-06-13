@@ -14,9 +14,6 @@ public partial class Exchange
             { "countries", null },
             { "enableRateLimit", true },
             { "rateLimit", 2000 },
-            { "rateLimiterAlgorithm", "leakyBucket" },  // rollingWindow or leakyBucket
-            { "maxLimiterRequests", 1000 },
-            { "rollingWindowSize", 60000 },
             { "timeout", this.timeout },
             { "certified", false },
             { "pro", false },
