@@ -4,7 +4,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var prng4 = require('./prng4.js');
 
-// ----------------------------------------------------------------------------
+// Random number generator - requires a PRNG backend, e.g. prng4.js
 let rng_state;
 let rng_pool = null;
 let rng_pptr;

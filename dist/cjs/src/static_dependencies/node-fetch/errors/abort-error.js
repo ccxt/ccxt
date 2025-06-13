@@ -4,7 +4,6 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var base = require('./base.js');
 
-// ----------------------------------------------------------------------------
 /**
  * AbortError interface for cancelled requests
  */

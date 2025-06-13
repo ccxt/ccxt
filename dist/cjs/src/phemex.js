@@ -3532,6 +3532,7 @@ class phemex extends phemex$1 {
      * @description fetch the deposit address for a currency associated with this account
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] the chain name to fetch the deposit address e.g. ETH, TRX, EOS, SOL, etc.
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
      */
     async fetchDepositAddress(code, params = {}) {
@@ -3543,10 +3544,10 @@ class phemex extends phemex$1 {
         const defaultNetworks = this.safeDict(this.options, 'defaultNetworks');
         const defaultNetwork = this.safeStringUpper(defaultNetworks, code);
         const networks = this.safeDict(this.options, 'networks', {});
-        let network = this.safeStringUpper(params, 'network', defaultNetwork);
+        let network = this.safeStringUpper2(params, 'network', 'chainName', defaultNetwork);
         network = this.safeString(networks, network, network);
         if (network === undefined) {
-            request['chainName'] = currency['id'];
+            throw new errors.ArgumentsRequired(this.id + ' fetchDepositAddress() requires a network parameter');
         }
         else {
             request['chainName'] = network;

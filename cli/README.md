@@ -65,7 +65,7 @@ export BINANCE_SECRET=your_secret
 
 ### Config files
 
-Inside `$CACHE/ccxt/config.json` you can add an object with the `exchangeId` as the key and apikeys/options inside.
+Inside `$CACHE/ccxt-cli/config.json` you can add an object with the `exchangeId` as the key and apikeys/options inside.
 
 ```Json
 {
