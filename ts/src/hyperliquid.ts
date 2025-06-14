@@ -1402,6 +1402,7 @@ export default class hyperliquid extends Exchange {
      * @param {bool} [params.postOnly] true or false whether the order is post-only
      * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @param {float} [params.triggerDirection] "ascending" or "descending" (see https://docs.ccxt.com/#/?id=trigger-direction)
      * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
      * @param {string} [params.slippage] the slippage for market order
      * @param {string} [params.vaultAddress] the vault address for order
@@ -1505,14 +1506,15 @@ export default class hyperliquid extends Exchange {
             }
             let timeInForce = this.safeStringLower (orderParams, 'timeInForce', defaultTimeInForce);
             timeInForce = this.capitalize (timeInForce);
-            let triggerPrice = this.safeString2 (orderParams, 'triggerPrice', 'stopPrice');
-            const stopLossPrice = this.safeString (orderParams, 'stopLossPrice', triggerPrice);
+            const triggerPrice = this.safeString2 (orderParams, 'triggerPrice', 'stopPrice');
+            const isTrigger = (triggerPrice !== undefined);
+            const stopLossPrice = this.safeString (orderParams, 'stopLossPrice');
             const takeProfitPrice = this.safeString (orderParams, 'takeProfitPrice');
-            const isTrigger = (stopLossPrice || takeProfitPrice);
+            const isProtective = (stopLossPrice || takeProfitPrice);
             let px = undefined;
             if (isMarket) {
                 if (price === undefined) {
-                    throw new ArgumentsRequired (this.id + '  market orders require price to calculate the max slippage price. Default slippage can be set in options (default is 5%).');
+                    throw new ArgumentsRequired (this.id + ' market orders require price to calculate the max slippage price. Default slippage can be set in options (default is 5%).');
                 }
                 px = (isBuy) ? Precise.stringMul (price, Precise.stringAdd ('1', slippage)) : Precise.stringMul (price, Precise.stringSub ('1', slippage));
                 px = this.priceToPrecision (symbol, px); // round after adding slippage
@@ -1522,25 +1524,40 @@ export default class hyperliquid extends Exchange {
             const sz = this.amountToPrecision (symbol, amount);
             const reduceOnly = this.safeBool (orderParams, 'reduceOnly', false);
             const orderType: Dict = {};
-            if (isTrigger) {
+            if (isProtective) {
                 let isTp = false;
+                let tpslTriggerPrice = undefined;
                 if (takeProfitPrice !== undefined) {
-                    triggerPrice = this.priceToPrecision (symbol, takeProfitPrice);
+                    tpslTriggerPrice = this.priceToPrecision (symbol, takeProfitPrice);
                     isTp = true;
                 } else {
-                    triggerPrice = this.priceToPrecision (symbol, stopLossPrice);
+                    tpslTriggerPrice = this.priceToPrecision (symbol, stopLossPrice);
                 }
                 orderType['trigger'] = {
                     'isMarket': isMarket,
-                    'triggerPx': triggerPrice,
+                    'triggerPx': tpslTriggerPrice,
                     'tpsl': (isTp) ? 'tp' : 'sl',
+                };
+            } else if (isTrigger) {
+                let triggerDirection = undefined;
+                [ triggerDirection, params ] = this.handleTriggerDirectionAndParams (orderParams, 'tpsl');
+                let flagTp = undefined;
+                if (isBuy) {
+                    flagTp = (triggerDirection === 'ascending') ? 'sl' : 'tp';
+                } else {
+                    flagTp = (triggerDirection === 'ascending') ? 'tp' : 'sl';
+                }
+                orderType['trigger'] = {
+                    'isMarket': isMarket,
+                    'triggerPx': this.priceToPrecision (symbol, triggerPrice),
+                    'tpsl': flagTp,
                 };
             } else {
                 orderType['limit'] = {
                     'tif': timeInForce,
                 };
             }
-            orderParams = this.omit (orderParams, [ 'clientOrderId', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce', 'client_id', 'reduceOnly', 'postOnly' ]);
+            orderParams = this.omit (orderParams, [ 'clientOrderId', 'slippage', 'triggerPrice', 'triggerDirection', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce', 'client_id', 'reduceOnly', 'postOnly' ]);
             const orderObj: Dict = {
                 'a': this.parseToInt (market['baseId']),
                 'b': isBuy,
