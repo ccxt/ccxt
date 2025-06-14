@@ -132,7 +132,7 @@ public class Throttler
                     continue;
                 }
                 var earliest = timestamps[0].timestamp;
-                var waitTime = (earliest + Convert.ToDouble(this.config["windowSize"])) - now;
+                var waitTime = (earliest + windowSize) - now;
                 if (waitTime > 0)
                 {
                     await Task.Delay((int)waitTime);
