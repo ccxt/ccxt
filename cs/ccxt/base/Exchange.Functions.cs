@@ -28,6 +28,34 @@ public partial class Exchange
         return outDict;
     }
 
+    public List<string> sort(object inputListObj)
+    {
+        var sortedList = new List<string>();
+
+        if (inputListObj is IList<string> stringList)
+        {
+            sortedList.AddRange(stringList);
+        }
+        else if (inputListObj is IList<object> objectList)
+        {
+            foreach (var item in objectList)
+            {
+                if (item is string str)
+                {
+                    sortedList.Add(str);
+                }
+            }
+        }
+        else
+        {
+            // Unsupported type; return empty list
+            return sortedList;
+        }
+
+        sortedList.Sort();
+        return sortedList;
+    }
+
 
     public object omit(object a, params object[] parameters)
     {

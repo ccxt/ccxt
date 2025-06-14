@@ -835,6 +835,12 @@ class Exchange {
         return $result;
     }
 
+    public static function sort($array) {
+        $result = $array;
+        sort($result);
+        return $result;
+    }
+
     public static function extract_params($string) {
         if (preg_match_all('/{([\w-]+)}/u', $string, $matches)) {
             return $matches[1];
@@ -931,7 +937,7 @@ class Exchange {
         return preg_replace('/%5B\d*%5D/', '', $this->urlencode($array));
     }
 
-    public function rawencode($array) {
+    public function rawencode($array, $sort = false) {
         return urldecode($this->urlencode($array));
     }
 
