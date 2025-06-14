@@ -1592,7 +1592,7 @@ class bingx extends Exchange {
             //        )
             //    }
             //
-            $data = $this->safe_list($response, 'data', array());
+            $data = $this->safe_dict($response, 'data');
             return $this->parse_funding_rate($data, $market);
         }) ();
     }

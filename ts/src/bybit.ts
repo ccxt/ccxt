@@ -3821,7 +3821,10 @@ export default class bybit extends Exchange {
         if (!market['spot']) {
             throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
-        return await this.createOrder (symbol, 'market', 'buy', cost, 1, params);
+        const req = {
+            'cost': cost,
+        };
+        return await this.createOrder (symbol, 'market', 'buy', -1, undefined, this.extend (req, params));
     }
 
     /**
@@ -3845,7 +3848,10 @@ export default class bybit extends Exchange {
         if (!market['spot']) {
             throw new NotSupported (this.id + ' createMarketSellOrderWithCost() supports spot orders only');
         }
-        return await this.createOrder (symbol, 'market', 'sell', cost, 1, params);
+        const req = {
+            'cost': cost,
+        };
+        return await this.createOrder (symbol, 'market', 'sell', -1, undefined, this.extend (req, params));
     }
 
     /**
@@ -4072,7 +4078,7 @@ export default class bybit extends Exchange {
                 if ((price === undefined) && (cost === undefined)) {
                     throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
                 } else {
-                    const quoteAmount = Precise.stringMul (amountString, priceString);
+                    const quoteAmount = Precise.stringMul (this.numberToString (amount), priceString);
                     const costRequest = (cost !== undefined) ? cost : quoteAmount;
                     request['qty'] = this.getCost (symbol, costRequest);
                 }

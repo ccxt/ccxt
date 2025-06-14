@@ -6,6 +6,7 @@ var number = require('./number.js');
 var type = require('./type.js');
 var errors = require('../errors.js');
 
+// ----------------------------------------------------------------------------
 //-------------------------------------------------------------------------
 // converts timeframe to seconds
 const parseTimeframe = (timeframe) => {

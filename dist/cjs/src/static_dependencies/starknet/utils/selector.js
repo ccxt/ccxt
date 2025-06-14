@@ -7,6 +7,7 @@ var constants = require('../constants.js');
 var encode = require('./encode.js');
 var num = require('./num.js');
 
+// ----------------------------------------------------------------------------
 /**
  * Calculate hex-string keccak hash for a given string
  *
