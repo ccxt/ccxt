@@ -1561,7 +1561,7 @@ class bingx extends bingx$1 {
         //        ]
         //    }
         //
-        const data = this.safeList(response, 'data', []);
+        const data = this.safeDict(response, 'data');
         return this.parseFundingRate(data, market);
     }
     /**
