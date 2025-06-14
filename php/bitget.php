@@ -2103,9 +2103,10 @@ class bitget extends Exchange {
         $subTypes = array( 'SPOT', 'USDT-FUTURES', 'COIN-FUTURES', 'USDC-FUTURES' );
         $promises = array();
         for ($i = 0; $i < count($subTypes); $i++) {
-            $promises[] = $this->publicUtaGetV3MarketInstruments ($this->extend($params, array(
+            $req = $this->extend($params, array(
                 'category' => $subTypes[$i],
-            )));
+            ));
+            $promises[] = $this->publicUtaGetV3MarketInstruments ($req);
         }
         $results = $promises;
         $markets = array();
