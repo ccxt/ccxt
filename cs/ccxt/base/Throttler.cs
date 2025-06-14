@@ -54,7 +54,7 @@ public class Throttler
             var task = first.Item1;
             var cost = first.Item2;
             var floatTokens = Convert.ToDouble(this.config["tokens"]);
-            if (floatTokens >= cost)
+            if (floatTokens >= 0)
             {
                 this.config["tokens"] = floatTokens - cost;
                 await Task.Delay(0);
