@@ -1614,7 +1614,7 @@ public partial class bingx : Exchange
         //        ]
         //    }
         //
-        object data = this.safeList(response, "data", new List<object>() {});
+        object data = this.safeDict(response, "data");
         return this.parseFundingRate(data, market);
     }
 
