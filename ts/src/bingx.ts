@@ -5833,11 +5833,12 @@ export default class bingx extends Exchange {
     }
 
     parseParams (params) {
-        const sortedParams = this.keysort (params);
-        const keys = Object.keys (sortedParams);
+        // const sortedParams = this.keysort (params);
+        const rawKeys = Object.keys (params);
+        const keys = this.sort (rawKeys);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const value = sortedParams[key];
+            const value = params[key];
             if (Array.isArray (value)) {
                 let arrStr = '[';
                 for (let j = 0; j < value.length; j++) {
@@ -5848,10 +5849,10 @@ export default class bingx extends Exchange {
                     arrStr += arrayElement.toString ();
                 }
                 arrStr += ']';
-                sortedParams[key] = arrStr;
+                params[key] = arrStr;
             }
         }
-        return sortedParams;
+        return params;
     }
 
     /**
