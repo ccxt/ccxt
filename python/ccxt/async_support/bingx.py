@@ -1534,7 +1534,7 @@ class bingx(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        data = self.safe_list(response, 'data', [])
+        data = self.safe_dict(response, 'data')
         return self.parse_funding_rate(data, market)
 
     async def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
