@@ -28,6 +28,14 @@ public partial class Exchange
         return outDict;
     }
 
+    public List<string> sort(object inputListObj)
+    {
+        var inputList = (IList<string>)inputListObj;
+        var sortedList = new List<string>(inputList);
+        sortedList.Sort();
+        return sortedList;
+    }
+
 
     public object omit(object a, params object[] parameters)
     {

@@ -66,6 +66,28 @@ func (this *Exchange) Keysort(parameters2 interface{}) map[string]interface{} {
 	return outDict
 }
 
+
+func (this *Exchange) Sort(input interface{}) []string {
+	var list []string
+
+	switch v := input.(type) {
+	case []string:
+		list = append([]string{}, v...) // Copy to avoid modifying the original
+	case []interface{}:
+		for _, item := range v {
+			if str, ok := item.(string); ok {
+				list = append(list, str)
+			}
+		}
+	default:
+		// Unsupported type
+		return []string{}
+	}
+
+	sort.Strings(list)
+	return list
+}
+
 // omit removes specified keys from a map.
 // func (this *Exchange) Omit(a interface{}, parameters ...interface{}) interface{} {
 // 	if len(parameters) == 1 {

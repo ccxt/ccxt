@@ -835,6 +835,12 @@ class Exchange {
         return $result;
     }
 
+    public static function sort($array) {
+        $result = $array;
+        sort($result);
+        return $result;
+    }
+
     public static function extract_params($string) {
         if (preg_match_all('/{([\w-]+)}/u', $string, $matches)) {
             return $matches[1];
