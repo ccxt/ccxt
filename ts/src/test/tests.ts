@@ -130,7 +130,7 @@ class testMainClass {
     checkIfSpecificTestIsChosen (methodArgv) {
         if (methodArgv !== undefined) {
             const testFileNames = Object.keys (this.testFiles);
-            const possibleMethodNames = methodArgv.split (','); // i.e. `test.ts binance fetchBalance,fetchDeposits`
+            const possibleMethodNames = methodArgv.split (','); // i.e. `test.ts binance fetchBalance(),fetchDeposits()`
             if (possibleMethodNames.length >= 1) {
                 for (let i = 0; i < testFileNames.length; i++) {
                     const testFileName = testFileNames[i];
@@ -246,14 +246,6 @@ class testMainClass {
     }
 
     async testMethod (methodName: string, exchange: any, args: any[], isPublic: boolean) {
-        // todo: temporary skip for c#
-        if (methodName.indexOf ('OrderBook') >= 0 && this.ext === 'cs') {
-            exchange.options['checksum'] = false;
-        }
-        // todo: temporary skip for php
-        if (methodName.indexOf ('OrderBook') >= 0 && this.ext === 'php') {
-            return true;
-        }
         const skippedPropertiesForMethod = this.getSkips (exchange, methodName);
         const isLoadMarkets = (methodName === 'loadMarkets');
         const isFetchCurrencies = (methodName === 'fetchCurrencies');
