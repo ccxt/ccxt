@@ -6477,13 +6477,14 @@ export default class bingx extends Exchange {
     }
 
     customEncode (params) {
-        const sortedParams = this.keysort (params);
-        const keys = Object.keys (sortedParams);
+        // const sortedParams = this.keysort (params);
+        const rawKeys = Object.keys (params);
+        const keys = this.sort (rawKeys);
         let adjustedValue = undefined;
         let result = undefined;
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            let value = sortedParams[key];
+            let value = params[key];
             if (Array.isArray (value)) {
                 let arrStr = undefined;
                 for (let j = 0; j < value.length; j++) {
