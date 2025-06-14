@@ -239,7 +239,7 @@ public partial class Exchange
         return packer.Pack(data);
     }
 
-    public string rawencode(object paramaters, object sort = null)
+    public string rawencode(object paramaters1, object sort = null)
     {
         var paramaters = (dict)paramaters1;
         var keys = new List<string>(((dict)paramaters).Keys);
