@@ -429,12 +429,69 @@ function createExchangeClasses() {
     fs.appendFileSync(swiftExchangesFile, exchangeDeclarations.join("\n"), "utf8");
 }
 
+function getIExchangeMethodNames(): string[] {
+    // TODO: remove once all the methods are on the go interface
+    const goInterfaceFile = '../go/v4/exchange_interface.go';
+    const src = fs.readFileSync(goInterfaceFile, 'utf8');
+
+    // Greedy match!
+    const interfaceMatch = src.match(/type\s+IExchange\s+interface\s*\{([\s\S]*)\}/);
+    if (!interfaceMatch) {
+        throw new Error('Could not find IExchange interface in exchange_interface.go');
+    }
+
+    const interfaceBody = interfaceMatch[1];
+
+    // Match lines like: MethodName(...)
+    const methodRegex = /^\s*(\w+)\s*\(/gm;
+
+    const methods: string[] = [];
+    let match;
+    while ((match = methodRegex.exec(interfaceBody)) !== null) {
+        const methodName = match[1];
+        if (![
+            // TODO: these methods don't have the right number of arguments, fix the arguments or make a better solution
+            'FetchFundingRates',
+            'FetchFundingIntervals',
+            'FetchLeverages',
+            'EditOrder',
+            'FetchDepositWithdrawFees',
+            'FetchOrder',
+            'CancelOrder',
+            'FetchDepositsWithdrawals',
+            'FetchPositionsHistory',
+        ].includes(methodName)) {
+            const methodNameLower = methodName.charAt(0).toLowerCase() + methodName.slice(1);
+            methods.push(methodNameLower);
+        }
+    }
+
+    return methods;
+}
+
+
+function filterHeadersByIExchange(headers: [string, string][]): [string, string][] {
+    // TODO: remove once all the methods are on the go interface
+    const iExchangeMethods = new Set(getIExchangeMethodNames());
+
+    return headers.filter(([methodHeader, _returnType]) => {
+        // Extract method name from methodHeader: "MethodName(args)"
+        const match = methodHeader.match(/^(\w+)\s*\(/);
+        if (!match) {
+            return false;
+        }
+
+        const methodName = match[1];
+        return iExchangeMethods.has(methodName);
+    });
+}
+
 function main() {
 
     createSwiftTypes();
     createExchangeClasses();
     
-    const methods = getMethodHeaders();
+    const methods = filterHeadersByIExchange(getMethodHeaders());
     const injectAfterString = '// METHODS BELOW THIS LINE ARE TRANSPILED';
     const injectAfterRegex = new RegExp(`(${injectAfterString})([\\s\\S]*)`, 'm');
     const swiftMethodDeclarations: string[] = [];
