@@ -336,6 +336,7 @@ export default class Exchange {
     enableRateLimit: boolean = undefined;
 
     httpExceptions = undefined
+    marketsCache = {}
 
     limits: {
         amount?: MinMax,
@@ -1011,17 +1012,34 @@ export default class Exchange {
             }
             return this.markets
         }
-        let currencies = undefined
+        let currencies = undefined;
+        let markets = undefined;
         // only call if exchange API provides endpoint (true), thus avoid emulated versions ('emulated')
-        if (this.has['fetchCurrencies'] === true) {
-            currencies = await this.fetchCurrencies ()
-            this.options['cachedCurrencies'] = currencies;
+        const cacheEnabled = this.safeBool (this.marketsCache, 'enable', false);
+        if (cacheEnabled) {
+            const getter = this.marketsCache['getter'];
+            const values = await getter('ccxt_' + this.id + '_markets_and_currencies');
+            if (values) {
+                markets = values.markets;
+                currencies = values.currencies;
+            }
         }
-        const markets = await this.fetchMarkets (params);
-        if ('cachedCurrencies' in this.options) {
-            delete this.options['cachedCurrencies'];
+        if (markets === undefined) {
+            if (this.has['fetchCurrencies'] === true) {
+                currencies = await this.fetchCurrencies ();
+                this.options['cachedCurrencies'] = currencies;
+            }
+            markets = await this.fetchMarkets (params);
+            if ('cachedCurrencies' in this.options) {
+                delete this.options['cachedCurrencies'];
+            }
+            // write new cache
+            if (cacheEnabled) {
+                const setter = this.marketsCache['setter'];
+                await setter('ccxt_' + this.id + '_markets_and_currencies', {markets:markets, currencies:currencies, timestamp: this.milliseconds ()});
+            }
         }
-        return this.setMarkets (markets, currencies)
+        return this.setMarkets (markets, currencies);
     }
 
     /**
