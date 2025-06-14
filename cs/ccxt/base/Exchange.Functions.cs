@@ -30,8 +30,28 @@ public partial class Exchange
 
     public List<string> sort(object inputListObj)
     {
-        var inputList = (IList<string>)inputListObj;
-        var sortedList = new List<string>(inputList);
+        var sortedList = new List<string>();
+
+        if (inputListObj is IList<string> stringList)
+        {
+            sortedList.AddRange(stringList);
+        }
+        else if (inputListObj is IList<object> objectList)
+        {
+            foreach (var item in objectList)
+            {
+                if (item is string str)
+                {
+                    sortedList.Add(str);
+                }
+            }
+        }
+        else
+        {
+            // Unsupported type; return empty list
+            return sortedList;
+        }
+
         sortedList.Sort();
         return sortedList;
     }
