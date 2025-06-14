@@ -6556,7 +6556,7 @@ export default class bingx extends Exchange {
                 encodeRequest = this.customEncode (params);
             } else {
                 parsedParams = this.parseParams (params);
-                encodeRequest = this.rawencode (parsedParams);
+                encodeRequest = this.rawencode (parsedParams, true);
             }
             const signature = this.hmac (this.encode (encodeRequest), this.encode (this.secret), sha256);
             headers = {
@@ -6568,7 +6568,7 @@ export default class bingx extends Exchange {
                 params['signature'] = signature;
                 body = this.json (params);
             } else {
-                const query = this.urlencode (parsedParams);
+                const query = this.urlencode (parsedParams, true);
                 url += '?' + query + '&' + 'signature=' + signature;
             }
         }

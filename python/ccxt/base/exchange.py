@@ -1046,7 +1046,7 @@ class Exchange(object):
         return _urlencode.urlencode(result, quote_via=_urlencode.quote)
 
     @staticmethod
-    def rawencode(params={}):
+    def rawencode(params={}, sort = False):
         return _urlencode.unquote(Exchange.urlencode(params))
 
     @staticmethod

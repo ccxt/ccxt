@@ -937,7 +937,7 @@ class Exchange {
         return preg_replace('/%5B\d*%5D/', '', $this->urlencode($array));
     }
 
-    public function rawencode($array) {
+    public function rawencode($array, $sort = false) {
         return urldecode($this->urlencode($array));
     }
 
