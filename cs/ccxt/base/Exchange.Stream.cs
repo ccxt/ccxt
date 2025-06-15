@@ -36,9 +36,17 @@ public partial class Exchange
     {
         return async (Message message) =>
         {
-            var error = message.error as dict;
-            if (error != null) {
-                await this.streamReconnect();
+            var error = message.payload;
+            if (error != null && !(message.error is ExchangeClosedByUser) && !(message.error is ConsumerFunctionError))
+            {
+                try
+                {
+                    await this.streamReconnect();
+                }
+                catch (Exception e)
+                {
+                    this.log(add("Failed to reconnect to stream: ", ((object)e).ToString()));
+                }
             }
         };
     }

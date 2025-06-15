@@ -138,7 +138,8 @@ import {
     , RateLimitExceeded,
     BadRequest,
     ExchangeClosedByUser,
-    UnsubscribeError} from "./errors.js"
+    UnsubscribeError,
+    ConsumerFunctionError} from "./errors.js"
 
 import { Precise } from './Precise.js'
 
@@ -1509,11 +1510,11 @@ export default class Exchange {
     streamReconnectOnError () {
         const callback = async (message: Message) => {
             const error = message.payload;
-            if (error !== undefined && !(message.error instanceof ExchangeClosedByUser)) {
+            if (error !== undefined && !(message.error instanceof ExchangeClosedByUser) && !(message.error instanceof ConsumerFunctionError)) {
                 try{
                     await this.streamReconnect ();
                 } catch (e) {
-                    console.log ('Failed to reconnect to stream: ', e);
+                    this.log ('Failed to reconnect to stream: ', e);
                 }
             }
         }

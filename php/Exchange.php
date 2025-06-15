@@ -2209,11 +2209,11 @@ class Exchange {
 
     public function stream_reconnect_on_error() {
         return function(Message $message) {
-            if ($message->error) {
+            if ($message->error && !($message->error instanceof ExchangeClosedByUser) && !($message->error instanceof \ccxt\pro\ConsumerFunctionError)) {
                 try {
                     $this->stream_reconnect();
                 } catch (Exception $e) {
-                    $this->log ("Stream failed to reconnect: ", $e);
+                    $this->log("Stream failed to reconnect: ", $e);
                 }
             }
         };
@@ -2317,6 +2317,63 @@ class Exchange {
     // ########################################################################
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function setup_stream() {
+        /**
+         * @ignore
+         * setup the $stream object $options and create subscriptions so the streams of multiple symbols publish to the individual ones
+         */
+        $stream = $this->stream;
+        if ($this->stream === null) {
+            return;
+        }
+        $stream->subscribe ('tickers', $this->stream_to_symbol('tickers'), true);
+        $stream->subscribe ('orderbooks', $this->stream_to_symbol('orderbooks'), true);
+        $stream->subscribe ('orders', $this->stream_to_symbol('orders'), true);
+        $stream->subscribe ('positions', $this->stream_to_symbol('positions'), true);
+        $stream->subscribe ('trades', $this->stream_to_symbol('trades'), true);
+        $stream->subscribe ('myTrades', $this->stream_to_symbol('myTrades'), true);
+        $stream->subscribe ('ohlcvs', $this->stream_ohlcvs(), true);
+        $stream->subscribe ('liquidations', $this->stream_to_symbol('liquidations'), true);
+        $stream->subscribe ('myLiquidations', $this->stream_to_symbol('myLiquidations'), true);
+        $options = $this->safe_dict($this->options, 'streaming', array());
+        $reconnect = $this->safe_bool($options, 'autoreconnect', true);
+        if ($reconnect) {
+            $stream->subscribe ('errors', $this->stream_reconnect_on_error(), true);
+        }
+    }
+
+    public function stream_produce(string $topic, mixed $payload = null, mixed $error = null) {
+        /**
+         * @ignore
+         * produce a message to a $topic of the $stream
+         * @return array(bool | null)
+         */
+        $stream = $this->stream;
+        $stream->produce ($topic, $payload, $error);
+    }
+
+    public function stream_reconnect() {
+        /**
+         * @ignore
+         * Calls all watchFunctions that were being used.
+         * @return array(bool | null)
+         */
+        if ($this->verbose) {
+            $this->log('Stream reconnecting active watch functions');
+        }
+        $stream = $this->stream;
+        $activeFunctions = $stream->active_watch_functions;
+        $tasks = array();
+        for ($i = 0; $i < count($activeFunctions); $i++) {
+            $activeFunction = $activeFunctions[$i];
+            $method = $this->safe_string($activeFunction, 'method');
+            $args = $this->safe_list($activeFunction, 'args');
+            $future = $this->spawn($this->$method, ...$args);
+            $tasks[] = $future;
+        }
+        return Promise\all($tasks);
+    }
 
     public function describe(): mixed {
         return array(
@@ -3091,7 +3148,7 @@ class Exchange {
             $stream->subscribe ('liquidations::' . $symbol, $callback, $synchronous);
         }
         $stream->add_watch_function('liquidations', array( $symbol, null, null, $params ));
-        $this->watch_liquidations($symbol, null, null, $params);
+        return $this->watch_liquidations($symbol, null, null, $params);
     }
 
     public function watch_liquidations_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -3118,7 +3175,7 @@ class Exchange {
             }
         }
         $stream->add_watch_function('watchLiquidationsForSymbols', array( $symbols, null, null, $params ));
-        $this->watch_trades_for_symbols($symbols, null, null, $params);
+        return $this->watch_trades_for_symbols($symbols, null, null, $params);
     }
 
     public function watch_my_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -3150,7 +3207,7 @@ class Exchange {
             $stream->subscribe ('trades::' . $symbol, $callback, $synchronous);
         }
         $stream->add_watch_function('watchTrades', array( $symbol, null, null, $params ));
-        $this->watch_trades($symbol, null, null, $params);
+        return $this->watch_trades($symbol, null, null, $params);
     }
 
     public function un_watch_trades(string $symbol, $params = array ()) {
@@ -3181,7 +3238,7 @@ class Exchange {
             }
         }
         $stream->add_watch_function('watchTradesForSymbols', array( $symbols, null, null, $params ));
-        $this->watch_trades_for_symbols($symbols, null, null, $params);
+        return $this->watch_trades_for_symbols($symbols, null, null, $params);
     }
 
     public function un_watch_trades_for_symbols(array $symbols, $params = array ()) {
@@ -3213,7 +3270,7 @@ class Exchange {
             }
         }
         $stream->add_watch_function('watchMyTradesForSymbols', array( $symbols, null, null, $params ));
-        $this->watch_my_trades_for_symbols($symbols, null, null, $params);
+        return $this->watch_my_trades_for_symbols($symbols, null, null, $params);
     }
 
     public function watch_orders_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -3240,7 +3297,7 @@ class Exchange {
             }
         }
         $stream->add_watch_function('watchOrdersForSymbols', array( $symbols, null, null, $params ));
-        $this->watch_orders_for_symbols($symbols, null, null, $params);
+        return $this->watch_orders_for_symbols($symbols, null, null, $params);
     }
 
     public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -3268,7 +3325,7 @@ class Exchange {
             }
         }
         $stream->add_watch_function('watchOHLCVForSymbols', array( $symbolsAndTimeframes, null, null, $params ));
-        $this->watch_ohlcv_for_symbols($symbolsAndTimeframes, null, null, $params);
+        return $this->watch_ohlcv_for_symbols($symbolsAndTimeframes, null, null, $params);
     }
 
     public function un_watch_ohlcv_for_symbols(array $symbolsAndTimeframes, $params = array ()) {
@@ -3300,7 +3357,7 @@ class Exchange {
             }
         }
         $stream->add_watch_function('watchOrderBookForSymbols', array( $symbols, null, $params ));
-        $this->watch_order_book_for_symbols($symbols, null, $params);
+        return $this->watch_order_book_for_symbols($symbols, null, $params);
     }
 
     public function un_watch_order_book_for_symbols(array $symbols, $params = array ()) {
@@ -3359,7 +3416,7 @@ class Exchange {
          * @param {boolean} $synchronous if set to true, the $callback will wait to finish before passing next message
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
          */
-        $this->subscribe_order_book_for_symbols(array( $symbol ), $callback, $synchronous, $params);
+        return $this->subscribe_order_book_for_symbols(array( $symbol ), $callback, $synchronous, $params);
     }
 
     public function un_watch_order_book(string $symbol, $params = array ()) {
@@ -4880,7 +4937,7 @@ class Exchange {
             $stream->subscribe ('ohlcvs::' . $symbol . '::' . $timeframe, $callback, $synchronous);
         }
         $stream->add_watch_function('watchOHLCV', array( $symbol, $timeframe, null, null, $params ));
-        $this->watch_ohlcv($symbol, $timeframe, null, null, $params);
+        return $this->watch_ohlcv($symbol, $timeframe, null, null, $params);
     }
 
     public function convert_trading_view_to_ohlcv(array $ohlcvs, $timestamp = 't', $open = 'o', $high = 'h', $low = 'l', $close = 'c', $volume = 'v', $ms = false) {
@@ -5758,7 +5815,7 @@ class Exchange {
             $stream->subscribe ('positions::' . $symbol, $callback, $synchronous);
         }
         $stream->add_watch_function('watchPosition', array( $symbol, null, $params ));
-        $this->watch_position($symbol, $params);
+        return $this->watch_position($symbol, $params);
     }
 
     public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -5778,7 +5835,7 @@ class Exchange {
                 }
             }
         }
-        $this->watch_positions($symbols, null, null, $params);
+        return $this->watch_positions($symbols, null, null, $params);
     }
 
     public function watch_position_for_symbols(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -5786,7 +5843,7 @@ class Exchange {
     }
 
     public function subscribe_position_for_symbols(?array $symbols = null, mixed $callback = null, bool $synchronous = true, $params = array ()) {
-        $this->subscribe_positions($symbols, $callback, $synchronous, $params);
+        return $this->subscribe_positions($symbols, $callback, $synchronous, $params);
     }
 
     public function fetch_positions_for_symbol(string $symbol, $params = array ()) {
@@ -5963,7 +6020,7 @@ class Exchange {
             $stream->subscribe ('balances', $callback, $synchronous);
         }
         $stream->add_watch_function('watchBalance', array( $params ));
-        $this->watch_balance($params);
+        return $this->watch_balance($params);
     }
 
     public function fetch_partial_balance($part, $params = array ()) {
@@ -6274,7 +6331,7 @@ class Exchange {
             $stream->subscribe ('tickers::' . $symbol, $callback, $synchronous);
         }
         $stream->add_watch_function('watchTicker', array( $symbol, $params ));
-        $this->watch_ticker($symbol, $params);
+        return $this->watch_ticker($symbol, $params);
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array ()) {
@@ -6322,7 +6379,7 @@ class Exchange {
             }
         }
         $stream->add_watch_function('watchTickers', array( $symbols, $params ));
-        $this->watch_tickers($symbols, $params);
+        return $this->watch_tickers($symbols, $params);
     }
 
     public function un_watch_tickers(?array $symbols = null, $params = array ()) {
@@ -6870,7 +6927,7 @@ class Exchange {
             }
         }
         $stream->add_watch_function('watchOrders', array( $symbol, null, null, $params ));
-        $this->watch_orders($symbol, null, null, $params);
+        return $this->watch_orders($symbol, null, null, $params);
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -6944,7 +7001,7 @@ class Exchange {
             $stream->subscribe ('myTrades::' . $symbol, $callback, $synchronous);
         }
         $stream->add_watch_function('watchMyTrades', array( $symbol, null, null, $params ));
-        $this->watch_my_trades($symbol, null, null, $params);
+        return $this->watch_my_trades($symbol, null, null, $params);
     }
 
     public function fetch_greeks(string $symbol, $params = array ()) {

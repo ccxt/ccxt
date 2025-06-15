@@ -5,6 +5,7 @@ import ccxt, { ExchangeClosedByUser } from '../../../../ccxt.js';
 
 // Test case for producing a message
 function testProduce () {
+    console.log ('Starting testProduce...');
     const stream = new Stream ();
     const topic = 'topic1';
     const payload = 'Hello, world!';
@@ -20,6 +21,7 @@ function testProduce () {
 
 // Test case for subscribing to a topic
 function testSubscribe () {
+    console.log ('Starting testSubscribe...');
     const stream = new Stream ();
     const topic = 'topic1';
     let receivedMessage = false;
@@ -38,6 +40,7 @@ function testSubscribe () {
 
 // Test case for unsubscribing from a topic
 function testUnsubscribe () {
+    console.log ('Starting testUnsubscribe...');
     const stream = new Stream ();
     const topic = 'topic1';
     let receivedMessage = false;
@@ -56,6 +59,7 @@ function testUnsubscribe () {
 
 // Test case for closing the stream
 async function testClose () {
+    console.log ('Starting testClose...');
     const stream = new Stream ();
     const topic = 'topic1';
     let receivedMessage = false;
@@ -75,6 +79,7 @@ async function testClose () {
 
 // Test sync case
 function testSyncConsumerFunction () {
+    console.log ('Starting testSyncConsumerFunction...');
     const stream = new Stream ();
     const topic = "topic1";
     const payload = "hello world";
@@ -87,10 +92,12 @@ function testSyncConsumerFunction () {
 
     // Produce message
     stream.produce (topic, payload);
+    stream.close ();
 }
 
 // Test async case
 function testAsyncConsumerFunction () {
+    console.log ('Starting testAsyncConsumerFunction...');
     const stream = new Stream ();
     const topic = "topic1";
     const payload = "hello world";
@@ -103,9 +110,12 @@ function testAsyncConsumerFunction () {
 
     // Produce message
     stream.produce (topic, payload);
+    stream.close ();
 }
+
 // Test async case
 async function testReconnect () {
+    console.log ('Starting testReconnect...');
     let receivedMessage = false;
     let receivedError = false;
     function fnConsumer (message) {
@@ -135,13 +145,52 @@ async function testReconnect () {
     assert (!receivedMessage);
 }
 
+// Test case for ConsumerFunctionError wrapping
+async function testConsumerFunctionErrorWrapping () {
+    console.log ('Starting testConsumerFunctionErrorWrapping...');
+    const stream = new Stream ();
+    const topic = 'topic1';
+    let errorCaught = false;
+    let errorTypeCorrect = false;
+    function consumerFn (message: Message) {
+        throw new Error ('Consumer error');
+    }
+    function errorConsumer (message: Message) {
+        if (message.error && message.error.name === 'ConsumerFunctionError') {
+            errorTypeCorrect = true;
+        }
+        errorCaught = true;
+    }
+    stream.subscribe ('errors', errorConsumer);
+    stream.subscribe (topic, consumerFn);
+    stream.produce (topic, 'Hello, world!');
+    // Wait for async error handling
+    await new Promise ((resolve) => {
+        setTimeout (resolve, 100);
+    });
+    assert (errorCaught, 'Error was not caught by errorConsumer');
+    assert (errorTypeCorrect, 'Error was not wrapped as ConsumerFunctionError');
+    stream.close ();
+}
+
 // Run the tests
 export default async function testStream () {
+    console.log ('=== Starting Stream Tests ===');
     testProduce ();
+    console.log ('✓ testProduce completed');
     testSubscribe ();
+    console.log ('✓ testSubscribe completed');
     testUnsubscribe ();
+    console.log ('✓ testUnsubscribe completed');
     await testClose ();
+    console.log ('✓ testClose completed');
     testSyncConsumerFunction ();
+    console.log ('✓ testSyncConsumerFunction completed');
     testAsyncConsumerFunction ();
+    console.log ('✓ testAsyncConsumerFunction completed');
     await testReconnect ();
+    console.log ('✓ testReconnect completed');
+    await testConsumerFunctionErrorWrapping ();
+    console.log ('✓ testConsumerFunctionErrorWrapping completed');
+    console.log ('=== All Stream Tests Completed ===');
 }

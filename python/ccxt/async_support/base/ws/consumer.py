@@ -1,6 +1,10 @@
 import asyncio
 from typing import List
 from ....base.types import Message, ConsumerFunction
+from ....base.errors import ConsumerFunctionError
+import logging
+
+logger = logging.getLogger(__name__)
 
 class Consumer:
     MAX_BACKLOG_SIZE = 100  # Maximum number of messages in backlog
@@ -16,7 +20,7 @@ class Consumer:
     def publish(self, message: Message) -> None:
         self.backlog.append(message)
         if len(self.backlog) > self.MAX_BACKLOG_SIZE:
-            print(f"Warning: WebSocket consumer backlog is too large ({len(self.backlog)} messages). This might indicate a performance issue or message processing bottleneck.")
+            logger.warning(f"WebSocket consumer backlog is too large ({len(self.backlog)} messages). This might indicate a performance issue or message processing bottleneck.")
         asyncio.ensure_future(self._run())
 
     async def _run(self) -> None:
@@ -28,21 +32,29 @@ class Consumer:
             await self._handle_message(message)
         self.running = False
 
-
     async def _handle_message(self, message: Message):
         if message.metadata.index <= self.current_index:
             return
         self.current_index = message.metadata.index
-        if self.synchronous and asyncio.iscoroutinefunction(self.fn):
-            await self.fn(message)
-        elif asyncio.iscoroutinefunction(self.fn):
-            task = asyncio.create_task(self.fn(message))
+
+        async def handle_fn(msg):
+            try:
+                if asyncio.iscoroutinefunction(self.fn):
+                    await self.fn(msg)
+                else:
+                    self.fn(msg)
+            except Exception as e:
+                error = ConsumerFunctionError(str(e))
+                msg.metadata.stream.produce('errors', msg, error=error)
+
+        if self.synchronous:
+            await handle_fn(message)
+        else:
+            task = asyncio.create_task(handle_fn(message))
             self.tasks.append(task)
             def task_done_callback(task: asyncio.Task) -> None:
                 self.tasks.remove(task)
             task.add_done_callback(task_done_callback)
-        else:
-            self.fn(message)
 
     async def close (self) -> None:
         self.running = False

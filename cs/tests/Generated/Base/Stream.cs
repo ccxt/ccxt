@@ -91,6 +91,32 @@ public partial class BaseTest
             // Produce message
             stream.produce(topic, payload);
         }
+        // Test case for ConsumerFunctionError wrapping
+        public void testConsumerFunctionErrorWrapping()
+        {
+            var stream = new ccxt.pro.Stream();
+            string topic = "topic1";
+            bool errorCaught = false;
+            bool errorTypeCorrect = false;
+            ccxt.pro.ConsumerFunction consumerFn = async (ccxt.pro.Message message) =>
+            {
+                throw new ccxt.ConsumerFunctionError("Consumer error");
+            };
+            ccxt.ConsumerFunction errorConsumer = async (ccxt.pro.Message message) =>
+            {
+                if (message.error != null && message.error.GetType().Name == "ConsumerFunctionError")
+                {
+                    errorTypeCorrect = true;
+                }
+                errorCaught = true;
+            };
+            stream.subscribe("errors", errorConsumer);
+            stream.subscribe(topic, consumerFn);
+            stream.produce(topic, "Hello, world!");
+            System.Threading.Thread.Sleep(100); // Wait for async error handling
+            Assert(errorCaught, "Error was not caught by errorConsumer");
+            Assert(errorTypeCorrect, "Error was not wrapped as ConsumerFunctionError");
+        }
         // Run the tests
         public void testStream()
         {
@@ -100,5 +126,6 @@ public partial class BaseTest
             testClose();
             testSyncConsumerFunction();
             testAsyncConsumerFunction();
+            testConsumerFunctionErrorWrapping();
         }
 }

@@ -9,6 +9,9 @@ import asyncio
 import psutil
 import ccxt.pro as ccxt
 import socket
+from ccxt.base.types import Message
+from ccxt.base.errors import ConsumerFunctionError
+
 # -*- coding: utf-8 -*-
 
 # Test case for producing a message
@@ -40,7 +43,7 @@ async def test_subscribe():
     _stream = stream.Stream()
     topic = 'topic1'
     received_message = False
-    def consumer_fn(message):
+    def consumer_fn(message: Message):
         nonlocal received_message
         received_message = True
         assert message.payload == 'Hello, world!', 'Incorrect payload'
@@ -59,7 +62,7 @@ def test_unsubscribe():
     _stream = stream.Stream()
     topic = 'topic1'
     received_message = False
-    def consumer_fn(message):
+    def consumer_fn(message: Message):
         nonlocal received_message
         received_message = True
     _stream.subscribe(topic, consumer_fn)
@@ -73,7 +76,7 @@ async def test_close():
     _stream = stream.Stream()
     topic = 'topic1'
     received_message = False
-    def consumer_fn(message):
+    def consumer_fn(message: Message):
         nonlocal received_message
         received_message = True
     _stream.subscribe(topic, consumer_fn)
@@ -90,7 +93,7 @@ def test_sync_consumer_function():
     topic = 'topic1'
     payload = 'hello world'
 
-    def sync_consumer(message):
+    def sync_consumer(message: Message):
         assert message.payload == payload
 
     _stream.subscribe(topic, sync_consumer)
@@ -103,7 +106,7 @@ def test_async_consumer_function():
     _stream = stream.Stream()
     topic = 'topic1'
     payload = 'hello world'
-    def async_consumer(message):
+    def async_consumer(message: Message):
         assert message.payload == payload
 
     _stream.subscribe(topic, async_consumer)
@@ -113,10 +116,10 @@ def test_async_consumer_function():
 async def test_reconnect():
     received_message = False
     received_error = False
-    def fnConsumer(message):
+    def fnConsumer(message: Message):
         nonlocal received_message
         received_message = True
-    def errorConsumer (message):
+    def errorConsumer (message: Message):
         nonlocal received_error
         received_error = True
     ex = ccxt.binance()
@@ -136,8 +139,46 @@ async def test_reconnect():
     assert not received_error
     assert not received_message
 
+async def test_consumer_function_error_wrapping():
+    _stream = stream.Stream()
+    topic = 'topic1'
+    error_caught = False
+    error_type_correct = False
+    def consumer_fn(message: Message):
+        raise Exception('Consumer error')
+    def error_consumer(message: Message):
+        nonlocal error_caught, error_type_correct
+        if message.error and isinstance(message.error, ConsumerFunctionError):
+            error_type_correct = True
+        error_caught = True
+    _stream.subscribe('errors', error_consumer)
+    _stream.subscribe(topic, consumer_fn)
+    _stream.produce(topic, 'Hello, world!')
+    await asyncio.sleep(0.1)
+    assert error_caught, 'Error was not caught by error_consumer'
+    assert error_type_correct, 'Error was not wrapped as ConsumerFunctionError'
+
+    # Test with async consumer function that raises an exception
+    error_caught_async = False
+    error_type_correct_async = False
+    async def async_consumer_fn(message: Message):
+        raise Exception('Async consumer error')
+    def error_consumer_async(message: Message):
+        nonlocal error_caught_async, error_type_correct_async
+        if message.error and isinstance(message.error, ConsumerFunctionError):
+            error_type_correct_async = True
+        error_caught_async = True
+    _stream.subscribe('errors', error_consumer_async)
+    _stream.subscribe('topic_async', async_consumer_fn)
+    _stream.produce('topic_async', 'Hello, world!')
+    await asyncio.sleep(0.5)
+    assert error_caught_async, 'Error was not caught by error_consumer_async'
+    assert error_type_correct_async, 'Error was not wrapped as ConsumerFunctionError (async)'
+    await _stream.close()
+
 # Run the tests
 async def test_stream():
+    await test_consumer_function_error_wrapping()
     await test_reconnect()
     test_produce()
     await test_subscribe()

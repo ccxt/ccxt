@@ -42,7 +42,12 @@ class Consumer
 
             while (count($this->backlog) > 0) {
                 $message = array_shift($this->backlog);
-                Async\await($this->handle_message($message));
+                try {
+                    Async\await($this->handle_message($message));
+                } catch (\Throwable $e) {
+                    // Log the error but don't stop processing
+                    print("Error processing message: " . $e->getMessage());
+                }
             }
             $this->running = false;
         })();
@@ -55,17 +60,36 @@ class Consumer
                 return;
             }
             $this->currentIndex = $message->metadata->index;
-            $callback = $this->fn;
-            $isAsync = $callback instanceof Promise\PromiseInterface;
-            if ($this->synchronous && $isAsync) {
-                Async\await ($callback($message));
-            } else if ($isAsync) {
-                Async\async(function () use ($callback, $message) {
-                    return Async\await($callback($message));
-                }) ();
-            } else {
-                $callback($message);
-            }  
+            
+            try {
+                $callback = $this->fn;
+                $result = $callback($message);
+                
+                // If the result is a promise, handle it appropriately
+                if ($result instanceof Promise\PromiseInterface) {
+                    if ($this->synchronous) {
+                        return Async\await($result);
+                    } else {
+                        // For async mode, don't await but handle errors
+                        Async\async(function () use ($result) {
+                            try {
+                                Async\await($result);
+                            } catch (\Throwable $e) {
+                                print("Unhandled error in async consumer: " . $e->getMessage());
+                            }
+                        })();
+                    }
+                } else {
+                    return $result;
+                }
+            } catch (\Throwable $e) {
+                $wrappedError = new ConsumerFunctionError($e->getMessage(), $e->getCode(), $e);
+                
+                if (isset($message->metadata) && isset($message->metadata->stream)) {
+                    $message->metadata->stream->produce('errors', null, $wrappedError);
+                }
+                print("Consumer function error: " . $e->getMessage());
+            }
         })();
     }
 }

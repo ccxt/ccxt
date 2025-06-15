@@ -1,3 +1,4 @@
+import { ConsumerFunctionError } from "../errors.js";
 import { Int, ConsumerFunction, Message } from "../types";
 
 export default class Consumer {
@@ -47,11 +48,25 @@ export default class Consumer {
             return;
         }
         this.currentIndex = message.metadata.index;
+        const stream = message.metadata.stream;
+        const fn = this.fn;
+        const produceError = (err: any) => {
+            const error = new ConsumerFunctionError (err instanceof Error ? err.message : String (err));
+            stream.produce ('errors', message, error);
+        };
         if (this.synchronous) {
-            await this.fn (message);
+            try {
+                await fn (message);
+            } catch (err) {
+                produceError (err);
+            }
         }
         else {
-            this.fn (message);
+            try {
+                fn (message);
+            } catch (err) {
+                produceError (err);
+            }
         }
     }
 

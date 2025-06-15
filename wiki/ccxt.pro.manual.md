@@ -348,6 +348,73 @@ Note: Setting `maxMessagesPerTopic` to 0 will disable message history storage, w
 ### Callback Functions
 When you subscribe to a stream, you must provide a callback function. This function is called whenever a new message is received. The callback function receives a single argument: a Message object that contains the new data (payload), any error that might have occurred, metadata about the message, and the history of messages for that topic.
 
+#### Error Handling in Callbacks
+It is recommended that your callback functions implement their own error handling to gracefully handle any errors that might occur during message processing. If an error is thrown by the consumer function, the stream will:
+1. Catch the error to prevent it from crashing the application
+2. Log the error to the console/logs
+3. Publish the error to the 'errors' topic as a `ConsumerFunctionError`, which you can subscribe to using `subscribeErrors()`
+4. Continue processing subsequent messages without interruption
+
+This design ensures that errors in one callback don't affect the processing of other messages or crash the application. You can monitor these errors by subscribing to the 'errors' topic:
+
+```javascript
+// Example of subscribing to errors
+exchange.stream.subscribe('errors', (error) => {
+    console.log('Stream error occurred:', error);
+});
+```
+
+#### Automatic Stream Reconnection
+
+CCXT Pro includes an automatic reconnection mechanism that helps maintain WebSocket connections in case of network issues or server disconnections. This feature is enabled by default and works transparently in the background.
+
+**How Automatic Reconnection Works:**
+
+1. **Active Function Tracking**: The stream automatically tracks all active `watch*` functions (like `watchTicker`, `watchOrderBook`, `watchTrades`, etc.) that are currently being used
+2. **Autoreconnect Configuration**: By default, the stream is configured with `autoreconnect: true` in the exchange options under `streaming`
+3. **Error Monitoring**: When autoreconnect is enabled, the stream subscribes to the 'errors' topic to monitor for connection errors
+4. **Automatic Recovery**: When a connection error occurs (excluding user-initiated closures and consumer function errors), the stream automatically:
+   - Attempts to reconnect to the WebSocket
+   - Re-establishes all previously active watch functions
+   - Continues streaming data seamlessly
+
+**Configuration:**
+
+```javascript
+// Autoreconnect is enabled by default
+const exchange = new ccxt.pro.binance({
+    'apiKey': 'your-api-key',
+    'secret': 'your-secret',
+    'options': {
+        'streaming': {
+            'autoreconnect': true  // default value
+        }
+    }
+});
+
+// To disable autoreconnect
+const exchange = new ccxt.pro.binance({
+    'apiKey': 'your-api-key',
+    'secret': 'your-secret',
+    'options': {
+        'streaming': {
+            'autoreconnect': false
+        }
+    }
+});
+```
+
+**Manual Reconnection:**
+
+You can also manually trigger a reconnection using the `streamReconnect()` method:
+
+```javascript
+// Manually reconnect all active watch functions
+await exchange.streamReconnect();
+```
+
+This will re-establish all currently active watch functions that were previously called. The automatic reconnection system uses this same mechanism internally.
+
 #### Accessing Metadata and Message History
 Each message contains metadata providing context about the message, such as the stream and topic it belongs to and its index in the stream. The message also includes a history of previous messages for the topic, allowing you to access past data easily. To activate the history you must set `maxMessagesPerTopic` to a value higher than 0.
 
@@ -464,6 +531,50 @@ $history = $exchange->stream->get_message_history($topic)
 var history = exchange.stream.getMessageHistory(topic);
 ```
 <!-- tabs:end -->
+
+
+### Available Stream Topics
+
+| Topic | Description | Data Type | Prerequisite |
+|-------|-------------|-----------|--------------|
+| `raw` | All raw WebSocket messages before processing | Raw WebSocket message | None - always active |
+| `errors` | All errors thrown to the stream | Error object | None - always active |
+| `tickers` | Real-time ticker updates for all symbols | Ticker object | `subscribeTickers()` or `subscribeTicker(symbol)` |
+| `orderbooks` | Real-time order book updates | OrderBook object | `subscribeOrderBook(symbol)` |
+| `trades` | Real-time public trades | Trade object | `subscribeTrades(symbol)` |
+| `myTrades` | Real-time private trades (requires authentication) | Trade object | `subscribeMyTrades(symbol)` |
+| `orders` | Real-time order updates (requires authentication) | Order object | `subscribeOrders(symbol)` |
+| `positions` | Real-time position updates (requires authentication) | Position object | `subscribePositions(symbol)` |
+| `ohlcvs` | Real-time OHLCV (candlestick) data | OHLCV array | `subscribeOHLCV(symbol, timeframe)` |
+| `liquidations` | Real-time liquidation events | Liquidation object | `subscribeLiquidations(symbol)` |
+| `myLiquidations` | Real-time personal liquidation events (requires authentication) | Liquidation object | `subscribeMyLiquidations(symbol)` |
+| `balance` | Real-time balance updates (requires authentication) | Balance object | `subscribeBalance()` |
+
+#### Important Notes:
+- Each topic requires its corresponding `subscribe*()` function to be called before it will receive messages
+- For example, to receive messages in the `trades` topic, you must first call `subscribeTrades('BTC/USDT', ...)` 
+- The `raw` and `errors` topics are always active and don't require explicit subscription
+- Topics marked with "requires authentication" need proper API credentials to be accessed
+- Each topic maintains its own message history, accessible via `getMessageHistory(topic)`
+- The history size is configurable via `stream.maxMessagesPerTopic`
+
+#### Example:
+```javascript
+// To receive trade messages in the 'trades' topic:
+await exchange.subscribeTrades('BTC/USDT', (trade) => {
+    console.log('New trade:', trade);
+});
+
+// To receive ticker messages in the 'tickers' topic:
+await exchange.subscribeTicker('BTC/USDT', (ticker) => {
+    console.log('New ticker:', ticker);
+});
+
+// To receive all raw messages (no prerequisite needed):
+exchange.stream.subscribe('raw', (message) => {
+    console.log('Raw message:', message);
+});
+```
 
 #### Unsubscribe Stream Callback
 You can use `exchange.stream.unsubcribe(topic, consumeFunction)` to unsubscribe a callback from stream topic. However notice this won't unsubscribe the stream from the exchange.
