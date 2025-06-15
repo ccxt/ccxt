@@ -19,6 +19,9 @@ function capitalize (methodName: string) {
     return methodName.charAt(0).toUpperCase() + methodName.slice(1);
 }
 
+/**
+ * Converts a single type name (as a string) to a swift type
+ */
 function tsTypeToSwift(tsType: string): string {
     if (!tsType) return "Void";
 
@@ -122,6 +125,9 @@ function tsTypeToSwift(tsType: string): string {
     return mapSingle(tsType);
 }
 
+/**
+ * converts all types in types.ts to swift types adn prints them to CCXTTypes.swift
+ */
 function createSwiftTypes() {
     const tsContent = fs.readFileSync(tsTypesFile, "utf8");
     const lines     = tsContent.split("\n");
@@ -250,6 +256,9 @@ function createSwiftTypes() {
     fs.appendFileSync(swiftTypesFile, out.join("\n"), "utf8");
 }
 
+/**
+ * looks at Exchange.ts, finds all the method headers, and converts them to swift method headers
+ */
 function getMethodHeaders(): [string, string][] {
     const src = fs.readFileSync(tsExchangeFile, "utf8");
 
@@ -327,51 +336,84 @@ function getMethodHeaders(): [string, string][] {
     return result;
 }
 
-function transformSwiftHeaderToGo(swiftHeader: string): string {
-    // 1. Remove "public", "throws", "-> Any" (or -> AnyType)
+function swiftTypeToGo(swiftType: string): string {
+    const map: { [key: string]: string } = {
+        'String': 'string',
+        'Double': 'float64',
+        'Int': 'int',
+        'Bool': 'bool',
+        'Any': '[]byte',
+        '[String: Any]': '[]byte',
+        '[String: Any]?': '[]byte',
+        'String?': 'string',
+        'Double?': 'float64',
+        'Int?': 'int',
+        'Bool?': 'bool',
+        'Void': '',
+    };
+
+    const trimmed = swiftType.trim();
+
+    // Match arrays like [T] or [T]?
+    const arrayMatch = trimmed.match(/^\[(.+)\]\??$/);
+    if (arrayMatch) {
+        const inner = swiftTypeToGo(arrayMatch[1]);
+        return `[]${inner}`;
+    }
+
+    return map[trimmed] || 'interface{}'; // default fallback
+}
+
+
+function transformSwiftHeaderToGo(swiftHeader: string): [string, string[]] {
+    // Remove modifiers
     let header = swiftHeader
         .replace(/^public\s+/, '')
         .replace(/\s+throws/, '')
-        .replace(/\s*->\s*\w+\s*\{/, '{');  // removes "-> Any {" or "-> SomeType {"
+        .replace(/\s*->\s*\w+\s*\{/, '{');
 
-    // 2. Extract method name and parameter list
-    const match = header.match(/^func\s+(\w+)\s*\((.*?)\)\s*(?:->\s*.+?)?\s*\{/);
-    if (!match) {
-        console.log(header);
-        throw new Error("Invalid Swift method header format");
-    }
+    // Extract method name and parameters
+    const match = header.match(/^func\s+(\w+)\s*\((.*?)\)/);
+    if (!match) throw new Error("Invalid Swift method header format");
 
     const methodName = match[1];
-    const paramList = match[2].trim();
+    const paramList = match[2];
 
-    // 3. Process parameters
+    // Convert each parameter to Go
+    const stringArrays: string[] = [];
     const goParams = paramList
         ? paramList.split(/,(?![^{]*})(?![^\[]*\])/).map(param => {
-            const paramParts = param.trim().match(/^(\w+)\s*:/);
-            if (!paramParts) return null;
+            const parts = param.trim().match(/^(\w+):\s*(.+?)(?:\s*=\s*.+)?$/);
+            if (!parts) return null;
 
-            let paramName = paramParts[1];
+            let [_, name, swiftType] = parts;
+            if (name === 'type') name = 'typeVar';
 
-            // Rename "type" → "typeVar"
-            if (paramName === "type") {
-                paramName = "typeVar";
+            let goType = swiftTypeToGo(swiftType);
+            if (goType === '[]string') {
+                goType = 'string'
+                stringArrays.push(name);
             }
-
-            // Special case for "params"
-            if (paramName === "params") {
-                return `${paramName} ...interface{}`;
-            } else {
-                return `${paramName} interface{}`;
-            }
-        }).filter(p => p !== null).join(', ')
+            return `${name} ${goType}`;
+        }).filter(Boolean).join(', ')
         : '';
+        
 
-    // 4. Build Go method header
-    const goHeader = `func (e *Exchange) ${capitalize(methodName)}(${goParams}) ([]byte, error) {`;
+    const returnValue = `func (e *CCXTGoExchange) ${capitalize(methodName)}(${goParams}) ([]byte, error) {` + stringArrays.map(name => `
+        ${name}_arr := strings.Split(${name}, ",")`)
 
-    return goHeader;
+    return [returnValue, stringArrays];
 }
 
+/*
+```
+FetchTradingLimits(symbols, limits, params)
+```
+becomes 
+```
+FetchTradingLimits(symbols: symbols, limits: limits, params: params)
+```
+*/
 function swiftAddExtraParams(methodCall) {
     return methodCall.replace(
         /(\w+)\(((?:\w+,?\s*)+)\)/g,
@@ -385,6 +427,9 @@ function swiftAddExtraParams(methodCall) {
     );
 }
 
+/*
+    Gets the methods that will be created in Swift
+*/
 function getMethodNames(): string[] {
     const exchange = new ccxt.Exchange();
     return [
@@ -393,24 +438,79 @@ function getMethodNames(): string[] {
     ];
 }
 
-const goMethodDeclaration = (header: string, methodCall: string) => (`
-${header}
-    res := <-e.exchange.${capitalize(methodCall)}
-    if err, ok := res.(error); ok {
-        return nil, err
+/*
+```
+public func fetchMarginModes(symbols: [String]? = nil, params: Any = [:]) throws -> MarginModes {
+```
+becomes
+```
+public func fetchMarginModes(symbols_arr: [String]? = nil, params: Any = [:]) throws -> MarginModes {
+    symbols = symbols_arr.join(',')
+```
+
+*/
+function transformSwiftStringArrayParams(header: string): [string, string[]] {
+    //TODO: might cause problems if the array in parameters is not optional
+    const arrayParamRegex = /(\w+):\s*\[String\]/g;
+    const lines: string[] = [];
+    const paramNames: string[] = [];
+
+    // Find all [String] params
+    let match;
+    while ((match = arrayParamRegex.exec(header)) !== null) {
+        paramNames.push(match[1]);
     }
-    return json.Marshal(res)
-}`
-)
+
+    // Append transformed header
+    lines.push(header.trim());
+
+    // Generate the .join(',') lines
+    for (const name of paramNames) {
+        lines.push(`        let ${name}_comma_separated = ${name}?.joined(separator: ",") ?? ""`);
+    }
+
+    return [lines.join('\n'), paramNames];
+}
+
+/*
+```
+FetchTradingLimits(symbols: symbols, limits: limits, params: params)
+```
+becomes 
+```
+FetchTradingLimits(symbols: symbols_comma_separated, limits: limits_comma_separated, params: params)
+```
+*/
+function addSuffixToParams(line: string, paramNames: string[], suffix: string): string {
+    for (const name of paramNames) {
+        const pattern = new RegExp(`\\b${name}\\b(?=\\s*[,)])`, 'g');
+        line = line.replace(pattern, `${name}${suffix}`);
+    }
+    return line;
+}
+
+const goMethodDeclaration = (swiftHeader: string, methodCall: string) => {
+    const [header, arrayStrings] = transformSwiftHeaderToGo(swiftHeader);
+    const goMethodCall = capitalize(methodCall.replace(/\btype\b(?=\s*[,)])/g, 'typeVar'))
+    return `
+    ${header}
+        res := <-e.exchange.${addSuffixToParams(goMethodCall, arrayStrings, '_arr')}
+        if err, ok := res.(error); ok {
+            return nil, err
+        }
+        return json.Marshal(res)
+    }`
+}
 
 const swiftMethodDeclaration = (header: string, methodCall: string, returnType: string, methodName: string) => {
     const guard = (returnType === 'Any') 
         ? `guard let result = cleanAny(data) else {`
         : `guard let result = cleanAny(data) as? ${returnType} else {`
+    const [newHeader, names] = transformSwiftStringArrayParams(header);
     return`
-    ${header}
+    ${newHeader}
         do {
-            let data = try exchange.${capitalize(swiftAddExtraParams(methodCall))}
+            let data = try exchange.${capitalize(addSuffixToParams(swiftAddExtraParams(methodCall), names, '_comma_separated'))}
             ${guard}
                 throw NSError(domain: "CCXT", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid response type for ${methodName}"])
             }
@@ -508,11 +608,10 @@ function main() {
 
     for (const [methodHeader, returnType] of methods) {
         const methodCall = methodHeader.replace(/(\w+)\s*:\s*[^),]+/g, '$1');
-        const goMethodCall = methodCall.replace(/\btype\b(?=\s*[,)])/g, 'typeVar')
         const methodName = methodHeader.replace(/^\s*(?:async\s+)?(\w+)\s*\(.*$/, '$1');
         const swiftHeader = `public func ${methodHeader} throws -> ${returnType} {`
         swiftMethodDeclarations.push(swiftMethodDeclaration(swiftHeader, methodCall, returnType, methodName));
-        goMethodDeclarations.push(goMethodDeclaration(transformSwiftHeaderToGo(swiftHeader), goMethodCall));
+        goMethodDeclarations.push(goMethodDeclaration(swiftHeader, methodCall));
     }
 
     const loopItems: [string, string[]][] = [
