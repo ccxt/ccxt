@@ -8,7 +8,7 @@ import { Precise } from './base/Precise.js';
 import { md5 } from './static_dependencies/noble-hashes/md5.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
-import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress, FundingRates, FundingRate } from './base/types.js';
+import type { Balances, Currency, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress, FundingRates, FundingRate } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -51,6 +51,7 @@ export default class lbank extends Exchange {
                 'fetchClosedOrders': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
+                'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
@@ -125,6 +126,7 @@ export default class lbank extends Exchange {
                             'currencyPairs': 2.5,
                             'accuracy': 2.5,
                             'usdToCny': 2.5,
+                            'assetConfigs': 2.5,
                             'withdrawConfigs': 2.5,
                             'timestamp': 2.5,
                             'ticker/24hr': 2.5,
@@ -211,6 +213,7 @@ export default class lbank extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'XBT': 'XBT', // not BTC!
                 'HIT': 'Hiver',
                 'VET_ERC20': 'VEN',
                 'PNT': 'Penta',
@@ -414,6 +417,115 @@ export default class lbank extends Exchange {
         //     }
         //
         return this.safeInteger (response, 'data');
+    }
+
+    /**
+     * @method
+     * @name lbank#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @param {dict} [params] extra parameters specific to the exchange API endpoint
+     * @returns {dict} an associative dictionary of currencies
+     */
+    async fetchCurrencies (params = {}): Promise<Currencies> {
+        const response = await this.spotPublicGetWithdrawConfigs (params);
+        //
+        //    {
+        //        "msg": "Success",
+        //        "result": "true",
+        //        "data": [
+        //            {
+        //                "amountScale": "4",
+        //                "chain": "bep20(bsc)",
+        //                "assetCode": "usdt",
+        //                "min": "10",
+        //                "transferAmtScale": "4",
+        //                "canWithDraw": true,
+        //                "fee": "0.0000",
+        //                "minTransfer": "0.0001",
+        //                "type": "1"
+        //            },
+        //            {
+        //                "amountScale": "4",
+        //                "chain": "trc20",
+        //                "assetCode": "usdt",
+        //                "min": "1",
+        //                "transferAmtScale": "4",
+        //                "canWithDraw": true,
+        //                "fee": "1.0000",
+        //                "minTransfer": "0.0001",
+        //                "type": "1"
+        //            },
+        //            ...
+        //        ],
+        //        "error_code": "0",
+        //        "ts": "1747973911431"
+        //    }
+        //
+        const currenciesData = this.safeList (response, 'data', []);
+        const result: Dict = {};
+        for (let i = 0; i < currenciesData.length; i++) {
+            const networkEntry = currenciesData[i];
+            const id = this.safeString (networkEntry, 'assetCode');
+            const code = this.safeCurrencyCode (id);
+            if (!(code in result)) {
+                result[code] = {
+                    'id': id,
+                    'code': code,
+                    'precision': undefined,
+                    'type': undefined,
+                    'name': undefined,
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                    },
+                    'networks': {},
+                    'info': {},
+                };
+            }
+            const networkId = this.safeString (networkEntry, 'chain');
+            const networkCode = this.networkIdToCode (networkId);
+            result[code]['networks'][networkCode] = {
+                'id': networkId,
+                'network': networkCode,
+                'limits': {
+                    'withdraw': {
+                        'min': this.safeNumber (networkEntry, 'min'),
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': this.safeNumber (networkEntry, 'minTransfer'),
+                        'max': undefined,
+                    },
+                },
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': this.safeBool (networkEntry, 'canWithDraw'),
+                'fee': this.safeNumber (networkEntry, 'fee'),
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (networkEntry, 'transferAmtScale'))),
+                'info': networkEntry,
+            };
+            // add entry in info
+            const info = this.safeList (result[code], 'info', []);
+            info.push (networkEntry);
+            result[code]['info'] = info;
+        }
+        // only after all entries are formed in currencies, restructure each entry
+        const allKeys = Object.keys (result);
+        for (let i = 0; i < allKeys.length; i++) {
+            const code = allKeys[i];
+            result[code] = this.safeCurrencyStructure (result[code]); // this is needed after adding network entry
+        }
+        return result;
     }
 
     /**
