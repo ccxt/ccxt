@@ -3944,8 +3944,10 @@ export default class bitget extends Exchange {
      * @see https://www.bitget.com/api-doc/margin/isolated/account/Get-Isolated-Assets
      * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-assets
      * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-assets
+     * @see https://www.bitget.bike/api-doc/uta/account/Get-Account
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+     * @param {string} [params.uta] set to true to fetch markets for the unified trading account (uta), defaults to false
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
@@ -3954,9 +3956,16 @@ export default class bitget extends Exchange {
         let marketType = undefined;
         let marginMode = undefined;
         let response = undefined;
+        let uta = undefined;
+        [ uta, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'uta', false);
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBalance', params);
-        if ((marketType === 'swap') || (marketType === 'future')) {
+        if (uta) {
+            response = await this.privateUtaGetV3AccountAssets (this.extend (request, params));
+            const results = this.safeDict (response, 'data', {});
+            const assets = this.safeList (results, 'assets', []);
+            return this.parseUtaBalance (assets);
+        } else if ((marketType === 'swap') || (marketType === 'future')) {
             let productType = undefined;
             [ productType, params ] = this.handleProductTypeAndParams (undefined, params);
             request['productType'] = productType;
@@ -4057,8 +4066,67 @@ export default class bitget extends Exchange {
         //         ]
         //     }
         //
+        // uta
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1749980065089,
+        //         "data": {
+        //             "accountEquity": "11.13919278",
+        //             "usdtEquity": "11.13921165",
+        //             "btcEquity": "0.00011256",
+        //             "unrealisedPnl": "0",
+        //             "usdtUnrealisedPnl": "0",
+        //             "btcUnrealizedPnl": "0",
+        //             "effEquity": "6.19299777",
+        //             "mmr": "0",
+        //             "imr": "0",
+        //             "mgnRatio": "0",
+        //             "positionMgnRatio": "0",
+        //             "assets": [
+        //                 {
+        //                     "coin": "USDT",
+        //                     "equity": "6.19300826",
+        //                     "usdValue": "6.19299777",
+        //                     "balance": "6.19300826",
+        //                     "available": "6.19300826",
+        //                     "debt": "0",
+        //                     "locked": "0"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //        if (marketType === 'spot') {
         const data = this.safeValue (response, 'data', []);
         return this.parseBalance (data);
+    }
+
+    parseUtaBalance (balance): Balances {
+        const result: Dict = { 'info': balance };
+        //
+        //     {
+        //         "coin": "USDT",
+        //         "equity": "6.19300826",
+        //         "usdValue": "6.19299777",
+        //         "balance": "6.19300826",
+        //         "available": "6.19300826",
+        //         "debt": "0",
+        //         "locked": "0"
+        //     }
+        //
+        for (let i = 0; i < balance.length; i++) {
+            const entry = balance[i];
+            const account = this.account ();
+            const currencyId = this.safeString (entry, 'coin');
+            const code = this.safeCurrencyCode (currencyId);
+            account['debt'] = this.safeString (entry, 'debt');
+            account['used'] = this.safeString (entry, 'locked');
+            account['free'] = this.safeString (entry, 'available');
+            account['total'] = this.safeString (entry, 'balance');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
     }
 
     parseBalance (balance): Balances {
