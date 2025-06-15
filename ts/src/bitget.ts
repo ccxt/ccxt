@@ -4097,7 +4097,7 @@ export default class bitget extends Exchange {
         //             ]
         //         }
         //     }
-        //        if (marketType === 'spot') {
+        //
         const data = this.safeValue (response, 'data', []);
         return this.parseBalance (data);
     }
