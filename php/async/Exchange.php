@@ -45,11 +45,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.4.88';
+$version = '4.4.89';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.4.88';
+    const VERSION = '4.4.89';
 
     public $browser;
     public $marketsLoading = null;
@@ -2167,7 +2167,7 @@ class Exchange extends \ccxt\Exchange {
 
     public function set_markets($markets, $currencies = null) {
         $values = array();
-        $this->markets_by_id = array();
+        $this->markets_by_id = $this->create_safe_dictionary();
         // handle marketId conflicts
         // we insert spot $markets first
         $marketValues = $this->sort_by($this->to_array($markets), 'spot', true, true);
@@ -2252,7 +2252,7 @@ class Exchange extends \ccxt\Exchange {
             $sortedCurrencies = $this->sort_by($resultingCurrencies, 'code');
             $this->currencies = $this->deep_extend($this->currencies, $this->index_by($sortedCurrencies, 'code'));
         }
-        $this->currencies_by_id = $this->index_by($this->currencies, 'id');
+        $this->currencies_by_id = $this->index_by_safe($this->currencies, 'id');
         $currenciesSortedByCode = $this->keysort($this->currencies);
         $this->codes = is_array($currenciesSortedByCode) ? array_keys($currenciesSortedByCode) : array();
         return $this->markets;

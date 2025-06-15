@@ -3858,7 +3858,10 @@ class bybit extends Exchange {
             if (!$market['spot']) {
                 throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
             }
-            return Async\await($this->create_order($symbol, 'market', 'buy', $cost, 1, $params));
+            $req = array(
+                'cost' => $cost,
+            );
+            return Async\await($this->create_order($symbol, 'market', 'buy', -1, null, $this->extend($req, $params)));
         }) ();
     }
 
@@ -3884,7 +3887,10 @@ class bybit extends Exchange {
             if (!$market['spot']) {
                 throw new NotSupported($this->id . ' createMarketSellOrderWithCost() supports spot orders only');
             }
-            return Async\await($this->create_order($symbol, 'market', 'sell', $cost, 1, $params));
+            $req = array(
+                'cost' => $cost,
+            );
+            return Async\await($this->create_order($symbol, 'market', 'sell', -1, null, $this->extend($req, $params)));
         }) ();
     }
 
@@ -4114,7 +4120,7 @@ class bybit extends Exchange {
                 if (($price === null) && ($cost === null)) {
                     throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend in the $amount argument');
                 } else {
-                    $quoteAmount = Precise::string_mul($amountString, $priceString);
+                    $quoteAmount = Precise::string_mul($this->number_to_string($amount), $priceString);
                     $costRequest = ($cost !== null) ? $cost : $quoteAmount;
                     $request['qty'] = $this->get_cost($symbol, $costRequest);
                 }
