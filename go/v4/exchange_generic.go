@@ -128,20 +128,58 @@ func (this *Exchange) Extend(aa interface{}, bb ...interface{}) map[string]inter
 	return ExtendMap(aa, bb...)
 }
 
+// func ExtendMap(aa interface{}, bb ...interface{}) map[string]interface{} {
+// 	a := aa.(map[string]interface{})
+// 	outDict := make(map[string]interface{})
+// 	for key, value := range a {
+// 		outDict[key] = value
+// 	}
+// 	if len(bb) > 0 {
+// 		b, ok := bb[0].(map[string]interface{})
+// 		if ok {
+// 			for key, value := range b {
+// 				outDict[key] = value
+// 			}
+// 		}
+// 	}
+// 	return outDict
+// }
+
 func ExtendMap(aa interface{}, bb ...interface{}) map[string]interface{} {
-	a := aa.(map[string]interface{})
 	outDict := make(map[string]interface{})
-	for key, value := range a {
-		outDict[key] = value
+
+	// Handle first map (aa)
+	switch a := aa.(type) {
+	case map[string]interface{}:
+		for key, value := range a {
+			outDict[key] = value
+		}
+	case *sync.Map:
+		a.Range(func(key, value interface{}) bool {
+			if strKey, ok := key.(string); ok {
+				outDict[strKey] = value
+			}
+			return true
+		})
 	}
+
+	// Handle optional second map (bb[0])
 	if len(bb) > 0 {
-		b, ok := bb[0].(map[string]interface{})
-		if ok {
+		switch b := bb[0].(type) {
+		case map[string]interface{}:
 			for key, value := range b {
 				outDict[key] = value
 			}
+		case *sync.Map:
+			b.Range(func(key, value interface{}) bool {
+				if strKey, ok := key.(string); ok {
+					outDict[strKey] = value
+				}
+				return true
+			})
 		}
 	}
+
 	return outDict
 }
 
