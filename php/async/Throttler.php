@@ -69,12 +69,15 @@ class Throttler {
                 list($future, $cost) = $this->queue->bottom();
                 $cost = $cost ? $cost : $this->config['cost'];
                 $now = microtime(true) * 1000.0;
-                $this->timestamps = array_values(array_filter($this->timestamps, function ($entry) use ($now) {
-                    return ($now - $entry['timestamp']) < $this->config['windowSize'];
-                }));
-                $total_cost = array_reduce($this->timestamps, function ($sum, $entry) {
-                    return $sum + $entry['cost'];
-                }, 0);
+                $total_cost = 0;
+                $cutoffTime = $now - $this->config['windowSize'];
+                for ($i = count($this->timestamps) - 1; $i >= 0; $i--) {
+                    if ($this->timestamps[$i]['timestamp'] <= $cutoffTime) {
+                        array_splice($this->timestamps, $i, 1);
+                    } else {
+                        $total_cost += $this->timestamps[$i]['cost'];
+                    }
+                }
                 if ($total_cost + $cost <= $this->config['maxWeight']) {
                     $this->timestamps[] = array('timestamp' => $now, 'cost' => $cost);
                     $future->resolve(null);
