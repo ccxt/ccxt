@@ -38,19 +38,12 @@ public class Throttler
         while (this.running)
         {
             // do we need this check here?
-            lock (queueLock)
+            if (this.queue.Count == 0)
             {
-                if (this.queue.Count == 0)
-                {
-                    this.running = false;
-                    continue;
-                }
+                this.running = false;
+                continue;
             }
-            (Task, double) first;
-            lock (queueLock)
-            {
-                first = this.queue.Peek();
-            }
+            var first = this.queue.Peek();
             var task = first.Item1;
             var cost = first.Item2;
             var tokensAsString = Convert.ToString(this.config["tokens"], CultureInfo.InvariantCulture);
@@ -66,14 +59,11 @@ public class Throttler
                         task.Start();
                     }
                 }
-                lock (queueLock)
-                {
-                    this.queue.Dequeue();
+                this.queue.Dequeue();
 
-                    if (this.queue.Count == 0)
-                    {
-                        this.running = false;
-                    }
+                if (this.queue.Count == 0)
+                {
+                    this.running = false;
                 }
             }
             else
