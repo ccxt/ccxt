@@ -900,6 +900,7 @@ public partial class binance : ccxt.binance
             (orderbook as IOrderBook).reset(snapshot);
             // unroll the accumulated deltas
             object messages = (orderbook as ccxt.pro.OrderBook).cache;
+            (orderbook as ccxt.pro.OrderBook).cache = new List<object>() {};
             for (object i = 0; isLessThan(i, getArrayLength(messages)); postFixIncrement(ref i))
             {
                 object messageItem = getValue(messages, i);

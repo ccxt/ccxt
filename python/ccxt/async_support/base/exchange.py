@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.85'
+__version__ = '4.4.89'
 
 # -----------------------------------------------------------------------------
 
@@ -176,15 +176,7 @@ class Exchange(BaseExchange):
             if (socksProxy not in self.socks_proxy_sessions):
                 # Create our SSL context object with our CA cert file
                 self.open()  # ensure `asyncio_loop` is set
-                self.aiohttp_socks_connector = ProxyConnector.from_url(
-                    socksProxy,
-                    # extra args copied from self.open()
-                    ssl=self.ssl_context,
-                    loop=self.asyncio_loop,
-                    enable_cleanup_closed=True
-                )
-                self.socks_proxy_sessions[socksProxy] = aiohttp.ClientSession(loop=self.asyncio_loop, connector=self.aiohttp_socks_connector, trust_env=self.aiohttp_trust_env)
-            proxy_session = self.socks_proxy_sessions[socksProxy]
+                proxy_session = self.get_socks_proxy_session(socksProxy)
         # add aiohttp_proxy for python as exclusion
         elif self.aiohttp_proxy:
             final_proxy = self.aiohttp_proxy
@@ -267,6 +259,20 @@ class Exchange(BaseExchange):
             return http_response
         return response.content
 
+    def get_socks_proxy_session(self, socksProxy):
+        if (self.socks_proxy_sessions is None):
+            self.socks_proxy_sessions = {}
+        if (socksProxy not in self.socks_proxy_sessions):
+            self.aiohttp_socks_connector = ProxyConnector.from_url(
+                socksProxy,
+                # extra args copied from self.open()
+                ssl=self.ssl_context,
+                loop=self.asyncio_loop,
+                enable_cleanup_closed=True
+            )
+            self.socks_proxy_sessions[socksProxy] = aiohttp.ClientSession(loop=self.asyncio_loop, connector=self.aiohttp_socks_connector, trust_env=self.aiohttp_trust_env)
+        return self.socks_proxy_sessions[socksProxy]
+
     async def load_markets_helper(self, reload=False, params={}):
         if not reload:
             if self.markets:
@@ -276,7 +282,10 @@ class Exchange(BaseExchange):
         currencies = None
         if self.has['fetchCurrencies'] is True:
             currencies = await self.fetch_currencies()
+            self.options['cachedCurrencies'] = currencies
         markets = await self.fetch_markets(params)
+        if 'cachedCurrencies' in self.options:
+            del self.options['cachedCurrencies']
         return self.set_markets(markets, currencies)
 
 
@@ -411,18 +420,11 @@ class Exchange(BaseExchange):
             # we use aiohttp instead of fastClient now because of this
             # https://github.com/ccxt/ccxt/pull/25995
             self.clients[url] = AiohttpClient(url, on_message, on_error, on_close, on_connected, options)
-            self.clients[url].proxy = self.get_ws_proxy()
+            # set http/s proxy (socks proxy should be set in other place)
+            httpProxy, httpsProxy, socksProxy = self.check_ws_proxy_settings()
+            if (httpProxy or httpsProxy):
+                self.clients[url].proxy = httpProxy if httpProxy else httpsProxy
         return self.clients[url]
-
-    def get_ws_proxy(self):
-        httpProxy, httpsProxy, socksProxy = self.check_ws_proxy_settings()
-        if httpProxy:
-            return httpProxy
-        elif httpsProxy:
-            return httpsProxy
-        elif socksProxy:
-            return socksProxy
-        return None
 
     def delay(self, timeout, method, *args):
         return self.asyncio_loop.call_later(timeout / 1000, self.spawn, method, *args)
@@ -486,8 +488,13 @@ class Exchange(BaseExchange):
         if not subscribed:
             client.subscriptions[subscribe_hash] = subscription or True
 
+        selected_session = self.session
+        # http/s proxy is being set in other places
+        httpProxy, httpsProxy, socksProxy = self.check_ws_proxy_settings()
+        if (socksProxy):
+            selected_session = self.get_socks_proxy_session(socksProxy)
         connected = client.connected if client.connected.done() \
-            else asyncio.ensure_future(client.connect(self.session, backoff_delay))
+            else asyncio.ensure_future(client.connect(selected_session, backoff_delay))
 
         def after(fut):
             # todo: decouple signing from subscriptions
@@ -899,15 +906,15 @@ class Exchange(BaseExchange):
         if self.enableRateLimit:
             cost = self.calculate_rate_limiter_cost(api, method, path, params, config)
             await self.throttle(cost)
+        retries = None
+        retries, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailure', 0)
+        retryDelay = None
+        retryDelay, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailureDelay', 0)
         self.lastRestRequestTimestamp = self.milliseconds()
         request = self.sign(path, api, method, params, headers, body)
         self.last_request_headers = request['headers']
         self.last_request_body = request['body']
         self.last_request_url = request['url']
-        retries = None
-        retries, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailure', 0)
-        retryDelay = None
-        retryDelay, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailureDelay', 0)
         for i in range(0, retries + 1):
             try:
                 return await self.fetch(request['url'], request['method'], request['headers'], request['body'])

@@ -844,6 +844,7 @@ export default class binance extends binanceRest {
             orderbook.reset (snapshot);
             // unroll the accumulated deltas
             const messages = orderbook.cache;
+            orderbook.cache = [];
             for (let i = 0; i < messages.length; i++) {
                 const messageItem = messages[i];
                 const U = this.safeInteger (messageItem, 'U');

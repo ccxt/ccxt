@@ -906,16 +906,9 @@ class kraken extends \ccxt\async\kraken {
                 for ($i = 0; $i < count($this->symbols); $i++) {
                     $symbol = $this->symbols[$i];
                     $market = $this->markets[$symbol];
-                    if ($market['darkpool']) {
-                        $info = $this->safe_value($market, 'info', array());
-                        $altname = $this->safe_string($info, 'altname');
-                        $wsName = mb_substr($altname, 0, 3 - 0) . '/' . mb_substr($altname, 3);
-                        $marketsByWsName[$wsName] = $market;
-                    } else {
-                        $info = $this->safe_value($market, 'info', array());
-                        $wsName = $this->safe_string($info, 'wsname');
-                        $marketsByWsName[$wsName] = $market;
-                    }
+                    $info = $this->safe_value($market, 'info', array());
+                    $wsName = $this->safe_string($info, 'wsname');
+                    $marketsByWsName[$wsName] = $market;
                 }
                 $this->options['marketsByWsName'] = $marketsByWsName;
             }

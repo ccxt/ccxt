@@ -569,9 +569,12 @@ class kraken(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
+        promises = []
+        promises.append(self.publicGetAssetPairs(params))
         if self.options['adjustForTimeDifference']:
-            self.load_time_difference()
-        response = self.publicGetAssetPairs(params)
+            promises.append(self.load_time_difference())
+        responses = promises
+        assetsResponse = responses[0]
         #
         #     {
         #         "error": [],
@@ -619,7 +622,8 @@ class kraken(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        markets = self.safe_value(response, 'result', {})
+        markets = self.safe_dict(assetsResponse, 'result', {})
+        cachedCurrencies = self.safe_dict(self.options, 'cachedCurrencies', {})
         keys = list(markets.keys())
         result = []
         for i in range(0, len(keys)):
@@ -629,39 +633,45 @@ class kraken(Exchange, ImplicitAPI):
             quoteId = self.safe_string(market, 'quote')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            darkpool = id.find('.d') >= 0
-            altname = self.safe_string(market, 'altname')
-            makerFees = self.safe_value(market, 'fees_maker', [])
-            firstMakerFee = self.safe_value(makerFees, 0, [])
+            makerFees = self.safe_list(market, 'fees_maker', [])
+            firstMakerFee = self.safe_list(makerFees, 0, [])
             firstMakerFeeRate = self.safe_string(firstMakerFee, 1)
             maker = None
             if firstMakerFeeRate is not None:
                 maker = self.parse_number(Precise.string_div(firstMakerFeeRate, '100'))
-            takerFees = self.safe_value(market, 'fees', [])
-            firstTakerFee = self.safe_value(takerFees, 0, [])
+            takerFees = self.safe_list(market, 'fees', [])
+            firstTakerFee = self.safe_list(takerFees, 0, [])
             firstTakerFeeRate = self.safe_string(firstTakerFee, 1)
             taker = None
             if firstTakerFeeRate is not None:
                 taker = self.parse_number(Precise.string_div(firstTakerFeeRate, '100'))
-            leverageBuy = self.safe_value(market, 'leverage_buy', [])
+            leverageBuy = self.safe_list(market, 'leverage_buy', [])
             leverageBuyLength = len(leverageBuy)
             precisionPrice = self.parse_number(self.parse_precision(self.safe_string(market, 'pair_decimals')))
+            precisionAmount = self.parse_number(self.parse_precision(self.safe_string(market, 'lot_decimals')))
+            spot = True
+            # fix https://github.com/freqtrade/freqtrade/issues/11765#issuecomment-2894224103
+            if spot and (base in cachedCurrencies):
+                currency = cachedCurrencies[base]
+                currencyPrecision = self.safe_number(currency, 'precision')
+                # if currency precision is greater(e.g. 0.01) than market precision(e.g. 0.001)
+                if currencyPrecision > precisionAmount:
+                    precisionAmount = currencyPrecision
             status = self.safe_string(market, 'status')
             isActive = status == 'online'
             result.append({
                 'id': id,
                 'wsId': self.safe_string(market, 'wsname'),
-                'symbol': altname if darkpool else (base + '/' + quote),
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
                 'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': None,
-                'darkpool': darkpool,
                 'altname': market['altname'],
                 'type': 'spot',
-                'spot': True,
+                'spot': spot,
                 'margin': (leverageBuyLength > 0),
                 'swap': False,
                 'future': False,
@@ -678,7 +688,7 @@ class kraken(Exchange, ImplicitAPI):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'lot_decimals'))),
+                    'amount': precisionAmount,
                     'price': precisionPrice,
                 },
                 'limits': {
@@ -691,7 +701,7 @@ class kraken(Exchange, ImplicitAPI):
                         'max': None,
                     },
                     'price': {
-                        'min': precisionPrice,
+                        'min': None,
                         'max': None,
                     },
                     'cost': {
@@ -702,7 +712,6 @@ class kraken(Exchange, ImplicitAPI):
                 'created': None,
                 'info': market,
             })
-        result = self.append_inactive_markets(result)
         self.options['marketsByAltname'] = self.index_by(result, 'altname')
         return result
 
@@ -713,32 +722,6 @@ class kraken(Exchange, ImplicitAPI):
                     if not (currencyId.find('.') > 0) and (currencyId != 'ZEUS'):
                         currencyId = currencyId[1:]
         return super(kraken, self).safe_currency(currencyId, currency)
-
-    def append_inactive_markets(self, result):
-        # result should be an array to append to
-        precision: dict = {
-            'amount': self.parse_number('1e-8'),
-            'price': self.parse_number('1e-8'),
-        }
-        costLimits: dict = {'min': None, 'max': None}
-        priceLimits: dict = {'min': precision['price'], 'max': None}
-        amountLimits: dict = {'min': precision['amount'], 'max': None}
-        limits: dict = {'amount': amountLimits, 'price': priceLimits, 'cost': costLimits}
-        defaults: dict = {
-            'darkpool': False,
-            'info': None,
-            'maker': None,
-            'taker': None,
-            'active': False,
-            'precision': precision,
-            'limits': limits,
-        }
-        markets = [
-            # {'id': 'XXLMZEUR', 'symbol': 'XLM/EUR', 'base': 'XLM', 'quote': 'EUR', 'altname': 'XLMEUR'},
-        ]
-        for i in range(0, len(markets)):
-            result.append(self.extend(defaults, markets[i]))
-        return result
 
     def fetch_status(self, params={}):
         """
@@ -861,24 +844,21 @@ class kraken(Exchange, ImplicitAPI):
                     self.commonCurrencies[id] = code
                 else:
                     code = self.safe_currency_code(id)
-            precision = self.parse_number(self.parse_precision(self.safe_string(currency, 'decimals')))
-            # assumes all currencies are active except those listed above
-            active = self.safe_string(currency, 'status') == 'enabled'
             isFiat = code.find('.HOLD') >= 0
-            result[code] = {
+            result[code] = self.safe_currency_structure({
                 'id': id,
                 'code': code,
                 'info': currency,
                 'name': self.safe_string(currency, 'altname'),
-                'active': active,
+                'active': self.safe_string(currency, 'status') == 'enabled',
                 'type': 'fiat' if isFiat else 'crypto',
                 'deposit': None,
                 'withdraw': None,
                 'fee': None,
-                'precision': precision,
+                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'decimals'))),
                 'limits': {
                     'amount': {
-                        'min': precision,
+                        'min': None,
                         'max': None,
                     },
                     'withdraw': {
@@ -887,7 +867,7 @@ class kraken(Exchange, ImplicitAPI):
                     },
                 },
                 'networks': {},
-            }
+            })
         return result
 
     def safe_currency_code(self, currencyId: Str, currency: Currency = None) -> Str:
@@ -983,8 +963,6 @@ class kraken(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        if market['darkpool']:
-            raise ExchangeError(self.id + ' fetchOrderBook() does not provide an order book for darkpool symbol ' + symbol)
         request: dict = {
             'pair': market['id'],
         }
@@ -1087,7 +1065,7 @@ class kraken(Exchange, ImplicitAPI):
             for i in range(0, len(symbols)):
                 symbol = symbols[i]
                 market = self.markets[symbol]
-                if market['active'] and not market['darkpool']:
+                if market['active']:
                     marketIds.append(market['id'])
             request['pair'] = ','.join(marketIds)
         response = self.publicGetTicker(self.extend(request, params))
@@ -1113,9 +1091,6 @@ class kraken(Exchange, ImplicitAPI):
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
-        darkpool = symbol.find('.d') >= 0
-        if darkpool:
-            raise ExchangeError(self.id + ' fetchTicker() does not provide a ticker for darkpool symbol ' + symbol)
         market = self.market(symbol)
         request: dict = {
             'pair': market['id'],
@@ -3332,6 +3307,6 @@ class kraken(Exchange, ImplicitAPI):
                         for i in range(0, len(response['error'])):
                             error = response['error'][i]
                             self.throw_exactly_matched_exception(self.exceptions['exact'], error, message)
-                            self.throw_exactly_matched_exception(self.exceptions['broad'], error, message)
+                            self.throw_broadly_matched_exception(self.exceptions['broad'], error, message)
                         raise ExchangeError(message)
         return None

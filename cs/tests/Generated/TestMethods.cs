@@ -1727,7 +1727,7 @@ public partial class testMainClass
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        object promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBitmart(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testHyperliquid(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testOxfun(), this.testXT(), this.testVertex(), this.testParadex(), this.testHashkey(), this.testCoincatch(), this.testDefx(), this.testCryptomus(), this.testDerive()};
+        object promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBitmart(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testHyperliquid(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testOxfun(), this.testXT(), this.testVertex(), this.testParadex(), this.testHashkey(), this.testCoincatch(), this.testDefx(), this.testCryptomus(), this.testDerive(), this.testModeTrade()};
         await promiseAll(promises);
         object successMessage = add(add("[", this.lang), "][TEST_SUCCESS] brokerId tests passed.");
         dump(add("[INFO]", successMessage));
@@ -2496,6 +2496,29 @@ public partial class testMainClass
             request = jsonParse(exchange.last_request_body);
         }
         assert(isEqual(getValue(request, "referral_code"), id), add(add("derive - referral_code: ", id), " not in request."));
+        if (!isTrue(isSync()))
+        {
+            await close(exchange);
+        }
+        return true;
+    }
+
+    public async virtual Task<object> testModeTrade()
+    {
+        Exchange exchange = this.initOfflineExchange("modetrade");
+        exchange.secret = "secretsecretsecretsecretsecretsecretsecrets";
+        object id = "CCXTMODE";
+        await exchange.loadMarkets();
+        object request = null;
+        try
+        {
+            await exchange.createOrder("BTC/USDC:USDC", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            request = jsonParse(exchange.last_request_body);
+        }
+        object brokerId = getValue(request, "order_tag");
+        assert(isEqual(brokerId, id), add(add(add("modetrade - id: ", id), " different from  broker_id: "), brokerId));
         if (!isTrue(isSync()))
         {
             await close(exchange);

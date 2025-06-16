@@ -5182,7 +5182,6 @@ class binance extends Exchange {
         if ($postOnly) {
             $uppercaseType = 'LIMIT_MAKER';
         }
-        $request['type'] = $uppercaseType;
         $triggerPrice = $this->safe_number_2($params, 'stopPrice', 'triggerPrice');
         if ($triggerPrice !== null) {
             if ($uppercaseType === 'MARKET') {
@@ -5191,6 +5190,7 @@ class binance extends Exchange {
                 $uppercaseType = 'STOP_LOSS_LIMIT';
             }
         }
+        $request['type'] = $uppercaseType;
         $validOrderTypes = $this->safe_list($market['info'], 'orderTypes');
         if (!$this->in_array($uppercaseType, $validOrderTypes)) {
             if ($initialUppercaseType !== $uppercaseType) {

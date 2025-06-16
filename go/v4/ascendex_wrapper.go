@@ -46,6 +46,20 @@ func (this *Ascendex) FetchMarkets(params ...interface{}) ([]MarketInterface, er
     }
     return NewMarketInterfaceArray(res), nil
 }
+func (this *Ascendex) FetchSpotMarkets(params ...interface{}) ([]MarketInterface, error) {
+    res := <- this.Core.FetchSpotMarkets(params...)
+    if IsError(res) {
+        return nil, CreateReturnError(res)
+    }
+    return NewMarketInterfaceArray(res), nil
+}
+func (this *Ascendex) FetchContractMarkets(params ...interface{}) ([]MarketInterface, error) {
+    res := <- this.Core.FetchContractMarkets(params...)
+    if IsError(res) {
+        return nil, CreateReturnError(res)
+    }
+    return NewMarketInterfaceArray(res), nil
+}
 /**
  * @method
  * @name ascendex#fetchTime

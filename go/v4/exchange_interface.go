@@ -172,7 +172,7 @@ type IExchange interface {
 	WarmUpCache()
 	GetItf() interface{}
 	ConvertToSafeDictionary(data interface{}) interface{}
-	CreateSafeDictionary() interface{}
+	CreateSafeDictionary() *sync.Map
 	SetOptions(options interface{})
 	CreateOrders(orders interface{}, optionalArgs ...interface{}) <-chan interface{}
 }
@@ -234,4 +234,5 @@ type IDerivedExchange interface {
 	Market(symbol interface{}) interface{}
 	ParseConversion(conversion interface{}, optionalArgs ...interface{}) interface{}
 	SafeCurrencyCode(currencyId interface{}, optionalArgs ...interface{}) interface{}
+	HandleErrors(statusCode interface{}, statusText interface{}, url interface{}, method interface{}, responseHeaders interface{}, responseBody interface{}, response interface{}, requestHeaders interface{}, requestBody interface{}) interface{}
 }

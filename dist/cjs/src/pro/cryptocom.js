@@ -27,6 +27,7 @@ class cryptocom extends cryptocom$1 {
                 'createOrderWs': true,
                 'cancelOrderWs': true,
                 'cancelAllOrders': true,
+                'editOrderWs': true,
             },
             'urls': {
                 'api': {
@@ -1059,6 +1060,31 @@ class cryptocom extends cryptocom$1 {
         const messageHash = this.nonce();
         return await this.watchPrivateRequest(messageHash, request);
     }
+    /**
+     * @method
+     * @name cryptocom#editOrderWs
+     * @description edit a trade order
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-amend-order
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol of the order to edit
+     * @param {string} [type] not used by cryptocom editOrder
+     * @param {string} [side] not used by cryptocom editOrder
+     * @param {float} amount (mandatory) how much of the currency you want to trade in units of the base currency
+     * @param {float} price (mandatory) the price for the order, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] the original client order id of the order to edit, required if id is not provided
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async editOrderWs(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        await this.loadMarkets();
+        params = this.editOrderRequest(id, symbol, amount, price, params);
+        const request = {
+            'method': 'private/amend-order',
+            'params': params,
+        };
+        const messageHash = this.nonce();
+        return await this.watchPrivateRequest(messageHash, request);
+    }
     handleOrder(client, message) {
         //
         //    {
@@ -1310,6 +1336,7 @@ class cryptocom extends cryptocom$1 {
             'public/heartbeat': this.handlePing,
             'public/auth': this.handleAuthenticate,
             'private/create-order': this.handleOrder,
+            'private/amend-order': this.handleOrder,
             'private/cancel-order': this.handleOrder,
             'private/cancel-all-orders': this.handleCancelAllOrders,
             'private/close-position': this.handleOrder,

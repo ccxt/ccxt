@@ -43,7 +43,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.4.85';
+$version = '4.4.89';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -62,7 +62,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.4.85';
+    const VERSION = '4.4.89';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -361,6 +361,7 @@ class Exchange {
         'bitso',
         'bitstamp',
         'bitteam',
+        'bittrade',
         'bitvavo',
         'blockchaincom',
         'blofin',
@@ -401,7 +402,6 @@ class Exchange {
         'hollaex',
         'htx',
         'huobi',
-        'huobijp',
         'hyperliquid',
         'independentreserve',
         'indodax',
@@ -409,18 +409,19 @@ class Exchange {
         'krakenfutures',
         'kucoin',
         'kucoinfutures',
-        'kuna',
         'latoken',
         'lbank',
         'luno',
         'mercado',
         'mexc',
+        'modetrade',
         'myokx',
         'ndax',
         'novadax',
         'oceanex',
         'okcoin',
         'okx',
+        'okxus',
         'onetrading',
         'oxfun',
         'p2b',
@@ -761,6 +762,11 @@ class Exchange {
         return $result;
     }
 
+    public static function index_by_safe($array, $key) {
+        // wrapper for go
+        return static::index_by($array, $key);
+    }
+
     public static function index_by($array, $key) {
         $result = array();
         foreach ($array as $element) {
@@ -826,6 +832,12 @@ class Exchange {
     public static function keysort($array) {
         $result = $array;
         ksort($result);
+        return $result;
+    }
+
+    public static function sort($array) {
+        $result = $array;
+        sort($result);
         return $result;
     }
 
@@ -925,7 +937,7 @@ class Exchange {
         return preg_replace('/%5B\d*%5D/', '', $this->urlencode($array));
     }
 
-    public function rawencode($array) {
+    public function rawencode($array, $sort = false) {
         return urldecode($this->urlencode($array));
     }
 
@@ -1620,8 +1632,10 @@ class Exchange {
         $currencies = null;
         if (array_key_exists('fetchCurrencies', $this->has) && $this->has['fetchCurrencies'] === true) {
             $currencies = $this->fetch_currencies();
+            $this->options['cachedCurrencies'] = $currencies;
         }
         $markets = $this->fetch_markets($params);
+        unset($this->options['cachedCurrencies']);
         return $this->set_markets($markets, $currencies);
     }
 
@@ -1813,7 +1827,7 @@ class Exchange {
                 $result = number_format(round($x, $numPrecisionDigits, PHP_ROUND_HALF_UP), $numPrecisionDigits, '.', '');
             } elseif ($countingMode === SIGNIFICANT_DIGITS) {
                 $significantPosition = ((int) log( abs($x), 10)) % 10;
-                if ($significantPosition > 0) {
+                if ($x >= 1) {
                     ++$significantPosition;
                 }
                 $result = static::number_to_string(round($x, $numPrecisionDigits - $significantPosition, PHP_ROUND_HALF_UP));
@@ -3804,7 +3818,7 @@ class Exchange {
 
     public function set_markets($markets, $currencies = null) {
         $values = array();
-        $this->markets_by_id = array();
+        $this->markets_by_id = $this->create_safe_dictionary();
         // handle marketId conflicts
         // we insert spot $markets first
         $marketValues = $this->sort_by($this->to_array($markets), 'spot', true, true);
@@ -3889,7 +3903,7 @@ class Exchange {
             $sortedCurrencies = $this->sort_by($resultingCurrencies, 'code');
             $this->currencies = $this->deep_extend($this->currencies, $this->index_by($sortedCurrencies, 'code'));
         }
-        $this->currencies_by_id = $this->index_by($this->currencies, 'id');
+        $this->currencies_by_id = $this->index_by_safe($this->currencies, 'id');
         $currenciesSortedByCode = $this->keysort($this->currencies);
         $this->codes = is_array($currenciesSortedByCode) ? array_keys($currenciesSortedByCode) : array();
         return $this->markets;
@@ -4988,11 +5002,11 @@ class Exchange {
                 throw new NotSupported($this->id . ' - ' . $networkCode . ' network did not return any result for ' . $currencyCode);
             } else {
                 // if $networkCode was provided by user, we should check it after response, referenced exchange doesn't support network-code during request
-                $networkId = $isIndexedByUnifiedNetworkCode ? $networkCode : $this->network_code_to_id($networkCode, $currencyCode);
-                if (is_array($indexedNetworkEntries) && array_key_exists($networkId, $indexedNetworkEntries)) {
-                    $chosenNetworkId = $networkId;
+                $networkIdOrCode = $isIndexedByUnifiedNetworkCode ? $networkCode : $this->network_code_to_id($networkCode, $currencyCode);
+                if (is_array($indexedNetworkEntries) && array_key_exists($networkIdOrCode, $indexedNetworkEntries)) {
+                    $chosenNetworkId = $networkIdOrCode;
                 } else {
-                    throw new NotSupported($this->id . ' - ' . $networkId . ' network was not found for ' . $currencyCode . ', use one of ' . implode(', ', $availableNetworkIds));
+                    throw new NotSupported($this->id . ' - ' . $networkIdOrCode . ' network was not found for ' . $currencyCode . ', use one of ' . implode(', ', $availableNetworkIds));
                 }
             }
         } else {
@@ -5357,15 +5371,15 @@ class Exchange {
             $cost = $this->calculate_rate_limiter_cost($api, $method, $path, $params, $config);
             $this->throttle($cost);
         }
+        $retries = null;
+        list($retries, $params) = $this->handle_option_and_params($params, $path, 'maxRetriesOnFailure', 0);
+        $retryDelay = null;
+        list($retryDelay, $params) = $this->handle_option_and_params($params, $path, 'maxRetriesOnFailureDelay', 0);
         $this->lastRestRequestTimestamp = $this->milliseconds();
         $request = $this->sign($path, $api, $method, $params, $headers, $body);
         $this->last_request_headers = $request['headers'];
         $this->last_request_body = $request['body'];
         $this->last_request_url = $request['url'];
-        $retries = null;
-        list($retries, $params) = $this->handle_option_and_params($params, $path, 'maxRetriesOnFailure', 0);
-        $retryDelay = null;
-        list($retryDelay, $params) = $this->handle_option_and_params($params, $path, 'maxRetriesOnFailureDelay', 0);
         for ($i = 0; $i < $retries + 1; $i++) {
             try {
                 return $this->fetch($request['url'], $request['method'], $request['headers'], $request['body']);

@@ -9,6 +9,22 @@
     ],
     "outputType": "json",
     "methods": {
+        "editOrder": [
+            {
+                "description": "Edit spot order",
+                "method": "editOrder",
+                "url": "https://api.crypto.com/exchange/v1/private/amend-order",
+                "input": [
+                    "6142909930410561608",
+                    "ETH/USDT",
+                    "limit",
+                    "buy",
+                    0.001,
+                    1100
+                ],
+                "output": "{\"id\":\"1749674362537\",\"method\":\"private/amend-order\",\"params\":{\"order_id\":\"6142909930410561608\",\"new_quantity\":\"0.001\",\"new_price\":\"1100\"},\"api_key\":\"s189CRCSm9RcUgdsBx62mD\",\"sig\":\"8d898136711ab8ea37d41caecbb0af871ba017c25ec5a014d30629f4263d563f\",\"nonce\":\"1749674362537\"}"
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "fetchCurrencies",

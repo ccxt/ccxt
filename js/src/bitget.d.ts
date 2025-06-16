@@ -24,11 +24,14 @@ export default class bitget extends Exchange {
      * @see https://www.bitget.com/api-doc/spot/market/Get-Symbols
      * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbols-Contracts
      * @see https://www.bitget.com/api-doc/margin/common/support-currencies
+     * @see https://www.bitget.bike/api-doc/uta/public/Instruments
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.uta] set to true to fetch markets for the unified trading account (uta), defaults to false
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
-    parseMarket(market: Dict): Market;
+    fetchDefaultMarkets(params: any): Promise<Market[]>;
+    fetchUtaMarkets(params: any): Promise<Market[]>;
     /**
      * @method
      * @name bitget#fetchCurrencies

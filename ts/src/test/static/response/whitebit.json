@@ -2,6 +2,303 @@
     "exchange": "whitebit",
     "skipKeys": [],
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": {
+                    "USDT": {
+                        "name": "Tether US",
+                        "unified_cryptoasset_id": "825",
+                        "can_withdraw": true,
+                        "can_deposit": true,
+                        "min_withdraw": "1",
+                        "max_withdraw": "0",
+                        "maker_fee": "0.1",
+                        "taker_fee": "0.1",
+                        "min_deposit": "5",
+                        "max_deposit": "0",
+                        "networks": {
+                            "deposits": [
+                                "POLYGON",
+                                "ARBITRUM",
+                                "SOL",
+                                "CCHAIN",
+                                "NEAR",
+                                "TON",
+                                "TRC20",
+                                "ERC20"
+                            ],
+                            "withdraws": [
+                                "POLYGON",
+                                "ARBITRUM",
+                                "SOL",
+                                "CCHAIN",
+                                "NEAR",
+                                "TON",
+                                "TRC20",
+                                "ERC20"
+                            ],
+                            "default": "ERC20"
+                        },
+                        "confirmations": {
+                            "A": "1",
+                            "ARBITRUM": "600",
+                            "BEP20": "40",
+                            "CCHAIN": "970",
+                            "EOS": "1",
+                            "ERC20": "32",
+                            "NEAR": "300",
+                            "OMNI": "3",
+                            "POLYGON": "100",
+                            "SOL": "150",
+                            "TON": "1",
+                            "TRC20": "20"
+                        },
+                        "limits": {
+                            "deposit": {
+                                "A": {
+                                    "min": "0"
+                                },
+                                "ARBITRUM": {
+                                    "min": "5"
+                                },
+                                "BEP20": {
+                                    "min": "999999999999999999"
+                                },
+                                "CCHAIN": {
+                                    "min": "5"
+                                },
+                                "EOS": {
+                                    "min": "10"
+                                },
+                                "ERC20": {
+                                    "min": "5"
+                                },
+                                "NEAR": {
+                                    "min": "5"
+                                },
+                                "OMNI": {
+                                    "min": "60"
+                                },
+                                "POLYGON": {
+                                    "min": "5"
+                                },
+                                "SOL": {
+                                    "min": "5"
+                                },
+                                "TON": {
+                                    "min": "5"
+                                },
+                                "TRC20": {
+                                    "min": "5"
+                                }
+                            },
+                            "withdraw": {
+                                "A": {
+                                    "min": "0"
+                                },
+                                "ARBITRUM": {
+                                    "min": "10"
+                                },
+                                "BEP20": {
+                                    "min": "10"
+                                },
+                                "CCHAIN": {
+                                    "min": "10"
+                                },
+                                "EOS": {
+                                    "min": "15"
+                                },
+                                "ERC20": {
+                                    "min": "10"
+                                },
+                                "NEAR": {
+                                    "min": "1"
+                                },
+                                "OMNI": {
+                                    "min": "30"
+                                },
+                                "POLYGON": {
+                                    "min": "10"
+                                },
+                                "SOL": {
+                                    "min": "10"
+                                },
+                                "TON": {
+                                    "min": "10"
+                                },
+                                "TRC20": {
+                                    "min": "10"
+                                }
+                            }
+                        },
+                        "currency_precision": "6",
+                        "is_memo": false
+                    }
+                },
+                "parsedResponse": {
+                    "USDT": {
+                        "info": {
+                            "name": "Tether US",
+                            "unified_cryptoasset_id": "825",
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "1",
+                            "max_withdraw": "0",
+                            "maker_fee": "0.1",
+                            "taker_fee": "0.1",
+                            "min_deposit": "5",
+                            "max_deposit": "0",
+                            "networks": {
+                                "deposits": [
+                                    "POLYGON",
+                                    "ARBITRUM",
+                                    "SOL",
+                                    "CCHAIN",
+                                    "NEAR",
+                                    "TON",
+                                    "TRC20",
+                                    "ERC20"
+                                ],
+                                "withdraws": [
+                                    "POLYGON",
+                                    "ARBITRUM",
+                                    "SOL",
+                                    "CCHAIN",
+                                    "NEAR",
+                                    "TON",
+                                    "TRC20",
+                                    "ERC20"
+                                ],
+                                "default": "ERC20"
+                            },
+                            "confirmations": {
+                                "A": "1",
+                                "ARBITRUM": "600",
+                                "BEP20": "40",
+                                "CCHAIN": "970",
+                                "EOS": "1",
+                                "ERC20": "32",
+                                "NEAR": "300",
+                                "OMNI": "3",
+                                "POLYGON": "100",
+                                "SOL": "150",
+                                "TON": "1",
+                                "TRC20": "20"
+                            },
+                            "limits": {
+                                "deposit": {
+                                    "A": {
+                                        "min": "0"
+                                    },
+                                    "ARBITRUM": {
+                                        "min": "5"
+                                    },
+                                    "BEP20": {
+                                        "min": "999999999999999999"
+                                    },
+                                    "CCHAIN": {
+                                        "min": "5"
+                                    },
+                                    "EOS": {
+                                        "min": "10"
+                                    },
+                                    "ERC20": {
+                                        "min": "5"
+                                    },
+                                    "NEAR": {
+                                        "min": "5"
+                                    },
+                                    "OMNI": {
+                                        "min": "60"
+                                    },
+                                    "POLYGON": {
+                                        "min": "5"
+                                    },
+                                    "SOL": {
+                                        "min": "5"
+                                    },
+                                    "TON": {
+                                        "min": "5"
+                                    },
+                                    "TRC20": {
+                                        "min": "5"
+                                    }
+                                },
+                                "withdraw": {
+                                    "A": {
+                                        "min": "0"
+                                    },
+                                    "ARBITRUM": {
+                                        "min": "10"
+                                    },
+                                    "BEP20": {
+                                        "min": "10"
+                                    },
+                                    "CCHAIN": {
+                                        "min": "10"
+                                    },
+                                    "EOS": {
+                                        "min": "15"
+                                    },
+                                    "ERC20": {
+                                        "min": "10"
+                                    },
+                                    "NEAR": {
+                                        "min": "1"
+                                    },
+                                    "OMNI": {
+                                        "min": "30"
+                                    },
+                                    "POLYGON": {
+                                        "min": "10"
+                                    },
+                                    "SOL": {
+                                        "min": "10"
+                                    },
+                                    "TON": {
+                                        "min": "10"
+                                    },
+                                    "TRC20": {
+                                        "min": "10"
+                                    }
+                                }
+                            },
+                            "currency_precision": "6",
+                            "is_memo": false
+                        },
+                        "id": "USDT",
+                        "numericId": null,
+                        "code": "USDT",
+                        "precision": 0.000001,
+                        "type": "crypto",
+                        "name": null,
+                        "active": null,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": null,
+                        "fees": {},
+                        "networks": null,
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": 1,
+                                "max": 0
+                            },
+                            "deposit": {
+                                "min": 5,
+                                "max": 0
+                            }
+                        }
+                    }
+                }
+            }
+        ],
         "fetchTrades": [
             {
                 "description": "public spot trades",

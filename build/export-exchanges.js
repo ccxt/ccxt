@@ -679,8 +679,8 @@ async function exportEverything () {
         },
         {
             file: './python/ccxt/pro/__init__.py',
-            regex: /(# DO_NOT_REMOVE__ERROR_IMPORTS_START)[\s\S]*?(# DO_NOT_REMOVE__ERROR_IMPORTS_END)/s,
-            replacement: '$1\n' +flat.map (error => ('from ccxt.base.errors' + ' import ' + error).padEnd (70) + '# noqa: F401').join ("\n") + "\n$2\n\n",
+            regex: /(# DO_NOT_REMOVE__ERROR_IMPORTS_START)[\s\S]*?(# DO_NOT_REMOVE__ERROR_IMPORTS_END\n)[\n]/s,
+            replacement: '$1\n' +flat.map (error => ('from ccxt.base.errors' + ' import ' + error).padEnd (70) + '# noqa: F401').join ("\n") + "\n$2\n",
         },
         {
             file: './python/ccxt/pro/__init__.py',
@@ -700,7 +700,7 @@ async function exportEverything () {
         {
             file: './go/v4/exchange_metadata.go',
             regex: /var Exchanges \[\]string = \[\]string\{.+$/gm,
-            replacement: `var Exchanges []string = []string{ ${ids.map(i=>`"${capitalize(i)}"`).join(', ')} };`,
+            replacement: `var Exchanges []string = []string{ ${ids.map(i=>`"${capitalize(i)}"`).join(', ')} }`,
         },
     ]
 

@@ -45,6 +45,7 @@ export default class cryptocom extends Exchange {
                 'createOrders': true,
                 'createStopOrder': true,
                 'createTriggerOrder': true,
+                'editOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': false,
@@ -137,6 +138,7 @@ export default class cryptocom extends Exchange {
                     'derivatives': 'https://uat-api.3ona.co/v2',
                 },
                 'api': {
+                    'base': 'https://api.crypto.com',
                     'v1': 'https://api.crypto.com/exchange/v1',
                     'v2': 'https://api.crypto.com/v2',
                     'derivatives': 'https://deriv-api.crypto.com/v1',
@@ -154,6 +156,13 @@ export default class cryptocom extends Exchange {
                 'fees': 'https://crypto.com/exchange/document/fees-limits',
             },
             'api': {
+                'base': {
+                    'public': {
+                        'get': {
+                            'v1/public/get-announcements': 1, // no description of rate limit
+                        },
+                    },
+                },
                 'v1': {
                     'public': {
                         'get': {
@@ -180,6 +189,7 @@ export default class cryptocom extends Exchange {
                             'private/user-balance-history': 10 / 3,
                             'private/get-positions': 10 / 3,
                             'private/create-order': 2 / 3,
+                            'private/amend-order': 4 / 3,
                             'private/create-order-list': 10 / 3,
                             'private/cancel-order': 2 / 3,
                             'private/cancel-order-list': 10 / 3,
@@ -1634,6 +1644,50 @@ export default class cryptocom extends Exchange {
             request['quantity'] = this.amountToPrecision(symbol, amount);
         }
         params = this.omit(params, ['postOnly', 'clientOrderId', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice']);
+        return this.extend(request, params);
+    }
+    /**
+     * @method
+     * @name cryptocom#editOrder
+     * @description edit a trade order
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-amend-order
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol of the order to edit
+     * @param {string} [type] not used by cryptocom editOrder
+     * @param {string} [side] not used by cryptocom editOrder
+     * @param {float} amount (mandatory) how much of the currency you want to trade in units of the base currency
+     * @param {float} price (mandatory) the price for the order, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] the original client order id of the order to edit, required if id is not provided
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        await this.loadMarkets();
+        const request = this.editOrderRequest(id, symbol, amount, price, params);
+        const response = await this.v1PrivatePostPrivateAmendOrder(request);
+        const result = this.safeDict(response, 'result', {});
+        return this.parseOrder(result);
+    }
+    editOrderRequest(id, symbol, amount, price = undefined, params = {}) {
+        const request = {};
+        if (id !== undefined) {
+            request['order_id'] = id;
+        }
+        else {
+            const originalClientOrderId = this.safeString2(params, 'orig_client_oid', 'clientOrderId');
+            if (originalClientOrderId === undefined) {
+                throw new ArgumentsRequired(this.id + ' editOrder() requires an id argument or orig_client_oid parameter');
+            }
+            else {
+                request['orig_client_oid'] = originalClientOrderId;
+                params = this.omit(params, ['orig_client_oid', 'clientOrderId']);
+            }
+        }
+        if ((amount === undefined) || (price === undefined)) {
+            throw new ArgumentsRequired(this.id + ' editOrder() requires both amount and price arguments. If you do not want to change the amount or price, you should pass the original values');
+        }
+        request['new_quantity'] = this.amountToPrecision(symbol, amount);
+        request['new_price'] = this.priceToPrecision(symbol, price);
         return this.extend(request, params);
     }
     /**
