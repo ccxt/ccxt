@@ -100,9 +100,9 @@ public partial class BaseTest
             bool errorTypeCorrect = false;
             ccxt.pro.ConsumerFunction consumerFn = async (ccxt.pro.Message message) =>
             {
-                throw new ccxt.ConsumerFunctionError("Consumer error");
+                throw new ConsumerFunctionError("Consumer error");
             };
-            ccxt.ConsumerFunction errorConsumer = async (ccxt.pro.Message message) =>
+            ccxt.pro.ConsumerFunction errorConsumer = async (ccxt.pro.Message message) =>
             {
                 if (message.error != null && message.error.GetType().Name == "ConsumerFunctionError")
                 {
