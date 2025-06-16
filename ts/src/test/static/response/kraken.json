@@ -160,6 +160,64 @@
         ],
         "createOrder": [
             {
+                "description": "createOrder long precisions",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    0.000123456789,
+                    12345.123456789
+                ],
+                "httpResponse": {
+                    "error": [],
+                    "result": {
+                        "txid": [
+                            "OOBROV-GTGDX-IRFMMB"
+                        ],
+                        "descr": {
+                            "order": "buy 0.00012346 XBTUSDT @ limit 12345.1"
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "id": "OOBROV-GTGDX-IRFMMB",
+                    "clientOrderId": null,
+                    "info": {
+                        "txid": [
+                            "OOBROV-GTGDX-IRFMMB"
+                        ],
+                        "descr": {
+                            "order": "buy 0.00012346 XBTUSDT @ limit 12345.1"
+                        }
+                    },
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "status": null,
+                    "symbol": "BTC/USDT",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": false,
+                    "side": "buy",
+                    "price": 12345.1,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "cost": null,
+                    "amount": 0.00012346,
+                    "filled": null,
+                    "average": null,
+                    "remaining": null,
+                    "reduceOnly": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "stopPrice": null
+                }
+            },
+            {
                 "description": "create order",
                 "method": "createOrder",
                 "input": [

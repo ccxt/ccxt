@@ -2343,17 +2343,9 @@ class bybit extends Exchange {
             // 'baseCoin' => '', Base coin. For option only
             // 'expDate' => '', Expiry date. e.g., 25DEC22. For option only
         );
-        if ($market['spot']) {
-            $request['category'] = 'spot';
-        } else {
-            if ($market['option']) {
-                $request['category'] = 'option';
-            } elseif ($market['linear']) {
-                $request['category'] = 'linear';
-            } elseif ($market['inverse']) {
-                $request['category'] = 'inverse';
-            }
-        }
+        $category = null;
+        list($category, $params) = $this->get_bybit_type('fetchTicker', $market, $params);
+        $request['category'] = $category;
         $response = $this->publicGetV5MarketTickers ($this->extend($request, $params));
         //
         //     {
@@ -2424,7 +2416,7 @@ class bybit extends Exchange {
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
                 // using safeMarket here because if the user provides for instance BTCUSDT and "type" => "spot" in $params we should
-                // infer the $market $type from the $type provided and not from the conflicting id (BTCUSDT might be swap or spot)
+                // infer the $market type from the type provided and not from the conflicting id (BTCUSDT might be swap or spot)
                 $isExchangeSpecificSymbol = (mb_strpos($symbol, '/') === -1);
                 if ($isExchangeSpecificSymbol) {
                     $market = $this->safe_market($symbol, null, null, $defaultType);
@@ -2453,25 +2445,15 @@ class bybit extends Exchange {
             // 'baseCoin' => '', // Base coin. For option only
             // 'expDate' => '', // Expiry date. e.g., 25DEC22. For option only
         );
-        $type = null;
-        list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
-        // Calls like `.fetchTickers (null, array($subType:'inverse'))` should be supported for this exchange, so
-        // as "options.defaultSubType" is also set in exchange options, we should consider `$params->subType`
-        // with higher priority and only default to spot, if `$subType` is not set in $params
-        $passedSubType = $this->safe_string($params, 'subType');
-        $subType = null;
-        list($subType, $params) = $this->handle_sub_type_and_params('fetchTickers', $market, $params, 'linear');
-        // only if $passedSubType is null, then use spot
-        if ($type === 'spot' && $passedSubType === null) {
-            $request['category'] = 'spot';
-        } elseif ($type === 'option') {
+        $category = null;
+        list($category, $params) = $this->get_bybit_type('fetchTickers', $market, $params);
+        $request['category'] = $category;
+        if ($category === 'option') {
             $request['category'] = 'option';
             if ($code === null) {
                 $code = 'BTC';
             }
             $request['baseCoin'] = $code;
-        } elseif ($type === 'swap' || $type === 'future' || $subType !== null) {
-            $request['category'] = $subType;
         }
         $response = $this->publicGetV5MarketTickers ($this->extend($request, $params));
         //
@@ -3831,7 +3813,10 @@ class bybit extends Exchange {
         if (!$market['spot']) {
             throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
         }
-        return $this->create_order($symbol, 'market', 'buy', $cost, 1, $params);
+        $req = array(
+            'cost' => $cost,
+        );
+        return $this->create_order($symbol, 'market', 'buy', -1, null, $this->extend($req, $params));
     }
 
     public function create_market_sell_order_with_cost(string $symbol, float $cost, $params = array ()): array {
@@ -3855,7 +3840,10 @@ class bybit extends Exchange {
         if (!$market['spot']) {
             throw new NotSupported($this->id . ' createMarketSellOrderWithCost() supports spot orders only');
         }
-        return $this->create_order($symbol, 'market', 'sell', $cost, 1, $params);
+        $req = array(
+            'cost' => $cost,
+        );
+        return $this->create_order($symbol, 'market', 'sell', -1, null, $this->extend($req, $params));
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): array {
@@ -4050,15 +4038,9 @@ class bybit extends Exchange {
                 $request['price'] = $priceString;
             }
         }
-        if ($market['spot']) {
-            $request['category'] = 'spot';
-        } elseif ($market['option']) {
-            $request['category'] = 'option';
-        } elseif ($market['linear']) {
-            $request['category'] = 'linear';
-        } elseif ($market['inverse']) {
-            $request['category'] = 'inverse';
-        }
+        $category = null;
+        list($category, $params) = $this->get_bybit_type('createOrderRequest', $market, $params);
+        $request['category'] = $category;
         $cost = $this->safe_string($params, 'cost');
         $params = $this->omit($params, 'cost');
         // if the $cost is inferable, let's keep the old logic and ignore marketUnit, to minimize the impact of the changes
@@ -4088,7 +4070,7 @@ class bybit extends Exchange {
                 if (($price === null) && ($cost === null)) {
                     throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend in the $amount argument');
                 } else {
-                    $quoteAmount = Precise::string_mul($amountString, $priceString);
+                    $quoteAmount = Precise::string_mul($this->number_to_string($amount), $priceString);
                     $costRequest = ($cost !== null) ? $cost : $quoteAmount;
                     $request['qty'] = $this->get_cost($symbol, $costRequest);
                 }
@@ -4277,15 +4259,9 @@ class bybit extends Exchange {
             // Valid for option only.
             // 'orderIv' => '0', // Implied volatility; parameters are passed according to the real value; for example, for 10%, 0.1 is passed
         );
-        if ($market['spot']) {
-            $request['category'] = 'spot';
-        } elseif ($market['linear']) {
-            $request['category'] = 'linear';
-        } elseif ($market['inverse']) {
-            $request['category'] = 'inverse';
-        } elseif ($market['option']) {
-            $request['category'] = 'option';
-        }
+        $category = null;
+        list($category, $params) = $this->get_bybit_type('editOrderRequest', $market, $params);
+        $request['category'] = $category;
         if ($amount !== null) {
             $request['qty'] = $this->get_amount($symbol, $amount);
         }
@@ -4494,15 +4470,9 @@ class bybit extends Exchange {
         if ($id !== null) { // The user can also use argument $params["orderLinkId"]
             $request['orderId'] = $id;
         }
-        if ($market['spot']) {
-            $request['category'] = 'spot';
-        } elseif ($market['linear']) {
-            $request['category'] = 'linear';
-        } elseif ($market['inverse']) {
-            $request['category'] = 'inverse';
-        } elseif ($market['option']) {
-            $request['category'] = 'option';
-        }
+        $category = null;
+        list($category, $params) = $this->get_bybit_type('cancelOrderRequest', $market, $params);
+        $request['category'] = $category;
         return $this->extend($request, $params);
     }
 
@@ -7583,15 +7553,7 @@ class bybit extends Exchange {
             'symbol' => $market['id'],
         );
         $category = null;
-        if ($market['linear']) {
-            $category = 'linear';
-        } elseif ($market['inverse']) {
-            $category = 'inverse';
-        } elseif ($market['spot']) {
-            $category = 'spot';
-        } else {
-            $category = 'option';
-        }
+        list($category, $params) = $this->get_bybit_type('fetchTradingFee', $market, $params);
         $request['category'] = $category;
         $response = $this->privateGetV5AccountFeeRate ($this->extend($request, $params));
         //
@@ -7844,10 +7806,10 @@ class bybit extends Exchange {
         }
         $type = null;
         list($type, $params) = $this->get_bybit_type('fetchMySettlementHistory', $market, $params);
-        if ($type === 'spot' || $type === 'inverse') {
+        if ($type === 'spot') {
             throw new NotSupported($this->id . ' fetchMySettlementHistory() is not supported for spot market');
         }
-        $request['category'] = 'linear';
+        $request['category'] = $type;
         if ($limit !== null) {
             $request['limit'] = $limit;
         }

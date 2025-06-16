@@ -825,15 +825,9 @@ class kraken(ccxt.async_support.kraken):
             for i in range(0, len(self.symbols)):
                 symbol = self.symbols[i]
                 market = self.markets[symbol]
-                if market['darkpool']:
-                    info = self.safe_value(market, 'info', {})
-                    altname = self.safe_string(info, 'altname')
-                    wsName = altname[0:3] + '/' + altname[3:]
-                    marketsByWsName[wsName] = market
-                else:
-                    info = self.safe_value(market, 'info', {})
-                    wsName = self.safe_string(info, 'wsname')
-                    marketsByWsName[wsName] = market
+                info = self.safe_value(market, 'info', {})
+                wsName = self.safe_string(info, 'wsname')
+                marketsByWsName[wsName] = market
             self.options['marketsByWsName'] = marketsByWsName
         return markets
 

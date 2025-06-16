@@ -18,7 +18,6 @@ export default class kraken extends Exchange {
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
     safeCurrency(currencyId: any, currency?: Currency): import("./base/types.js").CurrencyInterface;
-    appendInactiveMarkets(result: any): any;
     /**
      * @method
      * @name kraken#fetchStatus

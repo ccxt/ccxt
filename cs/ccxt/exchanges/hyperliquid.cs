@@ -1653,7 +1653,11 @@ public partial class hyperliquid : Exchange
             }
             ((IList<object>)orderReq).Add(orderObj);
         }
-        object vaultAddress = this.formatVaultAddress(this.safeString(parameters, "vaultAddress"));
+        object vaultAddress = null;
+        var vaultAddressparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "vaultAddress");
+        vaultAddress = ((IList<object>)vaultAddressparametersVariable)[0];
+        parameters = ((IList<object>)vaultAddressparametersVariable)[1];
+        vaultAddress = this.formatVaultAddress(vaultAddress);
         object orderAction = new Dictionary<string, object>() {
             { "type", "order" },
             { "orders", orderReq },
@@ -1758,7 +1762,11 @@ public partial class hyperliquid : Exchange
             }
         }
         ((IDictionary<string,object>)cancelAction)["cancels"] = cancelReq;
-        object vaultAddress = this.formatVaultAddress(this.safeString(parameters, "vaultAddress"));
+        object vaultAddress = null;
+        var vaultAddressparametersVariable = this.handleOptionAndParams(parameters, "cancelOrders", "vaultAddress");
+        vaultAddress = ((IList<object>)vaultAddressparametersVariable)[0];
+        parameters = ((IList<object>)vaultAddressparametersVariable)[1];
+        vaultAddress = this.formatVaultAddress(vaultAddress);
         object signature = this.signL1Action(cancelAction, nonce, vaultAddress);
         ((IDictionary<string,object>)request)["action"] = cancelAction;
         ((IDictionary<string,object>)request)["signature"] = signature;
@@ -1850,7 +1858,11 @@ public partial class hyperliquid : Exchange
         }
         ((IDictionary<string,object>)cancelAction)["type"] = ((bool) isTrue(cancelByCloid)) ? "cancelByCloid" : "cancel";
         ((IDictionary<string,object>)cancelAction)["cancels"] = cancelReq;
-        object vaultAddress = this.formatVaultAddress(this.safeString(parameters, "vaultAddress"));
+        object vaultAddress = null;
+        var vaultAddressparametersVariable = this.handleOptionAndParams(parameters, "cancelOrdersForSymbols", "vaultAddress");
+        vaultAddress = ((IList<object>)vaultAddressparametersVariable)[0];
+        parameters = ((IList<object>)vaultAddressparametersVariable)[1];
+        vaultAddress = this.formatVaultAddress(vaultAddress);
         object signature = this.signL1Action(cancelAction, nonce, vaultAddress);
         ((IDictionary<string,object>)request)["action"] = cancelAction;
         ((IDictionary<string,object>)request)["signature"] = signature;
@@ -1899,7 +1911,11 @@ public partial class hyperliquid : Exchange
             { "type", "scheduleCancel" },
             { "time", add(nonce, timeout) },
         };
-        object vaultAddress = this.formatVaultAddress(this.safeString(parameters, "vaultAddress"));
+        object vaultAddress = null;
+        var vaultAddressparametersVariable = this.handleOptionAndParams(parameters, "cancelAllOrdersAfter", "vaultAddress");
+        vaultAddress = ((IList<object>)vaultAddressparametersVariable)[0];
+        parameters = ((IList<object>)vaultAddressparametersVariable)[1];
+        vaultAddress = this.formatVaultAddress(vaultAddress);
         object signature = this.signL1Action(cancelAction, nonce, vaultAddress);
         ((IDictionary<string,object>)request)["action"] = cancelAction;
         ((IDictionary<string,object>)request)["signature"] = signature;
@@ -2039,7 +2055,11 @@ public partial class hyperliquid : Exchange
             { "type", "batchModify" },
             { "modifies", modifies },
         };
-        object vaultAddress = this.formatVaultAddress(this.safeString(parameters, "vaultAddress"));
+        object vaultAddress = null;
+        var vaultAddressparametersVariable = this.handleOptionAndParams(parameters, "editOrder", "vaultAddress");
+        vaultAddress = ((IList<object>)vaultAddressparametersVariable)[0];
+        parameters = ((IList<object>)vaultAddressparametersVariable)[1];
+        vaultAddress = this.formatVaultAddress(vaultAddress);
         object signature = this.signL1Action(modifyAction, nonce, vaultAddress);
         object request = new Dictionary<string, object>() {
             { "action", modifyAction },
@@ -2048,7 +2068,6 @@ public partial class hyperliquid : Exchange
         };
         if (isTrue(!isEqual(vaultAddress, null)))
         {
-            parameters = this.omit(parameters, "vaultAddress");
             ((IDictionary<string,object>)request)["vaultAddress"] = vaultAddress;
         }
         return request;
@@ -2990,10 +3009,12 @@ public partial class hyperliquid : Exchange
             { "isCross", isCross },
             { "leverage", leverage },
         };
-        object vaultAddress = this.safeString(parameters, "vaultAddress");
+        object vaultAddress = null;
+        var vaultAddressparametersVariable = this.handleOptionAndParams(parameters, "setMarginMode", "vaultAddress");
+        vaultAddress = ((IList<object>)vaultAddressparametersVariable)[0];
+        parameters = ((IList<object>)vaultAddressparametersVariable)[1];
         if (isTrue(!isEqual(vaultAddress, null)))
         {
-            parameters = this.omit(parameters, "vaultAddress");
             if (isTrue(((string)vaultAddress).StartsWith(((string)"0x"))))
             {
                 vaultAddress = ((string)vaultAddress).Replace((string)"0x", (string)"");
@@ -3051,7 +3072,11 @@ public partial class hyperliquid : Exchange
             { "isCross", isCross },
             { "leverage", leverage },
         };
-        object vaultAddress = this.formatVaultAddress(this.safeString(parameters, "vaultAddress"));
+        object vaultAddress = null;
+        var vaultAddressparametersVariable = this.handleOptionAndParams(parameters, "setLeverage", "vaultAddress");
+        vaultAddress = ((IList<object>)vaultAddressparametersVariable)[0];
+        parameters = ((IList<object>)vaultAddressparametersVariable)[1];
+        vaultAddress = this.formatVaultAddress(vaultAddress);
         object signature = this.signL1Action(updateAction, nonce, vaultAddress);
         object request = new Dictionary<string, object>() {
             { "action", updateAction },
@@ -3125,7 +3150,11 @@ public partial class hyperliquid : Exchange
             { "isBuy", true },
             { "ntli", sz },
         };
-        object vaultAddress = this.formatVaultAddress(this.safeString(parameters, "vaultAddress"));
+        object vaultAddress = null;
+        var vaultAddressparametersVariable = this.handleOptionAndParams(parameters, "modifyMargin", "vaultAddress");
+        vaultAddress = ((IList<object>)vaultAddressparametersVariable)[0];
+        parameters = ((IList<object>)vaultAddressparametersVariable)[1];
+        vaultAddress = this.formatVaultAddress(vaultAddress);
         object signature = this.signL1Action(updateAction, nonce, vaultAddress);
         object request = new Dictionary<string, object>() {
             { "action", updateAction },
@@ -3134,7 +3163,6 @@ public partial class hyperliquid : Exchange
         };
         if (isTrue(!isEqual(vaultAddress, null)))
         {
-            parameters = this.omit(parameters, "vaultAddress");
             ((IDictionary<string,object>)request)["vaultAddress"] = vaultAddress;
         }
         object response = await this.privatePostExchange(request);
@@ -3200,8 +3228,11 @@ public partial class hyperliquid : Exchange
                 throw new NotSupported ((string)add(this.id, " transfer() only support spot <> swap transfer")) ;
             }
             object strAmount = this.numberToString(amount);
-            object vaultAddress = this.formatVaultAddress(this.safeString(parameters, "vaultAddress"));
-            parameters = this.omit(parameters, "vaultAddress");
+            object vaultAddress = null;
+            var vaultAddressparametersVariable = this.handleOptionAndParams(parameters, "transfer", "vaultAddress");
+            vaultAddress = ((IList<object>)vaultAddressparametersVariable)[0];
+            parameters = ((IList<object>)vaultAddressparametersVariable)[1];
+            vaultAddress = this.formatVaultAddress(vaultAddress);
             if (isTrue(!isEqual(vaultAddress, null)))
             {
                 strAmount = add(add(strAmount, " subaccount:"), vaultAddress);
@@ -3315,7 +3346,11 @@ public partial class hyperliquid : Exchange
                 throw new NotSupported ((string)add(this.id, " withdraw() only support USDC")) ;
             }
         }
-        object vaultAddress = this.formatVaultAddress(this.safeString(parameters, "vaultAddress"));
+        object vaultAddress = null;
+        var vaultAddressparametersVariable = this.handleOptionAndParams(parameters, "withdraw", "vaultAddress");
+        vaultAddress = ((IList<object>)vaultAddressparametersVariable)[0];
+        parameters = ((IList<object>)vaultAddressparametersVariable)[1];
+        vaultAddress = this.formatVaultAddress(vaultAddress);
         parameters = this.omit(parameters, "vaultAddress");
         object nonce = this.milliseconds();
         object action = new Dictionary<string, object>() {};
@@ -4042,8 +4077,11 @@ public partial class hyperliquid : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object market = this.market(symbol);
-        object vaultAddress = this.safeString(parameters, "vaultAddress");
-        parameters = this.omit(parameters, "vaultAddress");
+        object vaultAddress = null;
+        var vaultAddressparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "vaultAddress");
+        vaultAddress = ((IList<object>)vaultAddressparametersVariable)[0];
+        parameters = ((IList<object>)vaultAddressparametersVariable)[1];
+        vaultAddress = this.formatVaultAddress(vaultAddress);
         symbol = getValue(market, "symbol");
         object order = new Dictionary<string, object>() {
             { "symbol", symbol },

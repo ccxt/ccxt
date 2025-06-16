@@ -125,7 +125,7 @@ class gate(Exchange, ImplicitAPI):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': False,
-                'fetchDepositAddressesByNetwork': False,
+                'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
@@ -1263,17 +1263,21 @@ class gate(Exchange, ImplicitAPI):
         #         {
         #             "id": "QTUM_ETH",
         #             "base": "QTUM",
+        #             "base_name": "Quantum",
         #             "quote": "ETH",
+        #             "quote_name": "Ethereum",
         #             "fee": "0.2",
         #             "min_base_amount": "0.01",
         #             "min_quote_amount": "0.001",
+        #             "max_quote_amount": "50000",
         #             "amount_precision": 3,
         #             "precision": 6,
         #             "trade_status": "tradable",
-        #             "sell_start": 0,
-        #             "buy_start": 0
+        #             "sell_start": 1607313600,
+        #             "buy_start": 1700492400,
+        #             "type": "normal",
+        #             "trade_url": "https://www.gate.io/trade/QTUM_ETH",
         #         }
-        #     ]
         #
         #  Margin
         #
@@ -1304,6 +1308,8 @@ class gate(Exchange, ImplicitAPI):
             tradeStatus = self.safe_string(market, 'trade_status')
             leverage = self.safe_number(market, 'leverage')
             margin = leverage is not None
+            buyStart = self.safe_integer_product(spotMarket, 'buy_start', 1000)  # buy_start is the trading start time, while sell_start is offline orders start time
+            createdTs = buyStart if (buyStart != 0) else None
             result.append({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -1353,7 +1359,7 @@ class gate(Exchange, ImplicitAPI):
                         'max': self.safe_number(market, 'max_quote_amount') if margin else None,
                     },
                 },
-                'created': None,
+                'created': createdTs,
                 'info': market,
             })
         return result
@@ -1418,6 +1424,7 @@ class gate(Exchange, ImplicitAPI):
         #        "funding_next_apply": 1610035200,
         #        "short_users": 977,
         #        "config_change_time": 1609899548,
+        #        "create_time": 1609800048,
         #        "trade_size": 28530850594,
         #        "position_size": 5223816,
         #        "long_users": 455,
@@ -1548,7 +1555,7 @@ class gate(Exchange, ImplicitAPI):
                     'max': None,
                 },
             },
-            'created': None,
+            'created': self.safe_integer_product(market, 'create_time', 1000),
             'info': market,
         }
 
@@ -2158,9 +2165,7 @@ class gate(Exchange, ImplicitAPI):
         chains = self.safe_value(response, 'multichain_addresses', [])
         currencyId = self.safe_string(response, 'currency')
         currency = self.safe_currency(currencyId, currency)
-        parsed = self.parse_deposit_addresses(chains, [currency['code']], False, {
-            'currency': currency['id'],
-        })
+        parsed = self.parse_deposit_addresses(chains, None, False)
         return self.index_by(parsed, 'network')
 
     def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
@@ -2178,8 +2183,8 @@ class gate(Exchange, ImplicitAPI):
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
         chainsIndexedById = self.fetch_deposit_addresses_by_network(code, params)
-        selectedNetworkId = self.select_network_code_from_unified_networks(code, networkCode, chainsIndexedById)
-        return chainsIndexedById[selectedNetworkId]
+        selectedNetworkIdOrCode = self.select_network_code_from_unified_networks(code, networkCode, chainsIndexedById)
+        return chainsIndexedById[selectedNetworkIdOrCode]
 
     def parse_deposit_address(self, depositAddress, currency=None):
         #

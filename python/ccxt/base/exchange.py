@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.86'
+__version__ = '4.4.89'
 
 # -----------------------------------------------------------------------------
 
@@ -907,6 +907,10 @@ class Exchange(object):
         return collections.OrderedDict(sorted(dictionary.items(), key=lambda t: t[0]))
 
     @staticmethod
+    def sort(array):
+        return sorted(array)
+
+    @staticmethod
     def extend(*args):
         if args is not None:
             result = None
@@ -955,6 +959,11 @@ class Exchange(object):
     @staticmethod
     def groupBy(array, key):
         return Exchange.group_by(array, key)
+
+
+    @staticmethod
+    def index_by_safe(array, key):
+        return Exchange.index_by(array, key)  # wrapper for go
 
     @staticmethod
     def index_by(array, key):
@@ -1037,7 +1046,7 @@ class Exchange(object):
         return _urlencode.urlencode(result, quote_via=_urlencode.quote)
 
     @staticmethod
-    def rawencode(params={}):
+    def rawencode(params={}, sort=False):
         return _urlencode.unquote(Exchange.urlencode(params))
 
     @staticmethod
@@ -1536,7 +1545,8 @@ class Exchange(object):
             currencies = self.fetch_currencies()
             self.options['cachedCurrencies'] = currencies
         markets = self.fetch_markets(params)
-        del self.options['cachedCurrencies']
+        if 'cachedCurrencies' in self.options:
+            del self.options['cachedCurrencies']
         return self.set_markets(markets, currencies)
 
     def fetch_markets(self, params={}):
@@ -3186,7 +3196,7 @@ class Exchange(object):
 
     def set_markets(self, markets, currencies=None):
         values = []
-        self.markets_by_id = {}
+        self.markets_by_id = self.create_safe_dictionary()
         # handle marketId conflicts
         # we insert spot markets first
         marketValues = self.sort_by(self.to_array(markets), 'spot', True, True)
@@ -3261,7 +3271,7 @@ class Exchange(object):
                 resultingCurrencies.append(highestPrecisionCurrency)
             sortedCurrencies = self.sort_by(resultingCurrencies, 'code')
             self.currencies = self.deep_extend(self.currencies, self.index_by(sortedCurrencies, 'code'))
-        self.currencies_by_id = self.index_by(self.currencies, 'id')
+        self.currencies_by_id = self.index_by_safe(self.currencies, 'id')
         currenciesSortedByCode = self.keysort(self.currencies)
         self.codes = list(currenciesSortedByCode.keys())
         return self.markets
@@ -4169,11 +4179,11 @@ class Exchange(object):
                 raise NotSupported(self.id + ' - ' + networkCode + ' network did not return any result for ' + currencyCode)
             else:
                 # if networkCode was provided by user, we should check it after response, referenced exchange doesn't support network-code during request
-                networkId = networkCode if isIndexedByUnifiedNetworkCode else self.network_code_to_id(networkCode, currencyCode)
-                if networkId in indexedNetworkEntries:
-                    chosenNetworkId = networkId
+                networkIdOrCode = networkCode if isIndexedByUnifiedNetworkCode else self.network_code_to_id(networkCode, currencyCode)
+                if networkIdOrCode in indexedNetworkEntries:
+                    chosenNetworkId = networkIdOrCode
                 else:
-                    raise NotSupported(self.id + ' - ' + networkId + ' network was not found for ' + currencyCode + ', use one of ' + ', '.join(availableNetworkIds))
+                    raise NotSupported(self.id + ' - ' + networkIdOrCode + ' network was not found for ' + currencyCode + ', use one of ' + ', '.join(availableNetworkIds))
         else:
             if responseNetworksLength == 0:
                 raise NotSupported(self.id + ' - no networks were returned for ' + currencyCode)

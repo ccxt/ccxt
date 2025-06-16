@@ -449,6 +449,16 @@ export default class digifinex extends Exchange {
                     'TRX': 'TRC20',
                     'VECHAIN': 'Vechain', // VET
                 },
+                'networksById': {
+                    'TRC20': 'TRC20',
+                    'TRX': 'TRC20',
+                    'BEP20': 'BEP20',
+                    'BSC': 'BEP20',
+                    'ERC20': 'ERC20',
+                    'ETH': 'ERC20',
+                    'Polygon': 'POLYGON',
+                    'Crypto.com': 'CRONOS',
+                },
             },
             'commonCurrencies': {
                 'BHT': 'Black House Test',
@@ -478,6 +488,7 @@ export default class digifinex extends Exchange {
         //                 "min_withdraw_amount":10,
         //                 "min_withdraw_fee":5,
         //                 "currency":"USDT",
+        //                 "withdraw_fee_currency":"USDT",
         //                 "withdraw_status":0,
         //                 "chain":"OMNI"
         //             },
@@ -488,6 +499,7 @@ export default class digifinex extends Exchange {
         //                 "min_withdraw_amount":10,
         //                 "min_withdraw_fee":3,
         //                 "currency":"USDT",
+        //                 "withdraw_fee_currency":"USDT",
         //                 "withdraw_status":1,
         //                 "chain":"ERC20"
         //             },
@@ -498,6 +510,7 @@ export default class digifinex extends Exchange {
         //                 "min_withdraw_amount":0,
         //                 "min_withdraw_fee":0,
         //                 "currency":"DGF13",
+        //                 "withdraw_fee_currency":"DGF13",
         //                 "withdraw_status":0,
         //                 "chain":""
         //             },
@@ -505,128 +518,46 @@ export default class digifinex extends Exchange {
         //         "code":200
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
+        const groupedById = this.groupBy(data, 'currency');
+        const keys = Object.keys(groupedById);
         const result = {};
-        for (let i = 0; i < data.length; i++) {
-            const currency = data[i];
-            const id = this.safeString(currency, 'currency');
+        for (let i = 0; i < keys.length; i++) {
+            const id = keys[i];
+            const networkEntries = groupedById[id];
             const code = this.safeCurrencyCode(id);
-            const depositStatus = this.safeInteger(currency, 'deposit_status', 1);
-            const withdrawStatus = this.safeInteger(currency, 'withdraw_status', 1);
-            const deposit = depositStatus > 0;
-            const withdraw = withdrawStatus > 0;
-            const active = deposit && withdraw;
-            const feeString = this.safeString(currency, 'min_withdraw_fee'); // withdraw_fee_rate was zero for all currencies, so this was the worst case scenario
-            const minWithdrawString = this.safeString(currency, 'min_withdraw_amount');
-            const minDepositString = this.safeString(currency, 'min_deposit_amount');
-            const minDeposit = this.parseNumber(minDepositString);
-            const minWithdraw = this.parseNumber(minWithdrawString);
-            const fee = this.parseNumber(feeString);
-            // define precision with temporary way
-            const minFoundPrecision = Precise.stringMin(feeString, Precise.stringMin(minDepositString, minWithdrawString));
-            const precision = this.parseNumber(minFoundPrecision);
-            const networkId = this.safeString(currency, 'chain');
-            let networkCode = undefined;
-            if (networkId !== undefined) {
-                networkCode = this.networkIdToCode(networkId);
-            }
-            const network = {
-                'info': currency,
-                'id': networkId,
-                'network': networkCode,
-                'active': active,
-                'fee': fee,
-                'precision': precision,
-                'deposit': deposit,
-                'withdraw': withdraw,
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': minWithdraw,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': minDeposit,
-                        'max': undefined,
-                    },
-                },
-            };
-            if (code in result) {
-                let resultCodeInfo = result[code]['info'];
-                if (Array.isArray(resultCodeInfo)) {
-                    resultCodeInfo.push(currency);
-                }
-                else {
-                    resultCodeInfo = [resultCodeInfo, currency];
-                }
-                if (withdraw) {
-                    result[code]['withdraw'] = true;
-                    result[code]['limits']['withdraw']['min'] = Math.min(result[code]['limits']['withdraw']['min'], minWithdraw);
-                }
-                if (deposit) {
-                    result[code]['deposit'] = true;
-                    result[code]['limits']['deposit']['min'] = Math.min(result[code]['limits']['deposit']['min'], minDeposit);
-                }
-                if (active) {
-                    result[code]['active'] = true;
-                }
-            }
-            else {
-                result[code] = {
-                    'id': id,
-                    'code': code,
-                    'info': currency,
-                    'type': undefined,
-                    'name': undefined,
-                    'active': active,
-                    'deposit': deposit,
-                    'withdraw': withdraw,
-                    'fee': this.parseNumber(feeString),
+            const networks = {};
+            for (let j = 0; j < networkEntries.length; j++) {
+                const networkEntry = networkEntries[j];
+                const networkId = this.safeString(networkEntry, 'chain');
+                const networkCode = this.networkIdToCode(networkId);
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': undefined,
+                    'deposit': this.safeInteger(networkEntry, 'deposit_status') === 1,
+                    'withdraw': this.safeInteger(networkEntry, 'withdraw_status') === 1,
+                    'fee': this.safeNumber(networkEntry, 'min_withdraw_fee'),
                     'precision': undefined,
                     'limits': {
-                        'amount': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
                         'withdraw': {
-                            'min': minWithdraw,
+                            'min': this.safeNumber(networkEntry, 'min_withdraw_amount'),
                             'max': undefined,
                         },
                         'deposit': {
-                            'min': minDeposit,
+                            'min': this.safeNumber(networkEntry, 'min_deposit_amount'),
                             'max': undefined,
                         },
                     },
-                    'networks': {},
+                    'info': networkEntry,
                 };
             }
-            if (networkId !== undefined) {
-                result[code]['networks'][networkId] = network;
-            }
-            else {
-                result[code]['active'] = active;
-                result[code]['fee'] = this.parseNumber(feeString);
-                result[code]['deposit'] = deposit;
-                result[code]['withdraw'] = withdraw;
-                result[code]['limits'] = {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': minWithdraw,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': minDeposit,
-                        'max': undefined,
-                    },
-                };
-            }
-            result[code]['precision'] = (result[code]['precision'] === undefined) ? precision : Math.max(result[code]['precision'], precision);
+            result[code] = this.safeCurrencyStructure({
+                'id': id,
+                'code': code,
+                'info': networkEntries,
+                'networks': networks,
+            });
         }
         return result;
     }

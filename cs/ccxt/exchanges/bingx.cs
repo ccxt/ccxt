@@ -491,6 +491,8 @@ public partial class bingx : Exchange
                     { "100437", typeof(BadRequest) },
                     { "101204", typeof(InsufficientFunds) },
                     { "110425", typeof(InvalidOrder) },
+                    { "Insufficient assets", typeof(InsufficientFunds) },
+                    { "illegal transferType", typeof(BadRequest) },
                 } },
                 { "broad", new Dictionary<string, object>() {} },
             } },
@@ -504,12 +506,14 @@ public partial class bingx : Exchange
             { "options", new Dictionary<string, object>() {
                 { "defaultType", "spot" },
                 { "accountsByType", new Dictionary<string, object>() {
-                    { "spot", "FUND" },
+                    { "funding", "FUND" },
+                    { "spot", "SPOT" },
                     { "swap", "PFUTURES" },
                     { "future", "SFUTURES" },
                 } },
                 { "accountsById", new Dictionary<string, object>() {
-                    { "FUND", "spot" },
+                    { "FUND", "funding" },
+                    { "SPOT", "spot" },
                     { "PFUTURES", "swap" },
                     { "SFUTURES", "future" },
                 } },
@@ -1610,7 +1614,7 @@ public partial class bingx : Exchange
         //        ]
         //    }
         //
-        object data = this.safeList(response, "data", new List<object>() {});
+        object data = this.safeDict(response, "data");
         return this.parseFundingRate(data, market);
     }
 
@@ -4521,11 +4525,11 @@ public partial class bingx : Exchange
      * @method
      * @name bingx#transfer
      * @description transfer currency internally between wallets on the same account
-     * @see https://bingx-api.github.io/docs/#/spot/account-api.html#User%20Universal%20Transfer
+     * @see https://bingx-api.github.io/docs/#/en-us/common/account-api.html#Asset%20Transfer
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
-     * @param {string} fromAccount account to transfer from
-     * @param {string} toAccount account to transfer to
+     * @param {string} fromAccount account to transfer from (spot, swap, futures, or funding)
+     * @param {string} toAccount account to transfer to (spot, swap, futures, or funding)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
      */
@@ -4544,9 +4548,10 @@ public partial class bingx : Exchange
         };
         object response = await this.spotV3PrivateGetGetAssetTransfer(this.extend(request, parameters));
         //
-        //    {
-        //        "tranId":13526853623
-        //    }
+        //     {
+        //         "tranId": 1933130865269936128,
+        //         "transferId": "1051450703949464903736"
+        //     }
         //
         return new Dictionary<string, object>() {
             { "info", response },
@@ -4568,8 +4573,11 @@ public partial class bingx : Exchange
      * @see https://bingx-api.github.io/docs/#/spot/account-api.html#Query%20User%20Universal%20Transfer%20History%20(USER_DATA)
      * @param {string} [code] unified currency code of the currency transferred
      * @param {int} [since] the earliest time in ms to fetch transfers for
-     * @param {int} [limit] the maximum number of transfers structures to retrieve
+     * @param {int} [limit] the maximum number of transfers structures to retrieve (default 10, max 100)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.fromAccount (mandatory) transfer from (spot, swap, futures, or funding)
+     * @param {string} params.toAccount (mandatory) transfer to (spot, swap, futures, or funding)
+     * @param {boolean} [params.paginate] whether to paginate the results (default false)
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
      */
     public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
@@ -4590,6 +4598,16 @@ public partial class bingx : Exchange
         {
             throw new ExchangeError ((string)add(this.id, " fromAccount & toAccount parameter are required")) ;
         }
+        parameters = this.omit(parameters, new List<object>() {"fromAccount", "toAccount"});
+        object maxLimit = 100;
+        object paginate = false;
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchTransfers", "paginate", false);
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        if (isTrue(paginate))
+        {
+            return await this.fetchPaginatedCallDynamic("fetchTransfers", null, since, limit, parameters, maxLimit);
+        }
         object request = new Dictionary<string, object>() {
             { "type", add(add(fromId, "_"), toId) },
         };
@@ -4601,18 +4619,21 @@ public partial class bingx : Exchange
         {
             ((IDictionary<string,object>)request)["size"] = limit;
         }
+        var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
         object response = await this.spotV3PrivateGetAssetTransfer(this.extend(request, parameters));
         //
         //     {
         //         "total": 3,
         //         "rows": [
         //             {
-        //                 "asset":"USDT",
-        //                 "amount":"-100.00000000000000000000",
-        //                 "type":"FUND_SFUTURES",
-        //                 "status":"CONFIRMED",
-        //                 "tranId":1067594500957016069,
-        //                 "timestamp":1658388859000
+        //                 "asset": "USDT",
+        //                 "amount": "100.00000000000000000000",
+        //                 "type": "FUND_SFUTURES",
+        //                 "status": "CONFIRMED",
+        //                 "tranId": 1067594500957016069,
+        //                 "timestamp": 1658388859000
         //             },
         //         ]
         //     }
@@ -4631,7 +4652,7 @@ public partial class bingx : Exchange
         object typeId = this.safeString(transfer, "type");
         object typeIdSplit = ((string)typeId).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         object fromId = this.safeString(typeIdSplit, 0);
-        object toId = this.safeString(typeId, 1);
+        object toId = this.safeString(typeIdSplit, 1);
         object fromAccount = this.safeString(accountsById, fromId, fromId);
         object toAccount = this.safeString(accountsById, toId, toId);
         return new Dictionary<string, object>() {
@@ -4643,8 +4664,16 @@ public partial class bingx : Exchange
             { "amount", this.safeNumber(transfer, "amount") },
             { "fromAccount", fromAccount },
             { "toAccount", toAccount },
-            { "status", status },
+            { "status", this.parseTransferStatus(status) },
         };
+    }
+
+    public virtual object parseTransferStatus(object status)
+    {
+        object statuses = new Dictionary<string, object>() {
+            { "CONFIRMED", "ok" },
+        };
+        return this.safeString(statuses, status, status);
     }
 
     /**
@@ -5453,12 +5482,13 @@ public partial class bingx : Exchange
 
     public virtual object parseParams(object parameters)
     {
-        object sortedParams = this.keysort(parameters);
-        object keys = new List<object>(((IDictionary<string,object>)sortedParams).Keys);
+        // const sortedParams = this.keysort (params);
+        object rawKeys = new List<object>(((IDictionary<string,object>)parameters).Keys);
+        object keys = this.sort(rawKeys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
-            object value = getValue(sortedParams, key);
+            object value = getValue(parameters, key);
             if (isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
             {
                 object arrStr = "[";
@@ -5472,10 +5502,10 @@ public partial class bingx : Exchange
                     arrStr = add(arrStr, ((object)arrayElement).ToString());
                 }
                 arrStr = add(arrStr, "]");
-                ((IDictionary<string,object>)sortedParams)[(string)key] = arrStr;
+                ((IDictionary<string,object>)parameters)[(string)key] = arrStr;
             }
         }
-        return sortedParams;
+        return parameters;
     }
 
     /**
@@ -5982,14 +6012,15 @@ public partial class bingx : Exchange
 
     public virtual object customEncode(object parameters)
     {
-        object sortedParams = this.keysort(parameters);
-        object keys = new List<object>(((IDictionary<string,object>)sortedParams).Keys);
+        // const sortedParams = this.keysort (params);
+        object rawKeys = new List<object>(((IDictionary<string,object>)parameters).Keys);
+        object keys = this.sort(rawKeys);
         object adjustedValue = null;
         object result = null;
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
-            object value = getValue(sortedParams, key);
+            object value = getValue(parameters, key);
             if (isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
             {
                 object arrStr = null;
@@ -6084,7 +6115,7 @@ public partial class bingx : Exchange
             } else
             {
                 parsedParams = this.parseParams(parameters);
-                encodeRequest = this.rawencode(parsedParams);
+                encodeRequest = this.rawencode(parsedParams, true);
             }
             object signature = this.hmac(this.encode(encodeRequest), this.encode(this.secret), sha256);
             headers = new Dictionary<string, object>() {
@@ -6098,7 +6129,7 @@ public partial class bingx : Exchange
                 body = this.json(parameters);
             } else
             {
-                object query = this.urlencode(parsedParams);
+                object query = this.urlencode(parsedParams, true);
                 url = add(url, add(add(add(add("?", query), "&"), "signature="), signature));
             }
         }
@@ -6137,8 +6168,13 @@ public partial class bingx : Exchange
         //
         object code = this.safeString(response, "code");
         object message = this.safeString(response, "msg");
-        if (isTrue(isTrue(!isEqual(code, null)) && isTrue(!isEqual(code, "0"))))
+        object transferErrorMsg = this.safeString(response, "transferErrorMsg"); // handling with errors from transfer endpoint
+        if (isTrue(isTrue((!isEqual(transferErrorMsg, null))) || isTrue((isTrue(!isEqual(code, null)) && isTrue(!isEqual(code, "0"))))))
         {
+            if (isTrue(!isEqual(transferErrorMsg, null)))
+            {
+                message = transferErrorMsg;
+            }
             object feedback = add(add(this.id, " "), body);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
