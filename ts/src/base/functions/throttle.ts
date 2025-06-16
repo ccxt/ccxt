@@ -69,12 +69,11 @@ class Throttler {
         while (this.running) {
             const { resolver, cost } = this.queue[0];
             const nowTime = now ();
-            // Remove timestamps outside the rolling window 
-            //   and
-            // Calculate the total cost of requests still in the window
+            const cutOffTime = nowTime - this.config.windowSize;
+            // Remove expired timestamps & sum remaining requests
             let totalCost = 0;
             for (let i = this.timestamps.length - 1; i >= 0; i--) {
-                if (nowTime - this.timestamps[i].timestamp >= this.config.windowSize) {
+                if (this.timestamps[i].timestamp <= cutOffTime) {
                     this.timestamps.splice(i, 1);
                 } else {
                     totalCost += this.timestamps[i].cost;
