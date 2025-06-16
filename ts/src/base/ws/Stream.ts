@@ -1,3 +1,4 @@
+import { sleep } from "../functions";
 import { Int, Message, Topic, ConsumerFunction, BaseStream, Dictionary } from "../types";
 import { Consumer } from "./Consumer.js";
 
@@ -129,12 +130,13 @@ export class Stream implements BaseStream {
      * @param consumers {Consumer[]} - array of consumers
      * @param message {Message} - message to publish
      */
-    private sendToConsumers (consumers: Consumer[], message: Message): void {
+    private async sendToConsumers (consumers: Consumer[], message: Message): Promise<void> {
         if (this.verbose) {
             console.log ('sending message from topic ', message.metadata.topic, 'to ', consumers.length, ' consumers');
         }
         for (let i = 0; i < consumers.length; i++) {
             const consumer = consumers[i];
+            await sleep (0); // Yield to event loop
             consumer.publish (message);
         }
     }
