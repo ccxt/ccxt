@@ -59,7 +59,7 @@ public class Throttler
             var first = this.queue.Peek();
             var task = first.Item1;
             var cost = first.Item2;
-            var floatTokens = Convert.ToDouble(this.config.Tokens);
+            var floatTokens = this.config.Tokens;
             if (floatTokens >= 0)
             {
                 this.config.Tokens = floatTokens - cost;
