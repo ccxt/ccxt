@@ -55,7 +55,7 @@ func (this *Exchange) GetHas() map[string]interface{} {
 }
 
 func (this *Exchange) GetOptions() map[string]interface{} {
-	return this.Options
+	return this.SyncMapToMap(this.Options)
 }
 
 func (this *Exchange) GetHostname() string {
@@ -129,7 +129,7 @@ func (this *Exchange) SetAccounts(accounts interface{}) {
 }
 
 func (this *Exchange) SetOptions(options interface{}) {
-	this.Options = options.(map[string]interface{})
+	this.Options = this.MapToSyncMap(options.(map[string]interface{}))
 }
 
 func (this *Exchange) SetWssProxy(wssProxy interface{}) {
