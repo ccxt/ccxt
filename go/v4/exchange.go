@@ -18,8 +18,8 @@ import (
 )
 
 type Exchange struct {
-	marketsMutex           sync.Mutex
-	cachedCurrenciesMutex  sync.Mutex
+	marketsMutex sync.Mutex
+	// cachedCurrenciesMutex  sync.Mutex
 	loadMu                 sync.Mutex
 	marketsLoading         bool
 	marketsLoaded          bool
@@ -332,20 +332,20 @@ func (this *Exchange) LoadMarketsHelper(params ...interface{}) <-chan interface{
 		hasFetchCurrencies := this.Has["fetchCurrencies"]
 		if IsBool(hasFetchCurrencies) && IsTrue(hasFetchCurrencies) {
 			currencies = <-this.DerivedExchange.FetchCurrencies(params)
-			this.cachedCurrenciesMutex.Lock()
+			// this.cachedCurrenciesMutex.Lock()
 			// this.Options["cachedCurrencies"] = currencies
 			this.Options.Store("cachedCurrencies", currencies)
-			this.cachedCurrenciesMutex.Unlock()
+			// this.cachedCurrenciesMutex.Unlock()
 		}
 
 		markets := <-this.DerivedExchange.FetchMarkets(params)
 		PanicOnError(markets)
 
-		this.cachedCurrenciesMutex.Lock()
+		// this.cachedCurrenciesMutex.Lock()
 		// delete(this.Options, "cachedCurrencies")
 		// this.Options.Del
 		this.Options.Delete("cachedCurrencies")
-		this.cachedCurrenciesMutex.Unlock()
+		// this.cachedCurrenciesMutex.Unlock()
 
 		// Lock only for writing
 		this.marketsMutex.Lock()
