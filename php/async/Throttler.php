@@ -82,8 +82,7 @@ class Throttler {
                     $this->timestamps[] = array('timestamp' => $now, 'cost' => $cost);
                     $future->resolve(null);
                     $this->queue->dequeue();
-                    # context switch?
-                    # yield 0;
+                    Async\await(React\Promise\Timer\sleep(0)); // context switch
                     if ($this->queue->count() === 0) {
                         $this->running = false;
                     }
@@ -91,12 +90,7 @@ class Throttler {
                     $earliest = $this->timestamps[0]['timestamp'];
                     $wait_time = ($earliest + $this->config['windowSize']) - $now;
                     if ($wait_time > 0) {
-                        $sleep = new Promise(function ($resolve) use ($wait_time) {
-                            Loop::addTimer($wait_time / 1000, function () use ($resolve) {
-                                $resolve(null);
-                            });
-                        });
-                        Async\await($sleep);
+                        Async\await(React\Promise\Timer\sleep($wait_time / 1000));
                     }
                 }
             }
