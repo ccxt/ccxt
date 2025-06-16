@@ -82,7 +82,7 @@ public class Throttler
             }
             else
             {
-                await Task.Delay((int)((double)this.config.Delay * 1000));
+                await Task.Delay((int)(this.config.Delay * 1000));
                 var current = milliseconds();
                 var elapsed = current - lastTimestamp;
                 lastTimestamp = current;
