@@ -118,11 +118,11 @@ public class Throttler
             if (totalCost + cost <= this.config.MaxWeight)
             {
                 timestamps.Add((now, cost));
-                await Task.Delay(0);
                 if (task != null && task.Status == TaskStatus.Created)
                 {
                     task.Start();
                 }
+                await Task.Delay(0);
                 lock (queueLock)
                 {
                     this.queue.Dequeue();
