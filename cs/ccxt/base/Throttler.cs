@@ -20,7 +20,7 @@ public class Throttler
             {"refillRate",1.0},
             {"delay", 0.001},
             {"cost", 1.0},
-            {"tokens", 0},
+            {"tokens", 0.0},
             {"maxLimiterRequests", 2000},
             {"capacity", 1.0},
             {"algorithm", "leakyBucket"},
@@ -46,8 +46,7 @@ public class Throttler
             var first = this.queue.Peek();
             var task = first.Item1;
             var cost = first.Item2;
-            var tokensAsString = Convert.ToString(this.config["tokens"], CultureInfo.InvariantCulture);
-            var floatTokens = double.Parse(tokensAsString, CultureInfo.InvariantCulture);
+            var floatTokens = Convert.ToDouble(this.config["tokens"]);
             if (floatTokens >= 0)
             {
                 this.config["tokens"] = floatTokens - cost;
@@ -73,7 +72,7 @@ public class Throttler
                 var elapsed = current - lastTimestamp;
                 lastTimestamp = current;
                 var tokens = (double)this.config["tokens"] + ((double)this.config["refillRate"] * elapsed);
-                this.config["tokens"] = Math.Min(tokens, (int)this.config["capacity"]);
+                this.config["tokens"] = Math.Min(tokens, (double)this.config["capacity"]);
             }
         }
 
@@ -99,7 +98,8 @@ public class Throttler
             var task = first.Item1;
             var cost = first.Item2;
             var now = milliseconds();
-            timestamps = timestamps.Where(t => now - t.timestamp < Convert.ToDouble(this.config["windowSize"])).ToList();
+            var windowSize = Convert.ToDouble(this.config["windowSize"]);
+            timestamps.RemoveAll(t => now - t.timestamp >= windowSize);
             var totalCost = timestamps.Sum(t => t.cost);
             if (totalCost + cost <= Convert.ToDouble(this.config["maxWeight"]))
             {
@@ -117,8 +117,12 @@ public class Throttler
             }
             else
             {
+                if (timestamps.Count <= 0)
+                {
+                    continue;
+                }
                 var earliest = timestamps[0].timestamp;
-                var waitTime = (earliest + Convert.ToDouble(this.config["windowSize"])) - now;
+                var waitTime = (earliest + windowSize) - now;
                 if (waitTime > 0)
                 {
                     await Task.Delay((int)waitTime);
@@ -129,7 +133,7 @@ public class Throttler
 
     private async Task loop()
     {
-        if (this.config["algorithm"].ToString() == "leakyBucket")
+        if (this.config["algorithm"] as string == "leakyBucket")
         {
             await leakyBucketLoop();
         }
@@ -142,22 +146,22 @@ public class Throttler
     public async Task<Task> throttle(object cost2)
     {
         var cost = (cost2 != null) ? Convert.ToDouble(cost2) : Convert.ToDouble(this.config["cost"]);
+        var t = new Task(() => { });
         lock (queueLock)
         {
             if (this.queue.Count > (int)this.config["maxLimiterRequests"])
             {
                 throw new Exception("throttle queue is over maxLimiterRequests (" + this.config["maxLimiterRequests"].ToString() + "), see https://github.com/ccxt/ccxt/issues/11645#issuecomment-1195695526");
             }
-            var t = new Task(() => { });
             this.queue.Enqueue((t, cost));
-            if (!this.running)
-            {
-                this.running = true;
-                // Task.Run(() => { this.loop(); });
-                this.loop();
-            }
-            return t;
         }
+        if (!this.running)
+        {
+            this.running = true;
+            // Task.Run(() => { this.loop(); });
+            this.loop();
+        }
+        return t;
     }
 
     // move this elsewhere later
