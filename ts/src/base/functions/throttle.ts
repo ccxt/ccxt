@@ -69,17 +69,17 @@ class Throttler {
         while (this.running) {
             const { resolver, cost } = this.queue[0];
             const nowTime = now ();
-        // Remove timestamps outside the rolling window 
-        //   and
-        // Calculate the total cost of requests still in the window
-        let totalCost = 0;
-        for (let i = this.timestamps.length - 1; i >= 0; i--) {
-            if (nowTime - this.timestamps[i].timestamp >= this.config.windowSize) {
-                this.timestamps.splice(i, 1);
-            } else {
-                totalCost += this.timestamps[i].cost;
+            // Remove timestamps outside the rolling window 
+            //   and
+            // Calculate the total cost of requests still in the window
+            let totalCost = 0;
+            for (let i = this.timestamps.length - 1; i >= 0; i--) {
+                if (nowTime - this.timestamps[i].timestamp >= this.config.windowSize) {
+                    this.timestamps.splice(i, 1);
+                } else {
+                    totalCost += this.timestamps[i].cost;
+                }
             }
-        }
             if (totalCost + cost <= this.config.maxWeight) {
                 // Enough capacity, proceed with request
                 this.timestamps.push ({ timestamp: nowTime, cost });
