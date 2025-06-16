@@ -1,4 +1,4 @@
-import { sleep } from "../functions";
+import { sleep } from "../functions/time.js";
 import { Int, Message, Topic, ConsumerFunction, BaseStream, Dictionary } from "../types";
 import { Consumer } from "./Consumer.js";
 
