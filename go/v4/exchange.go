@@ -18,64 +18,64 @@ import (
 )
 
 type Exchange struct {
-	marketsMutex          sync.Mutex
-	cachedCurrenciesMutex sync.Mutex
-	loadMu        sync.Mutex
-	marketsLoading		bool
-	marketsLoaded bool
-	loadMarketsSubscribers   []chan interface{}
-	Itf                   interface{}
-	DerivedExchange       IDerivedExchange
-	methodCache           sync.Map
-	cacheLoaded           bool
-	Version               string
-	Id                    string
-	Name                  string
-	Options               map[string]interface{}
-	Has                   map[string]interface{}
-	Api                   map[string]interface{}
-	TransformedApi        map[string]interface{}
-	Markets               map[string]interface{}
-	Markets_by_id         *sync.Map
-	Currencies_by_id      *sync.Map
-	Currencies            map[string]interface{}
-	RequiredCredentials   map[string]interface{}
-	HttpExceptions        map[string]interface{}
-	MarketsById           map[string]interface{}
-	Timeframes            map[string]interface{}
-	Features              map[string]interface{}
-	Exceptions            map[string]interface{}
-	Precision             map[string]interface{}
-	Urls                  interface{}
-	UserAgents            map[string]interface{}
-	Timeout               int64
-	MAX_VALUE             float64
-	RateLimit             float64
-	RateLimiterAlgorithm  string  // rollingWindow or leakyBucket
-	MaxLimiterRequests    int
-	RollingWindowSize     int
-	TokenBucket           map[string]interface{}
-	Throttler             Throttler
-	NewUpdates            bool
-	Alias                 bool
-	Verbose               bool
-	UserAgent             string
-	EnableRateLimit       bool
-	Url                   string
-	Hostname              string
-	BaseCurrencies        map[string]interface{}
-	QuoteCurrencies       map[string]interface{}
-	ReloadingMarkets      bool
-	MarketsLoading        bool
-	Symbols               []string
-	Codes                 []string
-	Ids                   []string
-	CommonCurrencies      map[string]interface{}
-	PrecisionMode         int
-	Limits                map[string]interface{}
-	Fees                  map[string]interface{}
-	CurrenciesById        map[string]interface{}
-	ReduceFees            bool
+	marketsMutex sync.Mutex
+	// cachedCurrenciesMutex  sync.Mutex
+	loadMu                 sync.Mutex
+	marketsLoading         bool
+	marketsLoaded          bool
+	loadMarketsSubscribers []chan interface{}
+	Itf                    interface{}
+	DerivedExchange        IDerivedExchange
+	methodCache            sync.Map
+	cacheLoaded            bool
+	Version                string
+	Id                     string
+	Name                   string
+	Options                *sync.Map
+	Has                    map[string]interface{}
+	Api                    map[string]interface{}
+	TransformedApi         map[string]interface{}
+	Markets                map[string]interface{}
+	Markets_by_id          *sync.Map
+	Currencies_by_id       *sync.Map
+	Currencies             map[string]interface{}
+	RequiredCredentials    map[string]interface{}
+	HttpExceptions         map[string]interface{}
+	MarketsById            map[string]interface{}
+	Timeframes             map[string]interface{}
+	Features               map[string]interface{}
+	Exceptions             map[string]interface{}
+	Precision              map[string]interface{}
+	Urls                   interface{}
+	UserAgents             map[string]interface{}
+	Timeout                int64
+	MAX_VALUE              float64
+	RateLimit              float64
+	RateLimiterAlgorithm   string  // rollingWindow or leakyBucket
+	MaxLimiterRequests     int
+	RollingWindowSize      int
+	TokenBucket            map[string]interface{}
+	Throttler              Throttler
+	NewUpdates             bool
+	Alias                  bool
+	Verbose                bool
+	UserAgent              string
+	EnableRateLimit        bool
+	Url                    string
+	Hostname               string
+	BaseCurrencies         map[string]interface{}
+	QuoteCurrencies        map[string]interface{}
+	ReloadingMarkets       bool
+	MarketsLoading         bool
+	Symbols                []string
+	Codes                  []string
+	Ids                    []string
+	CommonCurrencies       map[string]interface{}
+	PrecisionMode          int
+	Limits                 map[string]interface{}
+	Fees                   map[string]interface{}
+	CurrenciesById         map[string]interface{}
+	ReduceFees             bool
 
 	AccountsById interface{}
 	Accounts     interface{}
@@ -172,10 +172,14 @@ const PAD_WITH_ZERO int = 6
 
 func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConfig map[string]interface{}, itf interface{}) {
 	// this = &Exchange{}
+	if this.Options == nil {
+		this.Options = &sync.Map{} // by default sync.map is nil
+	}
 	var describeValues = this.Describe()
 	if userConfig == nil {
 		userConfig = map[string]interface{}{}
 	}
+
 	var extendedProperties = this.DeepExtend(describeValues, exchangeConfig)
 	extendedProperties = this.DeepExtend(extendedProperties, userConfig)
 	this.Itf = itf
@@ -209,6 +213,10 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 }
 
 func (this *Exchange) Init(userConfig map[string]interface{}) {
+
+	if this.Options == nil {
+		this.Options = &sync.Map{} // by default sync.map is nil
+	}
 	// to do
 }
 
@@ -280,7 +288,7 @@ func (this *Exchange) LoadMarkets(params ...interface{}) <-chan interface{} {
 
 	if !this.marketsLoading || reload {
 		this.marketsLoading = true
-		markets := <- this.LoadMarketsHelper(params...)
+		markets := <-this.LoadMarketsHelper(params...)
 		this.marketsLoaded = true
 		this.marketsLoading = false
 		for _, ch := range this.loadMarketsSubscribers {
@@ -294,7 +302,6 @@ func (this *Exchange) LoadMarkets(params ...interface{}) <-chan interface{} {
 	return ch
 
 }
-
 
 func (this *Exchange) LoadMarketsHelper(params ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -328,17 +335,20 @@ func (this *Exchange) LoadMarketsHelper(params ...interface{}) <-chan interface{
 		hasFetchCurrencies := this.Has["fetchCurrencies"]
 		if IsBool(hasFetchCurrencies) && IsTrue(hasFetchCurrencies) {
 			currencies = <-this.DerivedExchange.FetchCurrencies(params)
-			this.cachedCurrenciesMutex.Lock()
-			this.Options["cachedCurrencies"] = currencies
-			this.cachedCurrenciesMutex.Unlock()
+			// this.cachedCurrenciesMutex.Lock()
+			// this.Options["cachedCurrencies"] = currencies
+			this.Options.Store("cachedCurrencies", currencies)
+			// this.cachedCurrenciesMutex.Unlock()
 		}
 
 		markets := <-this.DerivedExchange.FetchMarkets(params)
 		PanicOnError(markets)
 
-		this.cachedCurrenciesMutex.Lock()
-		delete(this.Options, "cachedCurrencies")
-		this.cachedCurrenciesMutex.Unlock()
+		// this.cachedCurrenciesMutex.Lock()
+		// delete(this.Options, "cachedCurrencies")
+		// this.Options.Del
+		this.Options.Delete("cachedCurrencies")
+		// this.cachedCurrenciesMutex.Unlock()
 
 		// Lock only for writing
 		this.marketsMutex.Lock()
@@ -1198,8 +1208,8 @@ func (this *Exchange) GetZKTransferSignatureObj(seed interface{}, params interfa
 
 func (this *Exchange) ExtendExchangeOptions(options2 interface{}) {
 	options := options2.(map[string]interface{})
-	extended := this.Extend(this.Options, options)
-	this.Options = extended
+	extended := this.Extend(this.SyncMapToMap(this.Options), options)
+	this.Options = this.MapToSyncMap(extended)
 }
 
 // func (this *Exchange) Init(userConfig map[string]interface{}) {

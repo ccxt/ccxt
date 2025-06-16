@@ -9833,7 +9833,7 @@ class binance(Exchange, ImplicitAPI):
                     response = self.dapiPrivateV2GetLeverageBracket(query)
             else:
                 raise NotSupported(self.id + ' loadLeverageBrackets() supports linear and inverse contracts only')
-            self.options['leverageBrackets'] = {}
+            self.options['leverageBrackets'] = self.create_safe_dictionary()
             for i in range(0, len(response)):
                 entry = response[i]
                 marketId = self.safe_string(entry, 'symbol')
