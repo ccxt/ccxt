@@ -169,10 +169,14 @@ const PAD_WITH_ZERO int = 6
 
 func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConfig map[string]interface{}, itf interface{}) {
 	// this = &Exchange{}
+	if this.Options == nil {
+		this.Options = &sync.Map{} // by default sync.map is nil
+	}
 	var describeValues = this.Describe()
 	if userConfig == nil {
 		userConfig = map[string]interface{}{}
 	}
+
 	var extendedProperties = this.DeepExtend(describeValues, exchangeConfig)
 	extendedProperties = this.DeepExtend(extendedProperties, userConfig)
 	this.Itf = itf
