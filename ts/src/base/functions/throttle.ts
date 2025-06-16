@@ -99,7 +99,7 @@ class Throttler {
                 }
             }
         }
-    }    
+    }
 
     async loop () {
         if (this.config['algorithm'] === 'leakyBucket') {

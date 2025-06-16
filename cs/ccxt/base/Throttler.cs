@@ -62,8 +62,12 @@ public class Throttler
             var floatTokens = Convert.ToDouble(this.config.Tokens);
             if (floatTokens >= 0)
             {
+<<<<<<< HEAD
+                this.config["tokens"] = floatTokens - cost;
+=======
                 this.config.Tokens = floatTokens - cost;
                 await Task.Delay(0);
+>>>>>>> fdabf94fe0a3197c0b8e18b45f3d66d31b6273db
                 if (task != null)
                 {
                     if (task.Status == TaskStatus.Created)
@@ -71,7 +75,14 @@ public class Throttler
                         task.Start();
                     }
                 }
+<<<<<<< HEAD
+                await Task.Delay(0);
+                lock (queueLock)
+                {
+                    this.queue.Dequeue();
+=======
                 this.queue.Dequeue();
+>>>>>>> fdabf94fe0a3197c0b8e18b45f3d66d31b6273db
 
                 if (this.queue.Count == 0)
                 {
@@ -130,10 +141,6 @@ public class Throttler
             }
             else
             {
-                if (timestamps.Count <= 0)
-                {
-                    continue;
-                }
                 var earliest = timestamps[0].timestamp;
                 var waitTime = (earliest + windowSize) - now;
                 if (waitTime > 0)
