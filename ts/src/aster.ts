@@ -3,7 +3,8 @@
 import Exchange from './abstract/aster.js';
 import { ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Currencies, Dict, FundingRateHistory, Int, Market, OHLCV, OrderBook, Str, Trade } from './base/types.js';
+import Precise from './base/Precise.js';
+import type { Currencies, Dict, FundingRateHistory, Int, Market, OHLCV, OrderBook, Str, Ticker, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------xs
 /**
@@ -146,7 +147,7 @@ export default class aster extends Exchange {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchSettlementHistory': false,
                 'fetchStatus': false,
-                'fetchTicker': false,
+                'fetchTicker': true,
                 'fetchTickers': false,
                 'fetchTime': true,
                 'fetchTrades': true,
@@ -774,6 +775,107 @@ export default class aster extends Exchange {
         }
         const sorted = this.sortBy (rates, 'timestamp');
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
+    }
+
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "priceChange": "1845.7",
+        //         "priceChangePercent": "1.755",
+        //         "weightedAvgPrice": "105515.5",
+        //         "lastPrice": "107037.7",
+        //         "lastQty": "0.004",
+        //         "openPrice": "105192.0",
+        //         "highPrice": "107223.5",
+        //         "lowPrice": "104431.6",
+        //         "volume": "8753.286",
+        //         "quoteVolume": "923607368.61",
+        //         "openTime": 1749976620000,
+        //         "closeTime": 1750063053754,
+        //         "firstId": 24195078,
+        //         "lastId": 24375783,
+        //         "count": 180706
+        //     }
+        //
+        const timestamp = this.safeInteger (ticker, 'closeTime');
+        const marketId = this.safeString (ticker, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = this.safeSymbol (marketId, market);
+        const last = this.safeString (ticker, 'lastPrice');
+        const open = this.safeString (ticker, 'openPrice');
+        let percentage = this.safeString (ticker, 'priceChangePercent');
+        percentage = Precise.stringMul (percentage, '100');
+        const quoteVolume = this.safeString (ticker, 'quoteVolume');
+        const baseVolume = this.safeString (ticker, 'volume');
+        const high = this.safeString (ticker, 'highPrice');
+        const low = this.safeString (ticker, 'lowPrice');
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': high,
+            'low': low,
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': open,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': percentage,
+            'average': undefined,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'info': ticker,
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name aster#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#24hr-ticker-price-change-statistics
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTicker() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetFapiV1Ticker24hr (this.extend (request, params));
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "priceChange": "1845.7",
+        //         "priceChangePercent": "1.755",
+        //         "weightedAvgPrice": "105515.5",
+        //         "lastPrice": "107037.7",
+        //         "lastQty": "0.004",
+        //         "openPrice": "105192.0",
+        //         "highPrice": "107223.5",
+        //         "lowPrice": "104431.6",
+        //         "volume": "8753.286",
+        //         "quoteVolume": "923607368.61",
+        //         "openTime": 1749976620000,
+        //         "closeTime": 1750063053754,
+        //         "firstId": 24195078,
+        //         "lastId": 24375783,
+        //         "count": 180706
+        //     }
+        //
+        return this.parseTicker (response, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
