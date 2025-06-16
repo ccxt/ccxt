@@ -70,15 +70,18 @@ class Throttler {
             const { resolver, cost } = this.queue[0];
             const nowTime = now ();
             const cutOffTime = nowTime - this.config.windowSize;
-            // Remove expired timestamps & sum remaining requests
             let totalCost = 0;
-            for (let i = this.timestamps.length - 1; i >= 0; i--) {
-                if (this.timestamps[i].timestamp <= cutOffTime) {
-                    this.timestamps.splice(i, 1);
-                } else {
-                    totalCost += this.timestamps[i].cost;
+            // Remove expired timestamps & sum the remaining requests
+            const timestamps = [];
+            for (let i = 0; i < this.timestamps.length; i++) {
+                const element = this.timestamps[i];
+                if (element.timestamp > cutOffTime) {
+                    totalCost += element.cost;
+                    timestamps.push(element);
                 }
             }
+            this.timestamps = timestamps;
+            // handle current request
             if (totalCost + cost <= this.config.maxWeight) {
                 // Enough capacity, proceed with request
                 this.timestamps.push ({ timestamp: nowTime, cost });

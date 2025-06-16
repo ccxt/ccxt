@@ -49,9 +49,17 @@ class Throttler:
             future, cost = self.queue[0]
             cost = self.config['cost'] if cost is None else cost
             now = time() * 1000
-            self.timestamps = [t for t in self.timestamps if now - t['timestamp'] < self.config['windowSize']]
-            total_cost = sum(t['cost'] for t in self.timestamps)
-            if total_cost + cost <= self.config['maxWeight']:
+            cutoffTime = now - self.config['windowSize']
+            totalCost = 0
+            # Remove expired timestamps & sum the remaining requests
+            timestamps = []
+            for t in self.timestamps:
+                if t['timestamp'] > cutoffTime:
+                    totalCost += t['cost']
+                    timestamps.append(t)
+            self.timestamps = timestamps
+            # handle current request
+            if totalCost + cost <= self.config['maxWeight']:
                 self.timestamps.append({'timestamp': now, 'cost': cost})
                 if not future.done():
                     future.set_result(None)

@@ -63,16 +63,20 @@ class Throttler {
                 list($future, $cost) = $this->queue->bottom();
                 $cost = $cost ? $cost : $this->config['cost'];
                 $now = microtime(true) * 1000.0;
-                $total_cost = 0;
                 $cutoffTime = $now - $this->config['windowSize'];
-                for ($i = count($this->timestamps) - 1; $i >= 0; $i--) {
-                    if ($this->timestamps[$i]['timestamp'] <= $cutoffTime) {
-                        array_splice($this->timestamps, $i, 1);
-                    } else {
-                        $total_cost += $this->timestamps[$i]['cost'];
+                $totalCost = 0;
+                // Remove expired timestamps & sum the remaining requests
+                $timestamps = [];
+                for ($i = 0; $i < count($this->timestamps); $i++) {
+                    $element = $this->timestamps[$i];
+                    if ($element['timestamp'] > $cutoffTime) {
+                        $totalCost += $element['cost'];
+                        $timestamps[] = $element;
                     }
                 }
-                if ($total_cost + $cost <= $this->config['maxWeight']) {
+                $this->timestamps = $timestamps;
+                // handle current request
+                if ($totalCost + $cost <= $this->config['maxWeight']) {
                     $this->timestamps[] = ['timestamp' => $now, 'cost' => $cost];
                     $future->resolve(null);
                     $this->queue->dequeue();
