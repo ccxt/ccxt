@@ -3,7 +3,7 @@
 import Exchange from './abstract/aster.js';
 import { ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Currencies, Dict, Int, Market, OHLCV, Trade } from './base/types.js';
+import type { Currencies, Dict, Int, Market, OHLCV, OrderBook, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------xs
 /**
@@ -133,7 +133,7 @@ export default class aster extends Exchange {
                 'fetchOption': false,
                 'fetchOptionChain': false,
                 'fetchOrder': false,
-                'fetchOrderBook': false,
+                'fetchOrderBook': true,
                 'fetchOrderBooks': false,
                 'fetchOrders': false,
                 'fetchOrderTrades': false,
@@ -452,17 +452,17 @@ export default class aster extends Exchange {
                 'settleId': settleId,
                 'type': 'swap',
                 'spot': false,
-                'margin': true,
+                'margin': false,
                 'swap': true,
-                'future': true,
+                'future': false,
                 'option': false,
                 'active': active,
                 'contract': true,
                 'linear': true,
-                'inverse': undefined,
+                'inverse': false,
                 'taker': fees['trading']['taker'],
                 'maker': fees['trading']['maker'],
-                'contractSize': undefined,
+                'contractSize': 1,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
@@ -672,6 +672,53 @@ export default class aster extends Exchange {
         //     ]
         //
         return this.parseTrades (response, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name aster#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#order-book
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrderBook() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            // limit: [5, 10, 20, 50, 100, 500, 1000]. Default: 500
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetFapiV1Depth (this.extend (request, params));
+        //
+        //     {
+        //         "lastUpdateId": 1027024,
+        //         "E": 1589436922972, //     Message output time
+        //         "T": 1589436922959, //     Transaction time
+        //         "bids": [
+        //             [
+        //                 "4.00000000", //     PRICE
+        //                 "431.00000000" //     QTY
+        //             ]
+        //         ],
+        //         "asks": [
+        //             [
+        //                 "4.00000200",
+        //                 "12.00000000"
+        //             ]
+        //         ]
+        //     }
+        //
+        const timestamp = this.safeInteger (response, 'T');
+        return this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks');
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

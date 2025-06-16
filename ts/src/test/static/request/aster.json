@@ -51,6 +51,17 @@
                     1
                 ]
             }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook",
+                "method": "fetchOrderBook",
+                "url": "https://fapi.asterdex.com/fapi/v1/depth?symbol=BTCUSDT&limit=5",
+                "input": [
+                    "BTC/USDT:USDT",
+                    5
+                ]
+            }
         ]
     }
 }
