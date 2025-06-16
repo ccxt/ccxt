@@ -28,7 +28,7 @@ class Throttler {
         ), $config);
         $this->queue = new \SplQueue();
         $this->running = false;
-        $this->timestamps = array();
+        $this->timestamps = [];
     }
 
     public function leakyBucketLoop() {
@@ -47,13 +47,7 @@ class Throttler {
                         $this->running = false;
                     }
                 } else {
-                    $time = $this->config['delay'];
-                    $sleep = new Promise(function ($resolve) use ($time) {
-                        Loop::addTimer($time, function () use ($resolve) {
-                            $resolve(null);
-                        });
-                    });
-                    Async\await($sleep);
+                    Async\await(React\Promise\Timer\sleep($this->config['delay']));
                     $now = microtime(true) * 1000;
                     $elapsed = $now - $last_timestamp;
                     $last_timestamp = $now;
@@ -79,7 +73,7 @@ class Throttler {
                     }
                 }
                 if ($total_cost + $cost <= $this->config['maxWeight']) {
-                    $this->timestamps[] = array('timestamp' => $now, 'cost' => $cost);
+                    $this->timestamps[] = ['timestamp' => $now, 'cost' => $cost];
                     $future->resolve(null);
                     $this->queue->dequeue();
                     Async\await(React\Promise\Timer\sleep(0)); // context switch
