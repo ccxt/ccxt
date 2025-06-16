@@ -643,7 +643,7 @@ export default class bingx extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
-    parseParams(params: any): import("./base/types.js").Dictionary<any>;
+    parseParams(params: any): any;
     /**
      * @method
      * @name bingx#fetchMyLiquidations

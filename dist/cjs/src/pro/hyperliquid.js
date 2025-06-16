@@ -4,7 +4,7 @@ var hyperliquid$1 = require('../hyperliquid.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class hyperliquid extends hyperliquid$1 {
     describe() {

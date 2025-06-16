@@ -74,6 +74,7 @@ const {
     , safeTimestamp2
     , rawencode
     , keysort
+    , sort
     , inArray
     , isEmpty
     , ordered
@@ -482,6 +483,7 @@ export default class Exchange {
     safeTimestamp2 = safeTimestamp2
     rawencode = rawencode
     keysort = keysort
+    sort = sort
     inArray = inArray
     safeStringLower2 = safeStringLower2
     safeStringUpper2 = safeStringUpper2

@@ -6,7 +6,7 @@ var Precise = require('./base/Precise.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var number = require('./base/functions/number.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bingx
@@ -1561,7 +1561,7 @@ class bingx extends bingx$1 {
         //        ]
         //    }
         //
-        const data = this.safeList(response, 'data', []);
+        const data = this.safeDict(response, 'data');
         return this.parseFundingRate(data, market);
     }
     /**
@@ -5836,11 +5836,12 @@ class bingx extends bingx$1 {
         return this.parseTransaction(data);
     }
     parseParams(params) {
-        const sortedParams = this.keysort(params);
-        const keys = Object.keys(sortedParams);
+        // const sortedParams = this.keysort (params);
+        const rawKeys = Object.keys(params);
+        const keys = this.sort(rawKeys);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const value = sortedParams[key];
+            const value = params[key];
             if (Array.isArray(value)) {
                 let arrStr = '[';
                 for (let j = 0; j < value.length; j++) {
@@ -5851,10 +5852,10 @@ class bingx extends bingx$1 {
                     arrStr += arrayElement.toString();
                 }
                 arrStr += ']';
-                sortedParams[key] = arrStr;
+                params[key] = arrStr;
             }
         }
-        return sortedParams;
+        return params;
     }
     /**
      * @method
@@ -6477,13 +6478,14 @@ class bingx extends bingx$1 {
         };
     }
     customEncode(params) {
-        const sortedParams = this.keysort(params);
-        const keys = Object.keys(sortedParams);
+        // const sortedParams = this.keysort (params);
+        const rawKeys = Object.keys(params);
+        const keys = this.sort(rawKeys);
         let adjustedValue = undefined;
         let result = undefined;
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            let value = sortedParams[key];
+            let value = params[key];
             if (Array.isArray(value)) {
                 let arrStr = undefined;
                 for (let j = 0; j < value.length; j++) {
@@ -6560,7 +6562,7 @@ class bingx extends bingx$1 {
             }
             else {
                 parsedParams = this.parseParams(params);
-                encodeRequest = this.rawencode(parsedParams);
+                encodeRequest = this.rawencode(parsedParams, true);
             }
             const signature = this.hmac(this.encode(encodeRequest), this.encode(this.secret), sha256.sha256);
             headers = {
@@ -6573,7 +6575,7 @@ class bingx extends bingx$1 {
                 body = this.json(params);
             }
             else {
-                const query = this.urlencode(parsedParams);
+                const query = this.urlencode(parsedParams, true);
                 url += '?' + query + '&' + 'signature=' + signature;
             }
         }
