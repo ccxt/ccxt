@@ -2103,9 +2103,10 @@ class bitget(Exchange, ImplicitAPI):
         subTypes = ['SPOT', 'USDT-FUTURES', 'COIN-FUTURES', 'USDC-FUTURES']
         promises = []
         for i in range(0, len(subTypes)):
-            promises.append(self.publicUtaGetV3MarketInstruments(self.extend(params, {
+            req = self.extend(params, {
                 'category': subTypes[i],
-            })))
+            })
+            promises.append(self.publicUtaGetV3MarketInstruments(req))
         results = promises
         markets = []
         for i in range(0, len(results)):

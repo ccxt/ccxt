@@ -10317,7 +10317,7 @@ class binance extends Exchange {
             } else {
                 throw new NotSupported($this->id . ' loadLeverageBrackets() supports linear and inverse contracts only');
             }
-            $this->options['leverageBrackets'] = array();
+            $this->options['leverageBrackets'] = $this->create_safe_dictionary();
             for ($i = 0; $i < count($response); $i++) {
                 $entry = $response[$i];
                 $marketId = $this->safe_string($entry, 'symbol');

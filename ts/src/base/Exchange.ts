@@ -218,6 +218,7 @@ const {
     selfIsDefined,
     SIGNIFICANT_DIGITS,
     sleep,
+ sort,
     sortBy,
     sortBy2,
     stringToBase64,
@@ -321,8 +322,7 @@ export default class Exchange {
     https_proxy: string;
     https_proxy_callback: any;
     httpsProxy: string;
-    httpsProxyCallback: any;
-    proxy: any; // maintained for backwards compatibility, no-one should use it from now on
+    httpsProxyCallback: any;     proxy: any; // maintained for backwards compatibility, no-one should use it from now on
     proxy_url: string;
     proxy_url_callback: any;
     proxyUrl: string;
@@ -585,6 +585,7 @@ export default class Exchange {
     safeValue2 = safeValue2
     safeValueN = safeValueN
     seconds = seconds
+    sort = sort
     sortBy = sortBy
     sortBy2 = sortBy2
     stringToBase64 = stringToBase64

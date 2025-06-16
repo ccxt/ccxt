@@ -2113,9 +2113,10 @@ class bitget extends bitget$1 {
         const subTypes = ['SPOT', 'USDT-FUTURES', 'COIN-FUTURES', 'USDC-FUTURES'];
         const promises = [];
         for (let i = 0; i < subTypes.length; i++) {
-            promises.push(this.publicUtaGetV3MarketInstruments(this.extend(params, {
+            const req = this.extend(params, {
                 'category': subTypes[i],
-            })));
+            });
+            promises.push(this.publicUtaGetV3MarketInstruments(req));
         }
         const results = await Promise.all(promises);
         let markets = [];

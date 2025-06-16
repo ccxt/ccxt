@@ -2085,9 +2085,10 @@ public partial class bitget : Exchange
         object promises = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(subTypes)); postFixIncrement(ref i))
         {
-            ((IList<object>)promises).Add(callDynamically(this, "publicUtaGetV3MarketInstruments", new object[] { this.extend(parameters, new Dictionary<string, object>() {
-    { "category", getValue(subTypes, i) },
-}) }));
+            object req = this.extend(parameters, new Dictionary<string, object>() {
+                { "category", getValue(subTypes, i) },
+            });
+            ((IList<object>)promises).Add(this.publicUtaGetV3MarketInstruments(req));
         }
         object results = await promiseAll(promises);
         object markets = new List<object>() {};

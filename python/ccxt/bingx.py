@@ -1533,7 +1533,7 @@ class bingx(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        data = self.safe_list(response, 'data', [])
+        data = self.safe_dict(response, 'data')
         return self.parse_funding_rate(data, market)
 
     def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
@@ -5573,11 +5573,12 @@ class bingx(Exchange, ImplicitAPI):
         return self.parse_transaction(data)
 
     def parse_params(self, params):
-        sortedParams = self.keysort(params)
-        keys = list(sortedParams.keys())
+        # sortedParams = self.keysort(params)
+        rawKeys = list(params.keys())
+        keys = self.sort(rawKeys)
         for i in range(0, len(keys)):
             key = keys[i]
-            value = sortedParams[key]
+            value = params[key]
             if isinstance(value, list):
                 arrStr = '['
                 for j in range(0, len(value)):
@@ -5586,8 +5587,8 @@ class bingx(Exchange, ImplicitAPI):
                         arrStr += ','
                     arrStr += str(arrayElement)
                 arrStr += ']'
-                sortedParams[key] = arrStr
-        return sortedParams
+                params[key] = arrStr
+        return params
 
     def fetch_my_liquidations(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
@@ -6187,13 +6188,14 @@ class bingx(Exchange, ImplicitAPI):
         }
 
     def custom_encode(self, params):
-        sortedParams = self.keysort(params)
-        keys = list(sortedParams.keys())
+        # sortedParams = self.keysort(params)
+        rawKeys = list(params.keys())
+        keys = self.sort(rawKeys)
         adjustedValue = None
         result = None
         for i in range(0, len(keys)):
             key = keys[i]
-            value = sortedParams[key]
+            value = params[key]
             if isinstance(value, list):
                 arrStr = None
                 for j in range(0, len(value)):
@@ -6251,7 +6253,7 @@ class bingx(Exchange, ImplicitAPI):
                 encodeRequest = self.custom_encode(params)
             else:
                 parsedParams = self.parse_params(params)
-                encodeRequest = self.rawencode(parsedParams)
+                encodeRequest = self.rawencode(parsedParams, True)
             signature = self.hmac(self.encode(encodeRequest), self.encode(self.secret), hashlib.sha256)
             headers = {
                 'X-BX-APIKEY': self.apiKey,
@@ -6262,7 +6264,7 @@ class bingx(Exchange, ImplicitAPI):
                 params['signature'] = signature
                 body = self.json(params)
             else:
-                query = self.urlencode(parsedParams)
+                query = self.urlencode(parsedParams, True)
                 url += '?' + query + '&' + 'signature=' + signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 

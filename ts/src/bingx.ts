@@ -1568,7 +1568,7 @@ export default class bingx extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeDict (response, 'data');
         return this.parseFundingRate (data, market);
     }
 
@@ -5833,11 +5833,12 @@ export default class bingx extends Exchange {
     }
 
     parseParams (params) {
-        const sortedParams = this.keysort (params);
-        const keys = Object.keys (sortedParams);
+        // const sortedParams = this.keysort (params);
+        const rawKeys = Object.keys (params);
+        const keys = this.sort (rawKeys);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const value = sortedParams[key];
+            const value = params[key];
             if (Array.isArray (value)) {
                 let arrStr = '[';
                 for (let j = 0; j < value.length; j++) {
@@ -5848,10 +5849,10 @@ export default class bingx extends Exchange {
                     arrStr += arrayElement.toString ();
                 }
                 arrStr += ']';
-                sortedParams[key] = arrStr;
+                params[key] = arrStr;
             }
         }
-        return sortedParams;
+        return params;
     }
 
     /**
@@ -6477,13 +6478,14 @@ export default class bingx extends Exchange {
     }
 
     customEncode (params) {
-        const sortedParams = this.keysort (params);
-        const keys = Object.keys (sortedParams);
+        // const sortedParams = this.keysort (params);
+        const rawKeys = Object.keys (params);
+        const keys = this.sort (rawKeys);
         let adjustedValue = undefined;
         let result = undefined;
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            let value = sortedParams[key];
+            let value = params[key];
             if (Array.isArray (value)) {
                 let arrStr = undefined;
                 for (let j = 0; j < value.length; j++) {
@@ -6554,7 +6556,7 @@ export default class bingx extends Exchange {
                 encodeRequest = this.customEncode (params);
             } else {
                 parsedParams = this.parseParams (params);
-                encodeRequest = this.rawencode (parsedParams);
+                encodeRequest = this.rawencode (parsedParams, true);
             }
             const signature = this.hmac (this.encode (encodeRequest), this.encode (this.secret), sha256);
             headers = {
@@ -6566,7 +6568,7 @@ export default class bingx extends Exchange {
                 params['signature'] = signature;
                 body = this.json (params);
             } else {
-                const query = this.urlencode (parsedParams);
+                const query = this.urlencode (parsedParams, true);
                 url += '?' + query + '&' + 'signature=' + signature;
             }
         }
