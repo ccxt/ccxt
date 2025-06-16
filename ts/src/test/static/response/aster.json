@@ -661,6 +661,37 @@
                     "nonce": null
                 }
             }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "fetchFundingRateHistory",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "BTCUSDT",
+                        "fundingTime": 1750060800000,
+                        "fundingRate": "0.00010000"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "BTCUSDT",
+                            "fundingTime": 1750060800000,
+                            "fundingRate": "0.00010000"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "fundingRate": 0.0001,
+                        "timestamp": 1750060800000,
+                        "datetime": "2025-06-16T08:00:00.000Z"
+                    }
+                ]
+            }
         ]
     }
 }

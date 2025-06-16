@@ -62,6 +62,18 @@
                     5
                 ]
             }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "fetchFundingRateHistory",
+                "method": "fetchFundingRateHistory",
+                "url": "https://fapi.asterdex.com/fapi/v1/fundingRate?symbol=BTCUSDT&limit=1",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    1
+                ]
+            }
         ]
     }
 }
