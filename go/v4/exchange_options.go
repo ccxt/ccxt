@@ -1,5 +1,7 @@
 package ccxt
 
+import "sync"
+
 // func (this *Exchange) Describe() map[string]interface{} {
 // 	return map[string]interface{}{
 // 		"id":              nil,
@@ -357,10 +359,11 @@ func (this *Exchange) initializeProperties(extendedProperties map[string]interfa
 	this.Hostname = SafeString(extendedProperties, "hostname", "").(string)
 	this.Urls = SafeValue(extendedProperties, "urls", map[string]interface{}{}).(map[string]interface{})
 
-	this.Options = this.GetDefaultOptions().(map[string]interface{})
+	this.Options = this.MapToSyncMap(this.GetDefaultOptions().(map[string]interface{}))
 	extendedOptions := SafeValue(extendedProperties, "options", map[string]interface{}{}).(map[string]interface{})
 	for k, v := range extendedOptions {
-		this.Options[k] = v
+		// this.Options[k] = v
+		this.Options.Store(k, v)
 	}
 
 	this.Verbose = SafeValue(extendedProperties, "verbose", false).(bool)
@@ -395,4 +398,23 @@ func (this *Exchange) initializeProperties(extendedProperties map[string]interfa
 	this.HttpExceptions = SafeValue(extendedProperties, "httpExceptions", map[string]interface{}{}).(map[string]interface{})
 	this.Headers = SafeValue(extendedProperties, "headers", map[string]interface{}{}).(map[string]interface{})
 	this.ReduceFees = SafeValue(extendedProperties, "reduceFees", true).(bool)
+}
+
+func (this *Exchange) MapToSyncMap(input map[string]interface{}) *sync.Map {
+	var sm sync.Map
+	for k, v := range input {
+		sm.Store(k, v)
+	}
+	return &sm
+}
+
+func (this *Exchange) SyncMapToMap(sm *sync.Map) map[string]interface{} {
+	result := make(map[string]interface{})
+	sm.Range(func(key, value interface{}) bool {
+		if strKey, ok := key.(string); ok {
+			result[strKey] = value
+		}
+		return true
+	})
+	return result
 }

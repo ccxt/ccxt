@@ -10487,7 +10487,7 @@ export default class binance extends Exchange {
             else {
                 throw new NotSupported(this.id + ' loadLeverageBrackets() supports linear and inverse contracts only');
             }
-            this.options['leverageBrackets'] = {};
+            this.options['leverageBrackets'] = this.createSafeDictionary();
             for (let i = 0; i < response.length; i++) {
                 const entry = response[i];
                 const marketId = this.safeString(entry, 'symbol');
