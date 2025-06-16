@@ -2,7 +2,7 @@ import Foundation
 import CCXT
 
 public class CCXTExchange {
-    private let exchange: CcxtExchange
+    private let exchange: CcxtCCXTGoExchange
     
     public init?(exchangeName: String, configJson: String) {
         guard let ex = CcxtNewExchange(exchangeName, configJson) else {
@@ -31,6 +31,21 @@ public class CCXTExchange {
             return array.map { cleanAny($0) }
         default:
             return value
+        }
+    }
+
+    func stringify<T: Encodable>(_ object: T, prettyPrinted: Bool = false) -> String? {
+        let encoder = JSONEncoder()
+        if prettyPrinted {
+            encoder.outputFormatting = .prettyPrinted
+        }
+
+        do {
+            let data = try encoder.encode(object)
+            return String(data: data, encoding: .utf8)
+        } catch {
+            print("Failed to stringify object: \(error)")
+            return nil
         }
     }
 
@@ -75,5 +90,5 @@ public class CCXTExchange {
 
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED
-        
+
 }

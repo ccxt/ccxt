@@ -3,15 +3,15 @@ package ccxt
 
 import (
 	"encoding/json"
-
+        "strings"
 	ccxt "github.com/ccxt/ccxt/go/v4"
 )
 
-type Exchange struct {
+type CCXTGoExchange struct {
 	exchange ccxt.IExchange
 }
 
-func NewExchange(exchangeName string, configJson string) *Exchange {
+func NewExchange(exchangeName string, configJson string) *CCXTGoExchange {
 	var config map[string]interface{}
 	_ = json.Unmarshal([]byte(configJson), &config)
 
@@ -21,7 +21,26 @@ func NewExchange(exchangeName string, configJson string) *Exchange {
 		return nil
 	}
 
-	return &Exchange{exchange: inst}
+	return &CCXTGoExchange{exchange: inst}
+}
+
+func ParseJSON(input string) []byte {
+	var intermediate string
+	if err := json.Unmarshal([]byte(input), &intermediate); err == nil {
+		// Input was a double-quoted JSON string — unwrap it
+		input = intermediate
+	}
+
+	var anything interface{}
+	if err := json.Unmarshal([]byte(input), &anything); err != nil {
+		// Return a consistent error message as JSON
+		errorObj := map[string]string{"error": "Invalid JSON"}
+		b, _ := json.Marshal(errorObj)
+		return b
+	}
+
+	b, _ := json.Marshal(anything)
+	return b
 }
 
 // ------------------------------------------------------------------------
@@ -65,19 +84,3 @@ func NewExchange(exchangeName string, configJson string) *Exchange {
 
 // ------------------------------------------------------------------------
 // METHODS BELOW THIS LINE ARE TRANSPILED
-
-func (e *Exchange) FetchMarkets() ([]byte, error) {
-	res := <-e.exchange.FetchMarkets(nil)
-	if err, ok := res.(error); ok {
-		return nil, err
-	}
-	return json.Marshal(res)
-}
-
-func (e *Exchange) FetchTicker(symbol string) ([]byte, error) {
-	res := <-e.exchange.FetchTicker(symbol, nil)
-	if err, ok := res.(error); ok {
-		return nil, err
-	}
-	return json.Marshal(res)
-}
