@@ -62,12 +62,7 @@ public class Throttler
             var floatTokens = Convert.ToDouble(this.config.Tokens);
             if (floatTokens >= 0)
             {
-<<<<<<< HEAD
-                this.config["tokens"] = floatTokens - cost;
-=======
                 this.config.Tokens = floatTokens - cost;
-                await Task.Delay(0);
->>>>>>> fdabf94fe0a3197c0b8e18b45f3d66d31b6273db
                 if (task != null)
                 {
                     if (task.Status == TaskStatus.Created)
@@ -75,18 +70,14 @@ public class Throttler
                         task.Start();
                     }
                 }
-<<<<<<< HEAD
                 await Task.Delay(0);
                 lock (queueLock)
                 {
                     this.queue.Dequeue();
-=======
-                this.queue.Dequeue();
->>>>>>> fdabf94fe0a3197c0b8e18b45f3d66d31b6273db
-
-                if (this.queue.Count == 0)
-                {
-                    this.running = false;
+                    if (this.queue.Count == 0)
+                    {
+                        this.running = false;
+                    }
                 }
             }
             else
@@ -99,7 +90,6 @@ public class Throttler
                 this.config.Tokens = Math.Min(tokens, (double)this.config.Capacity);
             }
         }
-
     }
 
     private async Task rollingWindowLoop()
