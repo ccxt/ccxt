@@ -283,8 +283,9 @@ export default class Exchange {
     base58ToBinary: (str: string) => Uint8Array;
     base64ToBinary: (str: string) => Uint8Array;
     safeTimestamp2: (o: any, k1: IndexType, k2: IndexType, $default?: number) => number;
-    rawencode: (object: object) => string;
+    rawencode: (object: object, sort?: boolean) => string;
     keysort: (x: Dictionary<any>, out?: Dictionary<any>) => Dictionary<any>;
+    sort: (array: any) => any;
     inArray: (needle: any, haystack: any[]) => boolean;
     safeStringLower2: (o: any, k1: IndexType, k2: IndexType, $default?: string) => string;
     safeStringUpper2: (o: any, k1: IndexType, k2: IndexType, $default?: string) => string;
