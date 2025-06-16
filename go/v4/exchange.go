@@ -210,6 +210,10 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 }
 
 func (this *Exchange) Init(userConfig map[string]interface{}) {
+
+	if this.Options == nil {
+		this.Options = &sync.Map{} // by default sync.map is nil
+	}
 	// to do
 }
 
