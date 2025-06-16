@@ -115,7 +115,7 @@ public class Throttler
             var windowSize = Convert.ToDouble(this.config.WindowSize);
             timestamps.RemoveAll(t => now - t.timestamp >= windowSize);
             var totalCost = timestamps.Sum(t => t.cost);
-            if (totalCost + cost <= Convert.ToDouble(this.config.MaxWeight))
+            if (totalCost + cost <= this.config.MaxWeight)
             {
                 timestamps.Add((now, cost));
                 await Task.Delay(0);
