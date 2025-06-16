@@ -5932,11 +5932,12 @@ class bingx extends Exchange {
     }
 
     public function parse_params($params) {
-        $sortedParams = $this->keysort($params);
-        $keys = is_array($sortedParams) ? array_keys($sortedParams) : array();
+        // $sortedParams = $this->keysort($params);
+        $rawKeys = is_array($params) ? array_keys($params) : array();
+        $keys = $this->sort($rawKeys);
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
-            $value = $sortedParams[$key];
+            $value = $params[$key];
             if (gettype($value) === 'array' && array_keys($value) === array_keys(array_keys($value))) {
                 $arrStr = '[';
                 for ($j = 0; $j < count($value); $j++) {
@@ -5947,10 +5948,10 @@ class bingx extends Exchange {
                     $arrStr .= (string) $arrayElement;
                 }
                 $arrStr .= ']';
-                $sortedParams[$key] = $arrStr;
+                $params[$key] = $arrStr;
             }
         }
-        return $sortedParams;
+        return $params;
     }
 
     public function fetch_my_liquidations(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -6592,13 +6593,14 @@ class bingx extends Exchange {
     }
 
     public function custom_encode($params) {
-        $sortedParams = $this->keysort($params);
-        $keys = is_array($sortedParams) ? array_keys($sortedParams) : array();
+        // $sortedParams = $this->keysort($params);
+        $rawKeys = is_array($params) ? array_keys($params) : array();
+        $keys = $this->sort($rawKeys);
         $adjustedValue = null;
         $result = null;
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
-            $value = $sortedParams[$key];
+            $value = $params[$key];
             if (gettype($value) === 'array' && array_keys($value) === array_keys(array_keys($value))) {
                 $arrStr = null;
                 for ($j = 0; $j < count($value); $j++) {
@@ -6669,7 +6671,7 @@ class bingx extends Exchange {
                 $encodeRequest = $this->custom_encode($params);
             } else {
                 $parsedParams = $this->parse_params($params);
-                $encodeRequest = $this->rawencode($parsedParams);
+                $encodeRequest = $this->rawencode($parsedParams, true);
             }
             $signature = $this->hmac($this->encode($encodeRequest), $this->encode($this->secret), 'sha256');
             $headers = array(
@@ -6681,7 +6683,7 @@ class bingx extends Exchange {
                 $params['signature'] = $signature;
                 $body = $this->json($params);
             } else {
-                $query = $this->urlencode($parsedParams);
+                $query = $this->urlencode($parsedParams, true);
                 $url .= '?' . $query . '&' . 'signature=' . $signature;
             }
         }
