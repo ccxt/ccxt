@@ -124,6 +124,18 @@
                     ]
                 ]
             }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "fetchFundingRate",
+                "method": "fetchFundingRate",
+                "url": "https://fapi.asterdex.com/fapi/v1/premiumIndex?symbol=BTCUSDT",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ]
+            }
         ]
     }
 }
