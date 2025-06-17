@@ -191,15 +191,15 @@ function tsTypeToGo(tsType: string): string {
             .replace(/\bnull\b/g, "[]byte")
             .replace(/\bvoid\b/g, "void")
             .replace(/\bDict\b/g, "map[string][]byte")
-            .replace(/\bNullableDict\b/g, "*map[string][]byte")
+            .replace(/\bNullableDict\b/g, "map[string][]byte")
             .replace(/\bList\b/g, "[]byte")
-            .replace(/\bNullableList\b/g, "*[]byte")
-            .replace(/\bNum\b/g, "*float64")
-            .replace(/\bInt\b/g, "*int")
+            .replace(/\bNullableList\b/g, "[]byte")
+            .replace(/\bNum\b/g, "float64")
+            .replace(/\bInt\b/g, "int")
             .replace(/\bint\b/g, "int")
-            .replace(/\bStr\b/g, "*string")
+            .replace(/\bStr\b/g, "string")
             .replace(/\bStrings\b/g, "[]string")
-            .replace(/\bBool\b/g, "*bool")
+            .replace(/\bBool\b/g, "bool")
             .replace(/\bIndexType\b/g, "[]byte")
             .replace(/\bOrderSide\b/g, "string")
             .replace(/\bOrderType\b/g, "string")
@@ -380,24 +380,30 @@ const goMethodDeclaration = (methodName: string, params: {[key: string]: [string
     Object.keys(params).forEach((paramName: string) => {
         const [paramType, defaultValue] = params[paramName];
         if (defaultValue !== 'undefined') {
+            if (paramName === 'type') {
+                paramName = 'typeVar';
+            }
             let newName = paramName;
-            if (paramType.includes('[]')) {
-                arrayParams.push(paramName);
-                newName = `${paramName}_arr`;
-            } else if (customTypes.includes(paramType)) {
+            let goType = tsTypeToGo(paramType)
+            if (customTypes.includes(paramType)) {
                 customTypeParams.push(paramName);
                 newName = `${paramName}_object`;
+                goType = 'string';
+            } else if (paramType.includes('[]')) {
+                arrayParams.push(paramName);
+                newName = `${paramName}_arr`;
+                goType = 'string';
             }
-            headerParams.push(`${paramName} ${tsTypeToGo(paramType)}`);
+            headerParams.push(`${paramName} ${goType}`);
             callParams.push(newName);
         }
     });
     const capsMethodName = capitalize(methodName);
     const sep = "\n\t\t";
     const customTypeParamsCode = prefix(customTypeParams, sep) + customTypeParams.map(paramName => `${paramName}_object := ParseJSON(${paramName})`).join(sep);  // stringify custom types
-    const arrayParamsCode = prefix(arrayParams, sep) + arrayParams.map(paramName => `${paramName}_arr := strings.Split(${paramName}, ",")`).join(sep);  // stringify custom types
+    // const arrayParamsCode = prefix(arrayParams, sep) + arrayParams.map(paramName => `${paramName}_arr := strings.Split(${paramName}, ",")`).join(sep);  // stringify custom types  // probably unnecessary, as the array parameters are already strings
     return `
-    func (e *Exchange) ${capsMethodName}(${headerParams.join(", ")}) ([]byte, error) {${customTypeParamsCode}${arrayParamsCode}
+    func (e *CCXTGoExchange) ${capsMethodName}(${headerParams.join(", ")}) ([]byte, error) {${customTypeParamsCode}
         res := <-e.exchange.${capsMethodName}(${callParams.join(', ')})
         if err, ok := res.(error); ok {
             return nil, err
@@ -413,7 +419,7 @@ const swiftMethodDeclaration = (methodName: string, params: {[key: string]: [str
         const paramType = tsTypeToSwift(params[key][0]);
         return params[key][1] === null
             ? `${key}: ${paramType}`
-            : `${key}: ${paramType} = ${params[key][1].replace(/undefined/g, 'nil').replace(/{}/g, '[:]')}`
+            : `${key}: ${paramType} = ${params[key][1].replace(/undefined/g, 'nil').replace(/{}/g, '[:]')}`.replace(/params\:\s*Any\b/g, 'params: [String: Any]');
     }).join(', ')
     const goCallParams: string[] = [];
     const optionalParams: string[] = [];
@@ -439,7 +445,7 @@ const swiftMethodDeclaration = (methodName: string, params: {[key: string]: [str
         }
     });
     const sep = "\n\t\t\t";
-    const optionalsCode = prefix(optionalParams, sep) + optionalParams.map(paramName => `params[${paramName}] = ${paramName}`).join(sep); // Adds optional parameters to params
+    const optionalsCode = prefix(optionalParams, sep) + optionalParams.map(paramName => `params["${paramName}"] = ${paramName}`).join(sep); // Adds optional parameters to params
     const customTypeParamsCode = prefix(customTypeParams, sep) + customTypeParams.map(paramName => `let ${paramName}_string = stringify(${paramName})`).join(sep);  // stringify custom types
     const arrayParamsCode = prefix(arrayParams, sep) + arrayParams.map(paramName => `let ${paramName}_string = ${paramName}.joined(separator: ",")`).join(sep);  // convert array parameters to comma separated strings
     return`
@@ -534,8 +540,85 @@ function main() {
     createExchangeClasses();
     const headers = getTypescriptHeaders();
     for (const [methodName, params, returnType] of headers) {
-        swiftMethodDeclarations.push(swiftMethodDeclaration(methodName, params, returnType));
-        goMethodDeclarations.push(goMethodDeclaration(methodName, params));
+        if ([
+            'cancelAllOrdersWs',
+            'cancelOrdersWs',
+            'cancelOrderWs',
+            'createLimitBuyOrderWs',
+            'createLimitOrderWs',
+            'createLimitSellOrderWs',
+            'createMarketBuyOrderWs',
+            'createMarketOrderWithCost',
+            'createMarketOrderWithCostWs',
+            'createMarketOrderWs',
+            'createMarketSellOrderWs',
+            'createOrderWithTakeProfitAndStopLossWs',
+            'createOrderWs',
+            'createPostOnlyOrder',
+            'createPostOnlyOrderWs',
+            'createReduceOnlyOrder',
+            'createReduceOnlyOrderWs',
+            'createStopLossOrderWs',
+            'createTakeProfitOrderWs',
+            'createTrailingAmountOrderWs',
+            'createTrailingPercentOrderWs',
+            'createTriggerOrderWs',
+            'editOrderWs',
+            'editOrderWs',
+            'fetchBalanceWs',
+            'fetchClosedOrdersWs',
+            'fetchCurrenciesWs',
+            'fetchDepositsWs',
+            'fetchIndexOHLCV',
+            'fetchMarketsWs',
+            'fetchMyTradesWs',
+            'fetchOHLCVWs',
+            'fetchOpenOrdersWs',
+            'fetchOrderBookWs',
+            'fetchOrdersWs',
+            'fetchOrderWs',
+            'fetchPositionsForSymbolWs',
+            'fetchPositionsWs',
+            'fetchPositionWs',
+            'fetchTickersWs',
+            'fetchTickerWs',
+            'fetchTradesWs',
+            'fetchTradingFeesWs',
+            'fetchTransactionFee',
+            'fetchWithdrawalsWs',
+            'watchBalance',
+            'watchBidsAsks',
+            'createStopOrder',
+            'createStopOrderWs',
+            'createStopLimitOrder',
+            'createStopLimitOrderWs',
+            'createStopMarketOrder',
+            'createStopMarketOrderWs',
+            'fetchMarkOHLCV',
+            'fetchPremiumIndexOHLCV',
+            'watchLiquidations',
+            'watchLiquidationsForSymbols',
+            'watchMyLiquidations',
+            'watchMyLiquidationsForSymbols',
+            'watchMyTrades',
+            'watchOHLCV',
+            'watchOHLCVForSymbols',
+            'watchOrderBook',
+            'watchOrderBookForSymbols',
+            'watchOrders',
+            'watchOrdersForSymbols',
+            'watchPosition',
+            'watchPositions',
+            'watchTicker',
+            'watchTickers',
+            'watchTrades',
+            'watchTradesForSymbols',
+        ].includes(methodName)) {
+            continue;
+        } else {
+            swiftMethodDeclarations.push(swiftMethodDeclaration(methodName, params, returnType));
+            goMethodDeclarations.push(goMethodDeclaration(methodName, params));
+        }
     }
 
     const loopItems: [string, string[]][] = [
