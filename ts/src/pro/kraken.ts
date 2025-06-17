@@ -1547,7 +1547,8 @@ export default class kraken extends krakenRest {
         symbols = this.marketSymbols (symbols, undefined, false, true, false);
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
-            if (params['event_trigger'] !== undefined) {
+            const eventTrigger = this.safeString (params, 'event_trigger');
+            if (eventTrigger !== undefined) {
                 messageHashes.push (this.getMessageHash (channelName, undefined, this.symbol (symbols[i])));
             } else {
                 messageHashes.push (this.getMessageHash (unifiedName, undefined, this.symbol (symbols[i])));
