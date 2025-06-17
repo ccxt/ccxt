@@ -34,7 +34,7 @@ type IExchange interface {
 	GetHostname() string
 	GetUrls() interface{}
 	GetApi() map[string]interface{}
-	GetOptions() map[string]interface{}
+	GetOptions() *sync.Map
 	GetCurrencies() map[string]interface{}
 	GetMarkets() map[string]interface{}
 	CheckRequiredCredentials(optionalArgs ...interface{}) interface{}
