@@ -59,7 +59,7 @@ public class Throttler
             var first = this.queue.Peek();
             var task = first.Item1;
             var cost = first.Item2;
-            var floatTokens = Convert.ToDouble(this.config.Tokens);
+            var floatTokens = this.config.Tokens;
             if (floatTokens >= 0)
             {
                 this.config.Tokens = floatTokens - cost;
@@ -82,7 +82,7 @@ public class Throttler
             }
             else
             {
-                await Task.Delay((int)((double)this.config.Delay * 1000));
+                await Task.Delay((int)(this.config.Delay * 1000));
                 var current = milliseconds();
                 var elapsed = current - lastTimestamp;
                 lastTimestamp = current;
@@ -112,17 +112,17 @@ public class Throttler
             var task = first.Item1;
             var cost = first.Item2;
             var now = milliseconds();
-            var windowSize = Convert.ToDouble(this.config.WindowSize);
+            var windowSize = this.config.WindowSize;
             timestamps.RemoveAll(t => now - t.timestamp >= windowSize);
             var totalCost = timestamps.Sum(t => t.cost);
-            if (totalCost + cost <= Convert.ToDouble(this.config.MaxWeight))
+            if (totalCost + cost <= this.config.MaxWeight)
             {
                 timestamps.Add((now, cost));
-                await Task.Delay(0);
                 if (task != null && task.Status == TaskStatus.Created)
                 {
                     task.Start();
                 }
+                await Task.Delay(0);
                 lock (queueLock)
                 {
                     this.queue.Dequeue();
