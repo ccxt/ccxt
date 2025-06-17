@@ -1769,6 +1769,9 @@
             "loadMarkets": {
                 "active": "undefined",
                 "currencyIdAndCode": "lev curr"
+            },
+            "fetchCurrencies": {
+                "amountOfCurrencies": "exchange has only 1 currency atm"
             }
         }
     }
