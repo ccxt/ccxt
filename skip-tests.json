@@ -1769,8 +1769,7 @@
             "loadMarkets": {
                 "active": "undefined",
                 "currencyIdAndCode": "lev curr"
-            },
-            "fetchCurrencies": "only 1 curr"
+            }
         }
     }
 }
