@@ -564,6 +564,9 @@ func (this *Exchange) GroupBy(trades interface{}, key2 interface{}) map[string]i
 	for _, elem := range list {
 		elemDict := elem.(map[string]interface{})
 		if val, ok := elemDict[key]; ok {
+			if val == nil {
+				continue
+			}
 			elem2 := val.(string)
 			if list2, exists := outDict[elem2]; exists {
 				list2 = append(list2.([]interface{}), elem)
