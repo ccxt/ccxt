@@ -482,7 +482,7 @@ export default class kraken extends krakenRest {
         client.resolve (message, reqId);
     }
 
-    handleTicker (client, message, subscription) {
+    handleTicker (client, message) {
         //
         //     {
         //         "channel": "ticker",
@@ -542,7 +542,7 @@ export default class kraken extends krakenRest {
         client.resolve (result, messageHash);
     }
 
-    handleTrades (client: Client, message, subscription) {
+    handleTrades (client: Client, message) {
         //
         //     {
         //         "channel": "trade",
@@ -867,7 +867,7 @@ export default class kraken extends krakenRest {
         client.resolve (message, event);
     }
 
-    handleOrderBook (client: Client, message, subscription) {
+    handleOrderBook (client: Client, message) {
         //
         // first message (snapshot)
         //
