@@ -1314,11 +1314,10 @@ export default class hollaex extends Exchange {
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const convertedAmount = parseFloat (this.amountToPrecision (symbol, amount));
         const request: Dict = {
             'symbol': market['id'],
             'side': side,
-            'size': this.normalizeNumberIfNeeded (convertedAmount),
+            'size': this.amountToPrecision (symbol, amount),
             'type': type,
             // 'stop': parseFloat (this.priceToPrecision (symbol, stopPrice)),
             // 'meta': {}, // other options such as post_only
@@ -1329,11 +1328,10 @@ export default class hollaex extends Exchange {
         const isMarketOrder = type === 'market';
         const postOnly = this.isPostOnly (isMarketOrder, exchangeSpecificParam, params);
         if (!isMarketOrder) {
-            const convertedPrice = parseFloat (this.priceToPrecision (symbol, price));
-            request['price'] = this.normalizeNumberIfNeeded (convertedPrice);
+            request['price'] = this.priceToPrecision (symbol, price);
         }
         if (triggerPrice !== undefined) {
-            request['stop'] = this.normalizeNumberIfNeeded (parseFloat (this.priceToPrecision (symbol, triggerPrice)));
+            request['stop'] = this.priceToPrecision (symbol, triggerPrice);
         }
         if (postOnly) {
             request['meta'] = { 'post_only': true };
@@ -2014,16 +2012,6 @@ export default class hollaex extends Exchange {
         //
         const coins = this.safeDict (response, 'coins', {});
         return this.parseDepositWithdrawFees (coins, codes, 'symbol');
-    }
-
-    normalizeNumberIfNeeded (number) {
-        if (number === undefined) {
-            return number;
-        }
-        if (this.isRoundNumber (number)) {
-            number = parseInt (number);
-        }
-        return number.toString ();
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
