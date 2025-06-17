@@ -1369,7 +1369,11 @@
                 "currencyIdAndCode": "lev curr"
             },
             "fetchCurrencies": {
-                "amountOfCurrencies": "exchange has only 1 currency atm"
+                "amountOfCurrencies": "exchange has only 1 currency atm",
+                "withdraw": "not provided",
+                "deposit": "not provided",
+                "activeMajorCurrencies": "todo",
+                "type": "todo"
             }
         }
     },
