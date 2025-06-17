@@ -929,16 +929,16 @@ export default class hollaex extends Exchange {
         let until = this.safeInteger2 (params, 'until', 'to');
         const numberOfCandles = (limit !== undefined) ? limit : 100; // set default limit to 100 if not specified
         const timeDelta = this.parseTimeframe (timeframe) * numberOfCandles * 1000;
-        let from = since;
-        if (until === undefined && from === undefined) {
+        let start = since;
+        if (until === undefined && start === undefined) {
             until = this.milliseconds ();
-            from = until - timeDelta;
+            start = until - timeDelta;
         } else if (until === undefined) {
-            until = from + timeDelta;
-        } else if (from === undefined) {
-            from = until - timeDelta;
+            until = start + timeDelta;
+        } else if (start === undefined) {
+            start = until - timeDelta;
         }
-        request['from'] = this.parseToInt (from / 1000); // convert to seconds
+        request['from'] = this.parseToInt (start / 1000); // convert to seconds
         request['to'] = this.parseToInt (until / 1000); // convert to seconds
         params = this.omit (params, 'until');
         const response = await this.publicGetChart (this.extend (request, params));
