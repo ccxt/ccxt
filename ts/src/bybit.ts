@@ -1722,12 +1722,13 @@ export default class bybit extends Exchange {
         }
         const promisesUnresolved = [];
         let types = undefined;
+        const defaultTypes = [ 'spot', 'linear', 'inverse' ];
         const fetchMarketsOptions = this.safeDict (this.options, 'fetchMarkets');
         if (fetchMarketsOptions !== undefined) {
-            types = this.safeList (fetchMarketsOptions, 'types', []);
+            types = this.safeList (fetchMarketsOptions, 'types', defaultTypes);
         } else {
             // for backward-compatibility
-            types = this.safeList (this.options, 'fetchMarkets', []);
+            types = this.safeList (this.options, 'fetchMarkets', defaultTypes);
         }
         for (let i = 0; i < types.length; i++) {
             const marketType = types[i];
