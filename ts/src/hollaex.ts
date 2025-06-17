@@ -914,7 +914,7 @@ export default class hollaex extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
-     * @param {int} [limit] the maximum amount of candles to fetch (default 100)
+     * @param {int} [limit] the maximum amount of candles to fetch (max 500)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -927,7 +927,7 @@ export default class hollaex extends Exchange {
             'resolution': this.safeString (this.timeframes, timeframe, timeframe),
         };
         let until = this.safeInteger2 (params, 'until', 'to');
-        const numberOfCandles = (limit !== undefined) ? limit : 100; // set default limit to 100 if not specified
+        const numberOfCandles = (limit !== undefined) ? limit : 500; // set default limit to 500 if not specified
         const timeDelta = this.parseTimeframe (timeframe) * numberOfCandles * 1000;
         let start = since;
         if (until === undefined && start === undefined) {
@@ -2016,10 +2016,13 @@ export default class hollaex extends Exchange {
     }
 
     normalizeNumberIfNeeded (number) {
+        if (number === undefined) {
+            return number;
+        }
         if (this.isRoundNumber (number)) {
             number = parseInt (number);
         }
-        return number;
+        return number.toString ();
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
