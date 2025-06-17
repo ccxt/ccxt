@@ -47,7 +47,7 @@ class Throttler {
                         $this->running = false;
                     }
                 } else {
-                    Async\await(React\Promise\Timer\sleep($this->config['delay']));
+                    Async\await(\React\Promise\Timer\sleep($this->config['delay']));
                     $now = microtime(true) * 1000;
                     $elapsed = $now - $last_timestamp;
                     $last_timestamp = $now;
@@ -80,7 +80,7 @@ class Throttler {
                     $this->timestamps[] = ['timestamp' => $now, 'cost' => $cost];
                     $future->resolve(null);
                     $this->queue->dequeue();
-                    Async\await(React\Promise\Timer\sleep(0)); // context switch
+                    Async\await(\React\Promise\Timer\sleep(0)); // context switch
                     if ($this->queue->count() === 0) {
                         $this->running = false;
                     }
@@ -88,7 +88,7 @@ class Throttler {
                     $earliest = $this->timestamps[0]['timestamp'];
                     $wait_time = ($earliest + $this->config['windowSize']) - $now;
                     if ($wait_time > 0) {
-                        Async\await(React\Promise\Timer\sleep($wait_time / 1000));
+                        Async\await(\React\Promise\Timer\sleep($wait_time / 1000));
                     }
                 }
             }
