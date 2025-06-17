@@ -805,7 +805,8 @@ export default class hollaex extends Exchange {
         //      "price":0.147411,
         //      "timestamp":"2022-01-26T17:53:34.650Z",
         //      "order_id":"cba78ecb-4187-4da2-9d2f-c259aa693b5a",
-        //      "fee":0.01031877,"fee_coin":"usdt"
+        //      "fee":0.01031877,
+        //      "fee_coin":"usdt"
         //  }
         //
         const marketId = this.safeString (trade, 'symbol');
@@ -818,11 +819,12 @@ export default class hollaex extends Exchange {
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'size');
         const feeCostString = this.safeString (trade, 'fee');
+        const feeCoin = this.safeString (trade, 'fee_coin');
         let fee = undefined;
         if (feeCostString !== undefined) {
             fee = {
                 'cost': feeCostString,
-                'currency': market['quote'],
+                'currency': this.safeCurrencyCode (feeCoin),
             };
         }
         return this.safeTrade ({
