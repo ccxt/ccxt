@@ -926,9 +926,14 @@ export default class hollaex extends Exchange {
             'symbol': market['id'],
             'resolution': this.safeString (this.timeframes, timeframe, timeframe),
         };
+        let paginate = false;
+        const maxLimit = 500;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', paginate);
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit);
+        }
         let until = this.safeInteger2 (params, 'until', 'to');
-        const numberOfCandles = (limit !== undefined) ? limit : 500; // set default limit to 500 if not specified
-        const timeDelta = this.parseTimeframe (timeframe) * numberOfCandles * 1000;
+        const timeDelta = this.parseTimeframe (timeframe) * maxLimit * 1000;
         let start = since;
         const now = this.milliseconds ();
         if (until === undefined && start === undefined) {
