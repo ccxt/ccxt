@@ -914,7 +914,7 @@ export default class hollaex extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
-     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch (default 100)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -926,18 +926,20 @@ export default class hollaex extends Exchange {
             'symbol': market['id'],
             'resolution': this.safeString (this.timeframes, timeframe, timeframe),
         };
-        const until = this.safeInteger (params, 'until');
-        let end = this.seconds ();
-        if (until !== undefined) {
-            end = this.parseToInt (until / 1000);
+        let until = this.safeInteger2 (params, 'until', 'to');
+        const numberOfCandles = (limit !== undefined) ? limit : 100; // set default limit to 100 if not specified
+        const timeDelta = this.parseTimeframe (timeframe) * numberOfCandles * 1000;
+        let from = since;
+        if (until === undefined && from === undefined) {
+            until = this.milliseconds ();
+            from = until - timeDelta;
+        } else if (until === undefined) {
+            until = from + timeDelta;
+        } else if (from === undefined) {
+            from = until - timeDelta;
         }
-        const defaultSpan = 2592000; // 30 days
-        if (since !== undefined) {
-            request['from'] = this.parseToInt (since / 1000);
-        } else {
-            request['from'] = end - defaultSpan;
-        }
-        request['to'] = end;
+        request['from'] = this.parseToInt (from / 1000); // convert to seconds
+        request['to'] = this.parseToInt (until / 1000); // convert to seconds
         params = this.omit (params, 'until');
         const response = await this.publicGetChart (this.extend (request, params));
         //
