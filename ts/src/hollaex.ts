@@ -932,7 +932,7 @@ export default class hollaex extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit);
         }
-        let until = this.safeInteger2 (params, 'until', 'to');
+        let until = this.safeInteger (params, 'until');
         const timeDelta = this.parseTimeframe (timeframe) * maxLimit * 1000;
         let start = since;
         const now = this.milliseconds ();
