@@ -3,7 +3,7 @@ package ccxt
 
 import (
 	"encoding/json"
-        "strings"
+	"strings"
 	ccxt "github.com/ccxt/ccxt/go/v4"
 )
 
