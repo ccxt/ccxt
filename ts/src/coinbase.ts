@@ -4640,9 +4640,6 @@ export default class coinbase extends Exchange {
     async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (!market['future']) {
-            throw new NotSupported (this.id + ' closePosition() only supported for futures markets');
-        }
         const clientOrderId = this.safeString2 (params, 'client_order_id', 'clientOrderId');
         params = this.omit (params, 'clientOrderId');
         const request: Dict = {
