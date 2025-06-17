@@ -4,7 +4,7 @@ import Exchange from './abstract/aster.js';
 import { ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { Currencies, Dict, FundingRateHistory, Int, Market, OHLCV, OrderBook, Str, Ticker, Trade } from './base/types.js';
+import type { Currencies, Dict, FundingRateHistory, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------xs
 /**
@@ -876,6 +876,44 @@ export default class aster extends Exchange {
         //     }
         //
         return this.parseTicker (response, market);
+    }
+
+    /**
+     * @method
+     * @name aster#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#24hr-ticker-price-change-statistics
+     * @param {string[]} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const response = await this.publicGetFapiV1Ticker24hr (params);
+        //
+        //     [
+        //         {
+        //             "symbol": "BTCUSDT",
+        //             "priceChange": "1845.7",
+        //             "priceChangePercent": "1.755",
+        //             "weightedAvgPrice": "105515.5",
+        //             "lastPrice": "107037.7",
+        //             "lastQty": "0.004",
+        //             "openPrice": "105192.0",
+        //             "highPrice": "107223.5",
+        //             "lowPrice": "104431.6",
+        //             "volume": "8753.286",
+        //             "quoteVolume": "923607368.61",
+        //             "openTime": 1749976620000,
+        //             "closeTime": 1750063053754,
+        //             "firstId": 24195078,
+        //             "lastId": 24375783,
+        //             "count": 180706
+        //         }
+        //     ]
+        //
+        return this.parseTickers (response, symbols);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
