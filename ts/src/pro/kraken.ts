@@ -974,12 +974,12 @@ export default class kraken extends krakenRest {
                 // const checkBids = bids.map ((elem) => [ elem['price'], elem['qty'] ]);
                 for (let i = 0; i < 10; i++) {
                     const currentAsk = this.safeValue (checkAsks, i, {});
-                    const formattedAsk = this.formatNumber (currentAsk);
+                    const formattedAsk = this.formatNumber (currentAsk[0]) + this.formatNumber (currentAsk[1]);
                     payloadArray.push (formattedAsk);
                 }
                 for (let i = 0; i < 10; i++) {
                     const currentBid = this.safeValue (checkBids, i, {});
-                    const formattedBid = this.formatNumber (currentBid);
+                    const formattedBid = this.formatNumber (currentBid[0]) + this.formatNumber (currentBid[1]);
                     payloadArray.push (formattedBid);
                 }
             }
@@ -1015,31 +1015,18 @@ export default class kraken extends krakenRest {
     }
 
     formatNumber (data) {
-        const price = this.safeString (data, 0);
-        const amount = this.safeString (data, 1);
-        const priceParts = price.split ('.');
-        const amountParts = amount.split ('.');
-        const priceInteger = this.safeString (priceParts, 0);
-        const priceDecimals = this.safeString (priceParts, 1, '');
-        const amountInteger = this.safeString (amountParts, 0);
-        const amountDecimals = this.safeString (amountParts, 1, '');
-        let joinedPrice = priceInteger + priceDecimals;
-        let joinedAmount = amountInteger + amountDecimals;
+        const parts = data.split ('.');
+        const integer = this.safeString (parts, 0);
+        const decimals = this.safeString (parts, 1, '');
+        let joinedResult = integer + decimals;
         let i = 0;
-        while (joinedPrice[i] === '0') {
+        while (joinedResult[i] === '0') {
             i += 1;
         }
         if (i > 0) {
-            joinedPrice = joinedPrice.slice (i);
+            joinedResult = joinedResult.slice (i);
         }
-        let j = 0;
-        while (joinedAmount[j] === '0') {
-            j += 1;
-        }
-        if (j > 0) {
-            joinedAmount = joinedAmount.slice (j);
-        }
-        return joinedPrice + joinedAmount;
+        return joinedResult;
     }
 
     handleSystemStatus (client: Client, message) {
