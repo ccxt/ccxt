@@ -552,6 +552,7 @@ export default class aster extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.price] "mark" or "index" for mark price and index price candles
      * @param {int} [params.until] the latest time in ms to fetch orders for
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
@@ -561,9 +562,7 @@ export default class aster extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let request: Dict = {
-            'symbol': market['id'],
-        };
+        let request: Dict = {};
         if (since !== undefined) {
             request['startTime'] = since;
         }
@@ -575,7 +574,21 @@ export default class aster extends Exchange {
         }
         [ request, params ] = this.handleUntilOption ('endTime', request, params);
         request['interval'] = this.safeString (this.timeframes, timeframe, timeframe);
-        const response = await this.publicGetFapiV1Klines (this.extend (request, params));
+        const price = this.safeString (params, 'price');
+        const isMark = (price === 'mark');
+        const isIndex = (price === 'index');
+        params = this.omit (params, 'price');
+        let response = undefined;
+        if (isMark) {
+            request['symbol'] = market['id'];
+            response = await this.publicGetFapiV1MarkPriceKlines (this.extend (request, params));
+        } else if (isIndex) {
+            request['pair'] = market['id'];
+            response = await this.publicGetFapiV1IndexPriceKlines (this.extend (request, params));
+        } else {
+            request['symbol'] = market['id'];
+            response = await this.publicGetFapiV1Klines (this.extend (request, params));
+        }
         //
         //     [
         //         [

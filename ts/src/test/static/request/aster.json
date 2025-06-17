@@ -38,6 +38,34 @@
                     1749806347909,
                     1
                 ]
+            },
+            {
+                "description": "fetchOHLCV - mark",
+                "method": "fetchOHLCV",
+                "url": "https://fapi.asterdex.com/fapi/v1/markPriceKlines?symbol=BTCUSDT&startTime=1749806347909&limit=1&interval=5m",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "5m",
+                    1749806347909,
+                    1,
+                    {
+                        "price": "mark"
+                    }
+                ]
+            },
+            {
+                "description": "fetchOHLCV - index",
+                "method": "fetchOHLCV",
+                "url": "https://fapi.asterdex.com/fapi/v1/indexPriceKlines?pair=BTCUSDT&startTime=1749806347909&limit=1&interval=5m",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "5m",
+                    1749806347909,
+                    1,
+                    {
+                        "price": "index"
+                    }
+                ]
             }
         ],
         "fetchTrades": [
