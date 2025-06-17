@@ -934,7 +934,7 @@ export default class hollaex extends Exchange {
             until = this.milliseconds ();
             start = until - timeDelta;
         } else if (until === undefined) {
-            until = start + timeDelta;
+            until = this.sum (start, timeDelta);
         } else if (start === undefined) {
             start = until - timeDelta;
         }
