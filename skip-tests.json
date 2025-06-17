@@ -1362,6 +1362,17 @@
             }
         }
     },
+    "modetrade": {
+        "skipMethods": {
+            "loadMarkets": {
+                "active": "undefined",
+                "currencyIdAndCode": "lev curr"
+            },
+            "fetchCurrencies": {
+                "amountOfCurrencies": "exchange has only 1 currency atm"
+            }
+        }
+    },
     "novadax": {
         "skipMethods": {
             "fetchCurrencies":{
@@ -1761,17 +1772,6 @@
             },
             "fetchCurrencies": {
                 "activeMajorCurrencies": "todo"
-            }
-        }
-    },
-    "modetrade": {
-        "skipMethods": {
-            "loadMarkets": {
-                "active": "undefined",
-                "currencyIdAndCode": "lev curr"
-            },
-            "fetchCurrencies": {
-                "amountOfCurrencies": "exchange has only 1 currency atm"
             }
         }
     }
