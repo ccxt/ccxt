@@ -930,11 +930,12 @@ export default class hollaex extends Exchange {
         const numberOfCandles = (limit !== undefined) ? limit : 500; // set default limit to 500 if not specified
         const timeDelta = this.parseTimeframe (timeframe) * numberOfCandles * 1000;
         let start = since;
+        const now = this.milliseconds ();
         if (until === undefined && start === undefined) {
-            until = this.milliseconds ();
+            until = now;
             start = until - timeDelta;
         } else if (until === undefined) {
-            until = this.sum (start, timeDelta);
+            until = now; // the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
         } else if (start === undefined) {
             start = until - timeDelta;
         }
