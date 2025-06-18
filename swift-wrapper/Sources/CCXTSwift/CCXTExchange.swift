@@ -22,13 +22,15 @@ public class CCXTExchange {
                 return number
             }
         case let dict as [String: Any]:
-            var cleaned: [String: Any?] = [:]
+            var cleaned: [String: Any] = [:]
             for (key, val) in dict {
-                cleaned[key] = cleanAny(val)
+                if let cleanedVal = cleanAny(val) {
+                    cleaned[key] = cleanedVal
+                }
             }
             return cleaned
         case let array as [Any]:
-            return array.map { cleanAny($0) }
+            return array.compactMap { cleanAny($0) }
         default:
             return value
         }

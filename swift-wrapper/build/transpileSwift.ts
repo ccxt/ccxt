@@ -419,6 +419,8 @@ const goMethodDeclaration = (methodName: string, params: {[key: string]: [string
                 arrayParams.push(paramName);
                 newName = `${paramName}_arr`;
                 goType = 'string';
+            } else if (paramName === 'params') {
+                newName = 'decoded';
             }
             headerParams.push(`${paramName} ${goType}`);
             callParams.push(newName);
@@ -430,6 +432,10 @@ const goMethodDeclaration = (methodName: string, params: {[key: string]: [string
     // const arrayParamsCode = prefix(arrayParams, sep) + arrayParams.map(paramName => `${paramName}_arr := strings.Split(${paramName}, ",")`).join(sep);  // stringify custom types  // probably unnecessary, as the array parameters are already strings
     return `
     func (e *CCXTGoExchange) ${capsMethodName}(${headerParams.join(", ")}) ([]byte, error) {${customTypeParamsCode}
+        var decoded map[string]interface{}
+        if err := json.Unmarshal(params, &decoded); err != nil {
+            return nil, err
+        }
         res := <-e.exchange.${capsMethodName}(${callParams.join(', ')})
         if err, ok := res.(error); ok {
             return nil, err
@@ -439,8 +445,9 @@ const goMethodDeclaration = (methodName: string, params: {[key: string]: [string
 }
 
 const swiftMethodDeclaration = (methodName: string, params: {[key: string]: [string, string | null]}, returnType: string) => {
-    const swiftReturnType = tsTypeToSwift(returnType);
-    const guardClause = (swiftReturnType === 'Any') ? `` : `as? ${swiftReturnType}`;
+    // TODO: all the return types need to be Any, cant make them encodable because of info
+    // const swiftReturnType = tsTypeToSwift(returnType);
+    // const guardClause = (swiftReturnType === 'Any') ? `` : `as? ${swiftReturnType}`;
     const swiftParams = Object.keys(params).map(key => {
         const [tsType, defaultValue] = params[key];
         const paramType = tsTypeToSwift(tsType);
@@ -489,15 +496,25 @@ const swiftMethodDeclaration = (methodName: string, params: {[key: string]: [str
     optionalsCode += prefix(optionalParams, sep) + optionalParams.map(paramName => `paramsCopy["${paramName}"] = ${paramName}`).join(sep); // Adds optional parameters to params
     const customTypeParamsCode = prefix(customTypeParams, sep) + customTypeParams.map(paramName => `let ${paramName}_string = stringify(${paramName})`).join(sep);  // stringify custom types
     const arrayParamsCode = prefix(arrayParams, sep) + arrayParams.map(paramName => `let ${paramName}_string = ${paramName}.joined(separator: ",")`).join(sep);  // convert array parameters to comma separated strings
+    // const guardCode = `
+    //         guard let result = cleanAny(jsonObject) ${guardClause} else {
+    //             throw NSError(domain: "CCXT", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid response type for ${methodName}"])
+    //         }\n`;
     return`
-    public func ${methodName} (${swiftParams}) throws -> ${swiftReturnType} {
+    public func ${methodName} (${swiftParams}) throws -> Any {
         do {${optionalsCode}${customTypeParamsCode}${arrayParamsCode}
             let paramsData = try? JSONSerialization.data(withJSONObject: ${paramsCopy ? 'paramsCopy' : 'params'})
             let data = try exchange.${callMethodName}(${goCallParams.join(', ')})
-            guard let result = cleanAny(data) ${guardClause} else {
-                throw NSError(domain: "CCXT", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid response type for ${methodName}"])
+            do {
+                let jsonObject = try JSONSerialization.jsonObject(with: data, options: [])
+                return cleanAny(jsonObject)
+            } catch {
+                if let str = String(data: data, encoding: .utf8) {
+                    return str
+                } else {
+                    throw error
+                }
             }
-            return result
         } catch {
             throw error
         }
