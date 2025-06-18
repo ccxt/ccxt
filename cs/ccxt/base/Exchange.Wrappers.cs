@@ -1249,7 +1249,6 @@ public class  Coinbaseinternational: coinbaseinternational { public Coinbaseinte
 public class  Coincatch: coincatch { public Coincatch(object args = null) : base(args) { } }
 public class  Coincheck: coincheck { public Coincheck(object args = null) : base(args) { } }
 public class  Coinex: coinex { public Coinex(object args = null) : base(args) { } }
-public class  Coinlist: coinlist { public Coinlist(object args = null) : base(args) { } }
 public class  Coinmate: coinmate { public Coinmate(object args = null) : base(args) { } }
 public class  Coinmetro: coinmetro { public Coinmetro(object args = null) : base(args) { } }
 public class  Coinone: coinone { public Coinone(object args = null) : base(args) { } }
