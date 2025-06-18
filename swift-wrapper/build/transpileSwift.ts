@@ -20,8 +20,35 @@ const customTypes = [   // Only those types that appear in swift headers
     'OrderRequest',
 ];
 
+function splitAtProblemPhrase(methodName: string): string[] {
+    if (methodName === 'signIn') {
+        return ['sign', 'in: '];
+    }
+    const problemSwiftPhrases = [
+        'By',
+        'For',
+        'With'
+    ];
+    const pattern = new RegExp(`(${problemSwiftPhrases.join('|')})(?=[A-Z])`);
+    const match = pattern.exec(methodName);
+
+    if (!match) {
+        // No problem phrase found, return original string as single part array
+        return [methodName, ''];
+    }
+
+    // Index where the matched phrase starts
+    const index = match.index;
+
+    // Split string into before and after the match
+    return [methodName.slice(0, index), `${lowercaseFirstLetter(methodName.slice(index))}: `];
+}
+
 function capitalize (methodName: string) {
     return methodName.charAt(0).toUpperCase() + methodName.slice(1);
+}
+function lowercaseFirstLetter(str: string): string {
+    return str[0].toLowerCase() + str.slice(1);
 }
 const prefix = (arr: string[], sep: string) => arr.length > 0 ? sep : '';
 
@@ -430,6 +457,7 @@ const swiftMethodDeclaration = (methodName: string, params: {[key: string]: [str
     const customTypeParams: string[] = [];
     const arrayParams: string[] = [];
     let index = 0;
+    const [callMethodName, firstExternalName] = splitAtProblemPhrase(methodName);
     Object.keys(params).forEach(paramName => {
         const [paramType, defaultValue] = params[paramName];
         const isArray = paramType.includes('[]');
@@ -443,17 +471,20 @@ const swiftMethodDeclaration = (methodName: string, params: {[key: string]: [str
             } else if (isArray) {
                 arrayParams.push(paramName);
                 newName = `${paramName}_string`;
+            } else if (paramName === 'params') {
+                newName = 'paramsData';
             }
-            const externalName = (index === 0) ? '' : `${paramName}: `.replace(/type/g, 'typeVar'); // type is a reserved word in Go, so we need to rename it to typeVar
-            const assertion = (paramName === 'params') ? ((optionalParams.length > 0) ? 'Copy as! Data' : ' as! Data') : '';
-            goCallParams.push(`${externalName}${newName}${assertion}`);
+            const externalName = (index === 0) ? firstExternalName : `${paramName}: `.replace(/type/g, 'typeVar'); // type is a reserved word in Go, so we need to rename it to typeVar
+            goCallParams.push(`${externalName}${newName}`);
             index += 1;
         }
     });
     const sep = "\n\t\t\t";
     let optionalsCode = '';
+    let paramsCopy = false;
     if (optionalParams.length > 0){
         optionalsCode = `${sep}var paramsCopy: [String: Any] = params`;
+        paramsCopy = true;
     }
     optionalsCode += prefix(optionalParams, sep) + optionalParams.map(paramName => `paramsCopy["${paramName}"] = ${paramName}`).join(sep); // Adds optional parameters to params
     const customTypeParamsCode = prefix(customTypeParams, sep) + customTypeParams.map(paramName => `let ${paramName}_string = stringify(${paramName})`).join(sep);  // stringify custom types
@@ -461,7 +492,8 @@ const swiftMethodDeclaration = (methodName: string, params: {[key: string]: [str
     return`
     public func ${methodName} (${swiftParams}) throws -> ${swiftReturnType} {
         do {${optionalsCode}${customTypeParamsCode}${arrayParamsCode}
-            let data = try exchange.${methodName}(${goCallParams.join(', ')})
+            let paramsData = try? JSONSerialization.data(withJSONObject: ${paramsCopy ? 'paramsCopy' : 'params'})
+            let data = try exchange.${callMethodName}(${goCallParams.join(', ')})
             guard let result = cleanAny(data) ${guardClause} else {
                 throw NSError(domain: "CCXT", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid response type for ${methodName}"])
             }
@@ -651,6 +683,5 @@ function main() {
     })
     fs.appendFileSync(swiftExchangeFile, '\n}');
 }
-
 
 main()
