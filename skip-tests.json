@@ -726,13 +726,12 @@
         "skipMethods": {
             "proxies": "probably they do not permit our proxy",
             "loadMarkets": {
-                "limits":"max is below min",
-                "active":"is undefined",
                 "currencyIdAndCode": "from travis location (USA) these webapi endpoints cant be loaded"
             },
+            "fetchCurrencies": {
+                "precision": "not provided"
+            },
             "ticker": {
-                "timestamp": "timestamp might be of 1970-01-01T00:00:00.000Z",
-                "baseVolume": "can't be infered",
                 "compareQuoteVolumeBaseVolume": "https://github.com/ccxt/ccxt/actions/runs/15016394551/job/42195664486?pr=25955#step:11:304"
             },
             "fetchPositions": {
@@ -756,9 +755,6 @@
             "fetchAccounts": {
                 "type": "type is not provided",
                 "code": "not provided"
-            },
-            "watchOrderBook": {
-                "nonce": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4756"
             }
         }
     },
