@@ -783,6 +783,10 @@ export default class exmo extends Exchange {
                 }
             }
             const code = this.safeCurrencyCode (currencyId);
+            const info = {
+                'currency': currency,
+                'providers': providers,
+            };
             result[code] = {
                 'id': currencyId,
                 'code': code,
@@ -794,7 +798,7 @@ export default class exmo extends Exchange {
                 'fee': fee,
                 'precision': this.parseNumber ('1e-8'),
                 'limits': limits,
-                'info': currency,
+                'info': info,
                 'networks': {},
             };
         }
