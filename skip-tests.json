@@ -986,18 +986,12 @@
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "messed codes",
-                "fetchCurrencies": {
-                    "fee":"not provided"
-                },
-                "limits": "max should be above min",
-                "contractSize": "broken for some markets",
-                "strike": "incorrect number type"
+                "limits": "max should be above min"
             },
             "fetchCurrencies": {
                 "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/268371892#L2559"
             },
             "ticker": {
-                "spread":"messed bid-ask",
                 "compareQuoteVolumeBaseVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/262963390#L3138"
             },
             "fetchPositions":  "currently returns a lot of default/non open positions",
