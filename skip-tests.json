@@ -942,8 +942,7 @@
             },
             "fetchCurrencies":{
                 "withdraw":"not provided",
-                "deposit":"not provided",
-                "activeMajorCurrencies": "todo"
+                "deposit":"not provided"
             },
             "ticker": {
                 "compareQuoteVolumeBaseVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269352042#L3690"
