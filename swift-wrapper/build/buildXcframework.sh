@@ -1,9 +1,66 @@
 #!/usr/bin/env bash
-gomobile_header="./Sources/CCXTSwiftCore/CCXT.xcframework/ios-arm64/CCXT.framework/Headers/Ccxt.objc.h"
 OUTPUT_DIR="./Sources/CCXTSwiftCore"
 framework="$OUTPUT_DIR/CCXT.xcframework"
+gomobile_header="${OUTPUT_DIR}/CCXT.xcframework/ios-arm64/CCXT.framework/Headers/Ccxt.objc.h"
+objc_headers=(
+    "$OUTPUT_DIR/CCXT.xcframework/ios-arm64/CCXT.framework/Headers/Ccxt.objc.h"
+    "$OUTPUT_DIR/CCXT.xcframework/ios-arm64_x86_64-simulator/CCXT.framework/Headers/Ccxt.objc.h"
+    "$OUTPUT_DIR/CCXT.xcframework/macos-arm64_x86_64/CCXT.framework/Headers/Ccxt.objc.h"
+)
 
-set -euo pipefail
+extract_methods_from_header() {
+  local file="$1"
+  grep -E '^\s*- \([^)]+\)' "$file"
+}
+
+parse_method_signature() {
+  local method_line="$1"
+
+  # Extract method name
+  local method_name
+  method_name=$(echo "$method_line" | sed -E 's/^- \([^)]+\)[[:space:]]*([a-zA-Z0-9_]+).*/\1/')
+
+  # Extract param names (excluding "error")
+  local param_names=()
+  while read -r param; do
+    [[ "$param" == "error" ]] && continue
+    param_names+=("$param")
+  done < <(echo "$method_line" | grep -oE ':[^:;]*\([^)]+\)[[:space:]]*([a-zA-Z0-9_]+)' | sed -E 's/^.*\([^)]+\)[[:space:]]*//')
+
+  echo "$method_name" "${param_names[*]}"
+}
+
+generate_swift_name() {
+  local method_name="$1"
+  shift
+  local param_list="$*"
+
+  if [[ -n "$param_list" ]]; then
+    echo "NS_SWIFT_NAME(${method_name}(${param_list// /, }))"
+  else
+    echo "NS_SWIFT_NAME(${method_name}())"
+  fi
+}
+
+patch_objc_header_with_swift_names() {
+    local file="$1"
+    local tmpfile
+    tmpfile=$(mktemp)
+
+    while IFS= read -r line; do
+        if grep -E '^\s*- \([^)]+\)' <<< "$line" >/dev/null; then
+            newLine=$(sed 's/;*$//' <<< "$line")
+            read -r method param_list <<< "$(parse_method_signature "$line")"
+            annotation=$(generate_swift_name "$method" $param_list)
+            echo "$newLine ${annotation};" >> $tmpfile
+        else
+            echo "$line" >> $tmpfile
+        fi
+    done < $file
+
+    mv "$tmpfile" "$file"
+}
+
 cd "$(dirname "$0")/.."
 
 # go mod tidy
@@ -18,6 +75,10 @@ mkdir -p "$OUTPUT_DIR"
 
 # Build into the right folder for SPM
 gomobile bind -target=ios,iossimulator,macos -o "$framework" .
+
+for header in "${objc_headers[@]}"; do
+    patch_objc_header_with_swift_names "$header"
+done
 
 cp ../LICENSE.txt $OUTPUT_DIR/LICENSE.txt
 
