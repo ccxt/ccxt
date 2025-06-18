@@ -1245,7 +1245,7 @@ export default class deribit extends Exchange {
         //         "instrument_name": "BTC-10MAR20-7750-C",
         //         "high": 0.0295,
         //         "estimated_delivery_price": 7856.29,
-        //         "creation_timestamp": 1583783678366,
+        //         "creation_timestamp": 1583783678367,
         //         "bid_price": 0.0185,
         //         "base_currency": "BTC",
         //         "ask_price": 0.021

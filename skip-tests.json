@@ -878,15 +878,6 @@
                 "tagFrom": "undefined",
                 "fee": "undefined"
             },
-            "ticker": {
-                "close": "might be negative https://app.travis-ci.com/github/ccxt/ccxt/builds/269484317#L4371",
-                "open": "same",
-                "low": "same",
-                "high": "same",
-                "bid": "same",
-                "ask": "same",
-                "average": "same"
-            },
             "fetchTickers": "requires custom param"
         }
     },
