@@ -581,7 +581,7 @@ export default class digifinex extends Exchange {
         return allMarkets;
     }
 
-    async fetchSpotMarkets (params = {}, marginMode = undefined): Promise<Market[]> {
+    async fetchSpotMarkets (params = {}): Promise<Market[]> {
         const promisesRaw = [];
         // "trades/symbols" (compared to "spot/symbols") endpoint returns less items, but each item has one additional property 'is_allow' ("/markets" endpoint does not have any different property)
         promisesRaw.push (this.publicSpotGetSpotSymbols (params));
