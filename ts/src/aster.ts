@@ -4,7 +4,7 @@ import Exchange from './abstract/aster.js';
 import { ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { Currencies, Dict, FundingRate, FundingRateHistory, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Currencies, Dict, FundingRate, FundingRateHistory, FundingRates, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------xs
 /**
@@ -999,6 +999,36 @@ export default class aster extends Exchange {
         //     }
         //
         return this.parseFundingRate (response, market);
+    }
+
+    /**
+     * @method
+     * @name aster#fetchFundingRates
+     * @description fetch the current funding rate for multiple symbols
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#24hr-ticker-price-change-statistics
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
+    async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const response = await this.publicGetFapiV1PremiumIndex (this.extend (params));
+        //
+        //     [
+        //         {
+        //             "symbol": "BTCUSDT",
+        //             "markPrice": "106729.84047826",
+        //             "indexPrice": "106775.72673913",
+        //             "estimatedSettlePrice": "106708.84997006",
+        //             "lastFundingRate": "0.00010000",
+        //             "interestRate": "0.00010000",
+        //             "nextFundingTime": 1750147200000,
+        //             "time": 1750146970000
+        //         }
+        //     ]
+        //
+        return this.parseFundingRates (response, symbols);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
