@@ -9202,7 +9202,7 @@ func  (this *Exchange) ParseLeverages(response interface{}, optionalArgs ...inte
         var market interface{} = this.DerivedExchange.SafeMarket(marketId, nil, nil, marketType)
         PanicOnError(market)
         if IsTrue(IsTrue((IsEqual(symbols, nil))) || IsTrue(this.InArray(GetValue(market, "symbol"), symbols))) {
-            AddElementToObject(leverageStructures, GetValue(market, "symbol"), this.ParseLeverage(info, market))
+            AddElementToObject(leverageStructures, GetValue(market, "symbol"), this.DerivedExchange.ParseLeverage(info, market))
         }
     }
     return leverageStructures

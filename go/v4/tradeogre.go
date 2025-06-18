@@ -473,13 +473,13 @@ func  (this *tradeogre) ParseTicker(ticker interface{}, optionalArgs ...interfac
         "vwap": nil,
         "open": this.SafeString(ticker, "initialprice"),
         "close": this.SafeString(ticker, "price"),
-        "last": nil,
+        "last": this.SafeString(ticker, "price"),
         "previousClose": nil,
         "change": nil,
         "percentage": nil,
         "average": nil,
-        "baseVolume": nil,
-        "quoteVolume": this.SafeString(ticker, "volume"),
+        "baseVolume": this.SafeString(ticker, "volume"),
+        "quoteVolume": nil,
         "info": ticker,
     }, market)
 }

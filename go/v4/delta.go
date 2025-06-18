@@ -916,9 +916,9 @@ func  (this *delta) FetchMarkets(optionalArgs ...interface{}) <- chan interface{
                     "inverse": Ternary(IsTrue(spot), nil, !IsTrue(linear)),
                     "taker": this.SafeNumber(market, "taker_commission_rate"),
                     "maker": this.SafeNumber(market, "maker_commission_rate"),
-                    "contractSize": contractSize,
+                    "contractSize": Ternary(IsTrue(spot), nil, contractSize),
                     "expiry": expiry,
-                    "expiryDatetime": expiryDatetime,
+                    "expiryDatetime": this.Iso8601(expiry),
                     "strike": this.ParseNumber(strike),
                     "optionType": optionType,
                     "precision": map[string]interface{} {
