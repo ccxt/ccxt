@@ -976,9 +976,6 @@
                 "fee": "not provided",
                 "type": "todo",
                 "activeMajorCurrencies": "todo"
-            },
-            "ticker": {
-                "bid":"messed bid-ask"
             }
         }
     },
