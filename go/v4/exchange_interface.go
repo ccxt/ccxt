@@ -34,7 +34,7 @@ type IExchange interface {
 	GetHostname() string
 	GetUrls() interface{}
 	GetApi() map[string]interface{}
-	GetOptions() map[string]interface{}
+	GetOptions() *sync.Map
 	GetCurrencies() map[string]interface{}
 	GetMarkets() map[string]interface{}
 	CheckRequiredCredentials(optionalArgs ...interface{}) interface{}
@@ -178,6 +178,7 @@ type IExchange interface {
 }
 
 type IDerivedExchange interface {
+	ParseLeverage(leverage interface{}, optionalArgs ...interface{}) interface{}
 	ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{}) interface{}
 	ParseTrade(trade interface{}, optionalArgs ...interface{}) interface{}
 	ParseMarket(market interface{}) interface{}
