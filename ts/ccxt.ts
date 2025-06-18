@@ -87,7 +87,6 @@ import coinbaseinternational from  './src/coinbaseinternational.js'
 import coincatch from  './src/coincatch.js'
 import coincheck from  './src/coincheck.js'
 import coinex from  './src/coinex.js'
-import coinlist from  './src/coinlist.js'
 import coinmate from  './src/coinmate.js'
 import coinmetro from  './src/coinmetro.js'
 import coinone from  './src/coinone.js'
@@ -271,7 +270,6 @@ const exchanges = {
     'coincatch':              coincatch,
     'coincheck':              coincheck,
     'coinex':                 coinex,
-    'coinlist':               coinlist,
     'coinmate':               coinmate,
     'coinmetro':              coinmetro,
     'coinone':                coinone,
@@ -596,7 +594,6 @@ export {
     coincatch,
     coincheck,
     coinex,
-    coinlist,
     coinmate,
     coinmetro,
     coinone,
