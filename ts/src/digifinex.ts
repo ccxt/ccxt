@@ -735,7 +735,7 @@ export default class digifinex extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
-                'type': 'type',
+                'type': isSwap ? 'swap' : undefined,
                 'spot': false,
                 'margin': false,
                 'swap': isSwap,
