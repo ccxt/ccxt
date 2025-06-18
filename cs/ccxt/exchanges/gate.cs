@@ -1162,7 +1162,7 @@ public partial class gate : Exchange
         object rawPromises = new List<object> {this.fetchContractMarkets(parameters), this.fetchOptionMarkets(parameters)};
         if (!isTrue(sandboxMode))
         {
-            // gate does not have a sandbox for spot markets
+            // gate doesn't have a sandbox for spot markets
             object mainnetOnly = new List<object> {this.fetchSpotMarkets(parameters)};
             rawPromises = this.arrayConcat(rawPromises, mainnetOnly);
         }
@@ -1605,7 +1605,7 @@ public partial class gate : Exchange
                     { "contractSize", this.parseNumber("1") },
                     { "expiry", expiry },
                     { "expiryDatetime", this.iso8601(expiry) },
-                    { "strike", strike },
+                    { "strike", this.parseNumber(strike) },
                     { "optionType", optionType },
                     { "precision", new Dictionary<string, object>() {
                         { "amount", this.parseNumber("1") },
