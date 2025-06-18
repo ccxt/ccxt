@@ -974,8 +974,7 @@
         "skipMethods": {
             "fetchCurrencies": {
                 "fee": "not provided",
-                "type": "todo",
-                "activeMajorCurrencies": "todo"
+                "type": "todo"
             }
         }
     },
