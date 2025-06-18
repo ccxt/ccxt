@@ -83,6 +83,7 @@ function tsTypeToSwift(tsType: string): string {
             .replace(/\bobject\b/g, "[String: Any]")
             .replace(/\bnumber\b/g, "Double")
             .replace(/\bstring\b/g, "String")
+            .replace(/\bBool\b/g, "Bool?")
             .replace(/\bboolean\b/g, "Bool")
             .replace(/\bany\b/g, "Any")
             .replace(/\bundefined\b/g, "Any")
@@ -96,16 +97,48 @@ function tsTypeToSwift(tsType: string): string {
             .replace(/\bNum\b/g, "Double?")
             .replace(/\bInt\b/g, "Int?")
             .replace(/\bint\b/g, "Int")
-            .replace(/\bStr\b/g, "String?")  // TODO: this isn't working on withdraw, the type gets converted to String
+            .replace(/\bStr\b/g, "String?")
             .replace(/\bStrings\b/g, "[String]?")
-            .replace(/\bBool\b/g, "Bool?")
             .replace(/\bIndexType\b/g, "Any")
-            .replace(/\bOrderSide\b/g, "String")
+            .replace(/\bOrderSide\b/g, "String?")
             .replace(/\bOrderType\b/g, "String")
             .replace(/\bMarketType\b/g, "String")
             .replace(/\bSubType\b/g, "String?")
             .trim();
 
+    /* 5) handle unions */
+    if (tsType.includes("|")) {
+        const parts = tsType.split("|").map(p => p.trim());
+
+        const isLit   = (p: string) => /^'[^']*'$/.test(p);
+        const isStrKw = (p: string) => p === "string";
+        const isStrAl = (p: string) => p === "Str";
+        const isUndef = (p: string) => p === "undefined";
+        const isNull  = (p: string) => p === "null";
+        const isStrAr = (p: string) => p === "string[]";
+
+        if (parts.every(p => isLit(p) || isStrKw(p) || isStrAl(p) || isUndef(p) || isNull(p))) {
+            return parts.some(isUndef) || parts.some(isNull) ? "String?" : "String";
+        }
+
+        if (parts.every(p => isStrAr(p) || isUndef(p) || isNull(p))) {
+            return "[String]?";
+        }
+
+        if (parts.length === 2 && (parts.some(isUndef) || parts.some(isNull))) {
+            const base = parts.find(p => !isUndef(p) && !isNull(p))!;
+            const mapped = mapSingle(base);
+            return mapped.endsWith("?") ? mapped : `${mapped}?`;
+        }
+
+        if (parts.every(p => p === "number" || p === "string" || isUndef(p) || isNull(p))) {
+            return "Any";
+        }
+
+        return "Any";
+    }
+
+    /* 6) single token */
     return mapSingle(tsType);
 }
 
@@ -174,6 +207,34 @@ function tsTypeToGo(tsType: string): string {
             .replace(/\bSubType\b/g, "*string")
             .trim();
 
+    // 5) union handling
+    if (tsType.includes("|")) {
+        const parts = tsType.split("|").map(p => p.trim());
+
+        const isLit   = (p: string) => /^'[^']*'$/.test(p);
+        const isStrKw = (p: string) => p === "string";
+        const isStrAl = (p: string) => p === "Str";
+        const isUndef = (p: string) => p === "undefined";
+        const isNull  = (p: string) => p === "null";
+        const isStrAr = (p: string) => p === "string[]";
+
+        if (parts.every(p => isLit(p) || isStrKw(p) || isStrAl(p) || isUndef(p) || isNull(p))) {
+            return parts.some(isUndef) || parts.some(isNull) ? "*string" : "string";
+        }
+
+        if (parts.every(p => isStrAr(p) || isUndef(p) || isNull(p))) {
+            return "*[]string";
+        }
+
+        if (parts.length === 2 && (parts.some(isUndef) || parts.some(isNull))) {
+            const base = parts.find(p => !isUndef(p) && !isNull(p))!;
+            const mapped = mapSingle(base);
+            return mapped.startsWith("*") ? mapped : `*${mapped}`;
+        }
+
+        return "[]byte";
+    }
+
     // 6) single token
     return mapSingle(tsType);
 }
@@ -199,11 +260,12 @@ function createSwiftTypes() {
     // TODO: look at renaming this variable again
     /* helper: rename reserved 'internal' → 'isInternal' */
     const rename = (name: string) => (name === "internal" ? "isInternal" : name);
-    const makeEncodable = (name: string) => customTypes.includes(name) ? `${name}: Encodable` : name;
+    // TODO: can't make Encodable because params is type any
+    // const makeEncodable = (name: string) => customTypes.includes(name) ? `${name}: Encodable` : name;
 
     const push = (name: string) => {
         indent = "    ".repeat(stack.length);
-        out.push(`${indent}public struct ${makeEncodable(name)} {`);
+        out.push(`${indent}public struct ${name} {`);
         stack.push({ name });
         indent = "    ".repeat(stack.length);
         braceDepth++;
@@ -562,6 +624,10 @@ function main() {
             'watchTickers',
             'watchTrades',
             'watchTradesForSymbols',
+
+            // TODO: don't know how to make types encodable with params as type any
+            'createOrders',
+            'editOrders'
         ].includes(methodName)) {
             continue;
         } else {
