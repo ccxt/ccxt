@@ -1232,7 +1232,7 @@ class gate extends gate$1 {
             this.fetchOptionMarkets(params),
         ];
         if (!sandboxMode) {
-            // gate does not have a sandbox for spot markets
+            // gate doesn't have a sandbox for spot markets
             const mainnetOnly = [this.fetchSpotMarkets(params)];
             rawPromises = this.arrayConcat(rawPromises, mainnetOnly);
         }
@@ -1652,7 +1652,7 @@ class gate extends gate$1 {
                     'contractSize': this.parseNumber('1'),
                     'expiry': expiry,
                     'expiryDatetime': this.iso8601(expiry),
-                    'strike': strike,
+                    'strike': this.parseNumber(strike),
                     'optionType': optionType,
                     'precision': {
                         'amount': this.parseNumber('1'),
