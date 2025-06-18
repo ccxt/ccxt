@@ -684,26 +684,25 @@ export default class digifinex extends Exchange {
     }
 
     async fetchSwapMarkets (params = {}): Promise<Market[]> {
-        // swap
+        const swapMarkets = await this.publicSwapGetPublicInstruments (params);
         //
         //     {
         //         "code": 0,
         //         "data": [
         //             {
         //                 "instrument_id": "BTCUSDTPERP",
-        //                 "type": "REAL",
-        //                 "contract_type": "PERPETUAL",
         //                 "base_currency": "BTC",
         //                 "quote_currency": "USDT",
         //                 "clear_currency": "USDT",
         //                 "contract_value": "0.001",
         //                 "contract_value_currency": "BTC",
         //                 "is_inverse": false,
-        //                 "is_trading": true,
         //                 "status": "ONLINE",
         //                 "price_precision": 4,
         //                 "tick_size": "0.0001",
         //                 "min_order_amount": 1,
+        //                 "type": "REAL",
+        //                 "contract_type": "PERPETUAL",
         //                 "open_max_limits": [
         //                     {
         //                         "leverage": "50",
@@ -714,55 +713,37 @@ export default class digifinex extends Exchange {
         //         ]
         //     }
         //
-        return;
-        const spotData = this.safeValue (spotMarkets, 'symbol_list', []);
-        const swapData = this.safeValue (swapMarkets, 'data', []);
-        const response = this.arrayConcat (spotData, swapData);
+        const swapData = this.safeList (swapMarkets, 'data', []);
         const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const market = response[i];
-            const id = this.safeString2 (market, 'symbol', 'instrument_id');
-            const baseId = this.safeString2 (market, 'base_asset', 'base_currency');
-            const quoteId = this.safeString2 (market, 'quote_asset', 'quote_currency');
+        for (let i = 0; i < swapData.length; i++) {
+            const market = swapData[i];
+            const id = this.safeString (market, 'instrument_id');
+            const baseId = this.safeString (market, 'base_currency');
+            const quoteId = this.safeString (market, 'quote_currency');
             const settleId = this.safeString (market, 'clear_currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const settle = this.safeCurrencyCode (settleId);
-            let isAllowed = this.safeInteger (market, 'is_allow', 1);
-            const spot = settle === undefined;
-            const swap = !spot;
-            const margin = (marginMode !== undefined) ? true : undefined;
-            let symbol = base + '/' + quote;
-            let isInverse = undefined;
-            let isLinear = undefined;
-            if (swap) {
-                type = 'swap';
-                symbol = base + '/' + quote + ':' + settle;
-                isInverse = this.safeValue (market, 'is_inverse');
-                isLinear = (!isInverse) ? true : false;
-                const isTrading = this.safeValue (market, 'isTrading');
-                if (isTrading) {
-                    isAllowed = 1;
-                }
-            }
+            const isInverse = this.safeBool (market, 'is_inverse');
+            const isSwap = this.safeString (market, 'contract_type') === 'PERPETUAL';
             result.push ({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote + ':' + settle,
                 'base': base,
                 'quote': quote,
                 'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
-                'type': type,
-                'spot': spot,
-                'margin': margin,
-                'swap': swap,
+                'type': 'type',
+                'spot': false,
+                'margin': false,
+                'swap': isSwap,
                 'future': false,
                 'option': false,
-                'active': isAllowed ? true : false,
-                'contract': swap,
-                'linear': isLinear,
+                'active': this.safeBool (market, 'is_trading'),
+                'contract': true,
+                'linear': !isInverse,
                 'inverse': isInverse,
                 'contractSize': this.safeNumber (market, 'contract_value'),
                 'expiry': undefined,
@@ -779,7 +760,7 @@ export default class digifinex extends Exchange {
                         'max': undefined,
                     },
                     'amount': {
-                        'min': this.safeNumber2 (market, 'minimum_amount', 'min_order_amount'),
+                        'min': this.safeNumber (market, 'min_order_amount'),
                         'max': undefined,
                     },
                     'price': {
@@ -787,7 +768,7 @@ export default class digifinex extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': this.safeNumber (market, 'minimum_value'),
+                        'min': undefined,
                         'max': undefined,
                     },
                 },
