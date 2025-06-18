@@ -118,14 +118,33 @@ class Client(object):
             self.log(iso8601(milliseconds()), 'receive loop')
         while not self.closed():
             try:
+                # let's drain the aiohttp buffer to avoid latency
+                if len(self.buffer) > 1:
+                    print(len(self.buffer))
+                while len(self.buffer) > 1:
+                    message = self.buffer.popleft()
+                    self.handle_message(message[0])
+                print('awaiting...')
+                print(self.connection._conn.protocol.transport._protocol_paused)
+                pause = self.connection._conn.protocol.transport.pause_reading
+                def wrap(transport):
+                    print('pause_reading ran')
+
+                self.connection._conn.protocol.transport.pause_reading = wrap
                 message = await self.receive()
+                print('returned')
                 # self.log(iso8601(milliseconds()), 'received', message)
                 self.handle_message(message)
+                # now force a context switch
+                await sleep(0)
+
             except Exception as e:
                 error = NetworkError(str(e))
+                print('error', error)
                 if self.verbose:
                     self.log(iso8601(milliseconds()), 'receive_loop', 'Exception', error)
                 self.reset(error)
+                break
 
     async def open(self, session, backoff_delay=0):
         # exponential backoff for consequent connections if necessary
@@ -137,6 +156,8 @@ class Client(object):
         try:
             coroutine = self.create_connection(session)
             self.connection = await wait_for(coroutine, timeout=int(self.connectionTimeout / 1000))
+            # enable the fast client
+            #self.connection._conn.protocol._payload = WebSocketDataQueue(self.connection.protocol,  2**16, loop=self.asyncio_loop)
             self.connecting = False
             self.connectionEstablished = milliseconds()
             self.isConnected = True
@@ -159,6 +180,13 @@ class Client(object):
             if self.verbose:
                 self.log(iso8601(milliseconds()), 'NetworkError', error)
             self.on_error(error)
+    
+    @property
+    def buffer(self):
+        # looks like they exposed it in C
+        # this means we can bypass it
+        # https://github.com/aio-libs/aiohttp/blob/master/aiohttp/_websocket/reader_c.pxd#L53C24-L53C31
+        return self.connection._conn.protocol._payload._buffer
 
     def connect(self, session, backoff_delay=0):
         if not self.connection and not self.connecting:
