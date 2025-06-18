@@ -794,7 +794,7 @@ export default class exmo extends Exchange {
                 'fee': fee,
                 'precision': this.parseNumber ('1e-8'),
                 'limits': limits,
-                'info': providers,
+                'info': currency,
                 'networks': {},
             };
         }
