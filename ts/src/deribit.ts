@@ -487,6 +487,9 @@ export default class deribit extends Exchange {
                 'fetchBalance': {
                     'code': 'BTC',
                 },
+                'fetchTickers': {
+                    'codes': [ 'BTC', 'ETH', 'USDC', 'USDT', 'EURR' ], // all codes per https://docs.deribit.com/#public-get_book_summary_by_currency
+                },
                 'transfer': {
                     'method': 'privateGetSubmitTransferToSubaccount', // or 'privateGetSubmitTransferToUser'
                 },
@@ -1345,6 +1348,7 @@ export default class deribit extends Exchange {
         symbols = this.marketSymbols (symbols);
         let code = this.safeString2 (params, 'code', 'currency');
         let type = undefined;
+        [ type, params ] = this.handleOptionAndParams (params, 'fetchTickers', 'type');
         params = this.omit (params, [ 'code' ]);
         if (symbols !== undefined) {
             for (let i = 0; i < symbols.length; i++) {
@@ -1358,63 +1362,74 @@ export default class deribit extends Exchange {
                 }
             }
         }
-        if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchTickers requires a currency/code (eg: BTC/ETH/USDT) parameter to fetch tickers for');
+        let codes = [];
+        if (code !== undefined) {
+            codes.push (code);
+        } else {
+            codes = this.codes;
         }
-        const currency = this.currency (code);
-        const request: Dict = {
-            'currency': currency['id'],
-        };
-        if (type !== undefined) {
-            let requestType = undefined;
-            if (type === 'spot') {
-                requestType = 'spot';
-            } else if (type === 'future' || (type === 'contract')) {
-                requestType = 'future';
-            } else if (type === 'option') {
-                requestType = 'option';
+        const promises = [];
+        for (let i = 0; i < codes.length; i++) {
+            code = codes[i];
+            const currency = this.currency (code);
+            const request: Dict = {
+                'currency': currency['id'],
+            };
+            if (type !== undefined) {
+                let requestType = undefined;
+                if (type === 'spot') {
+                    requestType = 'spot';
+                } else if (type === 'future' || (type === 'contract')) {
+                    requestType = 'future';
+                } else if (type === 'option') {
+                    requestType = 'option';
+                }
+                if (requestType !== undefined) {
+                    request['kind'] = requestType;
+                }
             }
-            if (requestType !== undefined) {
-                request['kind'] = requestType;
-            }
+            promises.push (this.publicGetGetBookSummaryByCurrency (this.extend (request, params)));
+            //
+            //     {
+            //         "jsonrpc": "2.0",
+            //         "result": [
+            //             {
+            //                 "volume": 124.1,
+            //                 "underlying_price": 7856.445926872601,
+            //                 "underlying_index": "SYN.BTC-10MAR20",
+            //                 "quote_currency": "USD",
+            //                 "open_interest": 121.8,
+            //                 "mid_price": 0.01975,
+            //                 "mark_price": 0.01984559,
+            //                 "low": 0.0095,
+            //                 "last": 0.0205,
+            //                 "interest_rate": 0,
+            //                 "instrument_name": "BTC-10MAR20-7750-C",
+            //                 "high": 0.0295,
+            //                 "estimated_delivery_price": 7856.29,
+            //                 "creation_timestamp": 1583783678366,
+            //                 "bid_price": 0.0185,
+            //                 "base_currency": "BTC",
+            //                 "ask_price": 0.021
+            //             },
+            //         ],
+            //         "usIn": 1583783678361966,
+            //         "usOut": 1583783678372069,
+            //         "usDiff": 10103,
+            //         "testnet": false
+            //     }
+            //
         }
-        const response = await this.publicGetGetBookSummaryByCurrency (this.extend (request, params));
-        //
-        //     {
-        //         "jsonrpc": "2.0",
-        //         "result": [
-        //             {
-        //                 "volume": 124.1,
-        //                 "underlying_price": 7856.445926872601,
-        //                 "underlying_index": "SYN.BTC-10MAR20",
-        //                 "quote_currency": "USD",
-        //                 "open_interest": 121.8,
-        //                 "mid_price": 0.01975,
-        //                 "mark_price": 0.01984559,
-        //                 "low": 0.0095,
-        //                 "last": 0.0205,
-        //                 "interest_rate": 0,
-        //                 "instrument_name": "BTC-10MAR20-7750-C",
-        //                 "high": 0.0295,
-        //                 "estimated_delivery_price": 7856.29,
-        //                 "creation_timestamp": 1583783678366,
-        //                 "bid_price": 0.0185,
-        //                 "base_currency": "BTC",
-        //                 "ask_price": 0.021
-        //             },
-        //         ],
-        //         "usIn": 1583783678361966,
-        //         "usOut": 1583783678372069,
-        //         "usDiff": 10103,
-        //         "testnet": false
-        //     }
-        //
-        const result = this.safeList (response, 'result', []);
+        const responses = await Promise.all (promises);
         const tickers: Dict = {};
-        for (let i = 0; i < result.length; i++) {
-            const ticker = this.parseTicker (result[i]);
-            const symbol = ticker['symbol'];
-            tickers[symbol] = ticker;
+        for (let i = 0; i < responses.length; i++) {
+            const response = responses[i];
+            const result = this.safeList (response, 'result', []);
+            for (let j = 0; j < result.length; j++) {
+                const ticker = this.parseTicker (result[j]);
+                const symbol = ticker['symbol'];
+                tickers[symbol] = ticker;
+            }
         }
         return this.filterByArrayTickers (tickers, 'symbol', symbols);
     }
