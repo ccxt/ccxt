@@ -1,10 +1,11 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/aster.js';
-import { ArgumentsRequired } from './base/errors.js';
+import { AccountNotEnabled, AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSymbol, DuplicateOrderId, ExchangeClosedByUser, ExchangeError, InsufficientFunds, InvalidNonce, InvalidOrder, MarketClosed, NetworkError, NoChange, NotSupported, OperationFailed, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { Currencies, Dict, FundingRate, FundingRateHistory, FundingRates, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Currencies, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------xs
 /**
@@ -270,9 +271,172 @@ export default class aster extends Exchange {
                 },
             },
             'options': {
+                'recvWindow': 10 * 1000, // 10 sec
             },
             'exceptions': {
                 'exact': {
+                    // 10xx - General Server or Network issues
+                    '-1000': OperationFailed, // UNKNOWN
+                    '-1001': NetworkError, // DISCONNECTED
+                    '-1002': AuthenticationError, // UNAUTHORIZED
+                    '-1003': RateLimitExceeded, // TOO_MANY_REQUESTS
+                    '-1004': DuplicateOrderId, // DUPLICATE_IP
+                    '-1005': BadRequest, // NO_SUCH_IP
+                    '-1006': BadResponse, // UNEXPECTED_RESP
+                    '-1007': RequestTimeout, // TIMEOUT
+                    '-1010': OperationFailed, // ERROR_MSG_RECEIVED
+                    '-1011': PermissionDenied, // NON_WHITE_LIST
+                    '-1013': BadRequest, // INVALID_MESSAGE
+                    '-1014': OrderNotFillable, // UNKNOWN_ORDER_COMPOSITION
+                    '-1015': RateLimitExceeded, // TOO_MANY_ORDERS
+                    '-1016': ExchangeClosedByUser, // SERVICE_SHUTTING_DOWN
+                    '-1020': NotSupported, // UNSUPPORTED_OPERATION
+                    '-1021': InvalidNonce, // INVALID_TIMESTAMP
+                    '-1022': AuthenticationError, // INVALID_SIGNATURE
+                    '-1023': BadRequest, // START_TIME_GREATER_THAN_END_TIME
+                    // 11xx - Request issues
+                    '-1100': BadRequest, // ILLEGAL_CHARS
+                    '-1101': BadRequest, // TOO_MANY_PARAMETERS
+                    '-1102': ArgumentsRequired, // MANDATORY_PARAM_EMPTY_OR_MALFORMED
+                    '-1103': BadRequest, // UNKNOWN_PARAM
+                    '-1104': BadRequest, // UNREAD_PARAMETERS
+                    '-1105': ArgumentsRequired, // PARAM_EMPTY
+                    '-1106': BadRequest, // PARAM_NOT_REQUIRED
+                    '-1108': BadRequest, // BAD_ASSET
+                    '-1109': BadRequest, // BAD_ACCOUNT
+                    '-1110': BadSymbol, // BAD_INSTRUMENT_TYPE
+                    '-1111': BadRequest, // BAD_PRECISION
+                    '-1112': BadRequest, // NO_DEPTH
+                    '-1113': BadRequest, // WITHDRAW_NOT_NEGATIVE
+                    '-1114': BadRequest, // TIF_NOT_REQUIRED
+                    '-1115': InvalidOrder, // INVALID_TIF
+                    '-1116': InvalidOrder, // INVALID_ORDER_TYPE
+                    '-1117': InvalidOrder, // INVALID_SIDE
+                    '-1118': InvalidOrder, // EMPTY_NEW_CL_ORD_ID
+                    '-1119': InvalidOrder, // EMPTY_ORG_CL_ORD_ID
+                    '-1120': BadRequest, // BAD_INTERVAL
+                    '-1121': BadSymbol, // BAD_SYMBOL
+                    '-1125': AuthenticationError, // INVALID_LISTEN_KEY
+                    '-1127': BadRequest, // MORE_THAN_XX_HOURS
+                    '-1128': BadRequest, // OPTIONAL_PARAMS_BAD_COMBO
+                    '-1130': BadRequest, // INVALID_PARAMETER
+                    '-1136': InvalidOrder, // INVALID_NEW_ORDER_RESP_TYPE
+                    // 20xx - Processing Issues
+                    '-2010': InvalidOrder, // NEW_ORDER_REJECTED
+                    '-2011': OrderNotFound, // CANCEL_REJECTED
+                    '-2013': OrderNotFound, // NO_SUCH_ORDER
+                    '-2014': AuthenticationError, // BAD_API_KEY_FMT
+                    '-2015': AuthenticationError, // REJECTED_MBX_KEY
+                    '-2016': MarketClosed, // NO_TRADING_WINDOW
+                    '-2018': InsufficientFunds, // BALANCE_NOT_SUFFICIENT
+                    '-2019': InsufficientFunds, // MARGIN_NOT_SUFFICIEN
+                    '-2020': OrderNotFillable, // UNABLE_TO_FILL
+                    '-2021': OrderImmediatelyFillable, // ORDER_WOULD_IMMEDIATELY_TRIGGER
+                    '-2022': OperationRejected, // REDUCE_ONLY_REJECT
+                    '-2023': AccountSuspended, // USER_IN_LIQUIDATION
+                    '-2024': InsufficientFunds, // POSITION_NOT_SUFFICIENT
+                    '-2025': RateLimitExceeded, // MAX_OPEN_ORDER_EXCEEDED
+                    '-2026': NotSupported, // REDUCE_ONLY_ORDER_TYPE_NOT_SUPPORTED
+                    '-2027': BadRequest, // MAX_LEVERAGE_RATIO
+                    '-2028': BadRequest, // MIN_LEVERAGE_RATIO
+                    // 40xx - Filters and other Issues
+                    '-4000': InvalidOrder, // INVALID_ORDER_STATUS
+                    '-4001': InvalidOrder, // PRICE_LESS_THAN_ZERO
+                    '-4002': InvalidOrder, // PRICE_GREATER_THAN_MAX_PRICE
+                    '-4003': InvalidOrder, // QTY_LESS_THAN_ZERO
+                    '-4004': InvalidOrder, // QTY_LESS_THAN_MIN_QTY
+                    '-4005': InvalidOrder, // QTY_GREATER_THAN_MAX_QTY
+                    '-4006': InvalidOrder, // STOP_PRICE_LESS_THAN_ZERO
+                    '-4007': InvalidOrder, // STOP_PRICE_GREATER_THAN_MAX_PRICE
+                    '-4008': InvalidOrder, // TICK_SIZE_LESS_THAN_ZERO
+                    '-4009': InvalidOrder, // MAX_PRICE_LESS_THAN_MIN_PRICE
+                    '-4010': InvalidOrder, // MAX_QTY_LESS_THAN_MIN_QTY
+                    '-4011': InvalidOrder, // STEP_SIZE_LESS_THAN_ZERO
+                    '-4012': RateLimitExceeded, // MAX_NUM_ORDERS_LESS_THAN_ZERO
+                    '-4013': InvalidOrder, // PRICE_LESS_THAN_MIN_PRICE
+                    '-4014': InvalidOrder, // PRICE_NOT_INCREASED_BY_TICK_SIZE
+                    '-4015': InvalidOrder, // INVALID_CL_ORD_ID_LEN
+                    '-4016': InvalidOrder, // PRICE_HIGHTER_THAN_MULTIPLIER_UP
+                    '-4017': InvalidOrder, // MULTIPLIER_UP_LESS_THAN_ZERO
+                    '-4018': InvalidOrder, // MULTIPLIER_DOWN_LESS_THAN_ZERO
+                    '-4019': BadRequest, // COMPOSITE_SCALE_OVERFLOW
+                    '-4020': BadRequest, // TARGET_STRATEGY_INVALID
+                    '-4021': BadRequest, // INVALID_DEPTH_LIMIT
+                    '-4022': MarketClosed, // WRONG_MARKET_STATUS
+                    '-4023': InvalidOrder, // QTY_NOT_INCREASED_BY_STEP_SIZE
+                    '-4024': InvalidOrder, // PRICE_LOWER_THAN_MULTIPLIER_DOWN
+                    '-4025': BadRequest, // MULTIPLIER_DECIMAL_LESS_THAN_ZERO
+                    '-4026': BadRequest, // COMMISSION_INVALID
+                    '-4027': BadRequest, // INVALID_ACCOUNT_TYPE
+                    '-4028': BadRequest, // INVALID_LEVERAGE
+                    '-4029': BadRequest, // INVALID_TICK_SIZE_PRECISION
+                    '-4030': BadRequest, // INVALID_STEP_SIZE_PRECISION
+                    '-4031': BadRequest, // INVALID_WORKING_TYPE
+                    '-4032': RateLimitExceeded, // EXCEED_MAX_CANCEL_ORDER_SIZE
+                    '-4033': AccountNotEnabled, // INSURANCE_ACCOUNT_NOT_FOUND
+                    '-4044': BadRequest, // INVALID_BALANCE_TYPE
+                    '-4045': RateLimitExceeded, // MAX_STOP_ORDER_EXCEEDED
+                    '-4046': NoChange, // NO_NEED_TO_CHANGE_MARGIN_TYPE
+                    '-4047': OperationRejected, // THERE_EXISTS_OPEN_ORDERS
+                    '-4048': OperationRejected, // THERE_EXISTS_QUANTITY
+                    '-4049': OperationRejected, // ADD_ISOLATED_MARGIN_REJECT
+                    '-4050': InsufficientFunds, // CROSS_BALANCE_INSUFFICIENT
+                    '-4051': InsufficientFunds, // ISOLATED_BALANCE_INSUFFICIENT
+                    '-4052': NoChange, // NO_NEED_TO_CHANGE_AUTO_ADD_MARGIN
+                    '-4053': OperationRejected, // AUTO_ADD_CROSSED_MARGIN_REJECT
+                    '-4054': OperationRejected, // ADD_ISOLATED_MARGIN_NO_POSITION_REJECT
+                    '-4055': ArgumentsRequired, // AMOUNT_MUST_BE_POSITIVE
+                    '-4056': AuthenticationError, // INVALID_API_KEY_TYPE
+                    '-4057': AuthenticationError, // INVALID_RSA_PUBLIC_KEY
+                    '-4058': InvalidOrder, // MAX_PRICE_TOO_LARGE
+                    '-4059': NoChange, // NO_NEED_TO_CHANGE_POSITION_SIDE
+                    '-4060': InvalidOrder, // INVALID_POSITION_SIDE
+                    '-4061': InvalidOrder, // POSITION_SIDE_NOT_MATCH
+                    '-4062': OperationRejected, // REDUCE_ONLY_CONFLICT
+                    '-4063': BadRequest, // INVALID_OPTIONS_REQUEST_TYPE
+                    '-4064': BadRequest, // INVALID_OPTIONS_TIME_FRAME
+                    '-4065': BadRequest, // INVALID_OPTIONS_AMOUNT
+                    '-4066': BadRequest, // INVALID_OPTIONS_EVENT_TYPE
+                    '-4067': OperationRejected, // POSITION_SIDE_CHANGE_EXISTS_OPEN_ORDERS
+                    '-4068': OperationRejected, // POSITION_SIDE_CHANGE_EXISTS_QUANTITY
+                    '-4069': BadRequest, // INVALID_OPTIONS_PREMIUM_FEE
+                    '-4070': InvalidOrder, // INVALID_CL_OPTIONS_ID_LEN
+                    '-4071': InvalidOrder, // INVALID_OPTIONS_DIRECTION
+                    '-4072': NoChange, // OPTIONS_PREMIUM_NOT_UPDATE
+                    '-4073': BadRequest, // OPTIONS_PREMIUM_INPUT_LESS_THAN_ZERO
+                    '-4074': InvalidOrder, // OPTIONS_AMOUNT_BIGGER_THAN_UPPER
+                    '-4075': OperationRejected, // OPTIONS_PREMIUM_OUTPUT_ZERO
+                    '-4076': OperationRejected, // OPTIONS_PREMIUM_TOO_DIFF
+                    '-4077': RateLimitExceeded, // OPTIONS_PREMIUM_REACH_LIMIT
+                    '-4078': BadRequest, // OPTIONS_COMMON_ERROR
+                    '-4079': BadRequest, // INVALID_OPTIONS_ID
+                    '-4080': BadRequest, // OPTIONS_USER_NOT_FOUND
+                    '-4081': BadRequest, // OPTIONS_NOT_FOUND
+                    '-4082': RateLimitExceeded, // INVALID_BATCH_PLACE_ORDER_SIZE
+                    '-4083': OperationFailed, // PLACE_BATCH_ORDERS_FAIL
+                    '-4084': NotSupported, // UPCOMING_METHOD
+                    '-4085': BadRequest, // INVALID_NOTIONAL_LIMIT_COEF
+                    '-4086': BadRequest, // INVALID_PRICE_SPREAD_THRESHOLD
+                    '-4087': PermissionDenied, // REDUCE_ONLY_ORDER_PERMISSION
+                    '-4088': PermissionDenied, // NO_PLACE_ORDER_PERMISSION
+                    '-4104': BadSymbol, // INVALID_CONTRACT_TYPE
+                    '-4114': InvalidOrder, // INVALID_CLIENT_TRAN_ID_LEN
+                    '-4115': DuplicateOrderId, // DUPLICATED_CLIENT_TRAN_ID
+                    '-4118': InsufficientFunds, // REDUCE_ONLY_MARGIN_CHECK_FAILED
+                    '-4131': InvalidOrder, // MARKET_ORDER_REJECT
+                    '-4135': InvalidOrder, // INVALID_ACTIVATION_PRICE
+                    '-4137': InvalidOrder, // QUANTITY_EXISTS_WITH_CLOSE_POSITION
+                    '-4138': OperationRejected, // REDUCE_ONLY_MUST_BE_TRUE
+                    '-4139': InvalidOrder, // ORDER_TYPE_CANNOT_BE_MKT
+                    '-4140': OperationRejected, // INVALID_OPENING_POSITION_STATUS
+                    '-4141': MarketClosed, // SYMBOL_ALREADY_CLOSED
+                    '-4142': InvalidOrder, // STRATEGY_INVALID_TRIGGER_PRICE
+                    '-4144': BadSymbol, // INVALID_PAIR
+                    '-4161': OperationRejected, // ISOLATED_LEVERAGE_REJECT_WITH_POSITION
+                    '-4164': InvalidOrder, // MIN_NOTIONAL
+                    '-4165': BadRequest, // INVALID_TIME_INTERVAL
+                    '-4183': InvalidOrder, // PRICE_HIGHTER_THAN_STOP_MULTIPLIER_UP
+                    '-4184': InvalidOrder, // PRICE_LOWER_THAN_STOP_MULTIPLIER_DOWN
                 },
                 'broad': {
                 },
@@ -1037,9 +1201,56 @@ export default class aster extends Exchange {
             if (Object.keys (params).length) {
                 url += '?' + this.rawencode (params);
             }
-        // } else if (api === 'private') {
-            //
+        } else if (api === 'private') {
+            this.checkRequiredCredentials ();
+            headers = {
+                'X-MBX-APIKEY': this.apiKey,
+            };
+            const defaultRecvWindow = this.safeInteger (this.options, 'recvWindow');
+            const extendedParams = this.extend ({
+                'timestamp': this.milliseconds (),
+            }, params);
+            if (defaultRecvWindow !== undefined) {
+                extendedParams['recvWindow'] = defaultRecvWindow;
+            }
+            const recvWindow = this.safeInteger (params, 'recvWindow');
+            if (recvWindow !== undefined) {
+                extendedParams['recvWindow'] = recvWindow;
+            }
+            let query = this.rawencode (extendedParams);
+            const signature = this.hmac (this.encode (query), this.encode (this.secret), sha256);
+            query += '&' + 'signature=' + signature;
+            if (method === 'GET') {
+                if (Object.keys (params).length) {
+                    url += '?' + query;
+                }
+            } else {
+                body = query;
+                headers['Content-Type'] = 'application/x-www-form-urlencoded';
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return undefined; // fallback to default error handler
+        }
+        //
+        //    {
+        //        "code": -1121,
+        //        "msg": "Invalid symbol.",
+        //    }
+        //
+        const code = this.safeString (response, 'code');
+        const message = this.safeString (response, 'msg');
+        if (code !== undefined && code !== '0') {
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            throw new ExchangeError (feedback); // unknown message
+        }
+        return undefined;
     }
 }
