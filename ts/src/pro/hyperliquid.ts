@@ -252,6 +252,7 @@ export default class hyperliquid extends hyperliquidRest {
         const orderbook = this.orderbooks[symbol];
         orderbook.reset (snapshot);
         const messageHash = 'orderbook:' + symbol;
+        this.streamProduce ('orderbooks', orderbook);
         client.resolve (orderbook, messageHash);
     }
 
@@ -417,6 +418,7 @@ export default class hyperliquid extends hyperliquidRest {
             const marketId = this.safeString (assetObject, 'coin');
             const market = this.safeMarket (marketId, undefined, undefined, 'spot');
             const ticker = this.parseWsTicker (assetObject, market);
+            this.streamProduce ('tickers', ticker);
             parsedTickers.push (ticker);
         }
         // perpetuals
@@ -431,6 +433,7 @@ export default class hyperliquid extends hyperliquidRest {
             const id = data['name'] + '/USDC:USDC';
             const market = this.safeMarket (id, undefined, undefined, 'swap');
             const ticker = this.parseWsTicker (data, market);
+            this.streamProduce ('tickers', ticker);
             parsedTickers.push (ticker);
         }
         const tickers = this.indexBy (parsedTickers, 'symbol');
@@ -487,6 +490,7 @@ export default class hyperliquid extends hyperliquidRest {
             const parsed = this.parseWsTrade (rawTrade);
             const symbol = parsed['symbol'];
             symbols[symbol] = true;
+            this.streamProduce ('myTrades', parsed);
             trades.append (parsed);
         }
         const keys = Object.keys (symbols);
@@ -591,6 +595,7 @@ export default class hyperliquid extends hyperliquidRest {
             const data = this.safeDict (entry, i);
             const trade = this.parseWsTrade (data);
             trades.append (trade);
+            this.streamProduce ('trades', trade);
         }
         const messageHash = 'trade:' + symbol;
         client.resolve (trades, messageHash);
@@ -757,6 +762,8 @@ export default class hyperliquid extends hyperliquidRest {
         const ohlcv = this.ohlcvs[symbol][timeframe];
         const parsed = this.parseOHLCV (data);
         ohlcv.append (parsed);
+        const ohlcvs = this.createStreamOHLCV (symbol, timeframe, parsed);
+        this.streamProduce ('ohlcvs', ohlcvs);
         const messageHash = 'candles:' + timeframe + ':' + symbol;
         client.resolve (ohlcv, messageHash);
     }
@@ -856,6 +863,7 @@ export default class hyperliquid extends hyperliquidRest {
             stored.append (order);
             const symbol = this.safeString (order, 'symbol');
             marketSymbols[symbol] = true;
+            this.streamProduce ('orders', order);
         }
         const keys = Object.keys (marketSymbols);
         for (let i = 0; i < keys.length; i++) {
@@ -876,7 +884,10 @@ export default class hyperliquid extends hyperliquidRest {
         const channel = this.safeString (message, 'channel', '');
         const ret_msg = this.safeString (message, 'data', '');
         if (channel === 'error') {
-            throw new ExchangeError (this.id + ' ' + ret_msg);
+            const err = new ExchangeError (this.id + ' ' + ret_msg);
+            this.streamProduce ('errors', undefined, err);
+            client.reject (err);
+            return true;
         } else {
             return false;
         }
@@ -999,6 +1010,7 @@ export default class hyperliquid extends hyperliquidRest {
         //     }
         // }
         //
+        this.streamProduce ('raw', message);
         if (this.handleErrorMessage (client, message)) {
             return;
         }
