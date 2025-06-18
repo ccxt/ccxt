@@ -378,7 +378,6 @@ class Exchange {
         'coincatch',
         'coincheck',
         'coinex',
-        'coinlist',
         'coinmate',
         'coinmetro',
         'coinone',
