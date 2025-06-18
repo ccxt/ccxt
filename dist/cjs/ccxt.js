@@ -53,7 +53,6 @@ var coinbaseinternational = require('./src/coinbaseinternational.js');
 var coincatch = require('./src/coincatch.js');
 var coincheck = require('./src/coincheck.js');
 var coinex = require('./src/coinex.js');
-var coinlist = require('./src/coinlist.js');
 var coinmate = require('./src/coinmate.js');
 var coinmetro = require('./src/coinmetro.js');
 var coinone = require('./src/coinone.js');
@@ -238,7 +237,6 @@ const exchanges = {
     'coincatch': coincatch,
     'coincheck': coincheck,
     'coinex': coinex,
-    'coinlist': coinlist,
     'coinmate': coinmate,
     'coinmetro': coinmetro,
     'coinone': coinone,
@@ -470,7 +468,6 @@ exports.coinbaseinternational = coinbaseinternational;
 exports.coincatch = coincatch;
 exports.coincheck = coincheck;
 exports.coinex = coinex;
-exports.coinlist = coinlist;
 exports.coinmate = coinmate;
 exports.coinmetro = coinmetro;
 exports.coinone = coinone;
