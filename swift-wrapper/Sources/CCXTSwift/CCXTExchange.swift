@@ -4,8 +4,17 @@ import CCXT
 public class CCXTExchange {
     private let exchange: CcxtCCXTGoExchange
     
-    public init?(exchangeName: String, configJson: String) {
-        guard let ex = CcxtNewExchange(exchangeName, configJson) else {
+    public init?(exchangeName: String, config: [String: Any]? = nil) {
+        let configString: String
+
+        if let config = config,
+           let jsonData = try? JSONSerialization.data(withJSONObject: config, options: []),
+           let jsonString = String(data: jsonData, encoding: .utf8) {
+            configString = jsonString
+        } else {
+            configString = "{}"
+        }
+        guard let ex = CcxtNewExchange(exchangeName, configString) else {
             return nil
         }
         self.exchange = ex
@@ -22,13 +31,15 @@ public class CCXTExchange {
                 return number
             }
         case let dict as [String: Any]:
-            var cleaned: [String: Any?] = [:]
+            var cleaned: [String: Any] = [:]
             for (key, val) in dict {
-                cleaned[key] = cleanAny(val)
+                if let cleanedVal = cleanAny(val) {
+                    cleaned[key] = cleanedVal
+                }
             }
             return cleaned
         case let array as [Any]:
-            return array.map { cleanAny($0) }
+            return array.compactMap { cleanAny($0) }
         default:
             return value
         }

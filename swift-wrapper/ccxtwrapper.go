@@ -3,6 +3,10 @@ package ccxt
 
 import (
 	"encoding/json"
+	"fmt"
+	"regexp"
+	"strings"
+
 	// "strings"
 	ccxt "github.com/ccxt/ccxt/go/v4"
 )
@@ -12,11 +16,22 @@ type CCXTGoExchange struct {
 }
 
 func NewExchange(exchangeName string, configJson string) *CCXTGoExchange {
-	var config map[string]interface{}
-	_ = json.Unmarshal([]byte(configJson), &config)
+	// First, remove the outer quotes if they exist
+	configJson = strings.Trim(configJson, "\"")
 
-	ex := ccxt.Exchange{}
-	inst, ok := ccxt.DynamicallyCreateInstance(exchangeName, ex.DeepExtend(nil, config))
+	// Convert JavaScript object syntax to valid JSON:
+	// 1. Replace single quotes with double quotes
+	configJson = strings.ReplaceAll(configJson, "'", "\"")
+	// 2. Add double quotes to unquoted keys
+	configJson = regexp.MustCompile(`(\w+):`).ReplaceAllString(configJson, "\"$1\":")
+
+	var config map[string]interface{}
+	if err := json.Unmarshal([]byte(configJson), &config); err != nil {
+		fmt.Printf("Go: Failed to parse configJson: %v\nInput was: %s\nProcessed to: %s\n", err, configJson, configJson)
+		return nil
+	}
+
+	inst, ok := ccxt.DynamicallyCreateInstance(exchangeName, config)
 	if !ok {
 		return nil
 	}
