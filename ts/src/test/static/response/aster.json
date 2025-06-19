@@ -936,6 +936,55 @@
                     }
                 }
             }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetchBalance",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "accountAlias": "SgsR",
+                        "asset": "USDT",
+                        "balance": "122607.35137903",
+                        "crossWalletBalance": "23.72469206",
+                        "crossUnPnl": "0.00000000",
+                        "availableBalance": "23.72469206",
+                        "maxWithdrawAmount": "23.72469206",
+                        "marginAvailable": true,
+                        "updateTime": 1617939110373
+                    }
+                ],
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "accountAlias": "SgsR",
+                            "asset": "USDT",
+                            "balance": "122607.35137903",
+                            "crossWalletBalance": "23.72469206",
+                            "crossUnPnl": "0.00000000",
+                            "availableBalance": "23.72469206",
+                            "maxWithdrawAmount": "23.72469206",
+                            "marginAvailable": true,
+                            "updateTime": 1617939110373
+                        }
+                    ],
+                    "USDT": {
+                        "free": 23.72469206,
+                        "used": 122583.62668697,
+                        "total": 122607.35137903
+                    },
+                    "free": {
+                        "USDT": 23.72469206
+                    },
+                    "used": {
+                        "USDT": 122583.62668697
+                    },
+                    "total": {
+                        "USDT": 122607.35137903
+                    }
+                }
+            }
         ]
     }
 }

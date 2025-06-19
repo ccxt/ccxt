@@ -1,6 +1,10 @@
 {
     "exchange": "aster",
-    "skipKeys": [],
+    "skipKeys": [
+        "timestamp",
+        "recvWindow",
+        "signature"
+    ],
     "outputType": "json",
     "methods": {
         "fetchCurrencies": [
@@ -145,6 +149,14 @@
                         "BTC/USDT:USDT"
                     ]
                 ]
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetchBalance",
+                "method": "fetchBalance",
+                "url": "https://fapi.asterdex.com/fapi/v2/balance?timestamp=1750295324471&recvWindow=10000&signature=ed714bbd1342e73542ad616ce8179e80e7cff8611a8e653e341eadc92d51f0c0",
+                "input": []
             }
         ]
     }

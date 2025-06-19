@@ -4,7 +4,7 @@ import Exchange from './abstract/aster.js';
 import { AccountNotEnabled, AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSymbol, DuplicateOrderId, ExchangeClosedByUser, ExchangeError, InsufficientFunds, InvalidNonce, InvalidOrder, MarketClosed, NetworkError, NoChange, NotSupported, OperationFailed, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { Currencies, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Currencies, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------xs
@@ -1195,6 +1195,48 @@ export default class aster extends Exchange {
         return this.parseFundingRates (response, symbols);
     }
 
+    parseBalance (response): Balances {
+        const result: Dict = { 'info': response };
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
+            const currencyId = this.safeString (balance, 'asset');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'availableBalance');
+            account['total'] = this.safeString (balance, 'balance');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
+    /**
+     * @method
+     * @name aster#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#futures-account-balance-v2-user_data
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
+    async fetchBalance (params = {}): Promise<Balances> {
+        const response = await this.privateGetFapiV2Balance (params);
+        //
+        //     [
+        //         {
+        //             "accountAlias": "SgsR", // unique account code
+        //             "asset": "USDT", // asset name
+        //             "balance": "122607.35137903", // wallet balance
+        //             "crossWalletBalance": "23.72469206", // crossed wallet balance
+        //             "crossUnPnl": "0.00000000", // unrealized profit of crossed positions
+        //             "availableBalance": "23.72469206", // available balance
+        //             "maxWithdrawAmount": "23.72469206", // maximum amount for transfer out
+        //             "marginAvailable": true, // whether the asset can be used as margin in Multi-Assets mode
+        //             "updateTime": 1617939110373
+        //         }
+        //     ]
+        //
+        return this.parseBalance (response);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.implodeHostname (this.urls['api']['rest']) + '/' + path;
         if (api === 'public') {
@@ -1221,9 +1263,7 @@ export default class aster extends Exchange {
             const signature = this.hmac (this.encode (query), this.encode (this.secret), sha256);
             query += '&' + 'signature=' + signature;
             if (method === 'GET') {
-                if (Object.keys (params).length) {
-                    url += '?' + query;
-                }
+                url += '?' + query;
             } else {
                 body = query;
                 headers['Content-Type'] = 'application/x-www-form-urlencoded';
