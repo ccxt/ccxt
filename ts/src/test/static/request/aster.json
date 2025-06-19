@@ -5,7 +5,7 @@
         "recvWindow",
         "signature"
     ],
-    "outputType": "json",
+    "outputType": "urlencoded",
     "methods": {
         "fetchCurrencies": [
             {
@@ -165,6 +165,17 @@
                 "method": "fetchPositionMode",
                 "url": "https://fapi.asterdex.com/fapi/v1/positionSide/dual?timestamp=1750295324471&recvWindow=10000&signature=ed714bbd1342e73542ad616ce8179e80e7cff8611a8e653e341eadc92d51f0c0",
                 "input": []
+            }
+        ],
+        "setPositionMode": [
+            {
+                "description": "setPositionMode",
+                "method": "setPositionMode",
+                "url": "https://fapi.asterdex.com/fapi/v1/positionSide/dual",
+                "input": [
+                    true
+                ],
+                "output": "dualSidePosition=true&timestamp=1750295324471&recvWindow=10000&signature=ed714bbd1342e73542ad616ce8179e80e7cff8611a8e653e341eadc92d51f0c0"
             }
         ]
     }

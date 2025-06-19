@@ -1260,6 +1260,29 @@ export default class aster extends Exchange {
         };
     }
 
+    /**
+     * @method
+     * @name aster#setPositionMode
+     * @description set hedged to true or false for a market
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#change-position-modetrade
+     * @param {bool} hedged set to true to use dualSidePosition
+     * @param {string} symbol not used by bingx setPositionMode ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
+        const request: Dict = {
+            'dualSidePosition': hedged,
+        };
+        //
+        //     {
+        //         "code": 200,
+        //         "msg": "success"
+        //     }
+        //
+        return await this.privatePostFapiV1PositionSideDual (this.extend (request, params));
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.implodeHostname (this.urls['api']['rest']) + '/' + path;
         if (api === 'public') {
@@ -1307,7 +1330,7 @@ export default class aster extends Exchange {
         //
         const code = this.safeString (response, 'code');
         const message = this.safeString (response, 'msg');
-        if (code !== undefined && code !== '0') {
+        if (code !== undefined && code !== '200') {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);

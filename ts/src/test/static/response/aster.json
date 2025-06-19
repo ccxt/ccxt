@@ -1001,6 +1001,21 @@
                     "hedged": true
                 }
             }
+        ],
+        "setPositionMode": [
+            {
+                "description": "setPositionMode",
+                "method": "setPositionMode",
+                "input": [],
+                "httpResponse": {
+                    "code": 200,
+                    "msg": "success"
+                },
+                "parsedResponse": {
+                    "code": 200,
+                    "msg": "success"
+                }
+            }
         ]
     }
 }
