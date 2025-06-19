@@ -6054,11 +6054,11 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchDepositsWithdrawals() is not supported yet');
     }
 
-    async fetchDeposits (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         throw new NotSupported (this.id + ' fetchDeposits() is not supported yet');
     }
 
-    async fetchWithdrawals (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         throw new NotSupported (this.id + ' fetchWithdrawals() is not supported yet');
     }
 
