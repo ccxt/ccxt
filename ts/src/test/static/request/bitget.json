@@ -1469,6 +1469,14 @@
                 "input": [
                     "BTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "uta orderbookl",
+                "method": "fetchOrderBook",
+                "url": "https://api.bitget.com/api/v3/market/orderbook?symbol=BTCUSDT&category=SPOT",
+                "input": [
+                    "BTC/USDT"
+                ]
             }
         ],
         "fetchTrades": [

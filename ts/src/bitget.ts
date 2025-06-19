@@ -1776,10 +1776,12 @@ export default class bitget extends Exchange {
             defaultProductType = (subType === 'linear') ? 'USDT-FUTURES' : 'COIN-FUTURES';
             // }
         }
-        let productType = this.safeString (params, 'productType', defaultProductType);
+        let productType = this.safeString2 (params, 'productType', 'category', defaultProductType);
         if ((productType === undefined) && (market !== undefined)) {
             const settle = market['settle'];
-            if (settle === 'USDT') {
+            if (market['spot']) {
+                productType = 'SPOT';
+            } else if (settle === 'USDT') {
                 productType = 'USDT-FUTURES';
             } else if (settle === 'USDC') {
                 productType = 'USDC-FUTURES';
@@ -1794,9 +1796,9 @@ export default class bitget extends Exchange {
             }
         }
         if (productType === undefined) {
-            throw new ArgumentsRequired (this.id + ' requires a productType param, one of "USDT-FUTURES", "USDC-FUTURES", "COIN-FUTURES", "SUSDT-FUTURES", "SUSDC-FUTURES" or "SCOIN-FUTURES"');
+            throw new ArgumentsRequired (this.id + ' requires a productType param, one of "USDT-FUTURES", "USDC-FUTURES", "COIN-FUTURES", "SUSDT-FUTURES", "SUSDC-FUTURES", "SCOIN-FUTURES" or for uta only "SPOT"');
         }
-        params = this.omit (params, 'productType');
+        params = this.omit (params, [ 'productType', 'category' ]);
         return [ productType, params ];
     }
 
@@ -2988,9 +2990,11 @@ export default class bitget extends Exchange {
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://www.bitget.com/api-doc/spot/market/Get-Orderbook
      * @see https://www.bitget.com/api-doc/contract/market/Get-Merge-Depth
+     * @see https://www.bitget.bike/api-doc/uta/public/OrderBook
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.category] *uta only* USDT-FUTURES, USDC-FUTURES, COIN-FUTURES, or SPOT
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
@@ -3003,7 +3007,14 @@ export default class bitget extends Exchange {
             request['limit'] = limit;
         }
         let response = undefined;
-        if (market['spot']) {
+        let uta = undefined;
+        [ uta, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'uta', false);
+        if (uta) {
+            let category = undefined;
+            [ category, params ] = this.handleProductTypeAndParams (market, params);
+            request['category'] = category;
+            response = await this.publicUtaGetV3MarketOrderbook (this.extend (request, params));
+        } else if (market['spot']) {
             response = await this.publicSpotGetV2SpotMarketOrderbook (this.extend (request, params));
         } else {
             let productType = undefined;
@@ -3023,9 +3034,24 @@ export default class bitget extends Exchange {
         //       }
         //     }
         //
+        // uta
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1750329437753,
+        //         "data": {
+        //             "a": [ [ 104992.60, 0.018411 ] ],
+        //             "b":[ [104927.40, 0.229914 ] ],
+        //             "ts": "1750329437763"
+        //         }
+        //     }
+        //
         const data = this.safeValue (response, 'data', {});
+        const bidsKey = uta ? 'b' : 'bids';
+        const asksKey = uta ? 'a' : 'asks';
         const timestamp = this.safeInteger (data, 'ts');
-        return this.parseOrderBook (data, market['symbol'], timestamp);
+        return this.parseOrderBook (data, market['symbol'], timestamp, bidsKey, asksKey);
     }
 
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
