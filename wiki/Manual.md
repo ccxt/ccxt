@@ -1590,32 +1590,40 @@ You should pass your preferred callbacks in `marketsCache` property when instant
 
 #### **Javascript**
 ```javascript
-import fs, { statSync } from 'fs';
+async function example () {
+    const kraken = new ccxt.kraken ({ 
+        marketsCache: {
+            mode: 'callback',
+            set: my_cache_setter,
+            get: my_cache_getter,
+        }
+    });
+
+    const startTime = Date.now();
+    await kraken.loadMarkets () // after calling once, it will load data from cache on next executions
+    console.log ('Loaded in ', Date.now() - startTime, ' milliseconds');
+}
+
+example ();
+
+
+// ######## callbacks ########
 
 async function my_cache_setter (key, marketsAndCurrencies) {
-    fs.writeFileSync(key, JSON.stringify(marketsAndCurrencies));
+    const fs = await import ('node:fs');
+    fs.writeFileSync (key, JSON.stringify (marketsAndCurrencies));
 }
 
 async function my_cache_getter (key) {
-    const expirationSeconds = 3600; // 1 hour
-    if (fs.existsSync(key) && Date.now() - statSync(key).mtime.getTime() < expirationSeconds * 1000) {
-        return JSON.parse(fs.readFileSync(key, 'utf8'));
-    } else {
-        return undefined;
+    const fs = await import ('node:fs');
+    const expirationMinutes = 30; // half an hour
+    if (fs.existsSync (key)) {
+        const parsed = JSON.parse (fs.readFileSync (key, 'utf8'));
+        if ( Date.now() < parsed.timestamp + expirationMinutes * 60 * 1000 ) {
+            return parsed;
+        }
     }
 }
-
-const kraken = new ccxt.kraken ({ 
-    marketsCache: {
-        enable: true,
-        setter: my_cache_setter,
-        getter: my_cache_getter,
-    }
-})
-const startTime = Date.now();
-await kraken.loadMarkets () // after calling once, it will load data from cache on next executions
-console.log ('Loaded in ', Date.now() - startTime, ' milliseconds');
-
 ```
 #### **Python**
 ```python
