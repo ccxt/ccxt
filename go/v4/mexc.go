@@ -946,7 +946,6 @@ func  (this *mexc) FetchCurrencies(optionalArgs ...interface{}) <- chan interfac
                 var currency interface{} = GetValue(response, i)
                 var id interface{} = this.SafeString(currency, "coin")
                 var code interface{} = this.SafeCurrencyCode(id)
-                var name interface{} = this.SafeString(currency, "name")
                 var networks interface{} = map[string]interface{} {}
                 var chains interface{} = this.SafeValue(currency, "networkList", []interface{}{})
                 for j := 0; IsLessThan(j, GetArrayLength(chains)); j++ {
@@ -968,13 +967,14 @@ func  (this *mexc) FetchCurrencies(optionalArgs ...interface{}) <- chan interfac
                     "max": this.SafeString(chain, "withdrawMax"),
                 },
             },
+            "contract": this.SafeString(chain, "contract"),
         })
                 }
                 AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]interface{} {
             "info": currency,
             "id": id,
             "code": code,
-            "name": name,
+            "name": this.SafeString(currency, "name"),
             "active": nil,
             "deposit": nil,
             "withdraw": nil,

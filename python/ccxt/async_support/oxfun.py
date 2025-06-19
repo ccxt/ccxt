@@ -25,7 +25,6 @@ from ccxt.base.errors import NetworkError
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.decimal_to_precision import TICK_SIZE
-from ccxt.base.precise import Precise
 
 
 class oxfun(Exchange, ImplicitAPI):
@@ -613,66 +612,7 @@ class oxfun(Exchange, ImplicitAPI):
         #                         "minDeposit": "0.00010",
         #                         "minWithdrawal": "0.00010"
         #                     },
-        #                     {
-        #                         "network": "Arbitrum",
-        #                         "tokenId": "0xba0Dda8762C24dA9487f5FA026a9B64b695A07Ea",
-        #                         "transactionPrecision": "18",
-        #                         "isWithdrawalFeeChargedToUser": True,
-        #                         "canDeposit": True,
-        #                         "canWithdraw": True,
-        #                         "minDeposit": "0.00010",
-        #                         "minWithdrawal": "0.00010"
-        #                     },
-        #                     {
-        #                         "network": "Ethereum",
-        #                         "tokenId": "0xba0Dda8762C24dA9487f5FA026a9B64b695A07Ea",
-        #                         "transactionPrecision": "18",
-        #                         "isWithdrawalFeeChargedToUser": True,
-        #                         "canDeposit": True,
-        #                         "canWithdraw": True,
-        #                         "minDeposit": "0.00010",
-        #                         "minWithdrawal": "0.00010"
-        #                     },
-        #                     {
-        #                         "network": "Arbitrum",
-        #                         "tokenId": "0x78a0A62Fba6Fb21A83FE8a3433d44C73a4017A6f",
-        #                         "transactionPrecision": "18",
-        #                         "isWithdrawalFeeChargedToUser": True,
-        #                         "canDeposit": True,
-        #                         "canWithdraw": False,
-        #                         "minDeposit": "0.00010",
-        #                         "minWithdrawal": "0.00010"
-        #                     },
-        #                     {
-        #                         "network": "Avalanche",
-        #                         "tokenId": "0x78a0A62Fba6Fb21A83FE8a3433d44C73a4017A6f",
-        #                         "transactionPrecision": "18",
-        #                         "isWithdrawalFeeChargedToUser": True,
-        #                         "canDeposit": True,
-        #                         "canWithdraw": False,
-        #                         "minDeposit": "0.00010",
-        #                         "minWithdrawal": "0.00010"
-        #                     },
-        #                     {
-        #                         "network": "Solana",
-        #                         "tokenId": "DV3845GEAVXfwpyVGGgWbqBVCtzHdCXNCGfcdboSEuZz",
-        #                         "transactionPrecision": "8",
-        #                         "isWithdrawalFeeChargedToUser": True,
-        #                         "canDeposit": True,
-        #                         "canWithdraw": True,
-        #                         "minDeposit": "0.00010",
-        #                         "minWithdrawal": "0.00010"
-        #                     },
-        #                     {
-        #                         "network": "Ethereum",
-        #                         "tokenId": "0x78a0A62Fba6Fb21A83FE8a3433d44C73a4017A6f",
-        #                         "transactionPrecision": "18",
-        #                         "isWithdrawalFeeChargedToUser": True,
-        #                         "canDeposit": True,
-        #                         "canWithdraw": False,
-        #                         "minDeposit": "0.00010",
-        #                         "minWithdrawal": "0.00010"
-        #                     }
+        #                     ...
         #                 ]
         #             },
         #             {
@@ -722,74 +662,64 @@ class oxfun(Exchange, ImplicitAPI):
             parts = fullId.split('.')
             id = parts[0]
             code = self.safe_currency_code(id)
-            networks: dict = {}
+            if not (code in result):
+                result[code] = {
+                    'id': id,
+                    'code': code,
+                    'precision': None,
+                    'type': None,
+                    'name': None,
+                    'active': None,
+                    'deposit': None,
+                    'withdraw': None,
+                    'fee': None,
+                    'limits': {
+                        'withdraw': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'deposit': {
+                            'min': None,
+                            'max': None,
+                        },
+                    },
+                    'networks': {},
+                    'info': [],
+                }
             chains = self.safe_list(currency, 'networkList', [])
-            currencyMaxPrecision: Str = None
-            currencyDepositEnabled: Bool = None
-            currencyWithdrawEnabled: Bool = None
             for j in range(0, len(chains)):
                 chain = chains[j]
                 networkId = self.safe_string(chain, 'network')
                 networkCode = self.network_id_to_code(networkId)
-                deposit = self.safe_bool(chain, 'canDeposit')
-                withdraw = self.safe_bool(chain, 'canWithdraw')
-                active = (deposit and withdraw)
-                minDeposit = self.safe_string(chain, 'minDeposit')
-                minWithdrawal = self.safe_string(chain, 'minWithdrawal')
-                precision = self.parse_precision(self.safe_string(chain, 'transactionPrecision'))
-                networks[networkCode] = {
+                result[code]['networks'][networkCode] = {
                     'id': networkId,
                     'network': networkCode,
                     'margin': None,
-                    'deposit': deposit,
-                    'withdraw': withdraw,
-                    'active': active,
+                    'deposit': self.safe_bool(chain, 'canDeposit'),
+                    'withdraw': self.safe_bool(chain, 'canWithdraw'),
+                    'active': None,
                     'fee': None,
-                    'precision': self.parse_number(precision),
+                    'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'transactionPrecision'))),
                     'limits': {
                         'deposit': {
-                            'min': minDeposit,
+                            'min': self.safe_number(chain, 'minDeposit'),
                             'max': None,
                         },
                         'withdraw': {
-                            'min': minWithdrawal,
+                            'min': self.safe_number(chain, 'minWithdrawal'),
                             'max': None,
                         },
                     },
                     'info': chain,
                 }
-                if (currencyDepositEnabled is None) or deposit:
-                    currencyDepositEnabled = deposit
-                if (currencyWithdrawEnabled is None) or withdraw:
-                    currencyWithdrawEnabled = withdraw
-                if (currencyMaxPrecision is None) or Precise.string_gt(currencyMaxPrecision, precision):
-                    currencyMaxPrecision = precision
-            if code in result:
-                # checking for specific ids.ARB
-                networks = self.extend(result[code]['networks'], networks)
-            result[code] = {
-                'id': id,
-                'code': code,
-                'name': None,
-                'type': None,
-                'active': None,
-                'deposit': currencyDepositEnabled,
-                'withdraw': currencyWithdrawEnabled,
-                'fee': None,
-                'precision': self.parse_number(currencyMaxPrecision),
-                'limits': {
-                    'amount': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
-                'networks': networks,
-                'info': currency,
-            }
+            infos = self.safe_list(result[code], 'info', [])
+            infos.append(currency)
+            result[code]['info'] = infos
+        # only after all entries are formed in currencies, restructure each entry
+        allKeys = list(result.keys())
+        for i in range(0, len(allKeys)):
+            code = allKeys[i]
+            result[code] = self.safe_currency_structure(result[code])  # self is needed after adding network entry
         return result
 
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:

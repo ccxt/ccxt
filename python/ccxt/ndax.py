@@ -454,44 +454,44 @@ class ndax(Exchange, ImplicitAPI):
         }
         response = self.publicGetGetProducts(self.extend(request, params))
         #
-        #     [
-        #         {
-        #             "OMSId":1,
-        #             "ProductId":1,
-        #             "Product":"BTC",
-        #             "ProductFullName":"Bitcoin",
-        #             "ProductType":"CryptoCurrency",
-        #             "DecimalPlaces":8,
-        #             "TickSize":0.0000000100000000000000000000,
-        #             "NoFees":false,
-        #             "IsDisabled":false,
-        #             "MarginEnabled":false
-        #         },
-        #     ]
+        #    [
+        #        {
+        #            "OMSId": "1",
+        #            "ProductId": "1",
+        #            "Product": "BTC",
+        #            "ProductFullName": "Bitcoin",
+        #            "MasterDataUniqueProductSymbol": "",
+        #            "ProductType": "CryptoCurrency",
+        #            "DecimalPlaces": "8",
+        #            "TickSize": "0.0000000100000000000000000000",
+        #            "DepositEnabled": True,
+        #            "WithdrawEnabled": True,
+        #            "NoFees": False,
+        #            "IsDisabled": False,
+        #            "MarginEnabled": False
+        #        },
+        #        ...
         #
         result: dict = {}
         for i in range(0, len(response)):
             currency = response[i]
             id = self.safe_string(currency, 'ProductId')
-            name = self.safe_string(currency, 'ProductFullName')
+            code = self.safe_currency_code(self.safe_string(currency, 'Product'))
             ProductType = self.safe_string(currency, 'ProductType')
             type = 'fiat' if (ProductType == 'NationalCurrency') else 'crypto'
             if ProductType == 'Unknown':
                 # such currency is just a blanket entry
                 type = 'other'
-            code = self.safe_currency_code(self.safe_string(currency, 'Product'))
-            isDisabled = self.safe_value(currency, 'IsDisabled')
-            active = not isDisabled
-            result[code] = {
+            result[code] = self.safe_currency_structure({
                 'id': id,
-                'name': name,
+                'name': self.safe_string(currency, 'ProductFullName'),
                 'code': code,
                 'type': type,
                 'precision': self.safe_number(currency, 'TickSize'),
                 'info': currency,
-                'active': active,
-                'deposit': None,
-                'withdraw': None,
+                'active': not self.safe_bool(currency, 'IsDisabled'),
+                'deposit': self.safe_bool(currency, 'DepositEnabled'),
+                'withdraw': self.safe_bool(currency, 'WithdrawEnabled'),
                 'fee': None,
                 'limits': {
                     'amount': {
@@ -504,7 +504,8 @@ class ndax(Exchange, ImplicitAPI):
                     },
                 },
                 'networks': {},
-            }
+                'margin': self.safe_bool(currency, 'MarginEnabled'),
+            })
         return result
 
     def fetch_markets(self, params={}) -> List[Market]:

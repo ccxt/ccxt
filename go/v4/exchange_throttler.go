@@ -30,13 +30,10 @@ func NewThrottler(config map[string]interface{}) Throttler {
 }
 
 func (t *Throttler) Throttle(cost2 interface{}) <-chan bool {
-	var cost float64 = -1
-
-	if cost2 != nil {
-		cost = cost2.(float64)
-	} else {
-		cost = ToFloat64(t.Config["cost"])
+	if cost2 == nil {
+		cost2 = t.Config["cost"]
 	}
+	cost := ToFloat64(cost2)
 	task := make(chan bool)
 
 	queueElement := QueueElement{

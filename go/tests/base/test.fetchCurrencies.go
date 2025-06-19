@@ -24,7 +24,8 @@ import "github.com/ccxt/ccxt/go/v4"
                     AssertNonEmtpyArray(exchange, skippedProperties, method, values)
                     var currenciesLength interface{} =         GetArrayLength(values)
                     // ensure exchange returns enough length of currencies
-                    Assert(IsGreaterThan(currenciesLength, 5), Add(Add(Add(Add(exchange.GetId(), " "), method), " must return at least several currencies, but it returned "), ToString(currenciesLength)))
+                    var skipAmount interface{} =         (InOp(skippedProperties, "amountOfCurrencies"))
+                    Assert(IsTrue(skipAmount) || IsTrue(IsGreaterThan(currenciesLength, 5)), Add(Add(Add(Add(exchange.GetId(), " "), method), " must return at least several currencies, but it returned "), ToString(currenciesLength)))
                     // allow skipped exchanges
                     var skipActive interface{} =         (InOp(skippedProperties, "activeCurrenciesQuota"))
                     var skipMajorCurrencyCheck interface{} =         (InOp(skippedProperties, "activeMajorCurrencies"))

@@ -3031,7 +3031,7 @@ func  (this *blofin) SetMarginMode(marginMode interface{}, optionalArgs ...inter
                 "marginMode": marginMode,
             }
         
-            response:= (<-this.callDynamically("privatePostAccountSetMarginMode", this.Extend(request, params)))
+            response:= (<-this.PrivatePostAccountSetMarginMode(this.Extend(request, params)))
             PanicOnError(response)
             //
             //     {
@@ -3069,7 +3069,7 @@ func  (this *blofin) FetchPositionMode(optionalArgs ...interface{}) <- chan inte
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            response:= (<-this.callDynamically("privateGetAccountPositionMode", params))
+            response:= (<-this.PrivateGetAccountPositionMode(params))
             PanicOnError(response)
             var data interface{} = this.SafeDict(response, "data", map[string]interface{} {})
             var positionMode interface{} = this.SafeString(data, "positionMode")
@@ -3115,7 +3115,7 @@ func  (this *blofin) SetPositionMode(hedged interface{}, optionalArgs ...interfa
                 "positionMode": Ternary(IsTrue(hedged), "long_short_mode", "net_mode"),
             }
         
-                retRes252215 :=  (<-this.callDynamically("privatePostAccountSetPositionMode", this.Extend(request, params)))
+                retRes252215 :=  (<-this.PrivatePostAccountSetPositionMode(this.Extend(request, params)))
                 PanicOnError(retRes252215)
                     //
             //     {

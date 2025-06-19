@@ -346,9 +346,12 @@ public partial class onetrading : Exchange
         //
         //     [
         //         {
-        //             "code":"BEST",
-        //             "precision":8
-        //         }
+        //             "code": "USDT",
+        //             "precision": 6,
+        //             "unified_cryptoasset_id": 825,
+        //             "name": "Tether USDt",
+        //             "collateral_percentage": 0
+        //         },
         //     ]
         //
         object result = new Dictionary<string, object>() {};
@@ -357,10 +360,10 @@ public partial class onetrading : Exchange
             object currency = getValue(response, i);
             object id = this.safeString(currency, "code");
             object code = this.safeCurrencyCode(id);
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "code", code },
-                { "name", null },
+                { "name", this.safeString(currency, "name") },
                 { "info", currency },
                 { "active", null },
                 { "fee", null },
@@ -378,7 +381,7 @@ public partial class onetrading : Exchange
                     } },
                 } },
                 { "networks", new Dictionary<string, object>() {} },
-            };
+            });
         }
         return result;
     }

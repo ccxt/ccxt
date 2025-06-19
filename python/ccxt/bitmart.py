@@ -2306,7 +2306,7 @@ class bitmart(Exchange, ImplicitAPI):
                 code = self.safe_currency_code(currencyId)
                 account = self.account()
                 account['free'] = self.safe_string_2(balance, 'available', 'available_balance')
-                account['used'] = self.safe_string_2(balance, 'frozen', 'frozen_balance')
+                account['used'] = self.safe_string_n(balance, ['unAvailable', 'frozen', 'frozen_balance'])
                 result[code] = account
             return self.safe_balance(result)
 

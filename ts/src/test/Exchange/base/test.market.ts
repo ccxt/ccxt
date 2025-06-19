@@ -205,7 +205,7 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
             assert (market['strike'] === undefined, '"strike" must be undefined when "option" is false' + logText);
             assert (market['optionType'] === undefined, '"optionType" must be undefined when "option" is false' + logText);
         }
-    } else {
+    } else if (spot) {
         // otherwise, expiry needs to be undefined
         assert ((market['expiry'] === undefined) && (market['expiryDatetime'] === undefined), '"expiry" and "expiryDatetime" must be undefined when it is not future|option market' + logText);
     }

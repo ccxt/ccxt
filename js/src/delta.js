@@ -923,9 +923,9 @@ export default class delta extends Exchange {
                 'inverse': spot ? undefined : !linear,
                 'taker': this.safeNumber(market, 'taker_commission_rate'),
                 'maker': this.safeNumber(market, 'maker_commission_rate'),
-                'contractSize': contractSize,
+                'contractSize': spot ? undefined : contractSize,
                 'expiry': expiry,
-                'expiryDatetime': expiryDatetime,
+                'expiryDatetime': this.iso8601(expiry),
                 'strike': this.parseNumber(strike),
                 'optionType': optionType,
                 'precision': {

@@ -185,12 +185,18 @@ func (e *Exchange) packb(data interface{}) interface{} {
 	return nil
 }
 
-func (e *Exchange) Rawencode(parameters2 interface{}) string {
-	parameters := parameters2.(map[string]interface{})
+func (e *Exchange) Rawencode(params ...interface{}) string {
+	parameters := params[0].(map[string]interface{})
+	shouldSort := GetArg(params, 1, false).(bool)
 	keys := make([]string, 0, len(parameters))
 	for k := range parameters {
 		keys = append(keys, k)
 	}
+
+	if shouldSort {
+		sort.Strings(keys)
+	}
+
 	var outList []string
 	for _, key := range keys {
 		value := parameters[key]

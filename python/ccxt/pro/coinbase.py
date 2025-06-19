@@ -160,6 +160,7 @@ class coinbase(ccxt.async_support.coinbase):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
+        await self.load_markets()
         name = 'ticker'
         return await self.subscribe(name, False, symbol, params)
 
@@ -173,6 +174,7 @@ class coinbase(ccxt.async_support.coinbase):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
+        await self.load_markets()
         if symbols is None:
             symbols = self.symbols
         name = 'ticker_batch'

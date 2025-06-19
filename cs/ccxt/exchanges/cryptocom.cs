@@ -36,6 +36,7 @@ public partial class cryptocom : Exchange
                 { "createOrders", true },
                 { "createStopOrder", true },
                 { "createTriggerOrder", true },
+                { "editOrder", true },
                 { "fetchAccounts", true },
                 { "fetchBalance", true },
                 { "fetchBidsAsks", false },
@@ -128,6 +129,7 @@ public partial class cryptocom : Exchange
                     { "derivatives", "https://uat-api.3ona.co/v2" },
                 } },
                 { "api", new Dictionary<string, object>() {
+                    { "base", "https://api.crypto.com" },
                     { "v1", "https://api.crypto.com/exchange/v1" },
                     { "v2", "https://api.crypto.com/v2" },
                     { "derivatives", "https://deriv-api.crypto.com/v1" },
@@ -141,6 +143,13 @@ public partial class cryptocom : Exchange
                 { "fees", "https://crypto.com/exchange/document/fees-limits" },
             } },
             { "api", new Dictionary<string, object>() {
+                { "base", new Dictionary<string, object>() {
+                    { "public", new Dictionary<string, object>() {
+                        { "get", new Dictionary<string, object>() {
+                            { "v1/public/get-announcements", 1 },
+                        } },
+                    } },
+                } },
                 { "v1", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
@@ -167,6 +176,7 @@ public partial class cryptocom : Exchange
                             { "private/user-balance-history", divide(10, 3) },
                             { "private/get-positions", divide(10, 3) },
                             { "private/create-order", divide(2, 3) },
+                            { "private/amend-order", divide(4, 3) },
                             { "private/create-order-list", divide(10, 3) },
                             { "private/cancel-order", divide(2, 3) },
                             { "private/cancel-order-list", divide(10, 3) },
@@ -518,7 +528,7 @@ public partial class cryptocom : Exchange
         //                            "network_id": "CRONOS",
         //                            "withdrawal_fee": "0.18000000",
         //                            "withdraw_enabled": true,
-        //                            "min_withdrawal_amount": "0.36",
+        //                            "min_withdrawal_amount": "0.35",
         //                            "deposit_enabled": true,
         //                            "confirmation_required": "15"
         //                        },
@@ -1719,6 +1729,59 @@ public partial class cryptocom : Exchange
             ((IDictionary<string,object>)request)["quantity"] = this.amountToPrecision(symbol, amount);
         }
         parameters = this.omit(parameters, new List<object>() {"postOnly", "clientOrderId", "timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"});
+        return this.extend(request, parameters);
+    }
+
+    /**
+     * @method
+     * @name cryptocom#editOrder
+     * @description edit a trade order
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-amend-order
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol of the order to edit
+     * @param {string} [type] not used by cryptocom editOrder
+     * @param {string} [side] not used by cryptocom editOrder
+     * @param {float} amount (mandatory) how much of the currency you want to trade in units of the base currency
+     * @param {float} price (mandatory) the price for the order, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] the original client order id of the order to edit, required if id is not provided
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = this.editOrderRequest(id, symbol, amount, price, parameters);
+        object response = await this.v1PrivatePostPrivateAmendOrder(request);
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        return this.parseOrder(result);
+    }
+
+    public virtual object editOrderRequest(object id, object symbol, object amount, object price = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(id, null)))
+        {
+            ((IDictionary<string,object>)request)["order_id"] = id;
+        } else
+        {
+            object originalClientOrderId = this.safeString2(parameters, "orig_client_oid", "clientOrderId");
+            if (isTrue(isEqual(originalClientOrderId, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " editOrder() requires an id argument or orig_client_oid parameter")) ;
+            } else
+            {
+                ((IDictionary<string,object>)request)["orig_client_oid"] = originalClientOrderId;
+                parameters = this.omit(parameters, new List<object>() {"orig_client_oid", "clientOrderId"});
+            }
+        }
+        if (isTrue(isTrue((isEqual(amount, null))) || isTrue((isEqual(price, null)))))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " editOrder() requires both amount and price arguments. If you do not want to change the amount or price, you should pass the original values")) ;
+        }
+        ((IDictionary<string,object>)request)["new_quantity"] = this.amountToPrecision(symbol, amount);
+        ((IDictionary<string,object>)request)["new_price"] = this.priceToPrecision(symbol, price);
         return this.extend(request, parameters);
     }
 

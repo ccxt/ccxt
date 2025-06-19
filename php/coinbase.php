@@ -1460,10 +1460,6 @@ class coinbase extends Exchange {
                 $this->v3PublicGetBrokerageMarketProducts ($this->extend($params, array( 'product_type' => 'FUTURE' ))),
                 $this->v3PublicGetBrokerageMarketProducts ($this->extend($params, array( 'product_type' => 'FUTURE', 'contract_expiry_type' => 'PERPETUAL' ))),
             );
-            if ($this->check_required_credentials(false)) {
-                $unresolvedContractPromises[] = $this->extend($params, array( 'product_type' => 'FUTURE' ));
-                $unresolvedContractPromises[] = $this->extend($params, array( 'product_type' => 'FUTURE', 'contract_expiry_type' => 'PERPETUAL' ));
-            }
         } catch (Exception $e) {
             $unresolvedContractPromises = array(); // the sync version of ccxt won't have the promise.all line so the request is made here. Some users can't access perpetual products
         }
@@ -1478,8 +1474,8 @@ class coinbase extends Exchange {
         $fees = $this->safe_dict($promises, 1, array());
         $expiringFutures = $this->safe_dict($contractPromises, 0, array());
         $perpetualFutures = $this->safe_dict($contractPromises, 1, array());
-        $expiringFees = $this->safe_dict($contractPromises, 2, array());
-        $perpetualFees = $this->safe_dict($contractPromises, 3, array());
+        $expiringFees = $this->safe_dict($contractPromises, 0, array());
+        $perpetualFees = $this->safe_dict($contractPromises, 1, array());
         //
         //     {
         //         "total_volume" => 0,
@@ -4627,7 +4623,7 @@ class coinbase extends Exchange {
         /**
          * *futures only* closes open positions for a $market
          *
-         * @see https://coinbase-api.github.io/docs/#/en-us/swapV2/trade-api.html#One-Click%20Close%20All%20Positions
+         * @see https://docs.cdp.coinbase.com/coinbase-app/trade/reference/retailbrokerageapi_closeposition
          *
          * @param {string} $symbol Unified CCXT $market $symbol
          * @param {string} [$side] not used by coinbase
@@ -4638,9 +4634,6 @@ class coinbase extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        if (!$market['future']) {
-            throw new NotSupported($this->id . ' closePosition() only supported for futures markets');
-        }
         $clientOrderId = $this->safe_string_2($params, 'client_order_id', 'clientOrderId');
         $params = $this->omit($params, 'clientOrderId');
         $request = array(

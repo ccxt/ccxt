@@ -394,6 +394,49 @@ func (this *Cryptocom) CreateOrders(orders []OrderRequest, options ...CreateOrde
 }
 /**
  * @method
+ * @name cryptocom#editOrder
+ * @description edit a trade order
+ * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-amend-order
+ * @param {string} id order id
+ * @param {string} symbol unified market symbol of the order to edit
+ * @param {string} [type] not used by cryptocom editOrder
+ * @param {string} [side] not used by cryptocom editOrder
+ * @param {float} amount (mandatory) how much of the currency you want to trade in units of the base currency
+ * @param {float} price (mandatory) the price for the order, in units of the quote currency, ignored in market orders
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.clientOrderId] the original client order id of the order to edit, required if id is not provided
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
+func (this *Cryptocom) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
+
+    opts := EditOrderOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var amount interface{} = nil
+    if opts.Amount != nil {
+        amount = *opts.Amount
+    }
+
+    var price interface{} = nil
+    if opts.Price != nil {
+        price = *opts.Price
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.EditOrder(id, symbol, typeVar, side, amount, price, params)
+    if IsError(res) {
+        return Order{}, CreateReturnError(res)
+    }
+    return NewOrder(res), nil
+}
+/**
+ * @method
  * @name cryptocom#cancelAllOrders
  * @description cancel all open orders
  * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-all-orders

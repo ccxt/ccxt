@@ -40,6 +40,9 @@ abstract class luno extends \ccxt\async\Exchange {
     public function private_get_beneficiaries($params = array()) {
         return $this->request('beneficiaries', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_get_send_networks($params = array()) {
+        return $this->request('send/networks', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_get_fee_info($params = array()) {
         return $this->request('fee_info', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -138,6 +141,9 @@ abstract class luno extends \ccxt\async\Exchange {
     }
     public function privateGetBeneficiaries($params = array()) {
         return $this->request('beneficiaries', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetSendNetworks($params = array()) {
+        return $this->request('send/networks', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetFeeInfo($params = array()) {
         return $this->request('fee_info', 'private', 'GET', $params, null, null, array("cost" => 1));

@@ -800,7 +800,7 @@ public partial class paradex : Exchange
         //         "ask": "69578.2",
         //         "volume_24h": "5815541.397939004",
         //         "total_volume": "584031465.525259686",
-        //         "created_at": 1718170156580,
+        //         "created_at": 1718170156581,
         //         "underlying_price": "67367.37268422",
         //         "open_interest": "162.272",
         //         "funding_rate": "0.01629574927887",
@@ -1331,7 +1331,18 @@ public partial class paradex : Exchange
         object price = this.safeString(order, "price");
         object amount = this.safeString(order, "size");
         object orderType = this.safeString(order, "type");
+        object cancelReason = this.safeString(order, "cancel_reason");
         object status = this.safeString(order, "status");
+        if (isTrue(!isEqual(cancelReason, null)))
+        {
+            if (isTrue(isEqual(cancelReason, "NOT_ENOUGH_MARGIN")))
+            {
+                status = "rejected";
+            } else
+            {
+                status = "canceled";
+            }
+        }
         object side = this.safeStringLower(order, "side");
         object average = this.omitZero(this.safeString(order, "avg_fill_price"));
         object remaining = this.omitZero(this.safeString(order, "remaining_size"));

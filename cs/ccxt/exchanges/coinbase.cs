@@ -1497,16 +1497,6 @@ public partial class coinbase : Exchange
     { "product_type", "FUTURE" },
     { "contract_expiry_type", "PERPETUAL" },
 }))};
-            if (isTrue(this.checkRequiredCredentials(false)))
-            {
-                ((IList<object>)unresolvedContractPromises).Add(this.extend(parameters, new Dictionary<string, object>() {
-                    { "product_type", "FUTURE" },
-                }));
-                ((IList<object>)unresolvedContractPromises).Add(this.extend(parameters, new Dictionary<string, object>() {
-                    { "product_type", "FUTURE" },
-                    { "contract_expiry_type", "PERPETUAL" },
-                }));
-            }
         } catch(Exception e)
         {
             unresolvedContractPromises = new List<object>() {}; // the sync version of ccxt won't have the promise.all line so the request is made here. Some users can't access perpetual products
@@ -1524,8 +1514,8 @@ public partial class coinbase : Exchange
         object fees = this.safeDict(promises, 1, new Dictionary<string, object>() {});
         object expiringFutures = this.safeDict(contractPromises, 0, new Dictionary<string, object>() {});
         object perpetualFutures = this.safeDict(contractPromises, 1, new Dictionary<string, object>() {});
-        object expiringFees = this.safeDict(contractPromises, 2, new Dictionary<string, object>() {});
-        object perpetualFees = this.safeDict(contractPromises, 3, new Dictionary<string, object>() {});
+        object expiringFees = this.safeDict(contractPromises, 0, new Dictionary<string, object>() {});
+        object perpetualFees = this.safeDict(contractPromises, 1, new Dictionary<string, object>() {});
         //
         //     {
         //         "total_volume": 0,
@@ -4948,7 +4938,7 @@ public partial class coinbase : Exchange
      * @method
      * @name coinbase#closePosition
      * @description *futures only* closes open positions for a market
-     * @see https://coinbase-api.github.io/docs/#/en-us/swapV2/trade-api.html#One-Click%20Close%20All%20Positions
+     * @see https://docs.cdp.coinbase.com/coinbase-app/trade/reference/retailbrokerageapi_closeposition
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} [side] not used by coinbase
      * @param {object} [params] extra parameters specific to the coinbase api endpoint
@@ -4961,10 +4951,6 @@ public partial class coinbase : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
-        if (!isTrue(getValue(market, "future")))
-        {
-            throw new NotSupported ((string)add(this.id, " closePosition() only supported for futures markets")) ;
-        }
         object clientOrderId = this.safeString2(parameters, "client_order_id", "clientOrderId");
         parameters = this.omit(parameters, "clientOrderId");
         object request = new Dictionary<string, object>() {
