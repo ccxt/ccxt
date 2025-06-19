@@ -2994,7 +2994,7 @@ export default class bitget extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.category] *uta only* USDT-FUTURES, USDC-FUTURES, COIN-FUTURES, or SPOT
+     * @param {string} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
@@ -3006,19 +3006,17 @@ export default class bitget extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
+        let productType = undefined;
+        [ productType, params ] = this.handleProductTypeAndParams (market, params);
         let response = undefined;
         let uta = undefined;
         [ uta, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'uta', false);
         if (uta) {
-            let category = undefined;
-            [ category, params ] = this.handleProductTypeAndParams (market, params);
-            request['category'] = category;
+            request['category'] = productType;
             response = await this.publicUtaGetV3MarketOrderbook (this.extend (request, params));
         } else if (market['spot']) {
             response = await this.publicSpotGetV2SpotMarketOrderbook (this.extend (request, params));
         } else {
-            let productType = undefined;
-            [ productType, params ] = this.handleProductTypeAndParams (market, params);
             request['productType'] = productType;
             response = await this.publicMixGetV2MixMarketMergeDepth (this.extend (request, params));
         }
@@ -3064,7 +3062,7 @@ export default class bitget extends Exchange {
         //       "ts": "1695793390482"
         //   }
         //
-        // spot: fetchTicker, fetchTickers
+        // spot
         //
         //     {
         //         "open": "37202.46",
@@ -3085,91 +3083,117 @@ export default class bitget extends Exchange {
         //         "change24h": "0.00321"
         //     }
         //
-        // swap and future: fetchTicker
+        // swap and future
         //
         //     {
         //         "symbol": "BTCUSDT",
-        //         "lastPr": "37577.2",
-        //         "askPr": "37577.3",
-        //         "bidPr": "37577.2",
-        //         "bidSz": "3.679",
-        //         "askSz": "0.02",
-        //         "high24h": "37765",
-        //         "low24h": "36628.9",
-        //         "ts": "1700533070359",
-        //         "change24h": "0.00288",
-        //         "baseVolume": "108606.181",
-        //         "quoteVolume": "4051316303.9608",
-        //         "usdtVolume": "4051316303.9608",
-        //         "openUtc": "37451.5",
-        //         "changeUtc24h": "0.00336",
-        //         "indexPrice": "37574.489253",
-        //         "fundingRate": "0.0001",
-        //         "holdingAmount": "53464.529",
+        //         "lastPr": "104823.8",
+        //         "askPr": "104823.8",
+        //         "bidPr": "104823.5",
+        //         "bidSz": "0.703",
+        //         "askSz": "13.894",
+        //         "high24h": "105289.3",
+        //         "low24h": "103447.9",
+        //         "ts": "1750332210370",
+        //         "change24h": "0.00471",
+        //         "baseVolume": "79089.5675",
+        //         "quoteVolume": "8274870921.80485",
+        //         "usdtVolume": "8274870921.80485",
+        //         "openUtc": "104833",
+        //         "changeUtc24h": "-0.00009",
+        //         "indexPrice": "104881.953125",
+        //         "fundingRate": "-0.000014",
+        //         "holdingAmount": "7452.6421",
         //         "deliveryStartTime": null,
         //         "deliveryTime": null,
         //         "deliveryStatus": "",
-        //         "open24h": "37235.7"
+        //         "open24h": "104332.3",
+        //         "markPrice": "104824.2"
         //     }
         //
-        // swap and future: fetchTickers
+        // spot uta
         //
         //     {
-        //         "open": "14.9776",
-        //         "symbol": "LINKUSDT",
-        //         "high24h": "15.3942",
-        //         "low24h": "14.3457",
-        //         "lastPr": "14.3748",
-        //         "quoteVolume": "7008612.4299",
-        //         "baseVolume": "469908.8523",
-        //         "usdtVolume": "7008612.42986561",
-        //         "ts": "1700533772309",
-        //         "bidPr": "14.375",
-        //         "askPr": "14.3769",
-        //         "bidSz": "50.004",
-        //         "askSz": "0.7647",
-        //         "openUtc": "14.478",
-        //         "changeUtc24h": "-0.00713",
-        //         "change24h": "-0.04978"
+        //         "category": "SPOT",
+        //         "symbol": "BTCUSDT",
+        //         "ts": "1750330651972",
+        //         "lastPrice": "104900.2",
+        //         "openPrice24h": "104321.2",
+        //         "highPrice24h": "107956.8",
+        //         "lowPrice24h": "103600.1",
+        //         "ask1Price": "104945.8",
+        //         "bid1Price": "104880.6",
+        //         "bid1Size": "0.266534",
+        //         "ask1Size": "0.014001",
+        //         "price24hPcnt": "0.00555",
+        //         "volume24h": "355.941109",
+        //         "turnover24h": "37302936.008134"
+        //     }
+        //
+        // swap and future uta
+        //
+        //     {
+        //         "category": "USDT-FUTURES",
+        //         "symbol": "BTCUSDT",
+        //         "ts": "1750332730472",
+        //         "lastPrice": "104738",
+        //         "openPrice24h": "104374",
+        //         "highPrice24h": "105289.3",
+        //         "lowPrice24h": "103447.9",
+        //         "ask1Price": "104738",
+        //         "bid1Price": "104737.7",
+        //         "bid1Size": "2.036",
+        //         "ask1Size": "8.094",
+        //         "price24hPcnt": "0.00349",
+        //         "volume24h": "79101.6477",
+        //         "turnover24h": "8276293391.45973",
+        //         "indexPrice": "104785.956168",
+        //         "markPrice": "104738",
+        //         "fundingRate": "-0.000007",
+        //         "openInterest": "7465.5938",
+        //         "deliveryStartTime": "",
+        //         "deliveryTime": "",
+        //         "deliveryStatus": ""
         //     }
         //
         const marketId = this.safeString (ticker, 'symbol');
-        const close = this.safeString (ticker, 'lastPr');
+        const close = this.safeString2 (ticker, 'lastPr', 'lastPrice');
         const timestamp = this.safeIntegerOmitZero (ticker, 'ts'); // exchange bitget provided 0
         const change = this.safeString (ticker, 'change24h');
-        const open24 = this.safeString2 (ticker, 'open24', 'open24h');
-        const open = this.safeString (ticker, 'open');
-        let symbol: string;
-        let openValue: string;
-        if (open === undefined) {
-            symbol = this.safeSymbol (marketId, market, undefined, 'contract');
-            openValue = open24;
+        const category = this.safeString (ticker, 'category');
+        const markPrice = this.safeString (ticker, 'markPrice');
+        let marketType: string;
+        if ((markPrice !== undefined) && (category !== 'SPOT')) {
+            marketType = 'contract';
         } else {
-            symbol = this.safeSymbol (marketId, market, undefined, 'spot');
-            openValue = open;
+            marketType = 'spot';
+        }
+        let percentage = this.safeString (ticker, 'price24hPcnt');
+        if (percentage === undefined) {
+            percentage = Precise.stringMul (change, '100');
         }
         return this.safeTicker ({
-            'symbol': symbol,
+            'symbol': this.safeSymbol (marketId, market, undefined, marketType),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeString (ticker, 'high24h'),
-            'low': this.safeString (ticker, 'low24h'),
-            'bid': this.safeString (ticker, 'bidPr'),
-            'bidVolume': this.safeString (ticker, 'bidSz'),
-            'ask': this.safeString (ticker, 'askPr'),
-            'askVolume': this.safeString (ticker, 'askSz'),
+            'high': this.safeString2 (ticker, 'high24h', 'highPrice24h'),
+            'low': this.safeString2 (ticker, 'low24h', 'lowPrice24h'),
+            'bid': this.safeString2 (ticker, 'bidPr', 'bid1Price'),
+            'bidVolume': this.safeString2 (ticker, 'bidSz', 'bid1Size'),
+            'ask': this.safeString2 (ticker, 'askPr', 'ask1Price'),
+            'askVolume': this.safeString2 (ticker, 'askSz', 'ask1Size'),
             'vwap': undefined,
-            'open': openValue,
+            'open': this.safeStringN (ticker, [ 'open', 'open24h', 'openPrice24h' ]),
             'close': close,
             'last': close,
             'previousClose': undefined,
             'change': change,
-            'percentage': Precise.stringMul (change, '100'),
+            'percentage': percentage,
             'average': undefined,
-            'baseVolume': this.safeString (ticker, 'baseVolume'),
-            'quoteVolume': this.safeString (ticker, 'quoteVolume'),
+            'baseVolume': this.safeString2 (ticker, 'baseVolume', 'volume24h'),
+            'quoteVolume': this.safeString2 (ticker, 'quoteVolume', 'turnover24h'),
             'indexPrice': this.safeString (ticker, 'indexPrice'),
-            'markPrice': this.safeString (ticker, 'markPrice'),
+            'markPrice': markPrice,
             'info': ticker,
         }, market);
     }
@@ -3180,8 +3204,10 @@ export default class bitget extends Exchange {
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @see https://www.bitget.com/api-doc/spot/market/Get-Tickers
      * @see https://www.bitget.com/api-doc/contract/market/Get-Ticker
+     * @see https://www.bitget.bike/api-doc/uta/public/Tickers
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
@@ -3190,12 +3216,17 @@ export default class bitget extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
+        let productType = undefined;
+        [ productType, params ] = this.handleProductTypeAndParams (market, params);
         let response = undefined;
-        if (market['spot']) {
+        let uta = undefined;
+        [ uta, params ] = this.handleOptionAndParams (params, 'fetchTicker', 'uta', false);
+        if (uta) {
+            request['category'] = productType;
+            response = await this.publicUtaGetV3MarketTickers (this.extend (request, params));
+        } else if (market['spot']) {
             response = await this.publicSpotGetV2SpotMarketTickers (this.extend (request, params));
         } else {
-            let productType = undefined;
-            [ productType, params ] = this.handleProductTypeAndParams (market, params);
             request['productType'] = productType;
             response = await this.publicMixGetV2MixMarketTicker (this.extend (request, params));
         }
@@ -3230,34 +3261,94 @@ export default class bitget extends Exchange {
         //
         // swap and future
         //
-        //     {
+        //      {
         //         "code": "00000",
         //         "msg": "success",
-        //         "requestTime": 1700533070357,
+        //         "requestTime": 1750332210369,
         //         "data": [
         //             {
         //                 "symbol": "BTCUSDT",
-        //                 "lastPr": "37577.2",
-        //                 "askPr": "37577.3",
-        //                 "bidPr": "37577.2",
-        //                 "bidSz": "3.679",
-        //                 "askSz": "0.02",
-        //                 "high24h": "37765",
-        //                 "low24h": "36628.9",
-        //                 "ts": "1700533070359",
-        //                 "change24h": "0.00288",
-        //                 "baseVolume": "108606.181",
-        //                 "quoteVolume": "4051316303.9608",
-        //                 "usdtVolume": "4051316303.9608",
-        //                 "openUtc": "37451.5",
-        //                 "changeUtc24h": "0.00336",
-        //                 "indexPrice": "37574.489253",
-        //                 "fundingRate": "0.0001",
-        //                 "holdingAmount": "53464.529",
+        //                 "lastPr": "104823.8",
+        //                 "askPr": "104823.8",
+        //                 "bidPr": "104823.5",
+        //                 "bidSz": "0.703",
+        //                 "askSz": "13.894",
+        //                 "high24h": "105289.3",
+        //                 "low24h": "103447.9",
+        //                 "ts": "1750332210370",
+        //                 "change24h": "0.00471",
+        //                 "baseVolume": "79089.5675",
+        //                 "quoteVolume": "8274870921.80485",
+        //                 "usdtVolume": "8274870921.80485",
+        //                 "openUtc": "104833",
+        //                 "changeUtc24h": "-0.00009",
+        //                 "indexPrice": "104881.953125",
+        //                 "fundingRate": "-0.000014",
+        //                 "holdingAmount": "7452.6421",
         //                 "deliveryStartTime": null,
         //                 "deliveryTime": null,
         //                 "deliveryStatus": "",
-        //                 "open24h": "37235.7"
+        //                 "open24h": "104332.3",
+        //                 "markPrice": "104824.2"
+        //             }
+        //         ]
+        //     }
+        //
+        // spot uta
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1750330653575,
+        //         "data": [
+        //             {
+        //                 "category": "SPOT",
+        //                 "symbol": "BTCUSDT",
+        //                 "ts": "1750330651972",
+        //                 "lastPrice": "104900.2",
+        //                 "openPrice24h": "104321.2",
+        //                 "highPrice24h": "107956.8",
+        //                 "lowPrice24h": "103600.1",
+        //                 "ask1Price": "104945.8",
+        //                 "bid1Price": "104880.6",
+        //                 "bid1Size": "0.266534",
+        //                 "ask1Size": "0.014001",
+        //                 "price24hPcnt": "0.00555",
+        //                 "volume24h": "355.941109",
+        //                 "turnover24h": "37302936.008134"
+        //             }
+        //         ]
+        //     }
+        //
+        // swap and future uta
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1750332731203,
+        //         "data": [
+        //             {
+        //                 "category": "USDT-FUTURES",
+        //                 "symbol": "BTCUSDT",
+        //                 "ts": "1750332730472",
+        //                 "lastPrice": "104738",
+        //                 "openPrice24h": "104374",
+        //                 "highPrice24h": "105289.3",
+        //                 "lowPrice24h": "103447.9",
+        //                 "ask1Price": "104738",
+        //                 "bid1Price": "104737.7",
+        //                 "bid1Size": "2.036",
+        //                 "ask1Size": "8.094",
+        //                 "price24hPcnt": "0.00349",
+        //                 "volume24h": "79101.6477",
+        //                 "turnover24h": "8276293391.45973",
+        //                 "indexPrice": "104785.956168",
+        //                 "markPrice": "104738",
+        //                 "fundingRate": "-0.000007",
+        //                 "openInterest": "7465.5938",
+        //                 "deliveryStartTime": "",
+        //                 "deliveryTime": "",
+        //                 "deliveryStatus": ""
         //             }
         //         ]
         //     }

@@ -1657,6 +1657,22 @@
                 "input": [
                     "BTC/USDT"
                 ]
+            },
+            {
+                "description": "spot uta ticker",
+                "method": "fetchTicker",
+                "url": "https://api.bitget.com/api/v3/market/tickers?symbol=BTCUSDT&category=SPOT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "swap uta ticker",
+                "method": "fetchTicker",
+                "url": "https://api.bitget.com/api/v3/market/tickers?symbol=BTCUSDT&category=USDT-FUTURES",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
             }
         ],
         "fetchTickers": [
