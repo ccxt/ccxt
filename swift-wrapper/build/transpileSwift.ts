@@ -452,6 +452,7 @@ const goMethodDeclaration = (methodName: string, params: {[key: string]: [string
                     if s, ok := v.(string); ok {
                         ${paramName} = append(${paramName}, s)
                     }
+                    delete(decoded, "${paramName}")
                 }
             }
         }
@@ -462,6 +463,7 @@ const goMethodDeclaration = (methodName: string, params: {[key: string]: [string
             if f, ok := v.(${tsTypeToGo(paramType).replace('int', 'float64')}); ok {
                 ${paramName} = ${tsTypeToGo(paramType)}(f)
             }
+            delete(decoded, "${paramName}")
         }`
         }}).join("\n")
         }
@@ -553,8 +555,8 @@ const swiftMethodDeclaration = (methodName: string, params: {[key: string]: [str
 
 const exchangeDeclaration = (exchangeName: string) => (`
 public class ${capitalize(exchangeName)}: CCXTExchange {
-    public init?(configJson: String) {
-        super.init(exchangeName: "${exchangeName}", configJson: configJson)
+    public init?(config: [String: Any]? = nil) {
+        super.init(exchangeName: "${exchangeName}", config: config)
     }
 }`);
 
