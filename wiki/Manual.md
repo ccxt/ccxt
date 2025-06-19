@@ -1584,7 +1584,7 @@ var_dump($bitfinex->markets['XRP/BTC']);
 
 ### Caching the markets data
 
-As `loadMarkets()` i a "bootstrap" method, after every instantiating of exchange it is taking several seconds. However, CCXT supports I/O caching of `loadMarkets` method (which is a "bootstrap" method for the instance), so you can load markets & currencies instantly from your preferred cache - `.json` file, `SQL` database, `Redis` or etc.
+Typically, after instantiating an exchange `loadMarkets()` might take several seconds. However, CCXT supports I/O caching of `loadMarkets` method (which is a "bootstrap" method for the instance), so you can load markets & currencies instantly from your preferred cache - `.json` file, `SQL` database, `Redis` or etc.
 
 You should pass your preferred callbacks in `marketsCache` property when instantiating an exchange. A simple example using a file-caching (by JSON stringify & parse):
 
