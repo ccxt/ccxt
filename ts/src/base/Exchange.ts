@@ -1013,13 +1013,15 @@ export default class Exchange {
         let currencies = undefined;
         let markets = undefined;
         // only call if exchange API provides endpoint (true), thus avoid emulated versions ('emulated')
-        const cacheEnabled = this.safeBool (this.marketsCache, 'enable', false);
-        if (cacheEnabled) {
-            const getter = this.marketsCache['getter'];
-            const values = await getter('ccxt_' + this.id + '_markets_and_currencies');
-            if (values) {
-                markets = values.markets;
-                currencies = values.currencies;
+        const cachingMode = this.safeString (this.marketsCache, 'mode');
+        if (cachingMode !== undefined) {
+            if (cachingMode === 'callback') {
+                const getCallback = this.marketsCache['get'];
+                const values = await getCallback('ccxt_' + this.id + '_markets_and_currencies');
+                if (values) {
+                    markets = values.markets;
+                    currencies = values.currencies;
+                }
             }
         }
         if (markets === undefined) {
@@ -1032,9 +1034,13 @@ export default class Exchange {
                 delete this.options['cachedCurrencies'];
             }
             // write new cache
-            if (cacheEnabled) {
-                const setter = this.marketsCache['setter'];
-                await setter('ccxt_' + this.id + '_markets_and_currencies', {markets:markets, currencies:currencies, timestamp: this.milliseconds ()});
+            if (cachingMode === 'callback') {
+                const setCallback = this.marketsCache['set'];
+                await setCallback ('ccxt_' + this.id + '_markets_and_currencies', {
+                    markets: markets,
+                    currencies: currencies,
+                    timestamp: this.milliseconds()
+                });
             }
         }
         return this.setMarkets (markets, currencies);
