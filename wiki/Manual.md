@@ -1249,7 +1249,7 @@ var_dump($huobipro->id, $markets);
 
 The `loadMarkets () / load_markets ()` fetches and stores the markets & currencies data within the exchange instance. You only need to call it once per exchange. All subsequent calls to `loadMarkets` will return that data (stored inside instance). 
 
-To bypass the stored data and re-fetch the updated markets info, call it with force argument - `loadMarkets(true)`. You can also manually call `fetchMarkets()` and `fetchCurrencies()`, though using these methods is not recommended for end-users.
+To bypass the stored data and re-fetch the updated markets info, call it with force argument - `loadMarkets(true)`. You can also manually call `fetchMarkets()` and `fetchCurrencies()`, however end-users typically do not need to call those methods manually. The recommended way to preload markets is by calling the `loadMarkets` method.
 
 ## Symbols And Market Ids
 
