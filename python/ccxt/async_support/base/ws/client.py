@@ -37,7 +37,6 @@ class Client(object):
     connecting = False
     asyncio_loop: BaseEventLoop = None
     ping_looper = None
-    receive_looper = None
 
     def __init__(self, url, on_message_callback, on_error_callback, on_close_callback, on_connected_callback, config={}):
         defaults = {
