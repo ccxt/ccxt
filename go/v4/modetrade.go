@@ -1933,7 +1933,7 @@ func  (this *modetrade) CancelOrder(id interface{}, optionalArgs ...interface{})
             //
             // {
             //     "success": true,
-            //     "timestamp": 1702989203989,
+            //     "timestamp": 1702989203988,
             //     "data": {
             //       "status": "CANCEL_SENT"
             //     }
@@ -1941,7 +1941,7 @@ func  (this *modetrade) CancelOrder(id interface{}, optionalArgs ...interface{})
             //
             // {
             //     "success": true,
-            //     "timestamp": 1702989203989,
+            //     "timestamp": 1702989203988,
             //     "status": "CANCEL_SENT"
             // }
             //

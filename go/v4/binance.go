@@ -11195,7 +11195,7 @@ func  (this *binance) LoadLeverageBrackets(optionalArgs ...interface{}) <- chan 
                 } else {
                     panic(NotSupported(Add(this.Id, " loadLeverageBrackets() supports linear and inverse contracts only")))
                 }
-                AddElementToObject(this.Options, "leverageBrackets", map[string]interface{} {})
+                AddElementToObject(this.Options, "leverageBrackets", this.CreateSafeDictionary())
                 for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
                     var entry interface{} = GetValue(response, i)
                     var marketId interface{} = this.SafeString(entry, "symbol")

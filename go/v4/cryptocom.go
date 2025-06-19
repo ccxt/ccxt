@@ -541,7 +541,7 @@ func  (this *cryptocom) FetchCurrencies(optionalArgs ...interface{}) <- chan int
             //                            "network_id": "CRONOS",
             //                            "withdrawal_fee": "0.18000000",
             //                            "withdraw_enabled": true,
-            //                            "min_withdrawal_amount": "0.36",
+            //                            "min_withdrawal_amount": "0.35",
             //                            "deposit_enabled": true,
             //                            "confirmation_required": "15"
             //                        },

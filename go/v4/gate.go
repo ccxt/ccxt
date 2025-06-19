@@ -1217,7 +1217,7 @@ func  (this *gate) FetchMarkets(optionalArgs ...interface{}) <- chan interface{}
             var sandboxMode interface{} = this.SafeBool(this.Options, "sandboxMode", false)
             var rawPromises interface{} = []interface{}{this.FetchContractMarkets(params), this.FetchOptionMarkets(params)}
             if !IsTrue(sandboxMode) {
-                // gate does not have a sandbox for spot markets
+                // gate doesn't have a sandbox for spot markets
                 var mainnetOnly interface{} = []interface{}{this.FetchSpotMarkets(params)}
                 rawPromises = this.ArrayConcat(rawPromises, mainnetOnly)
             }
@@ -1682,7 +1682,7 @@ func  (this *gate) FetchOptionMarkets(optionalArgs ...interface{}) <- chan inter
                         "contractSize": this.ParseNumber("1"),
                         "expiry": expiry,
                         "expiryDatetime": this.Iso8601(expiry),
-                        "strike": strike,
+                        "strike": this.ParseNumber(strike),
                         "optionType": optionType,
                         "precision": map[string]interface{} {
                             "amount": this.ParseNumber("1"),

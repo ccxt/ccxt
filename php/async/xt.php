@@ -2991,7 +2991,7 @@ class xt extends Exchange {
                 if ($trigger || $stopLossTakeProfit) {
                     $request['state'] = 'NOT_TRIGGERED';
                 } elseif ($type === 'swap') {
-                    $request['state'] = 'NEW';
+                    $request['state'] = 'UNFINISHED'; // NEW & PARTIALLY_FILLED
                 }
             } elseif ($status === 'closed') {
                 if ($trigger || $stopLossTakeProfit) {

@@ -1235,7 +1235,7 @@ export default class gate extends Exchange {
             this.fetchOptionMarkets(params),
         ];
         if (!sandboxMode) {
-            // gate does not have a sandbox for spot markets
+            // gate doesn't have a sandbox for spot markets
             const mainnetOnly = [this.fetchSpotMarkets(params)];
             rawPromises = this.arrayConcat(rawPromises, mainnetOnly);
         }
@@ -1655,7 +1655,7 @@ export default class gate extends Exchange {
                     'contractSize': this.parseNumber('1'),
                     'expiry': expiry,
                     'expiryDatetime': this.iso8601(expiry),
-                    'strike': strike,
+                    'strike': this.parseNumber(strike),
                     'optionType': optionType,
                     'precision': {
                         'amount': this.parseNumber('1'),
