@@ -111,7 +111,7 @@ class Client(object):
                 self.buffer[0] = (self.buffer[0][0], self.buffer[0][1] + size_delta)
 
             task = self.asyncio_loop.create_task(self.receive())
-            def after_interupt(resolved: asyncioFuture):
+            def after_interrupt(resolved: asyncioFuture):
                 exception = resolved.exception()
                 if exception is None:
                     self.handle_message(resolved.result())
@@ -121,7 +121,8 @@ class Client(object):
                     if self.verbose:
                         self.log(iso8601(milliseconds()), 'receive_loop', 'Exception', error)
                     self.reset(error)
-            task.add_done_callback(after_interupt)
+
+            task.add_done_callback(after_interrupt)
 
     async def open(self, session, backoff_delay=0):
         # exponential backoff for consequent connections if necessary
