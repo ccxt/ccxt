@@ -17,6 +17,7 @@ gomobile init
 mkdir -p "$OUTPUT_DIR"
 
 # Build into the right folder for SPM
+export GOMOBILE_WORK=./.cache/gomobile
 gomobile bind -target=ios,iossimulator,macos -o "$framework" .
 
 cp ../LICENSE.txt $OUTPUT_DIR/LICENSE.txt

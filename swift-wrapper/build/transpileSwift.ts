@@ -20,6 +20,8 @@ const customTypes = [   // Only those types that appear in swift headers
     'OrderRequest',
 ];
 
+const isArray = (paramType: string): boolean => paramType.includes('[]') || paramType === 'Strings';
+
 function splitAtProblemPhrase(methodName: string): string[] {
     if (methodName === 'signIn') {
         return ['sign', 'in: '];
@@ -403,19 +405,20 @@ const goMethodDeclaration = (methodName: string, params: {[key: string]: [string
     const customTypeParams: string[] = [];
     const callParams: string[] = [];
     const headerParams: string[] = [];
+    const optionalParams: [string, string][] = [];
     Object.keys(params).forEach((paramName: string) => {
         const [paramType, defaultValue] = params[paramName];
+        if (paramName === 'type') {
+            paramName = 'typeVar';
+        }
         if (defaultValue !== 'undefined') {
-            if (paramName === 'type') {
-                paramName = 'typeVar';
-            }
             let newName = paramName;
             let goType = tsTypeToGo(paramType)
             if (customTypes.includes(paramType)) {
                 customTypeParams.push(paramName);
                 newName = `${paramName}_object`;
                 goType = 'string';
-            } else if (paramType.includes('[]')) {
+            } else if (isArray(paramType)) {
                 arrayParams.push(paramName);
                 newName = `${paramName}_arr`;
                 goType = 'string';
@@ -424,6 +427,9 @@ const goMethodDeclaration = (methodName: string, params: {[key: string]: [string
             }
             headerParams.push(`${paramName} ${goType}`);
             callParams.push(newName);
+        } else {
+            optionalParams.push([paramName, paramType]);
+            callParams.push(paramName);
         }
     });
     const capsMethodName = capitalize(methodName);
@@ -435,6 +441,29 @@ const goMethodDeclaration = (methodName: string, params: {[key: string]: [string
         var decoded map[string]interface{}
         if err := json.Unmarshal(params, &decoded); err != nil {
             return nil, err
+        }
+        ${optionalParams.map(([paramName, paramType]) => {
+        if (isArray(paramType)) {
+            return`
+        var ${paramName} ${tsTypeToGo(paramType)}
+        if raw${paramName}, ok := decoded["${paramName}"]; ok {
+            if arr, ok := raw${paramName}.([]interface{}); ok {
+                for _, v := range arr {
+                    if s, ok := v.(string); ok {
+                        ${paramName} = append(${paramName}, s)
+                    }
+                }
+            }
+        }
+        ` } else { 
+            return `
+        var ${paramName} ${tsTypeToGo(paramType)}
+        if v, ok := decoded["${paramName}"]; ok && v != nil {
+            if f, ok := v.(${tsTypeToGo(paramType).replace('int', 'float64')}); ok {
+                ${paramName} = ${tsTypeToGo(paramType)}(f)
+            }
+        }`
+        }}).join("\n")
         }
         res := <-e.exchange.${capsMethodName}(${callParams.join(', ')})
         if err, ok := res.(error); ok {
