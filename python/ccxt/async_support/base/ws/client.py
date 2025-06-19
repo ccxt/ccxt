@@ -135,8 +135,6 @@ class Client(object):
         try:
             coroutine = self.create_connection(session)
             self.connection = await wait_for(coroutine, timeout=int(self.connectionTimeout / 1000))
-            # enable the fast client
-            #self.connection._conn.protocol._payload = WebSocketDataQueue(self.connection.protocol,  2**16, loop=self.asyncio_loop)
             self.connecting = False
             self.connectionEstablished = milliseconds()
             self.isConnected = True
