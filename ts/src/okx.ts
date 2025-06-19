@@ -1552,12 +1552,12 @@ export default class okx extends Exchange {
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference ();
         }
-        let types = undefined;
+        let types = [ 'spot', 'future', 'swap', 'option' ];
         const fetchMarketsOption = this.safeDict (this.options, 'fetchMarkets');
         if (fetchMarketsOption !== undefined) {
-            types = this.safeList (fetchMarketsOption, 'types', []);
+            types = this.safeList (fetchMarketsOption, 'types', types);
         } else {
-            types = this.safeList (this.options, 'fetchMarkets', []); // backward-support
+            types = this.safeList (this.options, 'fetchMarkets', types); // backward-support
         }
         let promises = [];
         let result = [];
