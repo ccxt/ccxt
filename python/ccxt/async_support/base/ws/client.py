@@ -98,7 +98,6 @@ class Client(object):
         if not self.closed():
             # let's drain the aiohttp buffer to avoid latency
             if len(self.buffer) > 1:
-                print(len(self.buffer))
                 size_delta = 0
                 while len(self.buffer) > 1:
                     message, size = self.buffer.popleft()
