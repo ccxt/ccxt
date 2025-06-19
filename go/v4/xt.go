@@ -3288,7 +3288,7 @@ func  (this *xt) FetchOrdersByStatus(status interface{}, optionalArgs ...interfa
                 if IsTrue(IsTrue(trigger) || IsTrue(stopLossTakeProfit)) {
                     AddElementToObject(request, "state", "NOT_TRIGGERED")
                 } else if IsTrue(IsEqual(typeVar, "swap")) {
-                    AddElementToObject(request, "state", "NEW")
+                    AddElementToObject(request, "state", "UNFINISHED") // NEW & PARTIALLY_FILLED
                 }
             } else if IsTrue(IsEqual(status, "closed")) {
                 if IsTrue(IsTrue(trigger) || IsTrue(stopLossTakeProfit)) {
