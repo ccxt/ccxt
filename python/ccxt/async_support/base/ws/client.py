@@ -111,6 +111,7 @@ class Client(object):
                 self.buffer[0] = (self.buffer[0][0], self.buffer[0][1] + size_delta)
 
             task = self.asyncio_loop.create_task(self.receive())
+
             def after_interrupt(resolved: asyncioFuture):
                 exception = resolved.exception()
                 if exception is None:
