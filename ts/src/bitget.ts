@@ -3391,8 +3391,10 @@ export default class bitget extends Exchange {
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @see https://www.bitget.com/api-doc/spot/market/Get-Tickers
      * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
+     * @see https://www.bitget.bike/api-doc/uta/public/Tickers
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @param {string} [params.subType] *contract only* 'linear', 'inverse'
      * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -3415,7 +3417,15 @@ export default class bitget extends Exchange {
         let productType = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
         // only if passedSubType && productType is undefined, then use spot
-        if (type === 'spot' && passedSubType === undefined) {
+        let uta = undefined;
+        [ uta, params ] = this.handleOptionAndParams (params, 'fetchTickers', 'uta', false);
+        if (uta) {
+            if ((symbols !== undefined) && (symbols.length === 1)) {
+                request['symbol'] = market['id'];
+            }
+            request['category'] = productType;
+            response = await this.publicUtaGetV3MarketTickers (this.extend (request, params));
+        } else if (type === 'spot' && passedSubType === undefined) {
             response = await this.publicSpotGetV2SpotMarketTickers (this.extend (request, params));
         } else {
             request['productType'] = productType;
@@ -3475,6 +3485,65 @@ export default class bitget extends Exchange {
         //                 "changeUtc24h": "-0.00713",
         //                 "change24h": "-0.04978"
         //             },
+        //         ]
+        //     }
+        //
+        // spot uta
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1750330653575,
+        //         "data": [
+        //             {
+        //                 "category": "SPOT",
+        //                 "symbol": "BTCUSDT",
+        //                 "ts": "1750330651972",
+        //                 "lastPrice": "104900.2",
+        //                 "openPrice24h": "104321.2",
+        //                 "highPrice24h": "107956.8",
+        //                 "lowPrice24h": "103600.1",
+        //                 "ask1Price": "104945.8",
+        //                 "bid1Price": "104880.6",
+        //                 "bid1Size": "0.266534",
+        //                 "ask1Size": "0.014001",
+        //                 "price24hPcnt": "0.00555",
+        //                 "volume24h": "355.941109",
+        //                 "turnover24h": "37302936.008134"
+        //             }
+        //         ]
+        //     }
+        //
+        // swap and future uta
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1750332731203,
+        //         "data": [
+        //             {
+        //                 "category": "USDT-FUTURES",
+        //                 "symbol": "BTCUSDT",
+        //                 "ts": "1750332730472",
+        //                 "lastPrice": "104738",
+        //                 "openPrice24h": "104374",
+        //                 "highPrice24h": "105289.3",
+        //                 "lowPrice24h": "103447.9",
+        //                 "ask1Price": "104738",
+        //                 "bid1Price": "104737.7",
+        //                 "bid1Size": "2.036",
+        //                 "ask1Size": "8.094",
+        //                 "price24hPcnt": "0.00349",
+        //                 "volume24h": "79101.6477",
+        //                 "turnover24h": "8276293391.45973",
+        //                 "indexPrice": "104785.956168",
+        //                 "markPrice": "104738",
+        //                 "fundingRate": "-0.000007",
+        //                 "openInterest": "7465.5938",
+        //                 "deliveryStartTime": "",
+        //                 "deliveryTime": "",
+        //                 "deliveryStatus": ""
+        //             }
         //         ]
         //     }
         //

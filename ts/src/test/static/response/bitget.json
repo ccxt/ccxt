@@ -2701,6 +2701,168 @@
                 }
             }
         ],
+        "fetchTickers": [
+            {
+                "description": "uta fetchTickers for one spot symbol",
+                "method": "fetchTickers",
+                "input": [
+                    [
+                        "BTC/USDT"
+                    ]
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1750334229788",
+                    "data": [
+                        {
+                            "category": "SPOT",
+                            "symbol": "BTCUSDT",
+                            "ts": "1750334228806",
+                            "lastPrice": "104788.4",
+                            "openPrice24h": "104791.3",
+                            "highPrice24h": "107956.8",
+                            "lowPrice24h": "103600.1",
+                            "ask1Price": "104815.9",
+                            "bid1Price": "104751",
+                            "bid1Size": "0.125492",
+                            "ask1Size": "0.149644",
+                            "price24hPcnt": "-0.00003",
+                            "volume24h": "355.263388",
+                            "turnover24h": "37234243.664431"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "BTC/USDT": {
+                        "symbol": "BTC/USDT",
+                        "timestamp": 1750334228806,
+                        "datetime": "2025-06-19T11:57:08.806Z",
+                        "high": 107956.8,
+                        "low": 103600.1,
+                        "bid": 104751,
+                        "bidVolume": 0.125492,
+                        "ask": 104815.9,
+                        "askVolume": 0.149644,
+                        "vwap": 104807.43280090264,
+                        "open": 104791.3,
+                        "close": 104788.4,
+                        "last": 104788.4,
+                        "previousClose": null,
+                        "change": -2.9,
+                        "percentage": -0.00003,
+                        "average": 104789.85,
+                        "baseVolume": 355.263388,
+                        "quoteVolume": 37234243.664431,
+                        "indexPrice": null,
+                        "markPrice": null,
+                        "info": {
+                            "category": "SPOT",
+                            "symbol": "BTCUSDT",
+                            "ts": "1750334228806",
+                            "lastPrice": "104788.4",
+                            "openPrice24h": "104791.3",
+                            "highPrice24h": "107956.8",
+                            "lowPrice24h": "103600.1",
+                            "ask1Price": "104815.9",
+                            "bid1Price": "104751",
+                            "bid1Size": "0.125492",
+                            "ask1Size": "0.149644",
+                            "price24hPcnt": "-0.00003",
+                            "volume24h": "355.263388",
+                            "turnover24h": "37234243.664431"
+                        }
+                    }
+                }
+            },
+            {
+                "description": "uta fetchTickers for one swap symbol",
+                "method": "fetchTickers",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1750334310312",
+                    "data": [
+                        {
+                            "category": "USDT-FUTURES",
+                            "symbol": "BTCUSDT",
+                            "ts": "1750334309513",
+                            "lastPrice": "104729.7",
+                            "openPrice24h": "104802.5",
+                            "highPrice24h": "105289.3",
+                            "lowPrice24h": "103447.9",
+                            "ask1Price": "104730",
+                            "bid1Price": "104729.7",
+                            "bid1Size": "0.93",
+                            "ask1Size": "16.552",
+                            "price24hPcnt": "-0.00069",
+                            "volume24h": "78707.6671",
+                            "turnover24h": "8235184689.65167",
+                            "indexPrice": "104784.231437",
+                            "markPrice": "104730.5",
+                            "fundingRate": "0.000003",
+                            "openInterest": "7506.4296",
+                            "deliveryStartTime": "",
+                            "deliveryTime": "",
+                            "deliveryStatus": ""
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "BTC/USDT:USDT": {
+                        "symbol": "BTC/USDT:USDT",
+                        "timestamp": 1750334309513,
+                        "datetime": "2025-06-19T11:58:29.513Z",
+                        "high": 105289.3,
+                        "low": 103447.9,
+                        "bid": 104729.7,
+                        "bidVolume": 0.93,
+                        "ask": 104730,
+                        "askVolume": 16.552,
+                        "vwap": 104630.01881619319,
+                        "open": 104802.5,
+                        "close": 104729.7,
+                        "last": 104729.7,
+                        "previousClose": null,
+                        "change": -72.8,
+                        "percentage": -0.00069,
+                        "average": 104766.1,
+                        "baseVolume": 78707.6671,
+                        "quoteVolume": 8235184689.65167,
+                        "indexPrice": 104784.231437,
+                        "markPrice": 104730.5,
+                        "info": {
+                            "category": "USDT-FUTURES",
+                            "symbol": "BTCUSDT",
+                            "ts": "1750334309513",
+                            "lastPrice": "104729.7",
+                            "openPrice24h": "104802.5",
+                            "highPrice24h": "105289.3",
+                            "lowPrice24h": "103447.9",
+                            "ask1Price": "104730",
+                            "bid1Price": "104729.7",
+                            "bid1Size": "0.93",
+                            "ask1Size": "16.552",
+                            "price24hPcnt": "-0.00069",
+                            "volume24h": "78707.6671",
+                            "turnover24h": "8235184689.65167",
+                            "indexPrice": "104784.231437",
+                            "markPrice": "104730.5",
+                            "fundingRate": "0.000003",
+                            "openInterest": "7506.4296",
+                            "deliveryStartTime": "",
+                            "deliveryTime": "",
+                            "deliveryStatus": ""
+                        }
+                    }
+                }
+            }
+        ],
         "fetchPosition": [
             {
                 "description": "fetch position",

@@ -1731,6 +1731,26 @@
                         "productType": "USDC-FUTURES"
                     }
                 ]
+            },
+            {
+                "description": "uta spot tickers",
+                "method": "fetchTickers",
+                "url": "https://api.bitget.com/api/v3/market/tickers?symbol=BTCUSDT&category=SPOT",
+                "input": [
+                    [
+                        "BTC/USDT"
+                    ]
+                ]
+            },
+            {
+                "description": "uta swap tickers",
+                "method": "fetchTickers",
+                "url": "https://api.bitget.com/api/v3/market/tickers?symbol=BTCUSDT&category=USDT-FUTURES",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ]
             }
         ],
         "fetchFundingRateHistory": [
