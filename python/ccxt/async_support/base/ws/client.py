@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from asyncio import sleep, ensure_future, wait_for, TimeoutError
+from asyncio import sleep, ensure_future, wait_for, TimeoutError, BaseEventLoop, Future as asyncioFuture
 from .functions import milliseconds, iso8601, deep_extend
 from ccxt import NetworkError, RequestTimeout, NotSupported
 from ccxt.async_support.base.ws.future import Future
@@ -35,7 +35,7 @@ class Client(object):
     inflate = False
     throttle = None
     connecting = False
-    asyncio_loop = None
+    asyncio_loop: BaseEventLoop = None
     ping_looper = None
     receive_looper = None
 
@@ -93,38 +93,37 @@ class Client(object):
                 self.reject(result, message_hash)
         return result
 
-    async def receive_loop(self):
+    def receive_loop(self):
         if self.verbose:
             self.log(iso8601(milliseconds()), 'receive loop')
-        while not self.closed():
-            try:
-                # let's drain the aiohttp buffer to avoid latency
-                if len(self.buffer) > 1:
-                    print(len(self.buffer))
+        if not self.closed():
+            # let's drain the aiohttp buffer to avoid latency
+            if len(self.buffer) > 1:
+                print(len(self.buffer))
+                size_delta = 0
                 while len(self.buffer) > 1:
-                    message = self.buffer.popleft()
-                    self.handle_message(message[0])
-                print('awaiting...')
-                print(self.connection._conn.protocol.transport._protocol_paused)
-                pause = self.connection._conn.protocol.transport.pause_reading
-                def wrap(transport):
-                    print('pause_reading ran')
+                    message, size = self.buffer.popleft()
+                    size_delta += size
+                    self.handle_message(message)
+                # we must update the size of the last message inside WebSocketDataQueue 
+                # self.receive() calls WebSocketDataQueue.read() that calls WebSocketDataQueue._read_from_buffer()
+                # which updates the size of the buffer, the _size will overflow and pause the transport
+                # make sure to set the enviroment variable AIOHTTP_NO_EXTENSIONS=Y to check
+                # print(self.connection._conn.protocol._payload._size)
+                self.buffer[0] = (self.buffer[0][0], self.buffer[0][1] + size_delta)
 
-                self.connection._conn.protocol.transport.pause_reading = wrap
-                message = await self.receive()
-                print('returned')
-                # self.log(iso8601(milliseconds()), 'received', message)
-                self.handle_message(message)
-                # now force a context switch
-                await sleep(0)
-
-            except Exception as e:
-                error = NetworkError(str(e))
-                print('error', error)
-                if self.verbose:
-                    self.log(iso8601(milliseconds()), 'receive_loop', 'Exception', error)
-                self.reset(error)
-                break
+            task = self.asyncio_loop.create_task(self.receive())
+            def after_interupt(resolved: asyncioFuture):
+                exception = resolved.exception()
+                if exception is None:
+                    self.handle_message(resolved.result())
+                    self.asyncio_loop.call_soon(self.receive_loop)
+                else:
+                    error = NetworkError(str(exception))
+                    if self.verbose:
+                        self.log(iso8601(milliseconds()), 'receive_loop', 'Exception', error)
+                    self.reset(error)
+            task.add_done_callback(after_interupt)
 
     async def open(self, session, backoff_delay=0):
         # exponential backoff for consequent connections if necessary
@@ -147,7 +146,7 @@ class Client(object):
             self.on_connected_callback(self)
             # run both loops forever
             self.ping_looper = ensure_future(self.ping_loop(), loop=self.asyncio_loop)
-            self.receive_looper = ensure_future(self.receive_loop(), loop=self.asyncio_loop)
+            self.asyncio_loop.call_soon(self.receive_loop)
         except TimeoutError:
             # connection timeout
             error = RequestTimeout('Connection timeout')
