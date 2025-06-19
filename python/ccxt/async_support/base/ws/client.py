@@ -103,7 +103,7 @@ class Client(object):
                     message, size = self.buffer.popleft()
                     size_delta += size
                     self.handle_message(message)
-                # we must update the size of the last message inside WebSocketDataQueue 
+                # we must update the size of the last message inside WebSocketDataQueue
                 # self.receive() calls WebSocketDataQueue.read() that calls WebSocketDataQueue._read_from_buffer()
                 # which updates the size of the buffer, the _size will overflow and pause the transport
                 # make sure to set the enviroment variable AIOHTTP_NO_EXTENSIONS=Y to check
@@ -155,7 +155,7 @@ class Client(object):
             if self.verbose:
                 self.log(iso8601(milliseconds()), 'NetworkError', error)
             self.on_error(error)
-    
+  
     @property
     def buffer(self):
         # looks like they exposed it in C
