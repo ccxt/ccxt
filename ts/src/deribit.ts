@@ -487,9 +487,6 @@ export default class deribit extends Exchange {
                 'fetchBalance': {
                     'code': 'BTC',
                 },
-                'fetchTickers': {
-                    'codes': [ 'BTC', 'ETH', 'USDC', 'USDT', 'EURR' ], // all codes per https://docs.deribit.com/#public-get_book_summary_by_currency
-                },
                 'transfer': {
                     'method': 'privateGetSubmitTransferToSubaccount', // or 'privateGetSubmitTransferToUser'
                 },
