@@ -251,8 +251,6 @@ class Exchange {
         '407' => 'AuthenticationError',
         '511' => 'AuthenticationError',
     );
-    public $marketsCache = array();
-
     public $verbose = false;
     public $apiKey = '';
     public $secret = '';
@@ -1621,31 +1619,12 @@ class Exchange {
             return $this->markets;
         }
         $currencies = null;
-        $markets = null;
-        $cacheEnabled = $this->safeBool($this->marketsCache, 'enable', false);
-        if ($cacheEnabled) {
-            $getter = $this->marketsCache['getter'];
-            $values = $getter('ccxt_' . $this->id . '_markets_and_currencies');
-            if ($values) {
-                $markets = $values['markets'];
-                $currencies = $values['currencies'];
-            }
+        if (array_key_exists('fetchCurrencies', $this->has) && $this->has['fetchCurrencies'] === true) {
+            $currencies = $this->fetch_currencies();
+            $this->options['cachedCurrencies'] = $currencies;
         }
-        if ($markets === null) {
-            if (array_key_exists('fetchCurrencies', $this->has) && $this->has['fetchCurrencies'] === true) {
-                $currencies = $this->fetch_currencies();
-                $this->options['cachedCurrencies'] = $currencies;
-            }
-            $markets = $this->fetch_markets($params);
-            if (array_key_exists('cachedCurrencies', $this->options)) {
-                unset($this->options['cachedCurrencies']);
-            }
-            // write new cache
-            if ($cacheEnabled) {
-                $setter = $this->marketsCache['setter'];
-                $setter('ccxt_' . $this->id . '_markets_and_currencies', ['markets' => $markets, 'currencies' => $currencies]);
-            }
-        }
+        $markets = $this->fetch_markets($params);
+        unset($this->options['cachedCurrencies']);
         return $this->set_markets($markets, $currencies);
     }
 
