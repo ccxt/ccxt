@@ -1237,6 +1237,29 @@ export default class aster extends Exchange {
         return this.parseBalance (response);
     }
 
+    /**
+     * @method
+     * @name aster#fetchPositionMode
+     * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#get-current-position-modeuser_data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an object detailing whether the market is in hedged or one-way mode
+     */
+    async fetchPositionMode (symbol: Str = undefined, params = {}) {
+        const response = await this.privateGetFapiV1PositionSideDual (params);
+        //
+        //     {
+        //         "dualSidePosition": true // "true": Hedge Mode; "false": One-way Mode
+        //     }
+        //
+        const dualSidePosition = this.safeString (response, 'dualSidePosition');
+        return {
+            'info': response,
+            'hedged': (dualSidePosition === 'true'),
+        };
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.implodeHostname (this.urls['api']['rest']) + '/' + path;
         if (api === 'public') {

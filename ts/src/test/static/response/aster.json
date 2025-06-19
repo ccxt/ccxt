@@ -985,6 +985,22 @@
                     }
                 }
             }
+        ],
+        "fetchPositionMode": [
+            {
+                "description": "fetchPositionMode",
+                "method": "fetchPositionMode",
+                "input": [],
+                "httpResponse": {
+                    "dualSidePosition": true
+                },
+                "parsedResponse": {
+                    "info": {
+                        "dualSidePosition": true
+                    },
+                    "hedged": true
+                }
+            }
         ]
     }
 }
