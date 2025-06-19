@@ -4380,7 +4380,7 @@ export default class Exchange {
     }
 
     handleNetworkCodeAndParams (params) {
-        const networkCodeInParams = this.safeString2 (params, 'networkCode', 'network');
+        const networkCodeInParams = this.safeString2 (params, 'networkCode', 'network').toUpperCase ();
         if (networkCodeInParams !== undefined) {
             params = this.omit (params, [ 'networkCode', 'network' ]);
         }
