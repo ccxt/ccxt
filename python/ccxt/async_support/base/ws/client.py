@@ -155,7 +155,7 @@ class Client(object):
             if self.verbose:
                 self.log(iso8601(milliseconds()), 'NetworkError', error)
             self.on_error(error)
-  
+
     @property
     def buffer(self):
         # looks like they exposed it in C
