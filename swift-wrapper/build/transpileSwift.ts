@@ -443,29 +443,16 @@ const goMethodDeclaration = (methodName: string, params: {[key: string]: [string
             return nil, err
         }
         ${optionalParams.map(([paramName, paramType]) => {
-        if (isArray(paramType)) {
-            return`
-        var ${paramName} ${tsTypeToGo(paramType)}
-        if raw${paramName}, ok := decoded["${paramName}"]; ok {
-            if arr, ok := raw${paramName}.([]interface{}); ok {
-                for _, v := range arr {
-                    if s, ok := v.(string); ok {
-                        ${paramName} = append(${paramName}, s)
-                    }
-                    delete(decoded, "${paramName}")
-                }
-            }
-        }
-        ` } else { 
+        
             return `
-        var ${paramName} ${tsTypeToGo(paramType)}
+        var ${paramName} interface{} = nil
         if v, ok := decoded["${paramName}"]; ok && v != nil {
             if f, ok := v.(${tsTypeToGo(paramType).replace('int', 'float64')}); ok {
                 ${paramName} = ${tsTypeToGo(paramType)}(f)
             }
             delete(decoded, "${paramName}")
         }`
-        }}).join("\n")
+        }).join("\n")
         }
         res := <-e.exchange.${capsMethodName}(${callParams.join(', ')})
         if err, ok := res.(error); ok {
@@ -524,7 +511,7 @@ const swiftMethodDeclaration = (methodName: string, params: {[key: string]: [str
         optionalsCode = `${sep}var paramsCopy: [String: Any] = params`;
         paramsCopy = true;
     }
-    optionalsCode += prefix(optionalParams, sep) + optionalParams.map(paramName => `paramsCopy["${paramName}"] = ${paramName}`).join(sep); // Adds optional parameters to params
+    optionalsCode += prefix(optionalParams, sep) + optionalParams.map(paramName => `if (${paramName} != nil) { paramsCopy["${paramName}"] = ${paramName} }`).join(sep);
     const customTypeParamsCode = prefix(customTypeParams, sep) + customTypeParams.map(paramName => `let ${paramName}_string = stringify(${paramName})`).join(sep);  // stringify custom types
     const arrayParamsCode = prefix(arrayParams, sep) + arrayParams.map(paramName => `let ${paramName}_string = ${paramName}.joined(separator: ",")`).join(sep);  // convert array parameters to comma separated strings
     // const guardCode = `
