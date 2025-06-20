@@ -56,6 +56,10 @@ export default class kraken extends krakenRest {
                     'checksum': true,
                 },
             },
+            'streaming': {
+                'ping': this.ping,
+                'keepAlive': 6000,
+            },
             'exceptions': {
                 'ws': {
                     'exact': {
@@ -106,6 +110,7 @@ export default class kraken extends krakenRest {
                         'EService:Market in post_only mode': NotSupported,
                         'EService:Unavailable': ExchangeNotAvailable,
                         'ETrade:Invalid request': BadRequest,
+                        'ESession:Invalid session': AuthenticationError,
                     },
                 },
             },
@@ -880,6 +885,22 @@ export default class kraken extends krakenRest {
         return markets;
     }
 
+    ping (client: Client) {
+        const url = client.url;
+        const request = {};
+        if (url.indexOf ('v2') >= 0) {
+            request['method'] = 'ping';
+        } else {
+            request['event'] = 'ping';
+        }
+        return request;
+    }
+
+    handlePong (client: Client, message) {
+        client.lastPong = this.milliseconds ();
+        return message;
+    }
+
     async watchHeartbeat (params = {}) {
         await this.loadMarkets ();
         const event = 'heartbeat';
@@ -1101,7 +1122,10 @@ export default class kraken extends krakenRest {
         const client = this.client (url);
         const authenticated = 'authenticated';
         let subscription = this.safeValue (client.subscriptions, authenticated);
-        if (subscription === undefined) {
+        const now = this.seconds ();
+        const start = this.safeInteger (subscription, 'start');
+        const expires = this.safeInteger (subscription, 'expires');
+        if ((subscription === undefined) || ((subscription !== undefined) && (start + expires) >= now)) {
             const response = await this.privatePostGetWebSocketsToken (params);
             //
             //     {
@@ -1113,6 +1137,7 @@ export default class kraken extends krakenRest {
             //     }
             //
             subscription = this.safeValue (response, 'result');
+            subscription['start'] = now;
             client.subscriptions[authenticated] = subscription;
         }
         return this.safeString (subscription, 'token');
@@ -1805,6 +1830,7 @@ export default class kraken extends krakenRest {
                     'amend_order': this.handleCreateEditOrder,
                     'cancel_order': this.handleCancelOrder,
                     'cancel_all': this.handleCancelAllOrders,
+                    'pong': this.handlePong,
                 };
                 const method = this.safeValue (methods, event);
                 if (method !== undefined) {
