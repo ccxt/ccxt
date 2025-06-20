@@ -1126,6 +1126,7 @@ export default class kraken extends krakenRest {
         const start = this.safeInteger (subscription, 'start');
         const expires = this.safeInteger (subscription, 'expires');
         if ((subscription === undefined) || ((subscription !== undefined) && (start + expires) <= now)) {
+            // https://docs.kraken.com/api/docs/rest-api/get-websockets-token
             const response = await this.privatePostGetWebSocketsToken (params);
             //
             //     {
@@ -1136,7 +1137,7 @@ export default class kraken extends krakenRest {
             //         }
             //     }
             //
-            subscription = this.safeValue (response, 'result');
+            subscription = this.safeDict (response, 'result');
             subscription['start'] = now;
             client.subscriptions[authenticated] = subscription;
         }
