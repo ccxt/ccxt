@@ -1124,7 +1124,6 @@ export default class mexc extends mexcRest {
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        params = this.omit (params, 'type');
         let messageHash = 'orders';
         let market = undefined;
         if (symbol !== undefined) {
