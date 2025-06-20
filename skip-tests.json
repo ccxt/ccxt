@@ -270,9 +270,6 @@
             },
             "fetchOHLCV": "https://github.com/ccxt/ccxt/pull/21356#issuecomment-1969565862",
             "watchOHLCV": "same as above, needs key fix",
-            "fetchCurrencies": {
-                "type": "todo"
-            },
             "fetchPositions": {
                 "stopLossPrice": "undefined",
                 "takeProfitPrice": "undefined",
