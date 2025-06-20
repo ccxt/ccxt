@@ -42,16 +42,23 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
     if (symbolForMarket !== undefined && (symbolForMarket in exchange.markets)) {
         market = exchange.market (symbolForMarket);
     }
-    testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'open', '0');
-    testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'high', '0');
-    testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'low', '0');
-    testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'close', '0');
-    testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'ask', '0');
+    const exchangeHasIndexMarkets = exchange.safeBool (exchange.has, 'index', false);
+    const isStandardMarket = (market !== undefined && exchange.inArray (market['type'], [ 'spot', 'swap', 'future', 'option' ]));
+    // only check "above zero" values if exchange is not supposed to have exotic index markets
+    const valuesShouldBePositive = isStandardMarket || (market === undefined && !exchangeHasIndexMarkets);
+    if (valuesShouldBePositive) {
+        testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'open', '0');
+        testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'high', '0');
+        testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'low', '0');
+        testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'close', '0');
+        testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'ask', '0');
+        testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'bid', '0');
+        testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'average', '0');
+        testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'vwap', '0');
+    }
+    // volume can not be negative
     testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'askVolume', '0');
-    testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'bid', '0');
     testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'bidVolume', '0');
-    testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'vwap', '0');
-    testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'average', '0');
     testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'baseVolume', '0');
     testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'quoteVolume', '0');
     const lastString = exchange.safeString (entry, 'last');
@@ -87,7 +94,7 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
         // assert (low !== undefined, 'vwap is defined, but low is not' + logText);
         // assert (vwap >= low && vwap <= high)
         // todo: calc compare
-        assert (Precise.stringGe (vwap, '0'), 'vwap is not greater than zero' + logText);
+        assert (!valuesShouldBePositive || Precise.stringGe (vwap, '0'), 'vwap is not greater than zero' + logText);
         if (baseVolume !== undefined) {
             assert (quoteVolume !== undefined, 'baseVolume & vwap is defined, but quoteVolume is not' + logText);
         }
