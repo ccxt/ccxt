@@ -4,7 +4,7 @@ import Exchange from './abstract/aster.js';
 import { AccountNotEnabled, AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSymbol, DuplicateOrderId, ExchangeClosedByUser, ExchangeError, InsufficientFunds, InvalidNonce, InvalidOrder, MarketClosed, NetworkError, NoChange, NotSupported, OperationFailed, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { Balances, Currencies, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface } from './base/types.js';
+import type { Balances, Currencies, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, Market, OHLCV, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface } from './base/types.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------xs
@@ -134,7 +134,7 @@ export default class aster extends Exchange {
                 'fetchOpenOrders': false,
                 'fetchOption': false,
                 'fetchOptionChain': false,
-                'fetchOrder': false,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
                 'fetchOrders': false,
@@ -1410,6 +1410,154 @@ export default class aster extends Exchange {
         //     }
         //
         return this.parseTradingFee (response, market);
+    }
+
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
+            'NEW': 'open',
+            'PARTIALLY_FILLED': 'open',
+            'FILLED': 'closed',
+            'CANCELED': 'canceled',
+            'REJECTED': 'canceled',
+            'EXPIRED': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrderType (type: Str) {
+        const types: Dict = {
+            'LIMIT': 'limit',
+            'MARKET': 'market',
+            'STOP': 'limit',
+            'STOP_MARKET': 'market',
+            'TAKE_PROFIT': 'limit',
+            'TAKE_PROFIT_MARKET': 'market',
+            'TRAILING_STOP_MARKET': 'market',
+        };
+        return this.safeString (types, type, type);
+    }
+
+    parseOrder (order: Dict, market: Market = undefined): Order {
+        //
+        //     {
+        //         "avgPrice": "0.00000",
+        //         "clientOrderId": "abc",
+        //         "cumQuote": "0",
+        //         "executedQty": "0",
+        //         "orderId": 1917641,
+        //         "origQty": "0.40",
+        //         "origType": "TRAILING_STOP_MARKET",
+        //         "price": "0",
+        //         "reduceOnly": false,
+        //         "side": "BUY",
+        //         "positionSide": "SHORT",
+        //         "status": "NEW",
+        //         "stopPrice": "9300",
+        //         "closePosition": false,
+        //         "symbol": "BTCUSDT",
+        //         "time": 1579276756075,
+        //         "timeInForce": "GTC",
+        //         "type": "TRAILING_STOP_MARKET",
+        //         "activatePrice": "9020",
+        //         "priceRate": "0.3",
+        //         "updateTime": 1579276756075,
+        //         "workingType": "CONTRACT_PRICE",
+        //         "priceProtect": false
+        //     }
+        //
+        const info = order;
+        const marketId = this.safeString (order, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const side = this.safeStringLower (order, 'side');
+        const timestamp = this.safeInteger (order, 'time');
+        const lastTradeTimestamp = this.safeInteger (order, 'updateTime');
+        const statusId = this.safeStringUpper (order, 'status');
+        const rawType = this.safeStringUpper (order, 'type');
+        const stopPriceString = this.safeString (order, 'stopPrice');
+        const triggerPrice = this.parseNumber (this.omitZero (stopPriceString));
+        return this.safeOrder ({
+            'info': info,
+            'id': this.safeString (order, 'orderId'),
+            'clientOrderId': this.safeString (order, 'clientOrderId'),
+            'symbol': this.safeSymbol (marketId, market),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastUpdateTimestamp': this.safeInteger (order, 'updateTime'),
+            'type': this.parseOrderType (rawType),
+            'timeInForce': this.safeString (order, 'timeInForce'),
+            'postOnly': undefined,
+            'side': side,
+            'price': this.safeString (order, 'price'),
+            'triggerPrice': triggerPrice,
+            'average': this.safeString (order, 'avgPrice'),
+            'cost': this.safeString (order, 'cumQuote'),
+            'amount': this.safeString (order, 'origQty'),
+            'filled': this.safeString (order, 'executedQty'),
+            'remaining': undefined,
+            'status': this.parseOrderStatus (statusId),
+            'fee': undefined,
+            'trades': undefined,
+            'reduceOnly': this.safeBool2 (order, 'reduceOnly', 'ro'),
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name aster#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#query-order-user_data
+     * @param {string} id the order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] a unique id for the order
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clientOid');
+        params = this.omit (params, [ 'clientOrderId', 'clientOid' ]);
+        if (clientOrderId !== undefined) {
+            request['origClientOrderId'] = clientOrderId;
+        } else {
+            request['orderId'] = id;
+        }
+        const response = await this.privateGetFapiV1Order (this.extend (request, params));
+        //
+        //     {
+        //         "avgPrice": "0.00000",
+        //         "clientOrderId": "abc",
+        //         "cumQuote": "0",
+        //         "executedQty": "0",
+        //         "orderId": 1917641,
+        //         "origQty": "0.40",
+        //         "origType": "TRAILING_STOP_MARKET",
+        //         "price": "0",
+        //         "reduceOnly": false,
+        //         "side": "BUY",
+        //         "positionSide": "SHORT",
+        //         "status": "NEW",
+        //         "stopPrice": "9300",
+        //         "closePosition": false,
+        //         "symbol": "BTCUSDT",
+        //         "time": 1579276756075,
+        //         "timeInForce": "GTC",
+        //         "type": "TRAILING_STOP_MARKET",
+        //         "activatePrice": "9020",
+        //         "priceRate": "0.3",
+        //         "updateTime": 1579276756075,
+        //         "workingType": "CONTRACT_PRICE",
+        //         "priceProtect": false
+        //     }
+        //
+        return this.parseOrder (response, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
