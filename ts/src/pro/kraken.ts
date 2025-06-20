@@ -1125,7 +1125,7 @@ export default class kraken extends krakenRest {
         const now = this.seconds ();
         const start = this.safeInteger (subscription, 'start');
         const expires = this.safeInteger (subscription, 'expires');
-        if ((subscription === undefined) || ((subscription !== undefined) && (start + expires) >= now)) {
+        if ((subscription === undefined) || ((subscription !== undefined) && (start + expires) <= now)) {
             const response = await this.privatePostGetWebSocketsToken (params);
             //
             //     {
