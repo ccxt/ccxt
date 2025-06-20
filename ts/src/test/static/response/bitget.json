@@ -3462,6 +3462,78 @@
                     "interval": "8h"
                 }
             }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "fetchFundingRate history with a limit argument",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1750435573219",
+                    "data": [
+                        {
+                            "symbol": "BTCUSDT",
+                            "fundingRate": "-0.000013",
+                            "fundingTime": "1750435200000"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "BTCUSDT",
+                            "fundingRate": "-0.000013",
+                            "fundingTime": "1750435200000"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "fundingRate": -0.000013,
+                        "timestamp": 1750435200000,
+                        "datetime": "2025-06-20T16:00:00.000Z"
+                    }
+                ]
+            },
+            {
+                "description": "uta fetchFundingRateHistory",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1750435463679",
+                    "data": {
+                        "resultList": [
+                            {
+                                "symbol": "BTCUSDT",
+                                "fundingRate": "-0.000013",
+                                "fundingRateTimestamp": "1750435200000"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "BTCUSDT",
+                            "fundingRate": "-0.000013",
+                            "fundingRateTimestamp": "1750435200000"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "fundingRate": -0.000013,
+                        "timestamp": 1750435200000,
+                        "datetime": "2025-06-20T16:00:00.000Z"
+                    }
+                ]
+            }
         ]
     }
 }

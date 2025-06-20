@@ -1831,6 +1831,14 @@
                 "input": [
                     "BTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "uta fetchFundingRateHistory",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.bitget.com/api/v3/market/history-fund-rate?symbol=BTCUSDT&category=USDT-FUTURES",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
             }
         ],
         "fetchFundingRate": [
