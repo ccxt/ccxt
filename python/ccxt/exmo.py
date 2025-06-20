@@ -779,7 +779,8 @@ class exmo(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        response = self.publicGetPairSettings(params)
+        promises = []
+        promises.append(self.publicGetPairSettings(params))
         #
         #     {
         #         "BTC_USD":{
@@ -796,8 +797,9 @@ class exmo(Exchange, ImplicitAPI):
         #     }
         #
         marginPairsDict: dict = {}
-        if self.check_required_credentials(False):
-            marginPairs = self.privatePostMarginPairList(params)
+        fetchMargin = self.check_required_credentials(False)
+        if fetchMargin:
+            promises.append(self.privatePostMarginPairList(params))
             #
             #    {
             #        "pairs": [
@@ -827,14 +829,18 @@ class exmo(Exchange, ImplicitAPI):
             #        ]
             #    }
             #
-            pairs = self.safe_value(marginPairs, 'pairs')
+        responses = promises
+        spotResponse = responses[0]
+        if fetchMargin:
+            marginPairs = responses[1]
+            pairs = self.safe_list(marginPairs, 'pairs')
             marginPairsDict = self.index_by(pairs, 'name')
-        keys = list(response.keys())
+        keys = list(spotResponse.keys())
         result = []
         for i in range(0, len(keys)):
             id = keys[i]
-            market = response[id]
-            marginMarket = self.safe_value(marginPairsDict, id)
+            market = spotResponse[id]
+            marginMarket = self.safe_dict(marginPairsDict, id)
             symbol = id.replace('_', '/')
             baseId, quoteId = symbol.split('/')
             base = self.safe_currency_code(baseId)
