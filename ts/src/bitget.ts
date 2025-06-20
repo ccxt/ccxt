@@ -1835,7 +1835,7 @@ export default class bitget extends Exchange {
      * @see https://www.bitget.com/api-doc/margin/common/support-currencies
      * @see https://www.bitget.bike/api-doc/uta/public/Instruments
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.uta] set to true to fetch markets for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
@@ -2994,7 +2994,7 @@ export default class bitget extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
@@ -3207,7 +3207,7 @@ export default class bitget extends Exchange {
      * @see https://www.bitget.bike/api-doc/uta/public/Tickers
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
@@ -3394,7 +3394,7 @@ export default class bitget extends Exchange {
      * @see https://www.bitget.bike/api-doc/uta/public/Tickers
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @param {string} [params.subType] *contract only* 'linear', 'inverse'
      * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -3634,6 +3634,16 @@ export default class bitget extends Exchange {
         //         "cTime": "1700720700342"
         //     }
         //
+        // uta fetchTrades
+        //
+        //     {
+        //         "execId": "1319896716324937729",
+        //         "price": "105909.1",
+        //         "size": "6.3090",
+        //         "side": "sell",
+        //         "ts": "1750413820344"
+        //     }
+        //
         const marketId = this.safeString (trade, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.safeInteger2 (trade, 'cTime', 'ts');
@@ -3656,7 +3666,7 @@ export default class bitget extends Exchange {
         }
         return this.safeTrade ({
             'info': trade,
-            'id': this.safeString (trade, 'tradeId'),
+            'id': this.safeString2 (trade, 'tradeId', 'execId'),
             'order': this.safeString (trade, 'orderId'),
             'symbol': symbol,
             'side': this.safeStringLower (trade, 'side'),
@@ -3679,10 +3689,12 @@ export default class bitget extends Exchange {
      * @see https://www.bitget.com/api-doc/spot/market/Get-Market-Trades
      * @see https://www.bitget.com/api-doc/contract/market/Get-Recent-Fills
      * @see https://www.bitget.com/api-doc/contract/market/Get-Fills-History
+     * @see https://www.bitget.bike/api-doc/uta/public/Fills
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @param {int} [params.until] *only applies to publicSpotGetV2SpotMarketFillsHistory and publicMixGetV2MixMarketFillsHistory* the latest time in ms to fetch trades for
      * @param {boolean} [params.paginate] *only applies to publicSpotGetV2SpotMarketFillsHistory and publicMixGetV2MixMarketFillsHistory* default false, when true will automatically paginate by calling this endpoint multiple times
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
@@ -3698,8 +3710,12 @@ export default class bitget extends Exchange {
         let request: Dict = {
             'symbol': market['id'],
         };
+        let uta = undefined;
+        [ uta, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'uta', false);
         if (limit !== undefined) {
-            if (market['contract']) {
+            if (uta) {
+                request['limit'] = Math.min (limit, 100);
+            } else if (market['contract']) {
                 request['limit'] = Math.min (limit, 1000);
             } else {
                 request['limit'] = limit;
@@ -3707,7 +3723,12 @@ export default class bitget extends Exchange {
         }
         const options = this.safeValue (this.options, 'fetchTrades', {});
         let response = undefined;
-        if (market['spot']) {
+        let productType = undefined;
+        [ productType, params ] = this.handleProductTypeAndParams (market, params);
+        if (uta) {
+            request['category'] = productType;
+            response = await this.publicUtaGetV3MarketFills (this.extend (request, params));
+        } else if (market['spot']) {
             const spotOptions = this.safeValue (options, 'spot', {});
             const defaultSpotMethod = this.safeString (spotOptions, 'method', 'publicSpotGetV2SpotMarketFillsHistory');
             const spotMethod = this.safeString (params, 'method', defaultSpotMethod);
@@ -3726,8 +3747,6 @@ export default class bitget extends Exchange {
             const defaultSwapMethod = this.safeString (swapOptions, 'method', 'publicMixGetV2MixMarketFillsHistory');
             const swapMethod = this.safeString (params, 'method', defaultSwapMethod);
             params = this.omit (params, 'method');
-            let productType = undefined;
-            [ productType, params ] = this.handleProductTypeAndParams (market, params);
             request['productType'] = productType;
             if (swapMethod === 'publicMixGetV2MixMarketFillsHistory') {
                 [ request, params ] = this.handleUntilOption ('endTime', request, params);
@@ -3773,6 +3792,23 @@ export default class bitget extends Exchange {
         //                 "ts": "1692073521000",
         //                 "symbol": "BTCUSDT_UMCBL"
         //             },
+        //         ]
+        //     }
+        //
+        // uta
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1750413823980,
+        //         "data": [
+        //             {
+        //                 "execId": "1319896716324937729",
+        //                 "price": "105909.1",
+        //                 "size": "6.3090",
+        //                 "side": "sell",
+        //                 "ts": "1750413820344"
+        //             }
         //         ]
         //     }
         //

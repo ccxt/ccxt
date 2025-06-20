@@ -2472,6 +2472,106 @@
                         "fees": []
                     }
                 ]
+            },
+            {
+                "description": "uta spot fetchTrades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1750414065772",
+                    "data": [
+                        {
+                            "execId": "1319897741521866753",
+                            "price": "105813.80",
+                            "size": "0.003900",
+                            "side": "sell",
+                            "ts": "1750414064770"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "execId": "1319897741521866753",
+                            "price": "105813.80",
+                            "size": "0.003900",
+                            "side": "sell",
+                            "ts": "1750414064770"
+                        },
+                        "id": "1319897741521866753",
+                        "order": null,
+                        "symbol": "BTC/USDT",
+                        "side": "sell",
+                        "type": null,
+                        "takerOrMaker": null,
+                        "price": 105813.8,
+                        "amount": 0.0039,
+                        "cost": 412.67382,
+                        "timestamp": 1750414064770,
+                        "datetime": "2025-06-20T10:07:44.770Z",
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
+            },
+            {
+                "description": "uta swap fetchTrades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1750414116354",
+                    "data": [
+                        {
+                            "execId": "1319897954512838659",
+                            "price": "105806.5",
+                            "size": "1.6450",
+                            "side": "buy",
+                            "ts": "1750414115551"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "execId": "1319897954512838659",
+                            "price": "105806.5",
+                            "size": "1.6450",
+                            "side": "buy",
+                            "ts": "1750414115551"
+                        },
+                        "id": "1319897954512838659",
+                        "order": null,
+                        "symbol": "BTC/USDT:USDT",
+                        "side": "buy",
+                        "type": null,
+                        "takerOrMaker": null,
+                        "price": 105806.5,
+                        "amount": 1.645,
+                        "cost": 174051.6925,
+                        "timestamp": 1750414115551,
+                        "datetime": "2025-06-20T10:08:35.551Z",
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
             }
         ],
         "fetchTicker": [

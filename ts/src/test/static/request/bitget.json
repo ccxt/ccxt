@@ -1515,6 +1515,26 @@
                 "input": [
                     "BTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "uta spot fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api.bitget.com/api/v3/market/fills?symbol=BTCUSDT&limit=1&category=SPOT",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ]
+            },
+            {
+                "description": "uta swap fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api.bitget.com/api/v3/market/fills?symbol=BTCUSDT&limit=1&category=USDT-FUTURES",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    1
+                ]
             }
         ],
         "fetchTradingFee": [
