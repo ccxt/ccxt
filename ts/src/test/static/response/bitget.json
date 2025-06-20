@@ -1861,6 +1861,156 @@
                         0.6049
                     ]
                 ]
+            },
+            {
+                "description": "uta spot fetchOHLCV",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT",
+                    "1m",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1750417709125",
+                    "data": [
+                        [
+                            "1750417680000",
+                            "106010",
+                            "106090.4",
+                            "106010",
+                            "106032",
+                            "0.045",
+                            "4772.74192"
+                        ]
+                    ]
+                },
+                "parsedResponse": [
+                    [
+                        1750417680000,
+                        106010,
+                        106090.4,
+                        106010,
+                        106032,
+                        0.045
+                    ]
+                ]
+            },
+            {
+                "description": "uta swap fetchOHLCV",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1m",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1750417749478",
+                    "data": [
+                        [
+                            "1750417740000",
+                            "105997.3",
+                            "105997.3",
+                            "105997.3",
+                            "105997.3",
+                            "5.9524",
+                            "630938.32852"
+                        ]
+                    ]
+                },
+                "parsedResponse": [
+                    [
+                        1750417740000,
+                        105997.3,
+                        105997.3,
+                        105997.3,
+                        105997.3,
+                        5.9524
+                    ]
+                ]
+            },
+            {
+                "description": "uta swap fetchOHLCV with mark price parameter",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1m",
+                    null,
+                    1,
+                    {
+                        "price": "mark"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1750417791166",
+                    "data": [
+                        [
+                            "1750417740000",
+                            "105997.3",
+                            "105997.3",
+                            "105997",
+                            "105997.3",
+                            "34.7268",
+                            "3680942.69142"
+                        ]
+                    ]
+                },
+                "parsedResponse": [
+                    [
+                        1750417740000,
+                        105997.3,
+                        105997.3,
+                        105997,
+                        105997.3,
+                        34.7268
+                    ]
+                ]
+            },
+            {
+                "description": "uta swap fetchOHLCV with index price parameter",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1m",
+                    null,
+                    1,
+                    {
+                        "price": "index"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1750417843949",
+                    "data": [
+                        [
+                            "1750417800000",
+                            "106008.4",
+                            "106008.4",
+                            "105963.5",
+                            "105963.5",
+                            "46.172",
+                            "4893498.4228"
+                        ]
+                    ]
+                },
+                "parsedResponse": [
+                    [
+                        1750417800000,
+                        106008.4,
+                        106008.4,
+                        105963.5,
+                        105963.5,
+                        46.172
+                    ]
+                ]
             }
         ],
         "fetchOrderBook": [

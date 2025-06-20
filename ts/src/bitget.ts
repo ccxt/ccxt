@@ -1430,6 +1430,19 @@ export default class bitget extends Exchange {
                         '1w': '1Wutc',
                         '1M': '1Mutc',
                     },
+                    'uta': {
+                        '1m': '1m',
+                        '3m': '3m',
+                        '5m': '5m',
+                        '15m': '15m',
+                        '30m': '30m',
+                        '1h': '1H',
+                        '2h': '2H',
+                        '4h': '4H',
+                        '6h': '6H',
+                        '12h': '12H',
+                        '1d': '1D',
+                    },
                 },
                 'fetchMarkets': {
                     'types': [ 'spot', 'swap' ], // there is future markets but they use the same endpoints as swap
@@ -4002,13 +4015,15 @@ export default class bitget extends Exchange {
         //         "1399132.341"
         //     ]
         //
+        const inverse = this.safeBool (market, 'inverse');
+        const volumeIndex = inverse ? 6 : 5;
         return [
             this.safeInteger (ohlcv, 0),
             this.safeNumber (ohlcv, 1),
             this.safeNumber (ohlcv, 2),
             this.safeNumber (ohlcv, 3),
             this.safeNumber (ohlcv, 4),
-            this.safeNumber (ohlcv, 5),
+            this.safeNumber (ohlcv, volumeIndex),
         ];
     }
 
@@ -4022,11 +4037,13 @@ export default class bitget extends Exchange {
      * @see https://www.bitget.com/api-doc/contract/market/Get-History-Candle-Data
      * @see https://www.bitget.com/api-doc/contract/market/Get-History-Index-Candle-Data
      * @see https://www.bitget.com/api-doc/contract/market/Get-History-Mark-Candle-Data
+     * @see https://www.bitget.bike/api-doc/uta/public/Get-Candle-Data
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @param {boolean} [params.useHistoryEndpoint] whether to force to use historical endpoint (it has max limit of 200)
      * @param {boolean} [params.useHistoryEndpointForPagination] whether to force to use historical endpoint for pagination (default true)
@@ -4048,12 +4065,21 @@ export default class bitget extends Exchange {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, limitForPagination);
         }
         const market = this.market (symbol);
-        const marketType = market['spot'] ? 'spot' : 'swap';
-        const timeframes = this.options['timeframes'][marketType];
         const request: Dict = {
             'symbol': market['id'],
-            'granularity': this.safeString (timeframes, timeframe, timeframe),
         };
+        let marketType = undefined;
+        let timeframes = undefined;
+        let uta = undefined;
+        [ uta, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'uta', false);
+        if (uta) {
+            timeframes = this.options['timeframes']['uta'];
+            request['interval'] = this.safeString (timeframes, timeframe, timeframe);
+        } else {
+            marketType = market['spot'] ? 'spot' : 'swap';
+            timeframes = this.options['timeframes'][marketType];
+            request['granularity'] = this.safeString (timeframes, timeframe, timeframe);
+        }
         const msInDay = 86400000;
         const now = this.milliseconds ();
         const duration = this.parseTimeframe (timeframe) * 1000;
@@ -4122,7 +4148,21 @@ export default class bitget extends Exchange {
         request['limit'] = limit;
         // make request
         let response = undefined;
-        if (market['spot']) {
+        let productType = undefined;
+        let priceType = undefined;
+        [ priceType, params ] = this.handleParamString (params, 'price');
+        [ productType, params ] = this.handleProductTypeAndParams (market, params);
+        if (uta) {
+            if (priceType !== undefined) {
+                if (priceType === 'mark') {
+                    request['type'] = 'MARK';
+                } else if (priceType === 'index') {
+                    request['type'] = 'INDEX';
+                }
+            }
+            request['category'] = productType;
+            response = await this.publicUtaGetV3MarketCandles (this.extend (request, params));
+        } else if (market['spot']) {
             // checks if we need history endpoint
             if (historicalEndpointNeeded) {
                 response = await this.publicSpotGetV2SpotMarketHistoryCandles (this.extend (request, params));
@@ -4130,10 +4170,6 @@ export default class bitget extends Exchange {
                 response = await this.publicSpotGetV2SpotMarketCandles (this.extend (request, params));
             }
         } else {
-            let priceType = undefined;
-            [ priceType, params ] = this.handleParamString (params, 'price');
-            let productType = undefined;
-            [ productType, params ] = this.handleProductTypeAndParams (market, params);
             request['productType'] = productType;
             const extended = this.extend (request, params);
             // todo: mark & index also have their "recent" endpoints, but not priority now.

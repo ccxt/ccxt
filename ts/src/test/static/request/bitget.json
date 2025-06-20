@@ -1415,6 +1415,56 @@
                     }
                 ],
                 "output": null
+            },
+            {
+                "description": "uta spot fetchOHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://api.bitget.com/api/v3/market/candles?symbol=BTCUSDT&interval=1m&limit=1&category=SPOT",
+                "input": [
+                    "BTC/USDT",
+                    "1m",
+                    null,
+                    1
+                ]
+            },
+            {
+                "description": "uta swap fetchOHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://api.bitget.com/api/v3/market/candles?symbol=BTCUSDT&interval=1m&limit=1&category=USDT-FUTURES",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1m",
+                    null,
+                    1
+                ]
+            },
+            {
+                "description": "uta swap fetchOHLCV with mark price parameter",
+                "method": "fetchOHLCV",
+                "url": "https://api.bitget.com/api/v3/market/candles?symbol=BTCUSDT&interval=1m&limit=1&type=MARK&category=USDT-FUTURES",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1m",
+                    null,
+                    1,
+                    {
+                        "price": "mark"
+                    }
+                ]
+            },
+            {
+                "description": "uta swap fetchOHLCV with index price parameter",
+                "method": "fetchOHLCV",
+                "url": "https://api.bitget.com/api/v3/market/candles?symbol=BTCUSDT&interval=1m&limit=1&type=INDEX&category=USDT-FUTURES",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1m",
+                    null,
+                    1,
+                    {
+                        "price": "index"
+                    }
+                ]
             }
         ],
         "fetchCanceledAndClosedOrders": [
