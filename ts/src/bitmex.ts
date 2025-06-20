@@ -1692,10 +1692,10 @@ export default class bitmex extends Exchange {
                 result[i][0] = result[i][0] - duration;
             }
         }
-        return this.autoCorrectCandlesOpen (result, 'fetchOHLCV');
+        return this.fixCandlesHL (result, 'fetchOHLCV');
     }
 
-    autoCorrectCandlesOpen (result: any[], methodName: string): OHLCV[] {
+    fixCandlesHL (result: any[], methodName: string): OHLCV[] {
         // see the bug https://github.com/ccxt/ccxt/pull/21356#issuecomment-1969565862
         // so, when OPEN price is outside of H/L range because of that misbehavior, we have to set High or Low to that value, like all other exchanges (& TradingView charts) do
         // for example, take 1 minute bars:
@@ -1703,8 +1703,7 @@ export default class bitmex extends Exchange {
         // - next trade happens at 15:41:58, at 0.3 price
         // so, the last 1m bar should have      :  O=0.2  H=0.3 L=0.2 C=0.3
         // but bitmex might return wrong H(or L):  O=0.2  H=0.3 L=0.3 C=0.3
-        let autoCorrectPrices = undefined;
-        [ autoCorrectPrices ] = this.handleOption (methodName, 'autocorrectOpenPrice', true);
+        const autoCorrectPrices = this.handleOption (methodName, 'autocorrectOpenPrice', true);
         if (autoCorrectPrices) {
             for (let i = 0; i < result.length; i++) {
                 const open = result[i][1];

@@ -1506,7 +1506,7 @@ export default class bitmex extends bitmexRest {
                 stored = new ArrayCacheByTimestamp (limit);
                 this.ohlcvs[symbol][timeframe] = stored;
             }
-            const resultCorrected = this.autoCorrectCandlesOpen ([ result ], 'wsOHLCV');
+            const resultCorrected = this.fixCandlesHL ([ result ], 'wsOHLCV');
             const resultOhlcv = resultCorrected[0];
             stored.append (resultOhlcv);
             results[messageHash] = stored;
