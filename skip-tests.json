@@ -270,9 +270,6 @@
             },
             "fetchOHLCV": "https://github.com/ccxt/ccxt/pull/21356#issuecomment-1969565862",
             "watchOHLCV": "same as above, needs key fix",
-            "fetchCurrencies": {
-                "type": "todo"
-            },
             "ticker": {
                 "average": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269484317#L4030",
                 "open": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269367056#L3473",
