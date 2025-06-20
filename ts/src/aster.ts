@@ -4,7 +4,7 @@ import Exchange from './abstract/aster.js';
 import { AccountNotEnabled, AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSymbol, DuplicateOrderId, ExchangeClosedByUser, ExchangeError, InsufficientFunds, InvalidNonce, InvalidOrder, MarketClosed, NetworkError, NoChange, NotSupported, OperationFailed, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { Balances, Currencies, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Currencies, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface } from './base/types.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------xs
@@ -1281,6 +1281,46 @@ export default class aster extends Exchange {
         //     }
         //
         return await this.privatePostFapiV1PositionSideDual (this.extend (request, params));
+    }
+
+    parseTradingFee (fee: Dict, market: Market = undefined): TradingFeeInterface {
+        const marketId = this.safeString (fee, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = this.safeSymbol (marketId, market);
+        return {
+            'info': fee,
+            'symbol': symbol,
+            'maker': this.safeNumber (fee, 'makerCommissionRate'),
+            'taker': this.safeNumber (fee, 'takerCommissionRate'),
+            'percentage': false,
+            'tierBased': false,
+        };
+    }
+
+    /**
+     * @method
+     * @name aster#fetchTradingFee
+     * @description fetch the trading fees for a market
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#change-position-modetrade
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
+    async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.privateGetFapiV1CommissionRate (this.extend (request, params));
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "makerCommissionRate": "0.0002",
+        //         "takerCommissionRate": "0.0004"
+        //     }
+        //
+        return this.parseTradingFee (response, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

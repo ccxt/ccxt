@@ -1016,6 +1016,32 @@
                     "msg": "success"
                 }
             }
+        ],
+        "fetchTradingFee": [
+            {
+                "description": "fetchTradingFee",
+                "method": "fetchTradingFee",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "symbol": "BTCUSDT",
+                    "makerCommissionRate": "0.000100",
+                    "takerCommissionRate": "0.000350"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "BTCUSDT",
+                        "makerCommissionRate": "0.000100",
+                        "takerCommissionRate": "0.000350"
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "maker": 0.0001,
+                    "taker": 0.00035,
+                    "percentage": false,
+                    "tierBased": false
+                }
+            }
         ]
     }
 }
