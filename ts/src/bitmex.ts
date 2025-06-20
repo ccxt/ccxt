@@ -1710,10 +1710,10 @@ export default class bitmex extends Exchange {
                 const high = result[i][2];
                 const low = result[i][3];
                 if (open > high) {
-                    result[i][2] = open;
+                    result[i][1] = high;
                 }
                 if (open < low) {
-                    result[i][3] = open;
+                    result[i][1] = low;
                 }
             }
         }
