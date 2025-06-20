@@ -122,7 +122,7 @@ export default class dzengi extends Exchange {
                 '1d': '1d',
                 '1w': '1w',
             },
-            'hostname': 'backend.currency.com',
+            'hostname': 'dzengi.com',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/83718672-36745c00-a63e-11ea-81a9-677b1f789a4d.jpg',
                 'api': {
