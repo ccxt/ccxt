@@ -84,6 +84,18 @@
                 ]
             }
         ],
+        "fetchMyTrades": [
+            {
+                "description": "fetchMyTrades",
+                "method": "fetchMyTrades",
+                "url": "https://fapi.asterdex.com/fapi/v1/userTrades?symbol=BTCUSDT&startTime=1750400269888&limit=1&timestamp=1750295324471&recvWindow=10000&signature=ed714bbd1342e73542ad616ce8179e80e7cff8611a8e653e341eadc92d51f0c0",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1750400269888,
+                    1
+                ]
+            }
+        ],
         "fetchOrderBook": [
             {
                 "description": "fetchOrderBook",

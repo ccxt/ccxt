@@ -72,7 +72,7 @@ export default class aster extends Exchange {
                 'editOrder': false,
                 'editOrders': false,
                 'fetchAccounts': undefined,
-                'fetchBalance': false,
+                'fetchBalance': true,
                 'fetchBidsAsks': false,
                 'fetchBorrowInterest': false,
                 'fetchBorrowRateHistories': false,
@@ -101,7 +101,7 @@ export default class aster extends Exchange {
                 'fetchFundingIntervals': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
-                'fetchFundingRates': false,
+                'fetchFundingRates': true,
                 'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': 'emulated',
@@ -126,7 +126,7 @@ export default class aster extends Exchange {
                 'fetchMarkPrices': false,
                 'fetchMyLiquidations': false,
                 'fetchMySettlementHistory': false,
-                'fetchMyTrades': false,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
@@ -141,7 +141,7 @@ export default class aster extends Exchange {
                 'fetchOrderTrades': false,
                 'fetchPosition': false,
                 'fetchPositionHistory': false,
-                'fetchPositionMode': false,
+                'fetchPositionMode': true,
                 'fetchPositions': false,
                 'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
@@ -152,7 +152,7 @@ export default class aster extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchTradingFee': false,
+                'fetchTradingFee': true,
                 'fetchTradingFees': false,
                 'fetchTradingLimits': 'emulated',
                 'fetchTransactionFee': 'emulated',
@@ -173,7 +173,7 @@ export default class aster extends Exchange {
                 'setLeverage': false,
                 'setMargin': false,
                 'setMarginMode': false,
-                'setPositionMode': false,
+                'setPositionMode': true,
                 'signIn': false,
                 'transfer': false,
                 'withdraw': false,
@@ -776,6 +776,8 @@ export default class aster extends Exchange {
 
     parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
+        // fetchTrades
+        //
         //     {
         //         "id": 3913206,
         //         "price": "644.100",
@@ -785,14 +787,43 @@ export default class aster extends Exchange {
         //         "isBuyerMaker": true
         //     }
         //
+        // fetchMyTrades
+        //
+        //     {
+        //         "buyer": false,
+        //         "commission": "-0.07819010",
+        //         "commissionAsset": "USDT",
+        //         "id": 698759,
+        //         "maker": false,
+        //         "orderId": 25851813,
+        //         "price": "7819.01",
+        //         "qty": "0.002",
+        //         "quoteQty": "15.63802",
+        //         "realizedPnl": "-0.91539999",
+        //         "side": "SELL",
+        //         "positionSide": "SHORT",
+        //         "symbol": "BTCUSDT",
+        //         "time": 1569514978020
+        //     }
+        //
         const id = this.safeString (trade, 'id');
         const symbol = market['symbol'];
+        const currencyId = this.safeString (trade, 'commissionAsset');
+        const currencyCode = this.safeCurrencyCode (currencyId);
         const amountString = this.safeString (trade, 'qty');
         const priceString = this.safeString (trade, 'price');
         const costString = this.safeString (trade, 'quoteQty');
         const timestamp = this.safeInteger (trade, 'time');
+        let side = this.safeString (trade, 'side');
+        const isMaker = this.safeBool (trade, 'maker');
+        let takerOrMaker = undefined;
+        if (isMaker !== undefined) {
+            takerOrMaker = isMaker ? 'maker' : 'taker';
+        }
         const isBuyerMaker = this.safeBool (trade, 'isBuyerMaker');
-        const side = isBuyerMaker ? 'sell' : 'buy';
+        if (isBuyerMaker !== undefined) {
+            side = isBuyerMaker ? 'sell' : 'buy';
+        }
         return this.safeTrade ({
             'id': id,
             'info': trade,
@@ -802,11 +833,14 @@ export default class aster extends Exchange {
             'order': this.safeString (trade, 'orderId'),
             'type': undefined,
             'side': side,
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'price': priceString,
             'amount': amountString,
             'cost': costString,
-            'fee': undefined,
+            'fee': {
+                'cost': this.parseNumber (Precise.stringAbs (this.safeString (trade, 'commission'))),
+                'currency': currencyCode,
+            },
         }, market);
     }
 
@@ -850,6 +884,61 @@ export default class aster extends Exchange {
         //     ]
         //
         return this.parseTrades (response, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name aster#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#account-trade-list-user_data
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms for the ending date filter, default is undefined
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let request: Dict = {
+            'symbol': market['id'],
+        };
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            if (limit > 1000) {
+                limit = 1000; // Default 500; max 1000.
+            }
+            request['limit'] = limit;
+        }
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        const response = await this.privateGetFapiV1UserTrades (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "buyer": false,
+        //             "commission": "-0.07819010",
+        //             "commissionAsset": "USDT",
+        //             "id": 698759,
+        //             "maker": false,
+        //             "orderId": 25851813,
+        //             "price": "7819.01",
+        //             "qty": "0.002",
+        //             "quoteQty": "15.63802",
+        //             "realizedPnl": "-0.91539999",
+        //             "side": "SELL",
+        //             "positionSide": "SHORT",
+        //             "symbol": "BTCUSDT",
+        //             "time": 1569514978020
+        //         }
+        //     ]
+        //
+        return this.parseTrades (response, market, since, limit, params);
     }
 
     /**
@@ -1142,7 +1231,7 @@ export default class aster extends Exchange {
      */
     async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchTicker() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchFundingRate() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
