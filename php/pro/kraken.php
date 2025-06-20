@@ -63,6 +63,10 @@ class kraken extends \ccxt\async\kraken {
                     'checksum' => false,
                 ),
             ),
+            'streaming' => array(
+                'ping' => array($this, 'ping'),
+                'keepAlive' => 6000,
+            ),
             'exceptions' => array(
                 'ws' => array(
                     'exact' => array(
@@ -113,6 +117,7 @@ class kraken extends \ccxt\async\kraken {
                         'EService:Market in post_only mode' => '\\ccxt\\NotSupported',
                         'EService:Unavailable' => '\\ccxt\\ExchangeNotAvailable',
                         'ETrade:Invalid request' => '\\ccxt\\BadRequest',
+                        'ESession:Invalid session' => '\\ccxt\\AuthenticationError',
                     ),
                 ),
             ),
@@ -886,6 +891,22 @@ class kraken extends \ccxt\async\kraken {
         }) ();
     }
 
+    public function ping(Client $client) {
+        $url = $client->url;
+        $request = array();
+        if (mb_strpos($url, 'v2') !== false) {
+            $request['method'] = 'ping';
+        } else {
+            $request['event'] = 'ping';
+        }
+        return $request;
+    }
+
+    public function handle_pong(Client $client, $message) {
+        $client->lastPong = $this->milliseconds();
+        return $message;
+    }
+
     public function watch_heartbeat($params = array ()) {
         return Async\async(function () use ($params) {
             Async\await($this->load_markets());
@@ -1103,7 +1124,11 @@ class kraken extends \ccxt\async\kraken {
             $client = $this->client($url);
             $authenticated = 'authenticated';
             $subscription = $this->safe_value($client->subscriptions, $authenticated);
-            if ($subscription === null) {
+            $now = $this->seconds();
+            $start = $this->safe_integer($subscription, 'start');
+            $expires = $this->safe_integer($subscription, 'expires');
+            if (($subscription === null) || (($subscription !== null) && ($start . $expires) <= $now)) {
+                // https://docs.kraken.com/api/docs/rest-api/get-websockets-token
                 $response = Async\await($this->privatePostGetWebSocketsToken ($params));
                 //
                 //     {
@@ -1114,7 +1139,8 @@ class kraken extends \ccxt\async\kraken {
                 //         }
                 //     }
                 //
-                $subscription = $this->safe_value($response, 'result');
+                $subscription = $this->safe_dict($response, 'result');
+                $subscription['start'] = $now;
                 $client->subscriptions[$authenticated] = $subscription;
             }
             return $this->safe_string($subscription, 'token');
@@ -1816,6 +1842,7 @@ class kraken extends \ccxt\async\kraken {
                     'amend_order' => array($this, 'handle_create_edit_order'),
                     'cancel_order' => array($this, 'handle_cancel_order'),
                     'cancel_all' => array($this, 'handle_cancel_all_orders'),
+                    'pong' => array($this, 'handle_pong'),
                 );
                 $method = $this->safe_value($methods, $event);
                 if ($method !== null) {
