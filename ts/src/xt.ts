@@ -2947,7 +2947,7 @@ export default class xt extends Exchange {
             if (trigger || stopLossTakeProfit) {
                 request['state'] = 'NOT_TRIGGERED';
             } else if (type === 'swap') {
-                request['state'] = 'NEW';
+                request['state'] = 'UNFINISHED'; // NEW & PARTIALLY_FILLED
             }
         } else if (status === 'closed') {
             if (trigger || stopLossTakeProfit) {

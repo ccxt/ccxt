@@ -3093,7 +3093,7 @@ public partial class xt : Exchange
                 ((IDictionary<string,object>)request)["state"] = "NOT_TRIGGERED";
             } else if (isTrue(isEqual(type, "swap")))
             {
-                ((IDictionary<string,object>)request)["state"] = "NEW";
+                ((IDictionary<string,object>)request)["state"] = "UNFINISHED"; // NEW & PARTIALLY_FILLED
             }
         } else if (isTrue(isEqual(status, "closed")))
         {

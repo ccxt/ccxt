@@ -310,6 +310,8 @@ func GetValue(collection interface{}, key interface{}) interface{} {
 		val, ok := v.Load(keyStr)
 		if ok {
 			return val
+		} else {
+			return nil
 		}
 	case []interface{}:
 		if keyNum >= 0 && keyNum < len(v) {

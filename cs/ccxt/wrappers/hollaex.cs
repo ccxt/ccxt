@@ -189,7 +189,7 @@ public partial class hollaex
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : the maximum amount of candles to fetch
+    /// int : the maximum amount of candles to fetch (max 500)
     /// </description>
     /// </item>
     /// <item>
