@@ -46,6 +46,10 @@ export default class bitmex extends bitmexRest {
                 'watchOrderBookLevel': 'orderBookL2', // 'orderBookL2' = L2 full order book, 'orderBookL2_25' = L2 top 25, 'orderBook10' L3 top 10
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
+                'wsOHLCV': {
+                    // 'useOpenTimestamp': true, // todo
+                    'autocorrectOpenPrice': true,
+                },
             },
             'exceptions': {
                 'ws': {
@@ -1489,7 +1493,7 @@ export default class bitmex extends bitmexRest {
             const messageHash = table + ':' + market['id'];
             const result = [
                 this.parse8601 (this.safeString (candle, 'timestamp')) - duration * 1000,
-                undefined, // set open price to undefined, see: https://github.com/ccxt/ccxt/pull/21356#issuecomment-1969565862
+                this.safeFloat (candle, 'open'),
                 this.safeFloat (candle, 'high'),
                 this.safeFloat (candle, 'low'),
                 this.safeFloat (candle, 'close'),
@@ -1502,7 +1506,9 @@ export default class bitmex extends bitmexRest {
                 stored = new ArrayCacheByTimestamp (limit);
                 this.ohlcvs[symbol][timeframe] = stored;
             }
-            stored.append (result);
+            const resultCorrected = this.autoCorrectCandlesOpen ([ result ], 'wsOHLCV');
+            const resultOhlcv = resultCorrected[0];
+            stored.append (resultOhlcv);
             results[messageHash] = stored;
         }
         const messageHashes = Object.keys (results);
