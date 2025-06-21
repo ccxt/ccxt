@@ -1184,6 +1184,114 @@
                 }
             }
         ],
+        "editOrder": [
+            {
+                "description": "uta spot edit order",
+                "method": "editOrder",
+                "input": [
+                    "1320239033384062976",
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    0.0011,
+                    51000
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1750496144404",
+                    "data": {
+                        "orderId": "1320239033384062976",
+                        "clientOid": "1320239033384062977"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderId": "1320239033384062976",
+                        "clientOid": "1320239033384062977"
+                    },
+                    "id": "1320239033384062976",
+                    "clientOrderId": "1320239033384062977",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "BTC/USDT",
+                    "type": null,
+                    "side": null,
+                    "price": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "uta swap edit order",
+                "method": "editOrder",
+                "input": [
+                    "1320240021595639809",
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.0011,
+                    51000
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1750496287309",
+                    "data": {
+                        "orderId": "1320240021595639809",
+                        "clientOid": "1320240021599834113"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderId": "1320240021595639809",
+                        "clientOid": "1320240021599834113"
+                    },
+                    "id": "1320240021595639809",
+                    "clientOrderId": "1320240021599834113",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": null,
+                    "side": null,
+                    "price": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
+            }
+        ],
         "fetchMyTrades": [
             {
                 "description": "Spot trade",

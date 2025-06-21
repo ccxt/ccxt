@@ -596,6 +596,34 @@
                     }
                 ],
                 "output": "{\"orderId\":\"1121635717619453955\",\"symbol\":\"BTCUSDT\",\"productType\":\"USDT-FUTURES\",\"newSize\":\"0.002\",\"newTriggerPrice\":\"46000\",\"newCallbackRatio\":\"5\"}"
+            },
+            {
+                "description": "uta spot editOrder",
+                "method": "editOrder",
+                "url": "https://api.bitget.com/api/v3/trade/modify-order",
+                "input": [
+                    "1320239033384062976",
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    0.0011,
+                    51000
+                ],
+                "output": "{\"orderId\":\"1320239033384062976\",\"qty\":\"0.0011\",\"price\":\"51000\"}"
+            },
+            {
+                "description": "uta swap editOrder",
+                "method": "editOrder",
+                "url": "https://api.bitget.com/api/v3/trade/modify-order",
+                "input": [
+                    "1320240021595639809",
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.0011,
+                    51000
+                ],
+                "output": "{\"orderId\":\"1320240021595639809\",\"qty\":\"0.0011\",\"price\":\"51000\"}"
             }
         ],
         "fetchMyTrades": [

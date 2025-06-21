@@ -4904,7 +4904,7 @@ export default class bitget extends Exchange {
         const isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
         let response = undefined;
         let uta = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'uta', false);
+        [ uta, params ] = this.handleOptionAndParams (params, 'createOrder', 'uta', false);
         if (uta) {
             const request = this.createUtaOrderRequest (symbol, type, side, amount, price, params);
             response = await this.privateUtaPostV3TradePlaceOrder (this.extend (request, params));
@@ -5333,6 +5333,7 @@ export default class bitget extends Exchange {
      * @param {string} [params.trailingPercent] *swap and future only* the percent to trail away from the current market price, rate can not be greater than 10
      * @param {string} [params.trailingTriggerPrice] *swap and future only* the price to trigger a trailing stop order, default uses the price argument
      * @param {string} [params.newTriggerType] *swap and future only* 'fill_price', 'mark_price' or 'index_price'
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
@@ -5364,7 +5365,19 @@ export default class bitget extends Exchange {
         }
         params = this.omit (params, [ 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'clientOrderId', 'trailingTriggerPrice', 'trailingPercent' ]);
         let response = undefined;
-        if (market['spot']) {
+        let productType = undefined;
+        let uta = undefined;
+        [ productType, params ] = this.handleProductTypeAndParams (market, params);
+        [ uta, params ] = this.handleOptionAndParams (params, 'editOrder', 'uta', false);
+        if (uta) {
+            if (amount !== undefined) {
+                request['qty'] = this.amountToPrecision (symbol, amount);
+            }
+            if (price !== undefined) {
+                request['price'] = this.priceToPrecision (symbol, price);
+            }
+            response = await this.privateUtaPostV3TradeModifyOrder (this.extend (request, params));
+        } else if (market['spot']) {
             if (triggerPrice === undefined) {
                 throw new NotSupported (this.id + ' editOrder() only supports plan/trigger spot orders');
             }
@@ -5390,8 +5403,6 @@ export default class bitget extends Exchange {
                 throw new NotSupported (this.id + ' editOrder() does not support ' + market['type'] + ' orders');
             }
             request['symbol'] = market['id'];
-            let productType = undefined;
-            [ productType, params ] = this.handleProductTypeAndParams (market, params);
             request['productType'] = productType;
             if (!isTakeProfitOrder && !isStopLossOrder) {
                 request['newSize'] = this.amountToPrecision (symbol, amount);
