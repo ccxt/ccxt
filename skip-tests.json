@@ -268,9 +268,6 @@
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies"
             },
-            "fetchCurrencies": {
-                "type": "todo"
-            },
             "ticker": {
                 "average": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269484317#L4030",
                 "open": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269367056#L3473",
