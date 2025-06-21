@@ -4855,6 +4855,7 @@ export default class bitget extends Exchange {
      * @see https://www.bitget.com/api-doc/contract/plan/Place-Plan-Order
      * @see https://www.bitget.com/api-doc/margin/cross/trade/Cross-Place-Order
      * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Place-Order
+     * @see https://www.bitget.bike/api-doc/uta/trade/Place-Order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -4883,6 +4884,8 @@ export default class bitget extends Exchange {
      * @param {boolean} [params.oneWayMode] *swap and future only* required to set this to true in one_way_mode and you can leave this as undefined in hedge_mode, can adjust the mode using the setPositionMode() method
      * @param {bool} [params.hedged] *swap and future only* true for hedged mode, false for one way mode, default is false
      * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {string} [params.posSide] *uta only* hedged two-way position side, long or short
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -4899,25 +4902,32 @@ export default class bitget extends Exchange {
         const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
         const isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
-        const request = this.createOrderRequest (symbol, type, side, amount, price, params);
         let response = undefined;
-        if (market['spot']) {
-            if (isTriggerOrder) {
-                response = await this.privateSpotPostV2SpotTradePlacePlanOrder (request);
-            } else if (marginMode === 'isolated') {
-                response = await this.privateMarginPostV2MarginIsolatedPlaceOrder (request);
-            } else if (marginMode === 'cross') {
-                response = await this.privateMarginPostV2MarginCrossedPlaceOrder (request);
-            } else {
-                response = await this.privateSpotPostV2SpotTradePlaceOrder (request);
-            }
+        let uta = undefined;
+        [ uta, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'uta', false);
+        if (uta) {
+            const request = this.createUtaOrderRequest (symbol, type, side, amount, price, params);
+            response = await this.privateUtaPostV3TradePlaceOrder (this.extend (request, params));
         } else {
-            if (isTriggerOrder || isTrailingPercentOrder) {
-                response = await this.privateMixPostV2MixOrderPlacePlanOrder (request);
-            } else if (isStopLossOrTakeProfitTrigger) {
-                response = await this.privateMixPostV2MixOrderPlaceTpslOrder (request);
+            const request = this.createOrderRequest (symbol, type, side, amount, price, params);
+            if (market['spot']) {
+                if (isTriggerOrder) {
+                    response = await this.privateSpotPostV2SpotTradePlacePlanOrder (request);
+                } else if (marginMode === 'isolated') {
+                    response = await this.privateMarginPostV2MarginIsolatedPlaceOrder (request);
+                } else if (marginMode === 'cross') {
+                    response = await this.privateMarginPostV2MarginCrossedPlaceOrder (request);
+                } else {
+                    response = await this.privateSpotPostV2SpotTradePlaceOrder (request);
+                }
             } else {
-                response = await this.privateMixPostV2MixOrderPlaceOrder (request);
+                if (isTriggerOrder || isTrailingPercentOrder) {
+                    response = await this.privateMixPostV2MixOrderPlacePlanOrder (request);
+                } else if (isStopLossOrTakeProfitTrigger) {
+                    response = await this.privateMixPostV2MixOrderPlaceTpslOrder (request);
+                } else {
+                    response = await this.privateMixPostV2MixOrderPlaceOrder (request);
+                }
             }
         }
         //
@@ -4933,6 +4943,59 @@ export default class bitget extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
+    }
+
+    createUtaOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        const market = this.market (symbol);
+        let productType = undefined;
+        [ productType, params ] = this.handleProductTypeAndParams (market, params);
+        const request: Dict = {
+            'category': productType,
+            'symbol': market['id'],
+            'orderType': type,
+            'qty': this.amountToPrecision (symbol, amount),
+        };
+        const isMarketOrder = type === 'market';
+        if (!isMarketOrder) {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        const reduceOnly = this.safeBool (params, 'reduceOnly', false);
+        const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
+        const exchangeSpecificTifParam = this.safeString (params, 'timeInForce');
+        let postOnly = undefined;
+        [ postOnly, params ] = this.handlePostOnly (isMarketOrder, exchangeSpecificTifParam === 'post_only', params);
+        const defaultTimeInForce = this.safeStringUpper (this.options, 'defaultTimeInForce');
+        const timeInForce = this.safeStringUpper (params, 'timeInForce', defaultTimeInForce);
+        if (postOnly) {
+            request['timeInForce'] = 'post_only';
+        } else if (timeInForce === 'GTC') {
+            request['timeInForce'] = 'gtc';
+        } else if (timeInForce === 'FOK') {
+            request['timeInForce'] = 'fok';
+        } else if (timeInForce === 'IOC') {
+            request['timeInForce'] = 'ioc';
+        }
+        if (clientOrderId !== undefined) {
+            request['clientOid'] = clientOrderId;
+        }
+        let hedged = undefined;
+        [ hedged, params ] = this.handleParamBool (params, 'hedged', false);
+        let requestSide = side;
+        if (reduceOnly) {
+            if (!hedged) {
+                request['reduceOnly'] = 'yes';
+            } else {
+                // on bitget hedge mode if the position is long the side is always buy, and if the position is short the side is always sell
+                requestSide = (side === 'buy') ? 'sell' : 'buy';
+            }
+        }
+        if (hedged) {
+            const posSide = (requestSide === 'buy') ? 'long' : 'short';
+            request['posSide'] = posSide;
+        }
+        request['side'] = requestSide;
+        params = this.omit (params, [ 'postOnly', 'reduceOnly', 'clientOrderId', 'hedged' ]);
+        return this.extend (request, params);
     }
 
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {

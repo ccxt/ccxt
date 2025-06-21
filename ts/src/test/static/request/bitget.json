@@ -354,6 +354,35 @@
                   }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT\",\"orderType\":\"market\",\"force\":\"GTC\",\"marginCoin\":\"USDT\",\"size\":\"0.001\",\"productType\":\"USDT-FUTURES\",\"marginMode\":\"crossed\",\"tradeSide\":\"Close\",\"side\":\"buy\"}"
+            },
+            {
+                "description": "uta spot createOrder",
+                "method": "createOrder",
+                "url": "https://api.bitget.com/api/v3/trade/place-order",
+                "input": [
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    0.001,
+                    50000
+                ],
+                "output": "{\"category\":\"SPOT\",\"symbol\":\"BTCUSDT\",\"orderType\":\"limit\",\"qty\":\"0.001\",\"price\":\"50000\",\"timeInForce\":\"gtc\",\"side\":\"buy\"}"
+            },
+            {
+                "description": "uta swap createOrder with posSide param",
+                "method": "createOrder",
+                "url": "https://api.bitget.com/api/v3/trade/place-order",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.001,
+                    50000,
+                    {
+                        "posSide": "long"
+                    }
+                ],
+                "output": "{\"category\":\"USDT-FUTURES\",\"symbol\":\"BTCUSDT\",\"orderType\":\"limit\",\"qty\":\"0.001\",\"price\":\"50000\",\"timeInForce\":\"gtc\",\"side\":\"buy\",\"posSide\":\"long\"}"
             }
         ],
         "createMarketBuyOrderWithCost": [
