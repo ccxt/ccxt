@@ -70,14 +70,18 @@ import "github.com/ccxt/ccxt/go/v4"
                 // to avoid abnormal long precision issues (like https://discord.com/channels/690203284119617602/1338828283902689280/1338846071278927912 )
                 var mPrecision interface{} = exchange.SafeDict(market, "precision")
                 var amountPrecision interface{} = exchange.SafeString(mPrecision, "amount")
+                var tolerance interface{} = "1.0001"
                 if IsTrue(!IsEqual(amountPrecision, nil)) {
                     baseLow = ccxt.Precise.StringMul(ccxt.Precise.StringSub(baseVolume, amountPrecision), low)
                     baseHigh = ccxt.Precise.StringMul(ccxt.Precise.StringAdd(baseVolume, amountPrecision), high)
                 } else {
                     // if nothing found, as an exclusion, just add 0.001%
-                    baseLow = ccxt.Precise.StringMul(ccxt.Precise.StringMul(baseVolume, "1.0001"), low)
-                    baseHigh = ccxt.Precise.StringMul(ccxt.Precise.StringDiv(baseVolume, "1.0001"), high)
+                    baseLow = ccxt.Precise.StringMul(ccxt.Precise.StringDiv(baseVolume, tolerance), low)
+                    baseHigh = ccxt.Precise.StringMul(ccxt.Precise.StringMul(baseVolume, tolerance), high)
                 }
+                // because of exchange engines might not rounding numbers propertly, we add some tolerance of calculated 24hr high/low
+                baseLow = ccxt.Precise.StringDiv(baseLow, tolerance)
+                baseHigh = ccxt.Precise.StringMul(baseHigh, tolerance)
                 Assert(ccxt.Precise.StringGe(quoteVolume, baseLow), Add("quoteVolume should be => baseVolume * low", logText))
                 Assert(ccxt.Precise.StringLe(quoteVolume, baseHigh), Add("quoteVolume should be <= baseVolume * high", logText))
             }
