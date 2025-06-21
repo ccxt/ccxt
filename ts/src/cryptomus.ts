@@ -368,68 +368,45 @@ export default class cryptomus extends Exchange {
         //     }
         //
         const coins = this.safeList (response, 'result');
+        const groupedById = this.groupBy (coins, 'currency_code');
+        const keys = Object.keys (groupedById);
         const result: Dict = {};
-        for (let i = 0; i < coins.length; i++) {
-            const networkEntry = coins[i];
-            const currencyId = this.safeString (networkEntry, 'currency_code');
-            const code = this.safeCurrencyCode (currencyId);
-            if (!(code in result)) {
-                result[code] = {
-                    'id': currencyId,
-                    'code': code,
-                    'precision': undefined,
-                    'type': undefined,
-                    'name': undefined,
-                    'active': undefined,
-                    'deposit': undefined,
-                    'withdraw': undefined,
-                    'fee': undefined,
+        for (let i = 0; i < keys.length; i++) {
+            const id = keys[i];
+            const code = this.safeCurrencyCode (id);
+            const networks = {};
+            const networkEntries = groupedById[id];
+            for (let j = 0; j < networkEntries.length; j++) {
+                const networkEntry = networkEntries[j];
+                const networkId = this.safeString (networkEntry, 'network_code');
+                const networkCode = this.networkIdToCode (networkId);
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
                     'limits': {
                         'withdraw': {
-                            'min': undefined,
-                            'max': undefined,
+                            'min': this.safeNumber (networkEntry, 'min_withdraw'),
+                            'max': this.safeNumber (networkEntry, 'max_withdraw'),
                         },
                         'deposit': {
-                            'min': undefined,
-                            'max': undefined,
+                            'min': this.safeNumber (networkEntry, 'min_deposit'),
+                            'max': this.safeNumber (networkEntry, 'max_deposit'),
                         },
                     },
-                    'networks': {},
-                    'info': {},
+                    'active': undefined,
+                    'deposit': this.safeBool (networkEntry, 'can_withdraw'),
+                    'withdraw': this.safeBool (networkEntry, 'can_deposit'),
+                    'fee': undefined,
+                    'precision': undefined,
+                    'info': networkEntry,
                 };
             }
-            const networkId = this.safeString (networkEntry, 'network_code');
-            const networkCode = this.networkIdToCode (networkId);
-            result[code]['networks'][networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber (networkEntry, 'min_withdraw'),
-                        'max': this.safeNumber (networkEntry, 'max_withdraw'),
-                    },
-                    'deposit': {
-                        'min': this.safeNumber (networkEntry, 'min_deposit'),
-                        'max': this.safeNumber (networkEntry, 'max_deposit'),
-                    },
-                },
-                'active': undefined,
-                'deposit': this.safeBool (networkEntry, 'can_withdraw'),
-                'withdraw': this.safeBool (networkEntry, 'can_deposit'),
-                'fee': undefined,
-                'precision': undefined,
-                'info': networkEntry,
-            };
-            // add entry in info
-            const info = this.safeList (result[code], 'info', []);
-            info.push (networkEntry);
-            result[code]['info'] = info;
-        }
-        // only after all entries are formed in currencies, restructure each entry
-        const allKeys = Object.keys (result);
-        for (let i = 0; i < allKeys.length; i++) {
-            const code = allKeys[i];
-            result[code] = this.safeCurrencyStructure (result[code]); // this is needed after adding network entry
+            result[code] = this.safeCurrencyStructure ({
+                'id': id,
+                'code': code,
+                'networks': networks,
+                'info': networkEntries,
+            });
         }
         return result;
     }
