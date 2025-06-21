@@ -841,6 +841,16 @@
                         "marginMode": "isolated"
                     }
                 ]
+            },
+            {
+                "description": "Fetch the uta balance",
+                "method": "fetchBalance",
+                "url": "https://api.bitget.com/api/v3/account/assets",
+                "input": [
+                    {
+                        "uta": true
+                    }
+                ]
             }
         ],
         "fetchPosition": [
