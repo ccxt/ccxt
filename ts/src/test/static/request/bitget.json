@@ -1101,6 +1101,26 @@
                     }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT\",\"orderId\":\"1121635717619453955\",\"productType\":\"USDT-FUTURES\",\"orderIdList\":[{\"orderId\":\"1121635717619453955\"}],\"planType\":\"track_plan\"}"
+            },
+            {
+                "description": "uta spot cancelOrder",
+                "method": "cancelOrder",
+                "url": "https://api.bitget.com/api/v3/trade/cancel-order",
+                "input": [
+                    "1320254907742572544",
+                    "BTC/USDT"
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"orderId\":\"1320254907742572544\"}"
+            },
+            {
+                "description": "uta swap cancelOrder",
+                "method": "cancelOrder",
+                "url": "https://api.bitget.com/api/v3/trade/cancel-order",
+                "input": [
+                    "1320244799629316096",
+                    "BTC/USDT:USDT"
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"orderId\":\"1320244799629316096\"}"
             }
         ],
         "cancelOrders": [

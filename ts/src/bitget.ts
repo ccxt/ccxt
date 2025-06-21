@@ -5541,6 +5541,7 @@ export default class bitget extends Exchange {
      * @see https://www.bitget.com/api-doc/contract/plan/Cancel-Plan-Order
      * @see https://www.bitget.com/api-doc/margin/cross/trade/Cross-Cancel-Order
      * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Cancel-Order
+     * @see https://www.bitget.bike/api-doc/uta/trade/Cancel-Order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -5548,6 +5549,7 @@ export default class bitget extends Exchange {
      * @param {boolean} [params.trigger] set to true for canceling trigger orders
      * @param {string} [params.planType] *swap only* either profit_plan, loss_plan, normal_plan, pos_profit, pos_loss, moving_plan or track_plan
      * @param {boolean} [params.trailing] set to true if you want to cancel a trailing order
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -5569,7 +5571,12 @@ export default class bitget extends Exchange {
         if (!((market['swap'] || market['future']) && trigger)) {
             request['orderId'] = id;
         }
-        if ((market['swap']) || (market['future'])) {
+        let uta = undefined;
+        [ uta, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'uta', false);
+        if (uta) {
+            request['orderId'] = id;
+            response = await this.privateUtaPostV3TradeCancelOrder (this.extend (request, params));
+        } else if ((market['swap']) || (market['future'])) {
             let productType = undefined;
             [ productType, params ] = this.handleProductTypeAndParams (market, params);
             request['productType'] = productType;
@@ -5863,6 +5870,7 @@ export default class bitget extends Exchange {
      * @description fetches information on an order made by the user
      * @see https://www.bitget.com/api-doc/spot/trade/Get-Order-Info
      * @see https://www.bitget.com/api-doc/contract/trade/Get-Order-Details
+     * @see https://www.bitget.bike/api-doc/uta/trade/Get-Order-Details
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
