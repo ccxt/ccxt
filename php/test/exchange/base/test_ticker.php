@@ -75,14 +75,18 @@ function test_ticker($exchange, $skipped_properties, $method, $entry, $symbol) {
             // to avoid abnormal long precision issues (like https://discord.com/channels/690203284119617602/1338828283902689280/1338846071278927912 )
             $m_precision = $exchange->safe_dict($market, 'precision');
             $amount_precision = $exchange->safe_string($m_precision, 'amount');
+            $tolerance = '1.0001';
             if ($amount_precision !== null) {
                 $base_low = Precise::string_mul(Precise::string_sub($base_volume, $amount_precision), $low);
                 $base_high = Precise::string_mul(Precise::string_add($base_volume, $amount_precision), $high);
             } else {
                 // if nothing found, as an exclusion, just add 0.001%
-                $base_low = Precise::string_mul(Precise::string_mul($base_volume, '1.0001'), $low);
-                $base_high = Precise::string_mul(Precise::string_div($base_volume, '1.0001'), $high);
+                $base_low = Precise::string_mul(Precise::string_div($base_volume, $tolerance), $low);
+                $base_high = Precise::string_mul(Precise::string_mul($base_volume, $tolerance), $high);
             }
+            // because of exchange engines might not rounding numbers propertly, we add some tolerance of calculated 24hr high/low
+            $base_low = Precise::string_div($base_low, $tolerance);
+            $base_high = Precise::string_mul($base_high, $tolerance);
             assert(Precise::string_ge($quote_volume, $base_low), 'quoteVolume should be => baseVolume * low' . $log_text);
             assert(Precise::string_le($quote_volume, $base_high), 'quoteVolume should be <= baseVolume * high' . $log_text);
         }

@@ -74,6 +74,10 @@ class kraken(ccxt.async_support.kraken):
                     'checksum': False,
                 },
             },
+            'streaming': {
+                'ping': self.ping,
+                'keepAlive': 6000,
+            },
             'exceptions': {
                 'ws': {
                     'exact': {
@@ -124,6 +128,7 @@ class kraken(ccxt.async_support.kraken):
                         'EService:Market in post_only mode': NotSupported,
                         'EService:Unavailable': ExchangeNotAvailable,
                         'ETrade:Invalid request': BadRequest,
+                        'ESession:Invalid session': AuthenticationError,
                     },
                 },
             },
@@ -803,6 +808,19 @@ class kraken(ccxt.async_support.kraken):
             self.options['marketsByWsName'] = marketsByWsName
         return markets
 
+    def ping(self, client: Client):
+        url = client.url
+        request = {}
+        if url.find('v2') >= 0:
+            request['method'] = 'ping'
+        else:
+            request['event'] = 'ping'
+        return request
+
+    def handle_pong(self, client: Client, message):
+        client.lastPong = self.milliseconds()
+        return message
+
     async def watch_heartbeat(self, params={}):
         await self.load_markets()
         event = 'heartbeat'
@@ -998,7 +1016,11 @@ class kraken(ccxt.async_support.kraken):
         client = self.client(url)
         authenticated = 'authenticated'
         subscription = self.safe_value(client.subscriptions, authenticated)
-        if subscription is None:
+        now = self.seconds()
+        start = self.safe_integer(subscription, 'start')
+        expires = self.safe_integer(subscription, 'expires')
+        if (subscription is None) or ((subscription is not None) and (start + expires) <= now):
+            # https://docs.kraken.com/api/docs/rest-api/get-websockets-token
             response = await self.privatePostGetWebSocketsToken(params)
             #
             #     {
@@ -1009,7 +1031,8 @@ class kraken(ccxt.async_support.kraken):
             #         }
             #     }
             #
-            subscription = self.safe_value(response, 'result')
+            subscription = self.safe_dict(response, 'result')
+            subscription['start'] = now
             client.subscriptions[authenticated] = subscription
         return self.safe_string(subscription, 'token')
 
@@ -1644,6 +1667,7 @@ class kraken(ccxt.async_support.kraken):
                     'amend_order': self.handle_create_edit_order,
                     'cancel_order': self.handle_cancel_order,
                     'cancel_all': self.handle_cancel_all_orders,
+                    'pong': self.handle_pong,
                 }
                 method = self.safe_value(methods, event)
                 if method is not None:
