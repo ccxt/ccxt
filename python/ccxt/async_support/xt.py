@@ -2847,7 +2847,7 @@ class xt(Exchange, ImplicitAPI):
             if trigger or stopLossTakeProfit:
                 request['state'] = 'NOT_TRIGGERED'
             elif type == 'swap':
-                request['state'] = 'NEW'
+                request['state'] = 'UNFINISHED'  # NEW & PARTIALLY_FILLED
         elif status == 'closed':
             if trigger or stopLossTakeProfit:
                 request['state'] = 'TRIGGERED'

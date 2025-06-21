@@ -1162,7 +1162,7 @@ public partial class gate : Exchange
         object rawPromises = new List<object> {this.fetchContractMarkets(parameters), this.fetchOptionMarkets(parameters)};
         if (!isTrue(sandboxMode))
         {
-            // gate does not have a sandbox for spot markets
+            // gate doesn't have a sandbox for spot markets
             object mainnetOnly = new List<object> {this.fetchSpotMarkets(parameters)};
             rawPromises = this.arrayConcat(rawPromises, mainnetOnly);
         }
@@ -1190,17 +1190,21 @@ public partial class gate : Exchange
         //         {
         //             "id": "QTUM_ETH",
         //             "base": "QTUM",
+        //             "base_name": "Quantum",
         //             "quote": "ETH",
+        //             "quote_name": "Ethereum",
         //             "fee": "0.2",
         //             "min_base_amount": "0.01",
         //             "min_quote_amount": "0.001",
+        //             "max_quote_amount": "50000",
         //             "amount_precision": 3,
         //             "precision": 6,
         //             "trade_status": "tradable",
-        //             "sell_start": 0,
-        //             "buy_start": 0
+        //             "sell_start": 1607313600,
+        //             "buy_start": 1700492400,
+        //             "type": "normal",
+        //             "trade_url": "https://www.gate.io/trade/QTUM_ETH",
         //         }
-        //     ]
         //
         //  Margin
         //
@@ -1234,6 +1238,8 @@ public partial class gate : Exchange
             object tradeStatus = this.safeString(market, "trade_status");
             object leverage = this.safeNumber(market, "leverage");
             object margin = !isEqual(leverage, null);
+            object buyStart = this.safeIntegerProduct(spotMarket, "buy_start", 1000); // buy_start is the trading start time, while sell_start is offline orders start time
+            object createdTs = ((bool) isTrue((!isEqual(buyStart, 0)))) ? buyStart : null;
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", add(add(bs, "/"), quote) },
@@ -1282,7 +1288,7 @@ public partial class gate : Exchange
                         { "max", ((bool) isTrue(margin)) ? this.safeNumber(market, "max_quote_amount") : null },
                     } },
                 } },
-                { "created", null },
+                { "created", createdTs },
                 { "info", market },
             });
         }
@@ -1361,6 +1367,7 @@ public partial class gate : Exchange
         //        "funding_next_apply": 1610035200,
         //        "short_users": 977,
         //        "config_change_time": 1609899548,
+        //        "create_time": 1609800048,
         //        "trade_size": 28530850594,
         //        "position_size": 5223816,
         //        "long_users": 455,
@@ -1496,7 +1503,7 @@ public partial class gate : Exchange
                     { "max", null },
                 } },
             } },
-            { "created", null },
+            { "created", this.safeIntegerProduct(market, "create_time", 1000) },
             { "info", market },
         };
     }
@@ -1598,7 +1605,7 @@ public partial class gate : Exchange
                     { "contractSize", this.parseNumber("1") },
                     { "expiry", expiry },
                     { "expiryDatetime", this.iso8601(expiry) },
-                    { "strike", strike },
+                    { "strike", this.parseNumber(strike) },
                     { "optionType", optionType },
                     { "precision", new Dictionary<string, object>() {
                         { "amount", this.parseNumber("1") },

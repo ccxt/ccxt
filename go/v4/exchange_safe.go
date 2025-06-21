@@ -3,6 +3,8 @@ package ccxt
 import (
 	// "errors"
 	"fmt"
+	"sync"
+
 	// "reflect"
 	"strconv"
 	"strings"
@@ -185,6 +187,21 @@ func SafeValueN(obj interface{}, keys []interface{}, defaultValue ...interface{}
 			}
 		}
 		return defVal
+	} else if syncDict, ok := obj.(*sync.Map); ok {
+		if syncDict == nil {
+			return defVal
+		}
+		for _, key := range keys {
+			if key == nil {
+				continue
+			}
+			keyStr := fmt.Sprintf("%v", key)
+			if value, found := syncDict.Load(keyStr); found {
+				if value != nil && value != "" {
+					return value
+				}
+			}
+		}
 	}
 
 	// Handle slices

@@ -59,7 +59,6 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 			headersStrMap[k] = fmt.Sprintf("%v", v)
 		}
 
-
 		// Marshal the body to JSON if not nil
 		// var requestBody []byte
 		// var err error
@@ -175,7 +174,8 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 		}
 
 		statusText := http.StatusText(resp.StatusCode)
-		handleErrorResult := <-this.callInternal("handleErrors", resp.StatusCode, statusText, urlStr, methodStr, headers, string(respBody), result, headersStrMap, body)
+		// handleErrorResult := <-this.callInternal("handleErrors", resp.StatusCode, statusText, urlStr, methodStr, headers, string(respBody), result, headersStrMap, body)
+		handleErrorResult := this.DerivedExchange.HandleErrors(resp.StatusCode, statusText, urlStr, methodStr, headers, string(respBody), result, headersStrMap, body)
 		PanicOnError(handleErrorResult)
 
 		if handleErrorResult == nil {

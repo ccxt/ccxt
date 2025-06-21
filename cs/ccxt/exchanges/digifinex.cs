@@ -350,6 +350,8 @@ public partial class digifinex : Exchange
                     { "BSC", "BEP20" },
                     { "ERC20", "ERC20" },
                     { "ETH", "ERC20" },
+                    { "Polygon", "POLYGON" },
+                    { "Crypto.com", "CRONOS" },
                 } },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
@@ -414,73 +416,47 @@ public partial class digifinex : Exchange
         //     }
         //
         object data = this.safeList(response, "data", new List<object>() {});
+        object groupedById = this.groupBy(data, "currency");
+        object keys = new List<object>(((IDictionary<string,object>)groupedById).Keys);
         object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
-            object networkEntry = getValue(data, i);
-            object id = this.safeString(networkEntry, "currency");
+            object id = getValue(keys, i);
+            object networkEntries = getValue(groupedById, id);
             object code = this.safeCurrencyCode(id);
-            if (!isTrue((inOp(result, code))))
+            object networks = new Dictionary<string, object>() {};
+            for (object j = 0; isLessThan(j, getArrayLength(networkEntries)); postFixIncrement(ref j))
             {
-                ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
-                    { "id", id },
-                    { "code", code },
-                    { "info", new List<object>() {} },
-                    { "type", null },
-                    { "name", null },
+                object networkEntry = getValue(networkEntries, j);
+                object networkId = this.safeString(networkEntry, "chain");
+                object networkCode = this.networkIdToCode(networkId);
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "id", networkId },
+                    { "network", networkCode },
                     { "active", null },
-                    { "deposit", null },
-                    { "withdraw", null },
-                    { "fee", null },
+                    { "deposit", isEqual(this.safeInteger(networkEntry, "deposit_status"), 1) },
+                    { "withdraw", isEqual(this.safeInteger(networkEntry, "withdraw_status"), 1) },
+                    { "fee", this.safeNumber(networkEntry, "min_withdraw_fee") },
                     { "precision", null },
                     { "limits", new Dictionary<string, object>() {
-                        { "amount", new Dictionary<string, object>() {
-                            { "min", null },
-                            { "max", null },
-                        } },
                         { "withdraw", new Dictionary<string, object>() {
-                            { "min", null },
+                            { "min", this.safeNumber(networkEntry, "min_withdraw_amount") },
                             { "max", null },
                         } },
                         { "deposit", new Dictionary<string, object>() {
-                            { "min", null },
+                            { "min", this.safeNumber(networkEntry, "min_deposit_amount") },
                             { "max", null },
                         } },
                     } },
-                    { "networks", new Dictionary<string, object>() {} },
+                    { "info", networkEntry },
                 };
             }
-            object networkId = this.safeString(networkEntry, "chain");
-            object networkCode = this.networkIdToCode(networkId);
-            ((IDictionary<string,object>)getValue(getValue(result, code), "networks"))[(string)networkCode] = new Dictionary<string, object>() {
-                { "id", networkId },
-                { "network", networkCode },
-                { "active", isEqual(this.safeInteger(networkEntry, "deposit_status"), 1) },
-                { "deposit", isEqual(this.safeInteger(networkEntry, "deposit_status"), 1) },
-                { "withdraw", isEqual(this.safeInteger(networkEntry, "withdraw_status"), 1) },
-                { "fee", this.safeNumber(networkEntry, "min_withdraw_fee") },
-                { "precision", null },
-                { "limits", new Dictionary<string, object>() {
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(networkEntry, "min_withdraw_amount") },
-                        { "max", null },
-                    } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(networkEntry, "min_deposit_amount") },
-                        { "max", null },
-                    } },
-                } },
-            };
-            object infos = this.safeList(getValue(result, code), "info", new List<object>() {});
-            ((IList<object>)infos).Add(networkEntry);
-            ((IDictionary<string,object>)getValue(result, code))["info"] = infos;
-        }
-        // only after all entries are formed in currencies, restructure each entry
-        object allKeys = new List<object>(((IDictionary<string,object>)result).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(allKeys)); postFixIncrement(ref i))
-        {
-            object code = getValue(allKeys, i);
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(getValue(result, code)); // this is needed after adding network entry
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
+                { "id", id },
+                { "code", code },
+                { "info", networkEntries },
+                { "networks", networks },
+            });
         }
         return result;
     }

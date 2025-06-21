@@ -69,7 +69,6 @@ interface CLIOptions {
     raw?: boolean;
     noKeys?: boolean;
     i?: boolean;
-    history?: boolean;
     name?: string;
     param?: any;
     config?: any;
@@ -119,7 +118,6 @@ program
     .option ('--clipboard', 'Copies the result to clipboard automatically.')
     .option ('--signIn', 'calls the signIn() method if available')
     .option ('--cache-markets', 'forces markets caching')
-    .option ('--history', 'prints the history of executed commands')
     .option ('--no-load-markets', 'skips markets loading')
     .option ('--no-table', 'does not prettify the results')
     .option ('--spot', 'sets defaultType as spot')

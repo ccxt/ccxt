@@ -4938,7 +4938,7 @@ public partial class coinbase : Exchange
      * @method
      * @name coinbase#closePosition
      * @description *futures only* closes open positions for a market
-     * @see https://coinbase-api.github.io/docs/#/en-us/swapV2/trade-api.html#One-Click%20Close%20All%20Positions
+     * @see https://docs.cdp.coinbase.com/coinbase-app/trade/reference/retailbrokerageapi_closeposition
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} [side] not used by coinbase
      * @param {object} [params] extra parameters specific to the coinbase api endpoint
@@ -4951,10 +4951,6 @@ public partial class coinbase : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
-        if (!isTrue(getValue(market, "future")))
-        {
-            throw new NotSupported ((string)add(this.id, " closePosition() only supported for futures markets")) ;
-        }
         object clientOrderId = this.safeString2(parameters, "client_order_id", "clientOrderId");
         parameters = this.omit(parameters, "clientOrderId");
         object request = new Dictionary<string, object>() {
