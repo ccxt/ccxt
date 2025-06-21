@@ -364,7 +364,10 @@
                     "limit",
                     "buy",
                     0.001,
-                    50000
+                    50000,
+                    {
+                        "uta": true
+                    }
                 ],
                 "output": "{\"category\":\"SPOT\",\"symbol\":\"BTCUSDT\",\"orderType\":\"limit\",\"qty\":\"0.001\",\"price\":\"50000\",\"timeInForce\":\"gtc\",\"side\":\"buy\"}"
             },
@@ -379,7 +382,8 @@
                     0.001,
                     50000,
                     {
-                        "posSide": "long"
+                        "posSide": "long",
+                        "uta": true
                     }
                 ],
                 "output": "{\"category\":\"USDT-FUTURES\",\"symbol\":\"BTCUSDT\",\"orderType\":\"limit\",\"qty\":\"0.001\",\"price\":\"50000\",\"timeInForce\":\"gtc\",\"side\":\"buy\",\"posSide\":\"long\"}"
@@ -607,7 +611,10 @@
                     "limit",
                     "buy",
                     0.0011,
-                    51000
+                    51000,
+                    {
+                        "uta": true
+                    }
                 ],
                 "output": "{\"orderId\":\"1320239033384062976\",\"qty\":\"0.0011\",\"price\":\"51000\"}"
             },
@@ -621,7 +628,10 @@
                     "limit",
                     "buy",
                     0.0011,
-                    51000
+                    51000,
+                    {
+                        "uta": true
+                    }
                 ],
                 "output": "{\"orderId\":\"1320240021595639809\",\"qty\":\"0.0011\",\"price\":\"51000\"}"
             }
@@ -699,7 +709,10 @@
                 "url": "https://api.bitget.com/api/v3/trade/order-info?orderId=1320239033384062976",
                 "input": [
                     "1320239033384062976",
-                    "BTC/USDT"
+                    "BTC/USDT",
+                    {
+                        "uta": true
+                    }
                 ]
             },
             {
@@ -708,7 +721,10 @@
                 "url": "https://api.bitget.com/api/v3/trade/order-info?orderId=1320244799629316096",
                 "input": [
                     "1320244799629316096",
-                    "BTC/USDT:USDT"
+                    "BTC/USDT:USDT",
+                    {
+                        "uta": true
+                    }
                 ]
             }
         ],
@@ -1108,7 +1124,10 @@
                 "url": "https://api.bitget.com/api/v3/trade/cancel-order",
                 "input": [
                     "1320254907742572544",
-                    "BTC/USDT"
+                    "BTC/USDT",
+                    {
+                        "uta": true
+                    }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT\",\"orderId\":\"1320254907742572544\"}"
             },
@@ -1118,7 +1137,10 @@
                 "url": "https://api.bitget.com/api/v3/trade/cancel-order",
                 "input": [
                     "1320244799629316096",
-                    "BTC/USDT:USDT"
+                    "BTC/USDT:USDT",
+                    {
+                        "uta": true
+                    }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT\",\"orderId\":\"1320244799629316096\"}"
             }
@@ -1519,7 +1541,10 @@
                     "BTC/USDT",
                     "1m",
                     null,
-                    1
+                    1,
+                    {
+                        "uta": true
+                    }
                 ]
             },
             {
@@ -1530,7 +1555,10 @@
                     "BTC/USDT:USDT",
                     "1m",
                     null,
-                    1
+                    1,
+                    {
+                        "uta": true
+                    }
                 ]
             },
             {
@@ -1543,7 +1571,8 @@
                     null,
                     1,
                     {
-                        "price": "mark"
+                        "price": "mark",
+                        "uta": true
                     }
                 ]
             },
@@ -1557,7 +1586,8 @@
                     null,
                     1,
                     {
-                        "price": "index"
+                        "price": "index",
+                        "uta": true
                     }
                 ]
             }
@@ -1620,7 +1650,11 @@
                 "method": "fetchOrderBook",
                 "url": "https://api.bitget.com/api/v3/market/orderbook?symbol=BTCUSDT&category=SPOT",
                 "input": [
-                    "BTC/USDT"
+                    "BTC/USDT",
+                    null,
+                    {
+                        "uta": true
+                    }
                 ]
             }
         ],
@@ -1668,7 +1702,10 @@
                 "input": [
                     "BTC/USDT",
                     null,
-                    1
+                    1,
+                    {
+                        "uta": true
+                    }
                 ]
             },
             {
@@ -1678,7 +1715,10 @@
                 "input": [
                     "BTC/USDT:USDT",
                     null,
-                    1
+                    1,
+                    {
+                        "uta": true
+                    }
                 ]
             }
         ],
@@ -1828,7 +1868,10 @@
                 "method": "fetchTicker",
                 "url": "https://api.bitget.com/api/v3/market/tickers?symbol=BTCUSDT&category=SPOT",
                 "input": [
-                    "BTC/USDT"
+                    "BTC/USDT",
+                    {
+                        "uta": true
+                    }
                 ]
             },
             {
@@ -1836,7 +1879,10 @@
                 "method": "fetchTicker",
                 "url": "https://api.bitget.com/api/v3/market/tickers?symbol=BTCUSDT&category=USDT-FUTURES",
                 "input": [
-                    "BTC/USDT:USDT"
+                    "BTC/USDT:USDT",
+                    {
+                        "uta": true
+                    }
                 ]
             }
         ],
@@ -1904,7 +1950,10 @@
                 "input": [
                     [
                         "BTC/USDT"
-                    ]
+                    ],
+                    {
+                        "uta": true
+                    }
                 ]
             },
             {
@@ -1914,7 +1963,10 @@
                 "input": [
                     [
                         "BTC/USDT:USDT"
-                    ]
+                    ],
+                    {
+                        "uta": true
+                    }
                 ]
             }
         ],
@@ -1932,7 +1984,12 @@
                 "method": "fetchFundingRateHistory",
                 "url": "https://api.bitget.com/api/v3/market/history-fund-rate?symbol=BTCUSDT&category=USDT-FUTURES",
                 "input": [
-                    "BTC/USDT:USDT"
+                    "BTC/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "uta": true
+                    }
                 ]
             }
         ],

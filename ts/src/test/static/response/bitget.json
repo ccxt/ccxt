@@ -1084,7 +1084,10 @@
                     "limit",
                     "buy",
                     0.001,
-                    50000
+                    50000,
+                    {
+                        "uta": true
+                    }
                 ],
                 "httpResponse": {
                     "code": "00000",
@@ -1138,7 +1141,8 @@
                     0.001,
                     50000,
                     {
-                        "posSide": "long"
+                        "posSide": "long",
+                        "uta": true
                     }
                 ],
                 "httpResponse": {
@@ -1194,7 +1198,10 @@
                     "limit",
                     "buy",
                     0.0011,
-                    51000
+                    51000,
+                    {
+                        "uta": true
+                    }
                 ],
                 "httpResponse": {
                     "code": "00000",
@@ -1247,7 +1254,10 @@
                     "limit",
                     "buy",
                     0.0011,
-                    51000
+                    51000,
+                    {
+                        "uta": true
+                    }
                 ],
                 "httpResponse": {
                     "code": "00000",
@@ -2084,7 +2094,10 @@
                     "BTC/USDT",
                     "1m",
                     null,
-                    1
+                    1,
+                    {
+                        "uta": true
+                    }
                 ],
                 "httpResponse": {
                     "code": "00000",
@@ -2120,7 +2133,10 @@
                     "BTC/USDT:USDT",
                     "1m",
                     null,
-                    1
+                    1,
+                    {
+                        "uta": true
+                    }
                 ],
                 "httpResponse": {
                     "code": "00000",
@@ -2158,7 +2174,8 @@
                     null,
                     1,
                     {
-                        "price": "mark"
+                        "price": "mark",
+                        "uta": true
                     }
                 ],
                 "httpResponse": {
@@ -2197,7 +2214,8 @@
                     null,
                     1,
                     {
-                        "price": "index"
+                        "price": "index",
+                        "uta": true
                     }
                 ],
                 "httpResponse": {
@@ -2295,7 +2313,11 @@
                 "description": "uta orderbook",
                 "method": "fetchOrderBook",
                 "input": [
-                    "BTC/USDT"
+                    "BTC/USDT",
+                    null,
+                    {
+                        "uta": true
+                    }
                 ],
                 "httpResponse": {
                     "code": "00000",
@@ -2792,7 +2814,10 @@
                 "method": "fetchOrder",
                 "input": [
                     "1320239033384062976",
-                    "BTC/USDT"
+                    "BTC/USDT",
+                    {
+                        "uta": true
+                    }
                 ],
                 "httpResponse": {
                     "code": "00000",
@@ -2917,7 +2942,10 @@
                 "method": "fetchOrder",
                 "input": [
                     "1320244799629316096",
-                    "BTC/USDT:USDT"
+                    "BTC/USDT:USDT",
+                    {
+                        "uta": true
+                    }
                 ],
                 "httpResponse": {
                     "code": "00000",
@@ -3094,7 +3122,10 @@
                 "input": [
                     "BTC/USDT",
                     null,
-                    1
+                    1,
+                    {
+                        "uta": true
+                    }
                 ],
                 "httpResponse": {
                     "code": "00000",
@@ -3144,7 +3175,10 @@
                 "input": [
                     "BTC/USDT:USDT",
                     null,
-                    1
+                    1,
+                    {
+                        "uta": true
+                    }
                 ],
                 "httpResponse": {
                     "code": "00000",
@@ -3267,7 +3301,10 @@
                 "description": "uta spot ticker",
                 "method": "fetchTicker",
                 "input": [
-                    "BTC/USDT"
+                    "BTC/USDT",
+                    {
+                        "uta": true
+                    }
                 ],
                 "httpResponse": {
                     "code": "00000",
@@ -3336,7 +3373,10 @@
                 "description": "uta swap ticker",
                 "method": "fetchTicker",
                 "input": [
-                    "BTC/USDT:USDT"
+                    "BTC/USDT:USDT",
+                    {
+                        "uta": true
+                    }
                 ],
                 "httpResponse": {
                     "code": "00000",
@@ -3423,7 +3463,10 @@
                 "input": [
                     [
                         "BTC/USDT"
-                    ]
+                    ],
+                    {
+                        "uta": true
+                    }
                 ],
                 "httpResponse": {
                     "code": "00000",
@@ -3496,7 +3539,10 @@
                 "input": [
                     [
                         "BTC/USDT:USDT"
-                    ]
+                    ],
+                    {
+                        "uta": true
+                    }
                 ],
                 "httpResponse": {
                     "code": "00000",
@@ -3969,7 +4015,10 @@
                 "input": [
                     "BTC/USDT:USDT",
                     null,
-                    1
+                    1,
+                    {
+                        "uta": true
+                    }
                 ],
                 "httpResponse": {
                     "code": "00000",
@@ -4006,7 +4055,10 @@
                 "method": "cancelOrder",
                 "input": [
                     "1320254907742572544",
-                    "BTC/USDT"
+                    "BTC/USDT",
+                    {
+                        "uta": true
+                    }
                 ],
                 "httpResponse": {
                     "code": "00000",
@@ -4055,7 +4107,10 @@
                 "method": "cancelOrder",
                 "input": [
                     "1320244799629316096",
-                    "BTC/USDT:USDT"
+                    "BTC/USDT:USDT",
+                    {
+                        "uta": true
+                    }
                 ],
                 "httpResponse": {
                     "code": "00000",
