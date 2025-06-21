@@ -72,15 +72,19 @@ function testTicker(exchange, skippedProperties, method, entry, symbol) {
             // to avoid abnormal long precision issues (like https://discord.com/channels/690203284119617602/1338828283902689280/1338846071278927912 )
             const mPrecision = exchange.safeDict(market, 'precision');
             const amountPrecision = exchange.safeString(mPrecision, 'amount');
+            const tolerance = '1.0001';
             if (amountPrecision !== undefined) {
                 baseLow = Precise.stringMul(Precise.stringSub(baseVolume, amountPrecision), low);
                 baseHigh = Precise.stringMul(Precise.stringAdd(baseVolume, amountPrecision), high);
             }
             else {
                 // if nothing found, as an exclusion, just add 0.001%
-                baseLow = Precise.stringMul(Precise.stringMul(baseVolume, '1.0001'), low);
-                baseHigh = Precise.stringMul(Precise.stringDiv(baseVolume, '1.0001'), high);
+                baseLow = Precise.stringMul(Precise.stringDiv(baseVolume, tolerance), low);
+                baseHigh = Precise.stringMul(Precise.stringMul(baseVolume, tolerance), high);
             }
+            // because of exchange engines might not rounding numbers propertly, we add some tolerance of calculated 24hr high/low
+            baseLow = Precise.stringDiv(baseLow, tolerance);
+            baseHigh = Precise.stringMul(baseHigh, tolerance);
             assert(Precise.stringGe(quoteVolume, baseLow), 'quoteVolume should be => baseVolume * low' + logText);
             assert(Precise.stringLe(quoteVolume, baseHigh), 'quoteVolume should be <= baseVolume * high' + logText);
         }
