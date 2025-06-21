@@ -818,11 +818,11 @@ export default class apex extends Exchange {
         request['limit'] = limit; // max 200, default 200
         // force using seconds precision instead of milliseconds
         if ('until' in params) {
-            params['until'] = Math.round (this.safeInteger (params, 'until') / 1000);
+            params['until'] = Math.floor (this.safeInteger (params, 'until') / 1000);
         }
         [ request, params ] = this.handleUntilOption ('end', request, params);
         if (since !== undefined) {
-            request['start'] = Math.round (since / 1000);
+            request['start'] = Math.floor (since / 1000);
         }
         const response = await this.publicGetV3Klines (this.extend (request, params));
         const data = this.safeDict (response, 'data', {});
