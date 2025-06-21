@@ -1,11 +1,10 @@
 
 // ---------------------------------------------------------------------------
 
-import { Market } from '../ccxt.js';
 import Exchange from './abstract/tradeogre.js';
 import { InsufficientFunds, AuthenticationError, BadRequest, ExchangeError, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Int, Num, Order, OrderSide, OrderType, Str, Ticker, IndexType, Dict, int, Strings, Tickers, OHLCV } from './base/types.js';
+import type { Int, Num, Order, OrderSide, OrderType, Str, Ticker, IndexType, Dict, int, Strings, Tickers, OHLCV, Market } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
