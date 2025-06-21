@@ -40,6 +40,7 @@ export default class kraken extends krakenRest {
                         'public': 'wss://ws.kraken.com',
                         'private': 'wss://ws-auth.kraken.com',
                         'privateV2': 'wss://ws-auth.kraken.com/v2',
+                        'publicV2': 'wss://ws.kraken.com/v2',
                         'beta': 'wss://beta-ws.kraken.com',
                         'beta-private': 'wss://beta-ws-auth.kraken.com',
                     },
@@ -54,8 +55,12 @@ export default class kraken extends krakenRest {
                 'ordersLimit': 1000,
                 'symbolsByOrderId': {},
                 'watchOrderBook': {
-                    'checksum': true,
+                    'checksum': false,
                 },
+            },
+            'streaming': {
+                'ping': this.ping,
+                'keepAlive': 6000,
             },
             'exceptions': {
                 'ws': {
@@ -107,6 +112,7 @@ export default class kraken extends krakenRest {
                         'EService:Market in post_only mode': NotSupported,
                         'EService:Unavailable': ExchangeNotAvailable,
                         'ETrade:Invalid request': BadRequest,
+                        'ESession:Invalid session': AuthenticationError,
                     },
                 },
             },
@@ -374,8 +380,8 @@ export default class kraken extends krakenRest {
     /**
      * @method
      * @name kraken#cancelOrdersWs
-     * @see https://docs.kraken.com/api/docs/websocket-v1/cancelorder
      * @description cancel multiple orders
+     * @see https://docs.kraken.com/api/docs/websocket-v2/cancel_order
      * @param {string[]} ids order ids
      * @param {string} [symbol] unified market symbol, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -403,8 +409,8 @@ export default class kraken extends krakenRest {
     /**
      * @method
      * @name kraken#cancelOrderWs
-     * @see https://docs.kraken.com/api/docs/websocket-v1/cancelorder
      * @description cancels an open order
+     * @see https://docs.kraken.com/api/docs/websocket-v2/cancel_order
      * @param {string} id order id
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -448,8 +454,8 @@ export default class kraken extends krakenRest {
     /**
      * @method
      * @name kraken#cancelAllOrdersWs
-     * @see https://docs.kraken.com/api/docs/websocket-v1/cancelall
      * @description cancel all open orders
+     * @see https://docs.kraken.com/api/docs/websocket-v2/cancel_all
      * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -488,54 +494,57 @@ export default class kraken extends krakenRest {
         const reqId = this.safeValue(message, 'req_id');
         client.resolve(message, reqId);
     }
-    handleTicker(client, message, subscription) {
+    handleTicker(client, message) {
         //
-        //     [
-        //         0, // channelID
-        //         {
-        //             "a": [ "5525.40000", 1, "1.000" ], // ask, wholeAskVolume, askVolume
-        //             "b": [ "5525.10000", 1, "1.000" ], // bid, wholeBidVolume, bidVolume
-        //             "c": [ "5525.10000", "0.00398963" ], // closing price, volume
-        //             "h": [ "5783.00000", "5783.00000" ], // high price today, high price 24h ago
-        //             "l": [ "5505.00000", "5505.00000" ], // low price today, low price 24h ago
-        //             "o": [ "5760.70000", "5763.40000" ], // open price today, open price 24h ago
-        //             "p": [ "5631.44067", "5653.78939" ], // vwap today, vwap 24h ago
-        //             "t": [ 11493, 16267 ], // number of trades today, 24 hours ago
-        //             "v": [ "2634.11501494", "3591.17907851" ], // volume today, volume 24 hours ago
-        //         },
-        //         "ticker",
-        //         "XBT/USD"
-        //     ]
+        //     {
+        //         "channel": "ticker",
+        //         "type": "snapshot",
+        //         "data": [
+        //             {
+        //                 "symbol": "BTC/USD",
+        //                 "bid": 108359.8,
+        //                 "bid_qty": 0.01362603,
+        //                 "ask": 108359.9,
+        //                 "ask_qty": 17.17988863,
+        //                 "last": 108359.8,
+        //                 "volume": 2158.32346723,
+        //                 "vwap": 108894.5,
+        //                 "low": 106824,
+        //                 "high": 111300,
+        //                 "change": -2679.9,
+        //                 "change_pct": -2.41
+        //             }
+        //         ]
+        //     }
         //
-        const wsName = message[3];
-        const market = this.safeValue(this.options['marketsByWsName'], wsName);
-        const symbol = market['symbol'];
+        const data = this.safeList(message, 'data', []);
+        const ticker = data[0];
+        const symbol = this.safeString(ticker, 'symbol');
         const messageHash = this.getMessageHash('ticker', undefined, symbol);
-        const ticker = message[1];
-        const vwap = this.safeString(ticker['p'], 0);
+        const vwap = this.safeString(ticker, 'vwap');
         let quoteVolume = undefined;
-        const baseVolume = this.safeString(ticker['v'], 0);
+        const baseVolume = this.safeString(ticker, 'volume');
         if (baseVolume !== undefined && vwap !== undefined) {
             quoteVolume = Precise.stringMul(baseVolume, vwap);
         }
-        const last = this.safeString(ticker['c'], 0);
+        const last = this.safeString(ticker, 'last');
         const result = this.safeTicker({
             'symbol': symbol,
             'timestamp': undefined,
             'datetime': undefined,
-            'high': this.safeString(ticker['h'], 0),
-            'low': this.safeString(ticker['l'], 0),
-            'bid': this.safeString(ticker['b'], 0),
-            'bidVolume': this.safeString(ticker['b'], 2),
-            'ask': this.safeString(ticker['a'], 0),
-            'askVolume': this.safeString(ticker['a'], 2),
+            'high': this.safeString(ticker, 'high'),
+            'low': this.safeString(ticker, 'low'),
+            'bid': this.safeString(ticker, 'bid'),
+            'bidVolume': this.safeString(ticker, 'bid_qty'),
+            'ask': this.safeString(ticker, 'ask'),
+            'askVolume': this.safeString(ticker, 'ask_qty'),
             'vwap': vwap,
-            'open': this.safeString(ticker['o'], 0),
+            'open': undefined,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
+            'change': this.safeString(ticker, 'change'),
+            'percentage': this.safeString(ticker, 'change_pct'),
             'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
@@ -544,31 +553,36 @@ export default class kraken extends krakenRest {
         this.tickers[symbol] = result;
         client.resolve(result, messageHash);
     }
-    handleTrades(client, message, subscription) {
+    handleTrades(client, message) {
         //
-        //     [
-        //         0, // channelID
-        //         [ //     price        volume         time             side type misc
-        //             [ "5541.20000", "0.15850568", "1534614057.321596", "s", "l", "" ],
-        //             [ "6060.00000", "0.02455000", "1534614057.324998", "b", "l", "" ],
-        //         ],
-        //         "trade",
-        //         "XBT/USD"
-        //     ]
+        //     {
+        //         "channel": "trade",
+        //         "type": "update",
+        //         "data": [
+        //             {
+        //                 "symbol": "MATIC/USD",
+        //                 "side": "sell",
+        //                 "price": 0.5117,
+        //                 "qty": 40.0,
+        //                 "ord_type": "market",
+        //                 "trade_id": 4665906,
+        //                 "timestamp": "2023-09-25T07:49:37.708706Z"
+        //             }
+        //         ]
+        //     }
         //
-        const wsName = this.safeString(message, 3);
-        const name = this.safeString(message, 2);
-        const market = this.safeValue(this.options['marketsByWsName'], wsName);
-        const symbol = market['symbol'];
-        const messageHash = this.getMessageHash(name, undefined, symbol);
+        const data = this.safeList(message, 'data', []);
+        const trade = data[0];
+        const symbol = this.safeString(trade, 'symbol');
+        const messageHash = this.getMessageHash('trade', undefined, symbol);
         let stored = this.safeValue(this.trades, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
             stored = new ArrayCache(limit);
             this.trades[symbol] = stored;
         }
-        const trades = this.safeValue(message, 1, []);
-        const parsed = this.parseTrades(trades, market);
+        const market = this.market(symbol);
+        const parsed = this.parseTrades(data, market);
         for (let i = 0; i < parsed.length; i++) {
             stored.append(parsed[i]);
         }
@@ -656,7 +670,7 @@ export default class kraken extends krakenRest {
      * @method
      * @name kraken#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://docs.kraken.com/api/docs/websocket-v1/ticker
+     * @see https://docs.kraken.com/api/docs/websocket-v2/ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -671,7 +685,7 @@ export default class kraken extends krakenRest {
      * @method
      * @name kraken#watchTickers
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://docs.kraken.com/api/docs/websocket-v1/ticker
+     * @see https://docs.kraken.com/api/docs/websocket-v2/ticker
      * @param {string[]} symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -690,8 +704,8 @@ export default class kraken extends krakenRest {
     /**
      * @method
      * @name kraken#watchBidsAsks
-     * @see https://docs.kraken.com/api/docs/websocket-v1/spread
      * @description watches best bid & ask for symbols
+     * @see https://docs.kraken.com/api/docs/websocket-v2/ticker
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -699,7 +713,8 @@ export default class kraken extends krakenRest {
     async watchBidsAsks(symbols = undefined, params = {}) {
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, undefined, false);
-        const ticker = await this.watchMultiHelper('bidask', 'spread', symbols, undefined, params);
+        params['event_trigger'] = 'bbo';
+        const ticker = await this.watchMultiHelper('bidask', 'ticker', symbols, undefined, params);
         if (this.newUpdates) {
             const result = {};
             result[ticker['symbol']] = ticker;
@@ -707,49 +722,11 @@ export default class kraken extends krakenRest {
         }
         return this.filterByArray(this.bidsasks, 'symbol', symbols);
     }
-    handleBidAsk(client, message, subscription) {
-        //
-        //     [
-        //         7208974, // channelID
-        //         [
-        //             "63758.60000", // bid
-        //             "63759.10000", // ask
-        //             "1726814731.089778", // timestamp
-        //             "0.00057917", // bid_volume
-        //             "0.15681688" // ask_volume
-        //         ],
-        //         "spread",
-        //         "XBT/USDT"
-        //     ]
-        //
-        const parsedTicker = this.parseWsBidAsk(message);
-        const symbol = parsedTicker['symbol'];
-        this.bidsasks[symbol] = parsedTicker;
-        const messageHash = this.getMessageHash('bidask', undefined, symbol);
-        client.resolve(parsedTicker, messageHash);
-    }
-    parseWsBidAsk(ticker, market = undefined) {
-        const data = this.safeList(ticker, 1, []);
-        const marketId = this.safeString(ticker, 3);
-        market = this.safeValue(this.options['marketsByWsName'], marketId);
-        const symbol = this.safeString(market, 'symbol');
-        const timestamp = this.parseToInt(this.safeInteger(data, 2)) * 1000;
-        return this.safeTicker({
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
-            'ask': this.safeString(data, 1),
-            'askVolume': this.safeString(data, 4),
-            'bid': this.safeString(data, 0),
-            'bidVolume': this.safeString(data, 3),
-            'info': ticker,
-        }, market);
-    }
     /**
      * @method
      * @name kraken#watchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://docs.kraken.com/api/docs/websocket-v1/trade
+     * @see https://docs.kraken.com/api/docs/websocket-v2/trade
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -762,8 +739,8 @@ export default class kraken extends krakenRest {
     /**
      * @method
      * @name kraken#watchTradesForSymbols
-     * @see https://docs.kraken.com/api/docs/websocket-v1/trade
      * @description get the list of most recent trades for a list of symbols
+     * @see https://docs.kraken.com/api/docs/websocket-v2/trade
      * @param {string[]} symbols unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -783,7 +760,7 @@ export default class kraken extends krakenRest {
      * @method
      * @name kraken#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.kraken.com/api/docs/websocket-v1/book
+     * @see https://docs.kraken.com/api/docs/websocket-v2/book
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -796,7 +773,7 @@ export default class kraken extends krakenRest {
      * @method
      * @name kraken#watchOrderBookForSymbols
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.kraken.com/api/docs/websocket-v1/book
+     * @see https://docs.kraken.com/api/docs/websocket-v2/book
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -806,7 +783,7 @@ export default class kraken extends krakenRest {
         const request = {};
         if (limit !== undefined) {
             if (this.inArray(limit, [10, 25, 100, 500, 1000])) {
-                request['subscription'] = {
+                request['params'] = {
                     'depth': limit, // default 10, valid options 10, 25, 100, 500, 1000
                 };
             }
@@ -872,6 +849,21 @@ export default class kraken extends krakenRest {
         }
         return markets;
     }
+    ping(client) {
+        const url = client.url;
+        const request = {};
+        if (url.indexOf('v2') >= 0) {
+            request['method'] = 'ping';
+        }
+        else {
+            request['event'] = 'ping';
+        }
+        return request;
+    }
+    handlePong(client, message) {
+        client.lastPong = this.milliseconds();
+        return message;
+    }
     async watchHeartbeat(params = {}) {
         await this.loadMarkets();
         const event = 'heartbeat';
@@ -887,175 +879,165 @@ export default class kraken extends krakenRest {
         const event = this.safeString(message, 'event');
         client.resolve(message, event);
     }
-    handleOrderBook(client, message, subscription) {
+    handleOrderBook(client, message) {
         //
         // first message (snapshot)
         //
-        //     [
-        //         1234, // channelID
-        //         {
-        //             "as": [
-        //                 [ "5541.30000", "2.50700000", "1534614248.123678" ],
-        //                 [ "5541.80000", "0.33000000", "1534614098.345543" ],
-        //                 [ "5542.70000", "0.64700000", "1534614244.654432" ]
-        //             ],
-        //             "bs": [
-        //                 [ "5541.20000", "1.52900000", "1534614248.765567" ],
-        //                 [ "5539.90000", "0.30000000", "1534614241.769870" ],
-        //                 [ "5539.50000", "5.00000000", "1534613831.243486" ]
-        //             ]
-        //         },
-        //         "book-10",
-        //         "XBT/USD"
-        //     ]
+        //     {
+        //         "channel": "book",
+        //         "type": "snapshot",
+        //         "data": [
+        //             {
+        //                 "symbol": "MATIC/USD",
+        //                 "bids": [
+        //                     {
+        //                         "price": 0.5666,
+        //                         "qty": 4831.75496356
+        //                     },
+        //                     {
+        //                         "price": 0.5665,
+        //                         "qty": 6658.22734739
+        //                     }
+        //                 ],
+        //                 "asks": [
+        //                     {
+        //                         "price": 0.5668,
+        //                         "qty": 4410.79769741
+        //                     },
+        //                     {
+        //                         "price": 0.5669,
+        //                         "qty": 4655.40412487
+        //                     }
+        //                 ],
+        //                 "checksum": 2439117997
+        //             }
+        //         ]
+        //     }
         //
         // subsequent updates
         //
-        //     [
-        //         1234,
-        //         { // optional
-        //             "a": [
-        //                 [ "5541.30000", "2.50700000", "1534614248.456738" ],
-        //                 [ "5542.50000", "0.40100000", "1534614248.456738" ]
-        //             ]
-        //         },
-        //         { // optional
-        //             "b": [
-        //                 [ "5541.30000", "0.00000000", "1534614335.345903" ]
-        //             ]
-        //         },
-        //         "book-10",
-        //         "XBT/USD"
-        //     ]
+        //     {
+        //         "channel": "book",
+        //         "type": "update",
+        //         "data": [
+        //             {
+        //                 "symbol": "MATIC/USD",
+        //                 "bids": [
+        //                     {
+        //                         "price": 0.5657,
+        //                         "qty": 1098.3947558
+        //                     }
+        //                 ],
+        //                 "asks": [],
+        //                 "checksum": 2114181697,
+        //                 "timestamp": "2023-10-06T17:35:55.440295Z"
+        //             }
+        //         ]
+        //     }
         //
-        const messageLength = message.length;
-        const wsName = message[messageLength - 1];
-        const bookDepthString = message[messageLength - 2];
-        const parts = bookDepthString.split('-');
-        const depth = this.safeInteger(parts, 1, 10);
-        const market = this.safeValue(this.options['marketsByWsName'], wsName);
-        const symbol = market['symbol'];
-        let timestamp = undefined;
+        const type = this.safeString(message, 'type');
+        const data = this.safeList(message, 'data', []);
+        const first = this.safeDict(data, 0, {});
+        const symbol = this.safeString(first, 'symbol');
+        const a = this.safeValue(first, 'asks', []);
+        const b = this.safeValue(first, 'bids', []);
+        const c = this.safeInteger(first, 'checksum');
         const messageHash = this.getMessageHash('orderbook', undefined, symbol);
-        // if this is a snapshot
-        if ('as' in message[1]) {
-            // todo get depth from marketsByWsName
-            this.orderbooks[symbol] = this.orderBook({}, depth);
-            const orderbook = this.orderbooks[symbol];
-            const sides = {
-                'as': 'asks',
-                'bs': 'bids',
-            };
-            const keys = Object.keys(sides);
-            for (let i = 0; i < keys.length; i++) {
-                const key = keys[i];
-                const side = sides[key];
-                const bookside = orderbook[side];
-                const deltas = this.safeValue(message[1], key, []);
-                timestamp = this.customHandleDeltas(bookside, deltas, timestamp);
-            }
-            orderbook['symbol'] = symbol;
-            orderbook['timestamp'] = timestamp;
-            orderbook['datetime'] = this.iso8601(timestamp);
-            client.resolve(orderbook, messageHash);
-        }
-        else {
-            const orderbook = this.orderbooks[symbol];
-            // else, if this is an orderbook update
-            let a = undefined;
-            let b = undefined;
-            let c = undefined;
-            if (messageLength === 5) {
-                a = this.safeValue(message[1], 'a', []);
-                b = this.safeValue(message[2], 'b', []);
-                c = this.safeInteger(message[1], 'c');
-                c = this.safeInteger(message[2], 'c', c);
-            }
-            else {
-                c = this.safeInteger(message[1], 'c');
-                if ('a' in message[1]) {
-                    a = this.safeValue(message[1], 'a', []);
-                }
-                else {
-                    b = this.safeValue(message[1], 'b', []);
-                }
-            }
+        let orderbook = undefined;
+        if (type === 'update') {
+            orderbook = this.orderbooks[symbol];
             const storedAsks = orderbook['asks'];
             const storedBids = orderbook['bids'];
-            let example = undefined;
             if (a !== undefined) {
-                timestamp = this.customHandleDeltas(storedAsks, a, timestamp);
-                example = this.safeValue(a, 0);
+                this.customHandleDeltas(storedAsks, a);
             }
             if (b !== undefined) {
-                timestamp = this.customHandleDeltas(storedBids, b, timestamp);
-                example = this.safeValue(b, 0);
+                this.customHandleDeltas(storedBids, b);
             }
-            // don't remove this line or I will poop on your face
-            orderbook.limit();
-            const checksum = this.handleOption('watchOrderBook', 'checksum', true);
-            if (checksum) {
-                const priceString = this.safeString(example, 0);
-                const amountString = this.safeString(example, 1);
-                const priceParts = priceString.split('.');
-                const amountParts = amountString.split('.');
-                const priceLength = priceParts[1].length - 0;
-                const amountLength = amountParts[1].length - 0;
-                const payloadArray = [];
-                if (c !== undefined) {
-                    for (let i = 0; i < 10; i++) {
-                        const formatted = this.formatNumber(storedAsks[i][0], priceLength) + this.formatNumber(storedAsks[i][1], amountLength);
-                        payloadArray.push(formatted);
-                    }
-                    for (let i = 0; i < 10; i++) {
-                        const formatted = this.formatNumber(storedBids[i][0], priceLength) + this.formatNumber(storedBids[i][1], amountLength);
-                        payloadArray.push(formatted);
-                    }
-                }
-                const payload = payloadArray.join('');
-                const localChecksum = this.crc32(payload, false);
-                if (localChecksum !== c) {
-                    const error = new ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
-                    delete client.subscriptions[messageHash];
-                    delete this.orderbooks[symbol];
-                    client.reject(error, messageHash);
-                    return;
+            const datetime = this.safeString(first, 'timestamp');
+            orderbook['symbol'] = symbol;
+            orderbook['timestamp'] = this.parse8601(datetime);
+            orderbook['datetime'] = datetime;
+        }
+        else {
+            // snapshot
+            const depth = a.length;
+            this.orderbooks[symbol] = this.orderBook({}, depth);
+            orderbook = this.orderbooks[symbol];
+            const keys = ['asks', 'bids'];
+            for (let i = 0; i < keys.length; i++) {
+                const key = keys[i];
+                const bookside = orderbook[key];
+                const deltas = this.safeValue(first, key, []);
+                if (deltas.length > 0) {
+                    this.customHandleDeltas(bookside, deltas);
                 }
             }
             orderbook['symbol'] = symbol;
-            orderbook['timestamp'] = timestamp;
-            orderbook['datetime'] = this.iso8601(timestamp);
-            client.resolve(orderbook, messageHash);
+        }
+        orderbook.limit();
+        // checksum temporarily disabled because the exchange checksum was not reliable
+        const checksum = this.handleOption('watchOrderBook', 'checksum', false);
+        if (checksum) {
+            const payloadArray = [];
+            if (c !== undefined) {
+                const checkAsks = orderbook['asks'];
+                const checkBids = orderbook['bids'];
+                // const checkAsks = asks.map ((elem) => [ elem['price'], elem['qty'] ]);
+                // const checkBids = bids.map ((elem) => [ elem['price'], elem['qty'] ]);
+                for (let i = 0; i < 10; i++) {
+                    const currentAsk = this.safeValue(checkAsks, i, {});
+                    const formattedAsk = this.formatNumber(currentAsk[0]) + this.formatNumber(currentAsk[1]);
+                    payloadArray.push(formattedAsk);
+                }
+                for (let i = 0; i < 10; i++) {
+                    const currentBid = this.safeValue(checkBids, i, {});
+                    const formattedBid = this.formatNumber(currentBid[0]) + this.formatNumber(currentBid[1]);
+                    payloadArray.push(formattedBid);
+                }
+            }
+            const payload = payloadArray.join('');
+            const localChecksum = this.crc32(payload, false);
+            if (localChecksum !== c) {
+                const error = new ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
+                delete client.subscriptions[messageHash];
+                delete this.orderbooks[symbol];
+                client.reject(error, messageHash);
+                return;
+            }
+        }
+        client.resolve(orderbook, messageHash);
+    }
+    customHandleDeltas(bookside, deltas) {
+        // const sortOrder = (key === 'bids') ? true : false;
+        for (let j = 0; j < deltas.length; j++) {
+            const delta = deltas[j];
+            const price = this.safeNumber(delta, 'price');
+            const amount = this.safeNumber(delta, 'qty');
+            bookside.store(price, amount);
+            // if (amount === 0) {
+            //     const index = bookside.findIndex ((x: Int) => x[0] === price);
+            //     bookside.splice (index, 1);
+            // } else {
+            //     bookside.store (price, amount);
+            // }
+            // bookside = this.sortBy (bookside, 0, sortOrder);
+            // bookside.slice (0, 9);
         }
     }
-    formatNumber(n, length) {
-        const stringNumber = this.numberToString(n);
-        const parts = stringNumber.split('.');
+    formatNumber(data) {
+        const parts = data.split('.');
         const integer = this.safeString(parts, 0);
         const decimals = this.safeString(parts, 1, '');
-        const paddedDecimals = decimals.padEnd(length, '0');
-        const joined = integer + paddedDecimals;
+        let joinedResult = integer + decimals;
         let i = 0;
-        while (joined[i] === '0') {
+        while (joinedResult[i] === '0') {
             i += 1;
         }
         if (i > 0) {
-            return joined.slice(i);
+            joinedResult = joinedResult.slice(i);
         }
-        else {
-            return joined;
-        }
-    }
-    customHandleDeltas(bookside, deltas, timestamp = undefined) {
-        for (let j = 0; j < deltas.length; j++) {
-            const delta = deltas[j];
-            const price = this.parseNumber(delta[0]);
-            const amount = this.parseNumber(delta[1]);
-            const oldTimestamp = timestamp ? timestamp : 0;
-            timestamp = Math.max(oldTimestamp, this.parseToInt(parseFloat(delta[2]) * 1000));
-            bookside.store(price, amount);
-        }
-        return timestamp;
+        return joinedResult;
     }
     handleSystemStatus(client, message) {
         //
@@ -1091,7 +1073,11 @@ export default class kraken extends krakenRest {
         const client = this.client(url);
         const authenticated = 'authenticated';
         let subscription = this.safeValue(client.subscriptions, authenticated);
-        if (subscription === undefined) {
+        const now = this.seconds();
+        const start = this.safeInteger(subscription, 'start');
+        const expires = this.safeInteger(subscription, 'expires');
+        if ((subscription === undefined) || ((subscription !== undefined) && (start + expires) <= now)) {
+            // https://docs.kraken.com/api/docs/rest-api/get-websockets-token
             const response = await this.privatePostGetWebSocketsToken(params);
             //
             //     {
@@ -1102,7 +1088,8 @@ export default class kraken extends krakenRest {
             //         }
             //     }
             //
-            subscription = this.safeValue(response, 'result');
+            subscription = this.safeDict(response, 'result');
+            subscription['start'] = now;
             client.subscriptions[authenticated] = subscription;
         }
         return this.safeString(subscription, 'token');
@@ -1568,25 +1555,25 @@ export default class kraken extends krakenRest {
         symbols = this.marketSymbols(symbols, undefined, false, true, false);
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
-            messageHashes.push(this.getMessageHash(unifiedName, undefined, this.symbol(symbols[i])));
-        }
-        // for WS subscriptions, we can't use .marketIds (symbols), instead a custom is field needed
-        const markets = this.marketsForSymbols(symbols);
-        const wsMarketIds = [];
-        for (let i = 0; i < markets.length; i++) {
-            const wsMarketId = this.safeString(markets[i]['info'], 'wsname');
-            wsMarketIds.push(wsMarketId);
+            const eventTrigger = this.safeString(params, 'event_trigger');
+            if (eventTrigger !== undefined) {
+                messageHashes.push(this.getMessageHash(channelName, undefined, this.symbol(symbols[i])));
+            }
+            else {
+                messageHashes.push(this.getMessageHash(unifiedName, undefined, this.symbol(symbols[i])));
+            }
         }
         const request = {
-            'event': 'subscribe',
-            'reqid': this.requestId(),
-            'pair': wsMarketIds,
-            'subscription': {
-                'name': channelName,
+            'method': 'subscribe',
+            'params': {
+                'channel': channelName,
+                'symbol': symbols,
             },
+            'req_id': this.requestId(),
         };
-        const url = this.urls['api']['ws']['public'];
-        return await this.watchMultiple(url, messageHashes, this.deepExtend(request, params), messageHashes, subscriptionArgs);
+        request['params'] = this.deepExtend(request['params'], params);
+        const url = this.urls['api']['ws']['publicV2'];
+        return await this.watchMultiple(url, messageHashes, request, messageHashes, subscriptionArgs);
     }
     /**
      * @method
@@ -1751,11 +1738,7 @@ export default class kraken extends krakenRest {
             const name = this.safeString(info, 'name');
             const methods = {
                 // public
-                'book': this.handleOrderBook,
                 'ohlc': this.handleOHLCV,
-                'ticker': this.handleTicker,
-                'spread': this.handleBidAsk,
-                'trade': this.handleTrades,
                 // private
                 'openOrders': this.handleOrders,
                 'ownTrades': this.handleMyTrades,
@@ -1770,6 +1753,9 @@ export default class kraken extends krakenRest {
             if (channel !== undefined) {
                 const methods = {
                     'balances': this.handleBalance,
+                    'book': this.handleOrderBook,
+                    'ticker': this.handleTicker,
+                    'trade': this.handleTrades,
                 };
                 const method = this.safeValue(methods, channel);
                 if (method !== undefined) {
@@ -1786,6 +1772,7 @@ export default class kraken extends krakenRest {
                     'amend_order': this.handleCreateEditOrder,
                     'cancel_order': this.handleCancelOrder,
                     'cancel_all': this.handleCancelAllOrders,
+                    'pong': this.handlePong,
                 };
                 const method = this.safeValue(methods, event);
                 if (method !== undefined) {
