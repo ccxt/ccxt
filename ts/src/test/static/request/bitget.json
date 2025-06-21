@@ -692,6 +692,24 @@
                     "1112202424673271809",
                     "BTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "uta spot fetchOrder",
+                "method": "fetchOrder",
+                "url": "https://api.bitget.com/api/v3/trade/order-info?orderId=1320239033384062976",
+                "input": [
+                    "1320239033384062976",
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "uta swap fetchOrder",
+                "method": "fetchOrder",
+                "url": "https://api.bitget.com/api/v3/trade/order-info?orderId=1320244799629316096",
+                "input": [
+                    "1320244799629316096",
+                    "BTC/USDT:USDT"
+                ]
             }
         ],
         "fetchOpenOrders": [

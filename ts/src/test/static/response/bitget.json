@@ -2786,6 +2786,256 @@
                     }
                   ]
                 }
+            },
+            {
+                "description": "uta spot fetchOrder",
+                "method": "fetchOrder",
+                "input": [
+                    "1320239033384062976",
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1750498191806",
+                    "data": {
+                        "orderId": "1320239033384062976",
+                        "clientOid": "1320239033384062977",
+                        "category": "SPOT",
+                        "symbol": "BTCUSDT",
+                        "orderType": "limit",
+                        "side": "buy",
+                        "price": "51000",
+                        "qty": "0.0011",
+                        "amount": "56.1",
+                        "cumExecQty": "0",
+                        "cumExecValue": "0",
+                        "avgPrice": "0",
+                        "timeInForce": "gtc",
+                        "orderStatus": "live",
+                        "posSide": "",
+                        "holdMode": "",
+                        "reduceOnly": "NO",
+                        "feeDetail": [
+                            {
+                            "feeCoin": "",
+                            "fee": ""
+                            }
+                        ],
+                        "createdTime": "1750495435090",
+                        "updatedTime": "1750496144415",
+                        "cancelReason": "",
+                        "execType": "normal",
+                        "stpMode": "none",
+                        "tpTriggerBy": null,
+                        "slTriggerBy": null,
+                        "takeProfit": null,
+                        "stopLoss": null,
+                        "tpOrderType": null,
+                        "slOrderType": null,
+                        "tpLimitPrice": null,
+                        "slLimitPrice": null
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderId": "1320239033384062976",
+                        "clientOid": "1320239033384062977",
+                        "category": "SPOT",
+                        "symbol": "BTCUSDT",
+                        "orderType": "limit",
+                        "side": "buy",
+                        "price": "51000",
+                        "qty": "0.0011",
+                        "amount": "56.1",
+                        "cumExecQty": "0",
+                        "cumExecValue": "0",
+                        "avgPrice": "0",
+                        "timeInForce": "gtc",
+                        "orderStatus": "live",
+                        "posSide": "",
+                        "holdMode": "",
+                        "reduceOnly": "NO",
+                        "feeDetail": [
+                            {
+                            "feeCoin": "",
+                            "fee": ""
+                            }
+                        ],
+                        "createdTime": "1750495435090",
+                        "updatedTime": "1750496144415",
+                        "cancelReason": "",
+                        "execType": "normal",
+                        "stpMode": "none",
+                        "tpTriggerBy": null,
+                        "slTriggerBy": null,
+                        "takeProfit": null,
+                        "stopLoss": null,
+                        "tpOrderType": null,
+                        "slOrderType": null,
+                        "tpLimitPrice": null,
+                        "slLimitPrice": null
+                    },
+                    "id": "1320239033384062976",
+                    "clientOrderId": "1320239033384062977",
+                    "timestamp": 1750495435090,
+                    "datetime": "2025-06-21T08:43:55.090Z",
+                    "lastTradeTimestamp": 1750496144415,
+                    "lastUpdateTimestamp": 1750496144415,
+                    "symbol": "BTC/USDT",
+                    "type": "limit",
+                    "side": "buy",
+                    "price": 51000,
+                    "amount": 0.0011,
+                    "cost": 0,
+                    "average": null,
+                    "filled": 0,
+                    "remaining": 0.0011,
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "reduceOnly": false,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "status": null,
+                    "fee": {
+                        "cost": null,
+                        "currency": null
+                    },
+                    "trades": [],
+                    "fees": [
+                    {
+                        "cost": null,
+                        "currency": null
+                    }
+                    ],
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "uta swap fetchOrder",
+                "method": "fetchOrder",
+                "input": [
+                    "1320244799629316096",
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1750498383905",
+                    "data": {
+                        "orderId": "1320244799629316096",
+                        "clientOid": "1320244799633510400",
+                        "category": "USDT-FUTURES",
+                        "symbol": "BTCUSDT",
+                        "orderType": "limit",
+                        "side": "buy",
+                        "price": "50000",
+                        "qty": "0.001",
+                        "amount": "0",
+                        "cumExecQty": "0",
+                        "cumExecValue": "0",
+                        "avgPrice": "0",
+                        "timeInForce": "gtc",
+                        "orderStatus": "live",
+                        "posSide": "long",
+                        "holdMode": "hedge_mode",
+                        "reduceOnly": "NO",
+                        "feeDetail": [
+                            {
+                            "feeCoin": "",
+                            "fee": ""
+                            }
+                        ],
+                        "createdTime": "1750496809871",
+                        "updatedTime": "1750496809886",
+                        "cancelReason": "",
+                        "execType": "normal",
+                        "stpMode": "none",
+                        "tpTriggerBy": null,
+                        "slTriggerBy": null,
+                        "takeProfit": null,
+                        "stopLoss": null,
+                        "tpOrderType": null,
+                        "slOrderType": null,
+                        "tpLimitPrice": null,
+                        "slLimitPrice": null
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderId": "1320244799629316096",
+                        "clientOid": "1320244799633510400",
+                        "category": "USDT-FUTURES",
+                        "symbol": "BTCUSDT",
+                        "orderType": "limit",
+                        "side": "buy",
+                        "price": "50000",
+                        "qty": "0.001",
+                        "amount": "0",
+                        "cumExecQty": "0",
+                        "cumExecValue": "0",
+                        "avgPrice": "0",
+                        "timeInForce": "gtc",
+                        "orderStatus": "live",
+                        "posSide": "long",
+                        "holdMode": "hedge_mode",
+                        "reduceOnly": "NO",
+                        "feeDetail": [
+                            {
+                            "feeCoin": "",
+                            "fee": ""
+                            }
+                        ],
+                        "createdTime": "1750496809871",
+                        "updatedTime": "1750496809886",
+                        "cancelReason": "",
+                        "execType": "normal",
+                        "stpMode": "none",
+                        "tpTriggerBy": null,
+                        "slTriggerBy": null,
+                        "takeProfit": null,
+                        "stopLoss": null,
+                        "tpOrderType": null,
+                        "slOrderType": null,
+                        "tpLimitPrice": null,
+                        "slLimitPrice": null
+                    },
+                    "id": "1320244799629316096",
+                    "clientOrderId": "1320244799633510400",
+                    "timestamp": 1750496809871,
+                    "datetime": "2025-06-21T09:06:49.871Z",
+                    "lastTradeTimestamp": 1750496809886,
+                    "lastUpdateTimestamp": 1750496809886,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": "limit",
+                    "side": "buy",
+                    "price": 50000,
+                    "amount": 0.001,
+                    "cost": 0,
+                    "average": null,
+                    "filled": 0,
+                    "remaining": 0.001,
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "reduceOnly": false,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "status": null,
+                    "fee": {
+                        "cost": null,
+                        "currency": "USDT"
+                    },
+                    "trades": [],
+                    "fees": [
+                    {
+                        "cost": null,
+                        "currency": "USDT"
+                    }
+                    ],
+                    "stopPrice": null
+                }
             }
         ],
         "fetchTrades": [
