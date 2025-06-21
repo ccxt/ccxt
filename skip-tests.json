@@ -770,7 +770,8 @@
             },
             "fetchTrades": {
                 "price": "sometimes is not set",
-                "cost": "same"
+                "cost": "same",
+                "amount": "sometimes not present, only cost present sometimes"
             }
         }
     },
