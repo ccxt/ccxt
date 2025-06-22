@@ -213,6 +213,9 @@ export default class exkoin extends Exchange {
                 'TRC20': 'TRX',
                 'ERC20': 'ETH',
                 'BEP20': 'BSC',
+                'OPTIMISM': 'OP',
+                'ARB': 'ARB',
+                'MATIC': 'POL'
             },
             'features': {
                 'spot': {
@@ -560,7 +563,7 @@ export default class exkoin extends Exchange {
             const networksResult: Dict = {};
             for (let j = 0; j < networks.length; j++) {
                 const network = networks[j];
-                const networkId = this._network_exkoin_to_ccxt (this.safeString (network, 'id'), id);
+                const networkId = this.networkIdToCode (this.safeString (network, 'id'), id);
                 const contractAddress = this.safeString (network, 'contract_address');
                 networksResult[networkId] = network;
                 if (contractAddress !== undefined && contractAddress !== '') {
@@ -595,28 +598,6 @@ export default class exkoin extends Exchange {
             });
         }
         return result;
-    }
-
-    _network_exkoin_to_ccxt (network: string, currency_id: string): string {
-        if (network === 'BSC') {
-            return 'BEP20';
-        } else if (network === 'ETH' && currency_id !== 'ETH') {
-            return 'ERC20';
-        } else if (network === 'TRX' && currency_id !== 'TRX') {
-            return 'TRC20';
-        }
-        return network;
-    }
-
-    _network_ccxt_to_exkoin (network: string, currency_id: string): string {
-        if (network === 'BEP20') {
-            return 'BSC';
-        } else if (network === 'ERC20') {
-            return 'ETH';
-        } else if (network === 'TRC20') {
-            return 'TRX';
-        }
-        return network;
     }
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
@@ -1167,7 +1148,7 @@ export default class exkoin extends Exchange {
     async fetchDepositAddress (code: string, params = {}) : Promise<DepositAddress> {
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const networkCode = this._network_ccxt_to_exkoin (this.safeString (params, 'network'), currency['id']);
+        const networkCode = this.networkCodeToId (this.safeString (params, 'network'), currency['id']);
         if (networkCode === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddress requires a network parameter');
         }
@@ -1626,7 +1607,7 @@ export default class exkoin extends Exchange {
         const currency = this.currency (code);
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
-        const network = this._network_ccxt_to_exkoin (this.safeString (params, 'network'), currency['id']);
+        const network = this.networkCodeToId (this.safeString (params, 'network'), currency['id']);
         if (network === undefined) {
             throw new ArgumentsRequired (this.id + ' withdraw requires a network parameter');
         }
