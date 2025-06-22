@@ -18,7 +18,7 @@ export default class exkoin extends Exchange {
             'id': 'exkoin',
             'name': 'ExKoin',
             'countries': [ ],
-            'rateLimit': 50,
+            'rateLimit': 100,
             'version': 'v1',
             'pro': true,
             'has': {
@@ -116,7 +116,7 @@ export default class exkoin extends Exchange {
                 },
                 'www': 'https://exkoin.com',
                 'doc': 'https://exkoin.com/api',
-                'fees': 'https://exkoin.com/profile',
+                'fees': 'https://exkoin.com/fees',
             },
             'fees': {
                 'trading': {
@@ -331,8 +331,8 @@ export default class exkoin extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeNumber (precision, 'amount'),
-                    'price': this.safeNumber (precision, 'price'),
+                    'amount': this.parsePrecision (this.safeString (precision, 'amount')),
+                    'price': this.parsePrecision (this.safeString (precision, 'price')),
                 },
                 'limits': {
                     'leverage': {
@@ -376,17 +376,14 @@ export default class exkoin extends Exchange {
         };
         const response = await this.publicGetPublicMarketsTicker (this.extend (request, params));
         //
-        //     [
         //         {
         //             "symbol": "BTC/USDT",
         //             "last_price": "50000.00",
         //             "price_change_percent": "2.5",
         //             "base_volume": "123.45"
         //         }
-        //     ]
         //
-        const ticker = this.safeDict (response, 0);
-        return this.parseTicker (ticker, market);
+        return this.parseTicker (response, market);
     }
 
     /**
@@ -536,7 +533,7 @@ export default class exkoin extends Exchange {
             const id = this.safeString (currency, 'id');
             const name = this.safeString (currency, 'name');
             const code = this.safeCurrencyCode (id);
-            const precision = this.safeInteger (currency, 'precision');
+            const precision = this.parsePrecision (this.safeString (currency, 'precision'));
             const depositEnabled = this.safeValue (currency, 'deposit_enabled', true);
             const withdrawalEnabled = this.safeValue (currency, 'withdrawal_enabled', true);
             const active = depositEnabled && withdrawalEnabled;
@@ -653,7 +650,7 @@ export default class exkoin extends Exchange {
         //        ["50001.00", "0.1"],
         //        ["50002.00", "0.2"]
         //     ],
-        //     "timestamp": 1729130040
+        //     "timestamp": 1729130040000
         // }
         //
         const timestamp = this._exkoin_safeTimestamp (response, 'timestamp');
@@ -1209,8 +1206,8 @@ export default class exkoin extends Exchange {
         };
     }
 
-    createDepositAddress (code: string, params = {}): Promise<DepositAddress> {
-        return this.fetchDepositAddress (code, params);
+    async createDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+        return await this.fetchDepositAddress (code, params);
     }
 
     /**
@@ -1427,8 +1424,8 @@ export default class exkoin extends Exchange {
         }, currency);
     }
 
-    _exkoin_safeTimestamp (item: Dict, key: IndexType): Num {
-        return this.safeNumber (item, key);
+    _exkoin_safeTimestamp (item: Dict, key: IndexType): Int {
+        return this.safeInteger (item, key);
     }
 
     _parseLedger (data, since: Int = undefined, limit: Int = undefined, params = {}): LedgerEntry[] {
