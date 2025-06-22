@@ -47,6 +47,7 @@ export default class exkoin extends exkoinRest {
     /**
      * @method
      * @name exkoin#watchOrderBook
+     * @see https://api.exkoin.com/ws-doc.html
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
@@ -97,7 +98,7 @@ export default class exkoin extends exkoinRest {
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
             const messageHash = 'orderbook:' + symbol;
-            const timestamp = this._exkoin_safeTimestamp (data, 't'); // timestamp
+            const timestamp = this.safeInteger (data, 't'); // timestamp
             if (!(symbol in this.orderbooks)) {
                 // If we don't have an orderbook yet, we need to fetch the snapshot first
                 // This shouldn't happen if watchOrderBook is called properly
@@ -146,6 +147,7 @@ export default class exkoin extends exkoinRest {
     /**
      * @method
      * @name exkoin#watchTickers
+     * @see https://api.exkoin.com/ws-doc.html
      * @description watches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -170,6 +172,7 @@ export default class exkoin extends exkoinRest {
     /**
      * @method
      * @name exkoin#watchTicker
+     * @see https://api.exkoin.com/ws-doc.html
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -198,7 +201,7 @@ export default class exkoin extends exkoinRest {
         //         "last_price": "50000.00",
         //         "price_change_percent": "2.5",
         //         "base_volume": "123.45",
-        //         "timestamp": 1729130040
+        //         "timestamp": 1729130040000
         //     }
         // }
         //
@@ -218,6 +221,7 @@ export default class exkoin extends exkoinRest {
     /**
      * @method
      * @name exkoin#watchTrades
+     * @see https://api.exkoin.com/ws-doc.html
      * @description watches information on multiple trades made in a market
      * @param {string} symbol unified market symbol of the market trades were made in
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -253,7 +257,7 @@ export default class exkoin extends exkoinRest {
         //         "amount": "0.1",
         //         "cost": "5000.00",
         //         "side": "buy",
-        //         "created_at": 1729130040
+        //         "created_at": 1729130040000
         //     }
         // }
         //
@@ -276,6 +280,7 @@ export default class exkoin extends exkoinRest {
     /**
      * @method
      * @name exkoin#watchOHLCV
+     * @see https://api.exkoin.com/ws-doc.html
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
@@ -314,7 +319,7 @@ export default class exkoin extends exkoinRest {
         //     "data": {
         //         "symbol": "BTC/USDT",
         //         "interval": 60,
-        //         "time": 1729130040,
+        //         "time": 1729130040000,
         //         "open": "67581.47",
         //         "high": "67581.47",
         //         "low": "67338.01",
@@ -354,6 +359,7 @@ export default class exkoin extends exkoinRest {
     /**
      * @method
      * @name exkoin#watchOrders
+     * @see https://api.exkoin.com/ws-doc.html
      * @description watches information on multiple orders made by the user
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
@@ -406,8 +412,8 @@ export default class exkoin extends exkoinRest {
         //         "remaining": "0.1",
         //         "cost": "0.00",
         //         "fee": {},
-        //         "created_at": 1729130040,
-        //         "updated_at": 1729130040
+        //         "created_at": 1729130040000,
+        //         "updated_at": 1729130040000
         //     }
         // }
         //
