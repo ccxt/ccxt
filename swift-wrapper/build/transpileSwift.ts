@@ -587,7 +587,7 @@ const swiftMethodDeclaration = (methodName: string, params: {[key: string]: [str
             index += 1;
         }
     });
-    const sep = "\n\t\t\t\t\t";
+    const sep = "\n\t\t\t";
     let optionalsCode = '';
     let paramsCopy = false;
     if (optionalParams.length > 0){
@@ -603,27 +603,18 @@ const swiftMethodDeclaration = (methodName: string, params: {[key: string]: [str
     //             throw NSError(domain: "CCXT", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid response type for ${methodName}"])
     //         }\n`;
     return`
-    public func ${methodName} (${swiftParams}) async throws -> ${swiftReturnType} {
-        try await withCheckedThrowingContinuation { continuation in
-            DispatchQueue.global(qos: .userInitiated).async {
-                do {${optionalsCode}${customTypeParamsCode}${arrayParamsCode}
-                    let paramsData = try? JSONSerialization.data(withJSONObject: ${paramsCopy ? 'paramsCopy' : 'params'})
-                    let data = try self.exchange.${callMethodName}(${goCallParams.join(', ')})
-                    do {
-                        let jsonObject = try JSONSerialization.jsonObject(with: data, options: [])
-                        let cleaned = self.cleanAny(jsonObject)
-                        continuation.resume(returning: cleaned as! ${swiftReturnType})
-                    } catch {
-                        if let str = String(data: data, encoding: .utf8) {
-                            continuation.resume(returning: str)
-                        } else {
-                            continuation.resume(throwing: error)
-                        }
-                    }
-                } catch {
-                    continuation.resume(throwing: error)
-                }
+    public func ${methodName} (${swiftParams}) throws -> ${swiftReturnType} {
+        do {${optionalsCode}${customTypeParamsCode}${arrayParamsCode}
+            let paramsData = try? JSONSerialization.data(withJSONObject: ${paramsCopy ? 'paramsCopy' : 'params'})
+            let data = try exchange.${callMethodName}(${goCallParams.join(', ')})
+            do {
+                let jsonObject = try JSONSerialization.jsonObject(with: data, options: [])
+                return cleanAny(jsonObject) as! ${swiftReturnType}
+            } catch {
+                throw error
             }
+        } catch {
+            throw error
         }
     }
 `
