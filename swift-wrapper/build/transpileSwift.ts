@@ -62,6 +62,7 @@ function getMethodNames(): string[] {
     return [
         ...Object.keys(exchange.has),
         'describe',
+        'loadMarkets'
     ];
 }
 
@@ -463,7 +464,7 @@ const goMethodDeclaration = (methodName: string, params: {[key: string]: [string
 }
 
 const swiftMethodDeclaration = (methodName: string, params: {[key: string]: [string, string | null]}, returnType: string) => {
-    // TODO: all the return types need to be Any, cant make them encodable because of info
+    // TODO: add return types, right now all the return types need to be Any because the info property prevents them from extended encodeable
     // const swiftReturnType = tsTypeToSwift(returnType);
     // const guardClause = (swiftReturnType === 'Any') ? `` : `as? ${swiftReturnType}`;
     const swiftParams = Object.keys(params).map(key => {
@@ -618,7 +619,7 @@ function main() {
     const headers = getTypescriptHeaders();
     for (const [methodName, params, returnType] of headers) {
         if ([
-            // TODO: couldnt add these methods to go_interface.go, add them so that they can be used in Swift
+            // TODO: Websocket methods, once go is implemented
             'cancelAllOrdersWs',
             'cancelOrdersWs',
             'cancelOrderWs',
@@ -626,17 +627,17 @@ function main() {
             'createLimitOrderWs',
             'createLimitSellOrderWs',
             'createMarketBuyOrderWs',
-            'createMarketOrderWithCost',
             'createMarketOrderWithCostWs',
             'createMarketOrderWs',
             'createMarketSellOrderWs',
             'createOrderWithTakeProfitAndStopLossWs',
             'createOrderWs',
-            'createPostOnlyOrder',
             'createPostOnlyOrderWs',
-            'createReduceOnlyOrder',
             'createReduceOnlyOrderWs',
+            'createStopLimitOrderWs',
             'createStopLossOrderWs',
+            'createStopMarketOrderWs',
+            'createStopOrderWs',
             'createTakeProfitOrderWs',
             'createTrailingAmountOrderWs',
             'createTrailingPercentOrderWs',
@@ -647,7 +648,6 @@ function main() {
             'fetchClosedOrdersWs',
             'fetchCurrenciesWs',
             'fetchDepositsWs',
-            'fetchIndexOHLCV',
             'fetchMarketsWs',
             'fetchMyTradesWs',
             'fetchOHLCVWs',
@@ -662,18 +662,9 @@ function main() {
             'fetchTickerWs',
             'fetchTradesWs',
             'fetchTradingFeesWs',
-            'fetchTransactionFee',
             'fetchWithdrawalsWs',
             'watchBalance',
             'watchBidsAsks',
-            'createStopOrder',
-            'createStopOrderWs',
-            'createStopLimitOrder',
-            'createStopLimitOrderWs',
-            'createStopMarketOrder',
-            'createStopMarketOrderWs',
-            'fetchMarkOHLCV',
-            'fetchPremiumIndexOHLCV',
             'watchLiquidations',
             'watchLiquidationsForSymbols',
             'watchMyLiquidations',
@@ -694,7 +685,8 @@ function main() {
 
             // TODO: don't know how to make types encodable with params as type any
             'createOrders',
-            'editOrders'
+            'editOrders',
+            'deleteOrders'
         ].includes(methodName)) {
             continue;
         } else {

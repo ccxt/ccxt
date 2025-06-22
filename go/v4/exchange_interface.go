@@ -214,7 +214,7 @@ type IExchange interface {
 	FetchFundingIntervals(optionalArgs ...interface{}) <-chan interface{}
 	FetchFundingRate(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
 	FetchFundingRates(optionalArgs ...interface{}) <-chan interface{}
-	// FetchIndexOHLCV(symbol interface{}, timeframe interface{}, optionalArgs ...interface{}) <-chan interface{}	// TODO
+	FetchIndexOHLCV(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} // TODO
 	FetchIsolatedBorrowRate(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
 	FetchIsolatedBorrowRates(optionalArgs ...interface{}) <-chan interface{}
 	FetchL3OrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
@@ -222,7 +222,7 @@ type IExchange interface {
 	FetchLeverages(optionalArgs ...interface{}) <-chan interface{}
 	FetchLongShortRatio(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
 	FetchLongShortRatioHistory(optionalArgs ...interface{}) <-chan interface{}
-	// FetchMarkOHLCV(symbol interface{}, timeframe interface{}, optionalArgs ...interface{}) <-chan interface{} // TODO
+	FetchMarkOHLCV(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} // TODO
 	FetchMarkPrices(optionalArgs ...interface{}) <-chan interface{}
 	FetchOpenInterest(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
 	FetchOpenInterests(optionalArgs ...interface{}) <-chan interface{}
@@ -233,7 +233,7 @@ type IExchange interface {
 	FetchPositionsForSymbol(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
 	FetchPositionsHistory(optionalArgs ...interface{}) <-chan interface{}
 	FetchPositionsRisk(optionalArgs ...interface{}) <-chan interface{}
-	// FetchPremiumIndexOHLCV(symbol interface{}, timeframe interface{}, optionalArgs ...interface{}) <-chan interface{} // TODO
+	FetchPremiumIndexOHLCV(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} // TODO
 	FetchTransactionFees(optionalArgs ...interface{}) <-chan interface{}
 	FetchTransfer(id interface{}, optionalArgs ...interface{}) <-chan interface{}
 	FetchTransfers(optionalArgs ...interface{}) <-chan interface{}
@@ -245,21 +245,23 @@ type IExchange interface {
 	SetMarginMode(marginMode interface{}, optionalArgs ...interface{}) <-chan interface{}
 	SetPositionMode(hedged interface{}, optionalArgs ...interface{}) <-chan interface{}
 	Transfer(code interface{}, amount interface{}, fromAccount interface{}, toAccount interface{}, optionalArgs ...interface{}) <-chan interface{}
+
+	FetchTransactionFee(code interface{}, optionalArgs ...interface{}) <-chan interface{}
+	CreatePostOnlyOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{}
+	CreateReduceOnlyOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{}
+	CreateStopOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{}
+	CreateStopLimitOrder(symbol interface{}, side interface{}, amount interface{}, price interface{}, triggerPrice interface{}, optionalArgs ...interface{}) <-chan interface{}
+	CreateStopMarketOrder(symbol interface{}, side interface{}, amount interface{}, triggerPrice interface{}, optionalArgs ...interface{}) <-chan interface{}
+	CreateMarketOrderWithCost(symbol interface{}, side interface{}, cost interface{}, optionalArgs ...interface{}) <-chan interface{}
+
 	//TODO
 	// WebSocket methods
 	// FetchCurrenciesWs
-	// FetchTransactionFee
-	// CreateMarketOrderWithCost
 	// CreateMarketOrderWithCostWs
-	// CreatePostOnlyOrder
 	// CreatePostOnlyOrderWs
-	// CreateReduceOnlyOrder
 	// CreateReduceOnlyOrderWs
-	// CreateStopOrder
 	// CreateStopOrderWs
-	// CreateStopLimitOrder
 	// CreateStopLimitOrderWs
-	// CreateStopMarketOrder
 	// CreateStopMarketOrderWs
 	// CancelAllOrdersWs(optionalArgs ...interface{}) <-chan interface{}
 	// CancelOrdersWs(ids interface{}, optionalArgs ...interface{}) <-chan interface{}
