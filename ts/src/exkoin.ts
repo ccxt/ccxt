@@ -1,10 +1,9 @@
 // ---------------------------------------------------------------------------
 
-import { Market } from '../ccxt.js';
 import Exchange from './abstract/exkoin.js';
-import { InsufficientFunds, AuthenticationError, BadRequest, ExchangeError, ArgumentsRequired } from './base/errors.js';
+import { InsufficientFunds, AuthenticationError, BadRequest, ExchangeError, ArgumentsRequired, PermissionDenied, BadSymbol, AccountSuspended, AccountNotEnabled, MarketClosed, RateLimitExceeded, OnMaintenance, InvalidAddress, OrderNotFound } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Int, Num, Order, OrderSide, OrderType, Str, Dict, int, Strings, Tickers, OHLCV, Trade, Transaction, Currency, DepositAddress, Ticker, Currencies, TradingFees, LedgerEntry, IndexType } from './base/types.js';
+import type { Market, Int, Num, Order, OrderSide, OrderType, Str, Dict, int, Strings, Tickers, OHLCV, Trade, Transaction, Currency, DepositAddress, Ticker, Currencies, TradingFees, LedgerEntry } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -18,7 +17,7 @@ export default class exkoin extends Exchange {
             'id': 'exkoin',
             'name': 'ExKoin',
             'countries': [ ],
-            'rateLimit': 100,
+            'rateLimit': 30,
             'version': 'v1',
             'pro': true,
             'has': {
@@ -116,7 +115,7 @@ export default class exkoin extends Exchange {
                 },
                 'www': 'https://exkoin.com',
                 'doc': 'https://exkoin.com/api',
-                'fees': 'https://exkoin.com/fees',
+                'fees': 'https://exkoin.com/profile',
             },
             'fees': {
                 'trading': {
@@ -185,8 +184,20 @@ export default class exkoin extends Exchange {
                 'exact': {
                     'UNAUTHORIZED': AuthenticationError,
                     'INSUFFICIENT_BALANCE': InsufficientFunds,
-                    'INVALID_SYMBOL': BadRequest,
-                    'ORDER_NOT_FOUND': BadRequest,
+                    'INVALID_INPUT': BadRequest,
+                    'INVALID_ADDRESS': InvalidAddress,
+                    'NOT_FOUND': OrderNotFound,
+                    'ORDER_NOT_FOUND': OrderNotFound,
+                    'SYMBOL_NOT_FOUND': BadSymbol,
+                    'ACCOUNT_FREEZED': AccountSuspended,
+                    'ACCOUNT_NOT_ENABLED': AccountNotEnabled,
+                    'MARKET_CLOSED': MarketClosed,
+                    'FORBIDDEN': PermissionDenied,
+                    'INTERNAL_ERROR': ExchangeError,
+                    'INVALID_SIGNATURE': AuthenticationError,
+                    'EXPIRED_TOKEN': AuthenticationError,
+                    'RATE_LIMIT': RateLimitExceeded,
+                    'MAINTENANCE': OnMaintenance,
                 },
             },
             'timeframes': {
@@ -199,6 +210,9 @@ export default class exkoin extends Exchange {
                 '1d': 1440,
             },
             'options': {
+                'TRC20': 'TRX',
+                'ERC20': 'ETH',
+                'BEP20': 'BSC',
             },
             'features': {
                 'spot': {
@@ -221,7 +235,7 @@ export default class exkoin extends Exchange {
                         'trailing': false,
                         'leverage': false,
                         'marketBuyByCost': true,
-                        'marketBuyRequiresPrice': false,
+                        'marketBuyRequiresPrice': true,
                         'selfTradePrevention': false,
                         'iceberg': false,
                     },
@@ -260,6 +274,7 @@ export default class exkoin extends Exchange {
      * @method
      * @name exkoin#fetchMarkets
      * @description retrieves data on all markets for exkoin
+     * @see https://api.exkoin.com/documentation#operations-public-get_public_markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -364,6 +379,7 @@ export default class exkoin extends Exchange {
      * @method
      * @name exkoin#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://api.exkoin.com/documentation#operations-public-get_public_markets_ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -390,7 +406,8 @@ export default class exkoin extends Exchange {
      * @method
      * @name exkoin#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @see https://api.exkoin.com/documentation#operations-public-get_public_markets_tickers_list
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
@@ -458,6 +475,7 @@ export default class exkoin extends Exchange {
      * @method
      * @name exkoin#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://api.exkoin.com/documentation#operations-public-get_public_ohlcv
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -482,7 +500,7 @@ export default class exkoin extends Exchange {
         //
         //     [
         //         {
-        //             "time": 1729130040,
+        //             "time": 1729130040000,
         //             "open": "67581.47",
         //             "high": "67581.47",
         //             "low": "67338.01",
@@ -498,6 +516,7 @@ export default class exkoin extends Exchange {
      * @method
      * @name exkoin#fetchCurrencies
      * @description fetches all available currencies on an exchange
+     * @see https://api.exkoin.com/documentation#operations-public-get_public_currencies
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Currencies} an associative dictionary of currencies
      */
@@ -603,7 +622,7 @@ export default class exkoin extends Exchange {
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     {
-        //         "time": 1729130040,
+        //         "time": 1729130040000,
         //         "open": "67581.47",
         //         "high": "67581.47",
         //         "low": "67338.01",
@@ -612,7 +631,7 @@ export default class exkoin extends Exchange {
         //     }
         //
         return [
-            this._exkoin_safeTimestamp (ohlcv, 'time'),
+            this.safeInteger (ohlcv, 'time'),
             this.safeNumber (ohlcv, 'open'),
             this.safeNumber (ohlcv, 'high'),
             this.safeNumber (ohlcv, 'low'),
@@ -625,6 +644,7 @@ export default class exkoin extends Exchange {
      * @method
      * @name exkoin#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://api.exkoin.com/documentation#operations-public-get_public_orderbook
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -653,7 +673,7 @@ export default class exkoin extends Exchange {
         //     "timestamp": 1729130040000
         // }
         //
-        const timestamp = this._exkoin_safeTimestamp (response, 'timestamp');
+        const timestamp = this.safeInteger (response, 'timestamp');
         return this.parseOrderBook (response, symbol, timestamp);
     }
 
@@ -661,6 +681,7 @@ export default class exkoin extends Exchange {
      * @method
      * @name exkoin#fetchTrades
      * @description get the list of most recent trades for a particular symbol
+     * @see https://api.exkoin.com/documentation#operations-public-get_public_trades
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum number of trades to fetch
@@ -698,10 +719,10 @@ export default class exkoin extends Exchange {
         //          "cost": "2.0",
         //          "rate": "0.0004"
         //      },
-        //      "created_at": 1729130040
+        //      "created_at": 1729130040000
         //  }
         //
-        const timestamp = this._exkoin_safeTimestamp (trade, 'created_at');
+        const timestamp = this.safeInteger (trade, 'created_at');
         const fee = this.safeDict (trade, 'fee');
         return this.safeTrade ({
             'info': trade,
@@ -728,6 +749,7 @@ export default class exkoin extends Exchange {
      * @method
      * @name exkoin#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://api.exkoin.com/documentation#operations-account-get_private_balances
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
@@ -774,12 +796,14 @@ export default class exkoin extends Exchange {
      * @method
      * @name exkoin#createOrder
      * @description create a trade order
+     * @see https://api.exkoin.com/documentation#operations-trade-post_private_orders
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] client order id
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -792,10 +816,14 @@ export default class exkoin extends Exchange {
         };
         if (type === 'market') {
             if (side === 'buy') {
-                if (price === undefined) {
-                    throw new ArgumentsRequired (this.id + ' createOrder requires a price parameter for market buy orders');
+                if (params['cost'] !== undefined) {
+                    request['cost'] = params['cost'];
+                } else {
+                    if (price === undefined) {
+                        throw new ArgumentsRequired (this.id + ' createOrder requires a price parameter for market buy orders');
+                    }
+                    request['cost'] = this.costToPrecision (symbol, amount * price);
                 }
-                request['cost'] = this.costToPrecision (symbol, amount * price);
             } else {
                 request['quantity'] = this.amountToPrecision (symbol, amount);
             }
@@ -806,6 +834,11 @@ export default class exkoin extends Exchange {
             request['quantity'] = this.amountToPrecision (symbol, amount);
             request['price'] = this.priceToPrecision (symbol, price);
         }
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['client_order_id'] = clientOrderId;
+            params = this.omit (params, [ 'clientOrderId' ]);
+        }
         const response = await this.privatePostPrivateOrders (this.extend (request, params));
         return this.parseOrder (response, market);
     }
@@ -814,6 +847,7 @@ export default class exkoin extends Exchange {
      * @method
      * @name exkoin#cancelOrder
      * @description cancels an open order
+     * @see https://api.exkoin.com/documentation#operations-trade-post_private_orders_cancel
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -834,6 +868,7 @@ export default class exkoin extends Exchange {
      * @method
      * @name exkoin#cancelAllOrders
      * @description cancel all open orders
+     * @see https://api.exkoin.com/documentation#operations-trade-post_private_orders_cancel_all
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -855,6 +890,7 @@ export default class exkoin extends Exchange {
      * @method
      * @name exkoin#fetchOpenOrders
      * @description fetch all unfilled currently open orders
+     * @see https://api.exkoin.com/documentation#operations-trade-get_private_orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -885,6 +921,7 @@ export default class exkoin extends Exchange {
      * @method
      * @name exkoin#fetchClosedOrders
      * @description fetches information on multiple closed orders made by the user
+     * @see https://api.exkoin.com/documentation#operations-trade-get_private_orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -915,6 +952,7 @@ export default class exkoin extends Exchange {
      * @method
      * @name exkoin#fetchOrders
      * @description fetches information on multiple orders made by the user
+     * @see https://api.exkoin.com/documentation#operations-trade-get_private_orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -943,6 +981,7 @@ export default class exkoin extends Exchange {
      * @method
      * @name exkoin#fetchOrder
      * @description fetches information on an order made by the user
+     * @see https://api.exkoin.com/documentation#operations-trade-get_private_order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -977,11 +1016,11 @@ export default class exkoin extends Exchange {
         //         "cost": "0.00",
         //         "rate": "0.001"
         //     },
-        //     "created_at": 1729130040,
-        //     "updated_at": 1729130040
+        //     "created_at": 1729130040000,
+        //     "updated_at": 1729130040000
         // }
         //
-        const timestamp = this._exkoin_safeTimestamp (order, 'created_at');
+        const timestamp = this.safeInteger (order, 'created_at');
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const fee = this.safeDict (order, 'fee', {});
@@ -996,7 +1035,7 @@ export default class exkoin extends Exchange {
             'clientOrderId': this.safeString (order, 'client_order_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': this._exkoin_safeTimestamp (order, 'updated_at'),
+            'lastTradeTimestamp': this.safeInteger (order, 'updated_at'),
             'symbol': market['symbol'],
             'type': this.safeString (order, 'type'),
             'timeInForce': undefined,
@@ -1016,7 +1055,7 @@ export default class exkoin extends Exchange {
                 'rate': this.safeString (fee, 'rate'),
             },
             'trades': undefined,
-            'lastUpdateTimestamp': this._exkoin_safeTimestamp (order, 'updated_at'),
+            'lastUpdateTimestamp': this.safeInteger (order, 'updated_at'),
         }, market);
     }
 
@@ -1024,6 +1063,7 @@ export default class exkoin extends Exchange {
      * @method
      * @name exkoin#fetchMyTrades
      * @description fetch all trades made by the user
+     * @see https://api.exkoin.com/documentation#operations-trade-get_private_trades
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -1045,67 +1085,14 @@ export default class exkoin extends Exchange {
             request['since'] = since;
         }
         const response = await this.privateGetPrivateTrades (this.extend (request, params));
-        return this.parseMyTrades (response, market, since, limit);
-    }
-
-    parseMyTrade (trade: Dict, market: Market = undefined): Trade {
-        //
-        // {
-        //     "id": "67890",
-        //     "order_id": "12345",
-        //     "client_order_id": "my-order-1",
-        //     "symbol": "BTC/USDT",
-        //     "type": "limit",
-        //     "side": "buy",
-        //     "taker_or_maker": "maker",
-        //     "price": "50000.00",
-        //     "amount": "0.1",
-        //     "cost": "5000.00",
-        //     "fee": {
-        //         "currency": "USDT",
-        //         "cost": "5.00",
-        //         "rate": "0.001"
-        //     },
-        //     "created_at": 1729130040
-        // }
-        //
-        const timestamp = this._exkoin_safeTimestamp (trade, 'created_at');
-        const marketId = this.safeString (trade, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const fee = this.safeDict (trade, 'fee', {});
-        return this.safeTrade ({
-            'info': trade,
-            'id': this.safeString (trade, 'id'),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'order': this.safeString (trade, 'order_id'),
-            'type': this.safeString (trade, 'type'),
-            'side': this.safeString (trade, 'side'),
-            'takerOrMaker': this.safeString (trade, 'taker_or_maker'),
-            'price': this.safeString (trade, 'price'),
-            'amount': this.safeString (trade, 'amount'),
-            'cost': this.safeString (trade, 'cost'),
-            'fee': {
-                'currency': this.safeString (fee, 'currency'),
-                'cost': this.safeString (fee, 'cost'),
-            },
-        }, market);
-    }
-
-    parseMyTrades (trades, market = undefined, since = undefined, limit = undefined): Trade[] {
-        const result = [];
-        for (let i = 0; i < trades.length; i++) {
-            const trade = this.parseMyTrade (trades[i], market);
-            result.push (trade);
-        }
-        return this.filterBySinceLimit (result, since, limit);
+        return this.parseTrades (response, market, since, limit);
     }
 
     /**
      * @method
      * @name exkoin#fetchTradingFees
      * @description fetch the trading fees for all markets
+     * @see https://api.exkoin.com/documentation#operations-account-get_private_account_get_trading_fees
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
      */
@@ -1140,6 +1127,7 @@ export default class exkoin extends Exchange {
      * @method
      * @name exkoin#fetchOrderTrades
      * @description fetch all the trades made from a single order
+     * @see https://api.exkoin.com/documentation#operations-trade-get_private_trades_by_order_id
      * @param {string} id order id
      * @param {string} [symbol] unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -1163,13 +1151,14 @@ export default class exkoin extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        return this.parseMyTrades (response, market, since, limit);
+        return this.parseTrades (response, market, since, limit);
     }
 
     /**
      * @method
      * @name exkoin#fetchDepositAddress
      * @description fetch the deposit address for a currency associated with this account
+     * @see https://api.exkoin.com/documentation#operations-account-get_private_deposit_address
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.network] the chain of currency
@@ -1214,6 +1203,7 @@ export default class exkoin extends Exchange {
      * @method
      * @name exkoin#fetchDeposits
      * @description fetch all deposits made to an account
+     * @see https://api.exkoin.com/documentation#operations-account-get_private_deposits
      * @param {string} [code] unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -1249,7 +1239,7 @@ export default class exkoin extends Exchange {
         //         "txid": "abc123",
         //         "block_height": 700000,
         //         "status": "completed",
-        //         "timestamp": 1729130040,
+        //         "timestamp": 1729130040000,
         //         "confirmations": 6,
         //         "confirmations_required": 6
         //     }
@@ -1262,6 +1252,7 @@ export default class exkoin extends Exchange {
      * @method
      * @name exkoin#fetchDeposit
      * @description fetch information on a deposit
+     * @see https://api.exkoin.com/documentation#operations-account-get_private_deposit_address
      * @param {string} id deposit id
      * @param {string} [code] unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1286,7 +1277,7 @@ export default class exkoin extends Exchange {
         //     "txid": "abc123",
         //     "block_height": 700000,
         //     "status": "completed",
-        //     "timestamp": 1729130040,
+        //     "timestamp": 1729130040000,
         //     "confirmations": 6,
         //     "confirmations_required": 6
         // }
@@ -1302,6 +1293,7 @@ export default class exkoin extends Exchange {
      * @method
      * @name exkoin#fetchLedger
      * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+     * @see https://api.exkoin.com/documentation#operations-account-get_private_ledgers
      * @param {string} [code] unified currency code
      * @param {int} [since] the earliest time in ms to fetch ledger entries for
      * @param {int} [limit] the maximum number of ledger entries to retrieve
@@ -1336,19 +1328,20 @@ export default class exkoin extends Exchange {
         //         "in": true,
         //         "amount": 100.5,
         //         "currency": "USDT",
-        //         "created_at": 1729130040,
+        //         "created_at": 1729130040000,
         //         "after": 1000.5,
         //         "ref": "order123"
         //     }
         // ]
         //
-        return this._parseLedger (response, since, limit);
+        return this.parseLedger (response, currency, since, limit);
     }
 
     /**
      * @method
      * @name exkoin#fetchLedgerEntry
      * @description fetch a single ledger entry
+     * @see https://api.exkoin.com/documentation#operations-account-get_private_ledger
      * @param {string} id ledger entry id
      * @param {string} [code] unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1359,6 +1352,7 @@ export default class exkoin extends Exchange {
         const request: Dict = {
             'id': id,
         };
+        const currency = this.currency (code);
         const response = await this.privateGetPrivateLedger (this.extend (request, params));
         //
         // {
@@ -1367,15 +1361,15 @@ export default class exkoin extends Exchange {
         //     "in": true,
         //     "amount": 100.5,
         //     "currency": "USDT",
-        //     "created_at": 1729130040,
+        //     "created_at": 1729130040000,
         //     "after": 1000.5,
         //     "ref": "order123"
         // }
         //
-        return this._parseLedgerEntry (response);
+        return this.parseLedgerEntry (response, currency);
     }
 
-    _parseLedgerEntry (item: Dict): LedgerEntry {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
         //
         // {
         //     "id": "ledger123",
@@ -1383,14 +1377,14 @@ export default class exkoin extends Exchange {
         //     "in": true,
         //     "amount": 100.5,
         //     "currency": "USDT",
-        //     "created_at": 1729130040,
+        //     "created_at": 1729130040000,
         //     "after": 1000.5, // or undefined if originating from time sensitive operation (order-fill, ...)
         //     "ref": "order123"
         // }
         //
-        const timestamp = this._exkoin_safeTimestamp (item, 'created_at');
+        const timestamp = this.safeInteger (item, 'created_at');
         const currencyId = this.safeString (item, 'currency');
-        const currency = this.safeCurrency (currencyId);
+        currency = this.safeCurrency (currencyId);
         const amount = this.safeNumber (item, 'amount');
         const isIn = this.safeBool (item, 'in');
         const direction = isIn ? 'in' : 'out';
@@ -1424,14 +1418,10 @@ export default class exkoin extends Exchange {
         }, currency);
     }
 
-    _exkoin_safeTimestamp (item: Dict, key: IndexType): Int {
-        return this.safeInteger (item, key);
-    }
-
-    _parseLedger (data, since: Int = undefined, limit: Int = undefined, params = {}): LedgerEntry[] {
+    parseLedger (data, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}): LedgerEntry[] {
         const result = [];
         for (let i = 0; i < data.length; i++) {
-            const entry = this._parseLedgerEntry (data[i]);
+            const entry = this.parseLedgerEntry (data[i]);
             result.push (entry);
         }
         return this.filterBySinceLimit (result, since, limit);
@@ -1441,6 +1431,7 @@ export default class exkoin extends Exchange {
      * @method
      * @name exkoin#fetchWithdrawals
      * @description fetch all withdrawals made from an account
+     * @see https://api.exkoin.com/documentation#operations-account-get_private_withdrawals_detail
      * @param {string} [code] unified currency code
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -1476,7 +1467,7 @@ export default class exkoin extends Exchange {
         //         "memo": "",
         //         "txid": "abc123",
         //         "status": "completed",
-        //         "timestamp": 1729130040
+        //         "timestamp": 1729130040000
         //     }
         // ]
         //
@@ -1487,6 +1478,7 @@ export default class exkoin extends Exchange {
      * @method
      * @name exkoin#fetchWithdrawal
      * @description fetch data on a currency withdrawal via the withdrawal id
+     * @see https://api.exkoin.com/documentation#operations-account-get_private_withdrawal
      * @param {string} id withdrawal id
      * @param {string} [code] unified currency code of the currency withdrawn, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1528,7 +1520,7 @@ export default class exkoin extends Exchange {
         //     "txid": "abc123",
         //     "block_height": 700000,
         //     "status": "completed",
-        //     "timestamp": 1729130040,
+        //     "timestamp": 1729130040000,
         //     "confirmations": 6,
         //     "confirmations_required": 6
         // }
@@ -1546,10 +1538,10 @@ export default class exkoin extends Exchange {
         //     "memo": "",
         //     "txid": "abc123",
         //     "status": "completed",
-        //     "timestamp": 1729130040
+        //     "timestamp": 1729130040000
         // }
         //
-        const timestamp = this._exkoin_safeTimestamp (transaction, 'timestamp');
+        const timestamp = this.safeInteger (transaction, 'timestamp');
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
@@ -1619,7 +1611,8 @@ export default class exkoin extends Exchange {
      * @method
      * @name exkoin#withdraw
      * @description make a withdrawal
-     * @see https://docs.exkoin.com/#withdraw
+     * @see https://api.exkoin.com/documentation#operations-account-post_private_withdrawals_prepare
+     * @see https://api.exkoin.com/documentation#operations-account-post_private_withdrawals_finish
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
@@ -1678,7 +1671,7 @@ export default class exkoin extends Exchange {
         //       "network": "BTC",
         //       "status": "pending",
         //       "txid": "",
-        //       "created_at": 1729130040
+        //       "created_at": 1729130040000
         //     }
         //
         return this.parseTransaction (response, currency);
