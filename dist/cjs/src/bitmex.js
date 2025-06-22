@@ -35,6 +35,7 @@ class bitmex extends bitmex$1 {
                 'swap': true,
                 'future': true,
                 'option': false,
+                'index': true,
                 'addMargin': undefined,
                 'cancelAllOrders': true,
                 'cancelAllOrdersAfter': true,

@@ -38,6 +38,7 @@ export default class bitmex extends Exchange {
                 'swap': true,
                 'future': true,
                 'option': false,
+                'index': true,
                 'addMargin': undefined,
                 'cancelAllOrders': true,
                 'cancelAllOrdersAfter': true,
