@@ -10848,7 +10848,7 @@ public partial class binance : Exchange
             {
                 throw new NotSupported ((string)add(this.id, " loadLeverageBrackets() supports linear and inverse contracts only")) ;
             }
-            ((IDictionary<string,object>)this.options)["leverageBrackets"] = new Dictionary<string, object>() {};
+            ((IDictionary<string,object>)this.options)["leverageBrackets"] = this.createSafeDictionary();
             for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
             {
                 object entry = getValue(response, i);

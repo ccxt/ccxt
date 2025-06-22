@@ -44,16 +44,23 @@ import "github.com/ccxt/ccxt/go/v4"
         if IsTrue(IsTrue(!IsEqual(symbolForMarket, nil)) && IsTrue((InOp(exchange.GetMarkets(), symbolForMarket)))) {
             market = exchange.Market(symbolForMarket)
         }
-        AssertGreater(exchange, skippedProperties, method, entry, "open", "0")
-        AssertGreater(exchange, skippedProperties, method, entry, "high", "0")
-        AssertGreater(exchange, skippedProperties, method, entry, "low", "0")
-        AssertGreater(exchange, skippedProperties, method, entry, "close", "0")
-        AssertGreater(exchange, skippedProperties, method, entry, "ask", "0")
+        var exchangeHasIndexMarkets interface{} = exchange.SafeBool(exchange.GetHas(), "index", false)
+        var isStandardMarket interface{} =     (IsTrue(!IsEqual(market, nil)) && IsTrue(exchange.InArray(GetValue(market, "type"), []interface{}{"spot", "swap", "future", "option"})))
+        // only check "above zero" values if exchange is not supposed to have exotic index markets
+        var valuesShouldBePositive interface{} = IsTrue(isStandardMarket) || IsTrue((IsTrue(IsEqual(market, nil)) && !IsTrue(exchangeHasIndexMarkets)))
+        if IsTrue(valuesShouldBePositive) {
+            AssertGreater(exchange, skippedProperties, method, entry, "open", "0")
+            AssertGreater(exchange, skippedProperties, method, entry, "high", "0")
+            AssertGreater(exchange, skippedProperties, method, entry, "low", "0")
+            AssertGreater(exchange, skippedProperties, method, entry, "close", "0")
+            AssertGreater(exchange, skippedProperties, method, entry, "ask", "0")
+            AssertGreater(exchange, skippedProperties, method, entry, "bid", "0")
+            AssertGreater(exchange, skippedProperties, method, entry, "average", "0")
+            AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "vwap", "0")
+        }
+        // volume can not be negative
         AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "askVolume", "0")
-        AssertGreater(exchange, skippedProperties, method, entry, "bid", "0")
         AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "bidVolume", "0")
-        AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "vwap", "0")
-        AssertGreater(exchange, skippedProperties, method, entry, "average", "0")
         AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "baseVolume", "0")
         AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "quoteVolume", "0")
         var lastString interface{} = exchange.SafeString(entry, "last")
@@ -70,14 +77,18 @@ import "github.com/ccxt/ccxt/go/v4"
                 // to avoid abnormal long precision issues (like https://discord.com/channels/690203284119617602/1338828283902689280/1338846071278927912 )
                 var mPrecision interface{} = exchange.SafeDict(market, "precision")
                 var amountPrecision interface{} = exchange.SafeString(mPrecision, "amount")
+                var tolerance interface{} = "1.0001"
                 if IsTrue(!IsEqual(amountPrecision, nil)) {
                     baseLow = ccxt.Precise.StringMul(ccxt.Precise.StringSub(baseVolume, amountPrecision), low)
                     baseHigh = ccxt.Precise.StringMul(ccxt.Precise.StringAdd(baseVolume, amountPrecision), high)
                 } else {
                     // if nothing found, as an exclusion, just add 0.001%
-                    baseLow = ccxt.Precise.StringMul(ccxt.Precise.StringMul(baseVolume, "1.0001"), low)
-                    baseHigh = ccxt.Precise.StringMul(ccxt.Precise.StringDiv(baseVolume, "1.0001"), high)
+                    baseLow = ccxt.Precise.StringMul(ccxt.Precise.StringDiv(baseVolume, tolerance), low)
+                    baseHigh = ccxt.Precise.StringMul(ccxt.Precise.StringMul(baseVolume, tolerance), high)
                 }
+                // because of exchange engines might not rounding numbers propertly, we add some tolerance of calculated 24hr high/low
+                baseLow = ccxt.Precise.StringDiv(baseLow, tolerance)
+                baseHigh = ccxt.Precise.StringMul(baseHigh, tolerance)
                 Assert(ccxt.Precise.StringGe(quoteVolume, baseLow), Add("quoteVolume should be => baseVolume * low", logText))
                 Assert(ccxt.Precise.StringLe(quoteVolume, baseHigh), Add("quoteVolume should be <= baseVolume * high", logText))
             }
@@ -89,7 +100,7 @@ import "github.com/ccxt/ccxt/go/v4"
             // Assert (low !== undefined, 'vwap is defined, but low is not' + logText);
             // Assert (vwap >= low && vwap <= high)
             // todo: calc compare
-            Assert(ccxt.Precise.StringGe(vwap, "0"), Add("vwap is not greater than zero", logText))
+            Assert(!IsTrue(valuesShouldBePositive) || IsTrue(ccxt.Precise.StringGe(vwap, "0")), Add("vwap is not greater than zero", logText))
             if IsTrue(!IsEqual(baseVolume, nil)) {
                 Assert(!IsEqual(quoteVolume, nil), Add("baseVolume & vwap is defined, but quoteVolume is not", logText))
             }

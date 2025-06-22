@@ -46,7 +46,7 @@ use Exception;
 use ccxt\pro\Stream;
 
 
-$version = '4.4.89';
+$version = '4.4.90';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -65,7 +65,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.4.89';
+    const VERSION = '4.4.90';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -383,7 +383,6 @@ class Exchange {
         'coincatch',
         'coincheck',
         'coinex',
-        'coinlist',
         'coinmate',
         'coinmetro',
         'coinone',
@@ -840,6 +839,12 @@ class Exchange {
         return $result;
     }
 
+    public static function sort($array) {
+        $result = $array;
+        sort($result);
+        return $result;
+    }
+
     public static function extract_params($string) {
         if (preg_match_all('/{([\w-]+)}/u', $string, $matches)) {
             return $matches[1];
@@ -936,7 +941,7 @@ class Exchange {
         return preg_replace('/%5B\d*%5D/', '', $this->urlencode($array));
     }
 
-    public function rawencode($array) {
+    public function rawencode($array, $sort = false) {
         return urldecode($this->urlencode($array));
     }
 

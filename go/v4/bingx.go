@@ -1708,7 +1708,7 @@ func  (this *bingx) FetchFundingRate(symbol interface{}, optionalArgs ...interfa
             //        ]
             //    }
             //
-            var data interface{} = this.SafeList(response, "data", []interface{}{})
+            var data interface{} = this.SafeDict(response, "data")
         
             ch <- this.ParseFundingRate(data, market)
             return nil
@@ -6009,11 +6009,12 @@ func  (this *bingx) Withdraw(code interface{}, amount interface{}, address inter
             return ch
         }
 func  (this *bingx) ParseParams(params interface{}) interface{}  {
-    var sortedParams interface{} = this.Keysort(params)
-    var keys interface{} = ObjectKeys(sortedParams)
+    // const sortedParams = this.keysort (params);
+    var rawKeys interface{} = ObjectKeys(params)
+    var keys interface{} = this.Sort(rawKeys)
     for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
         var key interface{} = GetValue(keys, i)
-        var value interface{} = GetValue(sortedParams, key)
+        var value interface{} = GetValue(params, key)
         if IsTrue(IsArray(value)) {
             var arrStr interface{} = "["
             for j := 0; IsLessThan(j, GetArrayLength(value)); j++ {
@@ -6024,10 +6025,10 @@ func  (this *bingx) ParseParams(params interface{}) interface{}  {
                 arrStr = Add(arrStr, ToString(arrayElement))
             }
             arrStr = Add(arrStr, "]")
-            AddElementToObject(sortedParams, key, arrStr)
+            AddElementToObject(params, key, arrStr)
         }
     }
-    return sortedParams
+    return params
 }
 /**
  * @method
@@ -6056,8 +6057,8 @@ func  (this *bingx) FetchMyLiquidations(optionalArgs ...interface{}) <- chan int
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes58708 := (<-this.LoadMarkets())
-            PanicOnError(retRes58708)
+            retRes58718 := (<-this.LoadMarkets())
+            PanicOnError(retRes58718)
             var request interface{} = map[string]interface{} {
                 "autoCloseType": "LIQUIDATION",
             }
@@ -6221,8 +6222,8 @@ func  (this *bingx) ClosePosition(symbol interface{}, optionalArgs ...interface{
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes60128 := (<-this.LoadMarkets())
-            PanicOnError(retRes60128)
+            retRes60138 := (<-this.LoadMarkets())
+            PanicOnError(retRes60138)
             var market interface{} = this.Market(symbol)
             var positionId interface{} = this.SafeString(params, "positionId")
             var request interface{} = map[string]interface{} {}
@@ -6269,8 +6270,8 @@ func  (this *bingx) CloseAllPositions(optionalArgs ...interface{}) <- chan inter
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes60818 := (<-this.LoadMarkets())
-            PanicOnError(retRes60818)
+            retRes60828 := (<-this.LoadMarkets())
+            PanicOnError(retRes60828)
             var defaultRecvWindow interface{} = this.SafeInteger(this.Options, "recvWindow")
             var recvWindow interface{} = this.SafeInteger(this.ParseParams, "recvWindow", defaultRecvWindow)
             var marketType interface{} = nil
@@ -6385,8 +6386,8 @@ func  (this *bingx) SetPositionMode(hedged interface{}, optionalArgs ...interfac
                 "dualSidePosition": dualSidePosition,
             }
         
-                retRes619115 :=  (<-this.SwapV1PrivatePostPositionSideDual(this.Extend(request, params)))
-                PanicOnError(retRes619115)
+                retRes619215 :=  (<-this.SwapV1PrivatePostPositionSideDual(this.Extend(request, params)))
+                PanicOnError(retRes619215)
                     //
             //     {
             //         code: '0',
@@ -6395,7 +6396,7 @@ func  (this *bingx) SetPositionMode(hedged interface{}, optionalArgs ...interfac
             //         data: { dualSidePosition: 'false' }
             //     }
             //
-        ch <- retRes619115
+        ch <- retRes619215
                 return nil
         
             }()
@@ -6444,8 +6445,8 @@ func  (this *bingx) EditOrder(id interface{}, symbol interface{}, typeVar interf
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes62268 := (<-this.LoadMarkets())
-            PanicOnError(retRes62268)
+            retRes62278 := (<-this.LoadMarkets())
+            PanicOnError(retRes62278)
             var market interface{} = this.Market(symbol)
             var request interface{} = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
             AddElementToObject(request, "cancelOrderId", id)
@@ -6486,8 +6487,8 @@ func  (this *bingx) FetchMarginMode(symbol interface{}, optionalArgs ...interfac
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes63438 := (<-this.LoadMarkets())
-            PanicOnError(retRes63438)
+            retRes63448 := (<-this.LoadMarkets())
+            PanicOnError(retRes63448)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -6545,8 +6546,8 @@ func  (this *bingx) FetchTradingFee(symbol interface{}, optionalArgs ...interfac
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes64038 := (<-this.LoadMarkets())
-            PanicOnError(retRes64038)
+            retRes64048 := (<-this.LoadMarkets())
+            PanicOnError(retRes64048)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -6633,13 +6634,14 @@ func  (this *bingx) ParseTradingFee(fee interface{}, optionalArgs ...interface{}
     }
 }
 func  (this *bingx) CustomEncode(params interface{}) interface{}  {
-    var sortedParams interface{} = this.Keysort(params)
-    var keys interface{} = ObjectKeys(sortedParams)
+    // const sortedParams = this.keysort (params);
+    var rawKeys interface{} = ObjectKeys(params)
+    var keys interface{} = this.Sort(rawKeys)
     var adjustedValue interface{} = nil
     var result interface{} = nil
     for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
         var key interface{} = GetValue(keys, i)
-        var value interface{} = GetValue(sortedParams, key)
+        var value interface{} = GetValue(params, key)
         if IsTrue(IsArray(value)) {
             var arrStr interface{} = nil
             for j := 0; IsLessThan(j, GetArrayLength(value)); j++ {
@@ -6719,7 +6721,7 @@ func  (this *bingx) Sign(path interface{}, optionalArgs ...interface{}) interfac
             encodeRequest = this.CustomEncode(params)
         } else {
             parsedParams = this.ParseParams(params)
-            encodeRequest = this.Rawencode(parsedParams)
+            encodeRequest = this.Rawencode(parsedParams, true)
         }
         var signature interface{} = this.Hmac(this.Encode(encodeRequest), this.Encode(this.Secret), sha256)
         headers = map[string]interface{} {
@@ -6731,7 +6733,7 @@ func  (this *bingx) Sign(path interface{}, optionalArgs ...interface{}) interfac
             AddElementToObject(params, "signature", signature)
             body = this.Json(params)
         } else {
-            var query interface{} = this.Urlencode(parsedParams)
+            var query interface{} = this.Urlencode(parsedParams, true)
             url = Add(url, Add(Add(Add(Add("?", query), "&"), "signature="), signature))
         }
     }

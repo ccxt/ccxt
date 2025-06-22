@@ -5482,12 +5482,13 @@ public partial class bingx : Exchange
 
     public virtual object parseParams(object parameters)
     {
-        object sortedParams = this.keysort(parameters);
-        object keys = new List<object>(((IDictionary<string,object>)sortedParams).Keys);
+        // const sortedParams = this.keysort (params);
+        object rawKeys = new List<object>(((IDictionary<string,object>)parameters).Keys);
+        object keys = this.sort(rawKeys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
-            object value = getValue(sortedParams, key);
+            object value = getValue(parameters, key);
             if (isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
             {
                 object arrStr = "[";
@@ -5501,10 +5502,10 @@ public partial class bingx : Exchange
                     arrStr = add(arrStr, ((object)arrayElement).ToString());
                 }
                 arrStr = add(arrStr, "]");
-                ((IDictionary<string,object>)sortedParams)[(string)key] = arrStr;
+                ((IDictionary<string,object>)parameters)[(string)key] = arrStr;
             }
         }
-        return sortedParams;
+        return parameters;
     }
 
     /**
@@ -6011,14 +6012,15 @@ public partial class bingx : Exchange
 
     public virtual object customEncode(object parameters)
     {
-        object sortedParams = this.keysort(parameters);
-        object keys = new List<object>(((IDictionary<string,object>)sortedParams).Keys);
+        // const sortedParams = this.keysort (params);
+        object rawKeys = new List<object>(((IDictionary<string,object>)parameters).Keys);
+        object keys = this.sort(rawKeys);
         object adjustedValue = null;
         object result = null;
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
-            object value = getValue(sortedParams, key);
+            object value = getValue(parameters, key);
             if (isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
             {
                 object arrStr = null;
@@ -6113,7 +6115,7 @@ public partial class bingx : Exchange
             } else
             {
                 parsedParams = this.parseParams(parameters);
-                encodeRequest = this.rawencode(parsedParams);
+                encodeRequest = this.rawencode(parsedParams, true);
             }
             object signature = this.hmac(this.encode(encodeRequest), this.encode(this.secret), sha256);
             headers = new Dictionary<string, object>() {
@@ -6127,7 +6129,7 @@ public partial class bingx : Exchange
                 body = this.json(parameters);
             } else
             {
-                object query = this.urlencode(parsedParams);
+                object query = this.urlencode(parsedParams, true);
                 url = add(url, add(add(add(add("?", query), "&"), "signature="), signature));
             }
         }

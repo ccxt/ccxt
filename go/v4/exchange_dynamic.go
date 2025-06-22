@@ -174,10 +174,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
         coinexItf := &coinex{}
         coinexItf.Init(exchangeArgs)
         return coinexItf, true
-    case "coinlist":
-        coinlistItf := &coinlist{}
-        coinlistItf.Init(exchangeArgs)
-        return coinlistItf, true
     case "coinmate":
         coinmateItf := &coinmate{}
         coinmateItf.Init(exchangeArgs)

@@ -806,7 +806,8 @@ export default class exmo extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        const response = await this.publicGetPairSettings (params);
+        const promises = [];
+        promises.push (this.publicGetPairSettings (params));
         //
         //     {
         //         "BTC_USD":{
@@ -823,8 +824,9 @@ export default class exmo extends Exchange {
         //     }
         //
         let marginPairsDict: Dict = {};
-        if (this.checkRequiredCredentials (false)) {
-            const marginPairs = await this.privatePostMarginPairList (params);
+        const fetchMargin = this.checkRequiredCredentials (false);
+        if (fetchMargin) {
+            promises.push (this.privatePostMarginPairList (params));
             //
             //    {
             //        "pairs": [
@@ -854,15 +856,20 @@ export default class exmo extends Exchange {
             //        ]
             //    }
             //
-            const pairs = this.safeValue (marginPairs, 'pairs');
+        }
+        const responses = await Promise.all (promises);
+        const spotResponse = responses[0];
+        if (fetchMargin) {
+            const marginPairs = responses[1];
+            const pairs = this.safeList (marginPairs, 'pairs');
             marginPairsDict = this.indexBy (pairs, 'name');
         }
-        const keys = Object.keys (response);
+        const keys = Object.keys (spotResponse);
         const result = [];
         for (let i = 0; i < keys.length; i++) {
             const id = keys[i];
-            const market = response[id];
-            const marginMarket = this.safeValue (marginPairsDict, id);
+            const market = spotResponse[id];
+            const marginMarket = this.safeDict (marginPairsDict, id);
             const symbol = id.replace ('_', '/');
             const [ baseId, quoteId ] = symbol.split ('/');
             const base = this.safeCurrencyCode (baseId);
