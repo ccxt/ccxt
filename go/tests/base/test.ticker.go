@@ -44,16 +44,23 @@ import "github.com/ccxt/ccxt/go/v4"
         if IsTrue(IsTrue(!IsEqual(symbolForMarket, nil)) && IsTrue((InOp(exchange.GetMarkets(), symbolForMarket)))) {
             market = exchange.Market(symbolForMarket)
         }
-        AssertGreater(exchange, skippedProperties, method, entry, "open", "0")
-        AssertGreater(exchange, skippedProperties, method, entry, "high", "0")
-        AssertGreater(exchange, skippedProperties, method, entry, "low", "0")
-        AssertGreater(exchange, skippedProperties, method, entry, "close", "0")
-        AssertGreater(exchange, skippedProperties, method, entry, "ask", "0")
+        var exchangeHasIndexMarkets interface{} = exchange.SafeBool(exchange.GetHas(), "index", false)
+        var isStandardMarket interface{} =     (IsTrue(!IsEqual(market, nil)) && IsTrue(exchange.InArray(GetValue(market, "type"), []interface{}{"spot", "swap", "future", "option"})))
+        // only check "above zero" values if exchange is not supposed to have exotic index markets
+        var valuesShouldBePositive interface{} = IsTrue(isStandardMarket) || IsTrue((IsTrue(IsEqual(market, nil)) && !IsTrue(exchangeHasIndexMarkets)))
+        if IsTrue(valuesShouldBePositive) {
+            AssertGreater(exchange, skippedProperties, method, entry, "open", "0")
+            AssertGreater(exchange, skippedProperties, method, entry, "high", "0")
+            AssertGreater(exchange, skippedProperties, method, entry, "low", "0")
+            AssertGreater(exchange, skippedProperties, method, entry, "close", "0")
+            AssertGreater(exchange, skippedProperties, method, entry, "ask", "0")
+            AssertGreater(exchange, skippedProperties, method, entry, "bid", "0")
+            AssertGreater(exchange, skippedProperties, method, entry, "average", "0")
+            AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "vwap", "0")
+        }
+        // volume can not be negative
         AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "askVolume", "0")
-        AssertGreater(exchange, skippedProperties, method, entry, "bid", "0")
         AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "bidVolume", "0")
-        AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "vwap", "0")
-        AssertGreater(exchange, skippedProperties, method, entry, "average", "0")
         AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "baseVolume", "0")
         AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "quoteVolume", "0")
         var lastString interface{} = exchange.SafeString(entry, "last")
@@ -93,7 +100,7 @@ import "github.com/ccxt/ccxt/go/v4"
             // Assert (low !== undefined, 'vwap is defined, but low is not' + logText);
             // Assert (vwap >= low && vwap <= high)
             // todo: calc compare
-            Assert(ccxt.Precise.StringGe(vwap, "0"), Add("vwap is not greater than zero", logText))
+            Assert(!IsTrue(valuesShouldBePositive) || IsTrue(ccxt.Precise.StringGe(vwap, "0")), Add("vwap is not greater than zero", logText))
             if IsTrue(!IsEqual(baseVolume, nil)) {
                 Assert(!IsEqual(quoteVolume, nil), Add("baseVolume & vwap is defined, but quoteVolume is not", logText))
             }
