@@ -463,6 +463,88 @@ const goMethodDeclaration = (methodName: string, params: {[key: string]: [string
     }`
 }
 
+const getSwiftReturnType = (methodName: string, tsType: string): string => {
+    // TODO: This function shouldn't be needed if we can fix the encodable issue
+    if (methodName === "loadMarkets") {
+        return "[String: [String: Any]]";
+    } else if (methodName === "describe") {
+        return "[String: Any]";
+    }
+    const swiftTypes = {
+        "int": "Int",
+        "number": "Double",
+        "boolean": "Bool",
+        "Num": "Double?",
+        "Strings": "[String]?",
+        "Account[]": "[[String: Any]]",
+        "any": "Any",
+        "Balances": "[String: [String: Any]]",
+        "BorrowInterest[]": "[[String: Any]]",
+        "Conversion": "[String: Any]",
+        "Conversion[]": "[[String: Any]]",
+        "CrossBorrowRate": "[String: Any]",
+        "CrossBorrowRates": "[String: [String: Any]]",
+        "Currencies": "[String: [String: Any]]",
+        "DepositAddress": "[String: Any]",
+        "DepositAddress[]": "[[String: Any]]",
+        "DepositWithdrawFeeNetwork": "[String: Any]",
+        "Dictionary<DepositWithdrawFeeNetwork>": "[String: [String: Any]]",
+        "Dictionary<Dictionary<OHLCV[]>>": "[String: [String: [[Double]]]]",
+        "FundingHistory[]": "[String: [String: Any]]",
+        "FundingRate": "[String: Any]",
+        "FundingRateHistory[]": "[[String: Any]]",
+        "FundingRates": "[String: [String: Any]]",
+        "Greeks": "[String: Any]",
+        "Int": "Int?",
+        "IsolatedBorrowRate": "[String: Any]",
+        "IsolatedBorrowRates": "[String: [String: Any]]",
+        "LastPrices": "[String: [String: Any]]",
+        "LedgerEntry": "[String: Any]",
+        "LedgerEntry[]": "[[String: Any]]",
+        "Leverage": "[String: Any]",
+        "Leverages": "[String: [String: Any]]",
+        "LeverageTier[]": "[[String: Any]]",
+        "LeverageTiers": "[String: [[String: Any]]]",
+        "Liquidation[]": "[[String: Any]]",
+        "LongShortRatio": "[String: Any]",
+        "LongShortRatio[]": "[[String: Any]]",
+        "MarginMode": "[String: Any]",
+        "MarginModes": "[String: [String: Any]]",
+        "MarginModification": "[String: Any]",
+        "MarginModification[]": "[[String: Any]]",
+        "Market[]": "[[String: Any]]",
+        "OHLCV[]": "[[Double]]",
+        "OpenInterest": "[String: Any]",
+        "OpenInterest[]": "[[String: Any]]",
+        "OpenInterests": "[String: [String: Any]]",
+        "Option": "[String: Any]",
+        "OptionChain": "[String: [String: Any]]",
+        "Order": "[String: Any]",
+        "Order[]": "[[String: Any]]",
+        "OrderBook": "[String: Any]",
+        "OrderBooks": "[String: [String: Any]]",
+        "Position": "[String: Any]",
+        "Position[]": "[[String: Any]]",
+        "string": "String",
+        "Ticker": "[String: Any]",
+        "Tickers": "[String: [String: Any]]",
+        "Trade[]": "[[String: Any]]",
+        "TradingFeeInterface": "[String: Any]",
+        "TradingFees": "[String: [String: Any]]",
+        "Transaction": "[String: Any]",
+        "Transaction[]": "[[String: Any]]",
+        "TransferEntry": "[String: Any]",
+        "TransferEntry[]": "[[String: Any]]"
+    }
+    if (swiftTypes[tsType]) {
+        return swiftTypes[tsType];
+    } else if (tsType.endsWith('[]')) {
+        return "Any[]";
+    } else {
+        return "Any";
+    }
+}
+
 const swiftMethodDeclaration = (methodName: string, params: {[key: string]: [string, string | null]}, returnType: string) => {
     // TODO: add return types, right now all the return types need to be Any because the info property prevents them from extended encodeable
     // const swiftReturnType = tsTypeToSwift(returnType);
@@ -515,24 +597,21 @@ const swiftMethodDeclaration = (methodName: string, params: {[key: string]: [str
     optionalsCode += prefix(optionalParams, sep) + optionalParams.map(paramName => `if (${paramName} != nil) { paramsCopy["${paramName}"] = ${paramName} }`).join(sep);
     const customTypeParamsCode = prefix(customTypeParams, sep) + customTypeParams.map(paramName => `let ${paramName}_string = stringify(${paramName})`).join(sep);  // stringify custom types
     const arrayParamsCode = prefix(arrayParams, sep) + arrayParams.map(paramName => `let ${paramName}_string = ${paramName}.joined(separator: ",")`).join(sep);  // convert array parameters to comma separated strings
+    const swiftReturnType = getSwiftReturnType(methodName, returnType);
     // const guardCode = `
     //         guard let result = cleanAny(jsonObject) ${guardClause} else {
     //             throw NSError(domain: "CCXT", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid response type for ${methodName}"])
     //         }\n`;
     return`
-    public func ${methodName} (${swiftParams}) throws -> Any {
+    public func ${methodName} (${swiftParams}) throws -> ${swiftReturnType} {
         do {${optionalsCode}${customTypeParamsCode}${arrayParamsCode}
             let paramsData = try? JSONSerialization.data(withJSONObject: ${paramsCopy ? 'paramsCopy' : 'params'})
             let data = try exchange.${callMethodName}(${goCallParams.join(', ')})
             do {
                 let jsonObject = try JSONSerialization.jsonObject(with: data, options: [])
-                return cleanAny(jsonObject)
+                return cleanAny(jsonObject) as! ${swiftReturnType}
             } catch {
-                if let str = String(data: data, encoding: .utf8) {
-                    return str
-                } else {
-                    throw error
-                }
+                throw error
             }
         } catch {
             throw error
