@@ -814,7 +814,7 @@ class Exchange {
     }
 
     public static function in_array($needle, $haystack) {
-        return in_array($needle, $haystack);
+        return in_array($needle, $haystack, true);
     }
 
     public static function to_array($object) {
