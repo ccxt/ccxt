@@ -863,9 +863,8 @@ class Exchange {
     }
 
     public static function deep_extend() {
-        //
-        //     extend associative dictionaries only, replace everything else
-        //
+        // extend associative dictionaries only, replace everything else
+        // (optimized: https://github.com/ccxt/ccxt/pull/26277)
         $out = null;
         $args = func_get_args();
 
