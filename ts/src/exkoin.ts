@@ -215,7 +215,7 @@ export default class exkoin extends Exchange {
                 'BEP20': 'BSC',
                 'OPTIMISM': 'OP',
                 'ARB': 'ARB',
-                'MATIC': 'POL'
+                'MATIC': 'POL',
             },
             'features': {
                 'spot': {
