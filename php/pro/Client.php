@@ -257,9 +257,6 @@ class Client {
             // todo: exception types for server-side disconnects
             $this->reset(new NetworkError($message));
         }
-        if ($this->error) {
-            $this->reset($this->error);
-        }
     }
 
     public function on_message(Message $message) {

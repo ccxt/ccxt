@@ -12,7 +12,7 @@ from aiohttp import WSMsgType
 from .functions import milliseconds, iso8601, is_json_encoded_object
 from ccxt.async_support.base.ws.client import Client
 from ccxt.async_support.base.ws.functions import gunzip, inflate
-from ccxt import NetworkError, RequestTimeout, ExchangeClosedByUser
+from ccxt import NetworkError, RequestTimeout
 
 
 class AiohttpClient(Client):
@@ -113,14 +113,6 @@ class AiohttpClient(Client):
         # so we don't need to cancel them
         if self.ping_looper:
             self.ping_looper.cancel()
-        for key in self.futures:
-            future = self.futures[key]
-            if not future.done():
-                if future.is_race_future:
-                    future.cancel()  # this is an "internal" future so we want to cancel it silently
-                else:
-                    future.reject(ExchangeClosedByUser('Connection closed by the user'))
-
 
     async def ping_loop(self):
         if self.verbose:
