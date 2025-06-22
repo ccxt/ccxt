@@ -478,7 +478,7 @@ const getSwiftReturnType = (methodName: string, tsType: string): string => {
         "Strings": "[String]?",
         "Account[]": "[[String: Any]]",
         "any": "Any",
-        "Balances": "[String: [String: Any]]",
+        "Balances": "[String: Any]",
         "BorrowInterest[]": "[[String: Any]]",
         "Conversion": "[String: Any]",
         "Conversion[]": "[[String: Any]]",
