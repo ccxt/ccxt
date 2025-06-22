@@ -97,13 +97,15 @@ export default class exkoin extends exkoinRest {
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
             const messageHash = 'orderbook:' + symbol;
-            const timestamp = this.safeTimestamp (data, 't'); // timestamp
+            const timestamp = this._exkoin_safeTimestamp (data, 't'); // timestamp
             if (!(symbol in this.orderbooks)) {
                 // If we don't have an orderbook yet, we need to fetch the snapshot first
                 // This shouldn't happen if watchOrderBook is called properly
                 return;
             }
             const orderbook = this.orderbooks[symbol];
+            const bids = orderbook['bids'];
+            const asks = orderbook['asks'];
             const bidChanges = this.safeValue (data, 'b', []); // bid changes
             const askChanges = this.safeValue (data, 'a', []); // ask changes
             // Process bid changes
@@ -113,10 +115,10 @@ export default class exkoin extends exkoinRest {
                 const quantity = parseFloat (quantityString);
                 if (operation === 'd' || quantity === 0) {
                     // Delete the price level
-                    orderbook['bids'].store (price, 0);
+                    bids.store (price, 0);
                 } else {
                     // Update/insert the price level
-                    orderbook['bids'].store (price, quantity);
+                    bids.store (price, quantity);
                 }
             }
             // Process ask changes
@@ -126,12 +128,14 @@ export default class exkoin extends exkoinRest {
                 const quantity = parseFloat (quantityString);
                 if (operation === 'd' || quantity === 0) {
                     // Delete the price level
-                    orderbook['asks'].store (price, 0);
+                    asks.store (price, 0);
                 } else {
                     // Update/insert the price level
-                    orderbook['asks'].store (price, quantity);
+                    asks.store (price, quantity);
                 }
             }
+            orderbook['bids'] = bids;
+            orderbook['asks'] = asks;
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601 (timestamp);
             orderbook['nonce'] = this.safeInteger (data, 'n'); // sequence number
@@ -158,7 +162,7 @@ export default class exkoin extends exkoinRest {
         };
         const tickers = await this.watch (url, messageHash, request, messageHash);
         if (this.newUpdates) {
-            return tickers;
+            return this.filterByArray (tickers, 'symbol', symbols);
         }
         return this.filterByArray (tickers, 'symbol', symbols);
     }
