@@ -18,7 +18,7 @@ export default class exkoin extends Exchange {
             'id': 'exkoin',
             'name': 'ExKoin',
             'countries': [ ],
-            'rateLimit': 100,
+            'rateLimit': 50,
             'version': 'v1',
             'pro': true,
             'has': {
@@ -116,7 +116,7 @@ export default class exkoin extends Exchange {
                 },
                 'www': 'https://exkoin.com',
                 'doc': 'https://exkoin.com/api',
-                'fees': 'https://exkoin.com/fees',
+                'fees': 'https://exkoin.com/profile',
             },
             'fees': {
                 'trading': {
