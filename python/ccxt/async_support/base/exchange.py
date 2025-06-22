@@ -528,7 +528,7 @@ class Exchange(BaseExchange):
 
     def on_close(self, client, error):
         if client.error:
-            # connection closed due to an error
+            # connection closed by the user or due to an error
             pass
         else:
             # server disconnected a working connection

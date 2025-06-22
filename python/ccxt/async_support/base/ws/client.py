@@ -79,7 +79,7 @@ class Client(object):
         return result
 
     def reject(self, result, message_hash=None):
-        if message_hash:
+        if message_hash is not None:
             if message_hash in self.futures:
                 future = self.futures[message_hash]
                 future.reject(result)
@@ -175,7 +175,7 @@ class Client(object):
         if self.verbose:
             self.log(iso8601(milliseconds()), 'on_error', error)
         self.error = error
-        self.reset(error)
+        self.reject(error)
         self.on_error_callback(self, error)
         if not self.closed():
             ensure_future(self.close(1006), loop=self.asyncio_loop)
@@ -184,13 +184,10 @@ class Client(object):
         if self.verbose:
             self.log(iso8601(milliseconds()), 'on_close', code)
         if not self.error:
-            self.reset(NetworkError('Connection closed by remote server, closing code ' + str(code)))
+            self.reject(NetworkError('Connection closed by remote server, closing code ' + str(code)))
         self.on_close_callback(self, code)
         if not self.closed():
             ensure_future(self.close(code), loop=self.asyncio_loop)
-
-    def reset(self, error):
-        self.reject(error)
 
     async def ping_loop(self):
         if self.verbose:

@@ -70,10 +70,6 @@ class AiohttpClient(Client):
             if self.verbose:
                 self.log(iso8601(milliseconds()), 'close', self.closed(), message)
             self.on_close(message.data)
-        elif message.type == WSMsgType.CLOSED:
-            if self.verbose:
-                self.log(iso8601(milliseconds()), 'closed', self.closed(), message)
-            self.on_close(1000)
         elif message.type == WSMsgType.ERROR:
             if self.verbose:
                 self.log(iso8601(milliseconds()), 'error', message)
@@ -109,6 +105,8 @@ class AiohttpClient(Client):
             self.log(iso8601(milliseconds()), 'closing', code)
         if not self.closed():
             await self.connection.close()
+        for future in self.futures.values():
+            future.cancel()
         # these will end automatically once self.closed() = True
         # so we don't need to cancel them
         if self.ping_looper:

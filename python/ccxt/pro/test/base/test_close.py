@@ -1,11 +1,12 @@
 import os
 import sys
+import asyncio
 
 root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
 sys.path.append(root)
 
 from asyncio import sleep, gather
-from ccxt.base.errors import ExchangeClosedByUser  # noqa E402
+from ccxt.base.errors import NetworkError  # noqa E402
 import ccxt.pro
 
 async def watch_ticker_loop(exchange):
@@ -52,7 +53,7 @@ async def test_ws_close():
     try:
         await gather(close_after(exchange, 4), watch_ticker_loop(exchange))
         assert False, "Expected Future rejected with ClosedByUser"
-    except ExchangeClosedByUser:
+    except asyncio.CancelledError:
         assert True
     except Exception as e:
         print(f"Unexpected exception: {e}")
@@ -62,8 +63,10 @@ async def test_ws_close():
     try:
         await gather(close_after(exchange, 4), watch_trades_for_symbols_loop(exchange))
         assert False, "Expected ExchangeClosedByUser error"
-    except ExchangeClosedByUser:
+    except asyncio.CancelledError:
         assert True
     except Exception as e:
         print(f"Unexpected exception: {e}")
         assert False
+
+asyncio.run(test_ws_close())
