@@ -101,6 +101,7 @@ class bitmex(Exchange, ImplicitAPI):
                 'fetchTransactions': 'emulated',
                 'fetchTransfer': False,
                 'fetchTransfers': False,
+                'index': True,
                 'reduceMargin': None,
                 'sandbox': True,
                 'setLeverage': True,

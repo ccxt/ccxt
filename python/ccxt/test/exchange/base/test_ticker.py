@@ -52,16 +52,22 @@ def test_ticker(exchange, skipped_properties, method, entry, symbol):
     symbol_for_market = symbol if (symbol is not None) else exchange.safe_string(entry, 'symbol')
     if symbol_for_market is not None and (symbol_for_market in exchange.markets):
         market = exchange.market(symbol_for_market)
-    test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'open', '0')
-    test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'high', '0')
-    test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'low', '0')
-    test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'close', '0')
-    test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'ask', '0')
+    exchange_has_index_markets = exchange.safe_bool(exchange.has, 'index', False)
+    is_standard_market = (market is not None and exchange.in_array(market['type'], ['spot', 'swap', 'future', 'option']))
+    # only check "above zero" values if exchange is not supposed to have exotic index markets
+    values_should_be_positive = is_standard_market or (market is None and not exchange_has_index_markets)
+    if values_should_be_positive:
+        test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'open', '0')
+        test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'high', '0')
+        test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'low', '0')
+        test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'close', '0')
+        test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'ask', '0')
+        test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'bid', '0')
+        test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'average', '0')
+        test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, entry, 'vwap', '0')
+    # volume can not be negative
     test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, entry, 'askVolume', '0')
-    test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'bid', '0')
     test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, entry, 'bidVolume', '0')
-    test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, entry, 'vwap', '0')
-    test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'average', '0')
     test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, entry, 'baseVolume', '0')
     test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, entry, 'quoteVolume', '0')
     last_string = exchange.safe_string(entry, 'last')
@@ -98,7 +104,7 @@ def test_ticker(exchange, skipped_properties, method, entry, symbol):
         # assert (low !== undefined, 'vwap is defined, but low is not' + logText);
         # assert (vwap >= low && vwap <= high)
         # todo: calc compare
-        assert Precise.string_ge(vwap, '0'), 'vwap is not greater than zero' + log_text
+        assert not values_should_be_positive or Precise.string_ge(vwap, '0'), 'vwap is not greater than zero' + log_text
         if base_volume is not None:
             assert quote_volume is not None, 'baseVolume & vwap is defined, but quoteVolume is not' + log_text
         if quote_volume is not None:
