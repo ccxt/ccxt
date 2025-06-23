@@ -301,7 +301,7 @@ export default class bullish extends Exchange {
                     '8329': ExchangeError,
                     '8331': BadRequest,
                     '8332': BadRequest,
-                    '8333': BadRequest,
+                    '8333': BadSymbol,
                     '8334': BadRequest,
                     '8335': BadRequest,
                     '8336': BadRequest,
@@ -312,6 +312,7 @@ export default class bullish extends Exchange {
                 },
                 'broad': {
                     'HttpInvalidParameterException': BadRequest,
+                    'UNAUTHORIZED_COMMAND': AuthenticationError, // {"message":"Unauthorized to execute command","raw":null,"errorCode":6105,"errorCodeName":"UNAUTHORIZED_COMMAND"}
                 },
             },
         });
@@ -2534,11 +2535,18 @@ export default class bullish extends Exchange {
         //
         const code = this.safeString (response, 'errorCode');
         const type = this.safeString (response, 'type');
-        if ((code !== undefined && code !== '0') || (type !== undefined && type === 'HttpInvalidParameterException')) {
+        if ((code !== undefined && code !== '0' && code !== '1001') || (type !== undefined && type === 'HttpInvalidParameterException')) {
+            let message = '';
+            const errorCodeName = this.safeString (response, 'errorCodeName');
+            if (errorCodeName !== undefined) {
+                message = errorCodeName;
+            } else {
+                message = type;
+            }
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException (this.exceptions['exact'], type, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], type, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
         return undefined;
