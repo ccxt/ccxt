@@ -3,9 +3,11 @@ import ccxt from '../../js/ccxt.js';
 
 const tsExchangeFile: string = '../ts/src/base/Exchange.ts';
 const tsTypesFile: string = '../ts/src/base/types.ts';
+const tsErrorsFile: string = '../ts/src/base/errors.ts';
 const swiftExchangeFile: string = '../swift-wrapper/Sources/CCXTSwift/CCXTExchange.swift';
 const swiftExchangesFile: string = '../swift-wrapper/Sources/CCXTSwift/CCXTExchanges.swift';
 const swiftTypesFile: string = '../swift-wrapper/Sources/CCXTSwift/CCXTTypes.swift';
+const swiftErrorsFile: string = '../swift-wrapper/Sources/CCXTSwift/CCXTErrors.swift';
 const goExchangeFile: string = '../go/v4/exchange_generated.go'
 const goTypesFile: string = '../go/v4/exchange_types.go'
 const gowrapperFile: string = '../swift-wrapper/ccxtwrapper.go';
@@ -269,8 +271,43 @@ function tsTypeToGo(tsType: string): string {
     return mapSingle(tsType);
 }
 
+function injectAfter (file: string, content: string[]) {
+    const injectAfterString = '// METHODS BELOW THIS LINE ARE TRANSPILED';
+    const injectAfterRegex = new RegExp(`(${injectAfterString})([\\s\\S]*)`, 'm');
+    const fileContent = fs.readFileSync(file, 'utf8');
+    const newFileContent = fileContent.replace(
+        injectAfterRegex,
+        `$1\n${content.join('\n\n')}`
+    );
+    fs.writeFileSync(file, newFileContent);
+}
+
+const swiftErrorDeclaration = (className: string, bassClassName: string): string => (
+`class ${className}: ${bassClassName} {
+    override var name: String { "${className}" }
+    override required init(_ message: String) {
+        super.init(message)
+    }
+}`);
+
+function createSwiftErrors () {
+    const swiftErrors: string[] = [];
+    const tsErrors = fs.readFileSync(tsErrorsFile, "utf8");
+    const lines     = tsErrors.split("\n");
+    for (const line of lines) {
+        const match = line.trim().match(/^class\s+(\w+)\s+extends\s+(\w+)/);
+        if (match) {
+            const [_, className, bassClassName] = match;
+            if (className !== "BaseError") {
+                swiftErrors.push(swiftErrorDeclaration(className, bassClassName));
+            }
+        }
+    }
+    injectAfter(swiftErrorsFile, swiftErrors);
+}
+
 /**
- * converts all types in types.ts to swift types adn prints them to CCXTTypes.swift
+ * converts all types in types.ts to swift types and prints them to CCXTTypes.swift
  */
 function createSwiftTypes() {
     const tsContent = fs.readFileSync(tsTypesFile, "utf8");
@@ -459,7 +496,8 @@ const goMethodDeclaration = (methodName: string, params: {[key: string]: [string
         if err, ok := res.(error); ok {
             return nil, err
         }
-        return json.Marshal(res)
+        sanitised := sanitise(res)
+        return json.Marshal(sanitised)
     }`
 }
 
@@ -478,7 +516,7 @@ const getSwiftReturnType = (methodName: string, tsType: string): string => {
         "Strings": "[String]?",
         "Account[]": "[[String: Any]]",
         "any": "Any",
-        "Balances": "[String: [String: Any]]",
+        "Balances": "[String: Any]",
         "BorrowInterest[]": "[[String: Any]]",
         "Conversion": "[String: Any]",
         "Conversion[]": "[[String: Any]]",
@@ -490,7 +528,7 @@ const getSwiftReturnType = (methodName: string, tsType: string): string => {
         "DepositWithdrawFeeNetwork": "[String: Any]",
         "Dictionary<DepositWithdrawFeeNetwork>": "[String: [String: Any]]",
         "Dictionary<Dictionary<OHLCV[]>>": "[String: [String: [[Double]]]]",
-        "FundingHistory[]": "[String: [String: Any]]",
+        "FundingHistory[]": "[[String: Any]]",
         "FundingRate": "[String: Any]",
         "FundingRateHistory[]": "[[String: Any]]",
         "FundingRates": "[String: [String: Any]]",
@@ -610,7 +648,7 @@ const swiftMethodDeclaration = (methodName: string, params: {[key: string]: [str
                     let paramsData = try? JSONSerialization.data(withJSONObject: ${paramsCopy ? 'paramsCopy' : 'params'})
                     let data = try self.exchange.${callMethodName}(${goCallParams.join(', ')})
                     do {
-                        let jsonObject = try JSONSerialization.jsonObject(with: data, options: [])
+                        let jsonObject = try self.decode(data)
                         let cleaned = self.cleanAny(jsonObject)
                         continuation.resume(returning: cleaned as! ${swiftReturnType})
                     } catch {
@@ -692,14 +730,12 @@ function getTypescriptHeaders(): [string, {[key: string]: [string, string | null
 
 function main() {
 
-    const injectAfterString = '// METHODS BELOW THIS LINE ARE TRANSPILED';
-    const injectAfterRegex = new RegExp(`(${injectAfterString})([\\s\\S]*)`, 'm');
-
 
     const swiftMethodDeclarations: string[] = [];
     const goMethodDeclarations: string[] = [];
     createSwiftTypes();
     createExchangeClasses();
+    createSwiftErrors();
     const headers = getTypescriptHeaders();
     for (const [methodName, params, returnType] of headers) {
         if ([
@@ -784,13 +820,9 @@ function main() {
         [gowrapperFile, goMethodDeclarations]
     ];
 
+    // Exchange.swift and ccxtwrapper.go
     loopItems.forEach(([file, methodDeclarations]) => {
-        const fileContent = fs.readFileSync(file, 'utf8');
-        const newFileContent = fileContent.replace(
-            injectAfterRegex,
-            `$1\n${methodDeclarations.join('\n')}`
-        );
-        fs.writeFileSync(file, newFileContent);
+        injectAfter(file, methodDeclarations);
     })
     fs.appendFileSync(swiftExchangeFile, '\n}');
 }
