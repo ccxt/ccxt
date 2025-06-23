@@ -2,6 +2,7 @@
 package ccxt
 
 import (
+	"C"
 	"encoding/json"
 	"fmt"
 	"regexp"

@@ -4,13 +4,13 @@ OUTPUT_DIR="./Sources/CCXTSwiftCore"
 framework="$OUTPUT_DIR/CCXT.xcframework"
 
 set -euo pipefail
+
 cd "$(dirname "$0")/.."
 
 # go mod tidy
-go get golang.org/x/mobile/cmd/gomobile
-go get golang.org/x/mobile/bind
+go get golang.org/x/mobile/cmd/gomobile@latest
+go get golang.org/x/mobile/bind@latest
 gomobile init
-
 # Where SPM wants the xcframework
 
 # Create the output dir
@@ -19,6 +19,7 @@ mkdir -p "$OUTPUT_DIR"
 # Build into the right folder for SPM
 export GOMOBILE_WORK=./.cache/gomobile
 gomobile bind -target=ios,iossimulator,macos -o "$framework" .
+# gomobile bind -work -v -target=ios,iossimulator,macos -o "$framework" .
 
 cp ../LICENSE.txt $OUTPUT_DIR/LICENSE.txt
 
