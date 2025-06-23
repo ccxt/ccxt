@@ -706,7 +706,8 @@ class Exchange {
     }
 
     public static function is_associative($array) {
-        return is_array($array) && (count(array_filter(array_keys($array), 'is_string')) > 0);
+        // we can use `array_is_list` instead of old approach: (count(array_filter(array_keys($array), 'is_string')) > 0)
+        return is_array($array) && !array_is_list($array);
     }
 
     public static function omit($array, $keys) {
@@ -814,7 +815,7 @@ class Exchange {
     }
 
     public static function in_array($needle, $haystack) {
-        return in_array($needle, $haystack);
+        return in_array($needle, $haystack, true);
     }
 
     public static function to_array($object) {
@@ -862,18 +863,26 @@ class Exchange {
     }
 
     public static function deep_extend() {
-        //
-        //     extend associative dictionaries only, replace everything else
-        //
+        // extend associative dictionaries only, replace everything else
+        // (optimized: https://github.com/ccxt/ccxt/pull/26277)
         $out = null;
         $args = func_get_args();
+
         foreach ($args as $arg) {
-            if (static::is_associative($arg) || (is_array($arg) && (count($arg) === 0))) {
-                if (!static::is_associative($out)) {
-                    $out = array();
-                }
-                foreach ($arg as $k => $v) {
-                    $out[$k] = static::deep_extend(isset($out[$k]) ? $out[$k] : array(), $v);
+            if (is_array($arg)) {
+                if (empty($arg) || !array_is_list($arg)) {
+                    // It's associative or empty
+                    if (!is_array($out) || array_is_list($out)) {
+                        $out = [];
+                    }
+                    foreach ($arg as $k => $v) {
+                        $out[$k] = isset($out[$k]) && is_array($out[$k]) && is_array($v) && 
+                                  (empty($v) || !array_is_list($v)) && (empty($out[$k]) || !array_is_list($out[$k]))
+                            ? static::deep_extend($out[$k], $v)
+                            : $v;
+                    }
+                } else {
+                    $out = $arg;
                 }
             } else {
                 $out = $arg;
