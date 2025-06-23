@@ -1,0 +1,46 @@
+{
+    "exchange": "exkoin",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "fetchBalance": [
+            {
+                "description": "fetch balance",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                    "free": {
+                        "USDT": "49"
+                    },
+                    "locked": {
+                        "USDT": "0"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "free": {
+                            "USDT": "49"
+                        },
+                        "locked": {
+                            "USDT": "0"
+                        }
+                    },
+                    "USDT": {
+                        "free": 49,
+                        "used": 0,
+                        "total": 49
+                    },
+                    "free": {
+                        "USDT": 49
+                    },
+                    "used": {
+                        "USDT": 0
+                    },
+                    "total": {
+                        "USDT": 49
+                    }
+                }
+            }
+        ]
+  }
+}

@@ -1,0 +1,17 @@
+{
+    "exchange": "exkoin",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "fetchBalance": [
+            {
+                "description": "fetch balance",
+                "method": "fetchBalance",
+                "url": "https://api.exkoin.com/v1/private/balances",
+                "input": [],
+                "output": null
+            }
+        ]
+  },
+    "outputType": "both"
+}
