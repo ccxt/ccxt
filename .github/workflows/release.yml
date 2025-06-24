@@ -50,7 +50,7 @@ jobs:
           sudo mkdir -p /usr/share/dotnet
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '7.0.x'
+          dotnet-version: '9.0.x'
           dotnet-quality: 'preview'
           run: |
             sudo mkdir -p /usr/share/dotnet
