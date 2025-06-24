@@ -25,7 +25,7 @@ async function closeAfter (exchange, ms) {
     await exchange.close ();
 }
 
-async function testClose () {
+async function testWsClose () {
     const exchange = new ccxt.pro.binance ();
 
     // --------------------------------------------
@@ -76,4 +76,5 @@ async function testClose () {
     process.exit (0);
 }
 
-await testClose ();
+export default testWsClose;
+

@@ -1,6 +1,6 @@
 import Client from './Client.js';
 export default class WsClient extends Client {
-    connectionStarted: number;
+    connectionStarted: number | undefined;
     protocols: any;
     options: any;
     startedConnecting: boolean;

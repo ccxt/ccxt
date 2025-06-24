@@ -205,6 +205,9 @@ abstract class bitget extends \ccxt\Exchange {
     public function public_mix_get_v2_mix_market_query_position_lever($params = array()) {
         return $this->request('v2/mix/market/query-position-lever', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 2));
     }
+    public function public_mix_get_v2_mix_market_account_long_short($params = array()) {
+        return $this->request('v2/mix/market/account-long-short', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 20));
+    }
     public function public_margin_get_margin_v1_cross_public_interestrateandlimit($params = array()) {
         return $this->request('margin/v1/cross/public/interestRateAndLimit', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 2));
     }
@@ -223,11 +226,56 @@ abstract class bitget extends \ccxt\Exchange {
     public function public_margin_get_v2_margin_currencies($params = array()) {
         return $this->request('v2/margin/currencies', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 2));
     }
+    public function public_margin_get_v2_margin_market_long_short_ratio($params = array()) {
+        return $this->request('v2/margin/market/long-short-ratio', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 20));
+    }
     public function public_earn_get_v2_earn_loan_public_coininfos($params = array()) {
         return $this->request('v2/earn/loan/public/coinInfos', array('public', 'earn'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function public_earn_get_v2_earn_loan_public_hour_interest($params = array()) {
         return $this->request('v2/earn/loan/public/hour-interest', array('public', 'earn'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function public_uta_get_v3_market_instruments($params = array()) {
+        return $this->request('v3/market/instruments', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_uta_get_v3_market_tickers($params = array()) {
+        return $this->request('v3/market/tickers', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_uta_get_v3_market_orderbook($params = array()) {
+        return $this->request('v3/market/orderbook', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_uta_get_v3_market_fills($params = array()) {
+        return $this->request('v3/market/fills', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_uta_get_v3_market_open_interest($params = array()) {
+        return $this->request('v3/market/open-interest', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_uta_get_v3_market_candles($params = array()) {
+        return $this->request('v3/market/candles', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_uta_get_v3_market_history_candles($params = array()) {
+        return $this->request('v3/market/history-candles', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_uta_get_v3_market_current_fund_rate($params = array()) {
+        return $this->request('v3/market/current-fund-rate', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_uta_get_v3_market_history_fund_rate($params = array()) {
+        return $this->request('v3/market/history-fund-rate', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_uta_get_v3_market_risk_reserve($params = array()) {
+        return $this->request('v3/market/risk-reserve', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_uta_get_v3_market_discount_rate($params = array()) {
+        return $this->request('v3/market/discount-rate', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_uta_get_v3_market_margin_loans($params = array()) {
+        return $this->request('v3/market/margin-loans', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_uta_get_v3_market_position_tier($params = array()) {
+        return $this->request('v3/market/position-tier', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_uta_get_v3_market_oi_limit($params = array()) {
+        return $this->request('v3/market/oi-limit', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function private_spot_get_spot_v1_wallet_deposit_address($params = array()) {
         return $this->request('spot/v1/wallet/deposit-address', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 4));
@@ -303,6 +351,15 @@ abstract class bitget extends \ccxt\Exchange {
     }
     public function private_spot_get_v2_spot_account_transferrecords($params = array()) {
         return $this->request('v2/spot/account/transferRecords', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_spot_get_v2_account_funding_assets($params = array()) {
+        return $this->request('v2/account/funding-assets', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_spot_get_v2_account_bot_assets($params = array()) {
+        return $this->request('v2/account/bot-assets', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_spot_get_v2_account_all_account_balance($params = array()) {
+        return $this->request('v2/account/all-account-balance', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 20));
     }
     public function private_spot_get_v2_spot_wallet_deposit_address($params = array()) {
         return $this->request('v2/spot/wallet/deposit-address', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 2));
@@ -652,6 +709,9 @@ abstract class bitget extends \ccxt\Exchange {
     public function private_mix_get_v2_mix_order_orders_plan_history($params = array()) {
         return $this->request('v2/mix/order/orders-plan-history', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
     }
+    public function private_mix_get_v2_mix_market_position_long_short($params = array()) {
+        return $this->request('v2/mix/market/position-long-short', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 20));
+    }
     public function private_mix_post_mix_v1_account_sub_account_contract_assets($params = array()) {
         return $this->request('mix/v1/account/sub-account-contract-assets', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 200));
     }
@@ -791,7 +851,7 @@ abstract class bitget extends \ccxt\Exchange {
         return $this->request('v2/mix/account/set-position-mode', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 4));
     }
     public function private_mix_post_v2_mix_order_place_order($params = array()) {
-        return $this->request('v2/mix/order/place-order', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 20));
+        return $this->request('v2/mix/order/place-order', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
     }
     public function private_mix_post_v2_mix_order_click_backhand($params = array()) {
         return $this->request('v2/mix/order/click-backhand', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 20));
@@ -1486,6 +1546,9 @@ abstract class bitget extends \ccxt\Exchange {
     public function private_earn_get_v2_earn_loan_reduces($params = array()) {
         return $this->request('v2/earn/loan/reduces', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 2));
     }
+    public function private_earn_get_v2_earn_account_assets($params = array()) {
+        return $this->request('v2/earn/account/assets', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 2));
+    }
     public function private_earn_post_v2_earn_savings_subscribe($params = array()) {
         return $this->request('v2/earn/savings/subscribe', array('private', 'earn'), 'POST', $params, null, null, array("cost" => 2));
     }
@@ -1506,6 +1569,138 @@ abstract class bitget extends \ccxt\Exchange {
     }
     public function private_common_get_v2_common_trade_rate($params = array()) {
         return $this->request('v2/common/trade-rate', array('private', 'common'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_uta_get_v3_account_assets($params = array()) {
+        return $this->request('v3/account/assets', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_uta_get_v3_account_settings($params = array()) {
+        return $this->request('v3/account/settings', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_uta_get_v3_account_financial_records($params = array()) {
+        return $this->request('v3/account/financial-records', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_uta_get_v3_account_repayable_coins($params = array()) {
+        return $this->request('v3/account/repayable-coins', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_uta_get_v3_account_payment_coins($params = array()) {
+        return $this->request('v3/account/payment-coins', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_uta_get_v3_account_convert_records($params = array()) {
+        return $this->request('v3/account/convert-records', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_uta_get_v3_account_transferable_coins($params = array()) {
+        return $this->request('v3/account/transferable-coins', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_uta_get_v3_account_sub_transfer_record($params = array()) {
+        return $this->request('v3/account/sub-transfer-record', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function private_uta_get_v3_ins_loan_transfered($params = array()) {
+        return $this->request('v3/ins-loan/transfered', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 6.6667));
+    }
+    public function private_uta_get_v3_ins_loan_symbols($params = array()) {
+        return $this->request('v3/ins-loan/symbols', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 6.6667));
+    }
+    public function private_uta_get_v3_ins_loan_risk_unit($params = array()) {
+        return $this->request('v3/ins-loan/risk-unit', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 6.6667));
+    }
+    public function private_uta_get_v3_ins_loan_repaid_history($params = array()) {
+        return $this->request('v3/ins-loan/repaid-history', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 6.6667));
+    }
+    public function private_uta_get_v3_ins_loan_product_infos($params = array()) {
+        return $this->request('v3/ins-loan/product-infos', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 6.6667));
+    }
+    public function private_uta_get_v3_ins_loan_loan_order($params = array()) {
+        return $this->request('v3/ins-loan/loan-order', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 6.6667));
+    }
+    public function private_uta_get_v3_ins_loan_ltv_convert($params = array()) {
+        return $this->request('v3/ins-loan/ltv-convert', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 6.6667));
+    }
+    public function private_uta_get_v3_ins_loan_ensure_coins_convert($params = array()) {
+        return $this->request('v3/ins-loan/ensure-coins-convert', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 6.6667));
+    }
+    public function private_uta_get_v3_position_current_position($params = array()) {
+        return $this->request('v3/position/current-position', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_uta_get_v3_position_history_position($params = array()) {
+        return $this->request('v3/position/history-position', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_uta_get_v3_trade_order_info($params = array()) {
+        return $this->request('v3/trade/order-info', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_uta_get_v3_trade_unfilled_orders($params = array()) {
+        return $this->request('v3/trade/unfilled-orders', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_uta_get_v3_trade_history_orders($params = array()) {
+        return $this->request('v3/trade/history-orders', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_uta_get_v3_trade_fills($params = array()) {
+        return $this->request('v3/trade/fills', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_uta_get_v3_user_sub_list($params = array()) {
+        return $this->request('v3/user/sub-list', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_uta_get_v3_user_sub_api_list($params = array()) {
+        return $this->request('v3/user/sub-api-list', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function private_uta_post_v3_account_set_leverage($params = array()) {
+        return $this->request('v3/account/set-leverage', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_uta_post_v3_account_set_hold_mode($params = array()) {
+        return $this->request('v3/account/set-hold-mode', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_uta_post_v3_account_repay($params = array()) {
+        return $this->request('v3/account/repay', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function private_uta_post_v3_account_transfer($params = array()) {
+        return $this->request('v3/account/transfer', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function private_uta_post_v3_account_sub_transfer($params = array()) {
+        return $this->request('v3/account/sub-transfer', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function private_uta_post_v3_account_max_open_available($params = array()) {
+        return $this->request('v3/account/max-open-available', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function private_uta_post_v3_ins_loan_bind_uid($params = array()) {
+        return $this->request('v3/ins-loan/bind-uid', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 6.6667));
+    }
+    public function private_uta_post_v3_trade_place_order($params = array()) {
+        return $this->request('v3/trade/place-order', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_uta_post_v3_trade_modify_order($params = array()) {
+        return $this->request('v3/trade/modify-order', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_uta_post_v3_trade_cancel_order($params = array()) {
+        return $this->request('v3/trade/cancel-order', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_uta_post_v3_trade_place_batch($params = array()) {
+        return $this->request('v3/trade/place-batch', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function private_uta_post_v3_trade_batch_modify_order($params = array()) {
+        return $this->request('v3/trade/batch-modify-order', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_uta_post_v3_trade_cancel_batch($params = array()) {
+        return $this->request('v3/trade/cancel-batch', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function private_uta_post_v3_trade_cancel_symbol_order($params = array()) {
+        return $this->request('v3/trade/cancel-symbol-order', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function private_uta_post_v3_trade_close_positions($params = array()) {
+        return $this->request('v3/trade/close-positions', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function private_uta_post_v3_user_create_sub($params = array()) {
+        return $this->request('v3/user/create-sub', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_uta_post_v3_user_freeze_sub($params = array()) {
+        return $this->request('v3/user/freeze-sub', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_uta_post_v3_user_create_sub_api($params = array()) {
+        return $this->request('v3/user/create-sub-api', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_uta_post_v3_user_update_sub_api($params = array()) {
+        return $this->request('v3/user/update-sub-api', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_uta_post_v3_user_delete_sub_api($params = array()) {
+        return $this->request('v3/user/delete-sub-api', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
     }
     public function publicCommonGetV2PublicAnnoucements($params = array()) {
         return $this->request('v2/public/annoucements', array('public', 'common'), 'GET', $params, null, null, array("cost" => 1));
@@ -1705,6 +1900,9 @@ abstract class bitget extends \ccxt\Exchange {
     public function publicMixGetV2MixMarketQueryPositionLever($params = array()) {
         return $this->request('v2/mix/market/query-position-lever', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 2));
     }
+    public function publicMixGetV2MixMarketAccountLongShort($params = array()) {
+        return $this->request('v2/mix/market/account-long-short', array('public', 'mix'), 'GET', $params, null, null, array("cost" => 20));
+    }
     public function publicMarginGetMarginV1CrossPublicInterestRateAndLimit($params = array()) {
         return $this->request('margin/v1/cross/public/interestRateAndLimit', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 2));
     }
@@ -1723,11 +1921,56 @@ abstract class bitget extends \ccxt\Exchange {
     public function publicMarginGetV2MarginCurrencies($params = array()) {
         return $this->request('v2/margin/currencies', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 2));
     }
+    public function publicMarginGetV2MarginMarketLongShortRatio($params = array()) {
+        return $this->request('v2/margin/market/long-short-ratio', array('public', 'margin'), 'GET', $params, null, null, array("cost" => 20));
+    }
     public function publicEarnGetV2EarnLoanPublicCoinInfos($params = array()) {
         return $this->request('v2/earn/loan/public/coinInfos', array('public', 'earn'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function publicEarnGetV2EarnLoanPublicHourInterest($params = array()) {
         return $this->request('v2/earn/loan/public/hour-interest', array('public', 'earn'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function publicUtaGetV3MarketInstruments($params = array()) {
+        return $this->request('v3/market/instruments', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicUtaGetV3MarketTickers($params = array()) {
+        return $this->request('v3/market/tickers', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicUtaGetV3MarketOrderbook($params = array()) {
+        return $this->request('v3/market/orderbook', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicUtaGetV3MarketFills($params = array()) {
+        return $this->request('v3/market/fills', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicUtaGetV3MarketOpenInterest($params = array()) {
+        return $this->request('v3/market/open-interest', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicUtaGetV3MarketCandles($params = array()) {
+        return $this->request('v3/market/candles', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicUtaGetV3MarketHistoryCandles($params = array()) {
+        return $this->request('v3/market/history-candles', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicUtaGetV3MarketCurrentFundRate($params = array()) {
+        return $this->request('v3/market/current-fund-rate', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicUtaGetV3MarketHistoryFundRate($params = array()) {
+        return $this->request('v3/market/history-fund-rate', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicUtaGetV3MarketRiskReserve($params = array()) {
+        return $this->request('v3/market/risk-reserve', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicUtaGetV3MarketDiscountRate($params = array()) {
+        return $this->request('v3/market/discount-rate', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicUtaGetV3MarketMarginLoans($params = array()) {
+        return $this->request('v3/market/margin-loans', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicUtaGetV3MarketPositionTier($params = array()) {
+        return $this->request('v3/market/position-tier', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicUtaGetV3MarketOiLimit($params = array()) {
+        return $this->request('v3/market/oi-limit', array('public', 'uta'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function privateSpotGetSpotV1WalletDepositAddress($params = array()) {
         return $this->request('spot/v1/wallet/deposit-address', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 4));
@@ -1803,6 +2046,15 @@ abstract class bitget extends \ccxt\Exchange {
     }
     public function privateSpotGetV2SpotAccountTransferRecords($params = array()) {
         return $this->request('v2/spot/account/transferRecords', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateSpotGetV2AccountFundingAssets($params = array()) {
+        return $this->request('v2/account/funding-assets', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateSpotGetV2AccountBotAssets($params = array()) {
+        return $this->request('v2/account/bot-assets', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateSpotGetV2AccountAllAccountBalance($params = array()) {
+        return $this->request('v2/account/all-account-balance', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 20));
     }
     public function privateSpotGetV2SpotWalletDepositAddress($params = array()) {
         return $this->request('v2/spot/wallet/deposit-address', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 2));
@@ -2152,6 +2404,9 @@ abstract class bitget extends \ccxt\Exchange {
     public function privateMixGetV2MixOrderOrdersPlanHistory($params = array()) {
         return $this->request('v2/mix/order/orders-plan-history', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 2));
     }
+    public function privateMixGetV2MixMarketPositionLongShort($params = array()) {
+        return $this->request('v2/mix/market/position-long-short', array('private', 'mix'), 'GET', $params, null, null, array("cost" => 20));
+    }
     public function privateMixPostMixV1AccountSubAccountContractAssets($params = array()) {
         return $this->request('mix/v1/account/sub-account-contract-assets', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 200));
     }
@@ -2291,7 +2546,7 @@ abstract class bitget extends \ccxt\Exchange {
         return $this->request('v2/mix/account/set-position-mode', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 4));
     }
     public function privateMixPostV2MixOrderPlaceOrder($params = array()) {
-        return $this->request('v2/mix/order/place-order', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 20));
+        return $this->request('v2/mix/order/place-order', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 2));
     }
     public function privateMixPostV2MixOrderClickBackhand($params = array()) {
         return $this->request('v2/mix/order/click-backhand', array('private', 'mix'), 'POST', $params, null, null, array("cost" => 20));
@@ -2986,6 +3241,9 @@ abstract class bitget extends \ccxt\Exchange {
     public function privateEarnGetV2EarnLoanReduces($params = array()) {
         return $this->request('v2/earn/loan/reduces', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 2));
     }
+    public function privateEarnGetV2EarnAccountAssets($params = array()) {
+        return $this->request('v2/earn/account/assets', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 2));
+    }
     public function privateEarnPostV2EarnSavingsSubscribe($params = array()) {
         return $this->request('v2/earn/savings/subscribe', array('private', 'earn'), 'POST', $params, null, null, array("cost" => 2));
     }
@@ -3006,5 +3264,137 @@ abstract class bitget extends \ccxt\Exchange {
     }
     public function privateCommonGetV2CommonTradeRate($params = array()) {
         return $this->request('v2/common/trade-rate', array('private', 'common'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateUtaGetV3AccountAssets($params = array()) {
+        return $this->request('v3/account/assets', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateUtaGetV3AccountSettings($params = array()) {
+        return $this->request('v3/account/settings', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateUtaGetV3AccountFinancialRecords($params = array()) {
+        return $this->request('v3/account/financial-records', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateUtaGetV3AccountRepayableCoins($params = array()) {
+        return $this->request('v3/account/repayable-coins', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateUtaGetV3AccountPaymentCoins($params = array()) {
+        return $this->request('v3/account/payment-coins', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateUtaGetV3AccountConvertRecords($params = array()) {
+        return $this->request('v3/account/convert-records', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateUtaGetV3AccountTransferableCoins($params = array()) {
+        return $this->request('v3/account/transferable-coins', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateUtaGetV3AccountSubTransferRecord($params = array()) {
+        return $this->request('v3/account/sub-transfer-record', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function privateUtaGetV3InsLoanTransfered($params = array()) {
+        return $this->request('v3/ins-loan/transfered', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 6.6667));
+    }
+    public function privateUtaGetV3InsLoanSymbols($params = array()) {
+        return $this->request('v3/ins-loan/symbols', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 6.6667));
+    }
+    public function privateUtaGetV3InsLoanRiskUnit($params = array()) {
+        return $this->request('v3/ins-loan/risk-unit', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 6.6667));
+    }
+    public function privateUtaGetV3InsLoanRepaidHistory($params = array()) {
+        return $this->request('v3/ins-loan/repaid-history', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 6.6667));
+    }
+    public function privateUtaGetV3InsLoanProductInfos($params = array()) {
+        return $this->request('v3/ins-loan/product-infos', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 6.6667));
+    }
+    public function privateUtaGetV3InsLoanLoanOrder($params = array()) {
+        return $this->request('v3/ins-loan/loan-order', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 6.6667));
+    }
+    public function privateUtaGetV3InsLoanLtvConvert($params = array()) {
+        return $this->request('v3/ins-loan/ltv-convert', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 6.6667));
+    }
+    public function privateUtaGetV3InsLoanEnsureCoinsConvert($params = array()) {
+        return $this->request('v3/ins-loan/ensure-coins-convert', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 6.6667));
+    }
+    public function privateUtaGetV3PositionCurrentPosition($params = array()) {
+        return $this->request('v3/position/current-position', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateUtaGetV3PositionHistoryPosition($params = array()) {
+        return $this->request('v3/position/history-position', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateUtaGetV3TradeOrderInfo($params = array()) {
+        return $this->request('v3/trade/order-info', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateUtaGetV3TradeUnfilledOrders($params = array()) {
+        return $this->request('v3/trade/unfilled-orders', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateUtaGetV3TradeHistoryOrders($params = array()) {
+        return $this->request('v3/trade/history-orders', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateUtaGetV3TradeFills($params = array()) {
+        return $this->request('v3/trade/fills', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateUtaGetV3UserSubList($params = array()) {
+        return $this->request('v3/user/sub-list', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateUtaGetV3UserSubApiList($params = array()) {
+        return $this->request('v3/user/sub-api-list', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateUtaPostV3AccountSetLeverage($params = array()) {
+        return $this->request('v3/account/set-leverage', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateUtaPostV3AccountSetHoldMode($params = array()) {
+        return $this->request('v3/account/set-hold-mode', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateUtaPostV3AccountRepay($params = array()) {
+        return $this->request('v3/account/repay', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function privateUtaPostV3AccountTransfer($params = array()) {
+        return $this->request('v3/account/transfer', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function privateUtaPostV3AccountSubTransfer($params = array()) {
+        return $this->request('v3/account/sub-transfer', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function privateUtaPostV3AccountMaxOpenAvailable($params = array()) {
+        return $this->request('v3/account/max-open-available', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function privateUtaPostV3InsLoanBindUid($params = array()) {
+        return $this->request('v3/ins-loan/bind-uid', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 6.6667));
+    }
+    public function privateUtaPostV3TradePlaceOrder($params = array()) {
+        return $this->request('v3/trade/place-order', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateUtaPostV3TradeModifyOrder($params = array()) {
+        return $this->request('v3/trade/modify-order', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateUtaPostV3TradeCancelOrder($params = array()) {
+        return $this->request('v3/trade/cancel-order', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateUtaPostV3TradePlaceBatch($params = array()) {
+        return $this->request('v3/trade/place-batch', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function privateUtaPostV3TradeBatchModifyOrder($params = array()) {
+        return $this->request('v3/trade/batch-modify-order', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateUtaPostV3TradeCancelBatch($params = array()) {
+        return $this->request('v3/trade/cancel-batch', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function privateUtaPostV3TradeCancelSymbolOrder($params = array()) {
+        return $this->request('v3/trade/cancel-symbol-order', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function privateUtaPostV3TradeClosePositions($params = array()) {
+        return $this->request('v3/trade/close-positions', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function privateUtaPostV3UserCreateSub($params = array()) {
+        return $this->request('v3/user/create-sub', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateUtaPostV3UserFreezeSub($params = array()) {
+        return $this->request('v3/user/freeze-sub', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateUtaPostV3UserCreateSubApi($params = array()) {
+        return $this->request('v3/user/create-sub-api', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateUtaPostV3UserUpdateSubApi($params = array()) {
+        return $this->request('v3/user/update-sub-api', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateUtaPostV3UserDeleteSubApi($params = array()) {
+        return $this->request('v3/user/delete-sub-api', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
     }
 }

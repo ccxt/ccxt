@@ -9,12 +9,12 @@ use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class woo extends \ccxt\async\woo {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -25,20 +25,22 @@ class woo extends \ccxt\async\woo {
                 'watchOrders' => true,
                 'watchTicker' => true,
                 'watchTickers' => true,
+                'watchBidsAsks' => true,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchPositions' => true,
             ),
             'urls' => array(
                 'api' => array(
                     'ws' => array(
-                        'public' => 'wss://wss.woo.org/ws/stream',
-                        'private' => 'wss://wss.woo.network/v2/ws/private/stream',
+                        'public' => 'wss://wss.woox.io/ws/stream',
+                        'private' => 'wss://wss.woox.io/v2/ws/private/stream',
                     ),
                 ),
                 'test' => array(
                     'ws' => array(
-                        'public' => 'wss://wss.staging.woo.org/ws/stream',
-                        'private' => 'wss://wss.staging.woo.org/v2/ws/private/stream',
+                        'public' => 'wss://wss.staging.woox.io/ws/stream',
+                        'private' => 'wss://wss.staging.woox.io/v2/ws/private/stream',
                     ),
                 ),
             ),
@@ -58,7 +60,7 @@ class woo extends \ccxt\async\woo {
             ),
             'streaming' => array(
                 'ping' => array($this, 'ping'),
-                'keepAlive' => 10000,
+                'keepAlive' => 9000,
             ),
             'exceptions' => array(
                 'ws' => array(
@@ -80,12 +82,13 @@ class woo extends \ccxt\async\woo {
 
     public function watch_public($messageHash, $message) {
         return Async\async(function () use ($messageHash, $message) {
-            $url = $this->urls['api']['ws']['public'] . '/' . $this->uid;
+            $urlUid = ($this->uid) ? '/' . $this->uid : '';
+            $url = $this->urls['api']['ws']['public'] . $urlUid;
             $requestId = $this->request_id($url);
             $subscribe = array(
                 'id' => $requestId,
             );
-            $request = array_merge($subscribe, $message);
+            $request = $this->extend($subscribe, $message);
             return Async\await($this->watch($url, $messageHash, $request, $messageHash, $subscribe));
         }) ();
     }
@@ -93,23 +96,41 @@ class woo extends \ccxt\async\woo {
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
-             * @see https://docs.woo.org/#$orderbook
+             *
+             * @see https://docs.woox.io/#orderbookupdate
+             * @see https://docs.woox.io/#$orderbook
+             *
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return.
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->method] either (default) 'orderbook' or 'orderbookupdate', default is 'orderbook'
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
-            $name = 'orderbook';
+            $method = null;
+            list($method, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'method', 'orderbook');
             $market = $this->market($symbol);
-            $topic = $market['id'] . '@' . $name;
+            $topic = $market['id'] . '@' . $method;
+            $urlUid = ($this->uid) ? '/' . $this->uid : '';
+            $url = $this->urls['api']['ws']['public'] . $urlUid;
+            $requestId = $this->request_id($url);
             $request = array(
                 'event' => 'subscribe',
                 'topic' => $topic,
+                'id' => $requestId,
             );
-            $message = array_merge($request, $params);
-            $orderbook = Async\await($this->watch_public($topic, $message));
+            $subscription = array(
+                'id' => (string) $requestId,
+                'name' => $method,
+                'symbol' => $symbol,
+                'limit' => $limit,
+                'params' => $params,
+            );
+            if ($method === 'orderbookupdate') {
+                $subscription['method'] = array($this, 'handle_order_book_subscription');
+            }
+            $orderbook = Async\await($this->watch($url, $topic, $this->extend($request, $params), $topic, $subscription));
             return $orderbook->limit ();
         }) ();
     }
@@ -117,10 +138,11 @@ class woo extends \ccxt\async\woo {
     public function handle_order_book(Client $client, $message) {
         //
         //     {
-        //         "topic" => "PERP_BTC_USDT@$orderbook",
-        //         "ts" => 1650121915308,
+        //         "topic" => "PERP_BTC_USDT@orderbookupdate",
+        //         "ts" => 1722500373999,
         //         "data" => {
         //             "symbol" => "PERP_BTC_USDT",
+        //             "prevTs" => 1722500373799,
         //             "bids" => array(
         //                 array(
         //                     0.30891,
@@ -136,19 +158,113 @@ class woo extends \ccxt\async\woo {
         //         }
         //     }
         //
-        $data = $this->safe_value($message, 'data');
+        $data = $this->safe_dict($message, 'data');
         $marketId = $this->safe_string($data, 'symbol');
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $topic = $this->safe_string($message, 'topic');
-        $orderbook = $this->safe_value($this->orderbooks, $symbol);
-        if ($orderbook === null) {
-            $orderbook = $this->order_book(array());
+        $method = $this->safe_string(explode('@', $topic), 1);
+        if ($method === 'orderbookupdate') {
+            if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+                return;
+            }
+            $orderbook = $this->orderbooks[$symbol];
+            $timestamp = $this->safe_integer($orderbook, 'timestamp');
+            if ($timestamp === null) {
+                $orderbook->cache[] = $message;
+            } else {
+                try {
+                    $ts = $this->safe_integer($message, 'ts');
+                    if ($ts > $timestamp) {
+                        $this->handle_order_book_message($client, $message, $orderbook);
+                        $client->resolve ($orderbook, $topic);
+                    }
+                } catch (Exception $e) {
+                    unset($this->orderbooks[$symbol]);
+                    unset($client->subscriptions[$topic]);
+                    $client->reject ($e, $topic);
+                }
+            }
+        } else {
+            if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+                $defaultLimit = $this->safe_integer($this->options, 'watchOrderBookLimit', 1000);
+                $subscription = $client->subscriptions[$topic];
+                $limit = $this->safe_integer($subscription, 'limit', $defaultLimit);
+                $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
+            }
+            $orderbook = $this->orderbooks[$symbol];
+            $timestamp = $this->safe_integer($message, 'ts');
+            $snapshot = $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks');
+            $orderbook->reset ($snapshot);
+            $client->resolve ($orderbook, $topic);
         }
+    }
+
+    public function handle_order_book_subscription(Client $client, $message, $subscription) {
+        $defaultLimit = $this->safe_integer($this->options, 'watchOrderBookLimit', 1000);
+        $limit = $this->safe_integer($subscription, 'limit', $defaultLimit);
+        $symbol = $this->safe_string($subscription, 'symbol'); // watchOrderBook
+        if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
+            unset($this->orderbooks[$symbol]);
+        }
+        $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
+        $this->spawn(array($this, 'fetch_order_book_snapshot'), $client, $message, $subscription);
+    }
+
+    public function fetch_order_book_snapshot($client, $message, $subscription) {
+        return Async\async(function () use ($client, $message, $subscription) {
+            $symbol = $this->safe_string($subscription, 'symbol');
+            $messageHash = $this->safe_string($message, 'topic');
+            try {
+                $defaultLimit = $this->safe_integer($this->options, 'watchOrderBookLimit', 1000);
+                $limit = $this->safe_integer($subscription, 'limit', $defaultLimit);
+                $params = $this->safe_value($subscription, 'params');
+                $snapshot = Async\await($this->fetch_rest_order_book_safe($symbol, $limit, $params));
+                if ($this->safe_value($this->orderbooks, $symbol) === null) {
+                    // if the $orderbook is dropped before the $snapshot is received
+                    return;
+                }
+                $orderbook = $this->orderbooks[$symbol];
+                $orderbook->reset ($snapshot);
+                $messages = $orderbook->cache;
+                for ($i = 0; $i < count($messages); $i++) {
+                    $messageItem = $messages[$i];
+                    $ts = $this->safe_integer($messageItem, 'ts');
+                    if ($ts < $orderbook['timestamp']) {
+                        continue;
+                    } else {
+                        $this->handle_order_book_message($client, $messageItem, $orderbook);
+                    }
+                }
+                $this->orderbooks[$symbol] = $orderbook;
+                $client->resolve ($orderbook, $messageHash);
+            } catch (Exception $e) {
+                unset($client->subscriptions[$messageHash]);
+                $client->reject ($e, $messageHash);
+            }
+        }) ();
+    }
+
+    public function handle_order_book_message(Client $client, $message, $orderbook) {
+        $data = $this->safe_dict($message, 'data');
+        $this->handle_deltas($orderbook['asks'], $this->safe_value($data, 'asks', array()));
+        $this->handle_deltas($orderbook['bids'], $this->safe_value($data, 'bids', array()));
         $timestamp = $this->safe_integer($message, 'ts');
-        $snapshot = $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks');
-        $orderbook->reset ($snapshot);
-        $client->resolve ($orderbook, $topic);
+        $orderbook['timestamp'] = $timestamp;
+        $orderbook['datetime'] = $this->iso8601($timestamp);
+        return $orderbook;
+    }
+
+    public function handle_delta($bookside, $delta) {
+        $price = $this->safe_float_2($delta, 'price', 0);
+        $amount = $this->safe_float_2($delta, 'quantity', 1);
+        $bookside->store ($price, $amount);
+    }
+
+    public function handle_deltas($bookside, $deltas) {
+        for ($i = 0; $i < count($deltas); $i++) {
+            $this->handle_delta($bookside, $deltas[$i]);
+        }
     }
 
     public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
@@ -168,7 +284,7 @@ class woo extends \ccxt\async\woo {
                 'event' => 'subscribe',
                 'topic' => $topic,
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             return Async\await($this->watch_public($topic, $message));
         }) ();
     }
@@ -243,7 +359,9 @@ class woo extends \ccxt\async\woo {
     public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * @see https://docs.woo.org/#24h-$tickers
+             *
+             * @see https://docs.woox.io/#24h-$tickers
+             *
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
              * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -257,7 +375,7 @@ class woo extends \ccxt\async\woo {
                 'event' => 'subscribe',
                 'topic' => $topic,
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             $tickers = Async\await($this->watch_public($topic, $message));
             return $this->filter_by_array($tickers, 'symbol', $symbols);
         }) ();
@@ -300,18 +418,96 @@ class woo extends \ccxt\async\woo {
         for ($i = 0; $i < count($data); $i++) {
             $marketId = $this->safe_string($data[$i], 'symbol');
             $market = $this->safe_market($marketId);
-            $ticker = $this->parse_ws_ticker(array_merge($data[$i], array( 'date' => $timestamp )), $market);
+            $ticker = $this->parse_ws_ticker($this->extend($data[$i], array( 'date' => $timestamp )), $market);
             $this->tickers[$market['symbol']] = $ticker;
             $result[] = $ticker;
         }
         $client->resolve ($result, $topic);
     }
 
+    public function watch_bids_asks(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             *
+             * @see https://docs.woox.io/#bbos
+             *
+             * watches best bid & ask for $symbols
+             * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, false);
+            $name = 'bbos';
+            $topic = $name;
+            $request = array(
+                'event' => 'subscribe',
+                'topic' => $topic,
+            );
+            $message = $this->extend($request, $params);
+            $tickers = Async\await($this->watch_public($topic, $message));
+            if ($this->newUpdates) {
+                return $tickers;
+            }
+            return $this->filter_by_array($this->bidsasks, 'symbol', $symbols);
+        }) ();
+    }
+
+    public function handle_bid_ask(Client $client, $message) {
+        //
+        //     {
+        //         "topic" => "bbos",
+        //         "ts" => 1618822376000,
+        //         "data" => array(
+        //             {
+        //                 "symbol" => "SPOT_FIL_USDT",
+        //                 "ask" => 159.0318,
+        //                 "askSize" => 370.43,
+        //                 "bid" => 158.9158,
+        //                 "bidSize" => 16
+        //             }
+        //         )
+        //     }
+        //
+        $topic = $this->safe_string($message, 'topic');
+        $data = $this->safe_list($message, 'data', array());
+        $timestamp = $this->safe_integer($message, 'ts');
+        $result = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $ticker = $this->safe_dict($data, $i);
+            $ticker['ts'] = $timestamp;
+            $parsedTicker = $this->parse_ws_bid_ask($ticker);
+            $symbol = $parsedTicker['symbol'];
+            $this->bidsasks[$symbol] = $parsedTicker;
+            $result[$symbol] = $parsedTicker;
+        }
+        $client->resolve ($result, $topic);
+    }
+
+    public function parse_ws_bid_ask($ticker, $market = null) {
+        $marketId = $this->safe_string($ticker, 'symbol');
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $this->safe_string($market, 'symbol');
+        $timestamp = $this->safe_integer($ticker, 'ts');
+        return $this->safe_ticker(array(
+            'symbol' => $symbol,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'ask' => $this->safe_string($ticker, 'ask'),
+            'askVolume' => $this->safe_string($ticker, 'askSize'),
+            'bid' => $this->safe_string($ticker, 'bid'),
+            'bidVolume' => $this->safe_string($ticker, 'bidSize'),
+            'info' => $ticker,
+        ), $market);
+    }
+
     public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
-             * @see https://docs.woo.org/#k-line
+             *
+             * @see https://docs.woox.io/#k-line
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -331,7 +527,7 @@ class woo extends \ccxt\async\woo {
                 'event' => 'subscribe',
                 'topic' => $topic,
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             $ohlcv = Async\await($this->watch_public($topic, $message));
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit ($market['symbol'], $limit);
@@ -389,12 +585,14 @@ class woo extends \ccxt\async\woo {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made in a $market
-             * @see https://docs.woo.org/#trade
+             *
+             * @see https://docs.woox.io/#trade
+             *
              * @param {string} $symbol unified $market $symbol of the $market $trades were made in
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -404,7 +602,7 @@ class woo extends \ccxt\async\woo {
                 'event' => 'subscribe',
                 'topic' => $topic,
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             $trades = Async\await($this->watch_public($topic, $message));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($market['symbol'], $limit);
@@ -433,7 +631,7 @@ class woo extends \ccxt\async\woo {
         $marketId = $this->safe_string($data, 'symbol');
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
-        $trade = $this->parse_ws_trade(array_merge($data, array( 'timestamp' => $timestamp )), $market);
+        $trade = $this->parse_ws_trade($this->extend($data, array( 'timestamp' => $timestamp )), $market);
         $tradesArray = $this->safe_value($this->trades, $symbol);
         if ($tradesArray === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
@@ -487,7 +685,7 @@ class woo extends \ccxt\async\woo {
         $marketId = $this->safe_string($trade, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
-        $price = $this->safe_string($trade, 'executedPrice', 'price');
+        $price = $this->safe_string_2($trade, 'executedPrice', 'price');
         $amount = $this->safe_string_2($trade, 'executedQuantity', 'size');
         $cost = Precise::string_mul($price, $amount);
         $side = $this->safe_string_lower($trade, 'side');
@@ -526,7 +724,7 @@ class woo extends \ccxt\async\woo {
     public function check_required_uid($error = true) {
         if (!$this->uid) {
             if ($error) {
-                throw new AuthenticationError($this->id . ' requires `uid` credential');
+                throw new AuthenticationError($this->id . ' requires `uid` credential (woox calls it `application_id`)');
             } else {
                 return false;
             }
@@ -555,8 +753,8 @@ class woo extends \ccxt\async\woo {
                         'timestamp' => $ts,
                     ),
                 );
-                $message = array_merge($request, $params);
-                $this->watch($url, $messageHash, $message, $messageHash);
+                $message = $this->extend($request, $params);
+                $this->watch($url, $messageHash, $message, $messageHash, $message);
             }
             return Async\await($future);
         }) ();
@@ -570,25 +768,43 @@ class woo extends \ccxt\async\woo {
             $subscribe = array(
                 'id' => $requestId,
             );
-            $request = array_merge($subscribe, $message);
+            $request = $this->extend($subscribe, $message);
             return Async\await($this->watch($url, $messageHash, $request, $messageHash, $subscribe));
+        }) ();
+    }
+
+    public function watch_private_multiple($messageHashes, $message, $params = array ()) {
+        return Async\async(function () use ($messageHashes, $message, $params) {
+            Async\await($this->authenticate($params));
+            $url = $this->urls['api']['ws']['private'] . '/' . $this->uid;
+            $requestId = $this->request_id($url);
+            $subscribe = array(
+                'id' => $requestId,
+            );
+            $request = $this->extend($subscribe, $message);
+            return Async\await($this->watch_multiple($url, $messageHashes, $request, $messageHashes, $subscribe));
         }) ();
     }
 
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * @see https://docs.woo.org/#executionreport
-             * @see https://docs.woo.org/#algoexecutionreportv2
+             *
+             * @see https://docs.woox.io/#executionreport
+             * @see https://docs.woox.io/#algoexecutionreportv2
+             *
              * watches information on multiple $orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {bool} [$params->trigger] true if $trigger order
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
-            $topic = 'executionreport';
+            $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
+            $topic = ($trigger) ? 'algoexecutionreportv2' : 'executionreport';
+            $params = $this->omit($params, array( 'stop', 'trigger' ));
             $messageHash = $topic;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -599,7 +815,7 @@ class woo extends \ccxt\async\woo {
                 'event' => 'subscribe',
                 'topic' => $topic,
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             $orders = Async\await($this->watch_private($messageHash, $message));
             if ($this->newUpdates) {
                 $limit = $orders->getLimit ($symbol, $limit);
@@ -611,16 +827,22 @@ class woo extends \ccxt\async\woo {
     public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * @see https://docs.woo.org/#executionreport
+             *
+             * @see https://docs.woox.io/#executionreport
+             * @see https://docs.woox.io/#algoexecutionreportv2
+             *
              * watches information on multiple $trades made by the user
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @param {bool} [$params->trigger] true if $trigger order
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
-            $topic = 'executionreport';
+            $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
+            $topic = ($trigger) ? 'algoexecutionreportv2' : 'executionreport';
+            $params = $this->omit($params, array( 'stop', 'trigger' ));
             $messageHash = 'myTrades';
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -631,7 +853,7 @@ class woo extends \ccxt\async\woo {
                 'event' => 'subscribe',
                 'topic' => $topic,
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             $trades = Async\await($this->watch_private($messageHash, $message));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
@@ -675,9 +897,10 @@ class woo extends \ccxt\async\woo {
             'cost' => $this->safe_string($order, 'totalFee'),
             'currency' => $this->safe_string($order, 'feeAsset'),
         );
+        $priceString = $this->safe_string($order, 'price');
         $price = $this->safe_number($order, 'price');
         $avgPrice = $this->safe_number($order, 'avgPrice');
-        if (($price === 0) && ($avgPrice !== null)) {
+        if (Precise::string_eq($priceString, '0') && ($avgPrice !== null)) {
             $price = $avgPrice;
         }
         $amount = $this->safe_float($order, 'quantity');
@@ -710,7 +933,7 @@ class woo extends \ccxt\async\woo {
             'triggerPrice' => null,
             'amount' => $amount,
             'cost' => null,
-            'average' => null,
+            'average' => $avgPrice,
             'filled' => $filled,
             'remaining' => $remaining,
             'status' => $status,
@@ -749,16 +972,29 @@ class woo extends \ccxt\async\woo {
         //         }
         //     }
         //
-        $order = $this->safe_dict($message, 'data');
-        $tradeId = $this->safe_string($order, 'tradeId');
-        if (($tradeId !== null) && ($tradeId !== '0')) {
-            $this->handle_my_trade($client, $order);
+        $topic = $this->safe_string($message, 'topic');
+        $data = $this->safe_value($message, 'data');
+        if (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data))) {
+            // algoexecutionreportv2
+            for ($i = 0; $i < count($data); $i++) {
+                $order = $data[$i];
+                $tradeId = $this->omit_zero($this->safe_string($data, 'tradeId'));
+                if ($tradeId !== null) {
+                    $this->handle_my_trade($client, $order);
+                }
+                $this->handle_order($client, $order, $topic);
+            }
+        } else {
+            // executionreport
+            $tradeId = $this->omit_zero($this->safe_string($data, 'tradeId'));
+            if ($tradeId !== null) {
+                $this->handle_my_trade($client, $data);
+            }
+            $this->handle_order($client, $data, $topic);
         }
-        $this->handle_order($client, $order);
     }
 
-    public function handle_order(Client $client, $message) {
-        $topic = 'executionreport';
+    public function handle_order(Client $client, $message, $topic) {
         $parsed = $this->parse_ws_order($message);
         $symbol = $this->safe_string($parsed, 'symbol');
         $orderId = $this->safe_string($parsed, 'id');
@@ -837,24 +1073,32 @@ class woo extends \ccxt\async\woo {
     public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
-             * @see https://docs.woo.org/#position-push
+             *
+             * @see https://docs.woox.io/#position-push
+             *
              * watch all open positions
              * @param {string[]|null} $symbols list of unified market $symbols
+             * @param $since
+             * @param $limit
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
             Async\await($this->load_markets());
-            $messageHash = '';
+            $messageHashes = array();
             $symbols = $this->market_symbols($symbols);
             if (!$this->is_empty($symbols)) {
-                $messageHash = '::' . implode(',', $symbols);
+                for ($i = 0; $i < count($symbols); $i++) {
+                    $symbol = $symbols[$i];
+                    $messageHashes[] = 'positions::' . $symbol;
+                }
+            } else {
+                $messageHashes[] = 'positions';
             }
-            $messageHash = 'positions' . $messageHash;
             $url = $this->urls['api']['ws']['private'] . '/' . $this->uid;
             $client = $this->client($url);
             $this->set_positions_cache($client, $symbols);
             $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
-            $awaitPositionsSnapshot = $this->safe_bool('watchPositions', 'awaitPositionsSnapshot', true);
+            $awaitPositionsSnapshot = $this->handle_option('watchPositions', 'awaitPositionsSnapshot', true);
             if ($fetchPositionsSnapshot && $awaitPositionsSnapshot && $this->positions === null) {
                 $snapshot = Async\await($client->future ('fetchPositionsSnapshot'));
                 return $this->filter_by_symbols_since_limit($snapshot, $symbols, $since, $limit, true);
@@ -863,7 +1107,7 @@ class woo extends \ccxt\async\woo {
                 'event' => 'subscribe',
                 'topic' => 'position',
             );
-            $newPositions = Async\await($this->watch_private($messageHash, $request, $params));
+            $newPositions = Async\await($this->watch_private_multiple($messageHashes, $request, $params));
             if ($this->newUpdates) {
                 return $newPositions;
             }
@@ -944,17 +1188,8 @@ class woo extends \ccxt\async\woo {
             $position = $this->parse_position($rawPosition, $market);
             $newPositions[] = $position;
             $cache->append ($position);
-        }
-        $messageHashes = $this->find_message_hashes($client, 'positions::');
-        for ($i = 0; $i < count($messageHashes); $i++) {
-            $messageHash = $messageHashes[$i];
-            $parts = explode('::', $messageHash);
-            $symbolsString = $parts[1];
-            $symbols = explode(',', $symbolsString);
-            $positions = $this->filter_by_array($newPositions, 'symbol', $symbols, false);
-            if (!$this->is_empty($positions)) {
-                $client->resolve ($positions, $messageHash);
-            }
+            $messageHash = 'positions::' . $market['symbol'];
+            $client->resolve ($position, $messageHash);
         }
         $client->resolve ($newPositions, 'positions');
     }
@@ -962,7 +1197,9 @@ class woo extends \ccxt\async\woo {
     public function watch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
-             * @see https://docs.woo.org/#balance
+             *
+             * @see https://docs.woox.io/#balance
+             *
              * watch balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
@@ -974,7 +1211,7 @@ class woo extends \ccxt\async\woo {
                 'event' => 'subscribe',
                 'topic' => $topic,
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             return Async\await($this->watch_private($messageHash, $message));
         }) ();
     }
@@ -1072,14 +1309,17 @@ class woo extends \ccxt\async\woo {
             'pong' => array($this, 'handle_pong'),
             'subscribe' => array($this, 'handle_subscribe'),
             'orderbook' => array($this, 'handle_order_book'),
+            'orderbookupdate' => array($this, 'handle_order_book'),
             'ticker' => array($this, 'handle_ticker'),
             'tickers' => array($this, 'handle_tickers'),
             'kline' => array($this, 'handle_ohlcv'),
             'auth' => array($this, 'handle_auth'),
             'executionreport' => array($this, 'handle_order_update'),
+            'algoexecutionreportv2' => array($this, 'handle_order_update'),
             'trade' => array($this, 'handle_trade'),
             'balance' => array($this, 'handle_balance'),
             'position' => array($this, 'handle_positions'),
+            'bbos' => array($this, 'handle_bid_ask'),
         );
         $event = $this->safe_string($message, 'event');
         $method = $this->safe_value($methods, $event);
@@ -1140,6 +1380,13 @@ class woo extends \ccxt\async\woo {
         //         "ts" => 1657117712212
         //     }
         //
+        $id = $this->safe_string($message, 'id');
+        $subscriptionsById = $this->index_by($client->subscriptions, 'id');
+        $subscription = $this->safe_value($subscriptionsById, $id, array());
+        $method = $this->safe_value($subscription, 'method');
+        if ($method !== null) {
+            $method($client, $message, $subscription);
+        }
         return $message;
     }
 

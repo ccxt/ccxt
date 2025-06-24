@@ -6,7 +6,7 @@ import binance from './binance.js';
 //  ---------------------------------------------------------------------------
 
 export default class binanceus extends binance {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'binanceus',
             'name': 'Binance US',
@@ -16,7 +16,7 @@ export default class binanceus extends binance {
             'certified': false,
             'pro': true,
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/65177307-217b7c80-da5f-11e9-876e-0b748ba0a358.jpg',
+                'logo': 'https://github.com/user-attachments/assets/a9667919-b632-4d52-a832-df89f8a35e8c',
                 'api': {
                     'web': 'https://www.binance.us',
                     'public': 'https://api.binance.us/api/v3',
@@ -41,6 +41,7 @@ export default class binanceus extends binance {
             'options': {
                 'fetchMarkets': [ 'spot' ],
                 'defaultType': 'spot',
+                'fetchMargins': false,
                 'quoteOrderQty': false,
             },
             'has': {
@@ -203,6 +204,16 @@ export default class binanceus extends binance {
                     'post': {
                         'sub-account/transfer': 1,
                     },
+                },
+            },
+            'features': {
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
                 },
             },
         });

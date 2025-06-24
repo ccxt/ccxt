@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinmetro import ImplicitAPI
-from ccxt.base.types import Balances, Currencies, Currency, IndexType, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Currencies, Currency, IndexType, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -16,13 +16,13 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import RateLimitExceeded
-from ccxt.base.decimal_to_precision import DECIMAL_PLACES
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
 class coinmetro(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(coinmetro, self).describe(), {
             'id': 'coinmetro',
             'name': 'Coinmetro',
@@ -122,6 +122,7 @@ class coinmetro(Exchange, ImplicitAPI):
                 'reduceMargin': False,
                 'repayCrossMargin': False,
                 'repayIsolatedMargin': False,
+                'sandbox': True,
                 'setLeverage': False,
                 'setMargin': False,
                 'setMarginMode': False,
@@ -214,11 +215,83 @@ class coinmetro(Exchange, ImplicitAPI):
                     'maker': self.parse_number('0'),
                 },
             },
-            'precisionMode': DECIMAL_PLACES,
+            'precisionMode': TICK_SIZE,
             # exchange-specific options
             'options': {
                 'currenciesByIdForParseMarket': None,
-                'currencyIdsListForParseMarket': None,
+                'currencyIdsListForParseMarket': ['QRDO'],
+            },
+            'features': {
+                'spot': {
+                    'sandbox': True,
+                    'createOrder': {
+                        'marginMode': True,  # todo implement
+                        'triggerPrice': True,
+                        'triggerPriceType': None,
+                        'triggerDirection': False,
+                        'stopLossPrice': False,  # todo
+                        'takeProfitPrice': False,  # todo
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': None,
+                            'price': False,
+                        },
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': False,
+                            'GTD': True,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': False,
+                        'iceberg': True,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': None,
+                        'daysBack': 100000,
+                        'untilDays': None,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'daysBack': 100000,
+                        'untilDays': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchClosedOrders': None,
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
             },
             'exceptions': {
                 # https://trade-docs.coinmetro.co/?javascript--nodejs#message-codes
@@ -260,7 +333,9 @@ class coinmetro(Exchange, ImplicitAPI):
     async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
-        :see: https://documenter.getpostman.com/view/3653795/SVfWN6KS#d5876d43-a3fe-4479-8c58-24d0f044edfb
+
+        https://documenter.getpostman.com/view/3653795/SVfWN6KS#d5876d43-a3fe-4479-8c58-24d0f044edfb
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -307,43 +382,60 @@ class coinmetro(Exchange, ImplicitAPI):
         #         ...
         #     ]
         #
-        result = {}
+        result: dict = {}
         for i in range(0, len(response)):
             currency = response[i]
             id = self.safe_string(currency, 'symbol')
             code = self.safe_currency_code(id)
-            withdraw = self.safe_value(currency, 'canWithdraw')
-            deposit = self.safe_value(currency, 'canDeposit')
-            canTrade = self.safe_value(currency, 'canTrade')
-            active = withdraw if canTrade else True
-            precision = self.safe_integer(currency, 'digits')
-            minAmount = self.safe_number(currency, 'minQty')
+            typeRaw = self.safe_string(currency, 'type')
+            type = None
+            if typeRaw == 'coin' or typeRaw == 'token' or typeRaw == 'erc20':
+                type = 'crypto'
+            elif typeRaw == 'fiat':
+                type = 'fiat'
+            precisionDigits = self.safe_string_2(currency, 'digits', 'notabeneDecimals')
+            if code == 'RENDER':
+                # RENDER is an exception(with broken info)
+                precisionDigits = '4'
             result[code] = self.safe_currency_structure({
                 'id': id,
                 'code': code,
                 'name': code,
+                'type': type,
                 'info': currency,
-                'active': active,
-                'deposit': deposit,
-                'withdraw': withdraw,
+                'active': self.safe_bool(currency, 'canTrade'),
+                'deposit': self.safe_bool(currency, 'canDeposit'),
+                'withdraw': self.safe_bool(currency, 'canWithdraw'),
                 'fee': None,
-                'precision': precision,
+                'precision': self.parse_number(self.parse_precision(precisionDigits)),
                 'limits': {
-                    'amount': {'min': minAmount, 'max': None},
-                    'withdraw': {'min': None, 'max': None},
+                    'amount': {
+                        'min': self.safe_number(currency, 'minQty'),
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': None,
+                        'max': None,
+                    },
                 },
                 'networks': {},
             })
         if self.safe_value(self.options, 'currenciesByIdForParseMarket') is None:
             currenciesById = self.index_by(result, 'id')
             self.options['currenciesByIdForParseMarket'] = currenciesById
-            self.options['currencyIdsListForParseMarket'] = list(currenciesById.keys())
+            currentCurrencyIdsList = self.safe_list(self.options, 'currencyIdsListForParseMarket', [])
+            currencyIdsList = list(currenciesById.keys())
+            for i in range(0, len(currencyIdsList)):
+                currentCurrencyIdsList.append(currencyIdsList[i])
+            self.options['currencyIdsListForParseMarket'] = currentCurrencyIdsList
         return result
 
     async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for coinmetro
-        :see: https://documenter.getpostman.com/view/3653795/SVfWN6KS#9fd18008-338e-4863-b07d-722878a46832
+
+        https://documenter.getpostman.com/view/3653795/SVfWN6KS#9fd18008-338e-4863-b07d-722878a46832
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -353,26 +445,21 @@ class coinmetro(Exchange, ImplicitAPI):
         #
         #     [
         #         {
-        #             "pair": "PERPEUR",
-        #             "precision": 5,
-        #             "margin": False
-        #         },
-        #         {
-        #             "pair": "PERPUSD",
-        #             "precision": 5,
-        #             "margin": False
-        #         },
-        #         {
         #             "pair": "YFIEUR",
         #             "precision": 5,
         #             "margin": False
+        #         },
+        #         {
+        #             "pair": "BTCEUR",
+        #             "precision": 2,
+        #             "margin": True
         #         },
         #         ...
         #     ]
         #
         return self.parse_markets(response)
 
-    def parse_market(self, market) -> Market:
+    def parse_market(self, market: dict) -> Market:
         id = self.safe_string(market, 'pair')
         parsedMarketId = self.parse_market_id(id)
         baseId = self.safe_string(parsedMarketId, 'baseId')
@@ -411,9 +498,7 @@ class coinmetro(Exchange, ImplicitAPI):
             'optionType': None,
             'precision': {
                 'amount': basePrecisionAndLimits['precision'],
-                'price': quotePrecisionAndLimits['precision'],
-                'base': basePrecisionAndLimits['precision'],
-                'quote': quotePrecisionAndLimits['precision'],
+                'price': self.parse_number(self.parse_precision(self.safe_string(market, 'precision'))),
             },
             'limits': {
                 'leverage': {
@@ -441,10 +526,19 @@ class coinmetro(Exchange, ImplicitAPI):
         baseId = None
         quoteId = None
         currencyIds = self.safe_value(self.options, 'currencyIdsListForParseMarket', [])
+        # Bubble sort by length(longest first)
+        currencyIdsLength = len(currencyIds)
+        for i in range(0, currencyIdsLength):
+            for j in range(0, currencyIdsLength - i - 1):
+                a = currencyIds[j]
+                b = currencyIds[j + 1]
+                if len(a) < len(b):
+                    currencyIds[j] = b
+                    currencyIds[j + 1] = a
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
             entryIndex = marketId.find(currencyId)
-            if entryIndex != -1:
+            if entryIndex == 0:
                 restId = marketId.replace(currencyId, '')
                 if self.in_array(restId, currencyIds):
                     if entryIndex == 0:
@@ -454,7 +548,7 @@ class coinmetro(Exchange, ImplicitAPI):
                         baseId = restId
                         quoteId = currencyId
                     break
-        result = {
+        result: dict = {
             'baseId': baseId,
             'quoteId': quoteId,
         }
@@ -463,12 +557,11 @@ class coinmetro(Exchange, ImplicitAPI):
     def parse_market_precision_and_limits(self, currencyId):
         currencies = self.safe_value(self.options, 'currenciesByIdForParseMarket', {})
         currency = self.safe_value(currencies, currencyId, {})
-        precision = self.safe_integer(currency, 'precision')
         limits = self.safe_value(currency, 'limits', {})
         amountLimits = self.safe_value(limits, 'amount', {})
         minLimit = self.safe_number(amountLimits, 'min')
-        result = {
-            'precision': precision,
+        result: dict = {
+            'precision': self.safe_number(currency, 'precision'),
             'minLimit': minLimit,
         }
         return result
@@ -476,7 +569,9 @@ class coinmetro(Exchange, ImplicitAPI):
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :see: https://documenter.getpostman.com/view/3653795/SVfWN6KS#13cfb5bc-7bfb-4847-85e1-e0f35dfb3573
+
+        https://documenter.getpostman.com/view/3653795/SVfWN6KS#13cfb5bc-7bfb-4847-85e1-e0f35dfb3573
+
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -487,7 +582,7 @@ class coinmetro(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
             'timeframe': self.safe_string(self.timeframes, timeframe, timeframe),
         }
@@ -549,7 +644,9 @@ class coinmetro(Exchange, ImplicitAPI):
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://documenter.getpostman.com/view/3653795/SVfWN6KS#6ee5d698-06da-4570-8c84-914185e05065
+
+        https://documenter.getpostman.com/view/3653795/SVfWN6KS#6ee5d698-06da-4570-8c84-914185e05065
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch(default 200, max 500)
@@ -558,7 +655,7 @@ class coinmetro(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         if since is not None:
@@ -601,7 +698,9 @@ class coinmetro(Exchange, ImplicitAPI):
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
-        :see: https://documenter.getpostman.com/view/3653795/SVfWN6KS#4d48ae69-8ee2-44d1-a268-71f84e557b7b
+
+        https://documenter.getpostman.com/view/3653795/SVfWN6KS#4d48ae69-8ee2-44d1-a268-71f84e557b7b
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve(default 500, max 1000)
@@ -612,7 +711,7 @@ class coinmetro(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        request = {}
+        request: dict = {}
         if since is not None:
             request['since'] = since
         else:
@@ -635,7 +734,7 @@ class coinmetro(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchTrades
         #     {
@@ -706,7 +805,9 @@ class coinmetro(Exchange, ImplicitAPI):
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://documenter.getpostman.com/view/3653795/SVfWN6KS#26ad80d7-8c46-41b5-9208-386f439a8b87
+
+        https://documenter.getpostman.com/view/3653795/SVfWN6KS#26ad80d7-8c46-41b5-9208-386f439a8b87
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return(default 100, max 200)
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -714,7 +815,7 @@ class coinmetro(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         response = await self.publicGetExchangeBookPair(self.extend(request, params))
@@ -748,7 +849,7 @@ class coinmetro(Exchange, ImplicitAPI):
         book = self.safe_value(response, 'book', {})
         rawBids = self.safe_value(book, 'bid', {})
         rawAsks = self.safe_value(book, 'ask', {})
-        rawOrderbook = {
+        rawOrderbook: dict = {
             'bids': rawBids,
             'asks': rawAsks,
         }
@@ -769,7 +870,9 @@ class coinmetro(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :see: https://documenter.getpostman.com/view/3653795/SVfWN6KS#6ecd1cd1-f162-45a3-8b3b-de690332a485
+
+        https://documenter.getpostman.com/view/3653795/SVfWN6KS#6ecd1cd1-f162-45a3-8b3b-de690332a485
+
         :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -826,7 +929,7 @@ class coinmetro(Exchange, ImplicitAPI):
         #
         latestPrices = self.safe_value(response, 'latestPrices', [])
         twentyFourHInfos = self.safe_value(response, '24hInfo', [])
-        tickersObject = {}
+        tickersObject: dict = {}
         # merging info from two lists into one
         for i in range(0, len(latestPrices)):
             latestPrice = latestPrices[i]
@@ -845,7 +948,9 @@ class coinmetro(Exchange, ImplicitAPI):
     async def fetch_bids_asks(self, symbols: Strings = None, params={}):
         """
         fetches the bid and ask price and volume for multiple markets
-        :see: https://documenter.getpostman.com/view/3653795/SVfWN6KS#6ecd1cd1-f162-45a3-8b3b-de690332a485
+
+        https://documenter.getpostman.com/view/3653795/SVfWN6KS#6ecd1cd1-f162-45a3-8b3b-de690332a485
+
         :param str[] [symbols]: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -855,7 +960,7 @@ class coinmetro(Exchange, ImplicitAPI):
         latestPrices = self.safe_list(response, 'latestPrices', [])
         return self.parse_tickers(latestPrices, symbols)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "pair": "PERPUSD",
@@ -911,7 +1016,9 @@ class coinmetro(Exchange, ImplicitAPI):
     async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://documenter.getpostman.com/view/3653795/SVfWN6KS#741a1dcc-7307-40d0-acca-28d003d1506a
+
+        https://documenter.getpostman.com/view/3653795/SVfWN6KS#741a1dcc-7307-40d0-acca-28d003d1506a
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
@@ -943,7 +1050,7 @@ class coinmetro(Exchange, ImplicitAPI):
         #         ...
         #     ]
         #
-        result = {
+        result: dict = {
             'info': balances,
         }
         for i in range(0, len(balances)):
@@ -956,19 +1063,21 @@ class coinmetro(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
         """
-        fetch the history of changes, actions done by the user or operations that altered balance of the user
-        :see: https://documenter.getpostman.com/view/3653795/SVfWN6KS#4e7831f7-a0e7-4c3e-9336-1d0e5dcb15cf
-        :param str code: unified currency code, default is None
+        fetch the history of changes, actions done by the user or operations that altered the balance of the user
+
+        https://documenter.getpostman.com/view/3653795/SVfWN6KS#4e7831f7-a0e7-4c3e-9336-1d0e5dcb15cf
+
+        :param str [code]: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
-        :param int [limit]: max number of ledger entrys to return(default 200, max 500)
+        :param int [limit]: max number of ledger entries to return(default 200, max 500)
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
         await self.load_markets()
-        request = {}
+        request: dict = {}
         if since is not None:
             request['since'] = since
         else:
@@ -1078,7 +1187,7 @@ class coinmetro(Exchange, ImplicitAPI):
                 ledger.append(rawLedgerEntry)
         return self.parse_ledger(ledger, currency, since, limit)
 
-    def parse_ledger_entry(self, item, currency: Currency = None):
+    def parse_ledger_entry(self, item: dict, currency: Currency = None) -> LedgerEntry:
         datetime = self.safe_string(item, 'timestamp')
         currencyId = self.safe_string(item, 'currencyId')
         item = self.omit(item, 'currencyId')
@@ -1133,7 +1242,7 @@ class coinmetro(Exchange, ImplicitAPI):
         return [type, referenceId]
 
     def parse_ledger_entry_type(self, type):
-        types = {
+        types: dict = {
             'Deposit': 'transaction',
             'Withdraw': 'transaction',
             'Order': 'trade',
@@ -1143,12 +1252,14 @@ class coinmetro(Exchange, ImplicitAPI):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
-        :see: https://documenter.getpostman.com/view/3653795/SVfWN6KS#a4895a1d-3f50-40ae-8231-6962ef06c771
+
+        https://documenter.getpostman.com/view/3653795/SVfWN6KS#a4895a1d-3f50-40ae-8231-6962ef06c771
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.cost]: the quote quantity that can be used alternative for the amount in market orders
         :param str [params.timeInForce]: "GTC", "IOC", "FOK", "GTD"
@@ -1163,35 +1274,35 @@ class coinmetro(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
         }
         request['orderType'] = type
-        precisedAmount = None
+        formattedAmount = None
         if amount is not None:
-            precisedAmount = self.amount_to_precision(symbol, amount)
+            formattedAmount = self.amount_to_precision(symbol, amount)
         cost = self.safe_value(params, 'cost')
         params = self.omit(params, 'cost')
         if type == 'limit':
             if (price is None) and (cost is None):
                 raise ArgumentsRequired(self.id + ' createOrder() requires a price or params.cost argument for a ' + type + ' order')
             elif (price is not None) and (amount is not None):
-                costString = Precise.string_mul(self.number_to_string(price), self.number_to_string(precisedAmount))
+                costString = Precise.string_mul(self.number_to_string(price), self.number_to_string(formattedAmount))
                 cost = self.parse_to_numeric(costString)
         precisedCost = None
         if cost is not None:
             precisedCost = self.cost_to_precision(symbol, cost)
         if side == 'sell':
-            request = self.handle_create_order_side(market['baseId'], market['quoteId'], precisedAmount, precisedCost, request)
+            request = self.handle_create_order_side(market['baseId'], market['quoteId'], formattedAmount, precisedCost, request)
         elif side == 'buy':
-            request = self.handle_create_order_side(market['quoteId'], market['baseId'], precisedCost, precisedAmount, request)
+            request = self.handle_create_order_side(market['quoteId'], market['baseId'], precisedCost, formattedAmount, request)
         timeInForce = self.safe_value(params, 'timeInForce')
         if timeInForce is not None:
             params = self.omit(params, 'timeInForce')
             request['timeInForce'] = self.encode_order_time_in_force(timeInForce)
-        stopPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
-        if stopPrice is not None:
+        triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
+        if triggerPrice is not None:
             params = self.omit(params, ['triggerPrice'])
-            request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
+            request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
         userData = self.safe_value(params, 'userData', {})
         comment = self.safe_string_2(params, 'clientOrderId', 'comment')
         if comment is not None:
@@ -1248,7 +1359,7 @@ class coinmetro(Exchange, ImplicitAPI):
         return request
 
     def encode_order_time_in_force(self, timeInForce):
-        timeInForceTypes = {
+        timeInForceTypes: dict = {
             'GTC': 1,
             'IOC': 2,
             'GTD': 3,
@@ -1259,8 +1370,10 @@ class coinmetro(Exchange, ImplicitAPI):
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
-        :see: https://documenter.getpostman.com/view/3653795/SVfWN6KS#eaea86da-16ca-4c56-9f00-5b1cb2ad89f8
-        :see: https://documenter.getpostman.com/view/3653795/SVfWN6KS#47f913fb-8cab-49f4-bc78-d980e6ced316
+
+        https://documenter.getpostman.com/view/3653795/SVfWN6KS#eaea86da-16ca-4c56-9f00-5b1cb2ad89f8
+        https://documenter.getpostman.com/view/3653795/SVfWN6KS#47f913fb-8cab-49f4-bc78-d980e6ced316
+
         :param str id: order id
         :param str symbol: not used by coinmetro cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1268,7 +1381,7 @@ class coinmetro(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        request = {
+        request: dict = {
             'orderID': id,
         }
         marginMode = None
@@ -1304,7 +1417,9 @@ class coinmetro(Exchange, ImplicitAPI):
     async def close_position(self, symbol: str, side: OrderSide = None, params={}):
         """
         closes an open position
-        :see: https://documenter.getpostman.com/view/3653795/SVfWN6KS#47f913fb-8cab-49f4-bc78-d980e6ced316
+
+        https://documenter.getpostman.com/view/3653795/SVfWN6KS#47f913fb-8cab-49f4-bc78-d980e6ced316
+
         :param str symbol: not used by coinmetro closePosition()
         :param str [side]: not used by coinmetro closePosition()
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1316,7 +1431,7 @@ class coinmetro(Exchange, ImplicitAPI):
         orderId = self.safe_string(params, 'orderId')
         if orderId is None:
             raise ArgumentsRequired(self.id + ' closePosition() requires a orderId parameter')
-        request = {
+        request: dict = {
             'orderID': orderId,
         }
         response = await self.privatePostExchangeOrdersCloseOrderID(self.extend(request, params))
@@ -1354,7 +1469,9 @@ class coinmetro(Exchange, ImplicitAPI):
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
-        :see: https://documenter.getpostman.com/view/3653795/SVfWN6KS#518afd7a-4338-439c-a651-d4fdaa964138
+
+        https://documenter.getpostman.com/view/3653795/SVfWN6KS#518afd7a-4338-439c-a651-d4fdaa964138
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open order structures to retrieve
@@ -1375,7 +1492,9 @@ class coinmetro(Exchange, ImplicitAPI):
     async def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple canceled and closed orders made by the user
-        :see: https://documenter.getpostman.com/view/3653795/SVfWN6KS#4d48ae69-8ee2-44d1-a268-71f84e557b7b
+
+        https://documenter.getpostman.com/view/3653795/SVfWN6KS#4d48ae69-8ee2-44d1-a268-71f84e557b7b
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -1386,7 +1505,7 @@ class coinmetro(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        request = {}
+        request: dict = {}
         if since is not None:
             request['since'] = since
         response = await self.privateGetExchangeOrdersHistorySince(self.extend(request, params))
@@ -1395,14 +1514,16 @@ class coinmetro(Exchange, ImplicitAPI):
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
-        :see: https://documenter.getpostman.com/view/3653795/SVfWN6KS#95bbed87-db1c-47a7-a03e-aa247e91d5a6
+
+        https://documenter.getpostman.com/view/3653795/SVfWN6KS#95bbed87-db1c-47a7-a03e-aa247e91d5a6
+
         :param int|str id: order id
         :param str symbol: not used by coinmetro fetchOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        request = {
+        request: dict = {
             'orderID': id,
         }
         response = await self.privateGetExchangeOrdersStatusOrderID(self.extend(request, params))
@@ -1443,7 +1564,7 @@ class coinmetro(Exchange, ImplicitAPI):
         #
         return self.parse_order(response)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # createOrder market
         #     {
@@ -1682,7 +1803,6 @@ class coinmetro(Exchange, ImplicitAPI):
             }
         trades = self.safe_value(order, 'fills', [])
         userData = self.safe_value(order, 'userData', {})
-        triggerPrice = self.safe_string(order, 'stopPrice')
         clientOrderId = self.safe_string(userData, 'comment')
         takeProfitPrice = self.safe_string(userData, 'takeProfit')
         stopLossPrice = self.safe_string(userData, 'stopLoss')
@@ -1698,7 +1818,7 @@ class coinmetro(Exchange, ImplicitAPI):
             'timeInForce': self.parse_order_time_in_force(self.safe_integer(order, 'timeInForce')),
             'side': side,
             'price': price,
-            'triggerPrice': triggerPrice,
+            'triggerPrice': self.safe_string(order, 'stopPrice'),
             'takeProfitPrice': takeProfitPrice,
             'stopLossPrice': stopLossPrice,
             'average': None,
@@ -1725,7 +1845,9 @@ class coinmetro(Exchange, ImplicitAPI):
     async def borrow_cross_margin(self, code: str, amount: float, params={}):
         """
         create a loan to borrow margin
-        :see: https://documenter.getpostman.com/view/3653795/SVfWN6KS#5b90b3b9-e5db-4d07-ac9d-d680a06fd110
+
+        https://documenter.getpostman.com/view/3653795/SVfWN6KS#5b90b3b9-e5db-4d07-ac9d-d680a06fd110
+
         :param str code: unified currency code of the currency to borrow
         :param float amount: the amount to borrow
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1734,7 +1856,7 @@ class coinmetro(Exchange, ImplicitAPI):
         await self.load_markets()
         currency = self.currency(code)
         currencyId = currency['id']
-        request = {}
+        request: dict = {}
         request[currencyId] = self.currency_to_precision(code, amount)
         response = await self.privatePutUsersMarginCollateral(self.extend(request, params))
         #
@@ -1793,7 +1915,7 @@ class coinmetro(Exchange, ImplicitAPI):
             url = url[0:len(url) - 1]
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None
         if (code != 200) and (code != 201) and (code != 202):

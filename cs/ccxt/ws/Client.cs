@@ -18,8 +18,7 @@ public partial class Exchange
 
         public IDictionary<string, Future> futures = new ConcurrentDictionary<string, Future>();
         public IDictionary<string, object> subscriptions = new ConcurrentDictionary<string, object>();
-        public IDictionary<string, object> rejections = new ConcurrentDictionary<string, object>(); // Currently not being used
-
+        public IDictionary<string, object> rejections = new ConcurrentDictionary<string, object>();
         public bool verbose = false;
         public bool isConnected = false;
         public bool startedConnecting = false;
@@ -75,7 +74,12 @@ public partial class Exchange
         public Future future(object messageHash2)
         {
             var messageHash = messageHash2.ToString();
-            return (this.futures as ConcurrentDictionary<string, Future>).GetOrAdd (messageHash, (key) =>  new Future());
+            var future = (this.futures as ConcurrentDictionary<string, Future>).GetOrAdd(messageHash, (key) => new Future());
+            if ((this.rejections as ConcurrentDictionary<string, object>).TryRemove(messageHash, out object rejection))
+            {
+                future.reject(rejection);
+            }
+            return future;
         }
 
         public void resolve(object content, object messageHash2)
@@ -99,6 +103,10 @@ public partial class Exchange
                 if ((this.futures as ConcurrentDictionary<string, Future>).TryRemove(messageHash, out Future future))
                 {
                     future.reject(content);
+                }
+                else
+                {
+                    (this.rejections as ConcurrentDictionary<string, object>).TryAdd(messageHash, content);
                 }
             }
             else
@@ -139,6 +147,15 @@ public partial class Exchange
                 Task.Run(async () => Connect());
             }
             return this.connected.Task;
+        }
+
+        public void onPong()
+        {
+            this.lastPong = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            if (this.verbose)
+            {
+                Console.WriteLine("Pong received: " + this.lastPong.ToString());
+            }
         }
 
         public async void PingLoop()
@@ -280,30 +297,43 @@ public partial class Exchange
                                 CancellationToken.None);
         }
 
-        private static async Task Sending(ClientWebSocket webSocket)
+        // private static async Task Sending(ClientWebSocket webSocket)
+        // {
+        //    try
+        //    {
+        //        while (webSocket.State == WebSocketState.Open)
+        //        {
+        //            string message = Console.ReadLine();
+
+        //            if (!string.IsNullOrEmpty(message))
+        //            {
+        //                var bytes = Encoding.UTF8.GetBytes(message);
+        //                await sendAsyncWrapper(webSocket, new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, CancellationToken.None);
+        //            }
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine($"Sending error: {ex.Message}");
+        //    }
+        // }
+
+        private void TryHandleMessage (string message)
         {
+            object deserializedMessages = message;
             try
             {
-                while (webSocket.State == WebSocketState.Open)
-                {
-                    string message = Console.ReadLine();
-
-                    if (!string.IsNullOrEmpty(message))
-                    {
-                        var bytes = Encoding.UTF8.GetBytes(message);
-                        await sendAsyncWrapper(webSocket, new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, CancellationToken.None);
-                    }
-                }
+                deserializedMessages = JsonHelper.Deserialize(message);
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                Console.WriteLine($"Sending error: {ex.Message}");
             }
+            this.handleMessage(this, deserializedMessages);
         }
-
+    
         private async Task Receiving(ClientWebSocket webSocket)
         {
-            var buffer = new byte[1000000]; // check best size later
+            var buffer = new byte[10485760]; // 10MB, check best size later
             try
             {
                 while (webSocket.State == WebSocketState.Open)
@@ -323,24 +353,11 @@ public partial class Exchange
                     {
                         // var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
                         var message = Encoding.UTF8.GetString(memory.ToArray(), 0, (int)memory.Length);
-                        object deserializedMessages = message;
-
-                        try
-                        {
-                            deserializedMessages = JsonHelper.Deserialize(message);
-                        }
-                        catch (Exception e)
-                        {
-                            // Console.WriteLine(e);
-                        }
-
                         if (this.verbose)
                         {
                             Console.WriteLine($"On message: {message}");
                         }
-
-                        this.handleMessage(this, deserializedMessages);
-
+                        this.TryHandleMessage(message);
                     }
                     else if (result.MessageType == WebSocketMessageType.Binary)
                     {
@@ -357,15 +374,11 @@ public partial class Exchange
 
                             string decompressedString = System.Text.Encoding.UTF8.GetString(decompressedData);
 
-                            var deserializedJson = JsonHelper.Deserialize(decompressedString);
-
                             if (this.verbose)
                             {
                                 Console.WriteLine($"On binary message {decompressedString}");
                             }
-
-                            this.handleMessage(this, deserializedJson);
-
+                            this.TryHandleMessage(decompressedString);
                         }
                         // string json = System.Text.Encoding.UTF8.GetString(buffer, 0, result.Count);
                     }

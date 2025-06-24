@@ -1,0 +1,426 @@
+{
+    "exchange": "bithumb",
+    "skipKeys": [],
+    "methods": {
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets",
+                "disabledGO": true,
+                "method": "fetchMarkets",
+                "input": [],
+                "httpResponse": {
+                    "status": "0000",
+                    "data": {
+                        "BTC": {
+                            "opening_price": "79934000",
+                            "closing_price": "80366000",
+                            "min_price": "77734000",
+                            "max_price": "81500000",
+                            "units_traded": "905.5919092",
+                            "acc_trade_value": "71861744239.48745",
+                            "prev_closing_price": "79999000",
+                            "units_traded_24H": "1366.11183187",
+                            "acc_trade_value_24H": "109146258142.41551",
+                            "fluctate_24H": "-942000",
+                            "fluctate_rate_24H": "-1.16"
+                        }
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "BTC",
+                        "symbol": "BTC/BTC",
+                        "base": "BTC",
+                        "quote": "BTC",
+                        "settle": null,
+                        "baseId": "BTC",
+                        "quoteId": "BTC",
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": false,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "active": true,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDateTime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 4,
+                            "price": 4
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": 0.0002,
+                                "max": 100
+                            }
+                        },
+                        "created": null,
+                        "info": {
+                            "opening_price": "79934000",
+                            "closing_price": "80366000",
+                            "min_price": "77734000",
+                            "max_price": "81500000",
+                            "units_traded": "905.5919092",
+                            "acc_trade_value": "71861744239.48745",
+                            "prev_closing_price": "79999000",
+                            "units_traded_24H": "1366.11183187",
+                            "acc_trade_value_24H": "109146258142.41551",
+                            "fluctate_24H": "-942000",
+                            "fluctate_rate_24H": "-1.16"
+                        }
+                    },
+                    {
+                        "id": "BTC",
+                        "symbol": "BTC/KRW",
+                        "base": "BTC",
+                        "quote": "KRW",
+                        "settle": null,
+                        "baseId": "BTC",
+                        "quoteId": "KRW",
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": false,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "active": true,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDateTime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 4,
+                            "price": 4
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": 500,
+                                "max": 5000000000
+                            }
+                        },
+                        "created": null,
+                        "info": {
+                            "opening_price": "79934000",
+                            "closing_price": "80366000",
+                            "min_price": "77734000",
+                            "max_price": "81500000",
+                            "units_traded": "905.5919092",
+                            "acc_trade_value": "71861744239.48745",
+                            "prev_closing_price": "79999000",
+                            "units_traded_24H": "1366.11183187",
+                            "acc_trade_value_24H": "109146258142.41551",
+                            "fluctate_24H": "-942000",
+                            "fluctate_rate_24H": "-1.16"
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook",
+                "method": "fetchOrderBook",
+                "input": [
+                    "BTC/KRW",
+                    1
+                ],
+                "httpResponse": {
+                    "status": "0000",
+                    "data": {
+                        "timestamp": "1723102637709",
+                        "payment_currency": "KRW",
+                        "order_currency": "BTC",
+                        "bids": [
+                            {
+                                "price": "80838000",
+                                "quantity": "0.0586"
+                            }
+                        ],
+                        "asks": [
+                            {
+                                "price": "80873000",
+                                "quantity": "0.1749"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/KRW",
+                    "bids": [
+                        [
+                            80838000,
+                            0.0586
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            80873000,
+                            0.1749
+                        ]
+                    ],
+                    "timestamp": 1723102637709,
+                    "datetime": "2024-08-08T07:37:17.709Z",
+                    "nonce": null
+                }
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetchTickers",
+                "method": "fetchTickers",
+                "input": [["BTC/BTC"]],
+                "httpResponse": {
+                    "status": "0000",
+                    "data": {
+                        "BTC": {
+                            "opening_price": "79934000",
+                            "closing_price": "80694000",
+                            "min_price": "77734000",
+                            "max_price": "81500000",
+                            "units_traded": "996.28800643",
+                            "acc_trade_value": "79185705179.76399",
+                            "prev_closing_price": "79999000",
+                            "units_traded_24H": "1368.50018382",
+                            "acc_trade_value_24H": "109321569568.37338",
+                            "fluctate_24H": "-351000",
+                            "fluctate_rate_24H": "-0.43"
+                        },
+                        "ETH": {
+                            "opening_price": "3410000",
+                            "closing_price": "3406000",
+                            "min_price": "3281000",
+                            "max_price": "3490000",
+                            "units_traded": "13860.850765302017000358",
+                            "acc_trade_value": "46947568969.878487505202689",
+                            "prev_closing_price": "3410000",
+                            "units_traded_24H": "20934.260856651159084139",
+                            "acc_trade_value_24H": "71739637997.401415087171755",
+                            "fluctate_24H": "-175000",
+                            "fluctate_rate_24H": "-4.89"
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "BTC/BTC": {
+                        "symbol": "BTC/BTC",
+                        "timestamp": null,
+                        "datetime": null,
+                        "high": 81500000,
+                        "low": 77734000,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 79884219.86412574,
+                        "open": 79934000,
+                        "close": 80694000,
+                        "last": 80694000,
+                        "previousClose": null,
+                        "change": 760000,
+                        "percentage": 0.9507843971276302,
+                        "average": 80314000,
+                        "baseVolume": 1368.50018382,
+                        "quoteVolume": 109321569568.37338,
+                        "markPrice":  null,
+                        "indexPrice": null,
+                        "info": {
+                            "opening_price": "79934000",
+                            "closing_price": "80694000",
+                            "min_price": "77734000",
+                            "max_price": "81500000",
+                            "units_traded": "996.28800643",
+                            "acc_trade_value": "79185705179.76399",
+                            "prev_closing_price": "79999000",
+                            "units_traded_24H": "1368.50018382",
+                            "acc_trade_value_24H": "109321569568.37338",
+                            "fluctate_24H": "-351000",
+                            "fluctate_rate_24H": "-0.43",
+                            "date": null
+                        }
+                    }
+                }
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetchTicker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/KRW"
+                ],
+                "httpResponse": {
+                    "status": "0000",
+                    "data": {
+                        "opening_price": "79934000",
+                        "closing_price": "80630000",
+                        "min_price": "77734000",
+                        "max_price": "81500000",
+                        "units_traded": "996.67099071",
+                        "acc_trade_value": "79216597953.49151",
+                        "prev_closing_price": "79999000",
+                        "units_traded_24H": "1368.01423432",
+                        "acc_trade_value_24H": "109282011238.50126",
+                        "fluctate_24H": "-435000",
+                        "fluctate_rate_24H": "-0.54",
+                        "date": "1723104735027"
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/KRW",
+                    "timestamp": 1723104735027,
+                    "datetime": "2024-08-08T08:12:15.027Z",
+                    "high": 81500000,
+                    "low": 77734000,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": 79883679.93321514,
+                    "open": 79934000,
+                    "close": 80630000,
+                    "last": 80630000,
+                    "previousClose": null,
+                    "change": 696000,
+                    "percentage": 0.8707183426326719,
+                    "average": 80282000,
+                    "baseVolume": 1368.01423432,
+                    "quoteVolume": 109282011238.50127,
+                    "markPrice":  null,
+                    "indexPrice": null,
+                    "info": {
+                        "opening_price": "79934000",
+                        "closing_price": "80630000",
+                        "min_price": "77734000",
+                        "max_price": "81500000",
+                        "units_traded": "996.67099071",
+                        "acc_trade_value": "79216597953.49151",
+                        "prev_closing_price": "79999000",
+                        "units_traded_24H": "1368.01423432",
+                        "acc_trade_value_24H": "109282011238.50126",
+                        "fluctate_24H": "-435000",
+                        "fluctate_rate_24H": "-0.54",
+                        "date": "1723104735027"
+                    }
+                }
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/KRW",
+                    "1m",
+                    null,
+                    5
+                ],
+                "httpResponse": {
+                    "status": "0000",
+                    "data": [
+                        [
+                            1723014780000,
+                            "81061000",
+                            "80860000",
+                            "81062000",
+                            "80860000",
+                            "2.1630537"
+                        ]
+                    ]
+                },
+                "parsedResponse": [
+                    [
+                        1723014780000,
+                        81061000,
+                        81062000,
+                        80860000,
+                        80860000,
+                        2.1630537
+                    ]
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetchTrades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/KRW",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "status": "0000",
+                    "data": [
+                        {
+                            "transaction_date": "2024-08-08 17:14:33",
+                            "type": "ask",
+                            "units_traded": "0.0006",
+                            "price": "80649000",
+                            "total": "48389"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": null,
+                        "info": {
+                            "transaction_date": "2024-08-08 17:14:33",
+                            "type": "ask",
+                            "units_traded": "0.0006",
+                            "price": "80649000",
+                            "total": "48389"
+                        },
+                        "timestamp": 1723104873000,
+                        "datetime": "2024-08-08T08:14:33.000Z",
+                        "symbol": "BTC/KRW",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 80649000,
+                        "amount": 0.0006,
+                        "cost": 48389,
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
+                    }
+                ]
+            }
+        ]
+    }
+}

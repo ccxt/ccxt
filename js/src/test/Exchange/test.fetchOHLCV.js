@@ -26,5 +26,6 @@ async function testFetchOHLCV(exchange, skippedProperties, symbol) {
         testOHLCV(exchange, skippedProperties, method, ohlcvs[i], symbol, now);
     }
     // todo: sorted timestamps check
+    return true;
 }
 export default testFetchOHLCV;

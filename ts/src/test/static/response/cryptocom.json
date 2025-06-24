@@ -2,6 +2,363 @@
     "exchange": "cryptocom",
     "options": {},
     "methods": {
+        "editOrder": [
+            {
+                "description": "Edit spot order",
+                "method": "editOrder",
+                "input": [
+                    "6142909930410561608",
+                    "ETH/USDT",
+                    "limit",
+                    "buy",
+                    0.001,
+                    1100
+                ],
+                "httpResponse": {
+                    "id": 1749674362537,
+                    "method": "private/amend-order",
+                    "code": 0,
+                    "result": {
+                        "client_oid": "1749674362537",
+                        "order_id": "6142909930410561608"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "client_oid": "1749674362537",
+                        "order_id": "6142909930410561608"
+                    },
+                    "id": "6142909930410561608",
+                    "clientOrderId": "1749674362537",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "status": null,
+                    "symbol": null,
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": null,
+                    "price": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "average": null,
+                    "cost": null,
+                    "fee": {
+                        "currency": null,
+                        "cost": null
+                    },
+                    "trades": [],
+                    "fees": [
+                        {
+                            "currency": null,
+                            "cost": null
+                        }
+                    ],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": {
+                    "id": "1747503246658",
+                    "method": "private/get-currency-networks",
+                    "code": "0",
+                    "result": {
+                        "update_time": "1747503241000",
+                        "currency_map": {
+                            "USDT": {
+                                "full_name": "Tether USD",
+                                "default_network": "ETH",
+                                "network_list": [
+                                    {
+                                        "network_id": "ETH",
+                                        "withdrawal_fee": "10.00000000",
+                                        "withdraw_enabled": true,
+                                        "min_withdrawal_amount": "20.0",
+                                        "deposit_enabled": true,
+                                        "confirmation_required": "32"
+                                    },
+                                    {
+                                        "network_id": "CRONOS",
+                                        "withdrawal_fee": "0.18000000",
+                                        "withdraw_enabled": true,
+                                        "min_withdrawal_amount": "0.36",
+                                        "deposit_enabled": true,
+                                        "confirmation_required": "15"
+                                    },
+                                    {
+                                        "network_id": "SOL",
+                                        "withdrawal_fee": "5.32000000",
+                                        "withdraw_enabled": true,
+                                        "min_withdrawal_amount": "10.64",
+                                        "deposit_enabled": true,
+                                        "confirmation_required": "1"
+                                    },
+                                    {
+                                        "network_id": "MATIC",
+                                        "withdrawal_fee": "0.80000000",
+                                        "withdraw_enabled": true,
+                                        "min_withdrawal_amount": "1.6",
+                                        "deposit_enabled": true,
+                                        "confirmation_required": "256"
+                                    },
+                                    {
+                                        "network_id": "ARB",
+                                        "withdrawal_fee": "1.18000000",
+                                        "withdraw_enabled": true,
+                                        "min_withdrawal_amount": "2.36",
+                                        "deposit_enabled": true,
+                                        "confirmation_required": "10"
+                                    },
+                                    {
+                                        "network_id": "OP",
+                                        "withdrawal_fee": "1.25000000",
+                                        "withdraw_enabled": true,
+                                        "min_withdrawal_amount": "2.5",
+                                        "deposit_enabled": true,
+                                        "confirmation_required": "100"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "USDT": {
+                        "info": {
+                            "full_name": "Tether USD",
+                            "default_network": "ETH",
+                            "network_list": [
+                                {
+                                    "network_id": "ETH",
+                                    "withdrawal_fee": "10.00000000",
+                                    "withdraw_enabled": true,
+                                    "min_withdrawal_amount": "20.0",
+                                    "deposit_enabled": true,
+                                    "confirmation_required": "32"
+                                },
+                                {
+                                    "network_id": "CRONOS",
+                                    "withdrawal_fee": "0.18000000",
+                                    "withdraw_enabled": true,
+                                    "min_withdrawal_amount": "0.36",
+                                    "deposit_enabled": true,
+                                    "confirmation_required": "15"
+                                },
+                                {
+                                    "network_id": "SOL",
+                                    "withdrawal_fee": "5.32000000",
+                                    "withdraw_enabled": true,
+                                    "min_withdrawal_amount": "10.64",
+                                    "deposit_enabled": true,
+                                    "confirmation_required": "1"
+                                },
+                                {
+                                    "network_id": "MATIC",
+                                    "withdrawal_fee": "0.80000000",
+                                    "withdraw_enabled": true,
+                                    "min_withdrawal_amount": "1.6",
+                                    "deposit_enabled": true,
+                                    "confirmation_required": "256"
+                                },
+                                {
+                                    "network_id": "ARB",
+                                    "withdrawal_fee": "1.18000000",
+                                    "withdraw_enabled": true,
+                                    "min_withdrawal_amount": "2.36",
+                                    "deposit_enabled": true,
+                                    "confirmation_required": "10"
+                                },
+                                {
+                                    "network_id": "OP",
+                                    "withdrawal_fee": "1.25000000",
+                                    "withdraw_enabled": true,
+                                    "min_withdrawal_amount": "2.5",
+                                    "deposit_enabled": true,
+                                    "confirmation_required": "100"
+                                }
+                            ]
+                        },
+                        "id": "USDT",
+                        "numericId": null,
+                        "code": "USDT",
+                        "precision": null,
+                        "type": "crypto",
+                        "name": "Tether USD",
+                        "active": true,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": 0.18,
+                        "fees": {},
+                        "networks": {
+                            "ERC20": {
+                                "info": {
+                                    "network_id": "ETH",
+                                    "withdrawal_fee": "10.00000000",
+                                    "withdraw_enabled": true,
+                                    "min_withdrawal_amount": "20.0",
+                                    "deposit_enabled": true,
+                                    "confirmation_required": "32"
+                                },
+                                "id": "ETH",
+                                "network": "ERC20",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 10,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 20,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "CRONOS": {
+                                "info": {
+                                    "network_id": "CRONOS",
+                                    "withdrawal_fee": "0.18000000",
+                                    "withdraw_enabled": true,
+                                    "min_withdrawal_amount": "0.36",
+                                    "deposit_enabled": true,
+                                    "confirmation_required": "15"
+                                },
+                                "id": "CRONOS",
+                                "network": "CRONOS",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 0.18,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 0.36,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "SOL": {
+                                "info": {
+                                    "network_id": "SOL",
+                                    "withdrawal_fee": "5.32000000",
+                                    "withdraw_enabled": true,
+                                    "min_withdrawal_amount": "10.64",
+                                    "deposit_enabled": true,
+                                    "confirmation_required": "1"
+                                },
+                                "id": "SOL",
+                                "network": "SOL",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 5.32,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 10.64,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "MATIC": {
+                                "info": {
+                                    "network_id": "MATIC",
+                                    "withdrawal_fee": "0.80000000",
+                                    "withdraw_enabled": true,
+                                    "min_withdrawal_amount": "1.6",
+                                    "deposit_enabled": true,
+                                    "confirmation_required": "256"
+                                },
+                                "id": "MATIC",
+                                "network": "MATIC",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 0.8,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 1.6,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "ARB": {
+                                "info": {
+                                    "network_id": "ARB",
+                                    "withdrawal_fee": "1.18000000",
+                                    "withdraw_enabled": true,
+                                    "min_withdrawal_amount": "2.36",
+                                    "deposit_enabled": true,
+                                    "confirmation_required": "10"
+                                },
+                                "id": "ARB",
+                                "network": "ARB",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 1.18,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 2.36,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "OP": {
+                                "info": {
+                                    "network_id": "OP",
+                                    "withdrawal_fee": "1.25000000",
+                                    "withdraw_enabled": true,
+                                    "min_withdrawal_amount": "2.5",
+                                    "deposit_enabled": true,
+                                    "confirmation_required": "100"
+                                },
+                                "id": "OP",
+                                "network": "OP",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 1.25,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 2.5,
+                                        "max": null
+                                    }
+                                }
+                            }
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": 0.36,
+                                "max": null
+                            }
+                        }
+                    }
+                }
+            }
+        ],
         "createOrder": [
             {
                 "description": "Create Spot order limit",
@@ -524,16 +881,8 @@
                         "amount": 100,
                         "cost": 61.824,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
-                        "fees": [
-                            {
-                                "currency": null,
-                                "cost": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     },
                     {
                         "info": {
@@ -555,16 +904,8 @@
                         "amount": 100,
                         "cost": 61.84,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
-                        "fees": [
-                            {
-                                "currency": null,
-                                "cost": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     },
                     {
                         "info": {
@@ -586,16 +927,8 @@
                         "amount": 48,
                         "cost": 29.688,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
-                        "fees": [
-                            {
-                                "currency": null,
-                                "cost": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     },
                     {
                         "info": {
@@ -617,16 +950,8 @@
                         "amount": 1,
                         "cost": 0.61853,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
-                        "fees": [
-                            {
-                                "currency": null,
-                                "cost": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     },
                     {
                         "info": {
@@ -648,16 +973,8 @@
                         "amount": 1,
                         "cost": 0.61856,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
-                        "fees": [
-                            {
-                                "currency": null,
-                                "cost": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     },
                     {
                         "info": {
@@ -679,16 +996,8 @@
                         "amount": 1,
                         "cost": 0.61853,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
-                        "fees": [
-                            {
-                                "currency": null,
-                                "cost": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     },
                     {
                         "info": {
@@ -710,16 +1019,8 @@
                         "amount": 1,
                         "cost": 0.61854,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
-                        "fees": [
-                            {
-                                "currency": null,
-                                "cost": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     },
                     {
                         "info": {
@@ -741,16 +1042,8 @@
                         "amount": 57,
                         "cost": 35.2602,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
-                        "fees": [
-                            {
-                                "currency": null,
-                                "cost": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     },
                     {
                         "info": {
@@ -772,16 +1065,8 @@
                         "amount": 100,
                         "cost": 61.86,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
-                        "fees": [
-                            {
-                                "currency": null,
-                                "cost": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     },
                     {
                         "info": {
@@ -803,16 +1088,8 @@
                         "amount": 1,
                         "cost": 0.61859,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
-                        "fees": [
-                            {
-                                "currency": null,
-                                "cost": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     },
                     {
                         "info": {
@@ -834,16 +1111,8 @@
                         "amount": 99,
                         "cost": 61.24041,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
-                        "fees": [
-                            {
-                                "currency": null,
-                                "cost": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     },
                     {
                         "info": {
@@ -865,16 +1134,8 @@
                         "amount": 100,
                         "cost": 61.852,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
-                        "fees": [
-                            {
-                                "currency": null,
-                                "cost": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     },
                     {
                         "info": {
@@ -896,16 +1157,8 @@
                         "amount": 14,
                         "cost": 8.65368,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
-                        "fees": [
-                            {
-                                "currency": null,
-                                "cost": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     },
                     {
                         "info": {
@@ -927,16 +1180,8 @@
                         "amount": 1,
                         "cost": 0.61812,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
-                        "fees": [
-                            {
-                                "currency": null,
-                                "cost": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     },
                     {
                         "info": {
@@ -958,16 +1203,8 @@
                         "amount": 1167,
                         "cost": 720.9726,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
-                        "fees": [
-                            {
-                                "currency": null,
-                                "cost": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     },
                     {
                         "info": {
@@ -989,16 +1226,8 @@
                         "amount": 484,
                         "cost": 299.0152,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
-                        "fees": [
-                            {
-                                "currency": null,
-                                "cost": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     },
                     {
                         "info": {
@@ -1020,16 +1249,8 @@
                         "amount": 1,
                         "cost": 0.61755,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
-                        "fees": [
-                            {
-                                "currency": null,
-                                "cost": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     },
                     {
                         "info": {
@@ -1051,16 +1272,8 @@
                         "amount": 1,
                         "cost": 0.61764,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
-                        "fees": [
-                            {
-                                "currency": null,
-                                "cost": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     },
                     {
                         "info": {
@@ -1082,16 +1295,8 @@
                         "amount": 183,
                         "cost": 113.03361,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
-                        "fees": [
-                            {
-                                "currency": null,
-                                "cost": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     },
                     {
                         "info": {
@@ -1113,16 +1318,8 @@
                         "amount": 100,
                         "cost": 61.782,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
-                        "fees": [
-                            {
-                                "currency": null,
-                                "cost": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     },
                     {
                         "info": {
@@ -1144,16 +1341,8 @@
                         "amount": 1,
                         "cost": 0.61777,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
-                        "fees": [
-                            {
-                                "currency": null,
-                                "cost": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     },
                     {
                         "info": {
@@ -1175,16 +1364,8 @@
                         "amount": 3,
                         "cost": 1.85334,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
-                        "fees": [
-                            {
-                                "currency": null,
-                                "cost": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     },
                     {
                         "info": {
@@ -1206,16 +1387,8 @@
                         "amount": 100,
                         "cost": 61.778,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
-                        "fees": [
-                            {
-                                "currency": null,
-                                "cost": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     },
                     {
                         "info": {
@@ -1237,16 +1410,8 @@
                         "amount": 95,
                         "cost": 58.6891,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
-                        "fees": [
-                            {
-                                "currency": null,
-                                "cost": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     },
                     {
                         "info": {
@@ -1268,16 +1433,8 @@
                         "amount": 100,
                         "cost": 61.778,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
-                        "fees": [
-                            {
-                                "currency": null,
-                                "cost": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     }
                 ]
             }
@@ -1316,9 +1473,9 @@
                         "network": "BTC"
                     },
                     "currency": "BTC",
+                    "network": "BTC",
                     "address": "3KuHWhoLpKp333s1Fbo2BGS5GDKRupKykC",
-                    "tag": null,
-                    "network": "BTC"
+                    "tag": null
                 }
             }
         ],
@@ -1996,6 +2153,8 @@
                     "average": null,
                     "baseVolume": 6921.5068,
                     "quoteVolume": null,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "i": "BTC_USDT",
                         "h": "73632.60",

@@ -5,6 +5,7 @@ async function testFetchL2OrderBook (exchange: Exchange, skippedProperties: obje
     const method = 'fetchL2OrderBook';
     const orderBook = await exchange.fetchL2OrderBook (symbol);
     testOrderBook (exchange, skippedProperties, method, orderBook, symbol);
+    return true;
 }
 
 export default testFetchL2OrderBook;

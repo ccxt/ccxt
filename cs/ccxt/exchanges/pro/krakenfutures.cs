@@ -58,15 +58,15 @@ public partial class krakenfutures : ccxt.krakenfutures
         });
     }
 
+    /**
+     * @ignore
+     * @method
+     * @description authenticates the user to access private web socket channels
+     * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-challenge
+     * @returns {object} response from exchange
+     */
     public async virtual Task<object> authenticate(object parameters = null)
     {
-        /**
-        * @ignore
-        * @method
-        * @description authenticates the user to access private web socket channels
-        * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-challenge
-        * @returns {object} response from exchange
-        */
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         // Hash the challenge with the SHA-256 algorithm
@@ -76,32 +76,32 @@ public partial class krakenfutures : ccxt.krakenfutures
         object url = getValue(getValue(this.urls, "api"), "ws");
         object messageHash = "challenge";
         var client = this.client(url);
-        var future = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
-        if (isTrue(isEqual(future, null)))
+        var future = client.future(messageHash);
+        object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
+        if (isTrue(isEqual(authenticated, null)))
         {
             object request = new Dictionary<string, object>() {
                 { "event", "challenge" },
                 { "api_key", this.apiKey },
             };
             object message = this.extend(request, parameters);
-            future = await this.watch(url, messageHash, message, messageHash);
-            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)messageHash] = future;
+            this.watch(url, messageHash, message, messageHash);
         }
-        return future;
+        return await (future as Exchange.Future);
     }
 
+    /**
+     * @method
+     * @name krakenfutures#watchOrderBookForSymbols
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-challenge
+     * @param {string[]} symbols unified array of symbols
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name krakenfutures#watchOrderBookForSymbols
-        * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-challenge
-        * @param {string[]} symbols unified array of symbols
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         object orderbook = await this.watchMultiHelper("orderbook", "book", symbols, new Dictionary<string, object>() {
             { "limit", limit },
@@ -109,17 +109,17 @@ public partial class krakenfutures : ccxt.krakenfutures
         return (orderbook as IOrderBook).limit();
     }
 
+    /**
+     * @ignore
+     * @method
+     * @description Connects to a websocket channel
+     * @param {string} name name of the channel
+     * @param {string[]} symbols CCXT market symbols
+     * @param {object} [params] extra parameters specific to the krakenfutures api
+     * @returns {object} data from the websocket stream
+     */
     public async virtual Task<object> subscribePublic(object name, object symbols, object parameters = null)
     {
-        /**
-        * @ignore
-        * @method
-        * @description Connects to a websocket channel
-        * @param {string} name name of the channel
-        * @param {string[]} symbols CCXT market symbols
-        * @param {object} [params] extra parameters specific to the krakenfutures api
-        * @returns {object} data from the websocket stream
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object url = getValue(getValue(this.urls, "api"), "ws");
@@ -149,17 +149,17 @@ public partial class krakenfutures : ccxt.krakenfutures
         return await this.watch(url, messageHash, request, messageHash);
     }
 
+    /**
+     * @ignore
+     * @method
+     * @description Connects to a websocket channel
+     * @param {string} name name of the channel
+     * @param {string} messageHash unique identifier for the message
+     * @param {object} [params] extra parameters specific to the krakenfutures api
+     * @returns {object} data from the websocket stream
+     */
     public async virtual Task<object> subscribePrivate(object name, object messageHash, object parameters = null)
     {
-        /**
-        * @ignore
-        * @method
-        * @description Connects to a websocket channel
-        * @param {string} name name of the channel
-        * @param {string[]} symbols CCXT market symbols
-        * @param {object} [params] extra parameters specific to the krakenfutures api
-        * @returns {object} data from the websocket stream
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         await this.authenticate();
@@ -175,17 +175,17 @@ public partial class krakenfutures : ccxt.krakenfutures
         return await this.watch(url, messageHash, request, messageHash);
     }
 
+    /**
+     * @method
+     * @name krakenfutures#watchTicker
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name krakenfutures#watchTicker
-        * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbol = this.symbol(symbol);
@@ -193,17 +193,17 @@ public partial class krakenfutures : ccxt.krakenfutures
         return getValue(tickers, symbol);
     }
 
+    /**
+     * @method
+     * @name krakenfutures#watchTickers
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker
+     * @param {string[]} symbols unified symbols of the markets to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name krakenfutures#watchTickers
-        * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, null, false);
@@ -217,17 +217,17 @@ public partial class krakenfutures : ccxt.krakenfutures
         return this.filterByArray(this.tickers, "symbol", symbols);
     }
 
+    /**
+     * @method
+     * @name krakenfutures#watchBidsAsks
+     * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker-lite
+     * @description watches best bid & ask for symbols
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name krakenfutures#watchBidsAsks
-        * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker-lite
-        * @description watches best bid & ask for symbols
-        * @param {string[]} symbols unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object ticker = await this.watchMultiHelper("bidask", "ticker_lite", symbols, null, parameters);
         if (isTrue(this.newUpdates))
@@ -239,36 +239,36 @@ public partial class krakenfutures : ccxt.krakenfutures
         return this.filterByArray(this.bidsasks, "symbol", symbols);
     }
 
+    /**
+     * @method
+     * @name krakenfutures#watchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-trade
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> watchTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name krakenfutures#watchTrades
-        * @description get the list of most recent trades for a particular symbol
-        * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-trade
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         return await this.watchTradesForSymbols(new List<object>() {symbol}, since, limit, parameters);
     }
 
+    /**
+     * @method
+     * @name krakenfutures#watchTradesForSymbols
+     * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-trade
+     * @description get the list of most recent trades for a list of symbols
+     * @param {string[]} symbols unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name krakenfutures#watchTradesForSymbols
-        * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-trade
-        * @description get the list of most recent trades for a list of symbols
-        * @param {string[]} symbols unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         object trades = await this.watchMultiHelper("trade", "trade", symbols, null, parameters);
         if (isTrue(this.newUpdates))
@@ -280,33 +280,35 @@ public partial class krakenfutures : ccxt.krakenfutures
         return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
     }
 
+    /**
+     * @method
+     * @name krakenfutures#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-book
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] not used by krakenfutures watchOrderBook
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name krakenfutures#watchOrderBook
-        * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-book
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] not used by krakenfutures watchOrderBook
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         return await this.watchOrderBookForSymbols(new List<object>() {symbol}, limit, parameters);
     }
 
+    /**
+     * @method
+     * @name krakenfutures#watchPositions
+     * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-open-positions
+     * @description watch all open positions
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param since
+     * @param limit
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+     */
     public async override Task<object> watchPositions(object symbols = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name krakenfutures#watchPositions
-        * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-open-positions
-        * @description watch all open positions
-        * @param {string[]|undefined} symbols list of unified market symbols
-        * @param {object} params extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object messageHash = "";
@@ -436,20 +438,20 @@ public partial class krakenfutures : ccxt.krakenfutures
         });
     }
 
+    /**
+     * @method
+     * @name krakenfutures#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-open-orders
+     * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-open-orders-verbose
+     * @param {string} symbol not used by krakenfutures watchOrders
+     * @param {int} [since] not used by krakenfutures watchOrders
+     * @param {int} [limit] not used by krakenfutures watchOrders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name krakenfutures#watchOrders
-        * @description watches information on multiple orders made by the user
-        * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-open-orders
-        * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-open-orders-verbose
-        * @param {string} symbol not used by krakenfutures watchOrders
-        * @param {int} [since] not used by krakenfutures watchOrders
-        * @param {int} [limit] not used by krakenfutures watchOrders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object name = "open_orders";
@@ -467,19 +469,19 @@ public partial class krakenfutures : ccxt.krakenfutures
         return this.filterBySinceLimit(orders, since, limit, "timestamp", true);
     }
 
+    /**
+     * @method
+     * @name krakenfutures#watchMyTrades
+     * @description watches information on multiple trades made by the user
+     * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-fills
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name krakenfutures#watchMyTrades
-        * @description watches information on multiple trades made by the user
-        * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-fills
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object name = "fills";
@@ -497,20 +499,17 @@ public partial class krakenfutures : ccxt.krakenfutures
         return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
     }
 
+    /**
+     * @method
+     * @name krakenfutures#watchBalance
+     * @description watches information on the user's account balance
+     * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-balances
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.account] can be either 'futures' or 'flex_futures'
+     * @returns {object} a object of wallet types each with a balance structure {@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> watchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name krakenfutures#watchOrders
-        * @description watches information on multiple orders made by the user
-        * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-balances
-        * @param {string} symbol not used by krakenfutures watchBalance
-        * @param {int} [since] not used by krakenfutures watchBalance
-        * @param {int} [limit] not used by krakenfutures watchBalance
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.account] can be either 'futures' or 'flex_futures'
-        * @returns {object} a object of wallet types each with a balance structure {@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object name = "balances";
@@ -523,7 +522,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         {
             if (isTrue(isTrue(!isEqual(account, "futures")) && isTrue(!isEqual(account, "flex_futures"))))
             {
-                throw new ArgumentsRequired ((string)add(this.id, " watchBalance account must be either \'futures\' or \'flex_futures\'")) ;
+                throw new ArgumentsRequired ((string)add(this.id, " watchBalance account must be either 'futures' or 'flex_futures'")) ;
             }
             messageHash = add(messageHash, add(":", account));
         }
@@ -542,7 +541,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         //            {
         //                "feed": "trade",
         //                "product_id": "PI_XBTUSD",
-        //                "uid": "caa9c653-420b-4c24-a9f1-462a054d86f1",
+        //                "uid": "caa9c653-420b-4c24-a9f2-462a054d86f1",
         //                "side": "sell",
         //                "type": "fill",
         //                "seq": 655508,
@@ -1170,6 +1169,8 @@ public partial class krakenfutures : ccxt.krakenfutures
             { "average", null },
             { "baseVolume", this.safeString(ticker, "volume") },
             { "quoteVolume", this.safeString(ticker, "volumeQuote") },
+            { "markPrice", this.safeString(ticker, "markPrice") },
+            { "indexPrice", this.safeString(ticker, "index") },
         });
     }
 
@@ -1719,14 +1720,15 @@ public partial class krakenfutures : ccxt.krakenfutures
             object signature = this.hmac(hashedChallenge, base64Secret, sha512, "base64");
             ((IDictionary<string,object>)this.options)["challenge"] = challenge;
             ((IDictionary<string,object>)this.options)["signedChallenge"] = signature;
-            callDynamically(client as WebSocketClient, "resolve", new object[] {message, messageHash});
+            var future = this.safeValue((client as WebSocketClient).futures, messageHash);
+            (future as Future).resolve(true);
         } else
         {
             var error = new AuthenticationError(add(add(this.id, " "), this.json(message)));
             ((WebSocketClient)client).reject(error, messageHash);
             if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
             {
-
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
             }
         }
         return message;

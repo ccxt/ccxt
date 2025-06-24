@@ -40,6 +40,13 @@ const keysort = (x: Dictionary<any>, out: Dictionary<any> = {}) => {
     return out;
 };
 
+const sort = (array: string[]| any) => {
+    const newArray = array.slice();
+    newArray.sort();
+    return newArray;
+}
+
+
 /*
     Accepts a map/array of objects and a key name to be used as an index:
     array = [
@@ -129,7 +136,7 @@ const flatten = function flatten (x: any[], out: any[] = []) {
 
 const pluck = (x: Dictionary<any>, k: any) => values (x).filter ((v) => k in v).map ((v) => v[k]);
 
-const omit = (x: Dictionary<any>, ...args) => {
+const omit = (x: Dictionary<any>, ...args: any) => {
 
     if (!Array.isArray (x)) {
 
@@ -207,7 +214,7 @@ export {
     , isEmpty
 
     // ------------------------------------------------------------------------
-
+    , sort
     , keysort
 
     // ------------------------------------------------------------------------

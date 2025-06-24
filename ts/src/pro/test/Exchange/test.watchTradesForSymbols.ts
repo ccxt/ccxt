@@ -2,8 +2,9 @@
 import assert from 'assert';
 import testTrade from '../../../test/Exchange/base/test.trade.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
+import { Exchange } from '../../../../ccxt.js';
 
-async function testWatchTradesForSymbols (exchange, skippedProperties, symbols) {
+async function testWatchTradesForSymbols (exchange: Exchange, skippedProperties: object, symbols: string[]) {
     const method = 'watchTradesForSymbols';
     let now = exchange.milliseconds ();
     const ends = now + 15000;

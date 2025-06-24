@@ -16,7 +16,7 @@ public partial class Exchange
 
     public string uuid()
     {
-        return BaseUID();
+        return uuid2();
     }
 
     public string uuid16()

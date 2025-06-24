@@ -17,7 +17,7 @@ public partial class Exchange
 
     public dict keysort(object parameters2)
     {
-        var parameters = (dict)parameters2;
+        var parameters = (IDictionary<string, object>)parameters2;
         var keys = new List<string>(parameters.Keys);
         keys.Sort();
         var outDict = new dict();
@@ -26,6 +26,34 @@ public partial class Exchange
             outDict.Add(key, parameters[key]);
         }
         return outDict;
+    }
+
+    public List<string> sort(object inputListObj)
+    {
+        var sortedList = new List<string>();
+
+        if (inputListObj is IList<string> stringList)
+        {
+            sortedList.AddRange(stringList);
+        }
+        else if (inputListObj is IList<object> objectList)
+        {
+            foreach (var item in objectList)
+            {
+                if (item is string str)
+                {
+                    sortedList.Add(str);
+                }
+            }
+        }
+        else
+        {
+            // Unsupported type; return empty list
+            return sortedList;
+        }
+
+        sortedList.Sort();
+        return sortedList;
     }
 
 
@@ -252,6 +280,13 @@ public partial class Exchange
     {
         if (obj == null)
             return null;
+        // Check if the object is an exception
+        if (obj is Exception ex)
+        {
+            var errorObj = new { name = ex.GetType().Name };
+            return JsonConvert.SerializeObject(errorObj);
+        }
+
         return JsonConvert.SerializeObject(obj);
         // if (obj.GetType() == typeof(dict))
         // {
