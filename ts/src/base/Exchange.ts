@@ -1510,7 +1510,7 @@ export default class Exchange {
     streamReconnectOnError () {
         const callback = async (message: Message) => {
             const error = message.payload;
-            if (error !== undefined && !(message.error instanceof ExchangeClosedByUser) && !(message.error instanceof ConsumerFunctionError)) {
+            if (error !== undefined && !(message.error instanceof ConsumerFunctionError)) {
                 try{
                     await this.streamReconnect ();
                 } catch (e) {
