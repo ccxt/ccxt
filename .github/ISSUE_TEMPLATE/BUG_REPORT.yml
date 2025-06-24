@@ -55,7 +55,6 @@ body:
   - type: textarea
     attributes:
       label: Description
-      description: Describe the issue that you're having precisely. Include clear steps for how to reproduce the issue.
     validations:
       required: false
 
