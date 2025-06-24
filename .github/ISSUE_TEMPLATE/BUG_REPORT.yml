@@ -20,8 +20,8 @@ body:
         - surround your code and verbose output with triple backticks: 
           &#096;&#096;&#096;
           your codes & output
-          &#096;&#096;&#096;**
-          (You can remove sensitive info from output)
+          &#096;&#096;&#096;
+          (You can remove credentials info from output)
 
   - type: input
     id: operating-system
