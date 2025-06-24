@@ -363,6 +363,52 @@ public partial class cryptocom
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
+    /// edit a trade order
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-amend-order"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>type</term>
+    /// <description>
+    /// string : not used by cryptocom editOrder
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>side</term>
+    /// <description>
+    /// string : not used by cryptocom editOrder
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.clientOrderId</term>
+    /// <description>
+    /// string : the original client order id of the order to edit, required if id is not provided
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    public async Task<Order> EditOrder(string id, string symbol, string type, string side, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var amount = amount2 == 0 ? null : (object)amount2;
+        var price = price2 == 0 ? null : (object)price2;
+        var res = await this.editOrder(id, symbol, type, side, amount, price, parameters);
+        return new Order(res);
+    }
+    public Dictionary<string, object> EditOrderRequest(string id, string symbol, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var price = price2 == 0 ? null : (object)price2;
+        var res = this.editOrderRequest(id, symbol, amount, price, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
     /// cancel all open orders
     /// </summary>
     /// <remarks>

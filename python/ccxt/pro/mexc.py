@@ -768,6 +768,8 @@ class mexc(ccxt.async_support.mexc):
         messageHash = 'orderbook:' + symbol
         subscription = self.safe_value(client.subscriptions, messageHash)
         limit = self.safe_integer(subscription, 'limit')
+        if not (symbol in self.orderbooks):
+            self.orderbooks[symbol] = self.order_book()
         storedOrderBook = self.orderbooks[symbol]
         nonce = self.safe_integer(storedOrderBook, 'nonce')
         if nonce is None:
@@ -1056,7 +1058,6 @@ class mexc(ccxt.async_support.mexc):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        params = self.omit(params, 'type')
         messageHash = 'orders'
         market = None
         if symbol is not None:

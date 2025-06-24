@@ -1425,9 +1425,6 @@ class coinbase(Exchange, ImplicitAPI):
                 self.v3PublicGetBrokerageMarketProducts(self.extend(params, {'product_type': 'FUTURE'})),
                 self.v3PublicGetBrokerageMarketProducts(self.extend(params, {'product_type': 'FUTURE', 'contract_expiry_type': 'PERPETUAL'})),
             ]
-            if self.check_required_credentials(False):
-                unresolvedContractPromises.append(self.extend(params, {'product_type': 'FUTURE'}))
-                unresolvedContractPromises.append(self.extend(params, {'product_type': 'FUTURE', 'contract_expiry_type': 'PERPETUAL'}))
         except Exception as e:
             unresolvedContractPromises = []  # the sync version of ccxt won't have the promise.all line so the request is made here. Some users can't access perpetual products
         promises = await asyncio.gather(*spotUnresolvedPromises)
@@ -1440,8 +1437,8 @@ class coinbase(Exchange, ImplicitAPI):
         fees = self.safe_dict(promises, 1, {})
         expiringFutures = self.safe_dict(contractPromises, 0, {})
         perpetualFutures = self.safe_dict(contractPromises, 1, {})
-        expiringFees = self.safe_dict(contractPromises, 2, {})
-        perpetualFees = self.safe_dict(contractPromises, 3, {})
+        expiringFees = self.safe_dict(contractPromises, 0, {})
+        perpetualFees = self.safe_dict(contractPromises, 1, {})
         #
         #     {
         #         "total_volume": 0,
@@ -4412,7 +4409,7 @@ class coinbase(Exchange, ImplicitAPI):
         """
         *futures only* closes open positions for a market
 
-        https://coinbase-api.github.io/docs/#/en-us/swapV2/trade-api.html#One-Click%20Close%20All%20Positions
+        https://docs.cdp.coinbase.com/coinbase-app/trade/reference/retailbrokerageapi_closeposition
 
         :param str symbol: Unified CCXT market symbol
         :param str [side]: not used by coinbase
@@ -4423,8 +4420,6 @@ class coinbase(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        if not market['future']:
-            raise NotSupported(self.id + ' closePosition() only supported for futures markets')
         clientOrderId = self.safe_string_2(params, 'client_order_id', 'clientOrderId')
         params = self.omit(params, 'clientOrderId')
         request: dict = {

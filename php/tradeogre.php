@@ -424,13 +424,13 @@ class tradeogre extends Exchange {
             'vwap' => null,
             'open' => $this->safe_string($ticker, 'initialprice'),
             'close' => $this->safe_string($ticker, 'price'),
-            'last' => null,
+            'last' => $this->safe_string($ticker, 'price'),
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => $this->safe_string($ticker, 'volume'),
+            'baseVolume' => $this->safe_string($ticker, 'volume'),
+            'quoteVolume' => null,
             'info' => $ticker,
         ), $market);
     }

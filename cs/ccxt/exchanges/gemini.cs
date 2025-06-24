@@ -406,9 +406,6 @@ public partial class gemini : Exchange
             if (isTrue(!isEqual(networkId, null)))
             {
                 networkCode = this.networkIdToCode(networkId);
-            }
-            if (isTrue(!isEqual(networkCode, null)))
-            {
                 ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                     { "info", currency },
                     { "id", networkId },
@@ -430,7 +427,7 @@ public partial class gemini : Exchange
                     } },
                 };
             }
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "info", currency },
                 { "id", id },
                 { "code", code },
@@ -452,7 +449,7 @@ public partial class gemini : Exchange
                     } },
                 } },
                 { "networks", networks },
-            };
+            });
         }
         return result;
     }

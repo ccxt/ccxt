@@ -1151,47 +1151,43 @@ class hashkey(Exchange, ImplicitAPI):
             currecy = coins[i]
             currencyId = self.safe_string(currecy, 'coinId')
             code = self.safe_currency_code(currencyId)
-            allowWithdraw = self.safe_bool(currecy, 'allowWithdraw')
-            allowDeposit = self.safe_bool(currecy, 'allowDeposit')
             networks = self.safe_list(currecy, 'chainTypes')
-            networksById = self.safe_dict(self.options, 'networksById')
             parsedNetworks: dict = {}
             for j in range(0, len(networks)):
                 network = networks[j]
                 networkId = self.safe_string(network, 'chainType')
-                networkName = self.safe_string(networksById, networkId, networkId)
-                maxWithdrawQuantity = self.omit_zero(self.safe_string(network, 'maxWithdrawQuantity'))
-                networkDeposit = self.safe_bool(network, 'allowDeposit')
-                networkWithdraw = self.safe_bool(network, 'allowWithdraw')
-                parsedNetworks[networkName] = {
+                networkCode = self.network_code_to_id(networkId)
+                parsedNetworks[networkCode] = {
                     'id': networkId,
-                    'network': networkName,
+                    'network': networkCode,
                     'limits': {
                         'withdraw': {
                             'min': self.safe_number(network, 'minWithdrawQuantity'),
-                            'max': self.parse_number(maxWithdrawQuantity),
+                            'max': self.parse_number(self.omit_zero(self.safe_string(network, 'maxWithdrawQuantity'))),
                         },
                         'deposit': {
                             'min': self.safe_number(network, 'minDepositQuantity'),
                             'max': None,
                         },
                     },
-                    'active': networkDeposit and networkWithdraw,
-                    'deposit': networkDeposit,
-                    'withdraw': networkWithdraw,
+                    'active': None,
+                    'deposit': self.safe_bool(network, 'allowDeposit'),
+                    'withdraw': self.safe_bool(network, 'allowWithdraw'),
                     'fee': self.safe_number(network, 'withdrawFee'),
                     'precision': None,
                     'info': network,
                 }
-            result[code] = {
+            rawType = self.safe_string(currecy, 'tokenType')
+            type = 'fiat' if (rawType == 'REAL_MONEY') else 'crypto'
+            result[code] = self.safe_currency_structure({
                 'id': currencyId,
                 'code': code,
                 'precision': None,
-                'type': self.parse_currency_type(self.safe_string(currecy, 'tokenType')),
+                'type': type,
                 'name': self.safe_string(currecy, 'coinFullName'),
-                'active': allowWithdraw and allowDeposit,
-                'deposit': allowDeposit,
-                'withdraw': allowWithdraw,
+                'active': None,
+                'deposit': self.safe_bool(currecy, 'allowDeposit'),
+                'withdraw': self.safe_bool(currecy, 'allowWithdraw'),
                 'fee': None,
                 'limits': {
                     'deposit': {
@@ -1205,17 +1201,8 @@ class hashkey(Exchange, ImplicitAPI):
                 },
                 'networks': parsedNetworks,
                 'info': currecy,
-            }
+            })
         return result
-
-    def parse_currency_type(self, type):
-        types = {
-            'CHAIN_TOKEN': 'crypto',
-            'ERC20_TOKEN': 'crypto',
-            'BSC_TOKEN': 'crypto',
-            'REAL_MONEY': 'fiat',
-        }
-        return self.safe_string(types, type)
 
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """

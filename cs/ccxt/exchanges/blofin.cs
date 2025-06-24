@@ -2689,7 +2689,7 @@ public partial class blofin : Exchange
         object request = new Dictionary<string, object>() {
             { "marginMode", marginMode },
         };
-        object response = await ((Task<object>)callDynamically(this, "privatePostAccountSetMarginMode", new object[] { this.extend(request, parameters) }));
+        object response = await this.privatePostAccountSetMarginMode(this.extend(request, parameters));
         //
         //     {
         //         "code": "0",
@@ -2715,7 +2715,7 @@ public partial class blofin : Exchange
     public async override Task<object> fetchPositionMode(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await ((Task<object>)callDynamically(this, "privateGetAccountPositionMode", new object[] { parameters }));
+        object response = await this.privateGetAccountPositionMode(parameters);
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object positionMode = this.safeString(data, "positionMode");
         //
@@ -2758,7 +2758,7 @@ public partial class blofin : Exchange
         //         }
         //     }
         //
-        return await ((Task<object>)callDynamically(this, "privatePostAccountSetPositionMode", new object[] { this.extend(request, parameters) }));
+        return await this.privatePostAccountSetPositionMode(this.extend(request, parameters));
     }
 
     public override object handleErrors(object httpCode, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)

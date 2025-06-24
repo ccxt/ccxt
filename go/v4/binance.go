@@ -4002,7 +4002,7 @@ func  (this *binance) ParseTicker(ticker interface{}, optionalArgs ...interface{
     //
     //     {
     //         "symbol": "BTCUSDT",
-    //         "markPrice": "11793.63104562", // mark price
+    //         "markPrice": "11793.63104561", // mark price
     //         "indexPrice": "11781.80495970", // index price
     //         "estimatedSettlePrice": "11781.16138815", // Estimated Settle Price, only useful in the last hour before the settlement starts
     //         "lastFundingRate": "0.00038246",  // This is the lastest estimated funding rate
@@ -5395,7 +5395,6 @@ func  (this *binance) EditSpotOrderRequest(id interface{}, symbol interface{}, t
     if IsTrue(postOnly) {
         uppercaseType = "LIMIT_MAKER"
     }
-    AddElementToObject(request, "type", uppercaseType)
     var triggerPrice interface{} = this.SafeNumber2(params, "stopPrice", "triggerPrice")
     if IsTrue(!IsEqual(triggerPrice, nil)) {
         if IsTrue(IsEqual(uppercaseType, "MARKET")) {
@@ -5404,6 +5403,7 @@ func  (this *binance) EditSpotOrderRequest(id interface{}, symbol interface{}, t
             uppercaseType = "STOP_LOSS_LIMIT"
         }
     }
+    AddElementToObject(request, "type", uppercaseType)
     var validOrderTypes interface{} = this.SafeList(GetValue(market, "info"), "orderTypes")
     if !IsTrue(this.InArray(uppercaseType, validOrderTypes)) {
         if IsTrue(!IsEqual(initialUppercaseType, uppercaseType)) {
@@ -11195,7 +11195,7 @@ func  (this *binance) LoadLeverageBrackets(optionalArgs ...interface{}) <- chan 
                 } else {
                     panic(NotSupported(Add(this.Id, " loadLeverageBrackets() supports linear and inverse contracts only")))
                 }
-                AddElementToObject(this.Options, "leverageBrackets", map[string]interface{} {})
+                AddElementToObject(this.Options, "leverageBrackets", this.CreateSafeDictionary())
                 for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
                     var entry interface{} = GetValue(response, i)
                     var marketId interface{} = this.SafeString(entry, "symbol")
