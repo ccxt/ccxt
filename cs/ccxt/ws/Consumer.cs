@@ -59,7 +59,7 @@ namespace ccxt.pro
             if (backlog.Count > MAX_BACKLOG_SIZE)
             {
                 Console.WriteLine($"Warning: WebSocket consumer backlog is too large ({backlog.Count} messages). This might indicate a performance issue or message processing bottleneck. Dropping oldest message.");
-                backlog.TryDequeue(out _);
+                backlog.Dequeue();
             }
             if (!running)
             {
@@ -78,10 +78,8 @@ namespace ccxt.pro
 
             while (backlog.Count > 0)
             {
-                if (backlog.TryDequeue(out var message))
-                {
-                    await HandleMessage(message);
-                }
+                var message = backlog.Dequeue();
+                await HandleMessage(message);
             }
 
             running = false;
