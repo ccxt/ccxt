@@ -10,9 +10,8 @@ body:
         - Your issue is directly related to ccxt
         - You have already searched for similar issues
         - Your local CCXT version is up to date (check the [latest available version](https://github.com/ccxt/ccxt/blob/master/package.json#L3) )
-        - Read the [Manual](https://github.com/ccxt/ccxt/wiki/Manual), especially sections: `Exchange Properties`, `Rate Limit`, `Authentication`, `API keys`, as the subject might already be described there.
-        - Read the [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) for most frequently asked questions
-        - Read the [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting) section of the manual and followed troubleshooting steps
+        - Read the [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) or search for the specific subject in the [Manual](https://github.com/ccxt/ccxt/wiki/Manual) (eg: `Exchange Properties`, `Rate Limit`, `Authentication`, `API keys`, etc).
+        - Read the [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting) to better understand your issue.
 
         ## Please provide:
         - Set `exchange.verbose = true` property before calling exchange functions
