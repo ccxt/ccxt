@@ -358,6 +358,14 @@ export default class cryptocom extends Exchange {
                     'TRC20': 'TRON',
                 },
                 'broker': 'CCXT',
+                // hardcoded precisions (from https://crypto.com/fe-ex-api/common/supported_coins), because API does not provide them
+                'currencyPrecisions': {
+                    'BTC': '0.00000001',
+                    'ETH': '0.000001',
+                    'USDT': '0.01',
+                    'GUSD': '0.01',
+                    // default 4 for all other currencies
+                },
             },
             'features': {
                 'default': {
@@ -596,6 +604,7 @@ export default class cryptocom extends Exchange {
         //
         const resultData = this.safeDict (response, 'result', {});
         const currencyMap = this.safeDict (resultData, 'currency_map', {});
+        const currencyPrecisions = this.safeDict (this.options, 'currencyPrecisions', {});
         const keys = Object.keys (currencyMap);
         const result: Dict = {};
         for (let i = 0; i < keys.length; i++) {
@@ -635,7 +644,7 @@ export default class cryptocom extends Exchange {
                 'deposit': undefined,
                 'withdraw': undefined,
                 'fee': undefined,
-                'precision': undefined,
+                'precision': this.safeNumber (currencyPrecisions, code, 0.0001),
                 'limits': {
                     'amount': {
                         'min': undefined,
