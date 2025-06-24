@@ -534,7 +534,26 @@ export default class cryptocom extends Exchange {
         if (!this.checkRequiredCredentials(false)) {
             return undefined;
         }
-        const response = await this.v1PrivatePostPrivateGetCurrencyNetworks(params);
+        let skipFetchCurrencies = false;
+        [skipFetchCurrencies, params] = this.handleOptionAndParams(params, 'fetchCurrencies', 'skipFetchCurrencies', false);
+        if (skipFetchCurrencies) {
+            // sub-accounts can't access this endpoint
+            return undefined;
+        }
+        let response = {};
+        try {
+            response = await this.v1PrivatePostPrivateGetCurrencyNetworks(params);
+        }
+        catch (e) {
+            if (e instanceof ExchangeError) {
+                // sub-accounts can't access this endpoint
+                // {"code":"10001","msg":"SYS_ERROR"}
+                return undefined;
+            }
+            throw e;
+            // do nothing
+            // sub-accounts can't access this endpoint
+        }
         //
         //    {
         //        "id": "1747502328559",

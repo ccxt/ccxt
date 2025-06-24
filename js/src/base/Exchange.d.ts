@@ -444,6 +444,7 @@ export default class Exchange {
     watchMyLiquidations(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
     watchMyLiquidationsForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    unWatchOrders(symbol?: Str, params?: {}): Promise<any>;
     unWatchTrades(symbol: string, params?: {}): Promise<any>;
     watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     unWatchTradesForSymbols(symbols: string[], params?: {}): Promise<any>;
