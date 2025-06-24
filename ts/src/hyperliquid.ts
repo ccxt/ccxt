@@ -220,6 +220,7 @@ export default class hyperliquid extends Exchange {
                 'sandboxMode': false,
                 'defaultSlippage': 0.05,
                 'zeroAddress': '0x0000000000000000000000000000000000000000',
+                'defaultCurrencyPrecision': 5,
             },
             'features': {
                 'default': {
@@ -402,6 +403,7 @@ export default class hyperliquid extends Exchange {
         const meta = this.safeList (responseMeta, 'universe', []);
         const tokens = this.safeList (responseSpotMeta, 'tokens', []);
         const indexedTokens = this.indexBy (tokens, 'name');
+        const defaultPrecision = this.safeString (this.options, 'defaultCurrencyPrecision', '5');
         const result: Dict = {};
         for (let i = 0; i < meta.length; i++) {
             const data = this.safeDict (meta, i, {});
@@ -413,7 +415,7 @@ export default class hyperliquid extends Exchange {
                 'id': id,
                 'name': name,
                 'code': code,
-                'precision': this.parseNumber (this.parsePrecision (this.safeString (tokenInfo, 'weiDecimals'))),
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (tokenInfo, 'weiDecimals', defaultPrecision))),
                 'info': data,
                 'active': undefined,
                 'deposit': undefined,

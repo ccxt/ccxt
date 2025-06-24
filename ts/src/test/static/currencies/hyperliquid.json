@@ -11,18 +11,18 @@
         }
     },
     "BTC": {
-        "id": 0,
-        "name": "BTC",
-        "code": "BTC",
-        "precision": 0.00001,
         "info": {
             "szDecimals": "5",
             "name": "BTC",
-            "maxLeverage": "50",
-            "marginTableId": "40"
+            "maxLeverage": "40",
+            "marginTableId": "56"
         },
+        "id": 0,
         "numericId": null,
+        "code": "BTC",
+        "precision": 0.00001,
         "type": "crypto",
+        "name": "BTC",
         "active": null,
         "deposit": null,
         "withdraw": null,
