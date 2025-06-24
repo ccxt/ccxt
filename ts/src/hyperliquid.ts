@@ -1450,7 +1450,7 @@ export default class hyperliquid extends Exchange {
         return this.parseOrders (statuses, undefined);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: string, price: Str = undefined, params = {}) {
         const market = this.market (symbol);
         type = type.toUpperCase ();
         side = side.toUpperCase ();
@@ -1563,19 +1563,20 @@ export default class hyperliquid extends Exchange {
             let orderParams = this.safeDict (rawOrder, 'params', {});
             const slippage = this.safeString (orderParams, 'slippage', defaultSlippage);
             orderParams['slippage'] = slippage;
-            const mainOrderObj: Dict = this.createOrderRequest (symbol, type, side, amount, price, orderParams);
-            orderReq.push (mainOrderObj);
             const stopLoss = this.safeValue (orderParams, 'stopLoss');
             const takeProfit = this.safeValue (orderParams, 'takeProfit');
             const isTrigger = (stopLoss || takeProfit);
+            orderParams = this.omit (orderParams, [ 'stopLoss', 'takeProfit' ]);
+            const mainOrderObj: Dict = this.createOrderRequest (symbol, type, side, amount, price, orderParams);
+            orderReq.push (mainOrderObj);
             if (isTrigger) {
+                // grouping opposed orders for sl/tp
                 const stopLossOrderTriggerPrice = this.safeStringN (stopLoss, [ 'triggerPrice', 'stopPrice' ]);
                 const stopLossOrderType = this.safeString (stopLoss, 'type');
-                const stopLossOrderLimitPrice = this.safeStringN (stopLoss, [ 'price', 'stopLossPrice' ]);
+                const stopLossOrderLimitPrice = this.safeStringN (stopLoss, [ 'price', 'stopLossPrice' ], stopLossOrderTriggerPrice);
                 const takeProfitOrderTriggerPrice = this.safeStringN (takeProfit, [ 'triggerPrice', 'stopPrice' ]);
                 const takeProfitOrderType = this.safeString (takeProfit, 'type');
-                const takeProfitOrderLimitPrice = this.safeStringN (takeProfit, [ 'price', 'takeProfitPrice' ]);
-                // TODO: create sl/tp orders
+                const takeProfitOrderLimitPrice = this.safeStringN (takeProfit, [ 'price', 'takeProfitPrice' ], takeProfitOrderTriggerPrice);
                 grouping = 'normalTpsl';
                 orderParams = this.omit (orderParams, [ 'stopLoss', 'takeProfit' ]);
                 let triggerOrderSide = '';
@@ -1599,8 +1600,6 @@ export default class hyperliquid extends Exchange {
                     orderReq.push (orderObj);
                 }
             }
-            //const orderObj: Dict = this.createOrderRequest (symbol, type, side, amount, price, orderParams);
-            //orderReq.push (orderObj);
         }
         let vaultAddress = undefined;
         [ vaultAddress, params ] = this.handleOptionAndParams (params, 'createOrder', 'vaultAddress');
