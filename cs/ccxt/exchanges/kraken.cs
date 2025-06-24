@@ -1420,7 +1420,20 @@ public partial class kraken : Exchange
         //         "maker": false
         //     }
         //
+        // watchTrades
+        //
+        //     {
+        //         "symbol": "BTC/USD",
+        //         "side": "buy",
+        //         "price": 109601.2,
+        //         "qty": 0.04561994,
+        //         "ord_type": "market",
+        //         "trade_id": 83449369,
+        //         "timestamp": "2025-05-27T11:24:03.847761Z"
+        //     }
+        //
         object timestamp = null;
+        object datetime = null;
         object side = null;
         object type = null;
         object price = null;
@@ -1475,6 +1488,15 @@ public partial class kraken : Exchange
                     { "currency", currency },
                 };
             }
+        } else
+        {
+            symbol = this.safeString(trade, "symbol");
+            datetime = this.safeString(trade, "timestamp");
+            id = this.safeString(trade, "trade_id");
+            side = this.safeString(trade, "side");
+            type = this.safeString(trade, "ord_type");
+            price = this.safeString(trade, "price");
+            amount = this.safeString(trade, "qty");
         }
         if (isTrue(!isEqual(market, null)))
         {
@@ -1487,12 +1509,19 @@ public partial class kraken : Exchange
         {
             takerOrMaker = ((bool) isTrue(maker)) ? "maker" : "taker";
         }
+        if (isTrue(isEqual(datetime, null)))
+        {
+            datetime = this.iso8601(timestamp);
+        } else
+        {
+            timestamp = this.parse8601(datetime);
+        }
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", id },
             { "order", orderId },
             { "info", trade },
             { "timestamp", timestamp },
-            { "datetime", this.iso8601(timestamp) },
+            { "datetime", datetime },
             { "symbol", symbol },
             { "type", type },
             { "side", side },

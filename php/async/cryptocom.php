@@ -540,7 +540,25 @@ class cryptocom extends Exchange {
             if (!$this->check_required_credentials(false)) {
                 return null;
             }
-            $response = Async\await($this->v1PrivatePostPrivateGetCurrencyNetworks ($params));
+            $skipFetchCurrencies = false;
+            list($skipFetchCurrencies, $params) = $this->handle_option_and_params($params, 'fetchCurrencies', 'skipFetchCurrencies', false);
+            if ($skipFetchCurrencies) {
+                // sub-accounts can't access this endpoint
+                return null;
+            }
+            $response = array();
+            try {
+                $response = Async\await($this->v1PrivatePostPrivateGetCurrencyNetworks ($params));
+            } catch (Exception $e) {
+                if ($e instanceof ExchangeError) {
+                    // sub-accounts can't access this endpoint
+                    // array("code":"10001","msg":"SYS_ERROR")
+                    return null;
+                }
+                throw $e;
+                // do nothing
+                // sub-accounts can't access this endpoint
+            }
             //
             //    {
             //        "id" => "1747502328559",

@@ -1136,6 +1136,10 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' watchTrades() is not supported yet');
     }
 
+    public function un_watch_orders(?string $symbol = null, $params = array ()) {
+        throw new NotSupported($this->id . ' unWatchOrders() is not supported yet');
+    }
+
     public function un_watch_trades(string $symbol, $params = array ()) {
         throw new NotSupported($this->id . ' unWatchTrades() is not supported yet');
     }
@@ -6590,7 +6594,7 @@ class Exchange extends \ccxt\Exchange {
                 $symbolAndTimeFrame = $symbolsAndTimeFrames[$i];
                 $symbol = $this->safe_string($symbolAndTimeFrame, 0);
                 $timeframe = $this->safe_string($symbolAndTimeFrame, 1);
-                if (is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs)) {
+                if (($this->ohlcvs !== null) && (is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs))) {
                     if (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol])) {
                         unset($this->ohlcvs[$symbol][$timeframe]);
                     }
@@ -6614,7 +6618,7 @@ class Exchange extends \ccxt\Exchange {
                 }
             }
         } else {
-            if ($topic === 'myTrades') {
+            if ($topic === 'myTrades' && ($this->myTrades !== null)) {
                 // don't reset $this->myTrades directly here
                 // because in c# we need to use a different object (thread-safe dict)
                 $keys = is_array($this->myTrades) ? array_keys($this->myTrades) : array();
@@ -6624,7 +6628,7 @@ class Exchange extends \ccxt\Exchange {
                         unset($this->myTrades[$key]);
                     }
                 }
-            } elseif ($topic === 'orders') {
+            } elseif ($topic === 'orders' && ($this->orders !== null)) {
                 $orderSymbols = is_array($this->orders) ? array_keys($this->orders) : array();
                 for ($i = 0; $i < count($orderSymbols); $i++) {
                     $orderSymbol = $orderSymbols[$i];
@@ -6632,7 +6636,7 @@ class Exchange extends \ccxt\Exchange {
                         unset($this->orders[$orderSymbol]);
                     }
                 }
-            } elseif ($topic === 'ticker') {
+            } elseif ($topic === 'ticker' && ($this->tickers !== null)) {
                 $tickerSymbols = is_array($this->tickers) ? array_keys($this->tickers) : array();
                 for ($i = 0; $i < count($tickerSymbols); $i++) {
                     $tickerSymbol = $tickerSymbols[$i];
