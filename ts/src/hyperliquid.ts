@@ -338,7 +338,7 @@ export default class hyperliquid extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies (params = {}): Promise<Currencies> {
-        const promise1 = this.publicPostInfo (this.extend ({ 'type': 'meta' }, params));
+        const promiseMeta = this.publicPostInfo (this.extend ({ 'type': 'meta' }, params));
         //
         //     [
         //         {
@@ -353,7 +353,7 @@ export default class hyperliquid extends Exchange {
         //         }
         //     ]
         //
-        const promise2 = this.publicPostInfo (this.extend ({ 'type': 'spotMeta' }, params));
+        const promiseSpotMeta = this.publicPostInfo (this.extend ({ 'type': 'spotMeta' }, params));
         //
         // {
         //     universe: [
@@ -397,9 +397,7 @@ export default class hyperliquid extends Exchange {
         //     ],
         // }
         //
-        const responses = await Promise.all ([ promise1, promise2 ]);
-        const responseMeta = responses[0];
-        const responseSpotMeta = responses[1];
+        const [ responseMeta, responseSpotMeta ] = await Promise.all ([ promiseMeta, promiseSpotMeta ]);
         const meta = this.safeList (responseMeta, 'universe', []);
         const tokens = this.safeList (responseSpotMeta, 'tokens', []);
         const indexedTokens = this.indexBy (tokens, 'name');
