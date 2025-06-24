@@ -789,6 +789,32 @@
                         "planType": "profit_loss"
                     }
                 ]
+            },
+            {
+                "description": "uta spot fetchOpenOrders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.bitget.com/api/v3/trade/unfilled-orders?category=SPOT&symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    null,
+                    {
+                        "uta": true
+                    }
+                ]
+            },
+            {
+                "description": "uta swap fetchOpenOrders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.bitget.com/api/v3/trade/unfilled-orders?category=USDT-FUTURES&symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "uta": true
+                    }
+                ]
             }
         ],
         "fetchClosedOrders": [
@@ -1265,7 +1291,10 @@
                 "method": "cancelAllOrders",
                 "url": "https://api.bitget.com/api/v3/trade/cancel-symbol-order",
                 "input": [
-                    "BTC/USDT"
+                    "BTC/USDT",
+                    {
+                        "uta": true
+                    }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT\",\"category\":\"SPOT\"}"
             },
@@ -1274,7 +1303,10 @@
                 "method": "cancelAllOrders",
                 "url": "https://api.bitget.com/api/v3/trade/cancel-symbol-order",
                 "input": [
-                    "BTC/USDT:USDT"
+                    "BTC/USDT:USDT",
+                    {
+                        "uta": true
+                    }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT\",\"category\":\"USDT-FUTURES\"}"
             }

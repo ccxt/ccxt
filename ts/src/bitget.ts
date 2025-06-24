@@ -4705,7 +4705,7 @@ export default class bitget extends Exchange {
         //         "uTime": "1700727879652"
         //     }
         //
-        // uta fetchOrder
+        // uta: fetchOrder, fetchOpenOrders
         //
         //     {
         //         "orderId": "1320244799629316096",
@@ -6061,6 +6061,7 @@ export default class bitget extends Exchange {
      * @see https://www.bitget.com/api-doc/contract/plan/get-orders-plan-pending
      * @see https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Open-Orders
      * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Open-Orders
+     * @see https://www.bitget.bike/api-doc/uta/trade/Get-Order-Pending
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open order structures to retrieve
@@ -6071,6 +6072,7 @@ export default class bitget extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {string} [params.isPlan] *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
      * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -6080,6 +6082,8 @@ export default class bitget extends Exchange {
         let request: Dict = {};
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOpenOrders', params);
+        let uta = undefined;
+        [ uta, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'uta', false);
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -6094,21 +6098,26 @@ export default class bitget extends Exchange {
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'paginate');
         if (paginate) {
             let cursorReceived = undefined;
-            if (type === 'spot') {
+            let cursorSent = undefined;
+            if (uta) {
+                cursorReceived = 'cursor';
+                cursorSent = 'cursor';
+            } else if (type === 'spot') {
                 if (marginMode !== undefined) {
                     cursorReceived = 'minId';
+                    cursorSent = 'idLessThan';
                 }
             } else {
                 cursorReceived = 'endId';
+                cursorSent = 'idLessThan';
             }
-            return await this.fetchPaginatedCallCursor ('fetchOpenOrders', symbol, since, limit, params, cursorReceived, 'idLessThan') as Order[];
+            return await this.fetchPaginatedCallCursor ('fetchOpenOrders', symbol, since, limit, params, cursorReceived, cursorSent) as Order[];
         }
         let response = undefined;
         const trailing = this.safeBool (params, 'trailing');
         const trigger = this.safeBool2 (params, 'stop', 'trigger');
         const planTypeDefined = this.safeString (params, 'planType') !== undefined;
         const isTrigger = (trigger || planTypeDefined);
-        params = this.omit (params, [ 'stop', 'trigger', 'trailing' ]);
         [ request, params ] = this.handleUntilOption ('endTime', request, params);
         if (since !== undefined) {
             request['startTime'] = since;
@@ -6116,47 +6125,49 @@ export default class bitget extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        if ((type === 'swap') || (type === 'future') || (marginMode !== undefined)) {
+        if (!uta && ((type === 'swap') || (type === 'future') || (marginMode !== undefined))) {
             const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
             params = this.omit (params, 'clientOrderId');
             if (clientOrderId !== undefined) {
                 request['clientOid'] = clientOrderId;
             }
         }
-        let query = undefined;
-        query = this.omit (params, [ 'type' ]);
-        if (type === 'spot') {
+        let productType = undefined;
+        [ productType, params ] = this.handleProductTypeAndParams (market, params);
+        params = this.omit (params, [ 'type', 'stop', 'trigger', 'trailing' ]);
+        if (uta) {
+            request['category'] = productType;
+            response = await this.privateUtaGetV3TradeUnfilledOrders (this.extend (request, params));
+        } else if (type === 'spot') {
             if (marginMode !== undefined) {
                 if (since === undefined) {
                     since = this.milliseconds () - 7776000000;
                     request['startTime'] = since;
                 }
                 if (marginMode === 'isolated') {
-                    response = await this.privateMarginGetV2MarginIsolatedOpenOrders (this.extend (request, query));
+                    response = await this.privateMarginGetV2MarginIsolatedOpenOrders (this.extend (request, params));
                 } else if (marginMode === 'cross') {
-                    response = await this.privateMarginGetV2MarginCrossedOpenOrders (this.extend (request, query));
+                    response = await this.privateMarginGetV2MarginCrossedOpenOrders (this.extend (request, params));
                 }
             } else {
                 if (trigger) {
-                    response = await this.privateSpotGetV2SpotTradeCurrentPlanOrder (this.extend (request, query));
+                    response = await this.privateSpotGetV2SpotTradeCurrentPlanOrder (this.extend (request, params));
                 } else {
-                    response = await this.privateSpotGetV2SpotTradeUnfilledOrders (this.extend (request, query));
+                    response = await this.privateSpotGetV2SpotTradeUnfilledOrders (this.extend (request, params));
                 }
             }
         } else {
-            let productType = undefined;
-            [ productType, query ] = this.handleProductTypeAndParams (market, query);
             request['productType'] = productType;
             if (trailing) {
                 const planType = this.safeString (params, 'planType', 'track_plan');
                 request['planType'] = planType;
-                response = await this.privateMixGetV2MixOrderOrdersPlanPending (this.extend (request, query));
+                response = await this.privateMixGetV2MixOrderOrdersPlanPending (this.extend (request, params));
             } else if (isTrigger) {
-                const planType = this.safeString (query, 'planType', 'normal_plan');
+                const planType = this.safeString (params, 'planType', 'normal_plan');
                 request['planType'] = planType;
-                response = await this.privateMixGetV2MixOrderOrdersPlanPending (this.extend (request, query));
+                response = await this.privateMixGetV2MixOrderOrdersPlanPending (this.extend (request, params));
             } else {
-                response = await this.privateMixGetV2MixOrderOrdersPending (this.extend (request, query));
+                response = await this.privateMixGetV2MixOrderOrdersPending (this.extend (request, params));
             }
         }
         //
@@ -6334,8 +6345,60 @@ export default class bitget extends Exchange {
         //         }
         //     }
         //
+        // uta
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1750753395850,
+        //         "data": {
+        //             "list": [
+        //                 {
+        //                     "orderId": "1321320757371228160",
+        //                     "clientOid": "1321320757371228161",
+        //                     "category": "USDT-FUTURES",
+        //                     "symbol": "BTCUSDT",
+        //                     "orderType": "limit",
+        //                     "side": "buy",
+        //                     "price": "50000",
+        //                     "qty": "0.001",
+        //                     "amount": "0",
+        //                     "cumExecQty": "0",
+        //                     "cumExecValue": "0",
+        //                     "avgPrice": "0",
+        //                     "timeInForce": "gtc",
+        //                     "orderStatus": "live",
+        //                     "posSide": "long",
+        //                     "holdMode": "hedge_mode",
+        //                     "reduceOnly": "NO",
+        //                     "feeDetail": [
+        //                         {
+        //                             "feeCoin": "",
+        //                             "fee": ""
+        //                         }
+        //                     ],
+        //                     "createdTime": "1750753338186",
+        //                     "updatedTime": "1750753338203",
+        //                     "stpMode": "none",
+        //                     "tpTriggerBy": null,
+        //                     "slTriggerBy": null,
+        //                     "takeProfit": null,
+        //                     "stopLoss": null,
+        //                     "tpOrderType": null,
+        //                     "slOrderType": null,
+        //                     "tpLimitPrice": null,
+        //                     "slLimitPrice": null
+        //                 }
+        //             ],
+        //             "cursor": "1321320757371228160"
+        //         }
+        //     }
+        //
         const data = this.safeValue (response, 'data');
-        if (type === 'spot') {
+        if (uta) {
+            const result = this.safeList (data, 'list', []);
+            return this.parseOrders (result, market, since, limit);
+        } else if (type === 'spot') {
             if ((marginMode !== undefined) || trigger) {
                 const resultList = this.safeList (data, 'orderList', []);
                 return this.parseOrders (resultList, market, since, limit);
