@@ -29,7 +29,7 @@
                         "id": 0,
                         "numericId": null,
                         "code": "BTC",
-                        "precision": null,
+                        "precision": 0.00001,
                         "type": "crypto",
                         "name": "BTC",
                         "active": null,
