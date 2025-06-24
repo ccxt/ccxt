@@ -15,27 +15,14 @@ body:
         - Read the [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting) section of the manual and followed troubleshooting steps
         - Set `exchange.verbose = true` property on the exchange instance before calling its functions or methods
         
-        ````markdown
-        Here is an example of a Go code block in Markdown:
-        
-        ```go
-        package main
-        
-        import "fmt"
-        
-        func main() {
-            fmt.Println("Hello, World!")
-        }
-        ```
 
         ## Please provide:
         - minimal, reproducible example/code
         - surround your code and verbose output with triple backticks: 
-          ```` ``` ````
+          ````markdown
           ```
           your codes or output
           ```
-          ```` ``` ````
         - Do not include keys & credentials.
 
   - type: input
