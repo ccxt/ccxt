@@ -419,7 +419,7 @@ class Exchange(BaseExchange):
             }, ws_options)
             # we use aiohttp instead of fastClient now because of this
             # https://github.com/ccxt/ccxt/pull/25995
-            self.clients[url] = AiohttpClient(url, on_message, on_error, on_close, on_connected, options)
+            self.clients[url] = Client(url, on_message, on_error, on_close, on_connected, options)
             # set http/s proxy (socks proxy should be set in other place)
             httpProxy, httpsProxy, socksProxy = self.check_ws_proxy_settings()
             if (httpProxy or httpsProxy):
