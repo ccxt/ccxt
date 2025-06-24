@@ -50,6 +50,7 @@ class hyperliquid extends Exchange {
                 'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createOrders' => true,
+                'createOrderWithTakeProfitAndStopLoss' => true,
                 'createReduceOnlyOrder' => true,
                 'createStopOrder' => true,
                 'createTriggerOrder' => true,
@@ -233,7 +234,16 @@ class hyperliquid extends Exchange {
                         'triggerDirection' => false,
                         'stopLossPrice' => false,
                         'takeProfitPrice' => false,
-                        'attachedStopLossTakeProfit' => null,
+                        'attachedStopLossTakeProfit' => array(
+                            'triggerPriceType' => array(
+                                'last' => false,
+                                'mark' => false,
+                                'index' => false,
+                            ),
+                            'triggerPrice' => true,
+                            'type' => true,
+                            'price' => true,
+                        ),
                         'timeInForce' => array(
                             'IOC' => true,
                             'FOK' => false,
@@ -1474,6 +1484,72 @@ class hyperliquid extends Exchange {
         }) ();
     }
 
+    public function create_order_request(string $symbol, string $type, string $side, string $amount, ?string $price = null, $params = array ()) {
+        $market = $this->market($symbol);
+        $type = strtoupper($type);
+        $side = strtoupper($side);
+        $isMarket = ($type === 'MARKET');
+        $isBuy = ($side === 'BUY');
+        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_id');
+        $slippage = $this->safe_string($params, 'slippage');
+        $defaultTimeInForce = ($isMarket) ? 'ioc' : 'gtc';
+        $postOnly = $this->safe_bool($params, 'postOnly', false);
+        if ($postOnly) {
+            $defaultTimeInForce = 'alo';
+        }
+        $timeInForce = $this->safe_string_lower($params, 'timeInForce', $defaultTimeInForce);
+        $timeInForce = $this->capitalize($timeInForce);
+        $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
+        $stopLossPrice = $this->safe_string($params, 'stopLossPrice', $triggerPrice);
+        $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
+        $isTrigger = ($stopLossPrice || $takeProfitPrice);
+        $px = null;
+        if ($isMarket) {
+            if ($price === null) {
+                throw new ArgumentsRequired($this->id . '  $market orders require $price to calculate the max $slippage $price-> Default $slippage can be set in options (default is 5%).');
+            }
+            $px = ($isBuy) ? Precise::string_mul($price, Precise::string_add('1', $slippage)) : Precise::string_mul($price, Precise::string_sub('1', $slippage));
+            $px = $this->price_to_precision($symbol, $px); // round after adding $slippage
+        } else {
+            $px = $this->price_to_precision($symbol, $price);
+        }
+        $sz = $this->amount_to_precision($symbol, $amount);
+        $reduceOnly = $this->safe_bool($params, 'reduceOnly', false);
+        $orderType = array();
+        if ($isTrigger) {
+            $isTp = false;
+            if ($takeProfitPrice !== null) {
+                $triggerPrice = $this->price_to_precision($symbol, $takeProfitPrice);
+                $isTp = true;
+            } else {
+                $triggerPrice = $this->price_to_precision($symbol, $stopLossPrice);
+            }
+            $orderType['trigger'] = array(
+                'isMarket' => $isMarket,
+                'triggerPx' => $triggerPrice,
+                'tpsl' => ($isTp) ? 'tp' : 'sl',
+            );
+        } else {
+            $orderType['limit'] = array(
+                'tif' => $timeInForce,
+            );
+        }
+        $params = $this->omit($params, array( 'clientOrderId', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce', 'client_id', 'reduceOnly', 'postOnly' ));
+        $orderObj = array(
+            'a' => $this->parse_to_int($market['baseId']),
+            'b' => $isBuy,
+            'p' => $px,
+            's' => $sz,
+            'r' => $reduceOnly,
+            't' => $orderType,
+            // 'c' => $clientOrderId,
+        );
+        if ($clientOrderId !== null) {
+            $orderObj['c'] = $clientOrderId;
+        }
+        return $orderObj;
+    }
+
     public function create_orders_request($orders, $params = array ()): array {
         /**
          * create a list of trade $orders
@@ -1506,76 +1582,56 @@ class hyperliquid extends Exchange {
         $params = $this->omit($params, array( 'slippage', 'clientOrderId', 'client_id', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce' ));
         $nonce = $this->milliseconds();
         $orderReq = array();
+        $grouping = 'na';
         for ($i = 0; $i < count($orders); $i++) {
             $rawOrder = $orders[$i];
             $marketId = $this->safe_string($rawOrder, 'symbol');
             $market = $this->market($marketId);
             $symbol = $market['symbol'];
             $type = $this->safe_string_upper($rawOrder, 'type');
-            $isMarket = ($type === 'MARKET');
             $side = $this->safe_string_upper($rawOrder, 'side');
-            $isBuy = ($side === 'BUY');
             $amount = $this->safe_string($rawOrder, 'amount');
             $price = $this->safe_string($rawOrder, 'price');
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
-            $clientOrderId = $this->safe_string_2($orderParams, 'clientOrderId', 'client_id');
             $slippage = $this->safe_string($orderParams, 'slippage', $defaultSlippage);
-            $defaultTimeInForce = ($isMarket) ? 'ioc' : 'gtc';
-            $postOnly = $this->safe_bool($orderParams, 'postOnly', false);
-            if ($postOnly) {
-                $defaultTimeInForce = 'alo';
-            }
-            $timeInForce = $this->safe_string_lower($orderParams, 'timeInForce', $defaultTimeInForce);
-            $timeInForce = $this->capitalize($timeInForce);
-            $triggerPrice = $this->safe_string_2($orderParams, 'triggerPrice', 'stopPrice');
-            $stopLossPrice = $this->safe_string($orderParams, 'stopLossPrice', $triggerPrice);
-            $takeProfitPrice = $this->safe_string($orderParams, 'takeProfitPrice');
-            $isTrigger = ($stopLossPrice || $takeProfitPrice);
-            $px = null;
-            if ($isMarket) {
-                if ($price === null) {
-                    throw new ArgumentsRequired($this->id . '  $market $orders require $price to calculate the max $slippage $price-> Default $slippage can be set in options (default is 5%).');
-                }
-                $px = ($isBuy) ? Precise::string_mul($price, Precise::string_add('1', $slippage)) : Precise::string_mul($price, Precise::string_sub('1', $slippage));
-                $px = $this->price_to_precision($symbol, $px); // round after adding $slippage
-            } else {
-                $px = $this->price_to_precision($symbol, $price);
-            }
-            $sz = $this->amount_to_precision($symbol, $amount);
-            $reduceOnly = $this->safe_bool($orderParams, 'reduceOnly', false);
-            $orderType = array();
+            $orderParams['slippage'] = $slippage;
+            $stopLoss = $this->safe_value($orderParams, 'stopLoss');
+            $takeProfit = $this->safe_value($orderParams, 'takeProfit');
+            $isTrigger = ($stopLoss || $takeProfit);
+            $orderParams = $this->omit($orderParams, array( 'stopLoss', 'takeProfit' ));
+            $mainOrderObj = $this->create_order_request($symbol, $type, $side, $amount, $price, $orderParams);
+            $orderReq[] = $mainOrderObj;
             if ($isTrigger) {
-                $isTp = false;
-                if ($takeProfitPrice !== null) {
-                    $triggerPrice = $this->price_to_precision($symbol, $takeProfitPrice);
-                    $isTp = true;
+                // $grouping opposed $orders for sl/tp
+                $stopLossOrderTriggerPrice = $this->safe_string_n($stopLoss, array( 'triggerPrice', 'stopPrice' ));
+                $stopLossOrderType = $this->safe_string($stopLoss, 'type');
+                $stopLossOrderLimitPrice = $this->safe_string_n($stopLoss, array( 'price', 'stopLossPrice' ), $stopLossOrderTriggerPrice);
+                $takeProfitOrderTriggerPrice = $this->safe_string_n($takeProfit, array( 'triggerPrice', 'stopPrice' ));
+                $takeProfitOrderType = $this->safe_string($takeProfit, 'type');
+                $takeProfitOrderLimitPrice = $this->safe_string_n($takeProfit, array( 'price', 'takeProfitPrice' ), $takeProfitOrderTriggerPrice);
+                $grouping = 'normalTpsl';
+                $orderParams = $this->omit($orderParams, array( 'stopLoss', 'takeProfit' ));
+                $triggerOrderSide = '';
+                if ($side === 'BUY') {
+                    $triggerOrderSide = 'sell';
                 } else {
-                    $triggerPrice = $this->price_to_precision($symbol, $stopLossPrice);
+                    $triggerOrderSide = 'buy';
                 }
-                $orderType['trigger'] = array(
-                    'isMarket' => $isMarket,
-                    'triggerPx' => $triggerPrice,
-                    'tpsl' => ($isTp) ? 'tp' : 'sl',
-                );
-            } else {
-                $orderType['limit'] = array(
-                    'tif' => $timeInForce,
-                );
+                if ($takeProfit !== null) {
+                    $orderObj = $this->create_order_request($symbol, $takeProfitOrderType, $triggerOrderSide, $amount, $takeProfitOrderLimitPrice, $this->extend($orderParams, array(
+                        'takeProfitPrice' => $takeProfitOrderTriggerPrice,
+                        'reduceOnly' => true,
+                    )));
+                    $orderReq[] = $orderObj;
+                }
+                if ($stopLoss !== null) {
+                    $orderObj = $this->create_order_request($symbol, $stopLossOrderType, $triggerOrderSide, $amount, $stopLossOrderLimitPrice, $this->extend($orderParams, array(
+                        'stopLossPrice' => $stopLossOrderTriggerPrice,
+                        'reduceOnly' => true,
+                    )));
+                    $orderReq[] = $orderObj;
+                }
             }
-            $orderParams = $this->omit($orderParams, array( 'clientOrderId', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce', 'client_id', 'reduceOnly', 'postOnly' ));
-            $orderObj = array(
-                'a' => $this->parse_to_int($market['baseId']),
-                'b' => $isBuy,
-                'p' => $px,
-                's' => $sz,
-                'r' => $reduceOnly,
-                't' => $orderType,
-                // 'c' => $clientOrderId,
-            );
-            if ($clientOrderId !== null) {
-                $orderObj['c'] = $clientOrderId;
-            }
-            $orderReq[] = $orderObj;
         }
         $vaultAddress = null;
         list($vaultAddress, $params) = $this->handle_option_and_params($params, 'createOrder', 'vaultAddress');
@@ -1583,7 +1639,7 @@ class hyperliquid extends Exchange {
         $orderAction = array(
             'type' => 'order',
             'orders' => $orderReq,
-            'grouping' => 'na',
+            'grouping' => $grouping,
             // 'brokerCode' => 1, // cant
         );
         if ($vaultAddress === null) {
