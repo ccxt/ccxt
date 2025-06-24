@@ -17,10 +17,12 @@ body:
 
         ## Please provide:
         - minimal, reproducible example/code
-        - surround your code and verbose output with triple backticks: 
-          &#096;&#096;&#096;
-          your codes & output
-          &#096;&#096;&#096;
+        - surround your code and verbose output with triple backticks:
+          ```` ``` ````
+          ```
+          your codes or output
+          ```
+          ```` ``` ````
         - Do not include keys & credentials.
 
   - type: input
