@@ -840,6 +840,7 @@ class mexc extends mexc$1 {
                 'PROS': 'PROSFINANCE',
                 'SIN': 'SINCITYTOKEN',
                 'SOUL': 'SOULSWAP',
+                'XBT': 'XBT', // restore original mapping
             },
             'exceptions': {
                 'exact': {
