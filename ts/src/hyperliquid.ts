@@ -1452,6 +1452,8 @@ export default class hyperliquid extends Exchange {
 
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         const market = this.market (symbol);
+        type = type.toUpperCase ();
+        side = side.toUpperCase ();
         const isMarket = (type === 'MARKET');
         const isBuy = (side === 'BUY');
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
@@ -1561,6 +1563,8 @@ export default class hyperliquid extends Exchange {
             let orderParams = this.safeDict (rawOrder, 'params', {});
             const slippage = this.safeString (orderParams, 'slippage', defaultSlippage);
             orderParams['slippage'] = slippage;
+            const mainOrderObj: Dict = this.createOrderRequest (symbol, type, side, amount, price, orderParams);
+            orderReq.push (mainOrderObj);
             const stopLoss = this.safeValue (orderParams, 'stopLoss');
             const takeProfit = this.safeValue (orderParams, 'takeProfit');
             const isTrigger = (stopLoss || takeProfit);
@@ -1574,9 +1578,29 @@ export default class hyperliquid extends Exchange {
                 // TODO: create sl/tp orders
                 grouping = 'normalTpsl';
                 orderParams = this.omit (orderParams, [ 'stopLoss', 'takeProfit' ]);
+                let triggerOrderSide = '';
+                if (side === 'BUY') {
+                    triggerOrderSide = 'sell';
+                } else {
+                    triggerOrderSide = 'buy';
+                }
+                if (takeProfit !== undefined) {
+                    const orderObj: Dict = this.createOrderRequest (symbol, takeProfitOrderType, triggerOrderSide, amount, takeProfitOrderLimitPrice, this.extend (orderParams, {
+                        'takeProfitPrice': takeProfitOrderTriggerPrice,
+                        'reduceOnly': true,
+                    }));
+                    orderReq.push (orderObj);
+                }
+                if (stopLoss !== undefined) {
+                    const orderObj: Dict = this.createOrderRequest (symbol, stopLossOrderType, triggerOrderSide, amount, stopLossOrderLimitPrice, this.extend (orderParams, {
+                        'stopLossPrice': stopLossOrderTriggerPrice,
+                        'reduceOnly': true,
+                    }));
+                    orderReq.push (orderObj);
+                }
             }
-            const orderObj: Dict = this.createOrderRequest (symbol, type, side, amount, price, orderParams);
-            orderReq.push (orderObj);
+            //const orderObj: Dict = this.createOrderRequest (symbol, type, side, amount, price, orderParams);
+            //orderReq.push (orderObj);
         }
         let vaultAddress = undefined;
         [ vaultAddress, params ] = this.handleOptionAndParams (params, 'createOrder', 'vaultAddress');
