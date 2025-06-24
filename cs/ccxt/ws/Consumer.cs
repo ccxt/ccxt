@@ -31,7 +31,7 @@ namespace ccxt.pro
 
     public class Consumer
     {
-        private const int MAX_BACKLOG_SIZE = 100;  // Maximum number of messages in backlog
+        private const int MAX_BACKLOG_SIZE = 10;  // Maximum number of messages in backlog
         
         public ConsumerFunction fn { get; private set; }
         public bool synchronous { get; private set; }
@@ -50,12 +50,21 @@ namespace ccxt.pro
 
         public void publish(Message message)
         {
+            if (message == null)
+            {
+                Console.WriteLine("Warning: Attempted to publish null message to Consumer");
+                return;
+            }
             backlog.Enqueue(message);
             if (backlog.Count > MAX_BACKLOG_SIZE)
             {
-                Console.WriteLine($"Warning: WebSocket consumer backlog is too large ({backlog.Count} messages). This might indicate a performance issue or message processing bottleneck.");
+                Console.WriteLine($"Warning: WebSocket consumer backlog is too large ({backlog.Count} messages). This might indicate a performance issue or message processing bottleneck. Dropping oldest message.");
+                backlog.TryDequeue(out _);
             }
-            Run();
+            if (!running)
+            {
+                Run();
+            }
         }
 
         private async void Run()
@@ -69,8 +78,10 @@ namespace ccxt.pro
 
             while (backlog.Count > 0)
             {
-                var message = backlog.Dequeue();
-                await HandleMessage(message);
+                if (backlog.TryDequeue(out var message))
+                {
+                    await HandleMessage(message);
+                }
             }
 
             running = false;
@@ -78,28 +89,50 @@ namespace ccxt.pro
 
         private async Task HandleMessage(Message message)
         {
+            if (message == null || message.metadata == null)
+            {
+                Console.WriteLine("Warning: Received null message or null metadata in Consumer.HandleMessage");
+                return;
+            }
+            
             if (message.metadata.index <= currentIndex)
             {
                 return;
             }
 
             currentIndex = message.metadata.index;
-
+            var stream = message.metadata.stream;
+            var fn = this.fn;
+            Action<Exception> produceError = (Exception err) => {
+                // Wrap the error in a suitable object if needed, here just passing the message
+                stream.produce("errors", message, err.Message);
+            };
             if (synchronous)
             {
-                // If synchronous, run and wait for the task to complete.
-                await fn(message);
+                try
+                {
+                    await fn(message);
+                }
+                catch (Exception err)
+                {
+                    produceError(err);
+                }
             }
             else
             {
-                // If not synchronous, fire and forget (but observe exceptions)
-                var _ = fn(message).ContinueWith(task => {
-                    if (task.Exception != null)
-                    {
-                        // Log or handle the exception as needed
-                        Console.WriteLine(task.Exception);
-                    }
-                }, TaskContinuationOptions.OnlyOnFaulted);
+                try
+                {
+                    var _ = fn(message).ContinueWith(task => {
+                        if (task.Exception != null)
+                        {
+                            produceError(task.Exception.InnerException ?? task.Exception);
+                        }
+                    }, TaskContinuationOptions.OnlyOnFaulted);
+                }
+                catch (Exception err)
+                {
+                    produceError(err);
+                }
             }
         }
     }
