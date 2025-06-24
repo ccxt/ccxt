@@ -57,15 +57,3 @@ body:
       label: Description
     validations:
       required: false
-
-  - type: textarea
-    attributes:
-      label: Code
-      description: Don't post your API keys or secret keys!
-      value: |
-        ```
-          
-
-        ```
-    validations:
-      required: false
