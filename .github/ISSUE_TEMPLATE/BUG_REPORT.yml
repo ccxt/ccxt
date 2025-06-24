@@ -8,9 +8,9 @@ body:
       value: |
         ## Ensure :
         - Your issue is directly related to ccxt
-        - Your local CCXT version is up to date (view the latest available version [here](https://github.com/ccxt/ccxt/blob/master/package.json#L3) )
         - You have already searched for similar issues
-        - Read the [Manual](https://github.com/ccxt/ccxt/wiki/Manual), especally sections: `Exchange Properties`, `Rate Limit`, `Authentication`, `API keys`, as the subject might already be described there.
+        - Your local CCXT version is up to date (check the [latest available version](https://github.com/ccxt/ccxt/blob/master/package.json#L3) )
+        - Read the [Manual](https://github.com/ccxt/ccxt/wiki/Manual), especially sections: `Exchange Properties`, `Rate Limit`, `Authentication`, `API keys`, as the subject might already be described there.
         - Read the [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) for most frequently asked questions
         - Read the [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting) section of the manual and followed troubleshooting steps
         - Set `exchange.verbose = true` property on the exchange instance before calling its functions or methods
@@ -36,12 +36,13 @@ body:
     id: language
     attributes:
       multiple: true
-      label: Programming Languages
-      description: Which language are you using?
+      label: Programming Language
       options:
         - JavaScript
         - Python
         - PHP
+        - C#
+        - GO
     validations:
       required: false
 
