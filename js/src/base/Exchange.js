@@ -11,7 +11,7 @@ const { isNode, selfIsDefined, deepExtend, extend, clone, flatten, unique, index
 import { keys as keysFunc, values as valuesFunc, vwap as vwapFunc } from './functions.js';
 // import exceptions from "./errors.js"
 import { // eslint-disable-line object-curly-newline
-ExchangeError, BadSymbol, NullResponse, InvalidAddress, InvalidOrder, NotSupported, OperationFailed, BadResponse, AuthenticationError, DDoSProtection, RequestTimeout, NetworkError, InvalidProxySettings, ExchangeNotAvailable, ArgumentsRequired, RateLimitExceeded, BadRequest, ExchangeClosedByUser, UnsubscribeError } from "./errors.js";
+ExchangeError, BadSymbol, NullResponse, InvalidAddress, InvalidOrder, NotSupported, OperationFailed, BadResponse, AuthenticationError, DDoSProtection, RequestTimeout, NetworkError, InvalidProxySettings, ExchangeNotAvailable, ArgumentsRequired, RateLimitExceeded, BadRequest, UnsubscribeError } from "./errors.js";
 import { Precise } from './Precise.js';
 //-----------------------------------------------------------------------------
 import WsClient from './ws/WsClient.js';
@@ -1098,15 +1098,10 @@ export default class Exchange {
         const closedClients = [];
         for (let i = 0; i < clients.length; i++) {
             const client = clients[i];
-            client.error = new ExchangeClosedByUser(this.id + ' closedByUser');
+            delete this.clients[client.url];
             closedClients.push(client.close());
         }
-        await Promise.all(closedClients);
-        for (let i = 0; i < clients.length; i++) {
-            const client = clients[i];
-            delete this.clients[client.url];
-        }
-        return;
+        return Promise.all(closedClients);
     }
     async loadOrderBook(client, messageHash, symbol, limit = undefined, params = {}) {
         if (!(symbol in this.orderbooks)) {
