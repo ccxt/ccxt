@@ -269,6 +269,8 @@ export default class poloniex extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
      */
     fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
+    prepareRequestForDepositAddress(code: string, params?: Dict): any;
+    parseDepositAddressSpecial(response: any, currency: any, networkEntry: any): DepositAddress;
     /**
      * @method
      * @name poloniex#transfer

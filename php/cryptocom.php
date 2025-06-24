@@ -40,6 +40,7 @@ class cryptocom extends Exchange {
                 'createOrders' => true,
                 'createStopOrder' => true,
                 'createTriggerOrder' => true,
+                'editOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => false,
@@ -132,6 +133,7 @@ class cryptocom extends Exchange {
                     'derivatives' => 'https://uat-api.3ona.co/v2',
                 ),
                 'api' => array(
+                    'base' => 'https://api.crypto.com',
                     'v1' => 'https://api.crypto.com/exchange/v1',
                     'v2' => 'https://api.crypto.com/v2',
                     'derivatives' => 'https://deriv-api.crypto.com/v1',
@@ -149,6 +151,13 @@ class cryptocom extends Exchange {
                 'fees' => 'https://crypto.com/exchange/document/fees-limits',
             ),
             'api' => array(
+                'base' => array(
+                    'public' => array(
+                        'get' => array(
+                            'v1/public/get-announcements' => 1, // no description of rate limit
+                        ),
+                    ),
+                ),
                 'v1' => array(
                     'public' => array(
                         'get' => array(
@@ -175,6 +184,7 @@ class cryptocom extends Exchange {
                             'private/user-balance-history' => 10 / 3,
                             'private/get-positions' => 10 / 3,
                             'private/create-order' => 2 / 3,
+                            'private/amend-order' => 4 / 3, // no description of rate limit
                             'private/create-order-list' => 10 / 3,
                             'private/cancel-order' => 2 / 3,
                             'private/cancel-order-list' => 10 / 3,
@@ -520,7 +530,25 @@ class cryptocom extends Exchange {
         if (!$this->check_required_credentials(false)) {
             return null;
         }
-        $response = $this->v1PrivatePostPrivateGetCurrencyNetworks ($params);
+        $skipFetchCurrencies = false;
+        list($skipFetchCurrencies, $params) = $this->handle_option_and_params($params, 'fetchCurrencies', 'skipFetchCurrencies', false);
+        if ($skipFetchCurrencies) {
+            // sub-accounts can't access this endpoint
+            return null;
+        }
+        $response = array();
+        try {
+            $response = $this->v1PrivatePostPrivateGetCurrencyNetworks ($params);
+        } catch (Exception $e) {
+            if ($e instanceof ExchangeError) {
+                // sub-accounts can't access this endpoint
+                // array("code":"10001","msg":"SYS_ERROR")
+                return null;
+            }
+            throw $e;
+            // do nothing
+            // sub-accounts can't access this endpoint
+        }
         //
         //    {
         //        "id" => "1747502328559",
@@ -545,7 +573,7 @@ class cryptocom extends Exchange {
         //                            "network_id" => "CRONOS",
         //                            "withdrawal_fee" => "0.18000000",
         //                            "withdraw_enabled" => true,
-        //                            "min_withdrawal_amount" => "0.36",
+        //                            "min_withdrawal_amount" => "0.35",
         //                            "deposit_enabled" => true,
         //                            "confirmation_required" => "15"
         //                        ),
@@ -1603,6 +1631,50 @@ class cryptocom extends Exchange {
             $request['quantity'] = $this->amount_to_precision($symbol, $amount);
         }
         $params = $this->omit($params, array( 'postOnly', 'clientOrderId', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
+        return $this->extend($request, $params);
+    }
+
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
+        /**
+         * edit a trade order
+         *
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-amend-order
+         *
+         * @param {string} $id order $id
+         * @param {string} $symbol unified market $symbol of the order to edit
+         * @param {string} [$type] not used by cryptocom editOrder
+         * @param {string} [$side] not used by cryptocom editOrder
+         * @param {float} $amount (mandatory) how much of the currency you want to trade in units of the base currency
+         * @param {float} $price (mandatory) the $price for the order, in units of the quote currency, ignored in market orders
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->clientOrderId] the original client order $id of the order to edit, required if $id is not provided
+         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         */
+        $this->load_markets();
+        $request = $this->edit_order_request($id, $symbol, $amount, $price, $params);
+        $response = $this->v1PrivatePostPrivateAmendOrder ($request);
+        $result = $this->safe_dict($response, 'result', array());
+        return $this->parse_order($result);
+    }
+
+    public function edit_order_request(string $id, string $symbol, float $amount, ?float $price = null, $params = array ()) {
+        $request = array();
+        if ($id !== null) {
+            $request['order_id'] = $id;
+        } else {
+            $originalClientOrderId = $this->safe_string_2($params, 'orig_client_oid', 'clientOrderId');
+            if ($originalClientOrderId === null) {
+                throw new ArgumentsRequired($this->id . ' editOrder() requires an $id argument or orig_client_oid parameter');
+            } else {
+                $request['orig_client_oid'] = $originalClientOrderId;
+                $params = $this->omit($params, array( 'orig_client_oid', 'clientOrderId' ));
+            }
+        }
+        if (($amount === null) || ($price === null)) {
+            throw new ArgumentsRequired($this->id . ' editOrder() requires both $amount and $price arguments. If you do not want to change the $amount or $price, you should pass the original values');
+        }
+        $request['new_quantity'] = $this->amount_to_precision($symbol, $amount);
+        $request['new_price'] = $this->price_to_precision($symbol, $price);
         return $this->extend($request, $params);
     }
 

@@ -1667,11 +1667,6 @@ func  (this *timex) ParseCurrency(currency interface{}) interface{}  {
     //
     var id interface{} = this.SafeString(currency, "symbol")
     var code interface{} = this.SafeCurrencyCode(id)
-    var name interface{} = this.SafeString(currency, "name")
-    var depositEnabled interface{} = this.SafeValue(currency, "depositEnabled")
-    var withdrawEnabled interface{} = this.SafeValue(currency, "withdrawalEnabled")
-    var isActive interface{} = this.SafeValue(currency, "active")
-    var active interface{} = IsTrue(IsTrue(depositEnabled) && IsTrue(withdrawEnabled)) && IsTrue(isActive)
     // const fee = this.safeNumber (currency, 'withdrawalFee');
     var feeString interface{} = this.SafeString(currency, "withdrawalFee")
     var tradeDecimals interface{} = this.SafeInteger(currency, "tradeDecimals")
@@ -1696,15 +1691,15 @@ func  (this *timex) ParseCurrency(currency interface{}) interface{}  {
         "code": code,
         "info": currency,
         "type": nil,
-        "name": name,
-        "active": active,
-        "deposit": depositEnabled,
-        "withdraw": withdrawEnabled,
+        "name": this.SafeString(currency, "name"),
+        "active": this.SafeBool(currency, "active"),
+        "deposit": this.SafeBool(currency, "depositEnabled"),
+        "withdraw": this.SafeBool(currency, "withdrawalEnabled"),
         "fee": fee,
         "precision": this.ParseNumber(this.ParsePrecision(this.SafeString(currency, "decimals"))),
         "limits": map[string]interface{} {
             "withdraw": map[string]interface{} {
-                "min": fee,
+                "min": nil,
                 "max": nil,
             },
             "amount": map[string]interface{} {
@@ -1931,8 +1926,8 @@ func  (this *timex) FetchDepositAddress(code interface{}, optionalArgs ...interf
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes16908 := (<-this.LoadMarkets())
-            PanicOnError(retRes16908)
+            retRes16858 := (<-this.LoadMarkets())
+            PanicOnError(retRes16858)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(currency, "code"),

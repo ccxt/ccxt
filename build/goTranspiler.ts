@@ -140,6 +140,7 @@ const VIRTUAL_BASE_METHODS: any = {
     "parseTransaction": false,
     "parseTransfer": false,
     "parseWithdrawal": false,
+    "parseLeverage": false,
     "parseWithdrawalStatus": false,
     "safeMarket": false, // try to remove custom implementations
     "market": false,

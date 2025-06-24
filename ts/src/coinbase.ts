@@ -1466,10 +1466,6 @@ export default class coinbase extends Exchange {
                 this.v3PublicGetBrokerageMarketProducts (this.extend (params, { 'product_type': 'FUTURE' })),
                 this.v3PublicGetBrokerageMarketProducts (this.extend (params, { 'product_type': 'FUTURE', 'contract_expiry_type': 'PERPETUAL' })),
             ];
-            if (this.checkRequiredCredentials (false)) {
-                unresolvedContractPromises.push (this.extend (params, { 'product_type': 'FUTURE' }));
-                unresolvedContractPromises.push (this.extend (params, { 'product_type': 'FUTURE', 'contract_expiry_type': 'PERPETUAL' }));
-            }
         } catch (e) {
             unresolvedContractPromises = []; // the sync version of ccxt won't have the promise.all line so the request is made here. Some users can't access perpetual products
         }
@@ -1484,8 +1480,8 @@ export default class coinbase extends Exchange {
         const fees = this.safeDict (promises, 1, {});
         const expiringFutures = this.safeDict (contractPromises, 0, {});
         const perpetualFutures = this.safeDict (contractPromises, 1, {});
-        const expiringFees = this.safeDict (contractPromises, 2, {});
-        const perpetualFees = this.safeDict (contractPromises, 3, {});
+        const expiringFees = this.safeDict (contractPromises, 0, {});
+        const perpetualFees = this.safeDict (contractPromises, 1, {});
         //
         //     {
         //         "total_volume": 0,
@@ -4633,7 +4629,7 @@ export default class coinbase extends Exchange {
      * @method
      * @name coinbase#closePosition
      * @description *futures only* closes open positions for a market
-     * @see https://coinbase-api.github.io/docs/#/en-us/swapV2/trade-api.html#One-Click%20Close%20All%20Positions
+     * @see https://docs.cdp.coinbase.com/coinbase-app/trade/reference/retailbrokerageapi_closeposition
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} [side] not used by coinbase
      * @param {object} [params] extra parameters specific to the coinbase api endpoint
@@ -4644,9 +4640,6 @@ export default class coinbase extends Exchange {
     async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (!market['future']) {
-            throw new NotSupported (this.id + ' closePosition() only supported for futures markets');
-        }
         const clientOrderId = this.safeString2 (params, 'client_order_id', 'clientOrderId');
         params = this.omit (params, 'clientOrderId');
         const request: Dict = {

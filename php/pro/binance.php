@@ -862,6 +862,7 @@ class binance extends \ccxt\async\binance {
                 $orderbook->reset ($snapshot);
                 // unroll the accumulated deltas
                 $messages = $orderbook->cache;
+                $orderbook->cache = array();
                 for ($i = 0; $i < count($messages); $i++) {
                     $messageItem = $messages[$i];
                     $U = $this->safe_integer($messageItem, 'U');

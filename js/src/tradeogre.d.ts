@@ -1,6 +1,5 @@
-import { Market } from '../ccxt.js';
 import Exchange from './abstract/tradeogre.js';
-import type { Int, Num, Order, OrderSide, OrderType, Str, Ticker, IndexType, Dict, int, Strings, Tickers, OHLCV } from './base/types.js';
+import type { Int, Num, Order, OrderSide, OrderType, Str, Ticker, IndexType, Dict, int, Strings, Tickers, OHLCV, Market } from './base/types.js';
 /**
  * @class tradeogre
  * @augments Exchange

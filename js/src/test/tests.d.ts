@@ -96,5 +96,6 @@ declare class testMainClass {
     testDefx(): Promise<boolean>;
     testCryptomus(): Promise<boolean>;
     testDerive(): Promise<boolean>;
+    testModeTrade(): Promise<boolean>;
 }
 export default testMainClass;
