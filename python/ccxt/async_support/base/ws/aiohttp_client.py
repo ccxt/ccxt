@@ -106,7 +106,7 @@ class AiohttpClient(Client):
         for future in self.futures.values():
             future.cancel()
         await self.aiohttp_close()
-    
+
     async def aiohttp_close(self):
         if not self.closed():
             await self.connection.close()
