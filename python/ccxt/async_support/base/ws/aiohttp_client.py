@@ -12,7 +12,7 @@ from aiohttp import WSMsgType
 from .functions import milliseconds, iso8601, is_json_encoded_object
 from ccxt.async_support.base.ws.client import Client
 from ccxt.async_support.base.ws.functions import gunzip, inflate
-from ccxt import NetworkError, RequestTimeout, ExchangeClosedByUser
+from ccxt import NetworkError, RequestTimeout
 
 
 class AiohttpClient(Client):
@@ -70,10 +70,6 @@ class AiohttpClient(Client):
             if self.verbose:
                 self.log(iso8601(milliseconds()), 'close', self.closed(), message)
             self.on_close(message.data)
-        elif message.type == WSMsgType.CLOSED:
-            if self.verbose:
-                self.log(iso8601(milliseconds()), 'closed', self.closed(), message)
-            self.on_close(1000)
         elif message.type == WSMsgType.ERROR:
             if self.verbose:
                 self.log(iso8601(milliseconds()), 'error', message)
@@ -107,20 +103,17 @@ class AiohttpClient(Client):
     async def close(self, code=1000):
         if self.verbose:
             self.log(iso8601(milliseconds()), 'closing', code)
+        for future in self.futures.values():
+            future.cancel()
+        await self.aiohttp_close()
+
+    async def aiohttp_close(self):
         if not self.closed():
             await self.connection.close()
         # these will end automatically once self.closed() = True
         # so we don't need to cancel them
         if self.ping_looper:
             self.ping_looper.cancel()
-        for key in self.futures:
-            future = self.futures[key]
-            if not future.done():
-                if future.is_race_future:
-                    future.cancel()  # this is an "internal" future so we want to cancel it silently
-                else:
-                    future.reject(ExchangeClosedByUser('Connection closed by the user'))
-
 
     async def ping_loop(self):
         if self.verbose:
