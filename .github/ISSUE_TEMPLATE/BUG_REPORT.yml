@@ -15,7 +15,7 @@ body:
         - Read the [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting) section of the manual and followed troubleshooting steps
 
         ## Please provide:
-        - Set `exchange.verbose = true` property before calling its functions
+        - Set `exchange.verbose = true` property before calling exchange functions
         - minimal, reproducible example/code
         - surround your code and verbose output with triple backticks:
           ````markdown
