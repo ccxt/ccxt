@@ -240,6 +240,7 @@ export default class hyperliquid extends Exchange {
                             },
                             'triggerPrice': true,
                             'type': true,
+                            'price': true,
                         },
                         'timeInForce': {
                             'IOC': true,
