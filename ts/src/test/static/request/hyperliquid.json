@@ -437,6 +437,54 @@
                     100.3424324
                 ],
                 "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":5,\"b\":false,\"p\":\"100.34\",\"s\":\"0.5\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Gtc\"}}}],\"grouping\":\"na\",\"brokerCode\":1},\"nonce\":1726520138074,\"signature\":{\"r\":\"0xa144d396caa8b1fdb10594f998b57ec6ac387331647b781a555a3d3a829bd6f4\",\"s\":\"0x58ab6363a56b7c0f1380b1a233f6b53245ce9d4fc815f55ac3d3dd3a1ce56181\",\"v\":27}}"
+            },
+            {
+                "description": "open short position with market stoploss and takeprofit",
+                "method": "createOrder",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    "SOL/USDC:USDC",
+                    "market",
+                    "sell",
+                    2,
+                    150,
+                    {
+                        "stopLoss": {
+                            "type": "market",
+                            "triggerPrice": 200
+                        },
+                        "takeProfit": {
+                            "type": "market",
+                            "triggerPrice": 50
+                        }
+                    }
+                ],
+                "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":5,\"b\":false,\"p\":\"142.5\",\"s\":\"2\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Ioc\"}}},{\"a\":5,\"b\":true,\"p\":\"52.5\",\"s\":\"2\",\"r\":true,\"t\":{\"trigger\":{\"isMarket\":true,\"triggerPx\":\"50\",\"tpsl\":\"tp\"}}},{\"a\":5,\"b\":true,\"p\":\"210\",\"s\":\"2\",\"r\":true,\"t\":{\"trigger\":{\"isMarket\":true,\"triggerPx\":\"200\",\"tpsl\":\"sl\"}}}],\"grouping\":\"normalTpsl\",\"brokerCode\":1},\"nonce\":1750773607539,\"signature\":{\"r\":\"\",\"s\":\"\",\"v\":27}}"
+            },
+            {
+                "description": "open short position with limit stoploss and takeprofit orders",
+                "method": "createOrder",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    "SOL/USDC:USDC",
+                    "market",
+                    "sell",
+                    2,
+                    150,
+                    {
+                        "stopLoss": {
+                            "type": "limit",
+                            "triggerPrice": 200,
+                            "stopLossPrice": 190
+                        },
+                        "takeProfit": {
+                            "type": "limit",
+                            "triggerPrice": 50,
+                            "takeProfitPrice": 40
+                        }
+                    }
+                ],
+                "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":5,\"b\":false,\"p\":\"142.5\",\"s\":\"2\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Ioc\"}}},{\"a\":5,\"b\":true,\"p\":\"40\",\"s\":\"2\",\"r\":true,\"t\":{\"trigger\":{\"isMarket\":false,\"triggerPx\":\"50\",\"tpsl\":\"tp\"}}},{\"a\":5,\"b\":true,\"p\":\"190\",\"s\":\"2\",\"r\":true,\"t\":{\"trigger\":{\"isMarket\":false,\"triggerPx\":\"200\",\"tpsl\":\"sl\"}}}],\"grouping\":\"normalTpsl\",\"brokerCode\":1},\"nonce\":1750773815078,\"signature\":{\"r\":\"\",\"s\":\"\",\"v\":27}}"
             }
         ],
         "createOrders": [
