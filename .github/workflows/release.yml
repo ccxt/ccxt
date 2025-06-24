@@ -50,7 +50,7 @@ jobs:
           sudo mkdir -p /usr/share/dotnet
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '7.0.x'
+          dotnet-version: '9.0.x'
           dotnet-quality: 'preview'
           run: |
             sudo mkdir -p /usr/share/dotnet
@@ -116,6 +116,7 @@ jobs:
                git config --global user.email "github-actions[bot]@users.noreply.github.com"
                git commit -m "[Automated changes] ${COMMIT_MESSAGE}"
                git push origin HEAD:master
+               git fetch --tags --depth=1
                PREVIOUS_TAG=$(git tag --sort=-creatordate | head -n1)
                echo "Previous tag: ${PREVIOUS_TAG}"
 

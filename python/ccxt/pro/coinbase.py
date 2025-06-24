@@ -160,6 +160,7 @@ class coinbase(ccxt.async_support.coinbase):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
+        await self.load_markets()
         name = 'ticker'
         return await self.subscribe(name, False, symbol, params)
 
@@ -173,6 +174,7 @@ class coinbase(ccxt.async_support.coinbase):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
+        await self.load_markets()
         if symbols is None:
             symbols = self.symbols
         name = 'ticker_batch'
@@ -608,7 +610,7 @@ class coinbase(ccxt.async_support.coinbase):
         #                    {
         #                        "side": "bid",
         #                        "event_time": "1970-01-01T00:00:00Z",
-        #                        "price_level": "21921.73",
+        #                        "price_level": "21921.74",
         #                        "new_quantity": "0.06317902"
         #                    },
         #                    {

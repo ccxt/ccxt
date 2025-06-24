@@ -3391,9 +3391,8 @@ class htx extends Exchange {
         //            }
         //        )
         //    }
-        //    }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         $result = array();
         $this->options['networkChainIdsByNames'] = array();
         $this->options['networkNamesByChainIds'] = array();
@@ -3401,19 +3400,11 @@ class htx extends Exchange {
             $entry = $data[$i];
             $currencyId = $this->safe_string($entry, 'currency');
             $code = $this->safe_currency_code($currencyId);
-            $this->options['networkChainIdsByNames'][$code] = array();
-            $chains = $this->safe_value($entry, 'chains', array());
-            $networks = array();
-            $instStatus = $this->safe_string($entry, 'instStatus');
             $assetType = $this->safe_string($entry, 'assetType');
             $type = $assetType === '1' ? 'crypto' : 'fiat';
-            $currencyActive = $instStatus === 'normal';
-            $minPrecision = null;
-            $minDeposit = null;
-            $minWithdraw = null;
-            $maxWithdraw = null;
-            $deposit = false;
-            $withdraw = false;
+            $this->options['networkChainIdsByNames'][$code] = array();
+            $chains = $this->safe_list($entry, 'chains', array());
+            $networks = array();
             for ($j = 0; $j < count($chains); $j++) {
                 $chainEntry = $chains[$j];
                 $uniqueChainId = $this->safe_string($chainEntry, 'chain'); // $i->e. usdterc20, trc20usdt ...
@@ -3421,49 +3412,34 @@ class htx extends Exchange {
                 $this->options['networkChainIdsByNames'][$code][$title] = $uniqueChainId;
                 $this->options['networkNamesByChainIds'][$uniqueChainId] = $title;
                 $networkCode = $this->network_id_to_code($uniqueChainId);
-                $minDeposit = $this->safe_number($chainEntry, 'minDepositAmt');
-                $minWithdraw = $this->safe_number($chainEntry, 'minWithdrawAmt');
-                $maxWithdraw = $this->safe_number($chainEntry, 'maxWithdrawAmt');
-                $withdrawStatus = $this->safe_string($chainEntry, 'withdrawStatus');
-                $depositStatus = $this->safe_string($chainEntry, 'depositStatus');
-                $withdrawEnabled = ($withdrawStatus === 'allowed');
-                $depositEnabled = ($depositStatus === 'allowed');
-                $withdraw = ($withdrawEnabled) ? $withdrawEnabled : $withdraw;
-                $deposit = ($depositEnabled) ? $depositEnabled : $deposit;
-                $active = $withdrawEnabled && $depositEnabled;
-                $precision = $this->parse_precision($this->safe_string($chainEntry, 'withdrawPrecision'));
-                if ($precision !== null) {
-                    $minPrecision = ($minPrecision === null) ? $precision : Precise::string_min($precision, $minPrecision);
-                }
-                $fee = $this->safe_number($chainEntry, 'transactFeeWithdraw');
                 $networks[$networkCode] = array(
                     'info' => $chainEntry,
                     'id' => $uniqueChainId,
                     'network' => $networkCode,
                     'limits' => array(
                         'deposit' => array(
-                            'min' => $minDeposit,
+                            'min' => $this->safe_number($chainEntry, 'minDepositAmt'),
                             'max' => null,
                         ),
                         'withdraw' => array(
-                            'min' => $minWithdraw,
-                            'max' => $maxWithdraw,
+                            'min' => $this->safe_number($chainEntry, 'minWithdrawAmt'),
+                            'max' => $this->safe_number($chainEntry, 'maxWithdrawAmt'),
                         ),
                     ),
-                    'active' => $active,
-                    'deposit' => $depositEnabled,
-                    'withdraw' => $withdrawEnabled,
-                    'fee' => $fee,
-                    'precision' => $this->parse_number($precision),
+                    'active' => null,
+                    'deposit' => $this->safe_string($chainEntry, 'depositStatus') === 'allowed',
+                    'withdraw' => $this->safe_string($chainEntry, 'withdrawStatus') === 'allowed',
+                    'fee' => $this->safe_number($chainEntry, 'transactFeeWithdraw'),
+                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($chainEntry, 'withdrawPrecision'))),
                 );
             }
-            $result[$code] = array(
+            $result[$code] = $this->safe_currency_structure(array(
                 'info' => $entry,
                 'code' => $code,
                 'id' => $currencyId,
-                'active' => $currencyActive,
-                'deposit' => $deposit,
-                'withdraw' => $withdraw,
+                'active' => $this->safe_string($entry, 'instStatus') === 'normal',
+                'deposit' => null,
+                'withdraw' => null,
                 'fee' => null,
                 'name' => null,
                 'type' => $type,
@@ -3473,17 +3449,17 @@ class htx extends Exchange {
                         'max' => null,
                     ),
                     'withdraw' => array(
-                        'min' => $minWithdraw,
-                        'max' => $maxWithdraw,
+                        'min' => null,
+                        'max' => null,
                     ),
                     'deposit' => array(
                         'min' => null,
                         'max' => null,
                     ),
                 ),
-                'precision' => $this->parse_number($minPrecision),
+                'precision' => null,
                 'networks' => $networks,
-            );
+            ));
         }
         return $result;
     }
@@ -4494,6 +4470,8 @@ class htx extends Exchange {
         $request = array();
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchOpenOrders', $market, $params, 'linear');
         $response = null;
         if ($marketType === 'spot') {
             if ($symbol !== null) {
@@ -4521,18 +4499,18 @@ class htx extends Exchange {
             $params = $this->omit($params, 'account-id');
             $response = $this->spotPrivateGetV1OrderOpenOrders ($this->extend($request, $params));
         } else {
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
+            if ($symbol !== null) {
+                // throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
+                $request['contract_code'] = $market['id'];
             }
             if ($limit !== null) {
                 $request['page_size'] = $limit;
             }
-            $request['contract_code'] = $market['id'];
             $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
             $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
             $trailing = $this->safe_bool($params, 'trailing', false);
             $params = $this->omit($params, array( 'stop', 'stopLossTakeProfit', 'trailing', 'trigger' ));
-            if ($market['linear']) {
+            if ($subType === 'linear') {
                 $marginMode = null;
                 list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOpenOrders', $params);
                 $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
@@ -4557,8 +4535,8 @@ class htx extends Exchange {
                         $response = $this->contractPrivatePostLinearSwapApiV1SwapCrossOpenorders ($this->extend($request, $params));
                     }
                 }
-            } elseif ($market['inverse']) {
-                if ($market['swap']) {
+            } elseif ($subType === 'inverse') {
+                if ($marketType === 'swap') {
                     if ($trigger) {
                         $response = $this->contractPrivatePostSwapApiV1SwapTriggerOpenorders ($this->extend($request, $params));
                     } elseif ($stopLossTakeProfit) {
@@ -4568,8 +4546,8 @@ class htx extends Exchange {
                     } else {
                         $response = $this->contractPrivatePostSwapApiV1SwapOpenorders ($this->extend($request, $params));
                     }
-                } elseif ($market['future']) {
-                    $request['symbol'] = $market['settleId'];
+                } elseif ($marketType === 'future') {
+                    $request['symbol'] = $this->safe_string($market, 'settleId', 'usdt');
                     if ($trigger) {
                         $response = $this->contractPrivatePostApiV1ContractTriggerOpenorders ($this->extend($request, $params));
                     } elseif ($stopLossTakeProfit) {
@@ -7319,7 +7297,7 @@ class htx extends Exchange {
                     $request = $this->extend($request, $query);
                 }
                 $sortedRequest = $this->keysort($request);
-                $auth = $this->urlencode($sortedRequest);
+                $auth = $this->urlencode($sortedRequest, true); // true is a go only requirment
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 $payload = implode("\n", array($method, $this->hostname, $url, $auth)); // eslint-disable-line quotes
                 $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
@@ -7396,7 +7374,7 @@ class htx extends Exchange {
                     $sortedQuery = $this->keysort($query);
                     $request = $this->extend($request, $sortedQuery);
                 }
-                $auth = str_replace('%2c', '%2C', $this->urlencode($request)); // in c# it manually needs to be uppercased
+                $auth = str_replace('%2c', '%2C', $this->urlencode($request, true)); // in c# it manually needs to be uppercased
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 $payload = implode("\n", array($method, $hostname, $url, $auth)); // eslint-disable-line quotes
                 $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');

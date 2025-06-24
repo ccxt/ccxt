@@ -80,6 +80,21 @@ func (this *Bitmart) FetchMarkets(params ...interface{}) ([]MarketInterface, err
 }
 /**
  * @method
+ * @name bitmart#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://developer-pro.bitmart.com/en/spot/#get-currency-list-v1
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Bitmart) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name bitmart#fetchTransactionFee
  * @deprecated
  * @description please use fetchDepositWithdrawFee instead

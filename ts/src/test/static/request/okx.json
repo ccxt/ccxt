@@ -6,6 +6,51 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchOpenInterests": [
+            {
+                "description": "fetchOpenInterests",
+                "method": "fetchOpenInterests",
+                "url": "https://www.okx.com/api/v5/public/open-interest?instType=SWAP",
+                "input": [],
+                "output": null
+            },
+            {
+                "description": "fetch open interests for swap",
+                "method": "fetchOpenInterests",
+                "url": "https://www.okx.com/api/v5/public/open-interest?instType=SWAP",
+                "input": [],
+                "output": null
+            },
+            {
+                "description": "fetch open interests for future",
+                "method": "fetchOpenInterests",
+                "url": "https://www.okx.com/api/v5/public/open-interest?instType=FUTURES",
+                "input": [
+                    null,
+                    { "instType": "FUTURES" }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch open interests for option",
+                "method": "fetchOpenInterests",
+                "url": "https://www.okx.com/api/v5/public/open-interest?instType=OPTION&instFamily=BTC-USD",
+                "input": [
+                    null,
+                    { "instType": "OPTION", "instFamily": "BTC-USD" }
+                ],
+                "output": null
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "fetch funding rates",
+                "method": "fetchFundingRates",
+                "url": "https://www.okx.com/api/v5/public/funding-rate?instId=ANY",
+                "input": [],
+                "output": null
+            }
+        ],
         "createOrder": [
             {
                 "description": "Spot limit buy order",

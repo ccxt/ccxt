@@ -50,6 +50,21 @@ func (this *Kraken) FetchStatus(params ...interface{}) (map[string]interface{}, 
 }
 /**
  * @method
+ * @name kraken#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getAssetInfo
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Kraken) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name kraken#fetchTradingFee
  * @description fetch the trading fees for a market
  * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getTradeVolume

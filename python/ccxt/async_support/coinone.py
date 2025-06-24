@@ -303,18 +303,16 @@ class coinone(Exchange, ImplicitAPI):
         for i in range(0, len(currencies)):
             entry = currencies[i]
             id = self.safe_string(entry, 'symbol')
-            name = self.safe_string(entry, 'name')
             code = self.safe_currency_code(id)
-            withdrawStatus = self.safe_string(entry, 'withdraw_status', '')
-            depositStatus = self.safe_string(entry, 'deposit_status', '')
-            isWithdrawEnabled = withdrawStatus == 'normal'
-            isDepositEnabled = depositStatus == 'normal'
-            result[code] = {
+            isWithdrawEnabled = self.safe_string(entry, 'withdraw_status', '') == 'normal'
+            isDepositEnabled = self.safe_string(entry, 'deposit_status', '') == 'normal'
+            type = 'crypto' if (code != 'KRW') else 'fiat'
+            result[code] = self.safe_currency_structure({
                 'id': id,
                 'code': code,
                 'info': entry,
-                'name': name,
-                'active': isWithdrawEnabled and isDepositEnabled,
+                'name': self.safe_string(entry, 'name'),
+                'active': None,
                 'deposit': isDepositEnabled,
                 'withdraw': isWithdrawEnabled,
                 'fee': self.safe_number(entry, 'withdrawal_fee'),
@@ -330,8 +328,8 @@ class coinone(Exchange, ImplicitAPI):
                     },
                 },
                 'networks': {},
-                'type': 'crypto',
-            }
+                'type': type,
+            })
         return result
 
     async def fetch_markets(self, params={}) -> List[Market]:

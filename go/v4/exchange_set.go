@@ -54,7 +54,7 @@ func (this *Exchange) GetHas() map[string]interface{} {
 	return this.Has
 }
 
-func (this *Exchange) GetOptions() map[string]interface{} {
+func (this *Exchange) GetOptions() *sync.Map {
 	return this.Options
 }
 
@@ -129,7 +129,7 @@ func (this *Exchange) SetAccounts(accounts interface{}) {
 }
 
 func (this *Exchange) SetOptions(options interface{}) {
-	this.Options = options.(map[string]interface{})
+	this.Options = this.MapToSyncMap(options.(map[string]interface{}))
 }
 
 func (this *Exchange) SetWssProxy(wssProxy interface{}) {

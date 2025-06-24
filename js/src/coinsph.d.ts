@@ -1,11 +1,20 @@
 import Exchange from './abstract/coinsph.js';
-import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress } from './base/types.js';
+import type { Balances, Currency, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress } from './base/types.js';
 /**
  * @class coinsph
  * @augments Exchange
  */
 export default class coinsph extends Exchange {
     describe(): any;
+    /**
+     * @method
+     * @name coinsph#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://docs.coins.ph/rest-api/#all-coins-information-user_data
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
+    fetchCurrencies(params?: {}): Promise<Currencies>;
     calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}): any;
     /**
      * @method

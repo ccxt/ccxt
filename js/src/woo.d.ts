@@ -373,6 +373,8 @@ export default class woo extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
      */
     fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
+    getDedicatedNetworkId(currency: any, params: Dict): any;
+    parseDepositAddress(depositEntry: any, currency?: Currency): DepositAddress;
     getAssetHistoryRows(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     /**
      * @method

@@ -218,6 +218,11 @@ public partial class Exchange
         return a is IList<object>;
     }
 
+    public Dictionary<string, object> indexBySafe(object a, object key2)
+    {
+        return indexBy(a, key2); // this is needed for go
+    }
+
     public Dictionary<string, object> indexBy(object a, object key2)
     {
         // var key = (string)key2;

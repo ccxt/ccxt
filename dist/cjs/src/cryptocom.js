@@ -42,6 +42,7 @@ class cryptocom extends cryptocom$1 {
                 'createOrders': true,
                 'createStopOrder': true,
                 'createTriggerOrder': true,
+                'editOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': false,
@@ -51,7 +52,7 @@ class cryptocom extends cryptocom$1 {
                 'fetchClosedOrders': 'emulated',
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
-                'fetchCurrencies': false,
+                'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': true,
@@ -134,6 +135,7 @@ class cryptocom extends cryptocom$1 {
                     'derivatives': 'https://uat-api.3ona.co/v2',
                 },
                 'api': {
+                    'base': 'https://api.crypto.com',
                     'v1': 'https://api.crypto.com/exchange/v1',
                     'v2': 'https://api.crypto.com/v2',
                     'derivatives': 'https://deriv-api.crypto.com/v1',
@@ -151,6 +153,13 @@ class cryptocom extends cryptocom$1 {
                 'fees': 'https://crypto.com/exchange/document/fees-limits',
             },
             'api': {
+                'base': {
+                    'public': {
+                        'get': {
+                            'v1/public/get-announcements': 1, // no description of rate limit
+                        },
+                    },
+                },
                 'v1': {
                     'public': {
                         'get': {
@@ -177,6 +186,7 @@ class cryptocom extends cryptocom$1 {
                             'private/user-balance-history': 10 / 3,
                             'private/get-positions': 10 / 3,
                             'private/create-order': 2 / 3,
+                            'private/amend-order': 4 / 3,
                             'private/create-order-list': 10 / 3,
                             'private/cancel-order': 2 / 3,
                             'private/cancel-order-list': 10 / 3,
@@ -507,6 +517,135 @@ class cryptocom extends cryptocom$1 {
                 'broad': {},
             },
         });
+    }
+    /**
+     * @method
+     * @name cryptocom#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-currency-networks
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
+    async fetchCurrencies(params = {}) {
+        // this endpoint requires authentication
+        if (!this.checkRequiredCredentials(false)) {
+            return undefined;
+        }
+        let skipFetchCurrencies = false;
+        [skipFetchCurrencies, params] = this.handleOptionAndParams(params, 'fetchCurrencies', 'skipFetchCurrencies', false);
+        if (skipFetchCurrencies) {
+            // sub-accounts can't access this endpoint
+            return undefined;
+        }
+        let response = {};
+        try {
+            response = await this.v1PrivatePostPrivateGetCurrencyNetworks(params);
+        }
+        catch (e) {
+            if (e instanceof errors.ExchangeError) {
+                // sub-accounts can't access this endpoint
+                // {"code":"10001","msg":"SYS_ERROR"}
+                return undefined;
+            }
+            throw e;
+            // do nothing
+            // sub-accounts can't access this endpoint
+        }
+        //
+        //    {
+        //        "id": "1747502328559",
+        //        "method": "private/get-currency-networks",
+        //        "code": "0",
+        //        "result": {
+        //            "update_time": "1747502281000",
+        //            "currency_map": {
+        //                "USDT": {
+        //                    "full_name": "Tether USD",
+        //                    "default_network": "ETH",
+        //                    "network_list": [
+        //                        {
+        //                            "network_id": "ETH",
+        //                            "withdrawal_fee": "10.00000000",
+        //                            "withdraw_enabled": true,
+        //                            "min_withdrawal_amount": "20.0",
+        //                            "deposit_enabled": true,
+        //                            "confirmation_required": "32"
+        //                        },
+        //                        {
+        //                            "network_id": "CRONOS",
+        //                            "withdrawal_fee": "0.18000000",
+        //                            "withdraw_enabled": true,
+        //                            "min_withdrawal_amount": "0.35",
+        //                            "deposit_enabled": true,
+        //                            "confirmation_required": "15"
+        //                        },
+        //                        {
+        //                            "network_id": "SOL",
+        //                            "withdrawal_fee": "5.31000000",
+        //                            "withdraw_enabled": true,
+        //                            "min_withdrawal_amount": "10.62",
+        //                            "deposit_enabled": true,
+        //                            "confirmation_required": "1"
+        //                        }
+        //                    ]
+        //                }
+        //            }
+        //        }
+        //    }
+        //
+        const resultData = this.safeDict(response, 'result', {});
+        const currencyMap = this.safeDict(resultData, 'currency_map', {});
+        const keys = Object.keys(currencyMap);
+        const result = {};
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const currency = currencyMap[key];
+            const id = key;
+            const code = this.safeCurrencyCode(id);
+            const networks = {};
+            const chains = this.safeList(currency, 'network_list', []);
+            for (let j = 0; j < chains.length; j++) {
+                const chain = chains[j];
+                const networkId = this.safeString(chain, 'network_id');
+                const network = this.networkIdToCode(networkId);
+                networks[network] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': network,
+                    'active': undefined,
+                    'deposit': this.safeBool(chain, 'deposit_enabled', false),
+                    'withdraw': this.safeBool(chain, 'withdraw_enabled', false),
+                    'fee': this.safeNumber(chain, 'withdrawal_fee'),
+                    'precision': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber(chain, 'min_withdrawal_amount'),
+                            'max': undefined,
+                        },
+                    },
+                };
+            }
+            result[code] = this.safeCurrencyStructure({
+                'info': currency,
+                'id': id,
+                'code': code,
+                'name': this.safeString(currency, 'full_name'),
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
+                'fee': undefined,
+                'precision': undefined,
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'type': 'crypto',
+                'networks': networks,
+            });
+        }
+        return result;
     }
     /**
      * @method
@@ -1521,6 +1660,50 @@ class cryptocom extends cryptocom$1 {
             request['quantity'] = this.amountToPrecision(symbol, amount);
         }
         params = this.omit(params, ['postOnly', 'clientOrderId', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice']);
+        return this.extend(request, params);
+    }
+    /**
+     * @method
+     * @name cryptocom#editOrder
+     * @description edit a trade order
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-amend-order
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol of the order to edit
+     * @param {string} [type] not used by cryptocom editOrder
+     * @param {string} [side] not used by cryptocom editOrder
+     * @param {float} amount (mandatory) how much of the currency you want to trade in units of the base currency
+     * @param {float} price (mandatory) the price for the order, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] the original client order id of the order to edit, required if id is not provided
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        await this.loadMarkets();
+        const request = this.editOrderRequest(id, symbol, amount, price, params);
+        const response = await this.v1PrivatePostPrivateAmendOrder(request);
+        const result = this.safeDict(response, 'result', {});
+        return this.parseOrder(result);
+    }
+    editOrderRequest(id, symbol, amount, price = undefined, params = {}) {
+        const request = {};
+        if (id !== undefined) {
+            request['order_id'] = id;
+        }
+        else {
+            const originalClientOrderId = this.safeString2(params, 'orig_client_oid', 'clientOrderId');
+            if (originalClientOrderId === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' editOrder() requires an id argument or orig_client_oid parameter');
+            }
+            else {
+                request['orig_client_oid'] = originalClientOrderId;
+                params = this.omit(params, ['orig_client_oid', 'clientOrderId']);
+            }
+        }
+        if ((amount === undefined) || (price === undefined)) {
+            throw new errors.ArgumentsRequired(this.id + ' editOrder() requires both amount and price arguments. If you do not want to change the amount or price, you should pass the original values');
+        }
+        request['new_quantity'] = this.amountToPrecision(symbol, amount);
+        request['new_price'] = this.priceToPrecision(symbol, price);
         return this.extend(request, params);
     }
     /**

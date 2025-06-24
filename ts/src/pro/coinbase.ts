@@ -164,6 +164,7 @@ export default class coinbase extends coinbaseRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+        await this.loadMarkets ();
         const name = 'ticker';
         return await this.subscribe (name, false, symbol, params);
     }
@@ -178,6 +179,7 @@ export default class coinbase extends coinbaseRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        await this.loadMarkets ();
         if (symbols === undefined) {
             symbols = this.symbols;
         }
@@ -642,7 +644,7 @@ export default class coinbase extends coinbaseRest {
         //                    {
         //                        "side": "bid",
         //                        "event_time": "1970-01-01T00:00:00Z",
-        //                        "price_level": "21921.73",
+        //                        "price_level": "21921.74",
         //                        "new_quantity": "0.06317902"
         //                    },
         //                    {
