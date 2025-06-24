@@ -233,6 +233,7 @@ export default class hyperliquid extends Exchange {
                         'stopLossPrice': false,
                         'takeProfitPrice': false,
                         'attachedStopLossTakeProfit': {
+                            'triggerPriceType': false,
                             'triggerPrice': true,
                             'type': true,
                         },
