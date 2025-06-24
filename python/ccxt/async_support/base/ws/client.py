@@ -187,8 +187,7 @@ class Client(object):
         if not self.error:
             self.reject(NetworkError('Connection closed by remote server, closing code ' + str(code)))
         self.on_close_callback(self, code)
-        if not self.closed():
-            ensure_future(self.aiohttp_close(code), loop=self.asyncio_loop)
+        ensure_future(self.aiohttp_close(), loop=self.asyncio_loop)
     
     def aiohttp_close(self):
         raise NotSupported('aiohttp_close() not implemented')
