@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.90'
+__version__ = '4.4.91'
 
 # -----------------------------------------------------------------------------
 
@@ -2629,6 +2629,8 @@ class Exchange(object):
             stream.subscribe('trades::' + symbol, callback, synchronous)
         stream.add_watch_function('watchTrades', [symbol, None, None, params])
         self.watch_trades(symbol, None, None, params)
+    def un_watch_orders(self, symbol: Str = None, params={}):
+        raise NotSupported(self.id + ' unWatchOrders() is not supported yet')
 
     def un_watch_trades(self, symbol: str, params={}):
         raise NotSupported(self.id + ' unWatchTrades() is not supported yet')
@@ -7198,7 +7200,7 @@ class Exchange(object):
                 symbolAndTimeFrame = symbolsAndTimeFrames[i]
                 symbol = self.safe_string(symbolAndTimeFrame, 0)
                 timeframe = self.safe_string(symbolAndTimeFrame, 1)
-                if symbol in self.ohlcvs:
+                if (self.ohlcvs is not None) and (symbol in self.ohlcvs):
                     if timeframe in self.ohlcvs[symbol]:
                         del self.ohlcvs[symbol][timeframe]
         elif symbolsLength > 0:
@@ -7214,7 +7216,7 @@ class Exchange(object):
                     if symbol in self.tickers:
                         del self.tickers[symbol]
         else:
-            if topic == 'myTrades':
+            if topic == 'myTrades' and (self.myTrades is not None):
                 # don't reset self.myTrades directly here
                 # because in c# we need to use a different object(thread-safe dict)
                 keys = list(self.myTrades.keys())
@@ -7222,13 +7224,13 @@ class Exchange(object):
                     key = keys[i]
                     if key in self.myTrades:
                         del self.myTrades[key]
-            elif topic == 'orders':
+            elif topic == 'orders' and (self.orders is not None):
                 orderSymbols = list(self.orders.keys())
                 for i in range(0, len(orderSymbols)):
                     orderSymbol = orderSymbols[i]
                     if orderSymbol in self.orders:
                         del self.orders[orderSymbol]
-            elif topic == 'ticker':
+            elif topic == 'ticker' and (self.tickers is not None):
                 tickerSymbols = list(self.tickers.keys())
                 for i in range(0, len(tickerSymbols)):
                     tickerSymbol = tickerSymbols[i]

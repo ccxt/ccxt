@@ -1221,7 +1221,6 @@ public partial class mexc : ccxt.mexc
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        parameters = this.omit(parameters, "type");
         object messageHash = "orders";
         object market = null;
         if (isTrue(!isEqual(symbol, null)))

@@ -4,7 +4,6 @@ namespace ccxt\pro;
 
 use ccxt\async\Throttler;
 use ccxt\BaseError;
-use ccxt\ExchangeClosedByUser;
 use ccxt\ExchangeError;
 use ccxt\NetworkError;
 use Exception;
@@ -233,12 +232,11 @@ trait ClientTrait {
         // make sure to close the exchange once you are finished using the websocket connections
         // so that the event loop can complete it's work and go to sleep
         foreach ($this->clients as $client) {
-            $client->error = new ExchangeClosedByUser ($this->id . ' closed by user');
             $client->close();
-            $url = $client->url;
-            unset($this->clients[$url]);
         }
         $this->stream = new Stream();
+        // empty the array
+        array_splice($this->clients, 0);
     }
 
     public function __destruct() {

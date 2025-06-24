@@ -1870,13 +1870,12 @@ export default class bybit extends bybitRest {
         }
         const symbols = {};
         for (let i = 0; i < rawOrders.length; i++) {
-            let parsed = undefined;
-            if (isSpot) {
-                parsed = this.parseWsSpotOrder(rawOrders[i]);
-            }
-            else {
-                parsed = this.parseOrder(rawOrders[i]);
-            }
+            const parsed = this.parseOrder(rawOrders[i]);
+            // if (isSpot) {
+            //     parsed = this.parseWsSpotOrder (rawOrders[i]);
+            // } else {
+            //     parsed = this.parseOrder (rawOrders[i]);
+            // }
             const symbol = parsed['symbol'];
             symbols[symbol] = true;
             orders.append(parsed);
@@ -1888,142 +1887,6 @@ export default class bybit extends bybitRest {
         }
         const messageHash = 'orders';
         client.resolve(orders, messageHash);
-    }
-    parseWsSpotOrder(order, market = undefined) {
-        //
-        //    {
-        //        "e": "executionReport",
-        //        "E": "1653297251061", // timestamp
-        //        "s": "LTCUSDT", // symbol
-        //        "c": "1653297250740", // user id
-        //        "S": "SELL", // side
-        //        "o": "MARKET_OF_BASE", // order type
-        //        "f": "GTC", // time in force
-        //        "q": "0.16233", // quantity
-        //        "p": "0", // price
-        //        "X": "NEW", // status
-        //        "i": "1162336018974750208", // order id
-        //        "M": "0",
-        //        "l": "0", // last filled
-        //        "z": "0", // total filled
-        //        "L": "0", // last traded price
-        //        "n": "0", // trading fee
-        //        "N": '', // fee asset
-        //        "u": true,
-        //        "w": true,
-        //        "m": false, // is limit_maker
-        //        "O": "1653297251042", // order creation
-        //        "Z": "0", // total filled
-        //        "A": "0", // account id
-        //        "C": false, // is close
-        //        "v": "0", // leverage
-        //        "d": "NO_LIQ"
-        //    }
-        // v5
-        //    {
-        //        "category":"spot",
-        //        "symbol":"LTCUSDT",
-        //        "orderId":"1474764674982492160",
-        //        "orderLinkId":"1690541649154749",
-        //        "blockTradeId":"",
-        //        "side":"Buy",
-        //        "positionIdx":0,
-        //        "orderStatus":"Cancelled",
-        //        "cancelType":"UNKNOWN",
-        //        "rejectReason":"EC_NoError",
-        //        "timeInForce":"GTC",
-        //        "isLeverage":"0",
-        //        "price":"0",
-        //        "qty":"5.00000",
-        //        "avgPrice":"0",
-        //        "leavesQty":"0.00000",
-        //        "leavesValue":"5.0000000",
-        //        "cumExecQty":"0.00000",
-        //        "cumExecValue":"0.0000000",
-        //        "cumExecFee":"",
-        //        "orderType":"Market",
-        //        "stopOrderType":"",
-        //        "orderIv":"",
-        //        "triggerPrice":"0.000",
-        //        "takeProfit":"",
-        //        "stopLoss":"",
-        //        "triggerBy":"",
-        //        "tpTriggerBy":"",
-        //        "slTriggerBy":"",
-        //        "triggerDirection":0,
-        //        "placeType":"",
-        //        "lastPriceOnCreated":"0.000",
-        //        "closeOnTrigger":false,
-        //        "reduceOnly":false,
-        //        "smpGroup":0,
-        //        "smpType":"None",
-        //        "smpOrderId":"",
-        //        "createdTime":"1690541649160",
-        //        "updatedTime":"1690541649168"
-        //     }
-        //
-        const id = this.safeString2(order, 'i', 'orderId');
-        const marketId = this.safeString2(order, 's', 'symbol');
-        const symbol = this.safeSymbol(marketId, market, undefined, 'spot');
-        const timestamp = this.safeInteger2(order, 'O', 'createdTime');
-        let price = this.safeString2(order, 'p', 'price');
-        if (price === '0') {
-            price = undefined; // market orders
-        }
-        const filled = this.safeString2(order, 'z', 'cumExecQty');
-        const status = this.parseOrderStatus(this.safeString2(order, 'X', 'orderStatus'));
-        const side = this.safeStringLower2(order, 'S', 'side');
-        const lastTradeTimestamp = this.safeString2(order, 'E', 'updatedTime');
-        const timeInForce = this.safeString2(order, 'f', 'timeInForce');
-        let amount = undefined;
-        const cost = this.safeString2(order, 'Z', 'cumExecValue');
-        let type = this.safeStringLower2(order, 'o', 'orderType');
-        if ((type !== undefined) && (type.indexOf('market') >= 0)) {
-            type = 'market';
-        }
-        if (type === 'market' && side === 'buy') {
-            amount = filled;
-        }
-        else {
-            amount = this.safeString2(order, 'orderQty', 'qty');
-        }
-        let fee = undefined;
-        const feeCost = this.safeString2(order, 'n', 'cumExecFee');
-        if (feeCost !== undefined && feeCost !== '0') {
-            const feeCurrencyId = this.safeString(order, 'N');
-            const feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
-            fee = {
-                'cost': feeCost,
-                'currency': feeCurrencyCode,
-            };
-        }
-        const triggerPrice = this.omitZero(this.safeString(order, 'triggerPrice'));
-        return this.safeOrder({
-            'info': order,
-            'id': id,
-            'clientOrderId': this.safeString2(order, 'c', 'orderLinkId'),
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
-            'symbol': symbol,
-            'type': type,
-            'timeInForce': timeInForce,
-            'postOnly': undefined,
-            'side': side,
-            'price': price,
-            'stopPrice': triggerPrice,
-            'triggerPrice': triggerPrice,
-            'takeProfitPrice': this.safeString(order, 'takeProfit'),
-            'stopLossPrice': this.safeString(order, 'stopLoss'),
-            'reduceOnly': this.safeValue(order, 'reduceOnly'),
-            'amount': amount,
-            'cost': cost,
-            'average': this.safeString(order, 'avgPrice'),
-            'filled': filled,
-            'remaining': undefined,
-            'status': status,
-            'fee': fee,
-        }, market);
     }
     /**
      * @method
