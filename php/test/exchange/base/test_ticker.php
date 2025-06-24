@@ -49,16 +49,23 @@ function test_ticker($exchange, $skipped_properties, $method, $entry, $symbol) {
     if ($symbol_for_market !== null && (is_array($exchange->markets) && array_key_exists($symbol_for_market, $exchange->markets))) {
         $market = $exchange->market($symbol_for_market);
     }
-    assert_greater($exchange, $skipped_properties, $method, $entry, 'open', '0');
-    assert_greater($exchange, $skipped_properties, $method, $entry, 'high', '0');
-    assert_greater($exchange, $skipped_properties, $method, $entry, 'low', '0');
-    assert_greater($exchange, $skipped_properties, $method, $entry, 'close', '0');
-    assert_greater($exchange, $skipped_properties, $method, $entry, 'ask', '0');
+    $exchange_has_index_markets = $exchange->safe_bool($exchange->has, 'index', false);
+    $is_standard_market = ($market !== null && $exchange->in_array($market['type'], ['spot', 'swap', 'future', 'option']));
+    // only check "above zero" values if exchange is not supposed to have exotic index markets
+    $values_should_be_positive = $is_standard_market || ($market === null && !$exchange_has_index_markets);
+    if ($values_should_be_positive) {
+        assert_greater($exchange, $skipped_properties, $method, $entry, 'open', '0');
+        assert_greater($exchange, $skipped_properties, $method, $entry, 'high', '0');
+        assert_greater($exchange, $skipped_properties, $method, $entry, 'low', '0');
+        assert_greater($exchange, $skipped_properties, $method, $entry, 'close', '0');
+        assert_greater($exchange, $skipped_properties, $method, $entry, 'ask', '0');
+        assert_greater($exchange, $skipped_properties, $method, $entry, 'bid', '0');
+        assert_greater($exchange, $skipped_properties, $method, $entry, 'average', '0');
+        assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'vwap', '0');
+    }
+    // volume can not be negative
     assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'askVolume', '0');
-    assert_greater($exchange, $skipped_properties, $method, $entry, 'bid', '0');
     assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'bidVolume', '0');
-    assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'vwap', '0');
-    assert_greater($exchange, $skipped_properties, $method, $entry, 'average', '0');
     assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'baseVolume', '0');
     assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'quoteVolume', '0');
     $last_string = $exchange->safe_string($entry, 'last');
@@ -75,14 +82,18 @@ function test_ticker($exchange, $skipped_properties, $method, $entry, $symbol) {
             // to avoid abnormal long precision issues (like https://discord.com/channels/690203284119617602/1338828283902689280/1338846071278927912 )
             $m_precision = $exchange->safe_dict($market, 'precision');
             $amount_precision = $exchange->safe_string($m_precision, 'amount');
+            $tolerance = '1.0001';
             if ($amount_precision !== null) {
                 $base_low = Precise::string_mul(Precise::string_sub($base_volume, $amount_precision), $low);
                 $base_high = Precise::string_mul(Precise::string_add($base_volume, $amount_precision), $high);
             } else {
                 // if nothing found, as an exclusion, just add 0.001%
-                $base_low = Precise::string_mul(Precise::string_mul($base_volume, '1.0001'), $low);
-                $base_high = Precise::string_mul(Precise::string_div($base_volume, '1.0001'), $high);
+                $base_low = Precise::string_mul(Precise::string_div($base_volume, $tolerance), $low);
+                $base_high = Precise::string_mul(Precise::string_mul($base_volume, $tolerance), $high);
             }
+            // because of exchange engines might not rounding numbers propertly, we add some tolerance of calculated 24hr high/low
+            $base_low = Precise::string_div($base_low, $tolerance);
+            $base_high = Precise::string_mul($base_high, $tolerance);
             assert(Precise::string_ge($quote_volume, $base_low), 'quoteVolume should be => baseVolume * low' . $log_text);
             assert(Precise::string_le($quote_volume, $base_high), 'quoteVolume should be <= baseVolume * high' . $log_text);
         }
@@ -94,7 +105,7 @@ function test_ticker($exchange, $skipped_properties, $method, $entry, $symbol) {
         // assert (low !== undefined, 'vwap is defined, but low is not' + logText);
         // assert (vwap >= low && vwap <= high)
         // todo: calc compare
-        assert(Precise::string_ge($vwap, '0'), 'vwap is not greater than zero' . $log_text);
+        assert(!$values_should_be_positive || Precise::string_ge($vwap, '0'), 'vwap is not greater than zero' . $log_text);
         if ($base_volume !== null) {
             assert($quote_volume !== null, 'baseVolume & vwap is defined, but quoteVolume is not' . $log_text);
         }

@@ -1393,7 +1393,20 @@ class kraken extends Exchange {
         //         "maker" => false
         //     }
         //
+        // watchTrades
+        //
+        //     {
+        //         "symbol" => "BTC/USD",
+        //         "side" => "buy",
+        //         "price" => 109601.2,
+        //         "qty" => 0.04561994,
+        //         "ord_type" => "market",
+        //         "trade_id" => 83449369,
+        //         "timestamp" => "2025-05-27T11:24:03.847761Z"
+        //     }
+        //
         $timestamp = null;
+        $datetime = null;
         $side = null;
         $type = null;
         $price = null;
@@ -1440,6 +1453,14 @@ class kraken extends Exchange {
                     'currency' => $currency,
                 );
             }
+        } else {
+            $symbol = $this->safe_string($trade, 'symbol');
+            $datetime = $this->safe_string($trade, 'timestamp');
+            $id = $this->safe_string($trade, 'trade_id');
+            $side = $this->safe_string($trade, 'side');
+            $type = $this->safe_string($trade, 'ord_type');
+            $price = $this->safe_string($trade, 'price');
+            $amount = $this->safe_string($trade, 'qty');
         }
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -1450,12 +1471,17 @@ class kraken extends Exchange {
         if ($maker !== null) {
             $takerOrMaker = $maker ? 'maker' : 'taker';
         }
+        if ($datetime === null) {
+            $datetime = $this->iso8601($timestamp);
+        } else {
+            $timestamp = $this->parse8601($datetime);
+        }
         return $this->safe_trade(array(
             'id' => $id,
             'order' => $orderId,
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'datetime' => $datetime,
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,

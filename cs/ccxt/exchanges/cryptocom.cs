@@ -503,7 +503,29 @@ public partial class cryptocom : Exchange
         {
             return null;
         }
-        object response = await this.v1PrivatePostPrivateGetCurrencyNetworks(parameters);
+        object skipFetchCurrencies = false;
+        var skipFetchCurrenciesparametersVariable = this.handleOptionAndParams(parameters, "fetchCurrencies", "skipFetchCurrencies", false);
+        skipFetchCurrencies = ((IList<object>)skipFetchCurrenciesparametersVariable)[0];
+        parameters = ((IList<object>)skipFetchCurrenciesparametersVariable)[1];
+        if (isTrue(skipFetchCurrencies))
+        {
+            // sub-accounts can't access this endpoint
+            return null;
+        }
+        object response = new Dictionary<string, object>() {};
+        try
+        {
+            response = await this.v1PrivatePostPrivateGetCurrencyNetworks(parameters);
+        } catch(Exception e)
+        {
+            if (isTrue(e is ExchangeError))
+            {
+                // sub-accounts can't access this endpoint
+                // {"code":"10001","msg":"SYS_ERROR"}
+                return null;
+            }
+            throw e;
+        }
         //
         //    {
         //        "id": "1747502328559",
@@ -528,7 +550,7 @@ public partial class cryptocom : Exchange
         //                            "network_id": "CRONOS",
         //                            "withdrawal_fee": "0.18000000",
         //                            "withdraw_enabled": true,
-        //                            "min_withdrawal_amount": "0.36",
+        //                            "min_withdrawal_amount": "0.35",
         //                            "deposit_enabled": true,
         //                            "confirmation_required": "15"
         //                        },

@@ -926,6 +926,12 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " watchTrades() is not supported yet")) ;
     }
 
+    public async virtual Task<object> unWatchOrders(object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " unWatchOrders() is not supported yet")) ;
+    }
+
     public async virtual Task<object> unWatchTrades(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -7661,7 +7667,7 @@ public partial class Exchange
                 object symbolAndTimeFrame = getValue(symbolsAndTimeFrames, i);
                 object symbol = this.safeString(symbolAndTimeFrame, 0);
                 object timeframe = this.safeString(symbolAndTimeFrame, 1);
-                if (isTrue(inOp(this.ohlcvs, symbol)))
+                if (isTrue(isTrue((!isEqual(this.ohlcvs, null))) && isTrue((inOp(this.ohlcvs, symbol)))))
                 {
                     if (isTrue(inOp(getValue(this.ohlcvs, symbol), timeframe)))
                     {
@@ -7696,7 +7702,7 @@ public partial class Exchange
             }
         } else
         {
-            if (isTrue(isEqual(topic, "myTrades")))
+            if (isTrue(isTrue(isEqual(topic, "myTrades")) && isTrue((!isEqual(this.myTrades, null)))))
             {
                 // don't reset this.myTrades directly here
                 // because in c# we need to use a different object (thread-safe dict)
@@ -7709,7 +7715,7 @@ public partial class Exchange
                         ((IDictionary<string,object>)this.myTrades).Remove((string)key);
                     }
                 }
-            } else if (isTrue(isEqual(topic, "orders")))
+            } else if (isTrue(isTrue(isEqual(topic, "orders")) && isTrue((!isEqual(this.orders, null)))))
             {
                 object orderSymbols = new List<object>(((IDictionary<string,object>)this.orders).Keys);
                 for (object i = 0; isLessThan(i, getArrayLength(orderSymbols)); postFixIncrement(ref i))
@@ -7720,7 +7726,7 @@ public partial class Exchange
                         ((IDictionary<string,object>)this.orders).Remove((string)orderSymbol);
                     }
                 }
-            } else if (isTrue(isEqual(topic, "ticker")))
+            } else if (isTrue(isTrue(isEqual(topic, "ticker")) && isTrue((!isEqual(this.tickers, null)))))
             {
                 object tickerSymbols = new List<object>(((IDictionary<string,object>)this.tickers).Keys);
                 for (object i = 0; isLessThan(i, getArrayLength(tickerSymbols)); postFixIncrement(ref i))

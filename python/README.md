@@ -18,16 +18,6 @@ Current feature list:
 - an out of the box unified API that is extremely easy to integrate
 - works in Node 10.4+, Python 3, PHP 8.1+, netstandard2.0/2.1, Go 1.20+ and web browsers
 
-## Disclaimer
-
-CCXT is not a service nor a server. CCXT is a software. **CCXT is a free open source non-custodian API broker software under MIT license**.
-
-- **Non-custodian** means CCXT is not an intermediary in trading, it does not hold traders' money at any point in time, traders install CCXT and use CCXT to talk to exchanges directly.
-- **MIT license** means CCXT can be used for any purpose, but use at your own risk without any warranties.
-- **API broker** means CCXT is funded with rebates from exchanges' API broker programs and it is an official API broker with many exchanges. Broker rebates from trading fees range from 30% to 65%. All rebates and related fees are handled by the exchanges solely in accordance with exchanges' respective terms and conditions established by each partner exchange.
-- **Free software** means CCXT is free to use and has no hidden fees, with CCXT traders pay the same trading fees they would pay to the exchanges directly.
-- **Open source** means anyone is allowed to use it, to look inside the code and to change everything, including other brokers.
-
 ## See Also
 
 - <sub>[![TabTrader](https://user-images.githubusercontent.com/1294454/66755907-9c3e8880-eea1-11e9-846e-0bff349ceb87.png)](https://tab-trader.com/?utm_source=ccxt)</sub> **[TabTrader](https://tab-trader.com/?utm_source=ccxt)** – trading on all exchanges in one app. Available on **[Android](https://play.google.com/store/apps/details?id=com.tabtrader.android&referrer=utm_source%3Dccxt)** and **[iOS](https://itunes.apple.com/app/apple-store/id1095716562?mt=8)**!
@@ -231,13 +221,13 @@ console.log(version, Object.keys(exchanges));
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.4.89/dist/ccxt.browser.min.js
-* unpkg: https://unpkg.com/ccxt@4.4.89/dist/ccxt.browser.min.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.4.90/dist/ccxt.browser.min.js
+* unpkg: https://unpkg.com/ccxt@4.4.90/dist/ccxt.browser.min.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.4.89/dist/ccxt.browser.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.4.90/dist/ccxt.browser.min.js"></script>
 ```
 
 Creates a global `ccxt` object:
@@ -715,10 +705,19 @@ Thank you!
 - <sub>[![Telegram Announcements](https://img.shields.io/badge/CCXT-Channel-blue?logo=telegram)](https://t.me/ccxt_announcements)</sub> CCXT Channel on Telegram (important announcements)
 - <sub>[![Telegram Chat](https://img.shields.io/badge/CCXT-Chat-blue?logo=telegram)](https://t.me/ccxt_chat)</sub> CCXT Chat on Telegram (technical support)
 
-
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=ccxt/ccxt&type=Date)](https://star-history.com/#ccxt/ccxt&Date)
+
+## Disclaimer
+
+CCXT is not a service nor a server. CCXT is a software. **CCXT is a free open source non-custodian API broker software under MIT license**.
+
+- **Non-custodian** means CCXT is not an intermediary in trading, it does not hold traders' money at any point in time, traders install CCXT and use CCXT to talk to exchanges directly.
+- **MIT license** means CCXT can be used for any purpose, but use at your own risk without any warranties.
+- **API broker** means CCXT is funded with rebates from exchanges' API broker programs and it is an official API broker with many exchanges, all rebates and related fees are handled by the exchanges solely in accordance with exchanges' respective terms and conditions established by each partner exchange.
+- **Free software** means CCXT is free to use and has no hidden fees, with CCXT traders pay the same trading fees they would pay to the exchanges directly.
+- **Open source** means anyone is allowed to use it, to look inside the code and to change everything, including other brokers.
 
 ## Contact Us
 

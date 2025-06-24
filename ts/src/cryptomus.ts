@@ -467,7 +467,7 @@ export default class cryptomus extends Exchange {
         //
         //     {
         //         "currency_pair": "XMR_USDT",
-        //         "last_price": "158.04829771",
+        //         "last_price": "158.04829772",
         //         "base_volume": "0.35185785",
         //         "quote_volume": "55.523761128544"
         //     }

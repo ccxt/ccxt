@@ -54,8 +54,8 @@ func (this *Exchange) GetHas() map[string]interface{} {
 	return this.Has
 }
 
-func (this *Exchange) GetOptions() map[string]interface{} {
-	return this.SyncMapToMap(this.Options)
+func (this *Exchange) GetOptions() *sync.Map {
+	return this.Options
 }
 
 func (this *Exchange) GetHostname() string {
