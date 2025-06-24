@@ -103,10 +103,13 @@ class AiohttpClient(Client):
     async def close(self, code=1000):
         if self.verbose:
             self.log(iso8601(milliseconds()), 'closing', code)
-        if not self.closed():
-            await self.connection.close()
         for future in self.futures.values():
             future.cancel()
+        await self.aiohttp_close()
+    
+    async def aiohttp_close(self):
+        if not self.closed():
+            await self.connection.close()
         # these will end automatically once self.closed() = True
         # so we don't need to cancel them
         if self.ping_looper:
