@@ -18,11 +18,10 @@ body:
         - Set `exchange.verbose = true` property before calling its functions
         - minimal, reproducible example/code
         - surround your code and verbose output with triple backticks:
-          ```` ``` ````
+          ````markdown
           ```
           your codes or output
           ```
-          ```` ``` ````
         - Do not include keys & credentials.
 
   - type: input
