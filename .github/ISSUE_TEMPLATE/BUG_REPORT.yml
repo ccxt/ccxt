@@ -7,7 +7,6 @@ body:
     attributes:
       value: |
         ## Ensure :
-        - Your issue is directly related to ccxt
         - You have already searched for similar issues
         - Your local CCXT version is up to date (check the [latest available version](https://github.com/ccxt/ccxt/blob/master/package.json#L3) )
         - Read the [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) or search for the specific subject in the [Manual](https://github.com/ccxt/ccxt/wiki/Manual) (eg: `Exchange Properties`, `Rate Limit`, `Authentication`, `API keys`, etc).
