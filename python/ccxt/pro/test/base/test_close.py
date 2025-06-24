@@ -6,7 +6,6 @@ root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.d
 sys.path.append(root)
 
 from asyncio import sleep, gather
-from ccxt.base.errors import NetworkError  # noqa E402
 import ccxt.pro
 
 async def watch_ticker_loop(exchange):

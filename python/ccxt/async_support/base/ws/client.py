@@ -4,13 +4,14 @@ from asyncio import sleep, ensure_future, wait_for, TimeoutError, BaseEventLoop,
 from .functions import milliseconds, iso8601, deep_extend
 from ccxt import NetworkError, RequestTimeout, NotSupported
 from ccxt.async_support.base.ws.future import Future
+from typing import Dict
 
 
 class Client(object):
 
     url = None
     ws = None
-    futures = {}
+    futures: Dict[str, Future] = {}
     options = {}  # ws-specific options
     subscriptions = {}
     rejections = {}

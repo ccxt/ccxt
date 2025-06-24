@@ -230,6 +230,8 @@ trait ClientTrait {
         foreach ($this->clients as $client) {
             $client->close();
         }
+        // empty the array
+        array_splice($this->clients, 0);
     }
 
     public function __destruct() {
