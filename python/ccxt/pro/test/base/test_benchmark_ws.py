@@ -378,14 +378,14 @@ async def main():
     binance6 = await setup_exchange(custom_ws_url, symbol)
     symbols = SYMBOLS[:NUM_CONSUMERS]
     multi_topic_metrics = []
-    
+
     # Run watch_ticker calls in batches of 10
     batch_size = 10
     for i in range(0, len(symbols), batch_size):
         batch_symbols = symbols[i:i + batch_size]
         watch_tasks = [binance6.watch_ticker(symbol_name) for symbol_name in batch_symbols]
         await asyncio.gather(*watch_tasks)
-    
+
     def make_on_ticker_multi_topic(metrics):
         def on_ticker(msg):
             if hasattr(msg, 'error') and msg.error:
@@ -437,13 +437,13 @@ async def main():
     binance7 = await setup_exchange(custom_ws_url, symbol)
     symbols7 = SYMBOLS[:NUM_CONSUMERS]
     multi_topic_metrics_sync_false = []
-    
+
     # Run watch_ticker calls in batches of 10
     for i in range(0, len(symbols7), batch_size):
         batch_symbols = symbols7[i:i + batch_size]
         watch_tasks7 = [binance7.watch_ticker(symbol_name) for symbol_name in batch_symbols]
         await asyncio.gather(*watch_tasks7)
-    
+
     def make_on_ticker_multi_topic_sync_false(metrics):
         def on_ticker(msg):
             if hasattr(msg, 'error') and msg.error:
