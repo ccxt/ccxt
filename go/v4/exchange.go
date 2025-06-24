@@ -217,6 +217,10 @@ func (this *Exchange) Init(userConfig map[string]interface{}) {
 	if this.Options == nil {
 		this.Options = &sync.Map{} // by default sync.map is nil
 	}
+
+	if this.MarketsMutex == nil {
+		this.MarketsMutex = &sync.Mutex{}
+	}
 	// to do
 }
 
@@ -304,10 +308,6 @@ func (this *Exchange) LoadMarkets(params ...interface{}) <-chan interface{} {
 
 func (this *Exchange) LoadMarketsHelper(params ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
-
-	if this.MarketsMutex == nil {
-		this.MarketsMutex = new(sync.Mutex)
-	}
 
 	go func() {
 		defer close(ch)
