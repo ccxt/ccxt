@@ -46,6 +46,7 @@ export default class hyperliquid extends Exchange {
                 'createMarketBuyOrderWithCost': false,
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
+                'createOrderWithTakeProfitAndStopLoss': true,
                 'createOrder': true,
                 'createOrders': true,
                 'createReduceOnlyOrder': true,
@@ -231,7 +232,10 @@ export default class hyperliquid extends Exchange {
                         'triggerDirection': false,
                         'stopLossPrice': false,
                         'takeProfitPrice': false,
-                        'attachedStopLossTakeProfit': undefined,
+                        'attachedStopLossTakeProfit': {
+                            'triggerPrice': true,
+                            'type': true,
+                        },
                         'timeInForce': {
                             'IOC': true,
                             'FOK': false,
