@@ -382,12 +382,10 @@ export default class blockchaincom extends Exchange {
             const currencyId = currencyIds[i];
             const currencyEntries = currencies[currencyId];
             const code = this.safeCurrencyCode (currencyId);
-            let minPrecision = undefined;
             let type = undefined;
             const networks = {};
             for (let j = 0; j < currencyEntries.length; j++) {
                 const chain = currencyEntries[j];
-                const precision = this.parsePrecision (this.safeString (chain, 'precision'));
                 const typeObject = this.safeValue (chain, 'type', {});
                 const displaySymbol = this.safeString (chain, 'displaySymbol');
                 const typeName = this.safeString (typeObject, 'name');
@@ -395,7 +393,7 @@ export default class blockchaincom extends Exchange {
                     type = 'fiat';
                 } else {
                     type = 'crypto';
-                    const isMainnetCoin = (typeName === 'COIN');
+                    const isMainnetCoin = (typeName === 'COIN'); // otherwise, it can be eg. ERC20
                     const networkId = isMainnetCoin ? displaySymbol : this.safeString (typeObject, 'parentChain');
                     // todo: after networks-unification PR is merged, link chains to specific currency-id junctions
                     const networkCode = this.networkIdToCode (networkId);
@@ -407,7 +405,7 @@ export default class blockchaincom extends Exchange {
                         'deposit': undefined,
                         'withdraw': undefined,
                         'fee': undefined,
-                        'precision': this.parseNumber (precision),
+                        'precision': this.parseNumber (this.parsePrecision (this.safeString (chain, 'precision'))),
                         'limits': {
                             'deposit': {
                                 'min': undefined,
@@ -420,11 +418,10 @@ export default class blockchaincom extends Exchange {
                         },
                         // 'parentCurrencyId': this.safeString (chain, 'symbol'), // before main networks-unification PR is merged, to link chains to specific currency-id junctions
                     };
-                    minPrecision = (minPrecision === undefined) ? precision : Precise.stringMin (minPrecision, precision);
                 }
             }
             const info = this.indexBy (networks, 'network');
-            result[code] = {
+            result[code] = this.safeCurrencyStructure ({
                 'info': info,
                 'code': code,
                 'id': currencyId,
@@ -434,7 +431,7 @@ export default class blockchaincom extends Exchange {
                 'deposit': undefined,
                 'withdraw': undefined,
                 'fee': undefined,
-                'precision': this.parseNumber (minPrecision),
+                'precision': undefined,
                 'limits': {
                     'deposit': {
                         'min': undefined,
@@ -446,7 +443,7 @@ export default class blockchaincom extends Exchange {
                     },
                 },
                 'networks': networks,
-            };
+            });
         }
         return result;
     }

@@ -3,6 +3,505 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": {
+                    "currencies": [
+                        {
+                            "symbol": "USDT",
+                            "displaySymbol": "USDT",
+                            "name": "Tether",
+                            "type": {
+                                "parentChain": "ETH",
+                                "erc20Address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+                                "logoPngUrl": "https://raw.githubusercontent.com/blockchain/coin-definitions/master/extensions/blockchains/ethereum/assets/0xdAC17F958D2ee523a2206206994597C13D831ec7/logo.png",
+                                "websiteUrl": "https://tether.to",
+                                "name": "ERC20"
+                            },
+                            "precision": 6,
+                            "products": [
+                                "MercuryDeposits",
+                                "MercuryWithdrawals",
+                                "InterestBalance",
+                                "CWBalance",
+                                "CWDeposit",
+                                "CWWithdrawal",
+                                "CustodialWalletBalance",
+                                "PrivateKey"
+                            ],
+                            "categories": [
+                                {
+                                    "id": "STABLECOINS",
+                                    "name": "Stablecoins",
+                                    "description": "Stablecoins are cryptocurrencies designed to maintain a stable value, typically pegged to a fiat currency such as the US Dollar or Euro."
+                                }
+                            ]
+                        },
+                        {
+                            "symbol": "USDT.MATIC",
+                            "displaySymbol": "USDT",
+                            "name": "Tether USD",
+                            "type": {
+                                "parentChain": "MATIC",
+                                "erc20Address": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
+                                "logoPngUrl": "https://raw.githubusercontent.com/blockchain/coin-definitions/master/extensions/blockchains/polygon/assets/0xc2132D05D31c914a87C6611C10748AEb04B58e8F/logo.png",
+                                "websiteUrl": "https://tether.to",
+                                "name": "ERC20"
+                            },
+                            "precision": 6,
+                            "products": [
+                                "PrivateKey"
+                            ],
+                            "categories": []
+                        },
+                        {
+                            "symbol": "USDT.SOL",
+                            "displaySymbol": "USDT",
+                            "name": "USDT",
+                            "type": {
+                                "parentChain": "SOL",
+                                "address": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+                                "logoPngUrl": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/solana/assets/Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB/logo.png",
+                                "websiteUrl": "https://tether.to",
+                                "name": "SOLANA_TOKEN"
+                            },
+                            "precision": 6,
+                            "products": [
+                                "CWWithdrawal",
+                                "PrivateKey"
+                            ],
+                            "categories": []
+                        },
+                        {
+                            "symbol": "USDT.TRX",
+                            "displaySymbol": "USDT",
+                            "name": "Tether",
+                            "type": {
+                                "parentChain": "TRX",
+                                "erc20Address": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+                                "logoPngUrl": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/tron/assets/TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t/logo.png",
+                                "websiteUrl": "https://tether.to",
+                                "name": "TRC20"
+                            },
+                            "precision": 6,
+                            "products": [
+                                "CWWithdrawal",
+                                "PrivateKey"
+                            ],
+                            "categories": []
+                        },
+                    ],
+                    "groups": [
+                        {
+                            "parentSymbol": "USDC",
+                            "childSymbols": [
+                                "USDC.BASEETH",
+                                "USDC.OETH",
+                                "USDC.SOL",
+                                "USDC.ARBETH",
+                                "USDC.MATIC"
+                            ]
+                        },
+                        {
+                            "parentSymbol": "USDT",
+                            "childSymbols": [
+                                "USDT.TRX",
+                                "USDT.SOL"
+                            ]
+                        },
+                        {
+                            "parentSymbol": "ETH",
+                            "childSymbols": [
+                                "BASEETH",
+                                "OETH",
+                                "ARBETH"
+                            ]
+                        }
+                    ],
+                    "xChainGroups": [
+                        {
+                            "symbol": "USDT",
+                            "assets": [
+                                {
+                                    "id": "USDT",
+                                    "default": true,
+                                    "networkCode": "ETH",
+                                    "networkName": "Ethereum",
+                                    "withdrawalEnabled": true,
+                                    "depositEnabled": true
+                                },
+                                {
+                                    "id": "USDT.TRX",
+                                    "default": false,
+                                    "networkCode": "TRX",
+                                    "networkName": "TRON",
+                                    "withdrawalEnabled": true,
+                                    "depositEnabled": false
+                                },
+                                {
+                                    "id": "USDT.SOL",
+                                    "default": false,
+                                    "networkCode": "SOL",
+                                    "networkName": "Solana",
+                                    "withdrawalEnabled": true,
+                                    "depositEnabled": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "USDT": {
+                        "info": {
+                            "ERC20": {
+                                "info": {
+                                    "symbol": "USDT",
+                                    "displaySymbol": "USDT",
+                                    "name": "Tether",
+                                    "type": {
+                                        "parentChain": "ETH",
+                                        "erc20Address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+                                        "logoPngUrl": "https://raw.githubusercontent.com/blockchain/coin-definitions/master/extensions/blockchains/ethereum/assets/0xdAC17F958D2ee523a2206206994597C13D831ec7/logo.png",
+                                        "websiteUrl": "https://tether.to",
+                                        "name": "ERC20"
+                                    },
+                                    "precision": 6,
+                                    "products": [
+                                        "MercuryDeposits",
+                                        "MercuryWithdrawals",
+                                        "InterestBalance",
+                                        "CWBalance",
+                                        "CWDeposit",
+                                        "CWWithdrawal",
+                                        "CustodialWalletBalance",
+                                        "PrivateKey"
+                                    ],
+                                    "categories": [
+                                        {
+                                            "id": "STABLECOINS",
+                                            "name": "Stablecoins",
+                                            "description": "Stablecoins are cryptocurrencies designed to maintain a stable value, typically pegged to a fiat currency such as the US Dollar or Euro."
+                                        }
+                                    ]
+                                },
+                                "id": "ETH",
+                                "network": "ERC20",
+                                "active": null,
+                                "deposit": null,
+                                "withdraw": null,
+                                "fee": null,
+                                "precision": 0.000001,
+                                "limits": {
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "MATIC": {
+                                "info": {
+                                    "symbol": "USDT.MATIC",
+                                    "displaySymbol": "USDT",
+                                    "name": "Tether USD",
+                                    "type": {
+                                        "parentChain": "MATIC",
+                                        "erc20Address": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
+                                        "logoPngUrl": "https://raw.githubusercontent.com/blockchain/coin-definitions/master/extensions/blockchains/polygon/assets/0xc2132D05D31c914a87C6611C10748AEb04B58e8F/logo.png",
+                                        "websiteUrl": "https://tether.to",
+                                        "name": "ERC20"
+                                    },
+                                    "precision": 6,
+                                    "products": [
+                                        "PrivateKey"
+                                    ],
+                                    "categories": []
+                                },
+                                "id": "MATIC",
+                                "network": "MATIC",
+                                "active": null,
+                                "deposit": null,
+                                "withdraw": null,
+                                "fee": null,
+                                "precision": 0.000001,
+                                "limits": {
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "SOL": {
+                                "info": {
+                                    "symbol": "USDT.SOL",
+                                    "displaySymbol": "USDT",
+                                    "name": "USDT",
+                                    "type": {
+                                        "parentChain": "SOL",
+                                        "address": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+                                        "logoPngUrl": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/solana/assets/Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB/logo.png",
+                                        "websiteUrl": "https://tether.to",
+                                        "name": "SOLANA_TOKEN"
+                                    },
+                                    "precision": 6,
+                                    "products": [
+                                        "CWWithdrawal",
+                                        "PrivateKey"
+                                    ],
+                                    "categories": []
+                                },
+                                "id": "SOL",
+                                "network": "SOL",
+                                "active": null,
+                                "deposit": null,
+                                "withdraw": null,
+                                "fee": null,
+                                "precision": 0.000001,
+                                "limits": {
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "TRC20": {
+                                "info": {
+                                    "symbol": "USDT.TRX",
+                                    "displaySymbol": "USDT",
+                                    "name": "Tether",
+                                    "type": {
+                                        "parentChain": "TRX",
+                                        "erc20Address": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+                                        "logoPngUrl": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/tron/assets/TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t/logo.png",
+                                        "websiteUrl": "https://tether.to",
+                                        "name": "TRC20"
+                                    },
+                                    "precision": 6,
+                                    "products": [
+                                        "CWWithdrawal",
+                                        "PrivateKey"
+                                    ],
+                                    "categories": []
+                                },
+                                "id": "TRX",
+                                "network": "TRC20",
+                                "active": null,
+                                "deposit": null,
+                                "withdraw": null,
+                                "fee": null,
+                                "precision": 0.000001,
+                                "limits": {
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            }
+                        },
+                        "id": "USDT",
+                        "numericId": null,
+                        "code": "USDT",
+                        "precision": 0.000001,
+                        "type": "crypto",
+                        "name": null,
+                        "active": null,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": null,
+                        "fees": {},
+                        "networks": {
+                            "ERC20": {
+                                "info": {
+                                    "symbol": "USDT",
+                                    "displaySymbol": "USDT",
+                                    "name": "Tether",
+                                    "type": {
+                                        "parentChain": "ETH",
+                                        "erc20Address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+                                        "logoPngUrl": "https://raw.githubusercontent.com/blockchain/coin-definitions/master/extensions/blockchains/ethereum/assets/0xdAC17F958D2ee523a2206206994597C13D831ec7/logo.png",
+                                        "websiteUrl": "https://tether.to",
+                                        "name": "ERC20"
+                                    },
+                                    "precision": 6,
+                                    "products": [
+                                        "MercuryDeposits",
+                                        "MercuryWithdrawals",
+                                        "InterestBalance",
+                                        "CWBalance",
+                                        "CWDeposit",
+                                        "CWWithdrawal",
+                                        "CustodialWalletBalance",
+                                        "PrivateKey"
+                                    ],
+                                    "categories": [
+                                        {
+                                            "id": "STABLECOINS",
+                                            "name": "Stablecoins",
+                                            "description": "Stablecoins are cryptocurrencies designed to maintain a stable value, typically pegged to a fiat currency such as the US Dollar or Euro."
+                                        }
+                                    ]
+                                },
+                                "id": "ETH",
+                                "network": "ERC20",
+                                "active": null,
+                                "deposit": null,
+                                "withdraw": null,
+                                "fee": null,
+                                "precision": 0.000001,
+                                "limits": {
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "MATIC": {
+                                "info": {
+                                    "symbol": "USDT.MATIC",
+                                    "displaySymbol": "USDT",
+                                    "name": "Tether USD",
+                                    "type": {
+                                        "parentChain": "MATIC",
+                                        "erc20Address": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
+                                        "logoPngUrl": "https://raw.githubusercontent.com/blockchain/coin-definitions/master/extensions/blockchains/polygon/assets/0xc2132D05D31c914a87C6611C10748AEb04B58e8F/logo.png",
+                                        "websiteUrl": "https://tether.to",
+                                        "name": "ERC20"
+                                    },
+                                    "precision": 6,
+                                    "products": [
+                                        "PrivateKey"
+                                    ],
+                                    "categories": []
+                                },
+                                "id": "MATIC",
+                                "network": "MATIC",
+                                "active": null,
+                                "deposit": null,
+                                "withdraw": null,
+                                "fee": null,
+                                "precision": 0.000001,
+                                "limits": {
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "SOL": {
+                                "info": {
+                                    "symbol": "USDT.SOL",
+                                    "displaySymbol": "USDT",
+                                    "name": "USDT",
+                                    "type": {
+                                        "parentChain": "SOL",
+                                        "address": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+                                        "logoPngUrl": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/solana/assets/Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB/logo.png",
+                                        "websiteUrl": "https://tether.to",
+                                        "name": "SOLANA_TOKEN"
+                                    },
+                                    "precision": 6,
+                                    "products": [
+                                        "CWWithdrawal",
+                                        "PrivateKey"
+                                    ],
+                                    "categories": []
+                                },
+                                "id": "SOL",
+                                "network": "SOL",
+                                "active": null,
+                                "deposit": null,
+                                "withdraw": null,
+                                "fee": null,
+                                "precision": 0.000001,
+                                "limits": {
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "TRC20": {
+                                "info": {
+                                    "symbol": "USDT.TRX",
+                                    "displaySymbol": "USDT",
+                                    "name": "Tether",
+                                    "type": {
+                                        "parentChain": "TRX",
+                                        "erc20Address": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+                                        "logoPngUrl": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/tron/assets/TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t/logo.png",
+                                        "websiteUrl": "https://tether.to",
+                                        "name": "TRC20"
+                                    },
+                                    "precision": 6,
+                                    "products": [
+                                        "CWWithdrawal",
+                                        "PrivateKey"
+                                    ],
+                                    "categories": []
+                                },
+                                "id": "TRX",
+                                "network": "TRC20",
+                                "active": null,
+                                "deposit": null,
+                                "withdraw": null,
+                                "fee": null,
+                                "precision": 0.000001,
+                                "limits": {
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            }
+                        },
+                        "limits": {
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    }
+                }
+            }
+        ],
         "fetchDepositAddress": [
             {
                 "description": "fetch btc address",
