@@ -113,8 +113,6 @@ class AiohttpClient(Client):
         # so we don't need to cancel them
         if self.ping_looper:
             self.ping_looper.cancel()
-        if self.receive_looper:
-            self.receive_looper.cancel()  # cancel all pending futures stored in self.futures
         for key in self.futures:
             future = self.futures[key]
             if not future.done():

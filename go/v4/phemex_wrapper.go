@@ -622,6 +622,7 @@ func (this *Phemex) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, err
  * @description fetch the deposit address for a currency associated with this account
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.network] the chain name to fetch the deposit address e.g. ETH, TRX, EOS, SOL, etc.
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
  */
 func (this *Phemex) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {

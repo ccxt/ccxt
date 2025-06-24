@@ -869,7 +869,7 @@ func  (this *paradex) ParseTicker(ticker interface{}, optionalArgs ...interface{
     //         "ask": "69578.2",
     //         "volume_24h": "5815541.397939004",
     //         "total_volume": "584031465.525259686",
-    //         "created_at": 1718170156580,
+    //         "created_at": 1718170156581,
     //         "underlying_price": "67367.37268422",
     //         "open_interest": "162.272",
     //         "funding_rate": "0.01629574927887",

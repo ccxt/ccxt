@@ -4,7 +4,7 @@
 
 A `JavaScript` / `Python` / `PHP` / `C#` / `Go` library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
 
-### [Install](#install) · [Usage](#usage) · [Manual](https://github.com/ccxt/ccxt/wiki) · [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) · [Examples](https://github.com/ccxt/ccxt/tree/master/examples) · [Contributing](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) · [Social](#social)
+### [Install](#install) · [Usage](#usage) · [Manual](https://github.com/ccxt/ccxt/wiki) · [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) · [Examples](https://github.com/ccxt/ccxt/tree/master/examples) · [Contributing](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) · [Disclaimer](#disclaimer) · [Social](#social)
 
 The **CCXT** library is used to connect and trade with cryptocurrency exchanges and payment processing services worldwide. It provides quick access to market data for storage, analysis, visualization, indicator development, algorithmic trading, strategy backtesting, bot programming, and related software engineering.
 
@@ -17,16 +17,6 @@ Current feature list:
 - optional normalized data for cross-exchange analytics and arbitrage
 - an out of the box unified API that is extremely easy to integrate
 - works in Node 10.4+, Python 3, PHP 8.1+, netstandard2.0/2.1, Go 1.20+ and web browsers
-
-## Disclaimer
-
-CCXT is not a service nor a server. CCXT is a software. **CCXT is a free open source non-custodian API broker software under MIT license**.
-
-- **Non-custodian** means CCXT is not an intermediary in trading, it does not hold traders' money at any point in time, traders install CCXT and use CCXT to talk to exchanges directly.
-- **MIT license** means CCXT can be used for any purpose, but use at your own risk without any warranties.
-- **API broker** means CCXT is funded with rebates from exchanges' API broker programs and it is an official API broker with many exchanges. Broker rebates from trading fees range from 30% to 65%. All rebates and related fees are handled by the exchanges solely in accordance with exchanges' respective terms and conditions established by each partner exchange.
-- **Free software** means CCXT is free to use and has no hidden fees, with CCXT traders pay the same trading fees they would pay to the exchanges directly.
-- **Open source** means anyone is allowed to use it, to look inside the code and to change everything, including other brokers.
 
 ## See Also
 
@@ -63,7 +53,7 @@ CCXT is not a service nor a server. CCXT is a software. **CCXT is a free open so
 | [![woofipro](https://github.com/user-attachments/assets/9ba21b8a-a9c7-4770-b7f1-ce3bcbde68c1)](https://dex.woo.org/en/trade?ref=CCXT)                                       | woofipro      | [WOOFI PRO](https://dex.woo.org/en/trade?ref=CCXT)                                      | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://orderly.network/docs/build-on-evm/building-on-evm)          | ![DEX - Distributed EXchange](https://img.shields.io/badge/DEX-blue.svg "DEX - Distributed EXchange")  | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) | [![Sign up with WOOFI PRO using CCXT's referral link for a 5% discount!](https://img.shields.io/static/v1?label=Fee&message=%2d5%25&color=orange)](https://dex.woo.org/en/trade?ref=CCXT)                        |
 
 ## Supported Cryptocurrency Exchanges
-<!--- init list -->The CCXT library currently supports the following 103 cryptocurrency exchange markets and trading APIs:
+<!--- init list -->The CCXT library currently supports the following 102 cryptocurrency exchange markets and trading APIs:
 
 |logo                                                                                                                                                                                           |id                     |name                                                                                          |ver                                                                                                                                               |type                                                                                                    |certified                                                                                                                    |pro                                                                           |
 |-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------|----------------------------------------------------------------------------------------------|:------------------------------------------------------------------------------------------------------------------------------------------------:|--------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
@@ -107,7 +97,6 @@ CCXT is not a service nor a server. CCXT is a software. **CCXT is a free open so
 | [![coincatch](https://github.com/user-attachments/assets/3d49065f-f05d-4573-88a2-1b5201ec6ff3)](https://partner.coincatch.cc/bg/92hy70391729607848548)                                        | coincatch             | [CoinCatch](https://partner.coincatch.cc/bg/92hy70391729607848548)                           | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://coincatch.github.io/github.io/en/)                                          | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![coincheck](https://user-images.githubusercontent.com/51840849/87182088-1d6d6380-c2ec-11ea-9c64-8ab9f9b289f5.jpg)](https://coincheck.com)                                                   | coincheck             | [coincheck](https://coincheck.com)                                                           | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://coincheck.com/documents/exchange/api)                                       | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                              |
 | [![coinex](https://user-images.githubusercontent.com/51840849/87182089-1e05fa00-c2ec-11ea-8da9-cc73b45abbbc.jpg)](https://www.coinex.com/register?refer_code=yw5fz)                           | coinex                | [CoinEx](https://www.coinex.com/register?refer_code=yw5fz)                                   | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.coinex.com/api/v2)                                                     | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![coinlist](https://github-production-user-asset-6210df.s3.amazonaws.com/1294454/281108917-eff2ae1d-ce8a-4b2a-950d-8678b12da965.jpg)](https://coinlist.co)                                   | coinlist              | [Coinlist](https://coinlist.co)                                                              | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://trade-docs.coinlist.co)                                                     | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                              |
 | [![coinmate](https://user-images.githubusercontent.com/51840849/87460806-1c9f3f00-c616-11ea-8c46-a77018a8f3f4.jpg)](https://coinmate.io?referral=YTFkM1RsOWFObVpmY1ZjMGREQmpTRnBsWjJJNVp3PT0) | coinmate              | [CoinMate](https://coinmate.io?referral=YTFkM1RsOWFObVpmY1ZjMGREQmpTRnBsWjJJNVp3PT0)         | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://coinmate.docs.apiary.io)                                                    | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                              |
 | [![coinmetro](https://github.com/ccxt/ccxt/assets/43336371/e86f87ec-6ba3-4410-962b-f7988c5db539)](https://go.coinmetro.com/?ref=crypto24)                                                     | coinmetro             | [Coinmetro](https://go.coinmetro.com/?ref=crypto24)                                          | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://documenter.getpostman.com/view/3653795/SVfWN6KS)                            | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                              |
 | [![coinone](https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg)](https://coinone.co.kr)                                                      | coinone               | [CoinOne](https://coinone.co.kr)                                                             | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://doc.coinone.co.kr)                                                          | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                              |
@@ -231,13 +220,13 @@ console.log(version, Object.keys(exchanges));
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.4.88/dist/ccxt.browser.min.js
-* unpkg: https://unpkg.com/ccxt@4.4.88/dist/ccxt.browser.min.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.4.90/dist/ccxt.browser.min.js
+* unpkg: https://unpkg.com/ccxt@4.4.90/dist/ccxt.browser.min.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.4.88/dist/ccxt.browser.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.4.90/dist/ccxt.browser.min.js"></script>
 ```
 
 Creates a global `ccxt` object:
@@ -324,10 +313,6 @@ docker-compose run --rm ccxt
 You don't need the Docker image if you're not going to develop CCXT. If you just want to use CCXT – just install it as a regular package into your project.
 
 ---
-
-## Documentation
-
-Read the [Manual](https://github.com/ccxt/ccxt/wiki/) for more details.
 
 ## Usage
 
@@ -611,6 +596,53 @@ Lastly, just because the signature dictates that some argument like `symbol` is 
 
 You can check different examples in the `examples/go` folder.
 
+## CCXT CLI
+
+Read the documentation for more information and details: [docs](https://github.com/ccxt/ccxt/tree/master/cli/README.md)
+
+CCXT also provides a command-line interface (CLI) that enables direct interaction with any supported exchange from the terminal. You can quickly check balances, place orders, or fetch trade data—without the need to write or execute custom code. This is especially useful for simple or time-sensitive tasks that don’t warrant the overhead of building a full application.
+
+### Installation
+
+The CLI is available as a npm package and can be installed by doing
+
+```
+npm i ccxt-cli -g
+```
+
+### Usage
+
+You can use the `--help` option to view a general overview of how the CLI works. The tool allows you to invoke any CCXT method by specifying the exchange id, the methodName, and any required arguments.
+
+Examples:
+
+```
+ccxt binance createOrder BTC/USDT market buy 0.1 // places an order
+```
+If you are not sure which arguments should be provided you can always use the `explain` command.
+
+```
+ccxt explain createOrder
+```
+
+result:
+
+```
+Method: createOrder
+Usage:
+  binance createOrder <symbol> <type> <side> <amount> [price] [params]
+
+Arguments:
+  - symbol       (required) — Market symbol e.g., BTC/USDT
+  - type         (required) — (no description available)
+  - side         (required) — order side e.g., buy or sell
+  - amount       (required) — (no description available)
+  - price        (optional) — Price per unit of asset e.g., 26000.50
+  - params       (optional) — Extra parameters for the exchange e.g., { "recvWindow": 5000 }
+```
+
+You can easily provide API keys by setting them as environment varibales eg: `BINANCE_APIKEY="XXXX"` or adding them to the config file located at `$CACHE/config.json`
+
 ## Contributing
 
 Please read the [CONTRIBUTING](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) document before making changes that you would like adopted in the code. Also, read the [Manual](https://github.com/ccxt/ccxt/wiki) for more details.
@@ -672,10 +704,19 @@ Thank you!
 - <sub>[![Telegram Announcements](https://img.shields.io/badge/CCXT-Channel-blue?logo=telegram)](https://t.me/ccxt_announcements)</sub> CCXT Channel on Telegram (important announcements)
 - <sub>[![Telegram Chat](https://img.shields.io/badge/CCXT-Chat-blue?logo=telegram)](https://t.me/ccxt_chat)</sub> CCXT Chat on Telegram (technical support)
 
-
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=ccxt/ccxt&type=Date)](https://star-history.com/#ccxt/ccxt&Date)
+
+## Disclaimer
+
+CCXT is not a service nor a server. CCXT is a software. **CCXT is a free open source non-custodian API broker software under MIT license**.
+
+- **Non-custodian** means CCXT is not an intermediary in trading, it does not hold traders' money at any point in time, traders install CCXT and use CCXT to talk to exchanges directly.
+- **MIT license** means CCXT can be used for any purpose, but use at your own risk without any warranties.
+- **API broker** means CCXT is funded with rebates from exchanges' API broker programs and it is an official API broker with many exchanges, all rebates and related fees are handled by the exchanges solely in accordance with exchanges' respective terms and conditions established by each partner exchange.
+- **Free software** means CCXT is free to use and has no hidden fees, with CCXT traders pay the same trading fees they would pay to the exchanges directly.
+- **Open source** means anyone is allowed to use it, to look inside the code and to change everything, including other brokers.
 
 ## Contact Us
 

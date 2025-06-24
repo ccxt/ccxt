@@ -43,7 +43,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.4.88';
+$version = '4.4.90';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -62,7 +62,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.4.88';
+    const VERSION = '4.4.90';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -378,7 +378,6 @@ class Exchange {
         'coincatch',
         'coincheck',
         'coinex',
-        'coinlist',
         'coinmate',
         'coinmetro',
         'coinone',
@@ -707,7 +706,8 @@ class Exchange {
     }
 
     public static function is_associative($array) {
-        return is_array($array) && (count(array_filter(array_keys($array), 'is_string')) > 0);
+        // we can use `array_is_list` instead of old approach: (count(array_filter(array_keys($array), 'is_string')) > 0)
+        return is_array($array) && !array_is_list($array);
     }
 
     public static function omit($array, $keys) {
@@ -762,6 +762,11 @@ class Exchange {
         return $result;
     }
 
+    public static function index_by_safe($array, $key) {
+        // wrapper for go
+        return static::index_by($array, $key);
+    }
+
     public static function index_by($array, $key) {
         $result = array();
         foreach ($array as $element) {
@@ -810,7 +815,7 @@ class Exchange {
     }
 
     public static function in_array($needle, $haystack) {
-        return in_array($needle, $haystack);
+        return in_array($needle, $haystack, true);
     }
 
     public static function to_array($object) {
@@ -827,6 +832,12 @@ class Exchange {
     public static function keysort($array) {
         $result = $array;
         ksort($result);
+        return $result;
+    }
+
+    public static function sort($array) {
+        $result = $array;
+        sort($result);
         return $result;
     }
 
@@ -852,18 +863,26 @@ class Exchange {
     }
 
     public static function deep_extend() {
-        //
-        //     extend associative dictionaries only, replace everything else
-        //
+        // extend associative dictionaries only, replace everything else
+        // (optimized: https://github.com/ccxt/ccxt/pull/26277)
         $out = null;
         $args = func_get_args();
+
         foreach ($args as $arg) {
-            if (static::is_associative($arg) || (is_array($arg) && (count($arg) === 0))) {
-                if (!static::is_associative($out)) {
-                    $out = array();
-                }
-                foreach ($arg as $k => $v) {
-                    $out[$k] = static::deep_extend(isset($out[$k]) ? $out[$k] : array(), $v);
+            if (is_array($arg)) {
+                if (empty($arg) || !array_is_list($arg)) {
+                    // It's associative or empty
+                    if (!is_array($out) || array_is_list($out)) {
+                        $out = [];
+                    }
+                    foreach ($arg as $k => $v) {
+                        $out[$k] = isset($out[$k]) && is_array($out[$k]) && is_array($v) && 
+                                  (empty($v) || !array_is_list($v)) && (empty($out[$k]) || !array_is_list($out[$k]))
+                            ? static::deep_extend($out[$k], $v)
+                            : $v;
+                    }
+                } else {
+                    $out = $arg;
                 }
             } else {
                 $out = $arg;
@@ -926,7 +945,7 @@ class Exchange {
         return preg_replace('/%5B\d*%5D/', '', $this->urlencode($array));
     }
 
-    public function rawencode($array) {
+    public function rawencode($array, $sort = false) {
         return urldecode($this->urlencode($array));
     }
 
@@ -1816,7 +1835,7 @@ class Exchange {
                 $result = number_format(round($x, $numPrecisionDigits, PHP_ROUND_HALF_UP), $numPrecisionDigits, '.', '');
             } elseif ($countingMode === SIGNIFICANT_DIGITS) {
                 $significantPosition = ((int) log( abs($x), 10)) % 10;
-                if ($significantPosition > 0) {
+                if ($x >= 1) {
                     ++$significantPosition;
                 }
                 $result = static::number_to_string(round($x, $numPrecisionDigits - $significantPosition, PHP_ROUND_HALF_UP));
@@ -3807,7 +3826,7 @@ class Exchange {
 
     public function set_markets($markets, $currencies = null) {
         $values = array();
-        $this->markets_by_id = array();
+        $this->markets_by_id = $this->create_safe_dictionary();
         // handle marketId conflicts
         // we insert spot $markets first
         $marketValues = $this->sort_by($this->to_array($markets), 'spot', true, true);
@@ -3892,7 +3911,7 @@ class Exchange {
             $sortedCurrencies = $this->sort_by($resultingCurrencies, 'code');
             $this->currencies = $this->deep_extend($this->currencies, $this->index_by($sortedCurrencies, 'code'));
         }
-        $this->currencies_by_id = $this->index_by($this->currencies, 'id');
+        $this->currencies_by_id = $this->index_by_safe($this->currencies, 'id');
         $currenciesSortedByCode = $this->keysort($this->currencies);
         $this->codes = is_array($currenciesSortedByCode) ? array_keys($currenciesSortedByCode) : array();
         return $this->markets;

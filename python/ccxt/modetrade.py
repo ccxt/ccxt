@@ -1651,7 +1651,7 @@ class modetrade(Exchange, ImplicitAPI):
         #
         # {
         #     "success": True,
-        #     "timestamp": 1702989203989,
+        #     "timestamp": 1702989203988,
         #     "data": {
         #       "status": "CANCEL_SENT"
         #     }
@@ -1659,7 +1659,7 @@ class modetrade(Exchange, ImplicitAPI):
         #
         # {
         #     "success": True,
-        #     "timestamp": 1702989203989,
+        #     "timestamp": 1702989203988,
         #     "status": "CANCEL_SENT"
         # }
         #

@@ -20,7 +20,7 @@ import "github.com/ccxt/ccxt/go/v4"
                     TestTrade(exchange, skippedProperties, method, GetValue(trades, i), symbol, now)
                     AssertInArray(exchange, skippedProperties, method, GetValue(trades, i), "takerOrMaker", []interface{}{"taker", nil})
                 }
-                if !IsTrue((InOp(skippedProperties, "timestamp"))) {
+                if !IsTrue((InOp(skippedProperties, "timestampSort"))) {
                     AssertTimestampOrder(exchange, method, symbol, trades)
                 }
             

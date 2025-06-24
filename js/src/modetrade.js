@@ -1705,7 +1705,7 @@ export default class modetrade extends Exchange {
         //
         // {
         //     "success": true,
-        //     "timestamp": 1702989203989,
+        //     "timestamp": 1702989203988,
         //     "data": {
         //       "status": "CANCEL_SENT"
         //     }
@@ -1713,7 +1713,7 @@ export default class modetrade extends Exchange {
         //
         // {
         //     "success": true,
-        //     "timestamp": 1702989203989,
+        //     "timestamp": 1702989203988,
         //     "status": "CANCEL_SENT"
         // }
         //

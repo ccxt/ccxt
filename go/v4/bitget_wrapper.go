@@ -40,11 +40,27 @@ func (this *Bitget) FetchTime(params ...interface{}) ( int64, error) {
  * @see https://www.bitget.com/api-doc/spot/market/Get-Symbols
  * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbols-Contracts
  * @see https://www.bitget.com/api-doc/margin/common/support-currencies
+ * @see https://www.bitget.bike/api-doc/uta/public/Instruments
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.uta] set to true to fetch markets for the unified trading account (uta), defaults to false
  * @returns {object[]} an array of objects representing market data
  */
 func (this *Bitget) FetchMarkets(params ...interface{}) ([]MarketInterface, error) {
     res := <- this.Core.FetchMarkets(params...)
+    if IsError(res) {
+        return nil, CreateReturnError(res)
+    }
+    return NewMarketInterfaceArray(res), nil
+}
+func (this *Bitget) FetchDefaultMarkets(params interface{}) ([]MarketInterface, error) {
+    res := <- this.Core.FetchDefaultMarkets(params)
+    if IsError(res) {
+        return nil, CreateReturnError(res)
+    }
+    return NewMarketInterfaceArray(res), nil
+}
+func (this *Bitget) FetchUtaMarkets(params interface{}) ([]MarketInterface, error) {
+    res := <- this.Core.FetchUtaMarkets(params)
     if IsError(res) {
         return nil, CreateReturnError(res)
     }

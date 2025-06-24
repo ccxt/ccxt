@@ -199,6 +199,7 @@ export default class Exchange {
     streaming: {};
     alias: boolean;
     deepExtend: (...xs: any) => any;
+    deepExtendSafe: (...xs: any) => any;
     isNode: boolean;
     keys: {
         (o: object): string[];
@@ -210,6 +211,7 @@ export default class Exchange {
     flatten: (x: any[], out?: any[]) => any[];
     unique: (x: any[]) => any[];
     indexBy: (x: Dictionary<any>, k: IndexType, out?: Dictionary<any>) => Dictionary<any>;
+    indexBySafe: (x: Dictionary<any>, k: IndexType, out?: Dictionary<any>) => Dictionary<any>;
     roundTimeframe: (timeframe: string, timestamp: number, direction?: number) => number;
     sortBy: (array: any[], key: IndexType, descending?: boolean, defaultValue?: any, direction?: number) => any[];
     sortBy2: (array: any[], key1: IndexType, key2: IndexType, descending?: boolean, direction?: number) => any[];
@@ -281,8 +283,9 @@ export default class Exchange {
     base58ToBinary: (str: string) => Uint8Array;
     base64ToBinary: (str: string) => Uint8Array;
     safeTimestamp2: (o: any, k1: IndexType, k2: IndexType, $default?: number) => number;
-    rawencode: (object: object) => string;
+    rawencode: (object: object, sort?: boolean) => string;
     keysort: (x: Dictionary<any>, out?: Dictionary<any>) => Dictionary<any>;
+    sort: (array: any) => any;
     inArray: (needle: any, haystack: any[]) => boolean;
     safeStringLower2: (o: any, k1: IndexType, k2: IndexType, $default?: string) => string;
     safeStringUpper2: (o: any, k1: IndexType, k2: IndexType, $default?: string) => string;

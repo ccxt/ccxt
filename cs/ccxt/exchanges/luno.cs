@@ -260,7 +260,7 @@ public partial class luno : Exchange
         {
             return null;
         }
-        object response = await ((Task<object>)callDynamically(this, "privateGetSendNetworks", new object[] { parameters }));
+        object response = await this.privateGetSendNetworks(parameters);
         //
         //     {
         //         "networks": [
