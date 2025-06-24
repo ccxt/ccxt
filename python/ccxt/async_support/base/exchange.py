@@ -34,7 +34,7 @@ from ccxt.base.exchange import Exchange as BaseExchange, ArgumentsRequired
 # -----------------------------------------------------------------------------
 
 from ccxt.async_support.base.ws.functions import inflate, inflate64, gunzip
-from ccxt.async_support.base.ws.aiohttp_client import AiohttpClient
+from ccxt.async_support.base.ws.client import Client
 from ccxt.async_support.base.ws.future import Future
 from ccxt.async_support.base.ws.order_book import OrderBook, IndexedOrderBook, CountedOrderBook
 
