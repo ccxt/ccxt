@@ -1751,7 +1751,7 @@ export default class Exchange {
          */
         const stream = this.stream;
         if (this.stream === undefined) {
-            throw new BaseError ('Stream is not initialized');
+            throw new ExchangeError ('Stream is not initialized');
         }
         if (this.isStreamingEnabled ()) {
             return;
