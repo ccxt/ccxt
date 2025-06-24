@@ -19,7 +19,6 @@ use Ratchet\RFC6455\Messaging\Message;
 use Exception;
 use RuntimeException;
 
-use function ccxt\call_method;
 
 class NoOriginHeaderConnector extends Connector {
     public function generateRequest($url, array $subProtocols, array $headers) {
