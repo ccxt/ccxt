@@ -140,7 +140,8 @@ import {
     BadRequest,
     ExchangeClosedByUser,
     UnsubscribeError,
-    ConsumerFunctionError} from "./errors.js"
+    ConsumerFunctionError,
+    BaseError} from "./errors.js"
 
 import { Precise } from './Precise.js'
 
@@ -1750,8 +1751,12 @@ export default class Exchange {
          */
         const stream = this.stream;
         if (this.stream === undefined) {
+            throw new BaseError ('Stream is not initialized');
+        }
+        if (this.isStreamingEnabled ()) {
             return;
         }
+        this.options['enableStreaming'] = true;
         stream.subscribe ('tickers', this.streamToSymbol ('tickers'), true);
         stream.subscribe ('orderbooks', this.streamToSymbol ('orderbooks'), true);
         stream.subscribe ('orders', this.streamToSymbol ('orders'), true);
@@ -2582,6 +2587,9 @@ export default class Exchange {
          * @param {boolean} synchronous if set to true, the callback will wait to finish before passing next message
          * @param {object} [params] exchange specific parameters for the bitmex api endpoint
          */
+        if (!this.isStreamingEnabled ()) {
+            this.setupStream ();
+        }
         await this.loadMarkets ();
         const stream = this.stream;
         if (callback !== undefined) {
@@ -2605,6 +2613,9 @@ export default class Exchange {
          * @param {boolean} synchronous if set to true, the callback will wait to finish before passing next message
          * @param {object} [params] exchange specific parameters for the bitmex api endpoint
          */
+        if (!this.isStreamingEnabled ()) {
+            this.setupStream ();
+        }
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true);
         const stream = this.stream;
@@ -2645,6 +2656,9 @@ export default class Exchange {
          * @param {boolean} synchronous if set to true, the callback will wait to finish before passing next message
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          */
+        if (!this.isStreamingEnabled ()) {
+            this.setupStream ();
+        }
         await this.loadMarkets ();
         const stream = this.stream;
         if (callback !== undefined) {
@@ -2672,6 +2686,9 @@ export default class Exchange {
          * @param {boolean} synchronous if set to true, the callback will wait to finish before passing next message
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          */
+        if (!this.isStreamingEnabled ()) {
+            this.setupStream ();
+        }
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true);
         const stream = this.stream;
@@ -2705,6 +2722,9 @@ export default class Exchange {
          * @param {boolean} synchronous if set to true, the callback will wait to finish before passing next message
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          */
+        if (!this.isStreamingEnabled ()) {
+            this.setupStream ();
+        }
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true);
         const stream = this.stream;
@@ -2735,6 +2755,9 @@ export default class Exchange {
          * @param {boolean} synchronous if set to true, the callback will wait to finish before passing next message
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          */
+        if (!this.isStreamingEnabled ()) {
+            this.setupStream ();
+        }
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true);
         const stream = this.stream;
@@ -2764,6 +2787,9 @@ export default class Exchange {
          * @param {boolean} synchronous if set to true, the callback will wait to finish before passing next message
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          */
+        if (!this.isStreamingEnabled ()) {
+            this.setupStream ();
+        }
         await this.loadMarkets ();
         const stream = this.stream;
         if (callback !== undefined) {
@@ -2799,6 +2825,9 @@ export default class Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
+        if (!this.isStreamingEnabled ()) {
+            this.setupStream ();
+        }
         await this.loadMarkets ();
         const stream = this.stream;
         symbols = this.marketSymbols (symbols, undefined, true);
@@ -2872,6 +2901,9 @@ export default class Exchange {
          * @param {boolean} synchronous if set to true, the callback will wait to finish before passing next message
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
+        if (!this.isStreamingEnabled ()) {
+            this.setupStream ();
+        }
         return await this.subscribeOrderBookForSymbols ([ symbol ], callback, synchronous, params);
     }
 
@@ -3154,7 +3186,9 @@ export default class Exchange {
     afterConstruct () {
         // networks
         this.createNetworksByIdObject ();
-        this.setupStream ();
+        if (this.isStreamingEnabled ()) {
+            this.setupStream ();
+        }
         this.featuresGenerator ();
         // init predefined markets if any
         if (this.markets) {
@@ -3298,7 +3332,12 @@ export default class Exchange {
                 'CRO': { 'CRC20': 'CRONOS' },
                 'BRC20': { 'BRC20': 'BTC' },
             },
+            'enableStreaming': false, // flag to enable or disable streaming functionality
         };
+    }
+
+    isStreamingEnabled (): boolean {
+        return this.safeBool (this.options, 'enableStreaming', false);
     }
 
     safeLedgerEntry (entry: object, currency: Currency = undefined) {
@@ -4391,6 +4430,9 @@ export default class Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
+        if (!this.isStreamingEnabled ()) {
+            this.setupStream ();
+        }
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
         const stream = this.stream;
@@ -5273,6 +5315,18 @@ export default class Exchange {
     }
 
     async subscribePosition (symbol: string, callback: ConsumerFunction = undefined, synchronous: boolean = true, params = {}): Promise<any> {
+        /**
+         * @method
+         * @name subscribePosition
+         * @description subscribe to information on open positions with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified symbol of the market to fetch the position for
+         * @param {Function} callback Consumer function to be called with each update
+         * @param {boolean} synchronous if set to true, the callback will wait to finish before passing next message
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         */
+        if (!this.isStreamingEnabled ()) {
+            this.setupStream ();
+        }
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
         const stream = this.stream;
@@ -5485,6 +5539,18 @@ export default class Exchange {
     }
 
     async subscribeBalance (callback: ConsumerFunction = undefined, synchronous: boolean = true, params = {}): Promise<any> {
+        /**
+         * @method
+         * @name subscribeBalance
+         * @description subscribe to balance updates
+         * @param {Function} callback Consumer function to be called with each update
+         * @param {boolean} synchronous if set to true, the callback will wait to finish before passing next message
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         */
+        if (!this.isStreamingEnabled ()) {
+            this.setupStream ();
+        }
+        await this.loadMarkets ();
         const stream = this.stream;
         if (callback !== undefined) {
             stream.subscribe ('balances', callback, synchronous);
@@ -5799,6 +5865,9 @@ export default class Exchange {
          * @param {boolean} synchronous if set to true, the callback will wait to finish before passing next message
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          */
+        if (!this.isStreamingEnabled ()) {
+            this.setupStream ();
+        }
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
         const stream = this.stream;
@@ -5843,6 +5912,9 @@ export default class Exchange {
          * @param {boolean} synchronous if set to true, the callback will wait to finish before passing next message
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          */
+        if (!this.isStreamingEnabled ()) {
+            this.setupStream ();
+        }
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true);
         const stream = this.stream;
@@ -6405,6 +6477,9 @@ export default class Exchange {
          * @param {Function} callback function to call when receiving an update
          * @param {boolean} synchronous if set to true, the callback will wait to finish before passing next message
          */
+        if (!this.isStreamingEnabled ()) {
+            this.setupStream ();
+        }
         const stream = this.stream;
         stream.subscribe ('raw', callback, synchronous);
     }
@@ -6417,6 +6492,9 @@ export default class Exchange {
          * @param {Function} callback function to call when receiving an update
          * @param {boolean} synchronous if set to true, the callback will wait to finish before passing next message
          */
+        if (!this.isStreamingEnabled ()) {
+            this.setupStream ();
+        }
         const stream = this.stream;
         stream.subscribe ('errors', callback, synchronous);
     }
@@ -6431,6 +6509,9 @@ export default class Exchange {
          * @param {boolean} synchronous if set to true, the callback will wait to finish before passing next message
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          */
+        if (!this.isStreamingEnabled ()) {
+            this.setupStream ();
+        }
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
         const stream = this.stream;
@@ -6511,6 +6592,9 @@ export default class Exchange {
          * @param {boolean} synchronous if set to true, the callback will wait to finish before passing next message
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          */
+        if (!this.isStreamingEnabled ()) {
+            this.setupStream ();
+        }
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
         const stream = this.stream;
@@ -8398,3 +8482,4 @@ export default class Exchange {
 export {
     Exchange,
 };
+

@@ -1,5 +1,6 @@
 import asyncio
 from typing import List
+from collections import deque
 from ....base.types import Message, ConsumerFunction
 from ....base.errors import ConsumerFunctionError
 import logging
@@ -7,20 +8,24 @@ import logging
 logger = logging.getLogger(__name__)
 
 class Consumer:
-    MAX_BACKLOG_SIZE = 100  # Maximum number of messages in backlog
+    MAX_BACKLOG_SIZE = 10  # Maximum number of messages in backlog - higher number means less messages are dropped but can cause higher latency
 
     def __init__(self, fn: ConsumerFunction, synchronous: bool, current_index: int):
         self.fn = fn
         self.synchronous = synchronous
         self.current_index = current_index
         self.running = False
-        self.backlog: List[Message] = []
+        self.backlog: deque[Message] = deque()
         self.tasks: List[asyncio.Task] = []
 
     def publish(self, message: Message) -> None:
+        if len(self.backlog) >= self.MAX_BACKLOG_SIZE:
+            # logger.warning(f"WebSocket consumer backlog is at maximum size ({self.MAX_BACKLOG_SIZE} messages). Replacing oldest message with newest to prioritize recent messages.")
+            # Remove the oldest message (first in the deque) and add the new one
+            self.backlog.popleft()
         self.backlog.append(message)
-        if len(self.backlog) > self.MAX_BACKLOG_SIZE:
-            logger.warning(f"WebSocket consumer backlog is too large ({len(self.backlog)} messages). This might indicate a performance issue or message processing bottleneck.")
+        if self.running:
+            return
         asyncio.ensure_future(self._run())
 
     async def _run(self) -> None:
@@ -28,7 +33,7 @@ class Consumer:
             return
         self.running = True
         while len(self.backlog) > 0:
-            message = self.backlog.pop(0)
+            message = self.backlog.popleft()
             await self._handle_message(message)
         self.running = False
 

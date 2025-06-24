@@ -85,7 +85,8 @@ class Exchange(BaseExchange):
         maxMessagesPerTopic = self.streaming.get('maxMessagesPerTopic', 0)
         verbose = self.streaming.get('verbose', self.verbose)
         self.stream = Stream(maxMessagesPerTopic, verbose)
-        self.setup_stream()
+        if self.is_streaming_enabled():
+            self.setup_stream()
 
     def get_event_loop(self):
         return self.asyncio_loop
@@ -693,6 +694,8 @@ class Exchange(BaseExchange):
         :param boolean synchronous: if set to True, the callback will wait to finish before passing next message
         :param dict [params]: exchange specific parameters for the bitmex api endpoint
         """
+        if not self.is_streaming_enabled():
+            self.setup_stream()
         await self.load_markets()
         stream = self.stream
         if callback is not None:
@@ -711,6 +714,8 @@ class Exchange(BaseExchange):
         :param boolean synchronous: if set to True, the callback will wait to finish before passing next message
         :param dict [params]: exchange specific parameters for the bitmex api endpoint
         """
+        if not self.is_streaming_enabled():
+            self.setup_stream()
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, True)
         stream = self.stream
@@ -741,6 +746,8 @@ class Exchange(BaseExchange):
         :param boolean synchronous: if set to True, the callback will wait to finish before passing next message
         :param dict [params]: extra parameters specific to the exchange API endpoint
         """
+        if not self.is_streaming_enabled():
+            self.setup_stream()
         await self.load_markets()
         stream = self.stream
         if callback is not None:
@@ -762,6 +769,8 @@ class Exchange(BaseExchange):
         :param boolean synchronous: if set to True, the callback will wait to finish before passing next message
         :param dict [params]: extra parameters specific to the exchange API endpoint
         """
+        if not self.is_streaming_enabled():
+            self.setup_stream()
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, True)
         stream = self.stream
@@ -787,6 +796,8 @@ class Exchange(BaseExchange):
         :param boolean synchronous: if set to True, the callback will wait to finish before passing next message
         :param dict [params]: extra parameters specific to the exchange API endpoint
         """
+        if not self.is_streaming_enabled():
+            self.setup_stream()
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, True)
         stream = self.stream
@@ -810,6 +821,8 @@ class Exchange(BaseExchange):
         :param boolean synchronous: if set to True, the callback will wait to finish before passing next message
         :param dict [params]: extra parameters specific to the exchange API endpoint
         """
+        if not self.is_streaming_enabled():
+            self.setup_stream()
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, True)
         stream = self.stream
@@ -832,6 +845,8 @@ class Exchange(BaseExchange):
         :param boolean synchronous: if set to True, the callback will wait to finish before passing next message
         :param dict [params]: extra parameters specific to the exchange API endpoint
         """
+        if not self.is_streaming_enabled():
+            self.setup_stream()
         await self.load_markets()
         stream = self.stream
         if callback is not None:
@@ -859,6 +874,8 @@ class Exchange(BaseExchange):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
+        if not self.is_streaming_enabled():
+            self.setup_stream()
         await self.load_markets()
         stream = self.stream
         symbols = self.market_symbols(symbols, None, True)
@@ -914,6 +931,8 @@ class Exchange(BaseExchange):
         :param boolean synchronous: if set to True, the callback will wait to finish before passing next message
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
+        if not self.is_streaming_enabled():
+            self.setup_stream()
         return await self.subscribe_order_book_for_symbols([symbol], callback, synchronous, params)
 
     async def un_watch_order_book(self, symbol: str, params={}):
@@ -1068,6 +1087,8 @@ class Exchange(BaseExchange):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
+        if not self.is_streaming_enabled():
+            self.setup_stream()
         await self.load_markets()
         symbol = self.symbol(symbol)
         stream = self.stream
@@ -1208,6 +1229,15 @@ class Exchange(BaseExchange):
         raise NotSupported(self.id + ' watchPosition() is not supported yet')
 
     async def subscribe_position(self, symbol: str, callback: Any = None, synchronous: bool = True, params={}):
+        """
+        subscribe to information on open positions with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the position for
+        :param Function callback: Consumer function to be called with each update
+        :param boolean synchronous: if set to True, the callback will wait to finish before passing next message
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        """
+        if not self.is_streaming_enabled():
+            self.setup_stream()
         await self.load_markets()
         symbol = self.symbol(symbol)
         stream = self.stream
@@ -1286,6 +1316,15 @@ class Exchange(BaseExchange):
         raise NotSupported(self.id + ' watchBalance() is not supported yet')
 
     async def subscribe_balance(self, callback: Any = None, synchronous: bool = True, params={}):
+        """
+        subscribe to balance updates
+        :param Function callback: Consumer function to be called with each update
+        :param boolean synchronous: if set to True, the callback will wait to finish before passing next message
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        """
+        if not self.is_streaming_enabled():
+            self.setup_stream()
+        await self.load_markets()
         stream = self.stream
         if callback is not None:
             stream.subscribe('balances', callback, synchronous)
@@ -1398,6 +1437,8 @@ class Exchange(BaseExchange):
         :param boolean synchronous: if set to True, the callback will wait to finish before passing next message
         :param dict [params]: extra parameters specific to the exchange API endpoint
         """
+        if not self.is_streaming_enabled():
+            self.setup_stream()
         await self.load_markets()
         symbol = self.symbol(symbol)
         stream = self.stream
@@ -1432,6 +1473,8 @@ class Exchange(BaseExchange):
         :param boolean synchronous: if set to True, the callback will wait to finish before passing next message
         :param dict [params]: extra parameters specific to the exchange API endpoint
         """
+        if not self.is_streaming_enabled():
+            self.setup_stream()
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, True)
         stream = self.stream
@@ -1836,6 +1879,8 @@ class Exchange(BaseExchange):
         :param boolean synchronous: if set to True, the callback will wait to finish before passing next message
         :param dict [params]: extra parameters specific to the exchange API endpoint
         """
+        if not self.is_streaming_enabled():
+            self.setup_stream()
         await self.load_markets()
         symbol = self.symbol(symbol)
         stream = self.stream
@@ -1897,6 +1942,8 @@ class Exchange(BaseExchange):
         :param boolean synchronous: if set to True, the callback will wait to finish before passing next message
         :param dict [params]: extra parameters specific to the exchange API endpoint
         """
+        if not self.is_streaming_enabled():
+            self.setup_stream()
         await self.load_markets()
         symbol = self.symbol(symbol)
         stream = self.stream

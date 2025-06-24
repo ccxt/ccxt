@@ -19,7 +19,7 @@ export class Stream implements BaseStream {
         this.init (maxMessagesPerTopic, verbose);
     }
 
-    init (maxMessagesPerTopic = 100, verbose = false) {
+    init (maxMessagesPerTopic = 10, verbose = false) {
         this.maxMessagesPerTopic = maxMessagesPerTopic
         this.verbose = verbose;
         this.topics = {};
@@ -135,10 +135,10 @@ export class Stream implements BaseStream {
             console.log ('sending message from topic ', message.metadata.topic, 'to ', consumers.length, ' consumers');
         }
         for (let i = 0; i < consumers.length; i++) {
-            const consumer = consumers[i];
-            await sleep (0); // Yield to event loop
-            consumer.publish (message);
+            await Promise.resolve ();
+            consumers[i].publish (message);
         }
+        return;
     }
 
     /**

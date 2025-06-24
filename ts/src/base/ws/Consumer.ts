@@ -1,5 +1,6 @@
 import { ConsumerFunctionError } from "../errors.js";
 import { Int, ConsumerFunction, Message } from "../types";
+import FastQueue from "./FastQueue.js";
 
 export default class Consumer {
 
@@ -11,22 +12,23 @@ export default class Consumer {
 
     public running: boolean;
 
-    public backlog: Message[];
+    public backlog: FastQueue<Message>;
 
-    private static readonly MAX_BACKLOG_SIZE = 100; // Maximum number of messages in backlog
+    private static readonly MAX_BACKLOG_SIZE = 10; // Maximum number of messages in backlog
 
     constructor (fn: ConsumerFunction, synchronous: boolean, currentIndex: Int) {
         this.fn = fn;
         this.synchronous = synchronous;
         this.currentIndex = currentIndex;
         this.running = false;
-        this.backlog = [];
+        this.backlog = new FastQueue<Message> ();
     }
 
     publish (message: Message) {
-        this.backlog.push (message);
-        if (this.backlog.length > Consumer.MAX_BACKLOG_SIZE) {
-            console.warn (`WebSocket consumer backlog is too large (${this.backlog.length} messages). This might indicate a performance issue or message processing bottleneck.`);
+        this.backlog.enqueue (message);
+        if (this.backlog.getLength () > Consumer.MAX_BACKLOG_SIZE) {
+            console.warn (`WebSocket consumer backlog is too large (${this.backlog.getLength ()} messages). This might indicate a performance issue or message processing bottleneck. Dropping oldest message.`);
+            this.backlog.dequeue ();
         }
         this._run ();
     }
@@ -36,9 +38,11 @@ export default class Consumer {
             return;
         }
         this.running = true;
-        while (this.backlog.length > 0) {
-            const message = this.backlog.shift ();
-            await this._handleMessage (message);
+        while (!this.backlog.isEmpty ()) {
+            const message = this.backlog.dequeue ();
+            if (message) {
+                await this._handleMessage (message);
+            }
         }
         this.running = false;
     }
