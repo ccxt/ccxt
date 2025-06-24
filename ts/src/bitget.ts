@@ -4458,7 +4458,7 @@ export default class bitget extends Exchange {
         //         },
         //     ]
         //
-        // spot, swap, future and spot margin: cancelOrder, cancelOrders
+        // spot, swap, future, spot margin and uta: cancelOrder, cancelOrders, cancelAllOrders
         //
         //     {
         //         "orderId": "1098758604547850241",
@@ -5759,10 +5759,12 @@ export default class bitget extends Exchange {
      * @see https://www.bitget.com/api-doc/contract/trade/Batch-Cancel-Orders
      * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-cancel-orders
      * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-cancel-order
+     * @see https://www.bitget.bike/api-doc/uta/trade/Cancel-All-Order
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'isolated' or 'cross' for spot margin trading
      * @param {boolean} [params.trigger] *contract only* set to true for canceling trigger orders
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
@@ -5779,7 +5781,29 @@ export default class bitget extends Exchange {
         const trigger = this.safeBool2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
         let response = undefined;
-        if (market['spot']) {
+        let uta = undefined;
+        let productType = undefined;
+        [ productType, params ] = this.handleProductTypeAndParams (market, params);
+        [ uta, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'uta', false);
+        if (uta) {
+            request['category'] = productType;
+            response = await this.privateUtaPostV3TradeCancelSymbolOrder (this.extend (request, params));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1750751578138,
+            //         "data": {
+            //             "list": [
+            //                 {
+            //                     "orderId": "1321313242969427968",
+            //                     "clientOid": "1321313242969427969"
+            //                 }
+            //             ]
+            //         }
+            //     }
+            //
+        } else if (market['spot']) {
             if (marginMode !== undefined) {
                 if (marginMode === 'cross') {
                     response = await this.privateMarginPostMarginV1CrossOrderBatchCancelOrder (this.extend (request, params));
@@ -5834,8 +5858,6 @@ export default class bitget extends Exchange {
                 ];
             }
         } else {
-            let productType = undefined;
-            [ productType, params ] = this.handleProductTypeAndParams (market, params);
             request['productType'] = productType;
             if (trigger) {
                 response = await this.privateMixPostV2MixOrderCancelPlanOrder (this.extend (request, params));
@@ -5858,7 +5880,7 @@ export default class bitget extends Exchange {
             //     }
         }
         const data = this.safeDict (response, 'data');
-        const resultList = this.safeList2 (data, 'resultList', 'successList');
+        const resultList = this.safeListN (data, [ 'resultList', 'successList', 'list' ]);
         const failureList = this.safeList2 (data, 'failure', 'failureList');
         const responseList = this.arrayConcat (resultList, failureList);
         return this.parseOrders (responseList);

@@ -4154,6 +4154,174 @@
                     "stopPrice": null
                 }
             }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "uta spot cancelAllOrders",
+                "method": "cancelAllOrders",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1750751994396",
+                    "data": {
+                        "list": [
+                            {
+                                "orderId": "1321315084004642816",
+                                "clientOid": "1321315084004642817"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "orderId": "1321315084004642816",
+                            "clientOid": "1321315084004642817"
+                        },
+                        "id": "1321315084004642816",
+                        "clientOrderId": "1321315084004642817",
+                        "timestamp": null,
+                        "datetime": null,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "symbol": null,
+                        "type": null,
+                        "side": null,
+                        "price": null,
+                        "amount": null,
+                        "cost": null,
+                        "average": null,
+                        "filled": null,
+                        "remaining": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "reduceOnly": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "status": null,
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "stopPrice": null
+                    },
+                    {
+                        "info": null,
+                        "id": null,
+                        "clientOrderId": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "symbol": null,
+                        "type": null,
+                        "side": null,
+                        "price": null,
+                        "amount": null,
+                        "cost": null,
+                        "average": null,
+                        "filled": null,
+                        "remaining": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "reduceOnly": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "status": null,
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "stopPrice": null
+                    }
+                ]
+            },
+            {
+                "description": "uta swap cancelAllOrders",
+                "method": "cancelAllOrders",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1750752273686",
+                    "data": {
+                        "list": [
+                            {
+                                "orderId": "1321316244191072256",
+                                "clientOid": "1321316244191072257"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "orderId": "1321316244191072256",
+                            "clientOid": "1321316244191072257"
+                        },
+                        "id": "1321316244191072256",
+                        "clientOrderId": "1321316244191072257",
+                        "timestamp": null,
+                        "datetime": null,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "symbol": null,
+                        "type": null,
+                        "side": null,
+                        "price": null,
+                        "amount": null,
+                        "cost": null,
+                        "average": null,
+                        "filled": null,
+                        "remaining": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "reduceOnly": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "status": null,
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "stopPrice": null
+                    },
+                    {
+                        "info": null,
+                        "id": null,
+                        "clientOrderId": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "symbol": null,
+                        "type": null,
+                        "side": null,
+                        "price": null,
+                        "amount": null,
+                        "cost": null,
+                        "average": null,
+                        "filled": null,
+                        "remaining": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "reduceOnly": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "status": null,
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "stopPrice": null
+                    }
+                ]
+            }
         ]
     }
 }

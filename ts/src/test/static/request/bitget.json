@@ -1259,6 +1259,24 @@
                     }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT\"}"
+            },
+            {
+                "description": "uta spot cancelAllOrders",
+                "method": "cancelAllOrders",
+                "url": "https://api.bitget.com/api/v3/trade/cancel-symbol-order",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"category\":\"SPOT\"}"
+            },
+            {
+                "description": "uta swap cancelAllOrders",
+                "method": "cancelAllOrders",
+                "url": "https://api.bitget.com/api/v3/trade/cancel-symbol-order",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"category\":\"USDT-FUTURES\"}"
             }
         ],
         "fetchCrossBorrowRate": [
