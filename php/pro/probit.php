@@ -8,12 +8,12 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\NotSupported;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class probit extends \ccxt\async\probit {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -172,6 +172,7 @@ class probit extends \ccxt\async\probit {
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             $channel = 'recent_trades';
+            $symbol = $this->safe_symbol($symbol);
             $trades = Async\await($this->subscribe_public('watchTrades', $symbol, 'trades', $channel, $params));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);

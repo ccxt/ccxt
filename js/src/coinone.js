@@ -193,6 +193,65 @@ export default class coinone extends Exchange {
                     'maker': 0.002,
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': false,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': false,
+                            'FOK': false,
+                            'PO': false,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'symbolRequired': true,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': undefined,
+                    'fetchOHLCV': undefined, // todo implement
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 '104': OrderNotFound,
@@ -240,18 +299,16 @@ export default class coinone extends Exchange {
         for (let i = 0; i < currencies.length; i++) {
             const entry = currencies[i];
             const id = this.safeString(entry, 'symbol');
-            const name = this.safeString(entry, 'name');
             const code = this.safeCurrencyCode(id);
-            const withdrawStatus = this.safeString(entry, 'withdraw_status', '');
-            const depositStatus = this.safeString(entry, 'deposit_status', '');
-            const isWithdrawEnabled = withdrawStatus === 'normal';
-            const isDepositEnabled = depositStatus === 'normal';
-            result[code] = {
+            const isWithdrawEnabled = this.safeString(entry, 'withdraw_status', '') === 'normal';
+            const isDepositEnabled = this.safeString(entry, 'deposit_status', '') === 'normal';
+            const type = (code !== 'KRW') ? 'crypto' : 'fiat';
+            result[code] = this.safeCurrencyStructure({
                 'id': id,
                 'code': code,
                 'info': entry,
-                'name': name,
-                'active': isWithdrawEnabled && isDepositEnabled,
+                'name': this.safeString(entry, 'name'),
+                'active': undefined,
                 'deposit': isDepositEnabled,
                 'withdraw': isWithdrawEnabled,
                 'fee': this.safeNumber(entry, 'withdrawal_fee'),
@@ -267,7 +324,8 @@ export default class coinone extends Exchange {
                     },
                 },
                 'networks': {},
-            };
+                'type': type,
+            });
         }
         return result;
     }
@@ -933,7 +991,6 @@ export default class coinone extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': this.safeString(order, 'price'),
-            'stopPrice': undefined,
             'triggerPrice': undefined,
             'cost': undefined,
             'average': this.safeString(order, 'averageExecutedPrice'),

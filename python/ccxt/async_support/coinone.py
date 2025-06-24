@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinone import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Currencies, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -20,7 +20,7 @@ from ccxt.base.precise import Precise
 
 class coinone(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(coinone, self).describe(), {
             'id': 'coinone',
             'name': 'CoinOne',
@@ -197,6 +197,65 @@ class coinone(Exchange, ImplicitAPI):
                     'maker': 0.002,
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': False,
+                        'triggerPriceType': None,
+                        'triggerDirection': False,
+                        'stopLossPrice': False,
+                        'takeProfitPrice': False,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': False,
+                            'FOK': False,
+                            'PO': False,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': False,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 100,  # todo implement
+                        'daysBack': 100000,  # todo implement
+                        'untilDays': 100000,  # todo implement
+                        'symbolRequired': True,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': None,  # todo implement
+                    'fetchOHLCV': None,  # todo implement
+                },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 '104': OrderNotFound,
@@ -244,18 +303,16 @@ class coinone(Exchange, ImplicitAPI):
         for i in range(0, len(currencies)):
             entry = currencies[i]
             id = self.safe_string(entry, 'symbol')
-            name = self.safe_string(entry, 'name')
             code = self.safe_currency_code(id)
-            withdrawStatus = self.safe_string(entry, 'withdraw_status', '')
-            depositStatus = self.safe_string(entry, 'deposit_status', '')
-            isWithdrawEnabled = withdrawStatus == 'normal'
-            isDepositEnabled = depositStatus == 'normal'
-            result[code] = {
+            isWithdrawEnabled = self.safe_string(entry, 'withdraw_status', '') == 'normal'
+            isDepositEnabled = self.safe_string(entry, 'deposit_status', '') == 'normal'
+            type = 'crypto' if (code != 'KRW') else 'fiat'
+            result[code] = self.safe_currency_structure({
                 'id': id,
                 'code': code,
                 'info': entry,
-                'name': name,
-                'active': isWithdrawEnabled and isDepositEnabled,
+                'name': self.safe_string(entry, 'name'),
+                'active': None,
                 'deposit': isDepositEnabled,
                 'withdraw': isWithdrawEnabled,
                 'fee': self.safe_number(entry, 'withdrawal_fee'),
@@ -271,7 +328,8 @@ class coinone(Exchange, ImplicitAPI):
                     },
                 },
                 'networks': {},
-            }
+                'type': type,
+            })
         return result
 
     async def fetch_markets(self, params={}) -> List[Market]:
@@ -915,7 +973,6 @@ class coinone(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': side,
             'price': self.safe_string(order, 'price'),
-            'stopPrice': None,
             'triggerPrice': None,
             'cost': None,
             'average': self.safe_string(order, 'averageExecutedPrice'),

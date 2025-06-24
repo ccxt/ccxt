@@ -21,4 +21,5 @@ function test_fetch_ledger_entry($exchange, $skipped_properties, $code) {
         $now = $exchange->milliseconds();
         test_ledger_entry($exchange, $skipped_properties, $method, $item, $code, $now);
     }
+    return true;
 }

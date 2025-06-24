@@ -183,6 +183,62 @@ public partial class zonda : Exchange
                     { "fillResponseFromRequest", true },
                 } },
             } },
+            { "features", new Dictionary<string, object>() {
+                { "spot", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", true },
+                        { "triggerDirection", false },
+                        { "triggerPriceType", null },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", false },
+                        { "selfTradePrevention", false },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrder", null },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", null },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", null },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+            } },
             { "precisionMode", TICK_SIZE },
             { "exceptions", new Dictionary<string, object>() {
                 { "400", typeof(ExchangeError) },
@@ -343,6 +399,7 @@ public partial class zonda : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
+        // todo pair
         object response = await this.v1_01PrivateGetTradingOffer(this.extend(request, parameters));
         object items = this.safeList(response, "items", new List<object>() {});
         return this.parseOrders(items, null, since, limit, new Dictionary<string, object>() {
@@ -397,7 +454,6 @@ public partial class zonda : Exchange
             { "postOnly", postOnly },
             { "side", this.safeStringLower(order, "offerType") },
             { "price", this.safeString(order, "rate") },
-            { "stopPrice", null },
             { "triggerPrice", null },
             { "amount", amount },
             { "cost", null },
@@ -698,7 +754,7 @@ public partial class zonda : Exchange
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1247,6 +1303,7 @@ public partial class zonda : Exchange
      * @method
      * @name zonda#createOrder
      * @description create a trade order
+     * @see https://docs.zondacrypto.exchange/reference/new-order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -1291,7 +1348,7 @@ public partial class zonda : Exchange
         {
             if (!isTrue(isStopLossPrice))
             {
-                throw new ExchangeError ((string)add(this.id, " createOrder() zonda requires `triggerPrice` or `stopPrice` parameter for stop-limit or stop-market orders")) ;
+                throw new ExchangeError ((string)add(this.id, " createOrder() zonda requires `triggerPrice` parameter for stop-limit or stop-market orders")) ;
             }
             ((IDictionary<string,object>)request)["stopRate"] = this.priceToPrecision(symbol, stopLossPrice);
             response = await this.v1_01PrivatePostTradingStopOfferSymbol(this.extend(request, parameters));

@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinsph import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -30,7 +30,7 @@ from ccxt.base.precise import Precise
 
 class coinsph(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(coinsph, self).describe(), {
             'id': 'coinsph',
             'name': 'Coins.ph',
@@ -75,7 +75,7 @@ class coinsph(Exchange, ImplicitAPI):
                 'fetchClosedOrders': True,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
-                'fetchCurrencies': False,
+                'fetchCurrencies': True,
                 'fetchDeposit': None,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': False,
@@ -313,6 +313,76 @@ class coinsph(Exchange, ImplicitAPI):
                     'ARB': 'ARBITRUM',
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,
+                        'triggerPriceType': None,
+                        'triggerDirection': False,
+                        'stopLossPrice': False,  # todo
+                        'takeProfitPrice': False,  # todo
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': False,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': True,  # todo implement
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'untilDays': 100000,  # todo implement
+                        'symbolRequired': True,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 100000,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
             # https://coins-docs.github.io/errors/
             'exceptions': {
                 'exact': {
@@ -431,6 +501,128 @@ class coinsph(Exchange, ImplicitAPI):
             },
         })
 
+    async def fetch_currencies(self, params={}) -> Currencies:
+        """
+        fetches all available currencies on an exchange
+
+        https://docs.coins.ph/rest-api/#all-coins-information-user_data
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an associative dictionary of currencies
+        """
+        if not self.check_required_credentials(False):
+            return None
+        response = await self.privateGetOpenapiWalletV1ConfigGetall(params)
+        #
+        #    [
+        #        {
+        #            "coin": "PHP",
+        #            "name": "PHP",
+        #            "depositAllEnable": False,
+        #            "withdrawAllEnable": False,
+        #            "free": "0",
+        #            "locked": "0",
+        #            "transferPrecision": "2",
+        #            "transferMinQuantity": "0",
+        #            "networkList": [],
+        #            "legalMoney": True
+        #        },
+        #        {
+        #            "coin": "USDT",
+        #            "name": "USDT",
+        #            "depositAllEnable": True,
+        #            "withdrawAllEnable": True,
+        #            "free": "0",
+        #            "locked": "0",
+        #            "transferPrecision": "8",
+        #            "transferMinQuantity": "0",
+        #            "networkList": [
+        #                {
+        #                    "addressRegex": "^0x[0-9a-fA-F]{40}$",
+        #                    "memoRegex": " ",
+        #                    "network": "ETH",
+        #                    "name": "Ethereum(ERC20)",
+        #                    "depositEnable": True,
+        #                    "minConfirm": "12",
+        #                    "unLockConfirm": "-1",
+        #                    "withdrawDesc": "",
+        #                    "withdrawEnable": True,
+        #                    "withdrawFee": "6",
+        #                    "withdrawIntegerMultiple": "0.000001",
+        #                    "withdrawMax": "500000",
+        #                    "withdrawMin": "10",
+        #                    "sameAddress": False
+        #                },
+        #                {
+        #                    "addressRegex": "^T[0-9a-zA-Z]{33}$",
+        #                    "memoRegex": "",
+        #                    "network": "TRX",
+        #                    "name": "TRON",
+        #                    "depositEnable": True,
+        #                    "minConfirm": "19",
+        #                    "unLockConfirm": "-1",
+        #                    "withdrawDesc": "",
+        #                    "withdrawEnable": True,
+        #                    "withdrawFee": "3",
+        #                    "withdrawIntegerMultiple": "0.000001",
+        #                    "withdrawMax": "1000000",
+        #                    "withdrawMin": "20",
+        #                    "sameAddress": False
+        #                }
+        #            ],
+        #            "legalMoney": False
+        #        }
+        #    ]
+        #
+        result: dict = {}
+        for i in range(0, len(response)):
+            entry = response[i]
+            id = self.safe_string(entry, 'coin')
+            code = self.safe_currency_code(id)
+            isFiat = self.safe_bool(entry, 'isLegalMoney')
+            networkList = self.safe_list(entry, 'networkList', [])
+            networks: dict = {}
+            for j in range(0, len(networkList)):
+                networkItem = networkList[j]
+                network = self.safe_string(networkItem, 'network')
+                networkCode = self.network_id_to_code(network)
+                networks[networkCode] = {
+                    'info': networkItem,
+                    'id': network,
+                    'network': networkCode,
+                    'active': None,
+                    'deposit': self.safe_bool(networkItem, 'depositEnable'),
+                    'withdraw': self.safe_bool(networkItem, 'withdrawEnable'),
+                    'fee': self.safe_number(networkItem, 'withdrawFee'),
+                    'precision': self.safe_number(networkItem, 'withdrawIntegerMultiple'),
+                    'limits': {
+                        'withdraw': {
+                            'min': self.safe_number(networkItem, 'withdrawMin'),
+                            'max': self.safe_number(networkItem, 'withdrawMax'),
+                        },
+                        'deposit': {
+                            'min': None,
+                            'max': None,
+                        },
+                    },
+                }
+            result[code] = self.safe_currency_structure({
+                'id': id,
+                'name': self.safe_string(entry, 'name'),
+                'code': code,
+                'type': 'fiat' if isFiat else 'crypto',
+                'precision': self.parse_number(self.parse_precision(self.safe_string(entry, 'transferPrecision'))),
+                'info': entry,
+                'active': None,
+                'deposit': self.safe_bool(entry, 'depositAllEnable'),
+                'withdraw': self.safe_bool(entry, 'withdrawAllEnable'),
+                'networks': networks,
+                'fee': None,
+                'fees': None,
+                'limits': {},
+            })
+        return result
+
     def calculate_rate_limiter_cost(self, api, method, path, params, config={}):
         if ('noSymbol' in config) and not ('symbol' in params):
             return config['noSymbol']
@@ -471,7 +663,7 @@ class coinsph(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def fetch_time(self, params={}):
+    async def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -809,27 +1001,36 @@ class coinsph(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch(default 500, max 1000)
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest candle to fetch
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
         interval = self.safe_string(self.timeframes, timeframe)
+        until = self.safe_integer(params, 'until')
         request: dict = {
             'symbol': market['id'],
             'interval': interval,
         }
+        if limit is None:
+            limit = 1000
         if since is not None:
             request['startTime'] = since
-            request['limit'] = 1000
             # since work properly only when it is "younger" than last "limit" candle
-            if limit is not None:
-                duration = self.parse_timeframe(timeframe) * 1000
-                request['endTime'] = self.sum(since, duration * (limit - 1))
+            if until is not None:
+                request['endTime'] = until
             else:
-                request['endTime'] = self.milliseconds()
-        else:
-            if limit is not None:
-                request['limit'] = limit
+                duration = self.parse_timeframe(timeframe) * 1000
+                endTimeByLimit = self.sum(since, duration * (limit - 1))
+                now = self.milliseconds()
+                request['endTime'] = min(endTimeByLimit, now)
+        elif until is not None:
+            request['endTime'] = until
+            # since work properly only when it is "younger" than last "limit" candle
+            duration = self.parse_timeframe(timeframe) * 1000
+            request['startTime'] = until - (duration * (limit - 1))
+        request['limit'] = limit
+        params = self.omit(params, 'until')
         response = await self.publicGetOpenapiQuoteV1Klines(self.extend(request, params))
         #
         #     [
@@ -1146,10 +1347,10 @@ class coinsph(Exchange, ImplicitAPI):
                     quoteAmount = self.cost_to_precision(symbol, amount)
                 request['quoteOrderQty'] = quoteAmount
         if orderType == 'STOP_LOSS' or orderType == 'STOP_LOSS_LIMIT' or orderType == 'TAKE_PROFIT' or orderType == 'TAKE_PROFIT_LIMIT':
-            stopPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
-            if stopPrice is None:
+            triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
+            if triggerPrice is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a triggerPrice or stopPrice param for stop_loss, take_profit, stop_loss_limit, and take_profit_limit orders')
-            request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
+            request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
         request['newOrderRespType'] = newOrderRespType
         params = self.omit(params, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty')
         response = None
@@ -1212,7 +1413,7 @@ class coinsph(Exchange, ImplicitAPI):
         """
         fetch all unfilled currently open orders
 
-        https://coins-docs.github.io/rest-api/#query-order-user_data
+        https://coins-docs.github.io/rest-api/#current-open-orders-user_data
 
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
@@ -1374,9 +1575,9 @@ class coinsph(Exchange, ImplicitAPI):
         market = self.safe_market(marketId, market)
         timestamp = self.safe_integer_2(order, 'time', 'transactTime')
         trades = self.safe_value(order, 'fills', None)
-        stopPrice = self.safe_string(order, 'stopPrice')
-        if Precise.string_eq(stopPrice, '0'):
-            stopPrice = None
+        triggerPrice = self.safe_string(order, 'stopPrice')
+        if Precise.string_eq(triggerPrice, '0'):
+            triggerPrice = None
         return self.safe_order({
             'id': id,
             'clientOrderId': self.safe_string(order, 'clientOrderId'),
@@ -1389,8 +1590,7 @@ class coinsph(Exchange, ImplicitAPI):
             'timeInForce': self.parse_order_time_in_force(self.safe_string(order, 'timeInForce')),
             'side': self.parse_order_side(self.safe_string(order, 'side')),
             'price': self.safe_string(order, 'price'),
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'average': None,
             'amount': self.safe_string(order, 'origQty'),
             'cost': self.safe_string(order, 'cummulativeQuoteQty'),

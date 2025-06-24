@@ -6,7 +6,7 @@ import { ArgumentsRequired, AuthenticationError, BadRequest, ContractUnavailable
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OrderRequest, Order, Balances, Str, Dict, Ticker, OrderBook, Tickers, Strings, Market, Currency, Leverage, Leverages, Num, LeverageTier, LeverageTiers, int, FundingRate, FundingRates } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OrderRequest, Order, Balances, Str, Dict, Ticker, OrderBook, Tickers, Strings, Market, Currency, Leverage, Leverages, Num, LeverageTier, LeverageTiers, int, FundingRate, FundingRates, Position } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -15,7 +15,7 @@ import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Trade, FundingRat
  * @augments Exchange
  */
 export default class krakenfutures extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'krakenfutures',
             'name': 'Kraken Futures',
@@ -37,6 +37,10 @@ export default class krakenfutures extends Exchange {
                 'cancelOrders': true,
                 'createMarketOrder': false,
                 'createOrder': true,
+                'createPostOnlyOrder': true,
+                'createReduceOnlyOrder': true,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
                 'createStopOrder': true,
                 'createTriggerOrder': true,
                 'editOrder': true,
@@ -260,6 +264,86 @@ export default class krakenfutures extends Exchange {
                 },
                 'fetchTrades': {
                     'method': 'historyGetMarketSymbolExecutions', // historyGetMarketSymbolExecutions, publicGetHistory
+                },
+            },
+            'features': {
+                'default': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': true,
+                            'index': true,
+                        },
+                        'triggerDirection': false,
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': {
+                        'max': 100,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'daysBack': undefined,
+                        'untilDays': 100000,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': undefined,
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'daysBack': undefined,
+                        'daysBackCanceled': undefined,
+                        'untilDays': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 5000,
+                    },
+                },
+                'spot': undefined,
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
                 },
             },
             'timeframes': {
@@ -625,7 +709,7 @@ export default class krakenfutures extends Exchange {
 
     /**
      * @method
-     * @name kraken#fetchOHLCV
+     * @name krakenfutures#fetchOHLCV
      * @see https://docs.futures.kraken.com/#http-api-charts-candles
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
@@ -1039,7 +1123,7 @@ export default class krakenfutures extends Exchange {
      * @method
      * @name krakenfutures#createOrder
      * @description Create an order on the exchange
-     * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-send-order
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/send-order
      * @param {string} symbol unified market symbol
      * @param {string} type 'limit' or 'market'
      * @param {string} side 'buy' or 'sell'
@@ -1100,7 +1184,7 @@ export default class krakenfutures extends Exchange {
      * @method
      * @name krakenfutures#createOrders
      * @description create a list of trade orders
-     * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-batch-order-management
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/send-batch-order
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1474,13 +1558,13 @@ export default class krakenfutures extends Exchange {
     }
 
     parseOrderType (orderType) {
-        const map: Dict = {
+        const typesMap: Dict = {
             'lmt': 'limit',
             'mkt': 'market',
             'post': 'limit',
             'ioc': 'market',
         };
-        return this.safeString (map, orderType, orderType);
+        return this.safeString (typesMap, orderType, orderType);
     }
 
     verifyOrderActionSuccess (status, method, omit = []) {
@@ -1894,7 +1978,6 @@ export default class krakenfutures extends Exchange {
             'reduceOnly': this.safeBool2 (details, 'reduceOnly', 'reduce_only'),
             'side': this.safeString (details, 'side'),
             'price': price,
-            'stopPrice': this.safeString (details, 'triggerPrice'),
             'triggerPrice': this.safeString (details, 'triggerPrice'),
             'amount': amount,
             'cost': cost,
@@ -1926,6 +2009,7 @@ export default class krakenfutures extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
+        // todo: lastFillTime: this.iso8601(end)
         const response = await this.privateGetFills (params);
         //
         //    {
@@ -2323,7 +2407,7 @@ export default class krakenfutures extends Exchange {
      * @param {object} [params] Not used by krakenfutures
      * @returns Parsed exchange response for positions
      */
-    async fetchPositions (symbols: Strings = undefined, params = {}) {
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         const request: Dict = {};
         const response = await this.privateGetOpenpositions (request);
@@ -2517,21 +2601,24 @@ export default class krakenfutures extends Exchange {
         const marketId = this.safeString (info, 'symbol');
         market = this.safeMarket (marketId, market);
         const tiers = [];
+        if (marginLevels === undefined) {
+            return tiers;
+        }
         for (let i = 0; i < marginLevels.length; i++) {
             const tier = marginLevels[i];
             const initialMargin = this.safeString (tier, 'initialMargin');
-            const notionalFloor = this.safeNumber (tier, 'contracts');
+            const minNotional = this.safeNumber (tier, 'numNonContractUnits');
             if (i !== 0) {
                 const tiersLength = tiers.length;
                 const previousTier = tiers[tiersLength - 1];
-                previousTier['notionalCap'] = notionalFloor;
+                previousTier['maxNotional'] = minNotional;
             }
             tiers.push ({
                 'tier': this.sum (i, 1),
                 'symbol': this.safeSymbol (marketId, market),
                 'currency': market['quote'],
-                'notionalFloor': notionalFloor,
-                'notionalCap': undefined,
+                'minNotional': minNotional,
+                'maxNotional': undefined,
                 'maintenanceMarginRate': this.safeNumber (tier, 'maintenanceMargin'),
                 'maxLeverage': this.parseNumber (Precise.stringDiv ('1', initialMargin)),
                 'info': tier,

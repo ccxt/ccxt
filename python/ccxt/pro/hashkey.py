@@ -5,14 +5,14 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
-from ccxt.base.types import Balances, Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 
 
 class hashkey(ccxt.async_support.hashkey):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(hashkey, self).describe(), {
             'has': {
                 'ws': True,

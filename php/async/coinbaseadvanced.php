@@ -10,7 +10,7 @@ use ccxt\async\abstract\coinbaseadvanced as coinbase;
 
 class coinbaseadvanced extends coinbase {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coinbaseadvanced',
             'name' => 'Coinbase Advanced',

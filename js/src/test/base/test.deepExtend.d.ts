@@ -1,2 +1,2 @@
-declare function testDeepExtend(): void;
+declare function testDeepExtend(): boolean;
 export default testDeepExtend;

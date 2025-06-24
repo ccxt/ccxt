@@ -7,12 +7,12 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ArgumentsRequired;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class bitstamp extends \ccxt\async\bitstamp {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -541,7 +541,7 @@ class bitstamp extends \ccxt\async\bitstamp {
                 //
                 $sessionToken = $this->safe_string($response, 'token');
                 if ($sessionToken !== null) {
-                    $userId = $this->safe_number($response, 'user_id');
+                    $userId = $this->safe_string($response, 'user_id');
                     $validity = $this->safe_integer_product($response, 'valid_sec', 1000);
                     $this->options['expiresIn'] = $this->sum($time, $validity);
                     $this->options['userId'] = $userId;

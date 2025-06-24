@@ -4,7 +4,7 @@ var bitstamp$1 = require('../bitstamp.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class bitstamp extends bitstamp$1 {
     describe() {
@@ -520,7 +520,7 @@ class bitstamp extends bitstamp$1 {
             //
             const sessionToken = this.safeString(response, 'token');
             if (sessionToken !== undefined) {
-                const userId = this.safeNumber(response, 'user_id');
+                const userId = this.safeString(response, 'user_id');
                 const validity = this.safeIntegerProduct(response, 'valid_sec', 1000);
                 this.options['expiresIn'] = this.sum(time, validity);
                 this.options['userId'] = userId;

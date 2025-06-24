@@ -5,7 +5,7 @@ var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class probit
@@ -87,7 +87,7 @@ class probit extends probit$1 {
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
-                'sandbox': true,
+                'sandbox': false,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
@@ -167,6 +167,77 @@ class probit extends probit$1 {
                     'percentage': true,
                     'maker': this.parseNumber('0.002'),
                     'taker': this.parseNumber('0.002'),
+                },
+            },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': false,
+                        'triggerDirection': false,
+                        'triggerPriceType': undefined,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        // todo
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': false,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 90,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 4000,
+                    },
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
                 },
             },
             'exceptions': {
@@ -271,6 +342,8 @@ class probit extends probit$1 {
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
         const closed = this.safeBool(market, 'closed', false);
+        const showInUI = this.safeBool(market, 'show_in_ui', true);
+        const active = !closed && showInUI;
         const takerFeeRate = this.safeString(market, 'taker_fee_rate');
         const taker = Precise["default"].stringDiv(takerFeeRate, '100');
         const makerFeeRate = this.safeString(market, 'maker_fee_rate');
@@ -290,7 +363,7 @@ class probit extends probit$1 {
             'swap': false,
             'future': false,
             'option': false,
-            'active': !closed,
+            'active': active,
             'contract': false,
             'linear': undefined,
             'inverse': undefined,
@@ -394,33 +467,23 @@ class probit extends probit$1 {
         //         ]
         //     }
         //
-        const currencies = this.safeValue(response, 'data', []);
+        const currencies = this.safeList(response, 'data', []);
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const id = this.safeString(currency, 'id');
             const code = this.safeCurrencyCode(id);
-            const displayName = this.safeValue(currency, 'display_name');
+            const displayName = this.safeDict(currency, 'display_name');
             const name = this.safeString(displayName, 'en-us');
-            const platforms = this.safeValue(currency, 'platform', []);
+            const platforms = this.safeList(currency, 'platform', []);
             const platformsByPriority = this.sortBy(platforms, 'priority');
-            let platform = undefined;
             const networkList = {};
             for (let j = 0; j < platformsByPriority.length; j++) {
                 const network = platformsByPriority[j];
                 const idInner = this.safeString(network, 'id');
                 const networkCode = this.networkIdToCode(idInner);
-                const currentDepositSuspended = this.safeValue(network, 'deposit_suspended');
-                const currentWithdrawalSuspended = this.safeValue(network, 'withdrawal_suspended');
-                const currentDeposit = !currentDepositSuspended;
-                const currentWithdraw = !currentWithdrawalSuspended;
-                const currentActive = currentDeposit && currentWithdraw;
-                if (currentActive) {
-                    platform = network;
-                }
-                const precision = this.parsePrecision(this.safeString(network, 'precision'));
-                const withdrawFee = this.safeValue(network, 'withdrawal_fee', []);
-                let networkFee = this.safeValue(withdrawFee, 0, {});
+                const withdrawFee = this.safeList(network, 'withdrawal_fee', []);
+                let networkFee = this.safeDict(withdrawFee, 0, {});
                 for (let k = 0; k < withdrawFee.length; k++) {
                     const withdrawPlatform = withdrawFee[k];
                     const feeCurrencyId = this.safeString(withdrawPlatform, 'currency_id');
@@ -432,11 +495,11 @@ class probit extends probit$1 {
                 networkList[networkCode] = {
                     'id': idInner,
                     'network': networkCode,
-                    'active': currentActive,
-                    'deposit': currentDeposit,
-                    'withdraw': currentWithdraw,
+                    'active': undefined,
+                    'deposit': !this.safeBool(network, 'deposit_suspended'),
+                    'withdraw': !this.safeBool(network, 'withdrawal_suspended'),
                     'fee': this.safeNumber(networkFee, 'amount'),
-                    'precision': this.parseNumber(precision),
+                    'precision': this.parseNumber(this.parsePrecision(this.safeString(network, 'precision'))),
                     'limits': {
                         'withdraw': {
                             'min': this.safeNumber(network, 'min_withdrawal_amount'),
@@ -450,55 +513,33 @@ class probit extends probit$1 {
                     'info': network,
                 };
             }
-            if (platform === undefined) {
-                platform = this.safeValue(platformsByPriority, 0, {});
-            }
-            const depositSuspended = this.safeValue(platform, 'deposit_suspended');
-            const withdrawalSuspended = this.safeValue(platform, 'withdrawal_suspended');
-            const deposit = !depositSuspended;
-            const withdraw = !withdrawalSuspended;
-            const active = deposit && withdraw;
-            const withdrawalFees = this.safeValue(platform, 'withdrawal_fee', {});
-            const fees = [];
-            // sometimes the withdrawal fee is an empty object
-            // [ { 'amount': '0.015', 'priority': 1, 'currency_id': 'ETH' }, {} ]
-            for (let j = 0; j < withdrawalFees.length; j++) {
-                const withdrawalFeeInner = withdrawalFees[j];
-                const amount = this.safeNumber(withdrawalFeeInner, 'amount');
-                const priority = this.safeInteger(withdrawalFeeInner, 'priority');
-                if ((amount !== undefined) && (priority !== undefined)) {
-                    fees.push(withdrawalFeeInner);
-                }
-            }
-            const withdrawalFeesByPriority = this.sortBy(fees, 'priority');
-            const withdrawalFee = this.safeValue(withdrawalFeesByPriority, 0, {});
-            const fee = this.safeNumber(withdrawalFee, 'amount');
-            result[code] = {
+            result[code] = this.safeCurrencyStructure({
                 'id': id,
                 'code': code,
                 'info': currency,
                 'name': name,
-                'active': active,
-                'deposit': deposit,
-                'withdraw': withdraw,
-                'fee': fee,
-                'precision': this.parseNumber(this.parsePrecision(this.safeString(platform, 'precision'))),
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
+                'type': 'crypto',
+                'fee': undefined,
+                'precision': undefined,
                 'limits': {
                     'amount': {
                         'min': undefined,
                         'max': undefined,
                     },
                     'deposit': {
-                        'min': this.safeNumber(platform, 'min_deposit_amount'),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': this.safeNumber(platform, 'min_withdrawal_amount'),
+                        'min': undefined,
                         'max': undefined,
                     },
                 },
                 'networks': networkList,
-            };
+            });
         }
         return result;
     }
@@ -930,6 +971,7 @@ class probit extends probit$1 {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.until] timestamp in ms of the earliest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -946,21 +988,21 @@ class probit extends probit$1 {
             'limit': requestLimit, // max 1000
         };
         const now = this.milliseconds();
-        const duration = this.parseTimeframe(timeframe);
+        const until = this.safeInteger(params, 'until');
+        const durationMilliseconds = this.parseTimeframe(timeframe) * 1000;
         let startTime = since;
-        let endTime = now;
+        let endTime = (until !== undefined) ? until - durationMilliseconds : now;
         if (since === undefined) {
             if (limit === undefined) {
                 limit = requestLimit;
             }
-            startTime = now - limit * duration * 1000;
+            const startLimit = limit - 1;
+            startTime = endTime - startLimit * durationMilliseconds;
         }
         else {
-            if (limit === undefined) {
-                endTime = now;
-            }
-            else {
-                endTime = this.sum(since, this.sum(limit, 1) * duration * 1000);
+            if (limit !== undefined) {
+                const endByLimit = this.sum(since, limit * durationMilliseconds);
+                endTime = Math.min(endTime, endByLimit);
             }
         }
         const startTimeNormalized = this.normalizeOHLCVTimestamp(startTime, timeframe);
@@ -1162,7 +1204,6 @@ class probit extends probit$1 {
             'side': side,
             'status': status,
             'price': price,
-            'stopPrice': undefined,
             'triggerPrice': undefined,
             'amount': amount,
             'filled': filled,

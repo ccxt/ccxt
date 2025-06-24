@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
-from ccxt.base.types import Int, Order, OrderBook, Str, Trade
+from ccxt.base.types import Any, Int, Order, OrderBook, Str, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import AuthenticationError
@@ -14,7 +14,7 @@ from ccxt.base.errors import ArgumentsRequired
 
 class bitstamp(ccxt.async_support.bitstamp):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(bitstamp, self).describe(), {
             'has': {
                 'ws': True,
@@ -502,7 +502,7 @@ class bitstamp(ccxt.async_support.bitstamp):
             #
             sessionToken = self.safe_string(response, 'token')
             if sessionToken is not None:
-                userId = self.safe_number(response, 'user_id')
+                userId = self.safe_string(response, 'user_id')
                 validity = self.safe_integer_product(response, 'valid_sec', 1000)
                 self.options['expiresIn'] = self.sum(time, validity)
                 self.options['userId'] = userId

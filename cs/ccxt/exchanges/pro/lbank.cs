@@ -452,7 +452,7 @@ public partial class lbank : ccxt.lbank
         //             "volume":6.3607,
         //             "amount":77148.9303,
         //             "price":12129,
-        //             "direction":"sell", // or "sell_market"
+        //             "direction":"sell", // buy, sell, buy_market, sell_market, buy_maker, sell_maker, buy_ioc, sell_ioc, buy_fok, sell_fok
         //             "TS":"2019-06-28T19:55:49.460"
         //         },
         //         "type":"trade",
@@ -496,7 +496,7 @@ public partial class lbank : ccxt.lbank
         //        "volume":6.3607,
         //        "amount":77148.9303,
         //        "price":12129,
-        //        "direction":"sell", // or "sell_market"
+        //        "direction":"sell", // buy, sell, buy_market, sell_market, buy_maker, sell_maker, buy_ioc, sell_ioc, buy_fok, sell_fok
         //        "TS":"2019-06-28T19:55:49.460"
         //    }
         //
@@ -506,8 +506,16 @@ public partial class lbank : ccxt.lbank
         {
             timestamp = this.parse8601(datetime);
         }
-        object side = this.safeString2(trade, "direction", 3);
-        side = ((string)side).Replace((string)"_market", (string)"");
+        object rawSide = this.safeString2(trade, "direction", 3);
+        object parts = ((string)rawSide).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+        object firstPart = this.safeString(parts, 0);
+        object secondPart = this.safeString(parts, 1);
+        object side = firstPart;
+        // reverse if it was 'maker'
+        if (isTrue(isTrue(!isEqual(secondPart, null)) && isTrue(isEqual(secondPart, "maker"))))
+        {
+            side = ((bool) isTrue((isEqual(side, "buy")))) ? "sell" : "buy";
+        }
         return this.safeTrade(new Dictionary<string, object>() {
             { "timestamp", timestamp },
             { "datetime", datetime },

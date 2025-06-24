@@ -5,10 +5,10 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.woo import ImplicitAPI
+import asyncio
 import hashlib
-from ccxt.base.types import Account, Balances, Bool, Conversion, Currencies, Currency, DepositAddress, Int, LedgerEntry, Leverage, MarginModification, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, FundingRate, FundingRates, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Any, Balances, Bool, Conversion, Currencies, Currency, DepositAddress, Int, LedgerEntry, Leverage, MarginModification, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, FundingRate, FundingRates, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
-from typing import Any
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -24,7 +24,7 @@ from ccxt.base.precise import Precise
 
 class woo(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(woo, self).describe(), {
             'id': 'woo',
             'name': 'WOO X',
@@ -45,7 +45,7 @@ class woo(Exchange, ImplicitAPI):
                 'cancelAllOrders': True,
                 'cancelAllOrdersAfter': True,
                 'cancelOrder': True,
-                'cancelWithdraw': False,  # exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
+                'cancelWithdraw': False,  # exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://docx.woo.io/wootrade-documents/#cancel-withdraw-request
                 'closeAllPositions': False,
                 'closePosition': False,
                 'createConvertTrade': True,
@@ -124,7 +124,7 @@ class woo(Exchange, ImplicitAPI):
                 'setMargin': False,
                 'setPositionMode': True,
                 'transfer': True,
-                'withdraw': True,  # exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#token-withdraw
+                'withdraw': True,  # exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://docx.woo.io/wootrade-documents/#token-withdraw
             },
             'timeframes': {
                 '1m': '1m',
@@ -168,7 +168,7 @@ class woo(Exchange, ImplicitAPI):
                     'pub': {
                         'get': {
                             'hist/kline': 10,
-                            'hist/trades': 1,
+                            'hist/trades': 10,
                         },
                     },
                     'public': {
@@ -218,11 +218,11 @@ class woo(Exchange, ImplicitAPI):
                             'client/futures_leverage': 60,
                         },
                         'post': {
-                            'order': 5,  # 2 requests per 1 second per symbol
+                            'order': 1,  # 10 requests per 1 second per symbol
                             'order/cancel_all_after': 1,
                             'asset/main_sub_transfer': 30,  # 20 requests per 60 seconds
                             'asset/ltv': 30,
-                            'asset/withdraw': 30,  # implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#token-withdraw
+                            'asset/withdraw': 30,  # implemented in ccxt, disabled on the exchange side https://docx.woo.io/wootrade-documents/#token-withdraw
                             'asset/internal_withdraw': 30,
                             'interest/repay': 60,
                             'client/account_mode': 120,
@@ -235,7 +235,7 @@ class woo(Exchange, ImplicitAPI):
                             'order': 1,
                             'client/order': 1,
                             'orders': 1,
-                            'asset/withdraw': 120,  # implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
+                            'asset/withdraw': 120,  # implemented in ccxt, disabled on the exchange side https://docx.woo.io/wootrade-documents/#cancel-withdraw-request
                         },
                     },
                 },
@@ -296,6 +296,8 @@ class woo(Exchange, ImplicitAPI):
                 },
             },
             'options': {
+                'timeDifference': 0,  # the difference between system clock and exchange clock
+                'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'sandboxMode': False,
                 'createMarketBuyOrderRequiresPrice': True,
                 # these network aliases require manual mapping here
@@ -310,6 +312,11 @@ class woo(Exchange, ImplicitAPI):
                     'TRC20': 'TRON',
                     'ERC20': 'ETH',
                     'BEP20': 'BSC',
+                    'ARB': 'Arbitrum',
+                },
+                'networksById': {
+                    'TRX': 'TRC20',
+                    'TRON': 'TRC20',
                 },
                 # override defaultNetworkCodePriorities for a specific currency
                 'defaultNetworkCodeForCurrencies': {
@@ -320,6 +327,99 @@ class woo(Exchange, ImplicitAPI):
                     'fillResponseFromRequest': True,
                 },
                 'brokerId': 'bc830de7-50f3-460b-9ee0-f430f83f9dad',
+            },
+            'features': {
+                'default': {
+                    'sandbox': True,
+                    'createOrder': {
+                        'marginMode': True,
+                        'triggerPrice': True,
+                        'triggerPriceType': {
+                            'last': True,
+                            'mark': True,
+                            'index': False,
+                        },
+                        'triggerDirection': False,
+                        'stopLossPrice': False,  # todo by triggerPrice
+                        'takeProfitPrice': False,  # todo by triggerPrice
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': True,
+                        },
+                        'hedged': False,
+                        'trailing': True,
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': False,
+                        'iceberg': True,  # todo implement
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 500,
+                        'daysBack': 90,
+                        'untilDays': 10000,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': True,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 500,
+                        'trigger': True,
+                        'trailing': True,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': {
+                        'marginMode': False,
+                        'limit': 500,
+                        'daysBack': None,
+                        'untilDays': 100000,
+                        'trigger': True,
+                        'trailing': True,
+                        'symbolRequired': False,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 500,
+                        'daysBack': None,
+                        'daysBackCanceled': None,
+                        'untilDays': 100000,
+                        'trigger': True,
+                        'trailing': True,
+                        'symbolRequired': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'forSwap': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'hedged': True,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forSwap',
+                    },
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
             },
             'commonCurrencies': {},
             'exceptions': {
@@ -389,7 +489,7 @@ class woo(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def fetch_time(self, params={}):
+    async def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -420,6 +520,8 @@ class woo(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
+        if self.options['adjustForTimeDifference']:
+            await self.load_time_difference()
         response = await self.v1PublicGetInfo(params)
         #
         # {
@@ -467,6 +569,7 @@ class woo(Exchange, ImplicitAPI):
         symbol = base + '/' + quote
         contractSize: Num = None
         linear: Bool = None
+        inverse: Bool = None
         margin = True
         contract = swap
         if contract:
@@ -476,6 +579,8 @@ class woo(Exchange, ImplicitAPI):
             symbol = base + '/' + quote + ':' + settle
             contractSize = self.parse_number('1')
             linear = True
+            inverse = False
+        active = self.safe_string(market, 'is_trading') == '1'
         return {
             'id': marketId,
             'symbol': symbol,
@@ -491,10 +596,10 @@ class woo(Exchange, ImplicitAPI):
             'swap': swap,
             'future': False,
             'option': False,
-            'active': self.safe_string(market, 'is_trading') == '1',
+            'active': active,
             'contract': contract,
             'linear': linear,
-            'inverse': None,
+            'inverse': inverse,
             'contractSize': contractSize,
             'expiry': None,
             'expiryDatetime': None,
@@ -718,33 +823,45 @@ class woo(Exchange, ImplicitAPI):
         :returns dict: an associative dictionary of currencies
         """
         result: dict = {}
-        tokenResponse = await self.v1PublicGetToken(params)
+        tokenResponsePromise = self.v1PublicGetToken(params)
         #
-        # {
-        #     "rows": [
+        #    {
+        #      "rows": [
         #         {
         #             "token": "ETH_USDT",
         #             "fullname": "Tether",
-        #             "decimals": 6,
+        #             "network": "ETH",
+        #             "decimals": "6",
+        #             "delisted": False,
         #             "balance_token": "USDT",
-        #             "created_time": "0",
-        #             "updated_time": "0"
+        #             "created_time": "1710123398",
+        #             "updated_time": "1746528481",
+        #             "can_collateral": True,
+        #             "can_short": True
         #         },
         #         {
         #             "token": "BSC_USDT",
         #             "fullname": "Tether",
-        #             "decimals": 18,
+        #             "network": "BSC",
+        #             "decimals": "18",
+        #             "delisted": False,
         #             "balance_token": "USDT",
-        #             "created_time": "0",
-        #             "updated_time": "0"
+        #             "created_time": "1710123395",
+        #             "updated_time": "1746528601",
+        #             "can_collateral": True,
+        #             "can_short": True
         #         },
         #         {
-        #             "token": "ZEC",
-        #             "fullname": "ZCash",
-        #             "decimals": 8,
-        #             "balance_token": "ZEC",
-        #             "created_time": "0",
-        #             "updated_time": "0"
+        #             "token": "ALGO",
+        #             "fullname": "Algorand",
+        #             "network": "ALGO",
+        #             "decimals": "6",
+        #             "delisted": False,
+        #             "balance_token": "ALGO",
+        #             "created_time": "1710123394",
+        #             "updated_time": "1723087518",
+        #             "can_collateral": True,
+        #             "can_short": True
         #         },
         #         ...
         #     ],
@@ -752,58 +869,66 @@ class woo(Exchange, ImplicitAPI):
         # }
         #
         # only make one request for currrencies...
-        # tokenNetworkResponse = await self.v1PublicGetTokenNetwork(params)
+        tokenNetworkResponsePromise = self.v1PublicGetTokenNetwork(params)
         #
         # {
         #     "rows": [
         #         {
         #             "protocol": "ERC20",
+        #             "network": "ETH",
         #             "token": "USDT",
-        #             "name": "Ethereum",
-        #             "minimum_withdrawal": 30,
-        #             "withdrawal_fee": 25,
-        #             "allow_deposit": 1,
-        #             "allow_withdraw": 1
+        #             "name": "Ethereum(ERC20)",
+        #             "minimum_withdrawal": "10.00000000",
+        #             "withdrawal_fee": "2.00000000",
+        #             "allow_deposit": "1",
+        #             "allow_withdraw": "1"
         #         },
         #         {
         #             "protocol": "TRC20",
+        #             "network": "TRX",
         #             "token": "USDT",
-        #             "name": "Tron",
-        #             "minimum_withdrawal": 30,
-        #             "withdrawal_fee": 1,
-        #             "allow_deposit": 1,
-        #             "allow_withdraw": 1
+        #             "name": "Tron(TRC20)",
+        #             "minimum_withdrawal": "10.00000000",
+        #             "withdrawal_fee": "4.50000000",
+        #             "allow_deposit": "1",
+        #             "allow_withdraw": "1"
         #         },
         #         ...
         #     ],
         #     "success": True
         # }
         #
+        tokenResponse, tokenNetworkResponse = await asyncio.gather(*[tokenResponsePromise, tokenNetworkResponsePromise])
         tokenRows = self.safe_list(tokenResponse, 'rows', [])
-        networksByCurrencyId = self.group_by(tokenRows, 'balance_token')
-        currencyIds = list(networksByCurrencyId.keys())
+        tokenNetworkRows = self.safe_list(tokenNetworkResponse, 'rows', [])
+        networksById = self.group_by(tokenNetworkRows, 'token')
+        tokensById = self.group_by(tokenRows, 'balance_token')
+        currencyIds = list(tokensById.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
-            networks = networksByCurrencyId[currencyId]
             code = self.safe_currency_code(currencyId)
-            name: Str = None
-            minPrecision = None
+            tokensByNetworkId = self.index_by(tokensById[currencyId], 'network')
+            chainsByNetworkId = self.index_by(networksById[currencyId], 'network')
+            keys = list(chainsByNetworkId.keys())
             resultingNetworks: dict = {}
-            for j in range(0, len(networks)):
-                network = networks[j]
-                name = self.safe_string(network, 'fullname')
-                networkId = self.safe_string(network, 'token')
-                splitted = networkId.split('_')
-                unifiedNetwork = splitted[0]
-                precision = self.parse_precision(self.safe_string(network, 'decimals'))
-                if precision is not None:
-                    minPrecision = precision if (minPrecision is None) else Precise.string_min(precision, minPrecision)
-                resultingNetworks[unifiedNetwork] = {
+            for j in range(0, len(keys)):
+                networkId = keys[j]
+                tokenEntry = self.safe_dict(tokensByNetworkId, networkId, {})
+                networkEntry = self.safe_dict(chainsByNetworkId, networkId, {})
+                networkCode = self.network_id_to_code(networkId, code)
+                specialNetworkId = self.safe_string(tokenEntry, 'token')
+                resultingNetworks[networkCode] = {
                     'id': networkId,
-                    'network': unifiedNetwork,
+                    'currencyNetworkId': specialNetworkId,  # exchange uses special crrency-ids(coin + network junction)
+                    'network': networkCode,
+                    'active': None,
+                    'deposit': self.safe_string(networkEntry, 'allow_deposit') == '1',
+                    'withdraw': self.safe_string(networkEntry, 'allow_withdraw') == '1',
+                    'fee': self.safe_number(networkEntry, 'withdrawal_fee'),
+                    'precision': self.parse_number(self.parse_precision(self.safe_string(tokenEntry, 'decimals'))),
                     'limits': {
                         'withdraw': {
-                            'min': None,
+                            'min': self.safe_number(networkEntry, 'minimum_withdrawal'),
                             'max': None,
                         },
                         'deposit': {
@@ -811,23 +936,19 @@ class woo(Exchange, ImplicitAPI):
                             'max': None,
                         },
                     },
-                    'active': None,
-                    'deposit': None,
-                    'withdraw': None,
-                    'fee': None,
-                    'precision': self.parse_number(precision),
-                    'info': network,
+                    'info': [networkEntry, tokenEntry],
                 }
-            result[code] = {
+            result[code] = self.safe_currency_structure({
                 'id': currencyId,
-                'name': name,
+                'name': None,
                 'code': code,
-                'precision': self.parse_number(minPrecision),
+                'precision': None,
                 'active': None,
                 'fee': None,
                 'networks': resultingNetworks,
                 'deposit': None,
                 'withdraw': None,
+                'type': 'crypto',
                 'limits': {
                     'deposit': {
                         'min': None,
@@ -838,8 +959,8 @@ class woo(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
-                'info': networks,
-            }
+                'info': [tokensByNetworkId, chainsByNetworkId],
+            })
         return result
 
     async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
@@ -965,7 +1086,7 @@ class woo(Exchange, ImplicitAPI):
         marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
         if marginMode is not None:
             request['margin_mode'] = self.encode_margin_mode(marginMode)
-        stopPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
+        triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
         stopLoss = self.safe_value(params, 'stopLoss')
         takeProfit = self.safe_value(params, 'takeProfit')
         algoType = self.safe_string(params, 'algoType')
@@ -975,17 +1096,17 @@ class woo(Exchange, ImplicitAPI):
         isTrailingAmountOrder = trailingAmount is not None
         isTrailingPercentOrder = trailingPercent is not None
         isTrailing = isTrailingAmountOrder or isTrailingPercentOrder
-        isStop = isTrailing or stopPrice is not None or stopLoss is not None or takeProfit is not None or (self.safe_value(params, 'childOrders') is not None)
+        isConditional = isTrailing or triggerPrice is not None or stopLoss is not None or takeProfit is not None or (self.safe_value(params, 'childOrders') is not None)
         isMarket = orderType == 'MARKET'
         timeInForce = self.safe_string_lower(params, 'timeInForce')
         postOnly = self.is_post_only(isMarket, None, params)
-        reduceOnlyKey = 'reduceOnly' if isStop else 'reduce_only'
-        clientOrderIdKey = 'clientOrderId' if isStop else 'client_order_id'
-        orderQtyKey = 'quantity' if isStop else 'order_quantity'
-        priceKey = 'price' if isStop else 'order_price'
-        typeKey = 'type' if isStop else 'order_type'
+        reduceOnlyKey = 'reduceOnly' if isConditional else 'reduce_only'
+        clientOrderIdKey = 'clientOrderId' if isConditional else 'client_order_id'
+        orderQtyKey = 'quantity' if isConditional else 'order_quantity'
+        priceKey = 'price' if isConditional else 'order_price'
+        typeKey = 'type' if isConditional else 'order_type'
         request[typeKey] = orderType  # LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
-        if not isStop:
+        if not isConditional:
             if postOnly:
                 request['order_type'] = 'POST_ONLY'
             elif timeInForce == 'fok':
@@ -996,7 +1117,7 @@ class woo(Exchange, ImplicitAPI):
             request[reduceOnlyKey] = reduceOnly
         if not isMarket and price is not None:
             request[priceKey] = self.price_to_precision(symbol, price)
-        if isMarket and not isStop:
+        if isMarket and not isConditional:
             # for market buy it requires the amount of quote currency to spend
             cost = self.safe_string_2(params, 'cost', 'order_amount')
             params = self.omit(params, ['cost', 'order_amount'])
@@ -1028,9 +1149,9 @@ class woo(Exchange, ImplicitAPI):
             elif isTrailingPercentOrder:
                 convertedTrailingPercent = Precise.string_div(trailingPercent, '100')
                 request['callbackRate'] = convertedTrailingPercent
-        elif stopPrice is not None:
+        elif triggerPrice is not None:
             if algoType != 'TRAILING_STOP':
-                request['triggerPrice'] = self.price_to_precision(symbol, stopPrice)
+                request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
                 request['algoType'] = 'STOP'
         elif (stopLoss is not None) or (takeProfit is not None):
             request['algoType'] = 'BRACKET'
@@ -1040,9 +1161,10 @@ class woo(Exchange, ImplicitAPI):
                 'algoType': 'POSITIONAL_TP_SL',
                 'childOrders': [],
             }
+            childOrders = outterOrder['childOrders']
             closeSide = 'SELL' if (orderSide == 'BUY') else 'BUY'
             if stopLoss is not None:
-                stopLossPrice = self.safe_number_2(stopLoss, 'triggerPrice', 'price', stopLoss)
+                stopLossPrice = self.safe_string(stopLoss, 'triggerPrice', stopLoss)
                 stopLossOrder: dict = {
                     'side': closeSide,
                     'algoType': 'STOP_LOSS',
@@ -1050,9 +1172,9 @@ class woo(Exchange, ImplicitAPI):
                     'type': 'CLOSE_POSITION',
                     'reduceOnly': True,
                 }
-                outterOrder['childOrders'].append(stopLossOrder)
+                childOrders.append(stopLossOrder)
             if takeProfit is not None:
-                takeProfitPrice = self.safe_number_2(takeProfit, 'triggerPrice', 'price', takeProfit)
+                takeProfitPrice = self.safe_string(takeProfit, 'triggerPrice', takeProfit)
                 takeProfitOrder: dict = {
                     'side': closeSide,
                     'algoType': 'TAKE_PROFIT',
@@ -1060,11 +1182,11 @@ class woo(Exchange, ImplicitAPI):
                     'type': 'CLOSE_POSITION',
                     'reduceOnly': True,
                 }
-                outterOrder['childOrders'].append(takeProfitOrder)
+                childOrders.append(takeProfitOrder)
             request['childOrders'] = [outterOrder]
         params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingPercent', 'trailingAmount', 'trailingTriggerPrice'])
         response = None
-        if isStop:
+        if isConditional:
             response = await self.v3PrivatePostAlgoOrder(self.extend(request, params))
         else:
             response = await self.v1PrivatePostOrder(self.extend(request, params))
@@ -1145,9 +1267,9 @@ class woo(Exchange, ImplicitAPI):
         clientOrderIdUnified = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
         clientOrderIdExchangeSpecific = self.safe_string(params, 'client_order_id', clientOrderIdUnified)
         isByClientOrder = clientOrderIdExchangeSpecific is not None
-        stopPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice'])
-        if stopPrice is not None:
-            request['triggerPrice'] = self.price_to_precision(symbol, stopPrice)
+        triggerPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice'])
+        if triggerPrice is not None:
+            request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
         trailingTriggerPrice = self.safe_string_2(params, 'trailingTriggerPrice', 'activatedPrice', self.number_to_string(price))
         trailingAmount = self.safe_string_2(params, 'trailingAmount', 'callbackValue')
         trailingPercent = self.safe_string_2(params, 'trailingPercent', 'callbackRate')
@@ -1163,17 +1285,17 @@ class woo(Exchange, ImplicitAPI):
                 convertedTrailingPercent = Precise.string_div(trailingPercent, '100')
                 request['callbackRate'] = convertedTrailingPercent
         params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent'])
-        isStop = isTrailing or (stopPrice is not None) or (self.safe_value(params, 'childOrders') is not None)
+        isConditional = isTrailing or (triggerPrice is not None) or (self.safe_value(params, 'childOrders') is not None)
         response = None
         if isByClientOrder:
             request['client_order_id'] = clientOrderIdExchangeSpecific
-            if isStop:
+            if isConditional:
                 response = await self.v3PrivatePutAlgoOrderClientClientOrderId(self.extend(request, params))
             else:
                 response = await self.v3PrivatePutOrderClientClientOrderId(self.extend(request, params))
         else:
             request['oid'] = id
-            if isStop:
+            if isConditional:
                 response = await self.v3PrivatePutAlgoOrderOid(self.extend(request, params))
             else:
                 response = await self.v3PrivatePutOrderOid(self.extend(request, params))
@@ -1203,12 +1325,12 @@ class woo(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.stop]: whether the order is a stop/algo order
+        :param boolean [params.trigger]: whether the order is a trigger/algo order
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        stop = self.safe_bool(params, 'stop', False)
-        params = self.omit(params, 'stop')
-        if not stop and (symbol is None):
+        isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
+        params = self.omit(params, ['trigger', 'stop'])
+        if not isTrigger and (symbol is None):
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
         market: Market = None
@@ -1219,7 +1341,7 @@ class woo(Exchange, ImplicitAPI):
         clientOrderIdExchangeSpecific = self.safe_string(params, 'client_order_id', clientOrderIdUnified)
         isByClientOrder = clientOrderIdExchangeSpecific is not None
         response = None
-        if stop:
+        if isTrigger:
             request['order_id'] = id
             response = await self.v3PrivateDeleteAlgoOrderOrderId(self.extend(request, params))
         else:
@@ -1251,13 +1373,13 @@ class woo(Exchange, ImplicitAPI):
         cancel all open orders in a market
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.stop]: whether the order is a stop/algo order
+        :param boolean [params.trigger]: whether the order is a trigger/algo order
         :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        stop = self.safe_bool_2(params, 'stop', 'trigger')
+        trigger = self.safe_bool_2(params, 'stop', 'trigger')
         params = self.omit(params, ['stop', 'trigger'])
-        if stop:
+        if trigger:
             return await self.v3PrivateDeleteAlgoOrdersPending(params)
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
@@ -1314,17 +1436,17 @@ class woo(Exchange, ImplicitAPI):
         :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.stop]: whether the order is a stop/algo order
+        :param boolean [params.trigger]: whether the order is a trigger/algo order
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol) if (symbol is not None) else None
-        stop = self.safe_bool_2(params, 'stop', 'trigger')
+        trigger = self.safe_bool_2(params, 'stop', 'trigger')
         params = self.omit(params, ['stop', 'trigger'])
         request: dict = {}
         clientOrderId = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
         response = None
-        if stop:
+        if trigger:
             request['oid'] = id
             response = await self.v3PrivateGetAlgoOrderOid(self.extend(request, params))
         elif clientOrderId:
@@ -1382,7 +1504,7 @@ class woo(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.stop]: whether the order is a stop/algo order
+        :param boolean [params.trigger]: whether the order is a trigger/algo order
         :param boolean [params.isTriggered]: whether the order has been triggered(False by default)
         :param str [params.side]: 'buy' or 'sell'
         :param boolean [params.trailing]: set to True if you want to fetch trailing orders
@@ -1396,27 +1518,27 @@ class woo(Exchange, ImplicitAPI):
             return await self.fetch_paginated_call_incremental('fetchOrders', symbol, since, limit, params, 'page', 500)
         request: dict = {}
         market: Market = None
-        stop = self.safe_bool_2(params, 'stop', 'trigger')
+        trigger = self.safe_bool_2(params, 'stop', 'trigger')
         trailing = self.safe_bool(params, 'trailing', False)
         params = self.omit(params, ['stop', 'trailing', 'trigger'])
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
         if since is not None:
-            if stop or trailing:
+            if trigger or trailing:
                 request['createdTimeStart'] = since
             else:
                 request['start_t'] = since
         if limit is not None:
             request['size'] = limit
         else:
-            request['size'] = 500
-        if stop:
+            request['size'] = 50 if trailing else 500
+        if trigger:
             request['algoType'] = 'stop'
         elif trailing:
             request['algoType'] = 'TRAILING_STOP'
         response = None
-        if stop or trailing:
+        if trigger or trailing:
             response = await self.v3PrivateGetAlgoOrders(self.extend(request, params))
         else:
             response = await self.v1PrivateGetOrders(self.extend(request, params))
@@ -1466,7 +1588,7 @@ class woo(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.stop]: whether the order is a stop/algo order
+        :param boolean [params.trigger]: whether the order is a trigger/algo order
         :param boolean [params.isTriggered]: whether the order has been triggered(False by default)
         :param str [params.side]: 'buy' or 'sell'
         :param boolean [params.trailing]: set to True if you want to fetch trailing orders
@@ -1488,7 +1610,7 @@ class woo(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.stop]: whether the order is a stop/algo order
+        :param boolean [params.trigger]: whether the order is a trigger/algo order
         :param boolean [params.isTriggered]: whether the order has been triggered(False by default)
         :param str [params.side]: 'buy' or 'sell'
         :param boolean [params.trailing]: set to True if you want to fetch trailing orders
@@ -1570,7 +1692,7 @@ class woo(Exchange, ImplicitAPI):
         fee = self.safe_number_2(order, 'total_fee', 'totalFee')
         feeCurrency = self.safe_string_2(order, 'fee_asset', 'feeAsset')
         transactions = self.safe_value(order, 'Transactions')
-        stopPrice = self.safe_number(order, 'triggerPrice')
+        triggerPrice = self.safe_number(order, 'triggerPrice')
         takeProfitPrice: Num = None
         stopLossPrice: Num = None
         childOrders = self.safe_value(order, 'childOrders')
@@ -1599,8 +1721,7 @@ class woo(Exchange, ImplicitAPI):
             'reduceOnly': self.safe_bool(order, 'reduce_only'),
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'takeProfitPrice': takeProfitPrice,
             'stopLossPrice': stopLossPrice,
             'average': average,
@@ -1808,7 +1929,7 @@ class woo(Exchange, ImplicitAPI):
         """
         fetch all trades made by the user
 
-        https://docs.woox.io/#get-trades
+        https://docs.woox.io/#get-trade-history
 
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
@@ -1829,6 +1950,7 @@ class woo(Exchange, ImplicitAPI):
             request['symbol'] = market['id']
         if since is not None:
             request['start_t'] = since
+        request, params = self.handle_until_option('end_t', request, params)
         if limit is not None:
             request['size'] = limit
         else:
@@ -1970,12 +2092,10 @@ class woo(Exchange, ImplicitAPI):
         # self method is TODO because of networks unification
         await self.load_markets()
         currency = self.currency(code)
-        networkCodeDefault = self.default_network_code_for_currency(code)
-        networkCode = self.safe_string(params, 'network', networkCodeDefault)
-        params = self.omit(params, 'network')
-        codeForExchange = networkCode + '_' + currency['code']
+        specialNetworkId: Str = None
+        specialNetworkId, params = self.get_dedicated_network_id(currency, params)
         request: dict = {
-            'token': codeForExchange,
+            'token': specialNetworkId,
         }
         response = await self.v1PrivateGetAssetDeposit(self.extend(request, params))
         # {
@@ -1983,15 +2103,28 @@ class woo(Exchange, ImplicitAPI):
         #     "address": "3Jmtjx5544T4smrit9Eroe4PCrRkpDeKjP",
         #     "extra": ''
         # }
-        tag = self.safe_string(response, 'extra')
-        address = self.safe_string(response, 'address')
+        return self.parse_deposit_address(response, currency)
+
+    def get_dedicated_network_id(self, currency, params: dict) -> Any:
+        networkCode = None
+        networkCode, params = self.handle_network_code_and_params(params)
+        networkCode = self.network_id_to_code(networkCode, currency['code'])
+        networkEntry = self.safe_dict(currency['networks'], networkCode)
+        if networkEntry is None:
+            supportedNetworks = list(currency['networks'].keys())
+            raise BadRequest(self.id + '  can not determine a network code, please provide unified "network" param, one from the following: ' + self.json(supportedNetworks))
+        currentyNetworkId = self.safe_string(networkEntry, 'currencyNetworkId')
+        return [currentyNetworkId, params]
+
+    def parse_deposit_address(self, depositEntry, currency: Currency = None) -> DepositAddress:
+        address = self.safe_string(depositEntry, 'address')
         self.check_address(address)
         return {
-            'info': response,
-            'currency': code,
-            'network': networkCode,
+            'info': depositEntry,
+            'currency': self.safe_string(currency, 'code'),
+            'network': None,
             'address': address,
-            'tag': tag,
+            'tag': self.safe_string(depositEntry, 'extra'),
         }
 
     async def get_asset_history_rows(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> Any:
@@ -2056,9 +2189,11 @@ class woo(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
-        currency, rows = await self.get_asset_history_rows(code, since, limit, params)
+        currencyRows = await self.get_asset_history_rows(code, since, limit, params)
+        currency = self.safe_value(currencyRows, 0)
+        rows = self.safe_list(currencyRows, 1)
         return self.parse_ledger(rows, currency, since, limit, params)
 
     def parse_ledger_entry(self, item: dict, currency: Currency = None) -> LedgerEntry:
@@ -2158,7 +2293,9 @@ class woo(Exchange, ImplicitAPI):
         request: dict = {
             'type': 'BALANCE',
         }
-        currency, rows = await self.get_asset_history_rows(code, since, limit, self.extend(request, params))
+        currencyRows = await self.get_asset_history_rows(code, since, limit, self.extend(request, params))
+        currency = self.safe_value(currencyRows, 0)
+        rows = self.safe_list(currencyRows, 1)
         #
         #     {
         #         "rows":[],
@@ -2379,15 +2516,9 @@ class woo(Exchange, ImplicitAPI):
         }
         if tag is not None:
             request['extra'] = tag
-        networks = self.safe_dict(self.options, 'networks', {})
-        currencyNetworks = self.safe_dict(currency, 'networks', {})
-        network = self.safe_string_upper(params, 'network')
-        networkId = self.safe_string(networks, network, network)
-        coinNetwork = self.safe_dict(currencyNetworks, networkId, {})
-        coinNetworkId = self.safe_string(coinNetwork, 'id')
-        if coinNetworkId is None:
-            raise BadRequest(self.id + ' withdraw() require network parameter')
-        request['token'] = coinNetworkId
+        specialNetworkId: Str = None
+        specialNetworkId, params = self.get_dedicated_network_id(currency, params)
+        request['token'] = specialNetworkId
         response = await self.v1PrivatePostAssetWithdraw(self.extend(request, params))
         #
         #     {
@@ -2448,7 +2579,7 @@ class woo(Exchange, ImplicitAPI):
         }
 
     def nonce(self):
-        return self.milliseconds()
+        return self.milliseconds() - self.options['timeDifference']
 
     def sign(self, path, section='public', method='GET', params={}, headers=None, body=None):
         version = section[0]
@@ -2473,8 +2604,8 @@ class woo(Exchange, ImplicitAPI):
                 if not isSandboxMode:
                     applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad'
                     brokerId = self.safe_string(self.options, 'brokerId', applicationId)
-                    isStop = path.find('algo') > -1
-                    if isStop:
+                    isTrigger = path.find('algo') > -1
+                    if isTrigger:
                         params['brokerId'] = brokerId
                     else:
                         params['broker_id'] = brokerId
@@ -2737,8 +2868,7 @@ class woo(Exchange, ImplicitAPI):
         #     }
         #
         rows = self.safe_list(response, 'rows', [])
-        result = self.parse_funding_rates(rows)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.parse_funding_rates(rows, symbols)
 
     async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
@@ -3028,7 +3158,7 @@ class woo(Exchange, ImplicitAPI):
         }
         return await self.v1PrivatePostClientIsolatedMargin(self.extend(request, params))
 
-    async def fetch_position(self, symbol: Str = None, params={}):
+    async def fetch_position(self, symbol: Str, params={}):
         await self.load_markets()
         market = self.market(symbol)
         request: dict = {
@@ -3061,7 +3191,7 @@ class woo(Exchange, ImplicitAPI):
         #
         return self.parse_position(response, market)
 
-    async def fetch_positions(self, symbols: Strings = None, params={}):
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         await self.load_markets()
         response = await self.v3PrivateGetPositions(params)
         #

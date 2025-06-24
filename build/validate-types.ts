@@ -10,6 +10,8 @@ const skipMethods = [
     // skip because of c# already typed methods
     "fetchDepositWithdrawFees",
     "fetchDepositWithdrawFee",
+    "fetchDepositId",
+    "fetchDepositIds",
     'watchTickers', // will be updated later
 ]
 
@@ -19,21 +21,8 @@ const skipExchanges = [
 ]
 
 const skipMethodsPerExchange = {
-    'bitfinex': [
-        'fetchPositions',
-    ],
     'bitflyer': [
         'fetchPositions',
-    ],
-    'kraken': [
-        'fetchPositions',
-    ],
-    'okcoin': [
-        'fetchPositions',
-        'fetchPosition'
-    ],
-    'btctradeua': [
-        'createOrder'
     ],
     'coinspot': [
         'createOrder'

@@ -74,7 +74,7 @@ class bitopro extends bitopro$1 {
             endPart = market['id'];
         }
         else {
-            endPart = market['id'] + ':' + limit;
+            endPart = market['id'] + ':' + this.numberToString(limit);
         }
         const orderbook = await this.watchPublic('order-books', messageHash, endPart);
         return orderbook.limit();
@@ -355,15 +355,16 @@ class bitopro extends bitopro$1 {
         //     }
         //
         const marketId = this.safeString(message, 'pair');
-        const market = this.safeMarket(marketId, undefined, '_');
+        // market-ids are lowercase in REST API and uppercase in WS API
+        const market = this.safeMarket(marketId.toLowerCase(), undefined, '_');
         const symbol = market['symbol'];
         const event = this.safeString(message, 'event');
         const messageHash = event + ':' + symbol;
-        const result = this.parseTicker(message);
+        const result = this.parseTicker(message, market);
+        result['symbol'] = this.safeString(market, 'symbol'); // symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
         const timestamp = this.safeInteger(message, 'timestamp');
-        const datetime = this.safeString(message, 'datetime');
         result['timestamp'] = timestamp;
-        result['datetime'] = datetime;
+        result['datetime'] = this.iso8601(timestamp); // we shouldn't set "datetime" string provided by server, as those values are obviously wrong offset from UTC
         this.tickers[symbol] = result;
         client.resolve(result, messageHash);
     }

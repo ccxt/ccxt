@@ -4,6 +4,7 @@ var lbank$1 = require('../lbank.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class lbank extends lbank$1 {
     describe() {
@@ -427,7 +428,7 @@ class lbank extends lbank$1 {
         //             "volume":6.3607,
         //             "amount":77148.9303,
         //             "price":12129,
-        //             "direction":"sell", // or "sell_market"
+        //             "direction":"sell", // buy, sell, buy_market, sell_market, buy_maker, sell_maker, buy_ioc, sell_ioc, buy_fok, sell_fok
         //             "TS":"2019-06-28T19:55:49.460"
         //         },
         //         "type":"trade",
@@ -467,7 +468,7 @@ class lbank extends lbank$1 {
         //        "volume":6.3607,
         //        "amount":77148.9303,
         //        "price":12129,
-        //        "direction":"sell", // or "sell_market"
+        //        "direction":"sell", // buy, sell, buy_market, sell_market, buy_maker, sell_maker, buy_ioc, sell_ioc, buy_fok, sell_fok
         //        "TS":"2019-06-28T19:55:49.460"
         //    }
         //
@@ -476,8 +477,15 @@ class lbank extends lbank$1 {
         if (timestamp === undefined) {
             timestamp = this.parse8601(datetime);
         }
-        let side = this.safeString2(trade, 'direction', 3);
-        side = side.replace('_market', '');
+        const rawSide = this.safeString2(trade, 'direction', 3);
+        const parts = rawSide.split('_');
+        const firstPart = this.safeString(parts, 0);
+        const secondPart = this.safeString(parts, 1);
+        let side = firstPart;
+        // reverse if it was 'maker'
+        if (secondPart !== undefined && secondPart === 'maker') {
+            side = (side === 'buy') ? 'sell' : 'buy';
+        }
         return this.safeTrade({
             'timestamp': timestamp,
             'datetime': datetime,

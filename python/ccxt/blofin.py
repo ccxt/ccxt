@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.blofin import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, LedgerEntry, Leverage, Leverages, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Currency, Int, LedgerEntry, Leverage, Leverages, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -22,7 +22,7 @@ from ccxt.base.precise import Precise
 
 class blofin(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(blofin, self).describe(), {
             'id': 'blofin',
             'name': 'BloFin',
@@ -57,6 +57,7 @@ class blofin(Exchange, ImplicitAPI):
                 'createStopMarketOrder': False,
                 'createStopOrder': False,
                 'createTakeProfitOrder': True,
+                'createTriggerOrder': True,
                 'editOrder': False,
                 'fetchAccounts': False,
                 'fetchBalance': True,
@@ -66,7 +67,7 @@ class blofin(Exchange, ImplicitAPI):
                 'fetchBorrowRateHistory': False,
                 'fetchCanceledOrders': False,
                 'fetchClosedOrder': False,
-                'fetchClosedOrders': False,
+                'fetchClosedOrders': True,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': False,
@@ -110,6 +111,7 @@ class blofin(Exchange, ImplicitAPI):
                 'fetchOrders': False,
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
+                'fetchPositionMode': True,
                 'fetchPositions': True,
                 'fetchPositionsForSymbol': False,
                 'fetchPositionsRisk': False,
@@ -137,8 +139,8 @@ class blofin(Exchange, ImplicitAPI):
                 'repayCrossMargin': False,
                 'setLeverage': True,
                 'setMargin': False,
-                'setMarginMode': False,
-                'setPositionMode': False,
+                'setMarginMode': True,
+                'setPositionMode': True,
                 'signIn': False,
                 'transfer': True,
                 'withdraw': False,
@@ -166,8 +168,11 @@ class blofin(Exchange, ImplicitAPI):
                 'api': {
                     'rest': 'https://openapi.blofin.com',
                 },
+                'test': {
+                    'rest': 'https://demo-trading-openapi.blofin.com',
+                },
                 'referral': {
-                    'url': 'https://blofin.com/register?referral_code=jBd8U1',
+                    'url': 'https://blofin.com/register?referral_code=f79EsS',
                     'discount': 0.05,
                 },
                 'www': 'https://www.blofin.com',
@@ -198,16 +203,36 @@ class blofin(Exchange, ImplicitAPI):
                         'account/positions': 1,
                         'account/leverage-info': 1,
                         'account/margin-mode': 1,
+                        'account/position-mode': 1,
                         'account/batch-leverage-info': 1,
                         'trade/orders-tpsl-pending': 1,
+                        'trade/orders-algo-pending': 1,
                         'trade/orders-history': 1,
                         'trade/orders-tpsl-history': 1,
+                        'trade/orders-algo-history': 1,  # todo new
+                        'trade/order/price-range': 1,
                         'user/query-apikey': 1,
                         'affiliate/basic': 1,
+                        'copytrading/instruments': 1,
+                        'copytrading/account/balance': 1,
+                        'copytrading/account/positions-by-order': 1,
+                        'copytrading/account/positions-details-by-order': 1,
+                        'copytrading/account/positions-by-contract': 1,
+                        'copytrading/account/position-mode': 1,
+                        'copytrading/account/leverage-info': 1,
+                        'copytrading/trade/orders-pending': 1,
+                        'copytrading/trade/pending-tpsl-by-contract': 1,
+                        'copytrading/trade/position-history-by-order': 1,
+                        'copytrading/trade/orders-history': 1,
+                        'copytrading/trade/pending-tpsl-by-order': 1,
                     },
                     'post': {
+                        'account/set-margin-mode': 1,
+                        'account/set-position-mode': 1,
                         'trade/order': 1,
+                        'trade/order-algo': 1,
                         'trade/cancel-order': 1,
+                        'trade/cancel-algo': 1,
                         'account/set-leverage': 1,
                         'trade/batch-orders': 1,
                         'trade/order-tpsl': 1,
@@ -215,6 +240,16 @@ class blofin(Exchange, ImplicitAPI):
                         'trade/cancel-tpsl': 1,
                         'trade/close-position': 1,
                         'asset/transfer': 1,
+                        'copytrading/account/set-position-mode': 1,
+                        'copytrading/account/set-leverage': 1,
+                        'copytrading/trade/place-order': 1,
+                        'copytrading/trade/cancel-order': 1,
+                        'copytrading/trade/place-tpsl-by-contract': 1,
+                        'copytrading/trade/cancel-tpsl-by-contract': 1,
+                        'copytrading/trade/place-tpsl-by-order': 1,
+                        'copytrading/trade/cancel-tpsl-by-order': 1,
+                        'copytrading/trade/close-position-by-order': 1,
+                        'copytrading/trade/close-position-by-contract': 1,
                     },
                 },
             },
@@ -228,6 +263,96 @@ class blofin(Exchange, ImplicitAPI):
                 'apiKey': True,
                 'secret': True,
                 'password': True,
+            },
+            'features': {
+                'default': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'leverage': False,
+                        'marketBuyRequiresPrice': False,
+                        'marketBuyByCost': False,
+                        'selfTradePrevention': False,
+                        'trailing': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': {
+                        'max': 10,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrder': None,
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'trigger': True,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 100000,
+                        'trigger': True,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1440,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': False,
+                        'triggerPriceType': None,
+                        'triggerDirection': False,
+                        'stopLossPrice': False,
+                        'takeProfitPrice': False,
+                        'attachedStopLossTakeProfit': None,
+                        'hedged': False,
+                    },
+                },
+                'forDerivatives': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'marginMode': True,
+                        'triggerPrice': False,  # todo
+                        'triggerPriceType': None,
+                        'triggerDirection': False,
+                        'stopLossPrice': True,
+                        'takeProfitPrice': True,
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': None,
+                            'price': True,
+                        },
+                        'hedged': True,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
             },
             'exceptions': {
                 'exact': {
@@ -287,12 +412,19 @@ class blofin(Exchange, ImplicitAPI):
                 'brokerId': 'ec6dd3a7dd982d0b',
                 'accountsByType': {
                     'swap': 'futures',
+                    'funding': 'funding',
                     'future': 'futures',
+                    'copy_trading': 'copy_trading',
+                    'earn': 'earn',
+                    'spot': 'spot',
                 },
                 'accountsById': {
+                    'funding': 'funding',
                     'futures': 'swap',
+                    'copy_trading': 'copy_trading',
+                    'earn': 'earn',
+                    'spot': 'spot',
                 },
-                'sandboxMode': False,
                 'defaultNetwork': 'ERC20',
                 'defaultNetworks': {
                     'ETH': 'ERC20',
@@ -873,8 +1005,9 @@ class blofin(Exchange, ImplicitAPI):
         entry = self.safe_dict(data, 0, {})
         return self.parse_funding_rate(entry, market)
 
-    def parse_balance_by_type(self, type, response):
-        if type:
+    def parse_balance_by_type(self, response):
+        data = self.safe_list(response, 'data')
+        if (data is not None) and isinstance(data, list):
             return self.parse_funding_balance(response)
         else:
             return self.parse_balance(response)
@@ -986,19 +1119,19 @@ class blofin(Exchange, ImplicitAPI):
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         self.load_markets()
-        accountType = self.safe_string_2(params, 'accountType', 'type')
-        params = self.omit(params, ['accountType', 'type'])
+        accountType = None
+        accountType, params = self.handle_option_and_params_2(params, 'fetchBalance', 'accountType', 'type')
         request: dict = {
         }
         response = None
-        if accountType is not None:
+        if accountType is not None and accountType != 'swap':
             options = self.safe_dict(self.options, 'accountsByType', {})
             parsedAccountType = self.safe_string(options, accountType, accountType)
             request['accountType'] = parsedAccountType
             response = self.privateGetAssetBalances(self.extend(request, params))
         else:
             response = self.privateGetAccountBalance(self.extend(request, params))
-        return self.parse_balance_by_type(accountType, response)
+        return self.parse_balance_by_type(response)
 
     def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         market = self.market(symbol)
@@ -1012,7 +1145,11 @@ class blofin(Exchange, ImplicitAPI):
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('createOrder', params, 'cross')
         request['marginMode'] = marginMode
+        triggerPrice = self.safe_string(params, 'triggerPrice')
         timeInForce = self.safe_string(params, 'timeInForce', 'GTC')
+        isHedged = self.safe_bool(params, 'hedged', False)
+        if isHedged:
+            request['positionSide'] = 'long' if (side == 'buy') else 'short'
         isMarketOrder = type == 'market'
         params = self.omit(params, ['timeInForce'])
         ioc = (timeInForce == 'IOC') or (type == 'ioc')
@@ -1020,14 +1157,15 @@ class blofin(Exchange, ImplicitAPI):
         if isMarketOrder or marketIOC:
             request['orderType'] = 'market'
         else:
-            request['price'] = self.price_to_precision(symbol, price)
+            key = 'orderPrice' if (triggerPrice is not None) else 'price'
+            request[key] = self.price_to_precision(symbol, price)
         postOnly = False
         postOnly, params = self.handle_post_only(isMarketOrder, type == 'post_only', params)
         if postOnly:
             request['type'] = 'post_only'
         stopLoss = self.safe_dict(params, 'stopLoss')
         takeProfit = self.safe_dict(params, 'takeProfit')
-        params = self.omit(params, ['stopLoss', 'takeProfit'])
+        params = self.omit(params, ['stopLoss', 'takeProfit', 'hedged'])
         isStopLoss = stopLoss is not None
         isTakeProfit = takeProfit is not None
         if isStopLoss or isTakeProfit:
@@ -1041,6 +1179,11 @@ class blofin(Exchange, ImplicitAPI):
                 request['tpTriggerPrice'] = self.price_to_precision(symbol, tpTriggerPrice)
                 tpPrice = self.safe_string(takeProfit, 'price', '-1')
                 request['tpOrderPrice'] = self.price_to_precision(symbol, tpPrice)
+        elif triggerPrice is not None:
+            request['orderType'] = 'trigger'
+            request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
+            if isMarketOrder:
+                request['orderPrice'] = '-1'
         return self.extend(request, params)
 
     def parse_order_status(self, status: Str):
@@ -1090,7 +1233,7 @@ class blofin(Exchange, ImplicitAPI):
         #     "instType": "SWAP",  # only in WS
         # }
         #
-        id = self.safe_string_2(order, 'tpslId', 'orderId')
+        id = self.safe_string_n(order, ['tpslId', 'orderId', 'algoId'])
         timestamp = self.safe_integer(order, 'createTime')
         lastUpdateTimestamp = self.safe_integer(order, 'updateTime')
         lastTradeTimestamp = self.safe_integer(order, 'fillTime')
@@ -1184,12 +1327,14 @@ class blofin(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.triggerPrice]: the trigger price for a trigger order
         :param bool [params.reduceOnly]: a mark to reduce the position size for margin, swap and future orders
         :param bool [params.postOnly]: True to place a post only order
         :param str [params.marginMode]: 'cross' or 'isolated', default is 'cross'
         :param float [params.stopLossPrice]: stop loss trigger price(will use privatePostTradeOrderTpsl)
         :param float [params.takeProfitPrice]: take profit trigger price(will use privatePostTradeOrderTpsl)
         :param str [params.positionSide]: *stopLossPrice/takeProfitPrice orders only* 'long' or 'short' or 'net' default is 'net'
+        :param boolean [params.hedged]: if True, the positionSide will be set to long/short instead of net, default is False
         :param str [params.clientOrderId]: a unique id for the order
         :param dict [params.takeProfit]: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
         :param float [params.takeProfit.triggerPrice]: take profit trigger price
@@ -1207,14 +1352,25 @@ class blofin(Exchange, ImplicitAPI):
         method, params = self.handle_option_and_params(params, 'createOrder', 'method', 'privatePostTradeOrder')
         isStopLossPriceDefined = self.safe_string(params, 'stopLossPrice') is not None
         isTakeProfitPriceDefined = self.safe_string(params, 'takeProfitPrice') is not None
+        isTriggerOrder = self.safe_string(params, 'triggerPrice') is not None
         isType2Order = (isStopLossPriceDefined or isTakeProfitPriceDefined)
         response = None
+        reduceOnly = self.safe_bool(params, 'reduceOnly')
+        if reduceOnly is not None:
+            params['reduceOnly'] = 'true' if reduceOnly else 'false'
         if tpsl or (method == 'privatePostTradeOrderTpsl') or isType2Order:
             tpslRequest = self.create_tpsl_order_request(symbol, type, side, amount, price, params)
             response = self.privatePostTradeOrderTpsl(tpslRequest)
+        elif isTriggerOrder or (method == 'privatePostTradeOrderAlgo'):
+            triggerRequest = self.create_order_request(symbol, type, side, amount, price, params)
+            response = self.privatePostTradeOrderAlgo(triggerRequest)
         else:
             request = self.create_order_request(symbol, type, side, amount, price, params)
             response = self.privatePostTradeOrder(request)
+        if isTriggerOrder or (method == 'privatePostTradeOrderAlgo'):
+            dataDict = self.safe_dict(response, 'data', {})
+            triggerOrder = self.parse_order(dataDict, market)
+            return triggerOrder
         data = self.safe_list(response, 'data', [])
         first = self.safe_dict(data, 0)
         order = self.parse_order(first, market)
@@ -1264,7 +1420,8 @@ class blofin(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.trigger]: True if cancelling a trigger/conditional order/tp sl orders
+        :param boolean [params.trigger]: True if cancelling a trigger/conditional
+        :param boolean [params.tpsl]: True if cancelling a tpsl order
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
@@ -1274,20 +1431,27 @@ class blofin(Exchange, ImplicitAPI):
         request: dict = {
             'instId': market['id'],
         }
-        isTrigger = self.safe_bool_n(params, ['stop', 'trigger', 'tpsl'], False)
+        isTrigger = self.safe_bool_n(params, ['trigger'], False)
+        isTpsl = self.safe_bool_2(params, 'tpsl', 'TPSL', False)
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
             request['clientOrderId'] = clientOrderId
         else:
-            if not isTrigger:
+            if not isTrigger and not isTpsl:
                 request['orderId'] = str(id)
-            else:
+            elif isTpsl:
                 request['tpslId'] = str(id)
+            elif isTrigger:
+                request['algoId'] = str(id)
         query = self.omit(params, ['orderId', 'clientOrderId', 'stop', 'trigger', 'tpsl'])
-        if isTrigger:
+        if isTpsl:
             tpslResponse = self.cancel_orders([id], symbol, params)
             first = self.safe_dict(tpslResponse, 0)
             return first
+        elif isTrigger:
+            triggerResponse = self.privatePostTradeCancelAlgo(self.extend(request, query))
+            triggerData = self.safe_dict(triggerResponse, 'data')
+            return self.parse_order(triggerData, market)
         response = self.privatePostTradeCancelOrder(self.extend(request, query))
         data = self.safe_list(response, 'data', [])
         order = self.safe_dict(data, 0)
@@ -1326,12 +1490,13 @@ class blofin(Exchange, ImplicitAPI):
 
         https://blofin.com/docs#get-active-orders
         https://blofin.com/docs#get-active-tpsl-orders
+        https://docs.blofin.com/index.html#get-active-algo-orders
 
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param bool [params.stop]: True if fetching trigger or conditional orders
+        :param bool [params.trigger]: True if fetching trigger or conditional orders
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -1348,13 +1513,17 @@ class blofin(Exchange, ImplicitAPI):
             request['instId'] = market['id']
         if limit is not None:
             request['limit'] = limit  # default 100, max 100
-        isStop = self.safe_bool_n(params, ['stop', 'trigger', 'tpsl', 'TPSL'], False)
+        isTrigger = self.safe_bool_n(params, ['stop', 'trigger'], False)
+        isTpSl = self.safe_bool_2(params, 'tpsl', 'TPSL', False)
         method: Str = None
         method, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersPending')
         query = self.omit(params, ['method', 'stop', 'trigger', 'tpsl', 'TPSL'])
         response = None
-        if isStop or (method == 'privateGetTradeOrdersTpslPending'):
+        if isTpSl or (method == 'privateGetTradeOrdersTpslPending'):
             response = self.privateGetTradeOrdersTpslPending(self.extend(request, query))
+        elif isTrigger or (method == 'privateGetTradeOrdersAlgoPending'):
+            request['orderType'] = 'trigger'
+            response = self.privateGetTradeOrdersAlgoPending(self.extend(request, query))
         else:
             response = self.privateGetTradeOrdersPending(self.extend(request, query))
         data = self.safe_list(response, 'data', [])
@@ -1473,7 +1642,7 @@ class blofin(Exchange, ImplicitAPI):
         :param str [params.marginMode]: 'cross' or 'isolated'
         :param int [params.until]: the latest time in ms to fetch entries for
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
         self.load_markets()
         paginate = False
@@ -1660,8 +1829,8 @@ class blofin(Exchange, ImplicitAPI):
         method = self.safe_string(params, 'method', defaultMethod)
         clientOrderIds = self.parse_ids(self.safe_value(params, 'clientOrderId'))
         tpslIds = self.parse_ids(self.safe_value(params, 'tpslId'))
-        stop = self.safe_bool_n(params, ['stop', 'trigger', 'tpsl'])
-        if stop:
+        trigger = self.safe_bool_n(params, ['stop', 'trigger', 'tpsl'])
+        if trigger:
             method = 'privatePostTradeCancelTpsl'
         if clientOrderIds is None:
             ids = self.parse_ids(ids)
@@ -1672,7 +1841,7 @@ class blofin(Exchange, ImplicitAPI):
                         'instId': market['id'],
                     })
             for i in range(0, len(ids)):
-                if stop:
+                if trigger:
                     request.append({
                         'tpslId': ids[i],
                         'instId': market['id'],
@@ -1995,6 +2164,7 @@ class blofin(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: 'cross' or 'isolated'
+        :param str [params.positionSide]: 'long' or 'short' - required for hedged mode in isolated margin
         :returns dict: response from the exchange
         """
         if symbol is None:
@@ -2060,7 +2230,7 @@ class blofin(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param bool [params.stop]: True if fetching trigger or conditional orders
+        :param bool [params.trigger]: True if fetching trigger or conditional orders
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -2079,12 +2249,12 @@ class blofin(Exchange, ImplicitAPI):
             request['limit'] = limit  # default 100, max 100
         if since is not None:
             request['begin'] = since
-        isStop = self.safe_bool_n(params, ['stop', 'trigger', 'tpsl', 'TPSL'], False)
+        isTrigger = self.safe_bool_n(params, ['stop', 'trigger', 'tpsl', 'TPSL'], False)
         method: Str = None
         method, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersHistory')
         query = self.omit(params, ['method', 'stop', 'trigger', 'tpsl', 'TPSL'])
         response = None
-        if (isStop) or (method == 'privateGetTradeOrdersTpslHistory'):
+        if (isTrigger) or (method == 'privateGetTradeOrdersTpslHistory'):
             response = self.privateGetTradeOrdersTpslHistory(self.extend(request, query))
         else:
             response = self.privateGetTradeOrdersHistory(self.extend(request, query))
@@ -2116,12 +2286,96 @@ class blofin(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_margin_mode(data, market)
 
-    def parse_margin_mode(self, marginMode: dict, market=None) -> MarginMode:
+    def parse_margin_mode(self, marginMode: dict, market: Market = None) -> MarginMode:
         return {
             'info': marginMode,
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'marginMode': self.safe_string(marginMode, 'marginMode'),
         }
+
+    def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
+        """
+        set margin mode to 'cross' or 'isolated'
+
+        https://docs.blofin.com/index.html#set-margin-mode
+
+        :param str marginMode: 'cross' or 'isolated'
+        :param str [symbol]: unified market symbol(not used in blofin setMarginMode)
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: response from the exchange
+        """
+        self.check_required_argument('setMarginMode', marginMode, 'marginMode', ['cross', 'isolated'])
+        self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        request: dict = {
+            'marginMode': marginMode,
+        }
+        response = self.privatePostAccountSetMarginMode(self.extend(request, params))
+        #
+        #     {
+        #         "code": "0",
+        #         "msg": "success",
+        #         "data": {
+        #             "marginMode": "isolated"
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        return self.parse_margin_mode(data, market)
+
+    def fetch_position_mode(self, symbol: Str = None, params={}):
+        """
+        fetchs the position mode, hedged or one way
+
+        https://docs.blofin.com/index.html#get-position-mode
+
+        :param str [symbol]: unified symbol of the market to fetch the position mode for(not used in blofin fetchPositionMode)
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an object detailing whether the market is in hedged or one-way mode
+        """
+        response = self.privateGetAccountPositionMode(params)
+        data = self.safe_dict(response, 'data', {})
+        positionMode = self.safe_string(data, 'positionMode')
+        #
+        #     {
+        #         "code": "0",
+        #         "msg": "success",
+        #         "data": {
+        #             "positionMode": "long_short_mode"
+        #         }
+        #     }
+        #
+        return {
+            'info': data,
+            'hedged': positionMode == 'long_short_mode',
+        }
+
+    def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
+        """
+        set hedged to True or False for a market
+
+        https://docs.blofin.com/index.html#set-position-mode
+
+        :param bool hedged: set to True to use hedged mode, False for one-way mode
+        :param str [symbol]: not used by blofin setPositionMode()
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: response from the exchange
+        """
+        request: dict = {
+            'positionMode': 'long_short_mode' if hedged else 'net_mode',
+        }
+        #
+        #     {
+        #         "code": "0",
+        #         "msg": "success",
+        #         "data": {
+        #             "positionMode": "net_mode"
+        #         }
+        #     }
+        #
+        return self.privatePostAccountSetPositionMode(self.extend(request, params))
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:

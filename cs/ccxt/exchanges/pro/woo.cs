@@ -982,7 +982,7 @@ public partial class woo : ccxt.woo
             { "triggerPrice", null },
             { "amount", amount },
             { "cost", null },
-            { "average", null },
+            { "average", avgPrice },
             { "filled", filled },
             { "remaining", remaining },
             { "status", status },

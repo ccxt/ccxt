@@ -33,28 +33,57 @@ export default class btcbox extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': false,
+                'borrowMargin': false,
                 'cancelOrder': true,
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createOrder': true,
+                'createOrderWithTakeProfitAndStopLoss': false,
+                'createOrderWithTakeProfitAndStopLossWs': false,
+                'createPostOnlyOrder': false,
                 'createReduceOnlyOrder': false,
                 'fetchBalance': true,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchFundingHistory': false,
+                'fetchFundingInterval': false,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
+                'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
+                'fetchIsolatedPositions': false,
                 'fetchLeverage': false,
+                'fetchLeverages': false,
+                'fetchLeverageTiers': false,
+                'fetchLiquidations': false,
+                'fetchLongShortRatio': false,
+                'fetchLongShortRatioHistory': false,
+                'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
+                'fetchMarginModes': false,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkOHLCV': false,
+                'fetchMarkPrices': false,
+                'fetchMyLiquidations': false,
+                'fetchMySettlementHistory': false,
+                'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': false,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
@@ -66,15 +95,21 @@ export default class btcbox extends Exchange {
                 'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': false,
                 'reduceMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
+                'repayMargin': false,
                 'setLeverage': false,
+                'setMargin': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'transfer': false,
@@ -109,6 +144,79 @@ export default class btcbox extends Exchange {
                         'wallet',
                     ],
                 },
+                'webApi': {
+                    'get': [
+                        'ajax/coin/coinInfo',
+                    ],
+                },
+            },
+            'options': {
+                'fetchMarkets': {
+                    'webApiEnable': true,
+                    'webApiRetries': 3,
+                },
+                'amountPrecision': '0.0001', // exchange has only few pairs and all of them
+            },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': false,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': false,
+                            'FOK': false,
+                            'PO': false,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'leverage': false,
+                        'marketBuyRequiresPrice': false,
+                        'marketBuyByCost': false,
+                        'selfTradePrevention': false,
+                        'trailing': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': undefined,
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchClosedOrders': undefined,
+                    'fetchOHLCV': undefined,
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -133,9 +241,12 @@ export default class btcbox extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
-        const response = await this.publicGetTickers();
+        const promise1 = this.publicGetTickers();
+        const promise2 = this.fetchWebEndpoint('fetchMarkets', 'webApiGetAjaxCoinCoinInfo', true);
+        const [response1, response2] = await Promise.all([promise1, promise2]);
         //
-        const marketIds = Object.keys(response);
+        const result2Data = this.safeDict(response2, 'data', {});
+        const marketIds = Object.keys(response1);
         const markets = [];
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
@@ -144,9 +255,11 @@ export default class btcbox extends Exchange {
             const quote = this.safeString(symbolParts, 1);
             const quoteId = quote.toLowerCase();
             const id = baseCurr.toLowerCase();
-            const res = response[marketId];
+            const res = response1[marketId];
             const symbol = baseCurr + '/' + quote;
             const fee = (id === 'BTC') ? this.parseNumber('0.0005') : this.parseNumber('0.0010');
+            const details = this.safeDict(result2Data, id, {});
+            const tradeDetails = this.safeDict(details, 'trade', {});
             markets.push(this.safeMarketStructure({
                 'id': id,
                 'uppercaseId': undefined,
@@ -192,10 +305,10 @@ export default class btcbox extends Exchange {
                     },
                 },
                 'precision': {
-                    'price': undefined,
+                    'price': this.parseNumber(this.parsePrecision(this.safeString(tradeDetails, 'pricedecimal'))),
                     'amount': undefined,
                 },
-                'active': undefined,
+                'active': this.safeString(tradeDetails, 'enable') === '1',
                 'created': undefined,
                 'info': res,
             }));
@@ -556,7 +669,6 @@ export default class btcbox extends Exchange {
             'status': status,
             'symbol': market['symbol'],
             'price': price,
-            'stopPrice': undefined,
             'triggerPrice': undefined,
             'cost': undefined,
             'trades': trades,
@@ -604,9 +716,6 @@ export default class btcbox extends Exchange {
     async fetchOrdersByType(type, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
         // a special case for btcbox – default symbol is BTC/JPY
-        if (symbol === undefined) {
-            symbol = 'BTC/JPY';
-        }
         const market = this.market(symbol);
         const request = {
             'type': type,
@@ -672,6 +781,9 @@ export default class btcbox extends Exchange {
             if (Object.keys(params).length) {
                 url += '?' + this.urlencode(params);
             }
+        }
+        else if (api === 'webApi') {
+            url = this.urls['www'] + '/' + path;
         }
         else {
             this.checkRequiredCredentials();

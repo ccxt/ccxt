@@ -1282,6 +1282,121 @@
                   }
                 ]
             }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetch the balance",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                  "id": "43a01bee-67e3-4eb1-b2f1-65d1dc26ade5",
+                  "admin_configurations": {
+                    "allow_instant_ach": true,
+                    "max_margin_multiplier": "4"
+                  },
+                  "user_configurations": {
+                    "fractional_trading": true,
+                    "max_margin_multiplier": "4"
+                  },
+                  "account_number": "744863727",
+                  "status": "ACTIVE",
+                  "crypto_status": "ACTIVE",
+                  "currency": "USD",
+                  "buying_power": "5.92",
+                  "regt_buying_power": "5.92",
+                  "daytrading_buying_power": "0",
+                  "effective_buying_power": "5.92",
+                  "non_marginable_buying_power": "5.92",
+                  "bod_dtbp": "0",
+                  "cash": "5.92",
+                  "accrued_fees": "0",
+                  "portfolio_value": "48.61",
+                  "pattern_day_trader": false,
+                  "trading_blocked": false,
+                  "transfers_blocked": false,
+                  "account_blocked": false,
+                  "created_at": "2022-06-13T14:59:18.318096Z",
+                  "trade_suspended_by_user": false,
+                  "multiplier": "1",
+                  "shorting_enabled": false,
+                  "equity": "48.61",
+                  "last_equity": "48.8014266",
+                  "long_market_value": "42.69",
+                  "short_market_value": "0",
+                  "position_market_value": "42.69",
+                  "initial_margin": "0",
+                  "maintenance_margin": "0",
+                  "last_maintenance_margin": "0",
+                  "sma": "5.92",
+                  "daytrade_count": "0",
+                  "balance_asof": "2024-12-10",
+                  "crypto_tier": "1",
+                  "intraday_adjustments": "0",
+                  "pending_reg_taf_fees": "0"
+                },
+                "parsedResponse": {
+                  "info": {
+                    "id": "43a01bee-67e3-4eb1-b2f1-65d1dc26ade5",
+                    "admin_configurations": {
+                      "allow_instant_ach": true,
+                      "max_margin_multiplier": "4"
+                    },
+                    "user_configurations": {
+                      "fractional_trading": true,
+                      "max_margin_multiplier": "4"
+                    },
+                    "account_number": "744863727",
+                    "status": "ACTIVE",
+                    "crypto_status": "ACTIVE",
+                    "currency": "USD",
+                    "buying_power": "5.92",
+                    "regt_buying_power": "5.92",
+                    "daytrading_buying_power": "0",
+                    "effective_buying_power": "5.92",
+                    "non_marginable_buying_power": "5.92",
+                    "bod_dtbp": "0",
+                    "cash": "5.92",
+                    "accrued_fees": "0",
+                    "portfolio_value": "48.61",
+                    "pattern_day_trader": false,
+                    "trading_blocked": false,
+                    "transfers_blocked": false,
+                    "account_blocked": false,
+                    "created_at": "2022-06-13T14:59:18.318096Z",
+                    "trade_suspended_by_user": false,
+                    "multiplier": "1",
+                    "shorting_enabled": false,
+                    "equity": "48.61",
+                    "last_equity": "48.8014266",
+                    "long_market_value": "42.69",
+                    "short_market_value": "0",
+                    "position_market_value": "42.69",
+                    "initial_margin": "0",
+                    "maintenance_margin": "0",
+                    "last_maintenance_margin": "0",
+                    "sma": "5.92",
+                    "daytrade_count": "0",
+                    "balance_asof": "2024-12-10",
+                    "crypto_tier": "1",
+                    "intraday_adjustments": "0",
+                    "pending_reg_taf_fees": "0"
+                  },
+                  "USD": {
+                    "free": 5.92,
+                    "used": 42.69,
+                    "total": 48.61
+                  },
+                  "free": {
+                    "USD": 5.92
+                  },
+                  "used": {
+                    "USD": 42.69
+                  },
+                  "total": {
+                    "USD": 48.61
+                  }
+                }
+            }
         ]
     }
 }

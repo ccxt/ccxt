@@ -10,12 +10,12 @@ use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class vertex extends \ccxt\async\vertex {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -54,6 +54,11 @@ class vertex extends \ccxt\async\vertex {
                 ),
                 'ws' => array(
                     'inflate' => true,
+                    'options' => array(
+                        'headers' => array(
+                            'Sec-WebSocket-Extensions' => 'permessage-deflate', // requires permessage-deflate extension, maybe we can set this in client implementation when $this->inflateis true
+                        ),
+                    ),
                 ),
             ),
             'streaming' => array(

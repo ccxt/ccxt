@@ -1,32 +1,60 @@
 {
     "BTC/USDT": {
         "id": "BTC_USDT",
+        "lowercaseId": null,
         "symbol": "BTC/USDT",
         "base": "BTC",
         "quote": "USDT",
+        "settle": null,
         "baseId": "BTC",
         "quoteId": "USDT",
-        "active": true,
+        "settleId": null,
         "type": "spot",
         "spot": true,
+        "margin": null,
         "swap": false,
         "future": false,
         "option": false,
+        "index": null,
+        "active": false,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.002,
+        "maker": 0.002,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
-            "amount": 0.00001,
+            "amount": 1e-7,
             "price": 0.01
         },
         "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
-                "min": 0.00005
+                "min": 1e-7,
+                "max": null
             },
-            "price": {},
+            "price": {
+                "min": null,
+                "max": null
+            },
             "cost": {
-                "min": 2
-            },
-            "leverage": {}
+                "min": 2,
+                "max": null
+            }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "order_types": [
                 "LIMIT",
@@ -34,52 +62,74 @@
             ],
             "quote_asset": "USDT",
             "minimum_value": "2",
-            "amount_precision": "5",
+            "amount_precision": "7",
             "status": "TRADING",
-            "minimum_amount": "5e-05",
+            "minimum_amount": "1e-07",
             "symbol": "BTC_USDT",
-            "is_allow": "1",
+            "is_allow": "0",
             "zone": "MAIN",
             "base_asset": "BTC",
             "price_precision": "2"
         },
         "tierBased": true,
-        "percentage": true,
-        "taker": 0.002,
-        "maker": 0.002
+        "percentage": true
     },
     "BTC/USDT:USDT": {
         "id": "BTCUSDTPERP",
+        "lowercaseId": null,
         "symbol": "BTC/USDT:USDT",
         "base": "BTC",
         "quote": "USDT",
+        "settle": "USDT",
         "baseId": "BTC",
         "quoteId": "USDT",
-        "active": true,
+        "settleId": "USDT",
         "type": "swap",
-        "linear": true,
-        "inverse": false,
         "spot": false,
+        "margin": null,
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
+        "active": true,
         "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.002,
+        "maker": 0.002,
         "contractSize": 0.001,
-        "settle": "USDT",
-        "settleId": "USDT",
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
+            "amount": null,
             "price": 0.1
         },
         "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
-                "min": 1
+                "min": 1,
+                "max": null
             },
             "price": {
-                "min": 0.1
+                "min": 0.1,
+                "max": null
             },
-            "cost": {},
-            "leverage": {}
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "instrument_id": "BTCUSDTPERP",
             "type": "REAL",
@@ -97,44 +147,86 @@
             "min_order_amount": "1",
             "open_max_limits": [
                 {
+                    "leverage": "100",
+                    "maint_margin_ratio": "0.005",
+                    "max_limit": "3000000"
+                },
+                {
                     "leverage": "50",
-                    "max_limit": "1000000"
+                    "maint_margin_ratio": "0.01",
+                    "max_limit": "10000000"
+                },
+                {
+                    "leverage": "20",
+                    "maint_margin_ratio": "0.025",
+                    "max_limit": "15000000"
+                },
+                {
+                    "leverage": "10",
+                    "maint_margin_ratio": "0.05",
+                    "max_limit": "20000000"
                 }
             ]
         },
         "tierBased": true,
-        "percentage": true,
-        "taker": 0.002,
-        "maker": 0.002
+        "percentage": true
     },
     "LTC/USDT": {
         "id": "LTC_USDT",
+        "lowercaseId": null,
         "symbol": "LTC/USDT",
         "base": "LTC",
         "quote": "USDT",
+        "settle": null,
         "baseId": "LTC",
         "quoteId": "USDT",
-        "active": true,
+        "settleId": null,
         "type": "spot",
         "spot": true,
+        "margin": null,
         "swap": false,
         "future": false,
         "option": false,
+        "index": null,
+        "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.002,
+        "maker": 0.002,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.001,
             "price": 0.01
         },
         "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
-                "min": 0.01
+                "min": 0.01,
+                "max": null
             },
-            "price": {},
+            "price": {
+                "min": null,
+                "max": null
+            },
             "cost": {
-                "min": 2
-            },
-            "leverage": {}
+                "min": 2,
+                "max": null
+            }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "order_types": [
                 "LIMIT",
@@ -152,38 +244,64 @@
             "price_precision": "2"
         },
         "tierBased": true,
-        "percentage": true,
-        "taker": 0.002,
-        "maker": 0.002
+        "percentage": true
     },
     "ADA/USDT": {
         "id": "ADA_USDT",
+        "lowercaseId": null,
         "symbol": "ADA/USDT",
         "base": "ADA",
         "quote": "USDT",
+        "settle": null,
         "baseId": "ADA",
         "quoteId": "USDT",
-        "active": true,
+        "settleId": null,
         "type": "spot",
         "spot": true,
+        "margin": null,
         "swap": false,
         "future": false,
         "option": false,
+        "index": null,
+        "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.002,
+        "maker": 0.002,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.1,
             "price": 0.00001
         },
         "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
-                "min": 1
+                "min": 1,
+                "max": null
             },
-            "price": {},
+            "price": {
+                "min": null,
+                "max": null
+            },
             "cost": {
-                "min": 2
-            },
-            "leverage": {}
+                "min": 2,
+                "max": null
+            }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "order_types": [
                 "LIMIT",
@@ -201,38 +319,64 @@
             "price_precision": "5"
         },
         "tierBased": true,
-        "percentage": true,
-        "taker": 0.002,
-        "maker": 0.002
+        "percentage": true
     },
     "XRP/USDT": {
         "id": "XRP_USDT",
+        "lowercaseId": null,
         "symbol": "XRP/USDT",
         "base": "XRP",
         "quote": "USDT",
+        "settle": null,
         "baseId": "XRP",
         "quoteId": "USDT",
-        "active": true,
+        "settleId": null,
         "type": "spot",
         "spot": true,
+        "margin": null,
         "swap": false,
         "future": false,
         "option": false,
+        "index": null,
+        "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.002,
+        "maker": 0.002,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 1,
             "price": 0.00001
         },
         "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
-                "min": 2
+                "min": 2,
+                "max": null
             },
-            "price": {},
+            "price": {
+                "min": null,
+                "max": null
+            },
             "cost": {
-                "min": 2
-            },
-            "leverage": {}
+                "min": 2,
+                "max": null
+            }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "order_types": [
                 "LIMIT",
@@ -250,42 +394,64 @@
             "price_precision": "5"
         },
         "tierBased": true,
-        "percentage": true,
-        "taker": 0.002,
-        "maker": 0.002
+        "percentage": true
     },
     "LTC/USDT:USDT": {
         "id": "LTCUSDTPERP",
+        "lowercaseId": null,
         "symbol": "LTC/USDT:USDT",
         "base": "LTC",
         "quote": "USDT",
+        "settle": "USDT",
         "baseId": "LTC",
         "quoteId": "USDT",
-        "active": true,
+        "settleId": "USDT",
         "type": "swap",
-        "linear": true,
-        "inverse": false,
         "spot": false,
+        "margin": null,
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
+        "active": true,
         "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.002,
+        "maker": 0.002,
         "contractSize": 0.1,
-        "settle": "USDT",
-        "settleId": "USDT",
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
-            "price": 0.001
+            "amount": null,
+            "price": 0.01
         },
         "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
-                "min": 1
+                "min": 1,
+                "max": null
             },
             "price": {
-                "min": 0.001
+                "min": 0.01,
+                "max": null
             },
-            "cost": {},
-            "leverage": {}
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "instrument_id": "LTCUSDTPERP",
             "type": "REAL",
@@ -298,61 +464,91 @@
             "is_inverse": false,
             "is_trading": true,
             "status": "ONLINE",
-            "price_precision": "3",
-            "tick_size": "0.001",
+            "price_precision": "2",
+            "tick_size": "0.01",
             "min_order_amount": "1",
             "open_max_limits": [
                 {
-                    "leverage": "3",
-                    "max_limit": "1000000"
-                },
-                {
-                    "leverage": "10",
+                    "leverage": "100",
+                    "maint_margin_ratio": "0.005",
                     "max_limit": "500000"
                 },
                 {
                     "leverage": "50",
-                    "max_limit": "200000"
+                    "maint_margin_ratio": "0.01",
+                    "max_limit": "1000000"
+                },
+                {
+                    "leverage": "20",
+                    "maint_margin_ratio": "0.025",
+                    "max_limit": "2000000"
+                },
+                {
+                    "leverage": "10",
+                    "maint_margin_ratio": "0.05",
+                    "max_limit": "5000000"
                 }
             ]
         },
         "tierBased": true,
-        "percentage": true,
-        "taker": 0.002,
-        "maker": 0.002
+        "percentage": true
     },
     "ADA/USDT:USDT": {
         "id": "ADAUSDTPERP",
+        "lowercaseId": null,
         "symbol": "ADA/USDT:USDT",
         "base": "ADA",
         "quote": "USDT",
+        "settle": "USDT",
         "baseId": "ADA",
         "quoteId": "USDT",
-        "active": true,
+        "settleId": "USDT",
         "type": "swap",
-        "linear": true,
-        "inverse": false,
         "spot": false,
+        "margin": null,
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
+        "active": true,
         "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.002,
+        "maker": 0.002,
         "contractSize": 100,
-        "settle": "USDT",
-        "settleId": "USDT",
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
+            "amount": null,
             "price": 0.0001
         },
         "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
-                "min": 1
+                "min": 1,
+                "max": null
             },
             "price": {
-                "min": 0.0001
+                "min": 0.0001,
+                "max": null
             },
-            "cost": {},
-            "leverage": {}
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "instrument_id": "ADAUSDTPERP",
             "type": "REAL",
@@ -370,56 +566,86 @@
             "min_order_amount": "1",
             "open_max_limits": [
                 {
-                    "leverage": "3",
-                    "max_limit": "200000"
-                },
-                {
-                    "leverage": "10",
-                    "max_limit": "100000"
+                    "leverage": "100",
+                    "maint_margin_ratio": "0.005",
+                    "max_limit": "500000"
                 },
                 {
                     "leverage": "50",
-                    "max_limit": "30000"
+                    "maint_margin_ratio": "0.01",
+                    "max_limit": "1000000"
+                },
+                {
+                    "leverage": "20",
+                    "maint_margin_ratio": "0.025",
+                    "max_limit": "2000000"
+                },
+                {
+                    "leverage": "10",
+                    "maint_margin_ratio": "0.05",
+                    "max_limit": "5000000"
                 }
             ]
         },
         "tierBased": true,
-        "percentage": true,
-        "taker": 0.002,
-        "maker": 0.002
+        "percentage": true
     },
     "XRP/USDT:USDT": {
         "id": "XRPUSDTPERP",
+        "lowercaseId": null,
         "symbol": "XRP/USDT:USDT",
         "base": "XRP",
         "quote": "USDT",
+        "settle": "USDT",
         "baseId": "XRP",
         "quoteId": "USDT",
-        "active": true,
+        "settleId": "USDT",
         "type": "swap",
-        "linear": true,
-        "inverse": false,
         "spot": false,
+        "margin": null,
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
+        "active": true,
         "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.002,
+        "maker": 0.002,
         "contractSize": 100,
-        "settle": "USDT",
-        "settleId": "USDT",
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
+            "amount": null,
             "price": 0.0001
         },
         "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
-                "min": 1
+                "min": 1,
+                "max": null
             },
             "price": {
-                "min": 0.0001
+                "min": 0.0001,
+                "max": null
             },
-            "cost": {},
-            "leverage": {}
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "instrument_id": "XRPUSDTPERP",
             "type": "REAL",
@@ -437,48 +663,86 @@
             "min_order_amount": "1",
             "open_max_limits": [
                 {
-                    "leverage": "20",
-                    "max_limit": "2000000"
+                    "leverage": "100",
+                    "maint_margin_ratio": "0.005",
+                    "max_limit": "500000"
                 },
                 {
                     "leverage": "50",
+                    "maint_margin_ratio": "0.01",
+                    "max_limit": "1000000"
+                },
+                {
+                    "leverage": "20",
+                    "maint_margin_ratio": "0.025",
                     "max_limit": "2000000"
+                },
+                {
+                    "leverage": "10",
+                    "maint_margin_ratio": "0.05",
+                    "max_limit": "5000000"
                 }
             ]
         },
         "tierBased": true,
-        "percentage": true,
-        "taker": 0.002,
-        "maker": 0.002
+        "percentage": true
     },
     "TRX/USDT": {
         "id": "TRX_USDT",
+        "lowercaseId": null,
         "symbol": "TRX/USDT",
         "base": "TRX",
         "quote": "USDT",
+        "settle": null,
         "baseId": "TRX",
         "quoteId": "USDT",
-        "active": true,
+        "settleId": null,
         "type": "spot",
         "spot": true,
+        "margin": null,
         "swap": false,
         "future": false,
         "option": false,
+        "index": null,
+        "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.002,
+        "maker": 0.002,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.1,
             "price": 0.000001
         },
         "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
-                "min": 22
+                "min": 0.1,
+                "max": null
             },
-            "price": {},
+            "price": {
+                "min": null,
+                "max": null
+            },
             "cost": {
-                "min": 0
-            },
-            "leverage": {}
+                "min": 0,
+                "max": null
+            }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "order_types": [
                 "LIMIT",
@@ -488,7 +752,7 @@
             "minimum_value": "0",
             "amount_precision": "1",
             "status": "TRADING",
-            "minimum_amount": "22",
+            "minimum_amount": "0.1",
             "symbol": "TRX_USDT",
             "is_allow": "1",
             "zone": "MAIN",
@@ -496,9 +760,7 @@
             "price_precision": "6"
         },
         "tierBased": true,
-        "percentage": true,
-        "taker": 0.002,
-        "maker": 0.002
+        "percentage": true
     },
     "TRX/USDT:USDT": {
         "id": "TRXUSDTPERP",
@@ -569,34 +831,60 @@
     },
     "ETH/USDT": {
         "id": "ETH_USDT",
+        "lowercaseId": null,
         "symbol": "ETH/USDT",
         "base": "ETH",
         "quote": "USDT",
+        "settle": null,
         "baseId": "ETH",
         "quoteId": "USDT",
+        "settleId": null,
         "type": "spot",
         "spot": true,
+        "margin": null,
         "swap": false,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
         "taker": 0.002,
         "maker": 0.002,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.0001,
             "price": 0.01
         },
         "limits": {
-            "leverage": {},
-            "amount": {
-                "min": 0.0006
+            "leverage": {
+                "min": null,
+                "max": null
             },
-            "price": {},
+            "amount": {
+                "min": 0.0006,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
             "cost": {
-                "min": 2
+                "min": 2,
+                "max": null
             }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "order_types": [
                 "LIMIT",
@@ -618,6 +906,7 @@
     },
     "ETH/USDT:USDT": {
         "id": "ETHUSDTPERP",
+        "lowercaseId": null,
         "symbol": "ETH/USDT:USDT",
         "base": "ETH",
         "quote": "USDT",
@@ -627,9 +916,11 @@
         "settleId": "USDT",
         "type": "swap",
         "spot": false,
+        "margin": null,
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": true,
         "linear": true,
@@ -638,19 +929,37 @@
         "taker": 0.002,
         "maker": 0.002,
         "contractSize": 0.01,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
+            "amount": null,
             "price": 0.01
         },
         "limits": {
-            "leverage": {},
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
-                "min": 1
+                "min": 1,
+                "max": null
             },
             "price": {
-                "min": 0.01
+                "min": 0.01,
+                "max": null
             },
-            "cost": {}
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "instrument_id": "ETHUSDTPERP",
             "type": "REAL",
@@ -668,8 +977,24 @@
             "min_order_amount": "1",
             "open_max_limits": [
                 {
+                    "leverage": "100",
+                    "maint_margin_ratio": "0.005",
+                    "max_limit": "3000000"
+                },
+                {
                     "leverage": "50",
-                    "max_limit": "1000000"
+                    "maint_margin_ratio": "0.01",
+                    "max_limit": "10000000"
+                },
+                {
+                    "leverage": "20",
+                    "maint_margin_ratio": "0.025",
+                    "max_limit": "15000000"
+                },
+                {
+                    "leverage": "10",
+                    "maint_margin_ratio": "0.05",
+                    "max_limit": "20000000"
                 }
             ]
         },

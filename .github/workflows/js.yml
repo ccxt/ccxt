@@ -1,0 +1,184 @@
+name: Js
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    if: ${{ !startsWith(github.event.head_commit.message, '[Automated changes]') && !contains(github.event.head_commit.message, 'Merge branch ''master'' of https://github.com/ccxt/ccxt') }}
+    steps:
+    - name: Print vars
+      run: |
+        echo "GitHub Actor: $GITHUB_ACTOR"
+        echo "Repository: $GITHUB_REPOSITORY"
+        echo "Event Name: $GITHUB_EVENT_NAME"
+        echo "Workflow Name: $GITHUB_WORKFLOW"
+        echo "Run ID: $GITHUB_RUN_ID"
+        echo "Run Number: $GITHUB_RUN_NUMBER"
+        echo "Job Name: $GITHUB_JOB"
+        echo "Ref: $GITHUB_REF"
+        echo "SHA: $GITHUB_SHA"
+        echo "Head Commit: ${{ github.event.head_commit.message }}"
+        echo "Branch Name: ${GITHUB_REF##*/}"  # Extract the branch name from GITHUB_REF
+    - uses: actions/checkout@v4
+      if: github.ref == 'refs/heads/master'
+      with:
+        token: ${{ secrets.GH_TOKEN }}
+        fetch-depth: 2
+    - uses: actions/checkout@v4
+      if: github.ref != 'refs/heads/master'
+      with:
+        fetch-depth: 2
+    - name: Skip Automated Push Commits
+      id: check_commit
+      run: |
+        if [[ "${{ github.event.head_commit.message }}" == *"[Automated changes]"* ]]; then
+          echo "This commit was made by the action. Skipping."
+          exit 0
+        fi
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    - name: Install npm dependencies
+      run: npm ci --include=dev
+    - name: Debug files changes
+      run: git diff --name-only HEAD^1 HEAD
+    - name: Determine modified files
+      run: ./utils/init_actions.sh
+    - name: Debug output
+      run: |
+        echo "Important files modified: ${{ env.important_modified }}"
+        echo "REST files: ${{ env.rest_files }}"
+        echo "WS files: ${{ env.ws_files }}"
+        cat shared_env.txt
+    - name: Check ref
+      run: echo $GITHUB_REF
+    - name: Remove JS Folder
+      if: github.ref == 'refs/heads/master'
+      run: |
+        rm -rf js/
+    - name: Pre-transpile and transpile TS
+      if: env.important_modified == 'true'
+      run: npm run pre-transpile-js
+    - name: Pre-transpile and transpile TS (Simplified)
+      if: env.important_modified == 'false'
+      run: npm run pre-transpile-js-simple
+    - name: Lint Rest (specific)
+      if: env.important_modified == 'false'
+      run: |
+        cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
+        for exchange in $cleaned_rest_files; do
+          npm run eslint "ts/src/$exchange.ts"
+        done
+    - name: Lint Ws (specific)
+      if: env.important_modified == 'false'
+      run: |
+        cleaned_ws_files=$(echo ${{ env.ws_files }} | tr -s ' ')
+        for exchange in $cleaned_ws_files; do
+          npm run eslint "ts/src/pro/$exchange.ts"
+        done
+    - name: Run Base Tests
+      if: env.important_modified == 'true'
+      run: npm run test-base-rest-js
+    - name: Run Base Ws Tests
+      if: env.important_modified == 'true'
+      run: npm run test-base-ws-js
+    - name: Run Id Tests
+      if: env.important_modified == 'true'
+      run: npm run id-tests-js
+    - name: Request tests
+      if: env.important_modified == 'true'
+      run: npm run request-js
+    - name: Request tests (specific)
+      if: env.important_modified == 'false'
+      run: |
+        cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
+        for exchange in $cleaned_rest_files; do
+          npm run request-js -- $exchange
+        done
+    - name: Response tests
+      if: env.important_modified == 'true'
+      run: npm run response-js
+    - name: Response tests (specific)
+      if: env.important_modified == 'false'
+      run: |
+        cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
+        for exchange in $cleaned_rest_files; do
+          npm run response-js -- $exchange
+        done
+    - name: Upload shared_env.txt
+      uses: actions/upload-artifact@v4
+      with:
+          name: shared_env
+          path: shared_env.txt
+
+    - name: Upload Js Files
+      uses: actions/upload-artifact@v4
+      with:
+        name: js-files
+        path: js/
+    - name: Push JS changes to master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      if: github.ref == 'refs/heads/master'
+      run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add js/ dist/ wiki/ README.md ts/ccxt.ts
+          git commit -m "[Automated changes] JS files" || echo "No changes to commit."
+          git remote set-url origin https://${GITHUB_TOKEN}@github.com/${{ github.repository }}
+          git config --global pull.rebase false
+          git pull origin master
+          git push
+    - name: Push To CCXT.WIKI
+      if: github.ref == 'refs/heads/master'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+      run: |
+        cd build/ccxt.wiki
+        cp -R ../../wiki/* .
+        git commit -a -m "[Automated changes] ${{ github.event.head_commit.message }}" || true
+        git remote remove origin
+        git remote add origin https://${GITHUB_TOKEN}@github.com/ccxt/ccxt.wiki.git
+        git push origin HEAD:master
+        cd ../..
+
+  live-tests:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download shared_env
+        uses: actions/download-artifact@v4
+        with:
+          name: shared_env
+      - name: Download JS Files
+        uses: actions/download-artifact@v4
+        with:
+          name: js-files
+          path: js/
+      - name: Restore shared_env
+        run: ./utils/restore_shared_env.sh
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - name: Install npm dependencies
+        run: npm ci --include=dev
+      - name: Export exchanges
+        run: npm run export-exchanges
+      - name: Live tests
+        if: env.important_modified == 'true'
+        run: ./run-tests-simul.sh --js
+      - name: Live tests (specific)
+        if: env.important_modified == 'false'
+        run: ./run-tests-simul.sh --js "${{ env.rest_files }}" "${{ env.ws_files }}"

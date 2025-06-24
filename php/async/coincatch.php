@@ -14,12 +14,12 @@ use ccxt\BadSymbol;
 use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class coincatch extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coincatch',
             'name' => 'CoinCatch',
@@ -79,6 +79,7 @@ class coincatch extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
                 'fetchDepositsWithdrawals' => false,
+                'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
@@ -363,57 +364,107 @@ class coincatch extends Exchange {
                     'CRO' => 'CronosChain',
                 ),
                 'networksById' => array(
-                    'BITCOIN' => 'BTC',
-                    'ERC20' => 'ERC20',
                     'TRC20' => 'TRC20',
                     'TRX(TRC20)' => 'TRC20',
-                    'BEP20' => 'BEP20',
                     'ArbitrumOne' => 'ARB', // todo check
-                    'Optimism' => 'OPTIMISM',
-                    'LTC' => 'LTC',
-                    'BCH' => 'BCH',
-                    'ETC' => 'ETC',
-                    'SOL' => 'SOL',
-                    'NEO3' => 'NEO3',
-                    'stacks' => 'STX',
-                    'Elrond' => 'EGLD',
-                    'NEARProtocol' => 'NEAR',
-                    'AcalaToken' => 'ACA',
-                    'Klaytn' => 'KLAY',
-                    'Fantom' => 'FTM',
-                    'Terra' => 'TERRA',
-                    'WAVES' => 'WAVES',
-                    'TAO' => 'TAO',
-                    'SUI' => 'SUI',
-                    'SEI' => 'SEI',
                     'THORChain' => 'RUNE', // todo check
-                    'ZIL' => 'ZIL',
                     'Solar' => 'SXP', // todo check
-                    'FET' => 'FET',
                     'C-Chain' => 'AVAX', // todo check
-                    'XRP' => 'XRP',
-                    'EOS' => 'EOS',
-                    'DOGECOIN' => 'DOGE',
                     'CAP20' => 'CAP20', // todo check
-                    'Polygon' => 'MATIC',
-                    'CSPR' => 'CSPR',
-                    'Moonbeam' => 'GLMR',
-                    'MINA' => 'MINA',
                     'CFXeSpace' => 'CFX', // todo check
                     'CFX' => 'CFX',
                     'StratisEVM' => 'STRAT', // todo check
-                    'Celestia' => 'TIA',
                     'ChilizChain' => 'ChilizChain', // todo check
-                    'Aptos' => 'APT',
-                    'Ontology' => 'ONT',
-                    'ICP' => 'ICP',
-                    'Cardano' => 'ADA',
-                    'FIL' => 'FIL',
-                    'CELO' => 'CELO',
-                    'DOT' => 'DOT',
                     'StellarLumens' => 'XLM', // todo check
-                    'ATOM' => 'ATOM',
                     'CronosChain' => 'CRO', // todo check
+                ),
+            ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => array(
+                            'last' => true,
+                            'mark' => true,
+                            'index' => false,
+                        ),
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => array(
+                        'max' => 50,
+                    ),
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'daysBack' => 100000, // todo implement
+                        'untilDays' => 100000, // todo implement
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'trigger' => true,
+                        'trailing' => false,
+                        'marketType' => true,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => null, // todo implement
+                    'fetchOHLCV' => array(
+                        'limit' => 1000,
+                    ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
+                'forDerivatives' => array(
+                    'extends' => 'default',
+                    'createOrder' => array(
+                        // todo check
+                        'attachedStopLossTakeProfit' => array(
+                            'triggerPriceType' => null,
+                            'price' => false,
+                        ),
+                    ),
+                    'fetchMyTrades' => array(
+                        'limit' => 100,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
                 ),
             ),
             'commonCurrencies' => array(),
@@ -490,7 +541,7 @@ class coincatch extends Exchange {
         }
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
@@ -563,78 +614,134 @@ class coincatch extends Exchange {
                 $currencyId = $this->safe_string($currecy, 'coinName');
                 $currenciesIds[] = $currencyId;
                 $code = $this->safe_currency_code($currencyId);
-                $allowDeposit = false;
-                $allowWithdraw = false;
-                $minDeposit = null;
-                $minWithdraw = null;
                 $networks = $this->safe_list($currecy, 'chains');
-                $networksById = $this->safe_dict($this->options, 'networksById');
                 $parsedNetworks = array();
                 for ($j = 0; $j < count($networks); $j++) {
                     $network = $networks[$j];
                     $networkId = $this->safe_string($network, 'chain');
-                    $networkName = $this->safe_string($networksById, $networkId, $networkId);
-                    $networkDepositString = $this->safe_string($network, 'rechargeable');
-                    $networkDeposit = $networkDepositString === 'true';
-                    $networkWithdrawString = $this->safe_string($network, 'withdrawable');
-                    $networkWithdraw = $networkWithdrawString === 'true';
-                    $networkMinDeposit = $this->safe_string($network, 'minDepositAmount');
-                    $networkMinWithdraw = $this->safe_string($network, 'minWithdrawAmount');
+                    $networkCode = $this->network_code_to_id($networkId);
                     $parsedNetworks[$networkId] = array(
                         'id' => $networkId,
-                        'network' => $networkName,
+                        'network' => $networkCode,
                         'limits' => array(
                             'deposit' => array(
-                                'min' => $this->parse_number($networkMinDeposit),
+                                'min' => $this->safe_number($network, 'minDepositAmount'),
                                 'max' => null,
                             ),
                             'withdraw' => array(
-                                'min' => $this->parse_number($networkMinWithdraw),
+                                'min' => $this->safe_number($network, 'minWithdrawAmount'),
                                 'max' => null,
                             ),
                         ),
-                        'active' => $networkDeposit && $networkWithdraw,
-                        'deposit' => $networkDeposit,
-                        'withdraw' => $networkWithdraw,
+                        'active' => null,
+                        'deposit' => $this->safe_string($network, 'rechargeable') === 'true',
+                        'withdraw' => $this->safe_string($network, 'withdrawable') === 'true',
                         'fee' => $this->safe_number($network, 'withdrawFee'),
                         'precision' => null,
                         'info' => $network,
                     );
-                    $allowDeposit = $allowDeposit ? $allowDeposit : $networkDeposit;
-                    $allowWithdraw = $allowWithdraw ? $allowWithdraw : $networkWithdraw;
-                    $minDeposit = $minDeposit ? Precise::string_min($networkMinDeposit, $minDeposit) : $networkMinDeposit;
-                    $minWithdraw = $minWithdraw ? Precise::string_min($networkMinWithdraw, $minWithdraw) : $networkMinWithdraw;
                 }
-                $result[$code] = array(
+                $result[$code] = $this->safe_currency_structure(array(
                     'id' => $currencyId,
                     'numericId' => $this->safe_integer($currecy, 'coinId'),
                     'code' => $code,
                     'precision' => null,
                     'type' => null,
                     'name' => null,
-                    'active' => $allowWithdraw && $allowDeposit,
-                    'deposit' => $allowDeposit,
-                    'withdraw' => $allowWithdraw,
+                    'active' => null,
+                    'deposit' => null,
+                    'withdraw' => null,
                     'fee' => null,
                     'limits' => array(
                         'deposit' => array(
-                            'min' => $this->parse_number($minDeposit),
+                            'min' => null,
                             'max' => null,
                         ),
                         'withdraw' => array(
-                            'min' => $this->parse_number($minWithdraw),
+                            'min' => null,
                             'max' => null,
                         ),
                     ),
                     'networks' => $parsedNetworks,
                     'info' => $currecy,
-                );
+                ));
             }
             if ($this->safe_list($this->options, 'currencyIdsListForParseMarket') === null) {
                 $this->options['currencyIdsListForParseMarket'] = $currenciesIds;
             }
             return $result;
         }) ();
+    }
+
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
+        return Async\async(function () use ($codes, $params) {
+            /**
+             * fetch deposit and withdraw fees
+             *
+             * @see https://coincatch.github.io/github.io/en/spot/#get-coin-list
+             *
+             * @param {string[]} [$codes] list of unified currency $codes
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->publicGetApiSpotV1PublicCurrencies ($params));
+            $data = $this->safe_list($response, 'data', array());
+            return $this->parse_deposit_withdraw_fees($data, $codes, 'coinName');
+        }) ();
+    }
+
+    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
+        //
+        // {
+        //     "coinId":"1",
+        //     "coinName":"BTC",
+        //     "transfer":"true",
+        //     "chains":array(
+        //         {
+        //             "chain":null,
+        //             "needTag":"false",
+        //             "withdrawable":"true",
+        //             "rechargeAble":"true",
+        //             "withdrawFee":"0.005",
+        //             "depositConfirm":"1",
+        //             "withdrawConfirm":"1",
+        //             "minDepositAmount":"0.001",
+        //             "minWithdrawAmount":"0.001",
+        //             "browserUrl":"https://blockchair.com/bitcoin/testnet/transaction/"
+        //         }
+        //     )
+        // }
+        //
+        $chains = $this->safe_list($fee, 'chains', array());
+        $chainsLength = count($chains);
+        $result = array(
+            'info' => $fee,
+            'withdraw' => array(
+                'fee' => null,
+                'percentage' => null,
+            ),
+            'deposit' => array(
+                'fee' => null,
+                'percentage' => null,
+            ),
+            'networks' => array(),
+        );
+        for ($i = 0; $i < $chainsLength; $i++) {
+            $chain = $chains[$i];
+            $networkId = $this->safe_string($chain, 'chain');
+            $currencyCode = $this->safe_string($currency, 'code');
+            $networkCode = $this->network_id_to_code($networkId, $currencyCode);
+            $result['networks'][$networkCode] = array(
+                'deposit' => array( 'fee' => null, 'percentage' => null ),
+                'withdraw' => array( 'fee' => $this->safe_number($chain, 'withdrawFee'), 'percentage' => false ),
+            );
+            if ($chainsLength === 1) {
+                $result['withdraw']['fee'] = $this->safe_number($chain, 'withdrawFee');
+                $result['withdraw']['percentage'] = false;
+            }
+        }
+        return $result;
     }
 
     public function fetch_markets($params = array ()): PromiseInterface {
@@ -855,8 +962,8 @@ class coincatch extends Exchange {
             $settleId = $this->safe_string($supportMarginCoins, 0);
             $settle = $this->safe_currency_code($settleId);
             $suffix = ':' . $settle;
-            $isLinear = $baseId === $settleId; // todo check
-            $isInverse = $quoteId === $settleId; // todo check
+            $isLinear = $quoteId === $settleId; // todo check
+            $isInverse = $baseId === $settleId; // todo check
             if ($isLinear) {
                 $subType = 'linear';
             } elseif ($isInverse) {
@@ -2698,8 +2805,7 @@ class coincatch extends Exchange {
             /**
              * create a list of trade $orders (all $orders should be of the same $symbol)
              *
-             * @see https://hashkeyglobal-apidoc.readme.io/reference/create-multiple-$orders
-             * @see https://hashkeyglobal-apidoc.readme.io/reference/batch-create-new-futures-order
+             * @see https://coincatch.github.io/github.io/en/spot/#batch-order
              *
              * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params (max 50 entries)
              * @param {array} [$params] extra parameters specific to the api endpoint
@@ -4193,7 +4299,6 @@ class coincatch extends Exchange {
             'amount' => $amount,
             'filled' => $this->safe_string_2($order, 'fillQuantity', 'filledQty'),
             'remaining' => null,
-            'stopPrice' => null,
             'triggerPrice' => $triggerPrice,
             'takeProfitPrice' => $takeProfitPrice,
             'stopLossPrice' => $stopLossPrice,
@@ -5164,7 +5269,7 @@ class coincatch extends Exchange {
              * @param {string} [$params->business] *swap only*
              * @param {string} [$params->lastEndId] *swap only*
              * @param {bool} [$params->next] *swap only*
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
              */
             $methodName = 'fetchLedger';
             Async\await($this->load_markets());

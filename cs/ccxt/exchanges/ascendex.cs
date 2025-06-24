@@ -46,6 +46,7 @@ public partial class ascendex : Exchange
                 { "fetchFundingRate", "emulated" },
                 { "fetchFundingRateHistory", false },
                 { "fetchFundingRates", true },
+                { "fetchGreeks", false },
                 { "fetchIndexOHLCV", false },
                 { "fetchLeverage", "emulated" },
                 { "fetchLeverages", true },
@@ -55,10 +56,13 @@ public partial class ascendex : Exchange
                 { "fetchMarketLeverageTiers", "emulated" },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
+                { "fetchMySettlementHistory", false },
                 { "fetchOHLCV", true },
                 { "fetchOpenInterest", false },
                 { "fetchOpenInterestHistory", false },
                 { "fetchOpenOrders", true },
+                { "fetchOption", false },
+                { "fetchOptionChain", false },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrders", false },
@@ -67,6 +71,7 @@ public partial class ascendex : Exchange
                 { "fetchPositions", true },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
+                { "fetchSettlementHistory", false },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
                 { "fetchTime", true },
@@ -78,6 +83,7 @@ public partial class ascendex : Exchange
                 { "fetchTransactions", "emulated" },
                 { "fetchTransfer", false },
                 { "fetchTransfers", false },
+                { "fetchVolatilityHistory", false },
                 { "fetchWithdrawal", false },
                 { "fetchWithdrawals", true },
                 { "reduceMargin", true },
@@ -270,7 +276,6 @@ public partial class ascendex : Exchange
                     { "SOL", "Solana" },
                     { "AVAX", "avalanche C chain" },
                     { "OMNI", "Omni" },
-                    { "TRX", "TRC20" },
                     { "TRC20", "TRC20" },
                     { "ERC20", "ERC20" },
                     { "GO20", "GO20" },
@@ -280,6 +285,103 @@ public partial class ascendex : Exchange
                     { "LTC", "Litecoin" },
                     { "MATIC", "Matic Network" },
                     { "AKT", "Akash" },
+                } },
+            } },
+            { "features", new Dictionary<string, object>() {
+                { "default", new Dictionary<string, object>() {
+                    { "sandbox", true },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyRequiresPrice", false },
+                        { "marketBuyByCost", false },
+                        { "selfTradePrevention", false },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", new Dictionary<string, object>() {
+                        { "max", 10 },
+                    } },
+                    { "fetchMyTrades", null },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "marketType", true },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "marketType", true },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", null },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 500 },
+                    } },
+                } },
+                { "spot", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "daysBack", 100000 },
+                        { "daysBackCanceled", 1 },
+                        { "untilDays", 100000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                } },
+                { "forDerivatives", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "attachedStopLossTakeProfit", new Dictionary<string, object>() {
+                            { "triggerPriceType", new Dictionary<string, object>() {
+                                { "last", true },
+                                { "mark", false },
+                                { "index", false },
+                            } },
+                            { "price", false },
+                        } },
+                    } },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "daysBack", null },
+                        { "daysBackCanceled", null },
+                        { "untilDays", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "forDerivatives" },
+                    } },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
                 } },
             } },
             { "exceptions", new Dictionary<string, object>() {
@@ -348,6 +450,7 @@ public partial class ascendex : Exchange
                 { "broad", new Dictionary<string, object>() {} },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
+                { "XBT", "XBT" },
                 { "BOND", "BONDED" },
                 { "BTCBEAR", "BEAR" },
                 { "BTCBULL", "BULL" },
@@ -376,99 +479,85 @@ public partial class ascendex : Exchange
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object assetsPromise = this.v1PublicGetAssets(parameters);
+        object response = await this.v2PublicGetAssets(parameters);
         //
-        //     {
-        //         "code":0,
-        //         "data":[
-        //             {
-        //                 "assetCode" : "LTCBULL",
-        //                 "assetName" : "3X Long LTC Token",
-        //                 "precisionScale" : 9,
-        //                 "nativeScale" : 4,
-        //                 "withdrawalFee" : "0.2",
-        //                 "minWithdrawalAmt" : "1.0",
-        //                 "status" : "Normal"
-        //             },
+        //    {
+        //        "code": "0",
+        //        "data": [
+        //            {
+        //                "assetCode": "USDT",
+        //                "assetName": "Tether",
+        //                "precisionScale": 9,
+        //                "nativeScale": 4,
+        //                "blockChain": [
+        //                    {
+        //                        "chainName": "Solana",
+        //                        "withdrawFee": "2.0",
+        //                        "allowDeposit": true,
+        //                        "allowWithdraw": true,
+        //                        "minDepositAmt": "0.01",
+        //                        "minWithdrawal": "4.0",
+        //                        "numConfirmations": 1
+        //                    },
+        //                    ...
+        //                ]
+        //            },
         //         ]
-        //     }
+        //    }
         //
-        object marginPromise = this.v1PublicGetMarginAssets(parameters);
-        //
-        //     {
-        //         "code":0,
-        //         "data":[
-        //             {
-        //                 "assetCode":"BTT",
-        //                 "borrowAssetCode":"BTT-B",
-        //                 "interestAssetCode":"BTT-I",
-        //                 "nativeScale":0,
-        //                 "numConfirmations":1,
-        //                 "withdrawFee":"100.0",
-        //                 "minWithdrawalAmt":"1000.0",
-        //                 "statusCode":"Normal",
-        //                 "statusMessage":"",
-        //                 "interestRate":"0.001"
-        //             }
-        //         ]
-        //     }
-        //
-        object cashPromise = this.v1PublicGetCashAssets(parameters);
-        //
-        //     {
-        //         "code":0,
-        //         "data":[
-        //             {
-        //                 "assetCode":"LTCBULL",
-        //                 "nativeScale":4,
-        //                 "numConfirmations":20,
-        //                 "withdrawFee":"0.2",
-        //                 "minWithdrawalAmt":"1.0",
-        //                 "statusCode":"Normal",
-        //                 "statusMessage":""
-        //             }
-        //         ]
-        //     }
-        //
-        var assetsmargincashVariable = await promiseAll(new List<object>() {assetsPromise, marginPromise, cashPromise});
-        var assets = ((IList<object>) assetsmargincashVariable)[0];
-        var margin = ((IList<object>) assetsmargincashVariable)[1];
-        var cash = ((IList<object>) assetsmargincashVariable)[2];
-        object assetsData = this.safeList(assets, "data", new List<object>() {});
-        object marginData = this.safeList(margin, "data", new List<object>() {});
-        object cashData = this.safeList(cash, "data", new List<object>() {});
-        object assetsById = this.indexBy(assetsData, "assetCode");
-        object marginById = this.indexBy(marginData, "assetCode");
-        object cashById = this.indexBy(cashData, "assetCode");
-        object dataById = this.deepExtend(assetsById, marginById, cashById);
-        object ids = new List<object>(((IDictionary<string,object>)dataById).Keys);
+        object data = this.safeList(response, "data", new List<object>() {});
         object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
-            object id = getValue(ids, i);
-            object currency = getValue(dataById, id);
+            object currency = getValue(data, i);
+            object id = this.safeString(currency, "assetCode");
             object code = this.safeCurrencyCode(id);
-            object scale = this.safeString2(currency, "precisionScale", "nativeScale");
-            object precision = this.parseNumber(this.parsePrecision(scale));
-            object fee = this.safeNumber2(currency, "withdrawFee", "withdrawalFee");
-            object status = this.safeString2(currency, "status", "statusCode");
-            object active = (isEqual(status, "Normal"));
-            object marginInside = (inOp(currency, "borrowAssetCode"));
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            object chains = this.safeList(currency, "blockChain", new List<object>() {});
+            object precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "nativeScale")));
+            object networks = new Dictionary<string, object>() {};
+            for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
+            {
+                object networkEtnry = getValue(chains, j);
+                object networkId = this.safeString(networkEtnry, "chainName");
+                object networkCode = this.networkCodeToId(networkId);
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "fee", this.safeNumber(networkEtnry, "withdrawFee") },
+                    { "active", null },
+                    { "withdraw", this.safeBool(networkEtnry, "allowWithdraw") },
+                    { "deposit", this.safeBool(networkEtnry, "allowDeposit") },
+                    { "precision", precision },
+                    { "limits", new Dictionary<string, object>() {
+                        { "amount", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(networkEtnry, "minWithdrawal") },
+                            { "max", null },
+                        } },
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(networkEtnry, "minDepositAmt") },
+                            { "max", null },
+                        } },
+                    } },
+                };
+            }
+            // todo type: if (chainsLength === 0 && (assetName.endsWith (' Staking') || assetName.indexOf (' Reward ') >= 0 || assetName.indexOf ('Slot Auction') >= 0 || assetName.indexOf (' Freeze Asset') >= 0))
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "code", code },
                 { "info", currency },
                 { "type", null },
-                { "margin", marginInside },
+                { "margin", null },
                 { "name", this.safeString(currency, "assetName") },
-                { "active", active },
+                { "active", null },
                 { "deposit", null },
                 { "withdraw", null },
-                { "fee", fee },
+                { "fee", null },
                 { "precision", precision },
                 { "limits", new Dictionary<string, object>() {
                     { "amount", new Dictionary<string, object>() {
-                        { "min", precision },
+                        { "min", null },
                         { "max", null },
                     } },
                     { "withdraw", new Dictionary<string, object>() {
@@ -476,8 +565,8 @@ public partial class ascendex : Exchange
                         { "max", null },
                     } },
                 } },
-                { "networks", new Dictionary<string, object>() {} },
-            };
+                { "networks", networks },
+            });
         }
         return result;
     }
@@ -490,6 +579,17 @@ public partial class ascendex : Exchange
      * @returns {object[]} an array of objects representing market data
      */
     public async override Task<object> fetchMarkets(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object spotPromise = this.fetchSpotMarkets(parameters);
+        object contractPromise = this.fetchContractMarkets(parameters);
+        var spotMarketscontractMarketsVariable = await promiseAll(new List<object>() {spotPromise, contractPromise});
+        var spotMarkets = ((IList<object>) spotMarketscontractMarketsVariable)[0];
+        var contractMarkets = ((IList<object>) spotMarketscontractMarketsVariable)[1];
+        return this.arrayConcat(spotMarkets, contractMarkets);
+    }
+
+    public async virtual Task<object> fetchSpotMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object productsPromise = this.v1PublicGetProducts(parameters);
@@ -543,7 +643,102 @@ public partial class ascendex : Exchange
         //         ]
         //     }
         //
-        object perpetualsPromise = this.v2PublicGetFuturesContract(parameters);
+        var productscashVariable = await promiseAll(new List<object>() {productsPromise, cashPromise});
+        var products = ((IList<object>) productscashVariable)[0];
+        var cash = ((IList<object>) productscashVariable)[1];
+        object productsData = this.safeList(products, "data", new List<object>() {});
+        object productsById = this.indexBy(productsData, "symbol");
+        object cashData = this.safeList(cash, "data", new List<object>() {});
+        object cashAndPerpetualsById = this.indexBy(cashData, "symbol");
+        object dataById = this.deepExtend(productsById, cashAndPerpetualsById);
+        object ids = new List<object>(((IDictionary<string,object>)dataById).Keys);
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+        {
+            object id = getValue(ids, i);
+            if (isTrue(isGreaterThanOrEqual(getIndexOf(id, "-PERP"), 0)))
+            {
+                continue;
+            }
+            object market = getValue(dataById, id);
+            object status = this.safeString(market, "status");
+            object domain = this.safeString(market, "domain");
+            object active = false;
+            if (isTrue(isTrue((isTrue((isEqual(status, "Normal"))) || isTrue((isEqual(status, "InternalTrading"))))) && isTrue((!isEqual(domain, "LeveragedETF")))))
+            {
+                active = true;
+            }
+            object minQty = this.safeNumber(market, "minQty");
+            object maxQty = this.safeNumber(market, "maxQty");
+            object minPrice = this.safeNumber(market, "tickSize");
+            object maxPrice = null;
+            object underlying = this.safeString2(market, "underlying", "symbol");
+            object parts = ((string)underlying).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
+            object baseId = this.safeString(parts, 0);
+            object quoteId = this.safeString(parts, 1);
+            object bs = this.safeCurrencyCode(baseId);
+            object quote = this.safeCurrencyCode(quoteId);
+            object fee = this.safeNumber(market, "commissionReserveRate");
+            object marginTradable = this.safeBool(market, "marginTradable", false);
+            ((IList<object>)result).Add(new Dictionary<string, object>() {
+                { "id", id },
+                { "symbol", add(add(bs, "/"), quote) },
+                { "base", bs },
+                { "baseId", baseId },
+                { "quote", quote },
+                { "quoteId", quoteId },
+                { "settle", null },
+                { "settleId", null },
+                { "type", "spot" },
+                { "spot", true },
+                { "margin", marginTradable },
+                { "swap", false },
+                { "future", false },
+                { "option", false },
+                { "active", active },
+                { "contract", false },
+                { "linear", null },
+                { "inverse", null },
+                { "taker", fee },
+                { "maker", fee },
+                { "contractSize", null },
+                { "expiry", null },
+                { "expiryDatetime", null },
+                { "strike", null },
+                { "optionType", null },
+                { "precision", new Dictionary<string, object>() {
+                    { "amount", this.safeNumber(market, "lotSize") },
+                    { "price", this.safeNumber(market, "tickSize") },
+                } },
+                { "limits", new Dictionary<string, object>() {
+                    { "leverage", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                    { "amount", new Dictionary<string, object>() {
+                        { "min", minQty },
+                        { "max", maxQty },
+                    } },
+                    { "price", new Dictionary<string, object>() {
+                        { "min", minPrice },
+                        { "max", maxPrice },
+                    } },
+                    { "cost", new Dictionary<string, object>() {
+                        { "min", this.safeNumber(market, "minNotional") },
+                        { "max", this.safeNumber(market, "maxNotional") },
+                    } },
+                } },
+                { "created", this.safeInteger(market, "tradingStartTime") },
+                { "info", market },
+            });
+        }
+        return result;
+    }
+
+    public async virtual Task<object> fetchContractMarkets(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object contracts = await this.v2PublicGetFuturesContract(parameters);
         //
         //    {
         //        "code": 0,
@@ -556,9 +751,9 @@ public partial class ascendex : Exchange
         //                "underlying": "BTC/USDT",
         //                "tradingStartTime": 1579701600000,
         //                "priceFilter": {
-        //                    "minPrice": "1",
+        //                    "minPrice": "0.1",
         //                    "maxPrice": "1000000",
-        //                    "tickSize": "1"
+        //                    "tickSize": "0.1"
         //                },
         //                "lotSizeFilter": {
         //                    "minQty": "0.0001",
@@ -581,58 +776,26 @@ public partial class ascendex : Exchange
         //        ]
         //    }
         //
-        var productscashperpetualsVariable = await promiseAll(new List<object>() {productsPromise, cashPromise, perpetualsPromise});
-        var products = ((IList<object>) productscashperpetualsVariable)[0];
-        var cash = ((IList<object>) productscashperpetualsVariable)[1];
-        var perpetuals = ((IList<object>) productscashperpetualsVariable)[2];
-        object productsData = this.safeList(products, "data", new List<object>() {});
-        object productsById = this.indexBy(productsData, "symbol");
-        object cashData = this.safeList(cash, "data", new List<object>() {});
-        object perpetualsData = this.safeList(perpetuals, "data", new List<object>() {});
-        object cashAndPerpetualsData = this.arrayConcat(cashData, perpetualsData);
-        object cashAndPerpetualsById = this.indexBy(cashAndPerpetualsData, "symbol");
-        object dataById = this.deepExtend(productsById, cashAndPerpetualsById);
-        object ids = new List<object>(((IDictionary<string,object>)dataById).Keys);
+        object data = this.safeList(contracts, "data", new List<object>() {});
         object result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
-            object id = getValue(ids, i);
-            object market = getValue(dataById, id);
-            object settleId = this.safeString(market, "settlementAsset");
-            object settle = this.safeCurrencyCode(settleId);
-            object status = this.safeString(market, "status");
-            object domain = this.safeString(market, "domain");
-            object active = false;
-            if (isTrue(isTrue((isTrue((isEqual(status, "Normal"))) || isTrue((isEqual(status, "InternalTrading"))))) && isTrue((!isEqual(domain, "LeveragedETF")))))
-            {
-                active = true;
-            }
-            object spot = isEqual(settle, null);
-            object swap = !isTrue(spot);
-            object linear = ((bool) isTrue(swap)) ? true : null;
-            object minQty = this.safeNumber(market, "minQty");
-            object maxQty = this.safeNumber(market, "maxQty");
-            object minPrice = this.safeNumber(market, "tickSize");
-            object maxPrice = null;
-            object underlying = this.safeString2(market, "underlying", "symbol");
+            object market = getValue(data, i);
+            object id = this.safeString(market, "symbol");
+            object underlying = this.safeString(market, "underlying");
             object parts = ((string)underlying).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
             object baseId = this.safeString(parts, 0);
-            object quoteId = this.safeString(parts, 1);
             object bs = this.safeCurrencyCode(baseId);
+            object quoteId = this.safeString(parts, 1);
             object quote = this.safeCurrencyCode(quoteId);
-            object symbol = add(add(bs, "/"), quote);
-            if (isTrue(swap))
-            {
-                object lotSizeFilter = this.safeDict(market, "lotSizeFilter");
-                minQty = this.safeNumber(lotSizeFilter, "minQty");
-                maxQty = this.safeNumber(lotSizeFilter, "maxQty");
-                object priceFilter = this.safeDict(market, "priceFilter");
-                minPrice = this.safeNumber(priceFilter, "minPrice");
-                maxPrice = this.safeNumber(priceFilter, "maxPrice");
-                symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
-            }
+            object settleId = this.safeString(market, "settlementAsset");
+            object settle = this.safeCurrencyCode(settleId);
+            object linear = isEqual(settle, quote);
+            object inverse = isEqual(settle, bs);
+            object symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
+            object priceFilter = this.safeDict(market, "priceFilter");
+            object lotSizeFilter = this.safeDict(market, "lotSizeFilter");
             object fee = this.safeNumber(market, "commissionReserveRate");
-            object marginTradable = this.safeBool(market, "marginTradable", false);
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", symbol },
@@ -642,26 +805,26 @@ public partial class ascendex : Exchange
                 { "baseId", baseId },
                 { "quoteId", quoteId },
                 { "settleId", settleId },
-                { "type", ((bool) isTrue(swap)) ? "swap" : "spot" },
-                { "spot", spot },
-                { "margin", ((bool) isTrue(spot)) ? marginTradable : null },
-                { "swap", swap },
+                { "type", "swap" },
+                { "spot", false },
+                { "margin", null },
+                { "swap", true },
                 { "future", false },
                 { "option", false },
-                { "active", active },
-                { "contract", swap },
+                { "active", isEqual(this.safeString(market, "status"), "Normal") },
+                { "contract", true },
                 { "linear", linear },
-                { "inverse", ((bool) isTrue(swap)) ? !isTrue(linear) : null },
+                { "inverse", inverse },
                 { "taker", fee },
                 { "maker", fee },
-                { "contractSize", ((bool) isTrue(swap)) ? this.parseNumber("1") : null },
+                { "contractSize", this.parseNumber("1") },
                 { "expiry", null },
                 { "expiryDatetime", null },
                 { "strike", null },
                 { "optionType", null },
                 { "precision", new Dictionary<string, object>() {
-                    { "amount", this.safeNumber(market, "lotSize") },
-                    { "price", this.safeNumber(market, "tickSize") },
+                    { "amount", this.safeNumber(lotSizeFilter, "lotSize") },
+                    { "price", this.safeNumber(priceFilter, "tickSize") },
                 } },
                 { "limits", new Dictionary<string, object>() {
                     { "leverage", new Dictionary<string, object>() {
@@ -669,12 +832,12 @@ public partial class ascendex : Exchange
                         { "max", null },
                     } },
                     { "amount", new Dictionary<string, object>() {
-                        { "min", minQty },
-                        { "max", maxQty },
+                        { "min", this.safeNumber(lotSizeFilter, "minQty") },
+                        { "max", this.safeNumber(lotSizeFilter, "maxQty") },
                     } },
                     { "price", new Dictionary<string, object>() {
-                        { "min", minPrice },
-                        { "max", maxPrice },
+                        { "min", this.safeNumber(priceFilter, "minPrice") },
+                        { "max", this.safeNumber(priceFilter, "maxPrice") },
                     } },
                     { "cost", new Dictionary<string, object>() {
                         { "min", this.safeNumber(market, "minNotional") },
@@ -1155,6 +1318,7 @@ public partial class ascendex : Exchange
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
@@ -1172,6 +1336,7 @@ public partial class ascendex : Exchange
         object duration = this.parseTimeframe(timeframe);
         object options = this.safeDict(this.options, "fetchOHLCV", new Dictionary<string, object>() {});
         object defaultLimit = this.safeInteger(options, "limit", 500);
+        object until = this.safeInteger(parameters, "until");
         if (isTrue(!isEqual(since, null)))
         {
             ((IDictionary<string,object>)request)["from"] = since;
@@ -1182,11 +1347,30 @@ public partial class ascendex : Exchange
             {
                 limit = mathMin(limit, defaultLimit);
             }
-            ((IDictionary<string,object>)request)["to"] = this.sum(since, multiply(multiply(limit, duration), 1000), 1);
+            object toWithLimit = this.sum(since, multiply(multiply(limit, duration), 1000), 1);
+            if (isTrue(!isEqual(until, null)))
+            {
+                ((IDictionary<string,object>)request)["to"] = mathMin(toWithLimit, add(until, 1));
+            } else
+            {
+                ((IDictionary<string,object>)request)["to"] = toWithLimit;
+            }
+        } else if (isTrue(!isEqual(until, null)))
+        {
+            ((IDictionary<string,object>)request)["to"] = add(until, 1);
+            if (isTrue(isEqual(limit, null)))
+            {
+                limit = defaultLimit;
+            } else
+            {
+                limit = mathMin(limit, defaultLimit);
+            }
+            ((IDictionary<string,object>)request)["from"] = subtract(until, (multiply(multiply(limit, duration), 1000)));
         } else if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["n"] = limit; // max 500
         }
+        parameters = this.omit(parameters, "until");
         object response = await this.v1PublicGetBarhist(this.extend(request, parameters));
         //
         //     {
@@ -1457,7 +1641,7 @@ public partial class ascendex : Exchange
                 { "currency", feeCurrencyCode },
             };
         }
-        object stopPrice = this.omitZero(this.safeString(order, "stopPrice"));
+        object triggerPrice = this.omitZero(this.safeString(order, "stopPrice"));
         object reduceOnly = null;
         object execInst = this.safeString(order, "execInst");
         if (isTrue(isEqual(execInst, "reduceOnly")))
@@ -1483,8 +1667,7 @@ public partial class ascendex : Exchange
             { "reduceOnly", reduceOnly },
             { "side", side },
             { "price", price },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "triggerPrice", triggerPrice },
             { "amount", amount },
             { "cost", null },
             { "average", average },
@@ -1566,7 +1749,7 @@ public partial class ascendex : Exchange
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
         * @param {bool} [params.postOnly] true or false
-        * @param {float} [params.stopPrice] the price at which a trigger order is triggered at
+        * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
         * @returns {object} request to be sent to the exchange
         */
         parameters ??= new Dictionary<string, object>();
@@ -1602,7 +1785,7 @@ public partial class ascendex : Exchange
         object timeInForce = this.safeString(parameters, "timeInForce");
         object postOnly = this.isPostOnly(isMarketOrder, false, parameters);
         object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
-        object stopPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
+        object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         if (isTrue(isLimitOrder))
         {
             ((IDictionary<string,object>)request)["orderPrice"] = this.priceToPrecision(symbol, price);
@@ -1619,9 +1802,9 @@ public partial class ascendex : Exchange
         {
             ((IDictionary<string,object>)request)["postOnly"] = true;
         }
-        if (isTrue(!isEqual(stopPrice, null)))
+        if (isTrue(!isEqual(triggerPrice, null)))
         {
-            ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, stopPrice);
+            ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, triggerPrice);
             if (isTrue(isLimitOrder))
             {
                 ((IDictionary<string,object>)request)["orderType"] = "stop_limit";
@@ -1670,7 +1853,7 @@ public partial class ascendex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
      * @param {bool} [params.postOnly] true or false
-     * @param {float} [params.stopPrice] the price at which a trigger order is triggered at
+     * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
      * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice that the attached take profit order will be triggered (perpetual swap markets only)
      * @param {float} [params.takeProfit.triggerPrice] *swap only* take profit trigger price
      * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice that the attached stop loss order will be triggered (perpetual swap markets only)
@@ -1770,7 +1953,7 @@ public partial class ascendex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
      * @param {bool} [params.postOnly] true or false
-     * @param {float} [params.stopPrice] the price at which a trigger order is triggered at
+     * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> createOrders(object orders, object parameters = null)
@@ -2037,7 +2220,7 @@ public partial class ascendex : Exchange
         //         "code": 0,
         //         "data": [
         //             {
-        //                 "avgPx": "0",         // Average filled price of the order
+        //                 "avgPx": "0",        // Average filled price of the order
         //                 "cumFee": "0",       // cumulative fee paid for this order
         //                 "cumFilledQty": "0", // cumulative filled quantity
         //                 "errorCode": "",     // error code; could be empty
@@ -2996,8 +3179,7 @@ public partial class ascendex : Exchange
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object contracts = this.safeList(data, "contracts", new List<object>() {});
-        object result = this.parseFundingRates(contracts);
-        return this.filterByArray(result, "symbol", symbols);
+        return this.parseFundingRates(contracts, symbols);
     }
 
     public async virtual Task<object> modifyMarginHelper(object symbol, object amount, object type, object parameters = null)

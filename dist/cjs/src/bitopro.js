@@ -6,7 +6,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bitopro
@@ -28,18 +28,29 @@ class bitopro extends bitopro$1 {
                 'swap': false,
                 'future': false,
                 'option': false,
+                'addMargin': false,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': false,
+                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createOrder': true,
+                'createOrderWithTakeProfitAndStopLoss': false,
+                'createOrderWithTakeProfitAndStopLossWs': false,
+                'createReduceOnlyOrder': false,
                 'createStopOrder': true,
                 'createTriggerOrder': true,
                 'editOrder': false,
                 'fetchBalance': true,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
@@ -50,19 +61,39 @@ class bitopro extends bitopro$1 {
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
+                'fetchFundingInterval': false,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
+                'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
+                'fetchIsolatedPositions': false,
+                'fetchLeverage': false,
+                'fetchLeverages': false,
+                'fetchLeverageTiers': false,
+                'fetchLiquidations': false,
+                'fetchLongShortRatio': false,
+                'fetchLongShortRatioHistory': false,
+                'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
+                'fetchMarginModes': false,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
+                'fetchMarkPrices': false,
+                'fetchMyLiquidations': false,
+                'fetchMySettlementHistory': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': false,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
@@ -75,6 +106,7 @@ class bitopro extends bitopro$1 {
                 'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': false,
@@ -85,10 +117,16 @@ class bitopro extends bitopro$1 {
                 'fetchTransactions': false,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
+                'reduceMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
                 'setLeverage': false,
+                'setMargin': false,
                 'setMarginMode': false,
+                'setPositionMode': false,
                 'transfer': false,
                 'withdraw': true,
             },
@@ -199,6 +237,86 @@ class bitopro extends bitopro$1 {
                     'BEP20': 'BSC',
                     'BSC': 'BSC',
                 },
+                'fiatCurrencies': ['TWD'], // the only fiat currency for exchange
+            },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': true,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': false,
+                            'FOK': false,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyRequiresPrice': false,
+                        'marketBuyByCost': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'symbolRequired': true,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    // todo: implement through fetchOrders
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 10000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
             },
             'precisionMode': number.TICK_SIZE,
             'exceptions': {
@@ -247,6 +365,7 @@ class bitopro extends bitopro$1 {
         //     }
         //
         const result = {};
+        const fiatCurrencies = this.safeList(this.options, 'fiatCurrencies', []);
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const currencyId = this.safeString(currency, 'currency');
@@ -266,11 +385,12 @@ class bitopro extends bitopro$1 {
                     'max': undefined,
                 },
             };
+            const isFiat = this.inArray(code, fiatCurrencies);
             result[code] = {
                 'id': currencyId,
                 'code': code,
                 'info': currency,
-                'type': undefined,
+                'type': isFiat ? 'fiat' : 'crypto',
                 'name': undefined,
                 'active': deposit && withdraw,
                 'deposit': deposit,
@@ -278,6 +398,7 @@ class bitopro extends bitopro$1 {
                 'fee': fee,
                 'precision': undefined,
                 'limits': limits,
+                'networks': undefined,
             };
         }
         return result;
@@ -981,7 +1102,6 @@ class bitopro extends bitopro$1 {
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
             'triggerPrice': undefined,
             'amount': amount,
             'cost': undefined,
@@ -1024,13 +1144,13 @@ class bitopro extends bitopro$1 {
         }
         if (orderType === 'STOP_LIMIT') {
             request['price'] = this.priceToPrecision(symbol, price);
-            const stopPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
+            const triggerPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
             params = this.omit(params, ['triggerPrice', 'stopPrice']);
-            if (stopPrice === undefined) {
-                throw new errors.InvalidOrder(this.id + ' createOrder() requires a stopPrice parameter for ' + orderType + ' orders');
+            if (triggerPrice === undefined) {
+                throw new errors.InvalidOrder(this.id + ' createOrder() requires a triggerPrice parameter for ' + orderType + ' orders');
             }
             else {
-                request['stopPrice'] = this.priceToPrecision(symbol, stopPrice);
+                request['stopPrice'] = this.priceToPrecision(symbol, triggerPrice);
             }
             const condition = this.safeString(params, 'condition');
             if (condition === undefined) {

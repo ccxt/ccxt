@@ -10,7 +10,7 @@ use ccxt\abstract\novadax as Exchange;
 
 class novadax extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'novadax',
             'name' => 'NovaDAX',
@@ -205,10 +205,89 @@ class novadax extends Exchange {
                     'fillResponseFromRequest' => true,
                 ),
             ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        'triggerDirection' => true, // todo
+                        'triggerPriceType' => null,
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'attachedStopLossTakeProfit' => null,
+                        // todo
+                        'timeInForce' => array(
+                            'IOC' => false,
+                            'FOK' => false,
+                            'PO' => false,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => false,
+                        'iceberg' => true, // todo
+                    ),
+                    'createOrders' => null, // todo => add implementation
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => 100000, // todo
+                        'untilDays' => 100000, // todo
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => 100000, // todo
+                        'untilDays' => 100000, // todo
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => 100000, // todo
+                        'daysBackCanceled' => 1, // todo
+                        'untilDays' => 100000, // todo
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => null, // todo max 3000
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
         ));
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          *
@@ -763,13 +842,13 @@ class novadax extends Exchange {
             // "amount" => $this->amount_to_precision($symbol, $amount),
             // "price" => "1234.5678", // required for LIMIT and STOP orders
             // "operator" => "" // for stop orders, can be found in order introduction
-            // "stopPrice" => $this->price_to_precision($symbol, $stopPrice),
+            // "stopPrice" => $this->price_to_precision($symbol, stopPrice),
             // "accountId" => "...", // subaccount id, optional
         );
-        $stopPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
-        if ($stopPrice === null) {
+        $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
+        if ($triggerPrice === null) {
             if (($uppercaseType === 'STOP_LIMIT') || ($uppercaseType === 'STOP_MARKET')) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a $stopPrice parameter for ' . $uppercaseType . ' orders');
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a stopPrice parameter for ' . $uppercaseType . ' orders');
             }
         } else {
             if ($uppercaseType === 'LIMIT') {
@@ -779,7 +858,7 @@ class novadax extends Exchange {
             }
             $defaultOperator = ($uppercaseSide === 'BUY') ? 'LTE' : 'GTE';
             $request['operator'] = $this->safe_string($params, 'operator', $defaultOperator);
-            $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
+            $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
             $params = $this->omit($params, array( 'triggerPrice', 'stopPrice' ));
         }
         if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'STOP_LIMIT')) {
@@ -1115,7 +1194,6 @@ class novadax extends Exchange {
         }
         $marketId = $this->safe_string($order, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '_');
-        $stopPrice = $this->safe_number($order, 'stopPrice');
         return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
@@ -1129,8 +1207,7 @@ class novadax extends Exchange {
             'postOnly' => null,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $this->safe_number($order, 'stopPrice'),
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,

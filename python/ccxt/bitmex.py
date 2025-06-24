@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitmex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Leverage, Leverages, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, Transaction
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Leverage, Leverages, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -25,7 +25,7 @@ from ccxt.base.precise import Precise
 
 class bitmex(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(bitmex, self).describe(), {
             'id': 'bitmex',
             'name': 'BitMEX',
@@ -101,6 +101,7 @@ class bitmex(Exchange, ImplicitAPI):
                 'fetchTransactions': 'emulated',
                 'fetchTransfer': False,
                 'fetchTransfers': False,
+                'index': True,
                 'reduceMargin': None,
                 'sandbox': True,
                 'setLeverage': True,
@@ -286,106 +287,111 @@ class bitmex(Exchange, ImplicitAPI):
                     'SOL': 'sol',
                     'ADA': 'ada',
                 },
-                'features': {
-                    'default': {
-                        'sandbox': True,
-                        'createOrder': {
-                            'marginMode': True,
-                            'triggerPrice': True,
-                            'triggerPriceType': {
-                                'last': True,
-                                'mark': True,
-                            },
-                            'triggerDirection': True,
-                            'stopLossPrice': False,
-                            'takeProfitPrice': False,
-                            'attachedStopLossTakeProfit': None,
-                            'timeInForce': {
-                                'IOC': True,
-                                'FOK': True,
-                                'PO': True,
-                                'GTD': False,
-                            },
-                            'hedged': False,
-                            'trailing': True,
-                            'marketBuyRequiresPrice': False,
-                            'marketBuyByCost': False,
-                            # exchange-supported features
-                            # 'selfTradePrevention': True,
-                            # 'twap': False,
-                            # 'iceberg': False,
-                            # 'oco': False,
+            },
+            'features': {
+                'default': {
+                    'sandbox': True,
+                    'createOrder': {
+                        'marginMode': True,
+                        'triggerPrice': True,
+                        'triggerPriceType': {
+                            'last': True,
+                            'mark': True,
                         },
-                        'createOrders': None,
-                        'fetchMyTrades': {
-                            'marginMode': False,
-                            'limit': 500,
-                            'daysBack': None,
-                            'untilDays': 1000000,
+                        'triggerDirection': True,
+                        'stopLossPrice': False,
+                        'takeProfitPrice': False,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
                         },
-                        'fetchOrder': {
-                            'marginMode': False,
-                            'trigger': False,
-                            'trailing': False,
-                        },
-                        'fetchOpenOrders': {
-                            'marginMode': False,
-                            'limit': 500,
-                            'trigger': False,
-                            'trailing': False,
-                        },
-                        'fetchOrders': {
-                            'marginMode': False,
-                            'limit': 500,
-                            'daysBack': None,
-                            'untilDays': 1000000,
-                            'trigger': False,
-                            'trailing': False,
-                        },
-                        'fetchClosedOrders': {
-                            'marginMode': False,
-                            'limit': 500,
-                            'daysBackClosed': None,
-                            'daysBackCanceled': None,
-                            'untilDays': 1000000,
-                            'trigger': False,
-                            'trailing': False,
-                        },
-                        'fetchOHLCV': {
-                            'limit': 10000,
+                        'hedged': False,
+                        'trailing': True,
+                        'marketBuyRequiresPrice': False,
+                        'marketBuyByCost': False,
+                        # exchange-supported features
+                        # 'selfTradePrevention': True,
+                        # 'twap': False,
+                        # 'iceberg': False,
+                        # 'oco': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 500,
+                        'daysBack': None,
+                        'untilDays': 1000000,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 500,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': {
+                        'marginMode': False,
+                        'limit': 500,
+                        'daysBack': None,
+                        'untilDays': 1000000,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 500,
+                        'daysBack': None,
+                        'daysBackCanceled': None,
+                        'untilDays': 1000000,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 10000,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'triggerPriceType': {
+                            'index': False,
                         },
                     },
-                    'spot': {
-                        'extends': 'default',
-                        'createOrder': {
-                            'triggerPriceType': {
-                                'index': False,
-                            },
+                },
+                'derivatives': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'triggerPriceType': {
+                            'index': True,
                         },
                     },
-                    'forDeriv': {
-                        'extends': 'default',
-                        'createOrder': {
-                            'triggerPriceType': {
-                                'index': True,
-                            },
-                        },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'derivatives',
                     },
-                    'swap': {
-                        'linear': {
-                            'extends': 'forDeriv',
-                        },
-                        'inverse': {
-                            'extends': 'forDeriv',
-                        },
+                    'inverse': {
+                        'extends': 'derivatives',
                     },
-                    'future': {
-                        'linear': {
-                            'extends': 'forDeriv',
-                        },
-                        'inverse': {
-                            'extends': 'forDeriv',
-                        },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'derivatives',
+                    },
+                    'inverse': {
+                        'extends': 'derivatives',
                     },
                 },
             },
@@ -422,8 +428,8 @@ class bitmex(Exchange, ImplicitAPI):
         #            # "mediumPrecision": "8",
         #            # "shorterPrecision": "4",
         #            # "symbol": "₿",
-        #            # "weight": "1",
         #            # "tickLog": "0",
+        #            # "weight": "1",
         #            "enabled": True,
         #            "isMarginCurrency": True,
         #            "minDepositAmount": "10000",
@@ -498,6 +504,7 @@ class bitmex(Exchange, ImplicitAPI):
             maxWithdrawal = self.parse_number(Precise.string_mul(maxWithdrawalString, precisionString))
             minDepositString = self.safe_string(currency, 'minDepositAmount')
             minDeposit = self.parse_number(Precise.string_mul(minDepositString, precisionString))
+            isCrypto = self.safe_string(currency, 'currencyType') == 'Crypto'
             result[code] = {
                 'id': id,
                 'code': code,
@@ -523,6 +530,7 @@ class bitmex(Exchange, ImplicitAPI):
                     },
                 },
                 'networks': networks,
+                'type': 'crypto' if isCrypto else 'other',
             }
         return result
 
@@ -724,7 +732,7 @@ class bitmex(Exchange, ImplicitAPI):
         isQuanto = self.safe_value(market, 'isQuanto')  # self is True when BASE and SETTLE are different, i.e. AXS/XXX:BTC
         linear = (not isInverse and not isQuanto) if contract else None
         status = self.safe_string(market, 'state')
-        active = status != 'Unlisted'
+        active = status == 'Open'  # Open, Settled, Unlisted
         expiry = None
         expiryDatetime = None
         symbol = None
@@ -738,9 +746,9 @@ class bitmex(Exchange, ImplicitAPI):
             else:
                 multiplierString = Precise.string_abs(self.safe_string(market, 'multiplier'))
                 contractSize = self.parse_number(multiplierString)
-            if future:
-                expiryDatetime = self.safe_string(market, 'expiry')
-                expiry = self.parse8601(expiryDatetime)
+            expiryDatetime = self.safe_string(market, 'expiry')
+            expiry = self.parse8601(expiryDatetime)
+            if expiry is not None:
                 symbol = symbol + '-' + self.yymmdd(expiry)
         else:
             # for index/exotic markets, default to id
@@ -751,6 +759,11 @@ class bitmex(Exchange, ImplicitAPI):
         maxOrderQty = self.safe_number(market, 'maxOrderQty')
         initMargin = self.safe_string(market, 'initMargin', '1')
         maxLeverage = self.parse_number(Precise.string_div('1', initMargin))
+        # subtype should be None for spot markets
+        if spot:
+            isInverse = None
+            isQuanto = None
+            linear = None
         return {
             'id': id,
             'symbol': symbol,
@@ -800,7 +813,7 @@ class bitmex(Exchange, ImplicitAPI):
                     'max': maxOrderQty if positionIsQuote else None,
                 },
             },
-            'created': self.parse8601(self.safe_string(market, 'listing')),
+            'created': None,  # 'listing' field is buggy, e.g. 2200-02-01T00:00:00.000Z
             'info': market,
         }
 
@@ -964,7 +977,8 @@ class bitmex(Exchange, ImplicitAPI):
             # https://github.com/ccxt/ccxt/issues/4927
             # the exchange sometimes returns null price in the orderbook
             if price is not None:
-                result[side].append([price, amount])
+                resultSide = result[side]
+                resultSide.append([price, amount])
         result['bids'] = self.sort_by(result['bids'], 0, True)
         result['asks'] = self.sort_by(result['asks'], 0)
         return result
@@ -1277,7 +1291,7 @@ class bitmex(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
         self.load_markets()
         request: dict = {
@@ -1807,7 +1821,7 @@ class bitmex(Exchange, ImplicitAPI):
         if execInst is not None:
             postOnly = (execInst == 'ParticipateDoNotInitiate')
         timestamp = self.parse8601(self.safe_string(order, 'timestamp'))
-        stopPrice = self.safe_number(order, 'stopPx')
+        triggerPrice = self.safe_number(order, 'stopPx')
         remaining = self.safe_string(order, 'leavesQty')
         return self.safe_order({
             'info': order,
@@ -1822,8 +1836,7 @@ class bitmex(Exchange, ImplicitAPI):
             'postOnly': postOnly,
             'side': self.safe_string_lower(order, 'side'),
             'price': self.safe_string(order, 'price'),
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -1961,7 +1974,7 @@ class bitmex(Exchange, ImplicitAPI):
             else:
                 if triggerPrice is None:
                     # if exchange specific trigger types were provided
-                    raise ArgumentsRequired(self.id + ' createOrder() requires a triggerPrice(stopPx|stopPrice) parameter for the ' + orderType + ' order type')
+                    raise ArgumentsRequired(self.id + ' createOrder() requires a triggerPrice parameter for the ' + orderType + ' order type')
                 request['stopPx'] = self.parse_to_numeric(self.price_to_precision(symbol, triggerPrice))
             request['ordType'] = orderType
             params = self.omit(params, ['triggerPrice', 'stopPrice', 'stopPx', 'triggerDirection', 'trailingAmount'])
@@ -2177,7 +2190,7 @@ class bitmex(Exchange, ImplicitAPI):
             'shortLeverage': self.safe_integer(leverage, 'leverage'),
         }
 
-    def fetch_positions(self, symbols: Strings = None, params={}):
+    def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open positions
 
@@ -2523,7 +2536,7 @@ class bitmex(Exchange, ImplicitAPI):
             'timestamp': self.parse8601(datetime),
             'datetime': datetime,
             'fundingRate': self.safe_number(contract, 'fundingRate'),
-            'fundingTimestamp': self.parse_to_numeric(self.iso8601(fundingDatetime)),
+            'fundingTimestamp': self.parse8601(fundingDatetime),
             'fundingDatetime': fundingDatetime,
             'nextFundingRate': self.safe_number(contract, 'indicativeFundingRate'),
             'nextFundingTimestamp': None,

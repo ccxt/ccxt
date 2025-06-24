@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bigone import ImplicitAPI
 import asyncio
-from ccxt.base.types import Balances, Bool, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -24,7 +24,7 @@ from ccxt.base.precise import Precise
 
 class bigone(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(bigone, self).describe(), {
             'id': 'bigone',
             'name': 'BigONE',
@@ -306,6 +306,110 @@ class bigone(Exchange, ImplicitAPI):
                     # undetermined: XinFin, YAS, Ycash
                 },
             },
+            'features': {
+                'default': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,
+                        'triggerPriceType': None,
+                        'triggerDirection': True,  # todo implement
+                        'stopLossPrice': False,  # todo by trigger
+                        'takeProfitPrice': False,  # todo by trigger
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': False,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyRequiresPrice': True,
+                        'marketBuyByCost': True,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,  # todo: implement
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 200,
+                        'daysBack': None,
+                        'untilDays': None,
+                        'symbolRequired': True,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 200,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchOrders': {
+                        'marginMode': False,
+                        'limit': 200,
+                        'daysBack': None,
+                        'untilDays': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 200,
+                        'daysBack': None,
+                        'daysBackCanceled': None,
+                        'untilDays': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 500,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'forDerivatives': {
+                    'extends': 'default',
+                    'createOrder': {
+                        # todo: implement
+                        'triggerPriceType': {
+                            'mark': True,
+                            'index': True,
+                            'last': True,
+                        },
+                    },
+                    'fetchOrders': {
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                    },
+                    'fetchClosedOrders': {
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
@@ -406,19 +510,15 @@ class bigone(Exchange, ImplicitAPI):
             id = self.safe_string(currency, 'symbol')
             code = self.safe_currency_code(id)
             name = self.safe_string(currency, 'name')
-            type = 'fiat' if self.safe_bool(currency, 'is_fiat') else 'crypto'
             networks: dict = {}
             chains = self.safe_list(currency, 'binding_gateways', [])
             currencyMaxPrecision = self.parse_precision(self.safe_string_2(currency, 'withdrawal_scale', 'scale'))
-            currencyDepositEnabled: Bool = None
-            currencyWithdrawEnabled: Bool = None
             for j in range(0, len(chains)):
                 chain = chains[j]
                 networkId = self.safe_string(chain, 'gateway_name')
                 networkCode = self.network_id_to_code(networkId)
                 deposit = self.safe_bool(chain, 'is_deposit_enabled')
                 withdraw = self.safe_bool(chain, 'is_withdrawal_enabled')
-                isActive = (deposit and withdraw)
                 minDepositAmount = self.safe_string(chain, 'min_deposit_amount')
                 minWithdrawalAmount = self.safe_string(chain, 'min_withdrawal_amount')
                 withdrawalFee = self.safe_string(chain, 'withdrawal_fee')
@@ -429,7 +529,7 @@ class bigone(Exchange, ImplicitAPI):
                     'margin': None,
                     'deposit': deposit,
                     'withdraw': withdraw,
-                    'active': isActive,
+                    'active': None,
                     'fee': self.parse_number(withdrawalFee),
                     'precision': self.parse_number(precision),
                     'limits': {
@@ -444,19 +544,26 @@ class bigone(Exchange, ImplicitAPI):
                     },
                     'info': chain,
                 }
-                # fill global values
-                currencyDepositEnabled = (currencyDepositEnabled is None) or deposit if deposit else currencyDepositEnabled
-                currencyWithdrawEnabled = (currencyWithdrawEnabled is None) or withdraw if withdraw else currencyWithdrawEnabled
-                currencyMaxPrecision = (currencyMaxPrecision is None) or precision if Precise.string_gt(currencyMaxPrecision, precision) else currencyMaxPrecision
-            result[code] = {
+            chainLength = len(chains)
+            type: Str = None
+            if self.safe_bool(currency, 'is_fiat'):
+                type = 'fiat'
+            elif chainLength == 0:
+                if self.is_leveraged_currency(id):
+                    type = 'leveraged'
+                else:
+                    type = 'other'
+            else:
+                type = 'crypto'
+            result[code] = self.safe_currency_structure({
                 'id': id,
                 'code': code,
                 'info': currency,
                 'name': name,
                 'type': type,
                 'active': None,
-                'deposit': currencyDepositEnabled,
-                'withdraw': currencyWithdrawEnabled,
+                'deposit': None,
+                'withdraw': None,
                 'fee': None,
                 'precision': self.parse_number(currencyMaxPrecision),
                 'limits': {
@@ -470,7 +577,7 @@ class bigone(Exchange, ImplicitAPI):
                     },
                 },
                 'networks': networks,
-            }
+            })
         return result
 
     async def fetch_markets(self, params={}) -> List[Market]:
@@ -861,7 +968,7 @@ class bigone(Exchange, ImplicitAPI):
         tickers = self.parse_tickers(data, symbols)
         return self.filter_by_array_tickers(tickers, 'symbol', symbols)
 
-    async def fetch_time(self, params={}):
+    async def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -1059,8 +1166,8 @@ class bigone(Exchange, ImplicitAPI):
             'cost': None,
             'info': trade,
         }
-        makerCurrencyCode = None
-        takerCurrencyCode = None
+        makerCurrencyCode: str
+        takerCurrencyCode: str
         if takerOrMaker is not None:
             if side == 'buy':
                 if takerOrMaker == 'maker':
@@ -1174,24 +1281,34 @@ class bigone(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the earliest candle to fetch
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
         if market['contract']:
             raise BadRequest(self.id + ' fetchOHLCV() can only fetch ohlcvs for spot markets')
+        until = self.safe_integer(params, 'until')
+        untilIsDefined = (until is not None)
+        sinceIsDefined = (since is not None)
         if limit is None:
-            limit = 100  # default 100, max 500
+            limit = 500 if (sinceIsDefined and untilIsDefined) else 100  # default 100, max 500, if since and limit defined then fetch all the candles between them unless it exceeds the max of 500
         request: dict = {
             'asset_pair_name': market['id'],
             'period': self.safe_string(self.timeframes, timeframe, timeframe),
             'limit': limit,
         }
-        if since is not None:
+        if sinceIsDefined:
             # start = self.parse_to_int(since / 1000)
             duration = self.parse_timeframe(timeframe)
-            end = self.sum(since, limit * duration * 1000)
-            request['time'] = self.iso8601(end)
+            endByLimit = self.sum(since, limit * duration * 1000)
+            if untilIsDefined:
+                request['time'] = self.iso8601(min(endByLimit, until + 1))
+            else:
+                request['time'] = self.iso8601(endByLimit)
+        elif untilIsDefined:
+            request['time'] = self.iso8601(until + 1)
+        params = self.omit(params, 'until')
         response = await self.publicGetAssetPairsAssetPairNameCandles(self.extend(request, params))
         #
         #     {
@@ -1334,7 +1451,6 @@ class bigone(Exchange, ImplicitAPI):
             'postOnly': self.safe_bool(order, 'post_only'),
             'side': side,
             'price': price,
-            'stopPrice': triggerPrice,
             'triggerPrice': triggerPrice,
             'amount': amount,
             'cost': cost,

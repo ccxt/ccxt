@@ -33,21 +33,12 @@ function test_filter_by() {
 ), array(
     'foo' => 'c',
 )];
-    try {
-        $current_value = $exchange->filter_by($sample_array, 'foo', 'a');
-        $stored_value = [array(
+    $current_value = $exchange->filter_by($sample_array, 'foo', 'a');
+    $stored_value = [array(
     'foo' => 'a',
 ), array(
     'foo' => 'a',
     'bar' => 'b',
 )];
-        assert_deep_equal($exchange, null, 'testFilterBy', $current_value, $stored_value);
-    } catch(\Throwable $e) {
-        // skip c# , todo
-        if (in_array('BaseTest.assert', (((string) $e))) || in_array('at System.', (((string) $e))) || in_array('at ccxt.Exchange.', (((string) $e)))) {
-            return;
-        } else {
-            throw $e;
-        }
-    }
+    assert_deep_equal($exchange, null, 'testFilterBy', $current_value, $stored_value);
 }

@@ -9,7 +9,7 @@ use Exception; // a common import
 
 class binanceus extends \ccxt\pro\binance {
 
-    public function describe() {
+    public function describe(): mixed {
         // eslint-disable-next-line new-cap
         $restInstance = new \ccxt\async\binanceus ();
         $restDescribe = $restInstance->describe ();
@@ -29,7 +29,7 @@ class binanceus extends \ccxt\pro\binance {
                     'web' => 'https://www.binance.us',
                     'sapi' => 'https://api.binance.us/sapi/v1',
                     'wapi' => 'https://api.binance.us/wapi/v3',
-                    'public' => 'https://api.binance.us/api/v1',
+                    'public' => 'https://api.binance.us/api/v3',
                     'private' => 'https://api.binance.us/api/v3',
                     'v3' => 'https://api.binance.us/api/v3',
                     'v1' => 'https://api.binance.us/api/v1',

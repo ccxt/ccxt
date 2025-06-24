@@ -14,13 +14,13 @@ use ccxt\BadSymbol;
 use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use React\Async;
-use React\Promise;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise;
+use \React\Promise\PromiseInterface;
 
 class xt extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'xt',
             'name' => 'XT',
@@ -51,7 +51,7 @@ class xt extends Exchange {
                 'createOrder' => true,
                 'createPostOnlyOrder' => false,
                 'createReduceOnlyOrder' => true,
-                'editOrder' => false,
+                'editOrder' => true,
                 'fetchAccounts' => false,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => true,
@@ -121,7 +121,7 @@ class xt extends Exchange {
                 'repayMargin' => false,
                 'setLeverage' => true,
                 'setMargin' => false,
-                'setMarginMode' => false,
+                'setMarginMode' => true,
                 'setPositionMode' => false,
                 'signIn' => false,
                 'transfer' => true,
@@ -238,6 +238,9 @@ class xt extends Exchange {
                             'open-order' => 1,
                             'order/{orderId}' => 1,
                         ),
+                        'put' => array(
+                            'order/{orderId}' => 1,
+                        ),
                     ),
                     'linear' => array(
                         'get' => array(
@@ -272,6 +275,7 @@ class xt extends Exchange {
                             'future/trade/v1/order/cancel-all' => 1,
                             'future/trade/v1/order/create' => 1,
                             'future/trade/v1/order/create-batch' => 1,
+                            'future/trade/v1/order/update' => 1,
                             'future/user/v1/account/open' => 1,
                             'future/user/v1/position/adjust-leverage' => 1,
                             'future/user/v1/position/auto-margin' => 1,
@@ -279,6 +283,7 @@ class xt extends Exchange {
                             'future/user/v1/position/margin' => 1,
                             'future/user/v1/user/collection/add' => 1,
                             'future/user/v1/user/collection/cancel' => 1,
+                            'future/user/v1/position/change-type' => 1,
                         ),
                     ),
                     'inverse' => array(
@@ -314,6 +319,7 @@ class xt extends Exchange {
                             'future/trade/v1/order/cancel-all' => 1,
                             'future/trade/v1/order/create' => 1,
                             'future/trade/v1/order/create-batch' => 1,
+                            'future/trade/v1/order/update' => 1,
                             'future/user/v1/account/open' => 1,
                             'future/user/v1/position/adjust-leverage' => 1,
                             'future/user/v1/position/auto-margin' => 1,
@@ -524,10 +530,12 @@ class xt extends Exchange {
                     'TRANSFER_012' => '\\ccxt\\PermissionDenied', // Currency transfer prohibited
                     'symbol_not_support_trading_via_api' => '\\ccxt\\BadSymbol', // array("returnCode":1,"msgInfo":"failure","error":array("code":"symbol_not_support_trading_via_api","msg":"The symbol does not support trading via API"),"result":null)
                     'open_order_min_nominal_value_limit' => '\\ccxt\\InvalidOrder', // array("returnCode":1,"msgInfo":"failure","error":array("code":"open_order_min_nominal_value_limit","msg":"Exceeds the minimum notional value of a single order"),"result":null)
+                    'insufficient_balance' => '\\ccxt\\InsufficientFunds',
                 ),
                 'broad' => array(
                     'The symbol does not support trading via API' => '\\ccxt\\BadSymbol', // array("returnCode":1,"msgInfo":"failure","error":array("code":"symbol_not_support_trading_via_api","msg":"The symbol does not support trading via API"),"result":null)
                     'Exceeds the minimum notional value of a single order' => '\\ccxt\\InvalidOrder', // array("returnCode":1,"msgInfo":"failure","error":array("code":"open_order_min_nominal_value_limit","msg":"Exceeds the minimum notional value of a single order"),"result":null)
+                    'insufficient balance' => '\\ccxt\\InsufficientFunds',
                 ),
             ),
             'timeframes' => array(
@@ -680,6 +688,123 @@ class xt extends Exchange {
                 'createMarketBuyOrderRequiresPrice' => true,
                 'recvWindow' => '5000', // in milliseconds, spot only
             ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => false,
+                        'triggerDirection' => false,
+                        'triggerPriceType' => null,
+                        'stopLossPrice' => false,
+                        'takeProfitPrice' => false,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => true,
+                        'limit' => 100,
+                        'daysBack' => 100000, // todo
+                        'untilDays' => 100000, // todo
+                        'marketType' => true,
+                        'subType' => true,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => true, // todo TPSL kind
+                        'trailing' => false,
+                        'marketType' => true,
+                        'subType' => true,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => true,
+                        'limit' => 100,
+                        'trigger' => true, // todo TPSL
+                        'trailing' => false,
+                        'marketType' => true,
+                        'subType' => true,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => true,
+                        'limit' => 100,
+                        'daysBack' => 100000, // todo
+                        'untilDays' => 100000, // todo
+                        'trigger' => true, // todo TPSL
+                        'trailing' => false,
+                        'marketType' => true,
+                        'subType' => true,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'marginMode' => true,
+                        'limit' => 100,
+                        'daysBack' => 100000, // todo
+                        'daysBackCanceled' => 1, // todo
+                        'untilDays' => 100000, // todo
+                        'trigger' => true, // todo TPSL
+                        'trailing' => false,
+                        'marketType' => true,
+                        'subType' => true,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 1000, // todo for derivatives
+                    ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
+                'forDerivatives' => array(
+                    'extends' => 'default',
+                    'createOrder' => array(
+                        'triggerPrice' => true,
+                        // todo
+                        'triggerPriceType' => array(
+                            'last' => true,
+                            'mark' => true,
+                            'index' => true,
+                        ),
+                        'stopLossPrice' => true,
+                        'takeProfitPrice' => true,
+                    ),
+                    'fetchMyTrades' => array(
+                        'daysBack' => null,
+                        'untilDays' => null,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                ),
+                'future' => array(
+                    'linear' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                ),
+            ),
         ));
     }
 
@@ -687,7 +812,7 @@ class xt extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the xt server
@@ -785,50 +910,30 @@ class xt extends Exchange {
                 $entry = $currenciesData[$i];
                 $currencyId = $this->safe_string($entry, 'currency');
                 $code = $this->safe_currency_code($currencyId);
-                $minPrecision = $this->parse_number($this->parse_precision($this->safe_string($entry, 'maxPrecision')));
                 $networkEntry = $this->safe_value($chainsDataIndexed, $currencyId, array());
                 $rawNetworks = $this->safe_value($networkEntry, 'supportChains', array());
                 $networks = array();
-                $minWithdrawString = null;
-                $minWithdrawFeeString = null;
-                $active = false;
-                $deposit = false;
-                $withdraw = false;
                 for ($j = 0; $j < count($rawNetworks); $j++) {
                     $rawNetwork = $rawNetworks[$j];
                     $networkId = $this->safe_string($rawNetwork, 'chain');
-                    $network = $this->network_id_to_code($networkId);
-                    $depositEnabled = $this->safe_value($rawNetwork, 'depositEnabled');
-                    $deposit = ($depositEnabled) ? $depositEnabled : $deposit;
-                    $withdrawEnabled = $this->safe_value($rawNetwork, 'withdrawEnabled');
-                    $withdraw = ($withdrawEnabled) ? $withdrawEnabled : $withdraw;
-                    $networkActive = $depositEnabled && $withdrawEnabled;
-                    $active = ($networkActive) ? $networkActive : $active;
-                    $withdrawFeeString = $this->safe_string($rawNetwork, 'withdrawFeeAmount');
-                    if ($withdrawFeeString !== null) {
-                        $minWithdrawFeeString = ($minWithdrawFeeString === null) ? $withdrawFeeString : Precise::string_min($withdrawFeeString, $minWithdrawFeeString);
-                    }
-                    $minNetworkWithdrawString = $this->safe_string($rawNetwork, 'withdrawMinAmount');
-                    if ($minNetworkWithdrawString !== null) {
-                        $minWithdrawString = ($minWithdrawString === null) ? $minNetworkWithdrawString : Precise::string_min($minNetworkWithdrawString, $minWithdrawString);
-                    }
-                    $networks[$network] = array(
+                    $networkCode = $this->network_id_to_code($networkId, $code);
+                    $networks[$networkCode] = array(
                         'info' => $rawNetwork,
                         'id' => $networkId,
-                        'network' => $network,
+                        'network' => $networkCode,
                         'name' => null,
-                        'active' => $networkActive,
-                        'fee' => $this->parse_number($withdrawFeeString),
-                        'precision' => $minPrecision,
-                        'deposit' => $depositEnabled,
-                        'withdraw' => $withdrawEnabled,
+                        'active' => null,
+                        'fee' => $this->safe_number($rawNetwork, 'withdrawFeeAmount'),
+                        'precision' => null,
+                        'deposit' => $this->safe_bool($rawNetwork, 'depositEnabled'),
+                        'withdraw' => $this->safe_bool($rawNetwork, 'withdrawEnabled'),
                         'limits' => array(
                             'amount' => array(
                                 'min' => null,
                                 'max' => null,
                             ),
                             'withdraw' => array(
-                                'min' => $this->parse_number($minNetworkWithdrawString),
+                                'min' => $this->safe_number($rawNetwork, 'withdrawMinAmount'),
                                 'max' => null,
                             ),
                             'deposit' => array(
@@ -838,24 +943,32 @@ class xt extends Exchange {
                         ),
                     );
                 }
-                $result[$code] = array(
+                $typeRaw = $this->safe_string($entry, 'type');
+                $type = null;
+                if ($typeRaw === 'FT') {
+                    $type = 'crypto';
+                } else {
+                    $type = 'other';
+                }
+                $result[$code] = $this->safe_currency_structure(array(
                     'info' => $entry,
                     'id' => $currencyId,
                     'code' => $code,
                     'name' => $this->safe_string($entry, 'fullName'),
-                    'active' => $active,
-                    'fee' => $this->parse_number($minWithdrawFeeString),
-                    'precision' => $minPrecision,
-                    'deposit' => $deposit,
-                    'withdraw' => $withdraw,
+                    'active' => null,
+                    'fee' => null,
+                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($entry, 'maxPrecision'))),
+                    'deposit' => $this->safe_string($entry, 'depositStatus') === '1',
+                    'withdraw' => $this->safe_string($entry, 'withdrawStatus') === '1',
                     'networks' => $networks,
+                    'type' => $type,
                     'limits' => array(
                         'amount' => array(
                             'min' => null,
                             'max' => null,
                         ),
                         'withdraw' => array(
-                            'min' => $this->parse_number($minWithdrawString),
+                            'min' => null,
                             'max' => null,
                         ),
                         'deposit' => array(
@@ -863,7 +976,7 @@ class xt extends Exchange {
                             'max' => null,
                         ),
                     ),
-                );
+                ));
             }
             return $result;
         }) ();
@@ -1302,9 +1415,16 @@ class xt extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 1000));
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -1315,6 +1435,13 @@ class xt extends Exchange {
             }
             if ($limit !== null) {
                 $request['limit'] = $limit;
+            } else {
+                $request['limit'] = 1000;
+            }
+            $until = $this->safe_integer($params, 'until');
+            $params = $this->omit($params, array( 'until' ));
+            if ($until !== null) {
+                $request['endTime'] = $until;
             }
             $response = null;
             if ($market['linear']) {
@@ -2331,7 +2458,8 @@ class xt extends Exchange {
              * @param {string} [$params->timeInForce] 'GTC', 'IOC', 'FOK' or 'GTX'
              * @param {string} [$params->entrustType] 'TAKE_PROFIT', 'STOP', 'TAKE_PROFIT_MARKET', 'STOP_MARKET', 'TRAILING_STOP_MARKET', required if stopPrice is defined, currently isn't functioning on xt's $side
              * @param {string} [$params->triggerPriceType] 'INDEX_PRICE', 'MARK_PRICE', 'LATEST_PRICE', required if stopPrice is defined
-             * @param {float} [$params->stopPrice] $price to trigger a stop order
+             * @param {float} [$params->triggerPrice] $price to trigger a stop order
+             * @param {float} [$params->stopPrice] alias for triggerPrice
              * @param {float} [$params->stopLoss] $price to set a stop-loss on an open position
              * @param {float} [$params->takeProfit] $price to set a take-profit on an open position
              * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
@@ -2501,8 +2629,8 @@ class xt extends Exchange {
              * @param {string} $id $order $id
              * @param {string} [$symbol] unified $symbol of the $market the $order was made in
              * @param {array} $params extra parameters specific to the xt api endpoint
-             * @param {bool} [$params->stop] if the $order is a $stop trigger $order or not
-             * @param {bool} [$params->stopLossTakeProfit] if the $order is a $stop-loss or take-profit $order
+             * @param {bool} [$params->trigger] if the $order is a $trigger $order or not
+             * @param {bool} [$params->stopLossTakeProfit] if the $order is a stop-loss or take-profit $order
              * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
              */
             Async\await($this->load_markets());
@@ -2516,16 +2644,16 @@ class xt extends Exchange {
             $response = null;
             list($type, $params) = $this->handle_market_type_and_params('fetchOrder', $market, $params);
             list($subType, $params) = $this->handle_sub_type_and_params('fetchOrder', $market, $params);
-            $stop = $this->safe_value($params, 'stop');
+            $trigger = $this->safe_value($params, 'stop');
             $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
-            if ($stop) {
+            if ($trigger) {
                 $request['entrustId'] = $id;
             } elseif ($stopLossTakeProfit) {
                 $request['profitId'] = $id;
             } else {
                 $request['orderId'] = $id;
             }
-            if ($stop) {
+            if ($trigger) {
                 $params = $this->omit($params, 'stop');
                 if ($subType === 'inverse') {
                     $response = Async\await($this->privateInverseGetFutureTradeV1EntrustPlanDetail ($this->extend($request, $params)));
@@ -2612,7 +2740,7 @@ class xt extends Exchange {
             //         }
             //     }
             //
-            // trigger
+            // $trigger
             //
             //     {
             //         "returnCode" => 0,
@@ -2638,7 +2766,7 @@ class xt extends Exchange {
             //         }
             //     }
             //
-            // $stop-loss and take-profit
+            // stop-loss and take-profit
             //
             //     {
             //         "returnCode" => 0,
@@ -2681,7 +2809,7 @@ class xt extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest order
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} $params extra parameters specific to the xt api endpoint
-             * @param {bool} [$params->stop] if the order is a $stop trigger order or not
+             * @param {bool} [$params->trigger] if the order is a $trigger order or not
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
              */
             Async\await($this->load_markets());
@@ -2702,9 +2830,9 @@ class xt extends Exchange {
             $response = null;
             list($type, $params) = $this->handle_market_type_and_params('fetchOrders', $market, $params);
             list($subType, $params) = $this->handle_sub_type_and_params('fetchOrders', $market, $params);
-            $stop = $this->safe_value($params, 'stop');
-            if ($stop) {
-                $params = $this->omit($params, 'stop');
+            $trigger = $this->safe_value_2($params, 'trigger', 'stop');
+            if ($trigger) {
+                $params = $this->omit($params, array( 'trigger', 'stop' ));
                 if ($subType === 'inverse') {
                     $response = Async\await($this->privateInverseGetFutureTradeV1EntrustPlanListHistory ($this->extend($request, $params)));
                 } else {
@@ -2799,7 +2927,7 @@ class xt extends Exchange {
             //         }
             //     }
             //
-            // $stop
+            // stop
             //
             //     {
             //         "returnCode" => 0,
@@ -2846,27 +2974,33 @@ class xt extends Exchange {
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
             }
+            if ($limit !== null) {
+                $request['size'] = $limit;
+            }
+            if ($since !== null) {
+                $request['startTime'] = $since;
+            }
             $type = null;
             $subType = null;
             $response = null;
             list($type, $params) = $this->handle_market_type_and_params('fetchOrdersByStatus', $market, $params);
             list($subType, $params) = $this->handle_sub_type_and_params('fetchOrdersByStatus', $market, $params);
-            $stop = $this->safe_value($params, 'stop');
+            $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
             $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
             if ($status === 'open') {
-                if ($stop || $stopLossTakeProfit) {
+                if ($trigger || $stopLossTakeProfit) {
                     $request['state'] = 'NOT_TRIGGERED';
-                } elseif ($subType !== null) {
-                    $request['state'] = 'NEW';
+                } elseif ($type === 'swap') {
+                    $request['state'] = 'UNFINISHED'; // NEW & PARTIALLY_FILLED
                 }
             } elseif ($status === 'closed') {
-                if ($stop || $stopLossTakeProfit) {
+                if ($trigger || $stopLossTakeProfit) {
                     $request['state'] = 'TRIGGERED';
                 } else {
                     $request['state'] = 'FILLED';
                 }
             } elseif ($status === 'canceled') {
-                if ($stop || $stopLossTakeProfit) {
+                if ($trigger || $stopLossTakeProfit) {
                     $request['state'] = 'USER_REVOCATION';
                 } else {
                     $request['state'] = 'CANCELED';
@@ -2874,7 +3008,7 @@ class xt extends Exchange {
             } else {
                 $request['state'] = $status;
             }
-            if ($stop || $stopLossTakeProfit || ($subType !== null) || ($type === 'swap') || ($type === 'future')) {
+            if ($trigger || $stopLossTakeProfit || ($subType !== null) || ($type === 'swap') || ($type === 'future')) {
                 if ($since !== null) {
                     $request['startTime'] = $since;
                 }
@@ -2882,8 +3016,8 @@ class xt extends Exchange {
                     $request['size'] = $limit;
                 }
             }
-            if ($stop) {
-                $params = $this->omit($params, 'stop');
+            if ($trigger) {
+                $params = $this->omit($params, array( 'stop', 'trigger' ));
                 if ($subType === 'inverse') {
                     $response = Async\await($this->privateInverseGetFutureTradeV1EntrustPlanList ($this->extend($request, $params)));
                 } else {
@@ -2912,6 +3046,7 @@ class xt extends Exchange {
                         $request['startTime'] = $since;
                     }
                     if ($limit !== null) {
+                        $request = $this->omit($request, 'size');
                         $request['limit'] = $limit;
                     }
                     $response = Async\await($this->privateSpotGetHistoryOrder ($this->extend($request, $params)));
@@ -3032,7 +3167,7 @@ class xt extends Exchange {
             //         }
             //     }
             //
-            // $stop
+            // stop
             //
             //     {
             //         "returnCode" => 0,
@@ -3065,7 +3200,7 @@ class xt extends Exchange {
             //         }
             //     }
             //
-            // $stop-loss and take-profit
+            // stop-loss and take-profit
             //
             //     {
             //         "returnCode" => 0,
@@ -3097,9 +3232,13 @@ class xt extends Exchange {
             //         }
             //     }
             //
-            $isSpotOpenOrders = (($status === 'open') && ($subType === null));
-            $data = $this->safe_value($response, 'result', array());
-            $orders = $isSpotOpenOrders ? $this->safe_value($response, 'result', array()) : $this->safe_value($data, 'items', array());
+            $orders = array();
+            $resultDict = $this->safe_dict($response, 'result');
+            if ($resultDict !== null) {
+                $orders = $this->safe_list($resultDict, 'items', array());
+            } else {
+                $orders = $this->safe_list($response, 'result');
+            }
             return $this->parse_orders($orders, $market, $since, $limit);
         }) ();
     }
@@ -3118,7 +3257,7 @@ class xt extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest order
              * @param {int} [$limit] the maximum number of open order structures to retrieve
              * @param {array} $params extra parameters specific to the xt api endpoint
-             * @param {bool} [$params->stop] if the order is a stop trigger order or not
+             * @param {bool} [$params->trigger] if the order is a trigger order or not
              * @param {bool} [$params->stopLossTakeProfit] if the order is a stop-loss or take-profit order
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
              */
@@ -3140,7 +3279,7 @@ class xt extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest order
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} $params extra parameters specific to the xt api endpoint
-             * @param {bool} [$params->stop] if the order is a stop trigger order or not
+             * @param {bool} [$params->trigger] if the order is a trigger order or not
              * @param {bool} [$params->stopLossTakeProfit] if the order is a stop-loss or take-profit order
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
              */
@@ -3162,7 +3301,7 @@ class xt extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest order
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} $params extra parameters specific to the xt api endpoint
-             * @param {bool} [$params->stop] if the order is a stop trigger order or not
+             * @param {bool} [$params->trigger] if the order is a trigger order or not
              * @param {bool} [$params->stopLossTakeProfit] if the order is a stop-loss or take-profit order
              * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
              */
@@ -3183,8 +3322,8 @@ class xt extends Exchange {
              * @param {string} $id $order $id
              * @param {string} [$symbol] unified $symbol of the $market the $order was made in
              * @param {array} $params extra parameters specific to the xt api endpoint
-             * @param {bool} [$params->stop] if the $order is a $stop trigger $order or not
-             * @param {bool} [$params->stopLossTakeProfit] if the $order is a $stop-loss or take-profit $order
+             * @param {bool} [$params->trigger] if the $order is a $trigger $order or not
+             * @param {bool} [$params->stopLossTakeProfit] if the $order is a stop-loss or take-profit $order
              * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
              */
             Async\await($this->load_markets());
@@ -3198,17 +3337,17 @@ class xt extends Exchange {
             $response = null;
             list($type, $params) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
             list($subType, $params) = $this->handle_sub_type_and_params('cancelOrder', $market, $params);
-            $stop = $this->safe_value($params, 'stop');
+            $trigger = $this->safe_value_2($params, 'trigger', 'stop');
             $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
-            if ($stop) {
+            if ($trigger) {
                 $request['entrustId'] = $id;
             } elseif ($stopLossTakeProfit) {
                 $request['profitId'] = $id;
             } else {
                 $request['orderId'] = $id;
             }
-            if ($stop) {
-                $params = $this->omit($params, 'stop');
+            if ($trigger) {
+                $params = $this->omit($params, array( 'trigger', 'stop' ));
                 if ($subType === 'inverse') {
                     $response = Async\await($this->privateInversePostFutureTradeV1EntrustCancelPlan ($this->extend($request, $params)));
                 } else {
@@ -3267,8 +3406,8 @@ class xt extends Exchange {
              *
              * @param {string} [$symbol] unified $market $symbol of the $market to cancel orders in
              * @param {array} $params extra parameters specific to the xt api endpoint
-             * @param {bool} [$params->stop] if the order is a $stop trigger order or not
-             * @param {bool} [$params->stopLossTakeProfit] if the order is a $stop-loss or take-profit order
+             * @param {bool} [$params->trigger] if the order is a $trigger order or not
+             * @param {bool} [$params->stopLossTakeProfit] if the order is a stop-loss or take-profit order
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
              */
             Async\await($this->load_markets());
@@ -3283,10 +3422,10 @@ class xt extends Exchange {
             $response = null;
             list($type, $params) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
             list($subType, $params) = $this->handle_sub_type_and_params('cancelAllOrders', $market, $params);
-            $stop = $this->safe_value($params, 'stop');
+            $trigger = $this->safe_value_2($params, 'trigger', 'stop');
             $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
-            if ($stop) {
-                $params = $this->omit($params, 'stop');
+            if ($trigger) {
+                $params = $this->omit($params, array( 'trigger', 'stop' ));
                 if ($subType === 'inverse') {
                     $response = Async\await($this->privateInversePostFutureTradeV1EntrustCancelAllPlan ($this->extend($request, $params)));
                 } else {
@@ -3391,7 +3530,7 @@ class xt extends Exchange {
         //         "cancelId" => "208322474307982720"
         //     }
         //
-        // swap and future => createOrder, cancelOrder
+        // swap and future => createOrder, cancelOrder, editOrder
         //
         //     {
         //         "returnCode" => 0,
@@ -3496,6 +3635,14 @@ class xt extends Exchange {
         //         "createdTime" => 1681273420039
         //     }
         //
+        // spot editOrder
+        //
+        //     {
+        //         "orderId" => "484203027161892224",
+        //         "modifyId" => "484203544105344000",
+        //         "clientModifyId" => null
+        //     }
+        //
         $marketId = $this->safe_string($order, 'symbol');
         $marketType = (is_array($order) && array_key_exists('result', $order)) || (is_array($order) && array_key_exists('positionSide', $order)) ? 'contract' : 'spot';
         $market = $this->safe_market($marketId, $market, null, $marketType);
@@ -3509,7 +3656,7 @@ class xt extends Exchange {
         return $this->safe_order(array(
             'info' => $order,
             'id' => $this->safe_string_n($order, array( 'orderId', 'result', 'cancelId', 'entrustId', 'profitId' )),
-            'clientOrderId' => $this->safe_string($order, 'clientOrderId'),
+            'clientOrderId' => $this->safe_string_2($order, 'clientOrderId', 'clientModifyId'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastUpdatedTimestamp,
@@ -3520,7 +3667,7 @@ class xt extends Exchange {
             'postOnly' => null,
             'side' => $this->safe_string_lower_2($order, 'side', 'orderSide'),
             'price' => $this->safe_number($order, 'price'),
-            'stopPrice' => $this->safe_number($order, 'stopPrice'),
+            'triggerPrice' => $this->safe_number($order, 'stopPrice'),
             'stopLoss' => $this->safe_number($order, 'triggerStopPrice'),
             'takeProfit' => $this->safe_number($order, 'triggerProfitPrice'),
             'amount' => $amount,
@@ -4442,6 +4589,9 @@ class xt extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market, '_', 'swap');
         $timestamp = $this->safe_integer($contract, 'nextCollectionTime');
         $interval = $this->safe_string($contract, 'collectionInternal');
+        if ($interval !== null) {
+            $interval = $interval . 'h';
+        }
         return array(
             'info' => $contract,
             'symbol' => $symbol,
@@ -4460,7 +4610,7 @@ class xt extends Exchange {
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
-            'interval' => $interval . 'h',
+            'interval' => $interval,
         );
     }
 
@@ -4622,7 +4772,7 @@ class xt extends Exchange {
         }) ();
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open $positions
@@ -4790,6 +4940,159 @@ class xt extends Exchange {
         );
     }
 
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($marginMode, $symbol, $params) {
+            /**
+             * set margin mode to 'cross' or 'isolated'
+             *
+             * @see https://doc.xt.com/#futures_userchangePositionType
+             *
+             * @param {string} $marginMode 'cross' or 'isolated'
+             * @param {string} [$symbol] required
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->positionSide] *required* "long" or "short"
+             * @return {array} $response from the exchange
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if ($market['spot']) {
+                throw new BadSymbol($this->id . ' setMarginMode() supports contract markets only');
+            }
+            $marginMode = strtolower($marginMode);
+            if ($marginMode !== 'isolated' && $marginMode !== 'cross') {
+                throw new BadRequest($this->id . ' setMarginMode() $marginMode argument should be isolated or cross');
+            }
+            if ($marginMode === 'cross') {
+                $marginMode = 'CROSSED';
+            } else {
+                $marginMode = 'ISOLATED';
+            }
+            $posSide = $this->safe_string_upper($params, 'positionSide');
+            if ($posSide === null) {
+                throw new ArgumentsRequired($this->id . ' setMarginMode() requires a positionSide parameter, either "LONG" or "SHORT"');
+            }
+            $request = array(
+                'positionType' => $marginMode,
+                'positionSide' => $posSide,
+                'symbol' => $market['id'],
+            );
+            $response = Async\await($this->privateLinearPostFutureUserV1PositionChangeType ($this->extend($request, $params)));
+            //
+            // {
+            //     "error" => array(
+            //       "code" => "",
+            //       "msg" => ""
+            //     ),
+            //     "msgInfo" => "",
+            //     "result" => array(),
+            //     "returnCode" => 0
+            // }
+            //
+            return $response; // unify return type
+        }) ();
+    }
+
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * cancels an order and places a new order
+             *
+             * @see https://doc.xt.com/#orderorderUpdate
+             * @see https://doc.xt.com/#futures_orderupdate
+             * @see https://doc.xt.com/#futures_entrustupdateProfit
+             *
+             * @param {string} $id order $id
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of the currency you want to trade in units of the base currency
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {float} [$params->stopLoss] $price to set a stop-loss on an open position
+             * @param {float} [$params->takeProfit] $price to set a take-profit on an open position
+             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             */
+            if ($amount === null) {
+                throw new ArgumentsRequired($this->id . ' editOrder() requires an $amount argument');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array();
+            $stopLoss = $this->safe_number_2($params, 'stopLoss', 'triggerStopPrice');
+            $takeProfit = $this->safe_number_2($params, 'takeProfit', 'triggerProfitPrice');
+            $params = $this->omit($params, array( 'stopLoss', 'takeProfit' ));
+            $isStopLoss = ($stopLoss !== null);
+            $isTakeProfit = ($takeProfit !== null);
+            if ($isStopLoss || $isTakeProfit) {
+                $request['profitId'] = $id;
+            } else {
+                $request['orderId'] = $id;
+                $request['price'] = $this->price_to_precision($symbol, $price);
+            }
+            $response = null;
+            if ($market['swap']) {
+                if ($isStopLoss) {
+                    $request['triggerStopPrice'] = $this->price_to_precision($symbol, $stopLoss);
+                } elseif ($takeProfit !== null) {
+                    $request['triggerProfitPrice'] = $this->price_to_precision($symbol, $takeProfit);
+                } else {
+                    $request['origQty'] = $this->amount_to_precision($symbol, $amount);
+                }
+                $subType = null;
+                list($subType, $params) = $this->handle_sub_type_and_params('editOrder', $market, $params);
+                if ($subType === 'inverse') {
+                    if ($isStopLoss || $isTakeProfit) {
+                        $response = Async\await($this->privateInversePostFutureTradeV1EntrustUpdateProfitStop ($this->extend($request, $params)));
+                    } else {
+                        $response = Async\await($this->privateInversePostFutureTradeV1OrderUpdate ($this->extend($request, $params)));
+                        //
+                        //     {
+                        //         "returnCode" => 0,
+                        //         "msgInfo" => "success",
+                        //         "error" => null,
+                        //         "result" => "483869474947826752"
+                        //     }
+                        //
+                    }
+                } else {
+                    if ($isStopLoss || $isTakeProfit) {
+                        $response = Async\await($this->privateLinearPostFutureTradeV1EntrustUpdateProfitStop ($this->extend($request, $params)));
+                    } else {
+                        $response = Async\await($this->privateLinearPostFutureTradeV1OrderUpdate ($this->extend($request, $params)));
+                        //
+                        //     {
+                        //         "returnCode" => 0,
+                        //         "msgInfo" => "success",
+                        //         "error" => null,
+                        //         "result" => "483869474947826752"
+                        //     }
+                        //
+                    }
+                }
+            } else {
+                $request['quantity'] = $this->amount_to_precision($symbol, $amount);
+                $response = Async\await($this->privateSpotPutOrderOrderId ($this->extend($request, $params)));
+                //
+                //     {
+                //         "rc" => 0,
+                //         "mc" => "SUCCESS",
+                //         "ma" => array(),
+                //         "result" => {
+                //             "orderId" => "484203027161892224",
+                //             "modifyId" => "484203544105344000",
+                //             "clientModifyId" => null
+                //         }
+                //     }
+                //
+            }
+            $result = ($market['swap']) ? $response : $this->safe_dict($response, 'result', array());
+            return $this->parse_order($result, $market);
+        }) ();
+    }
+
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         //
         // spot => $error
@@ -4839,6 +5142,9 @@ class xt extends Exchange {
         //         "ma" => array(),
         //         "result" => array()
         //     }
+        //
+        // array("returnCode":1,"msgInfo":"failure","error":array("code":"insufficient_balance","msg":"insufficient balance","args":array()),"result":null)
+        //
         //
         $status = $this->safe_string_upper_2($response, 'msgInfo', 'mc');
         if ($status !== null && $status !== 'SUCCESS') {
@@ -4890,6 +5196,9 @@ class xt extends Exchange {
                 }
             }
             $isUndefinedBody = (($method === 'GET') || ($path === 'order/{orderId}') || ($path === 'ws-token'));
+            if (($method === 'PUT') && ($endpoint === 'spot')) {
+                $isUndefinedBody = false;
+            }
             $body = $isUndefinedBody ? null : $this->json($body);
             $payloadString = null;
             if (($endpoint === 'spot') || ($endpoint === 'user')) {

@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.timex import ImplicitAPI
-from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -24,7 +24,7 @@ from ccxt.base.precise import Precise
 
 class timex(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(timex, self).describe(), {
             'id': 'timex',
             'name': 'TimeX',
@@ -281,9 +281,80 @@ class timex(Exchange, ImplicitAPI):
                 'defaultSort': 'timestamp,asc',
                 'defaultSortOrders': 'createdAt,asc',
             },
+            'features': {
+                'spot': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': False,
+                        'triggerDirection': False,
+                        'triggerPriceType': None,
+                        'stopLossPrice': False,
+                        'takeProfitPrice': False,
+                        'attachedStopLossTakeProfit': None,
+                        # todo
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': False,
+                            'GTD': True,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': False,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 100,  # todo
+                        'daysBack': 100000,  # todo
+                        'untilDays': 100000,  # todo
+                        'symbolRequired': False,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 100,  # todo
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': None,  # todo
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 100,  # todo
+                        'daysBack': 100000,  # todo
+                        'daysBackCanceled': 1,  # todo
+                        'untilDays': 100000,  # todo
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': None,
+                    },
+                },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
         })
 
-    def fetch_time(self, params={}):
+    def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -658,6 +729,7 @@ class timex(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest candle to fetch
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
@@ -668,15 +740,24 @@ class timex(Exchange, ImplicitAPI):
         }
         # if since and limit are not specified
         duration = self.parse_timeframe(timeframe)
+        until = self.safe_integer(params, 'until')
         if limit is None:
             limit = 1000  # exchange provides tens of thousands of data, but we set generous default value
         if since is not None:
             request['from'] = self.iso8601(since)
-            request['till'] = self.iso8601(self.sum(since, self.sum(limit, 1) * duration * 1000))
+            if until is None:
+                request['till'] = self.iso8601(self.sum(since, self.sum(limit, 1) * duration * 1000))
+            else:
+                request['till'] = self.iso8601(until)
+        elif until is not None:
+            request['till'] = self.iso8601(until)
+            fromTimestamp = until - self.sum(limit, 1) * duration * 1000
+            request['from'] = self.iso8601(fromTimestamp)
         else:
             now = self.milliseconds()
             request['till'] = self.iso8601(now)
-            request['from'] = self.iso8601(now - limit * duration * 1000 - 1)
+            request['from'] = self.iso8601(now - self.sum(limit, 1) * duration * 1000 - 1)
+        params = self.omit(params, 'until')
         response = self.publicGetCandles(self.extend(request, params))
         #
         #     [
@@ -1312,11 +1393,6 @@ class timex(Exchange, ImplicitAPI):
         #
         id = self.safe_string(currency, 'symbol')
         code = self.safe_currency_code(id)
-        name = self.safe_string(currency, 'name')
-        depositEnabled = self.safe_value(currency, 'depositEnabled')
-        withdrawEnabled = self.safe_value(currency, 'withdrawalEnabled')
-        isActive = self.safe_value(currency, 'active')
-        active = depositEnabled and withdrawEnabled and isActive
         # fee = self.safe_number(currency, 'withdrawalFee')
         feeString = self.safe_string(currency, 'withdrawalFee')
         tradeDecimals = self.safe_integer(currency, 'tradeDecimals')
@@ -1338,14 +1414,14 @@ class timex(Exchange, ImplicitAPI):
             'code': code,
             'info': currency,
             'type': None,
-            'name': name,
-            'active': active,
-            'deposit': depositEnabled,
-            'withdraw': withdrawEnabled,
+            'name': self.safe_string(currency, 'name'),
+            'active': self.safe_bool(currency, 'active'),
+            'deposit': self.safe_bool(currency, 'depositEnabled'),
+            'withdraw': self.safe_bool(currency, 'withdrawalEnabled'),
             'fee': fee,
             'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'decimals'))),
             'limits': {
-                'withdraw': {'min': fee, 'max': None},
+                'withdraw': {'min': None, 'max': None},
                 'amount': {'min': None, 'max': None},
             },
             'networks': {},
@@ -1445,7 +1521,7 @@ class timex(Exchange, ImplicitAPI):
                 'cost': feeCost,
                 'currency': feeCurrency,
             }
-        return {
+        return self.safe_trade({
             'info': trade,
             'id': id,
             'timestamp': timestamp,
@@ -1459,7 +1535,7 @@ class timex(Exchange, ImplicitAPI):
             'cost': cost,
             'takerOrMaker': takerOrMaker,
             'fee': fee,
-        }
+        })
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
@@ -1535,7 +1611,6 @@ class timex(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': None,
             'triggerPrice': None,
             'amount': amount,
             'cost': None,

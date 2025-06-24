@@ -29,6 +29,13 @@ function testSafeMethods () {
         'dict': { 'a': 1 },
         'str': 'heLlo',
         'strNumber': '3',
+        //
+        'zeroNumeric': 0,
+        'zeroString': '0',
+        'undefined': undefined,
+        'emptyString': '',
+        'floatNumeric': 0.123,
+        'floatString': '0.123',
     };
 
     const inputList = [ 'Hi', 2 ];
@@ -270,6 +277,10 @@ function testSafeMethods () {
     assert (exchange.safeNumber (inputDict, 'f') === exchange.parseNumber (0.123));
     assert (exchange.safeNumber (inputDict, 'strNumber') === exchange.parseNumber (3));
     assert (exchange.safeNumber (inputList, 1) === exchange.parseNumber (2));
+    assert (exchange.safeNumber (inputList, 'bool') === undefined);
+    assert (exchange.safeNumber (inputList, 'list') === undefined);
+    assert (exchange.safeNumber (inputList, 'dict') === undefined);
+    assert (exchange.safeNumber (inputList, 'str') === undefined);
 
     // safeNumber2
     assert (exchange.safeNumber2 (inputDict, 'a', 'i') === exchange.parseNumber (1));
@@ -294,7 +305,16 @@ function testSafeMethods () {
     // safeBoolN
     assert (exchange.safeBoolN (inputDict, [ 'a', 'b', 'bool' ]) === true);
     assert (exchange.safeBoolN (inputList, [ 3, 2, 1 ]) === undefined);
-}
 
+    // safeNumberOmitZero
+    assert (exchange.safeNumberOmitZero (inputDict, 'zeroNumeric') === undefined);
+    assert (exchange.safeNumberOmitZero (inputDict, 'zeroString') === undefined);
+    assert (exchange.safeNumberOmitZero (inputDict, 'undefined') === undefined);
+    assert (exchange.safeNumberOmitZero (inputDict, 'emptyString') === undefined);
+    assert (exchange.safeNumberOmitZero (inputDict, 'floatNumeric') !== undefined);
+    assert (exchange.safeNumberOmitZero (inputDict, 'floatString') !== undefined);
+    // tbd assert (exchange.safeNumberOmitZero (inputDict, 'bool') === undefined);
+    // tbd assert (exchange.safeNumberOmitZero (inputDict, 'str') === undefined);
+}
 
 export default testSafeMethods;

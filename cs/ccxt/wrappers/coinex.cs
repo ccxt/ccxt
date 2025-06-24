@@ -27,10 +27,10 @@ public partial class coinex
         var res = await this.fetchMarkets(parameters);
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
-    public async Task<List<Dictionary<string, object>>> FetchSpotMarkets(object parameters)
+    public async Task<List<MarketInterface>> FetchSpotMarkets(object parameters)
     {
         var res = await this.fetchSpotMarkets(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
     public async Task<List<Dictionary<string, object>>> FetchContractMarkets(object parameters)
     {

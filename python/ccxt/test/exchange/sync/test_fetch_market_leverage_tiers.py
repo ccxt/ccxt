@@ -21,3 +21,4 @@ def test_fetch_market_leverage_tiers(exchange, skipped_properties, symbol):
     test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, tiers, symbol)
     for j in range(0, len(tiers)):
         test_leverage_tier(exchange, skipped_properties, method, tiers[j])
+    return True

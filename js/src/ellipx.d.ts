@@ -1,5 +1,5 @@
 import Exchange from './abstract/ellipx.js';
-import { Str, Int, int, Dict, Num, Market, Ticker, OrderBook, OHLCV, Currency, Currencies, Trade, Balances, OrderType, OrderSide, Order, DepositAddress, TradingFeeInterface, Transaction } from '../ccxt.js';
+import { Str, Int, int, Dict, Num, Market, Ticker, OrderBook, OHLCV, Currencies, Trade, Balances, OrderType, OrderSide, Order, DepositAddress, TradingFeeInterface, Transaction } from './base/types.js';
 /**
  * @class ellipx
  * @augments Exchange
@@ -56,6 +56,7 @@ export default class ellipx extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the API endpoint
+     * @param {int} [params.until] timestamp in ms of the earliest candle to fetch
      * @returns {OHLCV[]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
@@ -72,7 +73,6 @@ export default class ellipx extends Exchange {
      * @returns {Promise<Currencies>} An object of currency structures indexed by currency codes
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseCurrency(currency: any): Currency;
     /**
      * @method
      * @name ellipx#fetchTrades
@@ -215,12 +215,13 @@ export default class ellipx extends Exchange {
      *     'tierBased': false,    // indicates fees do not vary by volume tiers
      * }
      */
-    fetchTradingFee(symbol?: string, params?: {}): Promise<TradingFeeInterface>;
+    fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
     /**
      * @method
+     * @name ellipx#withdraw
      * @description Make a withdrawal request
      * @see https://docs.google.com/document/d/1ZXzTQYffKE_EglTaKptxGQERRnunuLHEMmar7VC9syM/edit?tab=t.0#heading=h.zegupoa8g4t9
-     * @param {string} code Currency code
+     * @param {string} code unified currency code
      * @param {number} amount Amount to withdraw
      * @param {string} address Destination wallet address
      * @param {string} [tag] Additional tag/memo for currencies that require it

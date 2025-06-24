@@ -8,7 +8,7 @@ from ccxt.abstract.bitrue import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import Balances, Currencies, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Currencies, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -34,12 +34,12 @@ from ccxt.base.precise import Precise
 
 class bitrue(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(bitrue, self).describe(), {
             'id': 'bitrue',
             'name': 'Bitrue',
             'countries': ['SG'],  # Singapore, Malta
-            'rateLimit': 1000,
+            'rateLimit': 10,
             'certified': False,
             'version': 'v1',
             'pro': True,
@@ -51,19 +51,32 @@ class bitrue(Exchange, ImplicitAPI):
                 'swap': True,
                 'future': False,
                 'option': False,
+                'addMargin': False,
+                'borrowCrossMargin': False,
+                'borrowIsolatedMargin': False,
+                'borrowMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createMarketBuyOrderWithCost': True,
                 'createMarketOrderWithCost': False,
                 'createMarketSellOrderWithCost': False,
                 'createOrder': True,
+                'createOrderWithTakeProfitAndStopLoss': False,
+                'createOrderWithTakeProfitAndStopLossWs': False,
+                'createReduceOnlyOrder': True,
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': True,
+                'fetchBorrowInterest': False,
+                'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
@@ -74,20 +87,50 @@ class bitrue(Exchange, ImplicitAPI):
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': False,
+                'fetchFundingInterval': False,
+                'fetchFundingIntervals': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
+                'fetchGreeks': False,
+                'fetchIndexOHLCV': False,
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
+                'fetchIsolatedPositions': False,
+                'fetchLeverage': False,
+                'fetchLeverages': False,
+                'fetchLeverageTiers': False,
+                'fetchLiquidations': False,
+                'fetchLongShortRatio': False,
+                'fetchLongShortRatioHistory': False,
+                'fetchMarginAdjustmentHistory': False,
                 'fetchMarginMode': False,
+                'fetchMarginModes': False,
+                'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
+                'fetchMarkPrices': False,
+                'fetchMyLiquidations': False,
+                'fetchMySettlementHistory': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterest': False,
+                'fetchOpenInterestHistory': False,
+                'fetchOpenInterests': False,
                 'fetchOpenOrders': True,
+                'fetchOption': False,
+                'fetchOptionChain': False,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': False,
+                'fetchPosition': False,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
+                'fetchPositions': False,
+                'fetchPositionsHistory': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
+                'fetchSettlementHistory': False,
                 'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -98,9 +141,15 @@ class bitrue(Exchange, ImplicitAPI):
                 'fetchTransactionFees': False,
                 'fetchTransactions': False,
                 'fetchTransfers': True,
+                'fetchVolatilityHistory': False,
                 'fetchWithdrawals': True,
+                'reduceMargin': False,
+                'repayCrossMargin': False,
+                'repayIsolatedMargin': False,
                 'setLeverage': True,
                 'setMargin': True,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'transfer': True,
                 'withdraw': True,
             },
@@ -131,56 +180,62 @@ class bitrue(Exchange, ImplicitAPI):
                 ],
                 'fees': 'https://bitrue.zendesk.com/hc/en-001/articles/4405479952537',
             },
+            # from spotV1PublicGetExchangeInfo:
+            # general 25000 weight in 1 minute per IP. = 416.66 per second a weight of 0.24 for 1
+            # orders 750 weight in 6 seconds per IP. = 125 per second a weight of 0.8 for 1
+            # orders 200 weight in 10 seconds per User. = 20 per second a weight of 5 for 1
+            # withdraw 3000 weight in 1 hour per User. = 0.833 per second a weight of 120 for 1
+            # withdraw 1000 weight in 1 day per User. = 0.011574 per second a weight of 8640 for 1
             'api': {
                 'spot': {
                     'kline': {
                         'public': {
                             'get': {
-                                'public.json': 1,
-                                'public{currency}.json': 1,
+                                'public.json': 0.24,
+                                'public{currency}.json': 0.24,
                             },
                         },
                     },
                     'v1': {
                         'public': {
                             'get': {
-                                'ping': 1,
-                                'time': 1,
-                                'exchangeInfo': 1,
-                                'depth': {'cost': 1, 'byLimit': [[100, 1], [500, 5], [1000, 10]]},
-                                'trades': 1,
-                                'historicalTrades': 5,
-                                'aggTrades': 1,
-                                'ticker/24hr': {'cost': 1, 'noSymbol': 40},
-                                'ticker/price': {'cost': 1, 'noSymbol': 2},
-                                'ticker/bookTicker': {'cost': 1, 'noSymbol': 2},
-                                'market/kline': 1,
+                                'ping': 0.24,
+                                'time': 0.24,
+                                'exchangeInfo': 0.24,
+                                'depth': {'cost': 1, 'byLimit': [[100, 0.24], [500, 1.2], [1000, 2.4]]},
+                                'trades': 0.24,
+                                'historicalTrades': 1.2,
+                                'aggTrades': 0.24,
+                                'ticker/24hr': {'cost': 0.24, 'noSymbol': 9.6},
+                                'ticker/price': 0.24,
+                                'ticker/bookTicker': 0.24,
+                                'market/kline': 0.24,
                             },
                         },
                         'private': {
                             'get': {
-                                'order': 1,
-                                'openOrders': 1,
-                                'allOrders': 5,
-                                'account': 5,
-                                'myTrades': {'cost': 5, 'noSymbol': 40},
-                                'etf/net-value/{symbol}': 1,
-                                'withdraw/history': 1,
-                                'deposit/history': 1,
+                                'order': 5,
+                                'openOrders': 5,
+                                'allOrders': 25,
+                                'account': 25,
+                                'myTrades': 25,
+                                'etf/net-value/{symbol}': 0.24,
+                                'withdraw/history': 120,
+                                'deposit/history': 120,
                             },
                             'post': {
-                                'order': 4,
-                                'withdraw/commit': 1,
+                                'order': 5,
+                                'withdraw/commit': 120,
                             },
                             'delete': {
-                                'order': 1,
+                                'order': 5,
                             },
                         },
                     },
                     'v2': {
                         'private': {
                             'get': {
-                                'myTrades': 5,
+                                'myTrades': 1.2,
                             },
                         },
                     },
@@ -189,34 +244,34 @@ class bitrue(Exchange, ImplicitAPI):
                     'v1': {
                         'public': {
                             'get': {
-                                'ping': 1,
-                                'time': 1,
-                                'contracts': 1,
-                                'depth': 1,
-                                'ticker': 1,
-                                'klines': 1,
+                                'ping': 0.24,
+                                'time': 0.24,
+                                'contracts': 0.24,
+                                'depth': 0.24,
+                                'ticker': 0.24,
+                                'klines': 0.24,
                             },
                         },
                     },
                     'v2': {
                         'private': {
                             'get': {
-                                'myTrades': 1,
-                                'openOrders': 1,
-                                'order': 1,
-                                'account': 1,
-                                'leverageBracket': 1,
-                                'commissionRate': 1,
-                                'futures_transfer_history': 1,
-                                'forceOrdersHistory': 1,
+                                'myTrades': 5,
+                                'openOrders': 5,
+                                'order': 5,
+                                'account': 5,
+                                'leverageBracket': 5,
+                                'commissionRate': 5,
+                                'futures_transfer_history': 5,
+                                'forceOrdersHistory': 5,
                             },
                             'post': {
-                                'positionMargin': 1,
-                                'level_edit': 1,
-                                'cancel': 1,
-                                'order': 1,
-                                'allOpenOrders': 1,
-                                'futures_transfer': 1,
+                                'positionMargin': 5,
+                                'level_edit': 5,
+                                'cancel': 5,
+                                'order': 25,
+                                'allOpenOrders': 5,
+                                'futures_transfer': 5,
                             },
                         },
                     },
@@ -225,34 +280,34 @@ class bitrue(Exchange, ImplicitAPI):
                     'v1': {
                         'public': {
                             'get': {
-                                'ping': 1,
-                                'time': 1,
-                                'contracts': 1,
-                                'depth': 1,
-                                'ticker': 1,
-                                'klines': 1,
+                                'ping': 0.24,
+                                'time': 0.24,
+                                'contracts': 0.24,
+                                'depth': 0.24,
+                                'ticker': 0.24,
+                                'klines': 0.24,
                             },
                         },
                     },
                     'v2': {
                         'private': {
                             'get': {
-                                'myTrades': 1,
-                                'openOrders': 1,
-                                'order': 1,
-                                'account': 1,
-                                'leverageBracket': 1,
-                                'commissionRate': 1,
-                                'futures_transfer_history': 1,
-                                'forceOrdersHistory': 1,
+                                'myTrades': 5,
+                                'openOrders': 5,
+                                'order': 5,
+                                'account': 5,
+                                'leverageBracket': 5,
+                                'commissionRate': 5,
+                                'futures_transfer_history': 5,
+                                'forceOrdersHistory': 5,
                             },
                             'post': {
-                                'positionMargin': 1,
-                                'level_edit': 1,
-                                'cancel': 1,
-                                'order': 1,
-                                'allOpenOrders': 1,
-                                'futures_transfer': 1,
+                                'positionMargin': 5,
+                                'level_edit': 5,
+                                'cancel': 5,
+                                'order': 5,
+                                'allOpenOrders': 5,
+                                'futures_transfer': 5,
                             },
                         },
                     },
@@ -460,7 +515,96 @@ class bitrue(Exchange, ImplicitAPI):
                 'MIM': 'MIM Swarm',
             },
             'precisionMode': TICK_SIZE,
-            # https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
+            'features': {
+                'default': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,
+                        'triggerPriceType': None,
+                        'triggerDirection': None,
+                        'stopLossPrice': False,  # todo
+                        'takeProfitPrice': False,  # todo
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyRequiresPrice': True,  # todo revise
+                        'marketBuyByCost': True,
+                        'selfTradePrevention': False,
+                        'iceberg': True,  # todo implement
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'symbolRequired': True,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': 90,
+                        'daysBackCanceled': 1,
+                        'untilDays': 90,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1440,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'forDerivatives': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'marginMode': True,
+                        'leverage': True,
+                        'marketBuyRequiresPrice': False,
+                        'marketBuyByCost': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 300,
+                    },
+                    'fetchClosedOrders': None,
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
             'exceptions': {
                 'exact': {
                     'System is under maintenance.': OnMaintenance,  # {"code":1,"msg":"System is under maintenance."}
@@ -568,7 +712,7 @@ class bitrue(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def fetch_time(self, params={}):
+    async def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -645,65 +789,48 @@ class bitrue(Exchange, ImplicitAPI):
             id = self.safe_string(currency, 'coin')
             name = self.safe_string(currency, 'coinFulName')
             code = self.safe_currency_code(id)
-            deposit = None
-            withdraw = None
-            minWithdrawString = None
-            maxWithdrawString = None
-            minWithdrawFeeString = None
             networkDetails = self.safe_list(currency, 'chainDetail', [])
             networks: dict = {}
             for j in range(0, len(networkDetails)):
                 entry = networkDetails[j]
                 networkId = self.safe_string(entry, 'chain')
                 network = self.network_id_to_code(networkId, code)
-                enableDeposit = self.safe_bool(entry, 'enableDeposit')
-                deposit = enableDeposit if (enableDeposit) else deposit
-                enableWithdraw = self.safe_bool(entry, 'enableWithdraw')
-                withdraw = enableWithdraw if (enableWithdraw) else withdraw
-                networkWithdrawFeeString = self.safe_string(entry, 'withdrawFee')
-                if networkWithdrawFeeString is not None:
-                    minWithdrawFeeString = networkWithdrawFeeString if (minWithdrawFeeString is None) else Precise.string_min(networkWithdrawFeeString, minWithdrawFeeString)
-                networkMinWithdrawString = self.safe_string(entry, 'minWithdraw')
-                if networkMinWithdrawString is not None:
-                    minWithdrawString = networkMinWithdrawString if (minWithdrawString is None) else Precise.string_min(networkMinWithdrawString, minWithdrawString)
-                networkMaxWithdrawString = self.safe_string(entry, 'maxWithdraw')
-                if networkMaxWithdrawString is not None:
-                    maxWithdrawString = networkMaxWithdrawString if (maxWithdrawString is None) else Precise.string_max(networkMaxWithdrawString, maxWithdrawString)
                 networks[network] = {
                     'info': entry,
                     'id': networkId,
                     'network': network,
-                    'deposit': enableDeposit,
-                    'withdraw': enableWithdraw,
-                    'active': enableDeposit and enableWithdraw,
-                    'fee': self.parse_number(networkWithdrawFeeString),
+                    'deposit': self.safe_bool(entry, 'enableDeposit'),
+                    'withdraw': self.safe_bool(entry, 'enableWithdraw'),
+                    'active': None,
+                    'fee': self.safe_number(entry, 'withdrawFee'),
                     'precision': None,
                     'limits': {
                         'withdraw': {
-                            'min': self.parse_number(networkMinWithdrawString),
-                            'max': self.parse_number(networkMaxWithdrawString),
+                            'min': self.safe_number(entry, 'minWithdraw'),
+                            'max': self.safe_number(entry, 'maxWithdraw'),
                         },
                     },
                 }
-            result[code] = {
+            result[code] = self.safe_currency_structure({
                 'id': id,
                 'name': name,
                 'code': code,
                 'precision': None,
                 'info': currency,
-                'active': deposit and withdraw,
-                'deposit': deposit,
-                'withdraw': withdraw,
+                'active': None,
+                'deposit': None,
+                'withdraw': None,
                 'networks': networks,
-                'fee': self.parse_number(minWithdrawFeeString),
-                # 'fees': fees,
+                'fee': None,
+                'fees': None,
+                'type': 'crypto',
                 'limits': {
                     'withdraw': {
-                        'min': self.parse_number(minWithdrawString),
-                        'max': self.parse_number(maxWithdrawString),
+                        'min': None,
+                        'max': None,
                     },
                 },
-            }
+            })
         return result
 
     async def fetch_markets(self, params={}) -> List[Market]:
@@ -1140,7 +1267,7 @@ class bitrue(Exchange, ImplicitAPI):
         #         "time": 1699338305000
         #     }
         #
-        timestamp = self.safe_integer(response, 'time')
+        timestamp = self.safe_integer_2(response, 'time', 'lastUpdateId')
         orderbook = self.parse_order_book(response, symbol, timestamp)
         orderbook['nonce'] = self.safe_integer(response, 'lastUpdateId')
         return orderbook
@@ -1289,15 +1416,15 @@ class bitrue(Exchange, ImplicitAPI):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
-        https://github.com/Bitrue-exchange/Spot-official-api-docs#kline-data
-        https://www.bitrue.com/api-docs#kline-candlestick-data
-        https://www.bitrue.com/api_docs_includes_file/delivery.html#kline-candlestick-data
+        https://www.bitrue.com/api_docs_includes_file/spot/index.html#kline-data
+        https://www.bitrue.com/api_docs_includes_file/futures/index.html#kline-candlestick-data
 
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: the latest time in ms to fetch transfers for
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
@@ -1328,8 +1455,10 @@ class bitrue(Exchange, ImplicitAPI):
             }
             if limit is not None:
                 request['limit'] = limit
-            if since is not None:
-                request['fromIdx'] = since
+            until = self.safe_integer(params, 'until')
+            if until is not None:
+                params = self.omit(params, 'until')
+                request['fromIdx'] = until
             response = await self.spotV1PublicGetMarketKline(self.extend(request, params))
             data = self.safe_list(response, 'data', [])
         else:
@@ -1543,7 +1672,7 @@ class bitrue(Exchange, ImplicitAPI):
         tickers: dict = {}
         for i in range(0, len(data)):
             ticker = self.safe_dict(data, i, {})
-            market = self.market(self.safe_value(ticker, 'symbol'))
+            market = self.safe_market(self.safe_string(ticker, 'symbol'))
             tickers[market['id']] = ticker
         return self.parse_tickers(tickers, symbols)
 
@@ -1778,8 +1907,7 @@ class bitrue(Exchange, ImplicitAPI):
         postOnly = (type == 'limit_maker') or (timeInForce == 'GTX') or (type == 'post_only')
         if type == 'limit_maker':
             type = 'limit'
-        stopPriceString = self.safe_string(order, 'stopPrice')
-        stopPrice = self.parse_number(self.omit_zero(stopPriceString))
+        triggerPrice = self.parse_number(self.omit_zero(self.safe_string(order, 'stopPrice')))
         return self.safe_order({
             'info': order,
             'id': id,
@@ -1793,8 +1921,7 @@ class bitrue(Exchange, ImplicitAPI):
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -1828,9 +1955,8 @@ class bitrue(Exchange, ImplicitAPI):
         """
         create a trade order
 
-        https://github.com/Bitrue-exchange/Spot-official-api-docs#recent-trades-list
-        https://www.bitrue.com/api-docs#new-order-trade-hmac-sha256
-        https://www.bitrue.com/api_docs_includes_file/delivery.html#new-order-trade-hmac-sha256
+        https://www.bitrue.com/api_docs_includes_file/spot/index.html#new-order-trade
+        https://www.bitrue.com/api_docs_includes_file/futures/index.html#new-order-trade-hmac-sha256
 
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -1917,10 +2043,10 @@ class bitrue(Exchange, ImplicitAPI):
             if clientOrderId is not None:
                 params = self.omit(params, ['newClientOrderId', 'clientOrderId'])
                 request['newClientOrderId'] = clientOrderId
-            stopPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
-            if stopPrice is not None:
+            triggerPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
+            if triggerPrice is not None:
                 params = self.omit(params, ['triggerPrice', 'stopPrice'])
-                request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
+                request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
             response = await self.spotV1PrivatePostOrder(self.extend(request, params))
             data = response
         else:
@@ -1952,9 +2078,8 @@ class bitrue(Exchange, ImplicitAPI):
         """
         fetches information on an order made by the user
 
-        https://github.com/Bitrue-exchange/Spot-official-api-docs#query-order-user_data
-        https://www.bitrue.com/api-docs#query-order-user_data-hmac-sha256
-        https://www.bitrue.com/api_docs_includes_file/delivery.html#query-order-user_data-hmac-sha256
+        https://www.bitrue.com/api_docs_includes_file/spot/index.html#query-order-user_data
+        https://www.bitrue.com/api_docs_includes_file/futures/index.html#query-order-user_data-hmac-sha256
 
         :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
@@ -2040,7 +2165,7 @@ class bitrue(Exchange, ImplicitAPI):
         """
         fetches information on multiple closed orders made by the user
 
-        https://github.com/Bitrue-exchange/Spot-official-api-docs#all-orders-user_data
+        https://www.bitrue.com/api_docs_includes_file/spot/index.html#all-orders-user_data
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -2094,9 +2219,8 @@ class bitrue(Exchange, ImplicitAPI):
         """
         fetch all unfilled currently open orders
 
-        https://github.com/Bitrue-exchange/Spot-official-api-docs#current-open-orders-user_data
-        https://www.bitrue.com/api-docs#current-all-open-orders-user_data-hmac-sha256
-        https://www.bitrue.com/api_docs_includes_file/delivery.html#current-all-open-orders-user_data-hmac-sha256
+        https://www.bitrue.com/api_docs_includes_file/spot/index.html#current-open-orders-user_data
+        https://www.bitrue.com/api_docs_includes_file/futures/index.html#cancel-all-open-orders-trade-hmac-sha256
 
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
@@ -2278,9 +2402,8 @@ class bitrue(Exchange, ImplicitAPI):
         """
         fetch all trades made by the user
 
-        https://github.com/Bitrue-exchange/Spot-official-api-docs#account-trade-list-user_data
-        https://www.bitrue.com/api-docs#account-trade-list-user_data-hmac-sha256
-        https://www.bitrue.com/api_docs_includes_file/delivery.html#account-trade-list-user_data-hmac-sha256
+        https://www.bitrue.com/api_docs_includes_file/spot/index.html#account-trade-list-user_data
+        https://www.bitrue.com/api_docs_includes_file/futures/index.html#account-trade-list-user_data-hmac-sha256
 
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for

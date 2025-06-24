@@ -10,7 +10,7 @@ use ccxt\abstract\blockchaincom as Exchange;
 
 class blockchaincom extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'blockchaincom',
             'secret' => null,
@@ -209,6 +209,74 @@ class blockchaincom extends Exchange {
                     // 'MOBILECOIN' => 'MOB',
                     // 'KIN' => 'KIN',
                     // 'DIGITALGOLD' => 'DGLD',
+                ),
+            ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => false,
+                            'GTD' => true, // todo implementation
+                        ),
+                        'hedged' => false,
+                        'leverage' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'marketBuyByCost' => false,
+                        'selfTradePrevention' => false,
+                        'trailing' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => 100000, // todo implementation
+                        'untilDays' => 100000, // todo implementation
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'symbolRequired' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => null, // todo implement
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => 100000,
+                        'daysBackCanceled' => 1,
+                        'untilDays' => 100000,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOHLCV' => null, // todo webapi
+                ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
                 ),
             ),
             'precisionMode' => TICK_SIZE,
@@ -574,14 +642,14 @@ class blockchaincom extends Exchange {
             'orderQty' => $this->amount_to_precision($symbol, $amount),
             'clOrdId' => $clientOrderId,
         );
-        $stopPrice = $this->safe_value_2($params, 'stopPx', 'stopPrice');
-        $params = $this->omit($params, array( 'stopPx', 'stopPrice' ));
+        $triggerPrice = $this->safe_value_n($params, array( 'triggerPrice', 'stopPx', 'stopPrice' ));
+        $params = $this->omit($params, array( 'triggerPrice', 'stopPx', 'stopPrice' ));
         if ($uppercaseOrderType === 'STOP' || $uppercaseOrderType === 'STOPLIMIT') {
-            if ($stopPrice === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a stopPx or $stopPrice param for a ' . $uppercaseOrderType . ' order');
+            if ($triggerPrice === null) {
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a stopPx or $triggerPrice param for a ' . $uppercaseOrderType . ' order');
             }
         }
-        if ($stopPrice !== null) {
+        if ($triggerPrice !== null) {
             if ($uppercaseOrderType === 'MARKET') {
                 $request['ordType'] = 'STOP';
             } elseif ($uppercaseOrderType === 'LIMIT') {
@@ -600,7 +668,7 @@ class blockchaincom extends Exchange {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         if ($stopPriceRequired) {
-            $request['stopPx'] = $this->price_to_precision($symbol, $stopPrice);
+            $request['stopPx'] = $this->price_to_precision($symbol, $triggerPrice);
         }
         $response = $this->privatePostOrders ($this->extend($request, $params));
         return $this->parse_order($response, $market);

@@ -273,7 +273,7 @@
         ],
         "fetchCurrencies": [
             {
-                "description": "currencies",
+                "description": "fetchCurrencies",
                 "method": "fetchCurrencies",
                 "url": "https://gateway.prod.vertexprotocol.com/v2/assets",
                 "input": []
@@ -374,6 +374,18 @@
                 "url": "https://gateway.prod.vertexprotocol.com/v2/contracts",
                 "input": [
                     "SOL/USDC:USDC"
+                ]
+            }
+        ],
+        "fetchOpenInterests": [
+            {
+                "description": "fetch the open interest for unified symbols",
+                "method": "fetchOpenInterests",
+                "url": "https://archive.prod.vertexprotocol.com/v2/contracts",
+                "input": [
+                  [
+                    "SOL/USDC:USDC"
+                  ]
                 ]
             }
         ],

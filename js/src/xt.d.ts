@@ -1,5 +1,5 @@
 import Exchange from './abstract/xt.js';
-import { Currencies, Currency, Dict, FundingHistory, FundingRateHistory, Int, LeverageTier, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Str, Tickers, Transaction, TransferEntry, LedgerEntry, FundingRate, DepositAddress, LeverageTiers } from './base/types.js';
+import { Currencies, Currency, Dict, FundingHistory, FundingRateHistory, Int, LeverageTier, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Str, Tickers, Transaction, TransferEntry, LedgerEntry, FundingRate, DepositAddress, LeverageTiers, Position } from './base/types.js';
 /**
  * @class xt
  * @augments Exchange
@@ -15,7 +15,7 @@ export default class xt extends Exchange {
      * @param {object} params extra parameters specific to the xt api endpoint
      * @returns {int} the current integer timestamp in milliseconds from the xt server
      */
-    fetchTime(params?: {}): Promise<number>;
+    fetchTime(params?: {}): Promise<Int>;
     /**
      * @method
      * @name xt#fetchCurrencies
@@ -50,6 +50,8 @@ export default class xt extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
@@ -165,7 +167,8 @@ export default class xt extends Exchange {
      * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'GTX'
      * @param {string} [params.entrustType] 'TAKE_PROFIT', 'STOP', 'TAKE_PROFIT_MARKET', 'STOP_MARKET', 'TRAILING_STOP_MARKET', required if stopPrice is defined, currently isn't functioning on xt's side
      * @param {string} [params.triggerPriceType] 'INDEX_PRICE', 'MARK_PRICE', 'LATEST_PRICE', required if stopPrice is defined
-     * @param {float} [params.stopPrice] price to trigger a stop order
+     * @param {float} [params.triggerPrice] price to trigger a stop order
+     * @param {float} [params.stopPrice] alias for triggerPrice
      * @param {float} [params.stopLoss] price to set a stop-loss on an open position
      * @param {float} [params.takeProfit] price to set a take-profit on an open position
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
@@ -184,7 +187,7 @@ export default class xt extends Exchange {
      * @param {string} id order id
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} params extra parameters specific to the xt api endpoint
-     * @param {bool} [params.stop] if the order is a stop trigger order or not
+     * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
@@ -200,7 +203,7 @@ export default class xt extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} params extra parameters specific to the xt api endpoint
-     * @param {bool} [params.stop] if the order is a stop trigger order or not
+     * @param {bool} [params.trigger] if the order is a trigger order or not
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     fetchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
@@ -217,7 +220,7 @@ export default class xt extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of open order structures to retrieve
      * @param {object} params extra parameters specific to the xt api endpoint
-     * @param {bool} [params.stop] if the order is a stop trigger order or not
+     * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
@@ -234,7 +237,7 @@ export default class xt extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} params extra parameters specific to the xt api endpoint
-     * @param {bool} [params.stop] if the order is a stop trigger order or not
+     * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
@@ -251,7 +254,7 @@ export default class xt extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} params extra parameters specific to the xt api endpoint
-     * @param {bool} [params.stop] if the order is a stop trigger order or not
+     * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
@@ -267,7 +270,7 @@ export default class xt extends Exchange {
      * @param {string} id order id
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} params extra parameters specific to the xt api endpoint
-     * @param {bool} [params.stop] if the order is a stop trigger order or not
+     * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
@@ -282,7 +285,7 @@ export default class xt extends Exchange {
      * @see https://doc.xt.com/#futures_entrustcancelProfitBatch
      * @param {string} [symbol] unified market symbol of the market to cancel orders in
      * @param {object} params extra parameters specific to the xt api endpoint
-     * @param {bool} [params.stop] if the order is a stop trigger order or not
+     * @param {bool} [params.trigger] if the order is a trigger order or not
      * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
@@ -488,7 +491,7 @@ export default class xt extends Exchange {
      * @param {object} params extra parameters specific to the xt api endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    fetchPosition(symbol: string, params?: {}): Promise<import("./base/types.js").Position>;
+    fetchPosition(symbol: string, params?: {}): Promise<Position>;
     /**
      * @method
      * @name xt#fetchPositions
@@ -498,8 +501,8 @@ export default class xt extends Exchange {
      * @param {object} params extra parameters specific to the xt api endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
-    parsePosition(position: any, market?: any): import("./base/types.js").Position;
+    fetchPositions(symbols?: string[], params?: {}): Promise<Position[]>;
+    parsePosition(position: any, market?: any): Position;
     /**
      * @method
      * @name xt#transfer
@@ -524,6 +527,37 @@ export default class xt extends Exchange {
         toAccount: any;
         status: any;
     };
+    /**
+     * @method
+     * @name xt#setMarginMode
+     * @description set margin mode to 'cross' or 'isolated'
+     * @see https://doc.xt.com/#futures_userchangePositionType
+     * @param {string} marginMode 'cross' or 'isolated'
+     * @param {string} [symbol] required
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.positionSide] *required* "long" or "short"
+     * @returns {object} response from the exchange
+     */
+    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
+    /**
+     * @method
+     * @name xt#editOrder
+     * @description cancels an order and places a new order
+     * @see https://doc.xt.com/#orderorderUpdate
+     * @see https://doc.xt.com/#futures_orderupdate
+     * @see https://doc.xt.com/#futures_entrustupdateProfit
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of the currency you want to trade in units of the base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.stopLoss] price to set a stop-loss on an open position
+     * @param {float} [params.takeProfit] price to set a take-profit on an open position
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
     sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {
         url: any;

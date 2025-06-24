@@ -22,28 +22,57 @@ public partial class btcbox : Exchange
                 { "future", false },
                 { "option", false },
                 { "addMargin", false },
+                { "borrowCrossMargin", false },
+                { "borrowIsolatedMargin", false },
+                { "borrowMargin", false },
                 { "cancelOrder", true },
                 { "closeAllPositions", false },
                 { "closePosition", false },
                 { "createOrder", true },
+                { "createOrderWithTakeProfitAndStopLoss", false },
+                { "createOrderWithTakeProfitAndStopLossWs", false },
+                { "createPostOnlyOrder", false },
                 { "createReduceOnlyOrder", false },
                 { "fetchBalance", true },
+                { "fetchBorrowInterest", false },
+                { "fetchBorrowRate", false },
                 { "fetchBorrowRateHistories", false },
                 { "fetchBorrowRateHistory", false },
+                { "fetchBorrowRates", false },
+                { "fetchBorrowRatesPerSymbol", false },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
                 { "fetchFundingHistory", false },
+                { "fetchFundingInterval", false },
+                { "fetchFundingIntervals", false },
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", false },
                 { "fetchFundingRates", false },
+                { "fetchGreeks", false },
                 { "fetchIndexOHLCV", false },
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
+                { "fetchIsolatedPositions", false },
                 { "fetchLeverage", false },
+                { "fetchLeverages", false },
+                { "fetchLeverageTiers", false },
+                { "fetchLiquidations", false },
+                { "fetchLongShortRatio", false },
+                { "fetchLongShortRatioHistory", false },
+                { "fetchMarginAdjustmentHistory", false },
                 { "fetchMarginMode", false },
+                { "fetchMarginModes", false },
+                { "fetchMarketLeverageTiers", false },
                 { "fetchMarkOHLCV", false },
+                { "fetchMarkPrices", false },
+                { "fetchMyLiquidations", false },
+                { "fetchMySettlementHistory", false },
+                { "fetchOpenInterest", false },
                 { "fetchOpenInterestHistory", false },
+                { "fetchOpenInterests", false },
                 { "fetchOpenOrders", true },
+                { "fetchOption", false },
+                { "fetchOptionChain", false },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
@@ -55,15 +84,21 @@ public partial class btcbox : Exchange
                 { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
+                { "fetchSettlementHistory", false },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
                 { "fetchTrades", true },
                 { "fetchTransfer", false },
                 { "fetchTransfers", false },
+                { "fetchVolatilityHistory", false },
                 { "fetchWithdrawal", false },
                 { "fetchWithdrawals", false },
                 { "reduceMargin", false },
+                { "repayCrossMargin", false },
+                { "repayIsolatedMargin", false },
+                { "repayMargin", false },
                 { "setLeverage", false },
+                { "setMargin", false },
                 { "setMarginMode", false },
                 { "setPositionMode", false },
                 { "transfer", false },
@@ -85,6 +120,77 @@ public partial class btcbox : Exchange
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "post", new List<object>() {"balance", "trade_add", "trade_cancel", "trade_list", "trade_view", "wallet"} },
+                } },
+                { "webApi", new Dictionary<string, object>() {
+                    { "get", new List<object>() {"ajax/coin/coinInfo"} },
+                } },
+            } },
+            { "options", new Dictionary<string, object>() {
+                { "fetchMarkets", new Dictionary<string, object>() {
+                    { "webApiEnable", true },
+                    { "webApiRetries", 3 },
+                } },
+                { "amountPrecision", "0.0001" },
+            } },
+            { "features", new Dictionary<string, object>() {
+                { "spot", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", false },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", false },
+                            { "FOK", false },
+                            { "PO", false },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "leverage", false },
+                        { "marketBuyRequiresPrice", false },
+                        { "marketBuyByCost", false },
+                        { "selfTradePrevention", false },
+                        { "trailing", false },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", null },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", null },
+                        { "untilDays", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchClosedOrders", null },
+                    { "fetchOHLCV", null },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
                 } },
             } },
             { "precisionMode", TICK_SIZE },
@@ -113,9 +219,14 @@ public partial class btcbox : Exchange
     public async override Task<object> fetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await this.publicGetTickers();
+        object promise1 = this.publicGetTickers();
+        object promise2 = this.fetchWebEndpoint("fetchMarkets", "webApiGetAjaxCoinCoinInfo", true);
+        var response1response2Variable = await promiseAll(new List<object>() {promise1, promise2});
+        var response1 = ((IList<object>) response1response2Variable)[0];
+        var response2 = ((IList<object>) response1response2Variable)[1];
         //
-        object marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
+        object result2Data = this.safeDict(response2, "data", new Dictionary<string, object>() {});
+        object marketIds = new List<object>(((IDictionary<string,object>)response1).Keys);
         object markets = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
@@ -125,9 +236,11 @@ public partial class btcbox : Exchange
             object quote = this.safeString(symbolParts, 1);
             object quoteId = ((string)quote).ToLower();
             object id = ((string)baseCurr).ToLower();
-            object res = getValue(response, marketId);
+            object res = getValue(response1, marketId);
             object symbol = add(add(baseCurr, "/"), quote);
             object fee = ((bool) isTrue((isEqual(id, "BTC")))) ? this.parseNumber("0.0005") : this.parseNumber("0.0010");
+            object details = this.safeDict(result2Data, id, new Dictionary<string, object>() {});
+            object tradeDetails = this.safeDict(details, "trade", new Dictionary<string, object>() {});
             ((IList<object>)markets).Add(this.safeMarketStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "uppercaseId", null },
@@ -173,10 +286,10 @@ public partial class btcbox : Exchange
                     } },
                 } },
                 { "precision", new Dictionary<string, object>() {
-                    { "price", null },
+                    { "price", this.parseNumber(this.parsePrecision(this.safeString(tradeDetails, "pricedecimal"))) },
                     { "amount", null },
                 } },
-                { "active", null },
+                { "active", isEqual(this.safeString(tradeDetails, "enable"), "1") },
                 { "created", null },
                 { "info", res },
             }));
@@ -580,7 +693,6 @@ public partial class btcbox : Exchange
             { "status", status },
             { "symbol", getValue(market, "symbol") },
             { "price", price },
-            { "stopPrice", null },
             { "triggerPrice", null },
             { "cost", null },
             { "trades", trades },
@@ -635,10 +747,6 @@ public partial class btcbox : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         // a special case for btcbox – default symbol is BTC/JPY
-        if (isTrue(isEqual(symbol, null)))
-        {
-            symbol = "BTC/JPY";
-        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "type", type },
@@ -721,6 +829,9 @@ public partial class btcbox : Exchange
             {
                 url = add(url, add("?", this.urlencode(parameters)));
             }
+        } else if (isTrue(isEqual(api, "webApi")))
+        {
+            url = add(add(getValue(this.urls, "www"), "/"), path);
         } else
         {
             this.checkRequiredCredentials();

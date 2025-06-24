@@ -5,7 +5,7 @@ var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 var sha512 = require('../static_dependencies/noble-hashes/sha512.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class exmo extends exmo$1 {
     describe() {
@@ -346,7 +346,7 @@ class exmo extends exmo$1 {
     }
     /**
      * @method
-     * @name exmo#watchTrades
+     * @name exmo#watchMyTrades
      * @description get the list of trades associated with the user
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch

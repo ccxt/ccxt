@@ -1,4 +1,5 @@
 namespace ccxt;
+
 using System.Security.Cryptography;
 using System.Text;
 
@@ -70,32 +71,56 @@ public partial class Exchange
         return Base58.Decode(pt as string);
     }
 
-    public object binaryConcat(object a, object b)
+
+    public object binaryConcat(params object[] parts)
     {
-        byte[] first;
-        byte[] second;
-        if (a is string)
+        var resultList = new List<byte>();
+
+        foreach (var part in parts)
         {
-            first = Encoding.ASCII.GetBytes(a as string);
+            if (part is string str)
+            {
+                resultList.AddRange(Encoding.ASCII.GetBytes(str));
+            }
+            else if (part is byte[] bytes)
+            {
+                resultList.AddRange(bytes);
+            }
+            else
+            {
+                throw new ArgumentException("BinaryConcat: Unsupported type, only string and byte[] are allowed.");
+            }
         }
-        else
-        {
-            first = (byte[])a;
-        }
-        if (b is string)
-        {
-            second = Encoding.ASCII.GetBytes(b as string);
-        }
-        else
-        {
-            second = (byte[])b;
-        }
-        var result = new byte[first.Length + second.Length];
-        first.CopyTo(result, 0);
-        second.CopyTo(result, first.Length);
-        return result;
-        // return (string)a + (string)b; // stub
+
+        return resultList.ToArray();
     }
+
+    // public object binaryConcat(object a, object b)
+    // {
+    //     byte[] first;
+    //     byte[] second;
+    //     if (a is string)
+    //     {
+    //         first = Encoding.ASCII.GetBytes(a as string);
+    //     }
+    //     else
+    //     {
+    //         first = (byte[])a;
+    //     }
+    //     if (b is string)
+    //     {
+    //         second = Encoding.ASCII.GetBytes(b as string);
+    //     }
+    //     else
+    //     {
+    //         second = (byte[])b;
+    //     }
+    //     var result = new byte[first.Length + second.Length];
+    //     first.CopyTo(result, 0);
+    //     second.CopyTo(result, first.Length);
+    //     return result;
+    //     // return (string)a + (string)b; // stub
+    // }
 
     public object binaryConcatArray(object arrays2)
     {
@@ -214,7 +239,7 @@ public partial class Exchange
         return packer.Pack(data);
     }
 
-    public string rawencode(object paramaters1)
+    public string rawencode(object paramaters1, object sort = null)
     {
         var paramaters = (dict)paramaters1;
         var keys = new List<string>(((dict)paramaters).Keys);
@@ -285,7 +310,7 @@ public partial class Exchange
         return queryString.ToString();
     }
 
-    public string urlencode(object parameters2)
+    public string urlencode(object parameters2, bool sort = false)
     {
         var parameters = (dict)parameters2;
 

@@ -30,7 +30,7 @@ export default class hitbtc extends Exchange {
                 'margin': true,
                 'swap': true,
                 'future': false,
-                'option': undefined,
+                'option': false,
                 'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
@@ -62,6 +62,7 @@ export default class hitbtc extends Exchange {
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
+                'fetchGreeks': false,
                 'fetchIndexOHLCV': true,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
@@ -74,12 +75,16 @@ export default class hitbtc extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
                 'fetchMyLiquidations': false,
+                'fetchMySettlementHistory': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': true,
                 'fetchOpenOrder': true,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': true,
@@ -88,12 +93,14 @@ export default class hitbtc extends Exchange {
                 'fetchPosition': true,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': true,
+                'fetchSettlementHistory': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchTransactions': 'emulated',
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
                 'sandbox': true,
@@ -286,6 +293,109 @@ export default class hitbtc extends Exchange {
                             [this.parseNumber('50000'), this.parseNumber('0.0003')],
                             [this.parseNumber('100000'), this.parseNumber('0.0002')],
                         ],
+                    },
+                },
+            },
+            'features': {
+                'default': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': true,
+                        },
+                        'hedged': false,
+                        'selfTradePrevention': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                        'iceberg': true,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': true,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'symbolRequired': false,
+                        'marketType': true,
+                    },
+                    'fetchOrder': {
+                        'marginMode': true,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                        'marketType': true,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': true,
+                        'limit': 1000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                        'marketType': true,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'marginMode': true,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                        'marketType': true,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'forDerivatives': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'marginMode': true,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivatives',
                     },
                 },
             },
@@ -810,29 +920,46 @@ export default class hitbtc extends Exchange {
     async fetchCurrencies(params = {}) {
         const response = await this.publicGetPublicCurrency(params);
         //
-        //     {
-        //       "WEALTH": {
-        //         "full_name": "ConnectWealth",
-        //         "payin_enabled": false,
-        //         "payout_enabled": false,
-        //         "transfer_enabled": true,
-        //         "precision_transfer": "0.001",
-        //         "networks": [
-        //           {
-        //             "network": "ETH",
-        //             "protocol": "ERC20",
-        //             "default": true,
-        //             "payin_enabled": false,
-        //             "payout_enabled": false,
-        //             "precision_payout": "0.001",
-        //             "payout_fee": "0.016800000000",
-        //             "payout_is_payment_id": false,
-        //             "payin_payment_id": false,
-        //             "payin_confirmations": "2"
-        //           }
-        //         ]
-        //       }
-        //     }
+        //    {
+        //        "DFC": {
+        //            "full_name": "DeFiScale",
+        //            "crypto": true,
+        //            "payin_enabled": false,
+        //            "payout_enabled": true,
+        //            "transfer_enabled": false,
+        //            "transfer_to_wallet_enabled": true,
+        //            "transfer_to_exchange_enabled": false,
+        //            "sign": "D",
+        //            "crypto_payment_id_name": "",
+        //            "crypto_explorer": "https://etherscan.io/tx/{tx}",
+        //            "precision_transfer": "0.00000001",
+        //            "delisted": false,
+        //            "networks": [
+        //                {
+        //                    "code": "ETH",
+        //                    "network_name": "Ethereum",
+        //                    "network": "ETH",
+        //                    "protocol": "ERC-20",
+        //                    "default": true,
+        //                    "is_ens_available": true,
+        //                    "payin_enabled": true,
+        //                    "payout_enabled": true,
+        //                    "precision_payout": "0.000000000000000001",
+        //                    "payout_fee": "277000.0000000000",
+        //                    "payout_is_payment_id": false,
+        //                    "payin_payment_id": false,
+        //                    "payin_confirmations": "2",
+        //                    "contract_address": "0x1b2a76da77d03b7fc21189d9838f55bd849014af",
+        //                    "crypto_payment_id_name": "",
+        //                    "crypto_explorer": "https://etherscan.io/tx/{tx}",
+        //                    "is_multichain": true,
+        //                    "asset_id": {
+        //                        "contract_address": "0x1b2a76da77d03b7fc21189d9838f55bd849014af"
+        //                    }
+        //                }
+        //            ]
+        //        },
+        //    }
         //
         const result = {};
         const currencies = Object.keys(response);
@@ -840,48 +967,22 @@ export default class hitbtc extends Exchange {
             const currencyId = currencies[i];
             const code = this.safeCurrencyCode(currencyId);
             const entry = response[currencyId];
-            const name = this.safeString(entry, 'full_name');
-            const precision = this.safeNumber(entry, 'precision_transfer');
-            const payinEnabled = this.safeBool(entry, 'payin_enabled', false);
-            const payoutEnabled = this.safeBool(entry, 'payout_enabled', false);
-            const transferEnabled = this.safeBool(entry, 'transfer_enabled', false);
-            const active = payinEnabled && payoutEnabled && transferEnabled;
-            const rawNetworks = this.safeValue(entry, 'networks', []);
+            const rawNetworks = this.safeList(entry, 'networks', []);
             const networks = {};
-            let fee = undefined;
-            let depositEnabled = undefined;
-            let withdrawEnabled = undefined;
             for (let j = 0; j < rawNetworks.length; j++) {
                 const rawNetwork = rawNetworks[j];
                 const networkId = this.safeString2(rawNetwork, 'protocol', 'network');
                 let networkCode = this.networkIdToCode(networkId);
-                networkCode = (networkCode !== undefined) ? networkCode.toUpperCase() : undefined;
-                fee = this.safeNumber(rawNetwork, 'payout_fee');
-                const networkPrecision = this.safeNumber(rawNetwork, 'precision_payout');
-                const payinEnabledNetwork = this.safeBool(rawNetwork, 'payin_enabled', false);
-                const payoutEnabledNetwork = this.safeBool(rawNetwork, 'payout_enabled', false);
-                const activeNetwork = payinEnabledNetwork && payoutEnabledNetwork;
-                if (payinEnabledNetwork && !depositEnabled) {
-                    depositEnabled = true;
-                }
-                else if (!payinEnabledNetwork) {
-                    depositEnabled = false;
-                }
-                if (payoutEnabledNetwork && !withdrawEnabled) {
-                    withdrawEnabled = true;
-                }
-                else if (!payoutEnabledNetwork) {
-                    withdrawEnabled = false;
-                }
+                networkCode = (networkCode !== undefined) ? networkCode.toUpperCase() : code; // as hitbtc is white label, ensure we safeguard from possible bugs
                 networks[networkCode] = {
                     'info': rawNetwork,
                     'id': networkId,
                     'network': networkCode,
-                    'fee': fee,
-                    'active': activeNetwork,
-                    'deposit': payinEnabledNetwork,
-                    'withdraw': payoutEnabledNetwork,
-                    'precision': networkPrecision,
+                    'active': undefined,
+                    'fee': this.safeNumber(rawNetwork, 'payout_fee'),
+                    'deposit': this.safeBool(rawNetwork, 'payin_enabled'),
+                    'withdraw': this.safeBool(rawNetwork, 'payout_enabled'),
+                    'precision': this.safeNumber(rawNetwork, 'precision_payout'),
                     'limits': {
                         'withdraw': {
                             'min': undefined,
@@ -890,26 +991,25 @@ export default class hitbtc extends Exchange {
                     },
                 };
             }
-            const networksKeys = Object.keys(networks);
-            const networksLength = networksKeys.length;
-            result[code] = {
+            result[code] = this.safeCurrencyStructure({
                 'info': entry,
                 'code': code,
                 'id': currencyId,
-                'precision': precision,
-                'name': name,
-                'active': active,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
+                'precision': this.safeNumber(entry, 'precision_transfer'),
+                'name': this.safeString(entry, 'full_name'),
+                'active': !this.safeBool(entry, 'delisted'),
+                'deposit': this.safeBool(entry, 'payin_enabled'),
+                'withdraw': this.safeBool(entry, 'payout_enabled'),
                 'networks': networks,
-                'fee': (networksLength <= 1) ? fee : undefined,
+                'fee': undefined,
                 'limits': {
                     'amount': {
                         'min': undefined,
                         'max': undefined,
                     },
                 },
-            };
+                'type': undefined, // 'crypto' field emits incorrect values
+            });
         }
         return result;
     }
@@ -1327,7 +1427,7 @@ export default class hitbtc extends Exchange {
         let fee = undefined;
         const feeCostString = this.safeString(trade, 'fee');
         const taker = this.safeValue(trade, 'taker');
-        let takerOrMaker = undefined;
+        let takerOrMaker;
         if (taker !== undefined) {
             takerOrMaker = taker ? 'taker' : 'maker';
         }
@@ -2377,7 +2477,7 @@ export default class hitbtc extends Exchange {
             }
         }
         else if ((type === 'stopLimit') || (type === 'stopMarket') || (type === 'takeProfitLimit') || (type === 'takeProfitMarket')) {
-            throw new ExchangeError(this.id + ' createOrder() requires a stopPrice parameter for stop-loss and take-profit orders');
+            throw new ExchangeError(this.id + ' createOrder() requires a triggerPrice parameter for stop-loss and take-profit orders');
         }
         params = this.omit(params, ['triggerPrice', 'timeInForce', 'stopPrice', 'stop_price', 'reduceOnly', 'postOnly']);
         if (marketType === 'swap') {
@@ -2490,7 +2590,6 @@ export default class hitbtc extends Exchange {
         const postOnly = this.safeValue(order, 'post_only');
         const timeInForce = this.safeString(order, 'time_in_force');
         const rawTrades = this.safeValue(order, 'trades');
-        const stopPrice = this.safeString(order, 'stop_price');
         return this.safeOrder({
             'info': order,
             'id': id,
@@ -2514,8 +2613,7 @@ export default class hitbtc extends Exchange {
             'average': average,
             'trades': rawTrades,
             'fee': undefined,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': this.safeString(order, 'stop_price'),
             'takeProfitPrice': undefined,
             'stopLossPrice': undefined,
         }, market);
@@ -3116,13 +3214,58 @@ export default class hitbtc extends Exchange {
         const datetime = this.safeString(interest, 'timestamp');
         const value = this.safeNumber(interest, 'open_interest');
         return this.safeOpenInterest({
-            'symbol': market['symbol'],
+            'symbol': this.safeSymbol(undefined, market),
             'openInterestAmount': undefined,
             'openInterestValue': value,
             'timestamp': this.parse8601(datetime),
             'datetime': datetime,
             'info': interest,
         }, market);
+    }
+    /**
+     * @method
+     * @name hitbtc#fetchOpenInterests
+     * @description Retrieves the open interest for a list of symbols
+     * @see https://api.hitbtc.com/#futures-info
+     * @param {string[]} [symbols] a list of unified CCXT market symbols
+     * @param {object} [params] exchange specific parameters
+     * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     */
+    async fetchOpenInterests(symbols = undefined, params = {}) {
+        await this.loadMarkets();
+        const request = {};
+        symbols = this.marketSymbols(symbols);
+        let marketIds = undefined;
+        if (symbols !== undefined) {
+            marketIds = this.marketIds(symbols);
+            request['symbols'] = marketIds.join(',');
+        }
+        const response = await this.publicGetPublicFuturesInfo(this.extend(request, params));
+        //
+        //     {
+        //         "BTCUSDT_PERP": {
+        //             "contract_type": "perpetual",
+        //             "mark_price": "97291.83",
+        //             "index_price": "97298.61",
+        //             "funding_rate": "-0.000183473092423284",
+        //             "open_interest": "94.1503",
+        //             "next_funding_time": "2024-12-20T08:00:00.000Z",
+        //             "indicative_funding_rate": "-0.00027495203277752",
+        //             "premium_index": "-0.000789474900583786",
+        //             "avg_premium_index": "-0.000683473092423284",
+        //             "interest_rate": "0.0001",
+        //             "timestamp": "2024-12-20T04:57:33.693Z"
+        //         }
+        //     }
+        //
+        const results = [];
+        const markets = Object.keys(response);
+        for (let i = 0; i < markets.length; i++) {
+            const marketId = markets[i];
+            const marketInner = this.safeMarket(marketId);
+            results.push(this.parseOpenInterest(response[marketId], marketInner));
+        }
+        return this.filterByArray(results, 'symbol', symbols);
     }
     /**
      * @method

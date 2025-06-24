@@ -1,5 +1,5 @@
 import Exchange from './abstract/deribit.js';
-import type { Balances, Currency, FundingRateHistory, Greeks, Int, Liquidation, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, MarketInterface, Num, Account, Option, OptionChain, Currencies, TradingFees, Dict, int, FundingRate, DepositAddress } from './base/types.js';
+import type { Balances, Currency, FundingRateHistory, Greeks, Int, Liquidation, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, MarketInterface, Num, Account, Option, OptionChain, Currencies, TradingFees, Dict, int, FundingRate, DepositAddress, Position } from './base/types.js';
 /**
  * @class deribit
  * @augments Exchange
@@ -16,7 +16,7 @@ export default class deribit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    fetchTime(params?: {}): Promise<number>;
+    fetchTime(params?: {}): Promise<Int>;
     /**
      * @method
      * @name deribit#fetchCurrencies
@@ -51,11 +51,11 @@ export default class deribit extends Exchange {
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
      */
     fetchAccounts(params?: {}): Promise<Account[]>;
-    parseAccount(account: any, currency?: Currency): {
+    parseAccount(account: any): {
         info: any;
         id: string;
         type: string;
-        code: string;
+        code: any;
     };
     /**
      * @method
@@ -88,12 +88,7 @@ export default class deribit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
      */
-    createDepositAddress(code: string, params?: {}): Promise<{
-        currency: string;
-        address: string;
-        tag: any;
-        info: any;
-    }>;
+    createDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
     /**
      * @method
      * @name deribit#fetchDepositAddress
@@ -326,7 +321,7 @@ export default class deribit extends Exchange {
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransactionStatus(status: Str): string;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
-    parsePosition(position: Dict, market?: Market): import("./base/types.js").Position;
+    parsePosition(position: Dict, market?: Market): Position;
     /**
      * @method
      * @name deribit#fetchPosition
@@ -336,7 +331,7 @@ export default class deribit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    fetchPosition(symbol: string, params?: {}): Promise<import("./base/types.js").Position>;
+    fetchPosition(symbol: string, params?: {}): Promise<Position>;
     /**
      * @method
      * @name deribit#fetchPositions
@@ -344,10 +339,12 @@ export default class deribit extends Exchange {
      * @see https://docs.deribit.com/#private-get_positions
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.currency] currency code filter for positions
      * @param {string} [params.kind] market type filter for positions 'future', 'option', 'spot', 'future_combo' or 'option_combo'
+     * @param {int} [params.subaccount_id] the user id for the subaccount
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
+    fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
     /**
      * @method
      * @name deribit#fetchVolatilityHistory
@@ -443,7 +440,7 @@ export default class deribit extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch funding rate history for
      * @param {int} [limit] the maximum number of entries to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.end_timestamp] fetch funding rate ending at this timestamp
+     * @param {int} [params.until] fetch funding rate ending at this timestamp
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
      */

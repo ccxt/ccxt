@@ -10,7 +10,7 @@ use ccxt\abstract\bitvavo as Exchange;
 
 class bitvavo extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitvavo',
             'name' => 'Bitvavo',
@@ -27,19 +27,29 @@ class bitvavo extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
+                'borrowCrossMargin' => false,
+                'borrowIsolatedMargin' => false,
+                'borrowMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'closeAllPositions' => false,
                 'closePosition' => false,
                 'createOrder' => true,
+                'createOrderWithTakeProfitAndStopLoss' => false,
+                'createOrderWithTakeProfitAndStopLossWs' => false,
+                'createPostOnlyOrder' => false,
                 'createReduceOnlyOrder' => false,
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
                 'createStopOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
+                'fetchBorrowInterest' => false,
+                'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
@@ -50,21 +60,39 @@ class bitvavo extends Exchange {
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => false,
+                'fetchFundingInterval' => false,
+                'fetchFundingIntervals' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
+                'fetchGreeks' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
+                'fetchIsolatedPositions' => false,
                 'fetchLeverage' => false,
+                'fetchLeverages' => false,
                 'fetchLeverageTiers' => false,
+                'fetchLiquidations' => false,
+                'fetchLongShortRatio' => false,
+                'fetchLongShortRatioHistory' => false,
+                'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => false,
+                'fetchMarginModes' => false,
+                'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
+                'fetchMarkPrices' => false,
+                'fetchMyLiquidations' => false,
+                'fetchMySettlementHistory' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => false,
                 'fetchOpenInterestHistory' => false,
+                'fetchOpenInterests' => false,
                 'fetchOpenOrders' => true,
+                'fetchOption' => false,
+                'fetchOptionChain' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
@@ -76,6 +104,7 @@ class bitvavo extends Exchange {
                 'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
+                'fetchSettlementHistory' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
@@ -84,9 +113,14 @@ class bitvavo extends Exchange {
                 'fetchTradingFees' => true,
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
+                'fetchVolatilityHistory' => false,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => false,
+                'repayMargin' => false,
                 'setLeverage' => false,
+                'setMargin' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
                 'transfer' => false,
@@ -191,6 +225,75 @@ class bitvavo extends Exchange {
                 'apiKey' => true,
                 'secret' => true,
             ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => null,
+                        'stopLossPrice' => true,
+                        'takeProfitPrice' => true,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'marketBuyByCost' => true,
+                        'selfTradePrevention' => true, // todo implement
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => 100000,
+                        'untilDays' => 100000,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => true,
+                        'limit' => 1000,
+                        'daysBack' => 100000,
+                        'untilDays' => 100000,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchClosedOrders' => null,
+                    'fetchOHLCV' => array(
+                        'limit' => 1440,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
             'exceptions' => array(
                 'exact' => array(
                     '101' => '\\ccxt\\ExchangeError', // Unknown error. Operation may or may not have succeeded.
@@ -271,6 +374,8 @@ class bitvavo extends Exchange {
                     'ERC20' => 'ETH',
                     'TRC20' => 'TRX',
                 ),
+                'operatorId' => null, // this will be required soon for order-related endpoints
+                'fiatCurrencies' => array( 'EUR' ), // only fiat atm
             ),
             'precisionMode' => SIGNIFICANT_DIGITS,
             'commonCurrencies' => array(
@@ -295,7 +400,7 @@ class bitvavo extends Exchange {
         return $this->decimal_to_precision($price, TRUNCATE, 8, DECIMAL_PLACES);
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -485,24 +590,24 @@ class bitvavo extends Exchange {
         //         ),
         //     )
         //
+        $fiatCurrencies = $this->safe_list($this->options, 'fiatCurrencies', array());
         $result = array();
         for ($i = 0; $i < count($currencies); $i++) {
             $currency = $currencies[$i];
             $id = $this->safe_string($currency, 'symbol');
             $code = $this->safe_currency_code($id);
+            $isFiat = $this->in_array($code, $fiatCurrencies);
             $networks = array();
-            $networksArray = $this->safe_value($currency, 'networks', array());
-            $networksLength = count($networksArray);
-            $isOneNetwork = ($networksLength === 1);
-            $deposit = ($this->safe_value($currency, 'depositStatus') === 'OK');
-            $withdrawal = ($this->safe_value($currency, 'withdrawalStatus') === 'OK');
+            $networksArray = $this->safe_list($currency, 'networks', array());
+            $deposit = $this->safe_string($currency, 'depositStatus') === 'OK';
+            $withdrawal = $this->safe_string($currency, 'withdrawalStatus') === 'OK';
             $active = $deposit && $withdrawal;
             $withdrawFee = $this->safe_number($currency, 'withdrawalFee');
             $precision = $this->safe_integer($currency, 'decimals', 8);
             $minWithdraw = $this->safe_number($currency, 'withdrawalMinAmount');
-            // absolutely all of them have 1 network atm - ETH. So, we can reliably assign that inside $networks
-            if ($isOneNetwork) {
-                $networkId = $networksArray[0];
+            // btw, absolutely all of them have 1 network atm
+            for ($j = 0; $j < count($networksArray); $j++) {
+                $networkId = $networksArray[$j];
                 $networkCode = $this->network_id_to_code($networkId);
                 $networks[$networkCode] = array(
                     'info' => $currency,
@@ -521,7 +626,7 @@ class bitvavo extends Exchange {
                     ),
                 );
             }
-            $result[$code] = array(
+            $result[$code] = $this->safe_currency_structure(array(
                 'info' => $currency,
                 'id' => $id,
                 'code' => $code,
@@ -532,6 +637,7 @@ class bitvavo extends Exchange {
                 'networks' => $networks,
                 'fee' => $withdrawFee,
                 'precision' => $precision,
+                'type' => $isFiat ? 'fiat' : 'crypto',
                 'limits' => array(
                     'amount' => array(
                         'min' => null,
@@ -546,7 +652,7 @@ class bitvavo extends Exchange {
                         'max' => null,
                     ),
                 ),
-            );
+            ));
         }
         // set $currencies here to avoid calling publicGetAssets twice
         $this->currencies = $this->deep_extend($this->currencies, $result);
@@ -1122,6 +1228,11 @@ class bitvavo extends Exchange {
         if ($postOnly) {
             $request['postOnly'] = true;
         }
+        $operatorId = null;
+        list($operatorId, $params) = $this->handle_option_and_params($params, 'createOrder', 'operatorId');
+        if ($operatorId !== null) {
+            $request['operatorId'] = $this->parse_to_int($operatorId);
+        }
         return $this->extend($request, $params);
     }
 
@@ -1129,7 +1240,7 @@ class bitvavo extends Exchange {
         /**
          * create a trade order
          *
-         * @see https://docs.bitvavo.com/#tag/Orders/paths/~1order/post
+         * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/post
          *
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
@@ -1138,7 +1249,7 @@ class bitvavo extends Exchange {
          * @param {float} $price the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
          * @param {string} [$params->timeInForce] "GTC", "IOC", or "PO"
-         * @param {float} [$params->stopPrice] The $price at which a trigger order is triggered at
+         * @param {float} [$params->stopPrice] Alias for triggerPrice
          * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
          * @param {bool} [$params->postOnly] If true, the order will only be posted to the order book and not executed immediately
          * @param {float} [$params->stopLossPrice] The $price at which a stop loss order is triggered at
@@ -1223,6 +1334,11 @@ class bitvavo extends Exchange {
         if ($clientOrderId === null) {
             $request['orderId'] = $id;
         }
+        $operatorId = null;
+        list($operatorId, $params) = $this->handle_option_and_params($params, 'editOrder', 'operatorId');
+        if ($operatorId !== null) {
+            $request['operatorId'] = $this->parse_to_int($operatorId);
+        }
         $request['market'] = $market['id'];
         return $request;
     }
@@ -1260,6 +1376,11 @@ class bitvavo extends Exchange {
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         if ($clientOrderId === null) {
             $request['orderId'] = $id;
+        }
+        $operatorId = null;
+        list($operatorId, $params) = $this->handle_option_and_params($params, 'cancelOrder', 'operatorId');
+        if ($operatorId !== null) {
+            $request['operatorId'] = $this->parse_to_int($operatorId);
         }
         return $this->extend($request, $params);
     }
@@ -1466,6 +1587,9 @@ class bitvavo extends Exchange {
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
+         *
+         * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1ordersOpen/get
+         *
          * fetch all unfilled currently open orders
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open orders for
@@ -1619,7 +1743,6 @@ class bitvavo extends Exchange {
         $timeInForce = $this->safe_string($order, 'timeInForce');
         $postOnly = $this->safe_value($order, 'postOnly');
         // https://github.com/ccxt/ccxt/issues/8489
-        $stopPrice = $this->safe_number($order, 'triggerPrice');
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -1633,8 +1756,7 @@ class bitvavo extends Exchange {
             'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $this->safe_number($order, 'triggerPrice'),
             'amount' => $amount,
             'cost' => $cost,
             'average' => null,
@@ -1669,7 +1791,7 @@ class bitvavo extends Exchange {
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          *
-         * @see https://docs.bitvavo.com/#tag/Trades/paths/~1trades/get
+         * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1trades/get
          *
          * fetch all trades made by the user
          * @param {string} $symbol unified $market $symbol

@@ -9,7 +9,7 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class hashkey extends hashkeyRest {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -301,7 +301,7 @@ export default class hashkey extends hashkeyRest {
 
     /**
      * @method
-     * @name alpaca#watchOrderBook
+     * @name hashkey#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream
      * @param {string} symbol unified symbol of the market to fetch the order book for
@@ -706,7 +706,7 @@ export default class hashkey extends hashkeyRest {
 
     /**
      * @method
-     * @name bitmart#watchBalance
+     * @name hashkey#watchBalance
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#private-stream
      * @param {object} [params] extra parameters specific to the exchange API endpoint

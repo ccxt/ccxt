@@ -21,18 +21,29 @@ public partial class bitopro : Exchange
                 { "swap", false },
                 { "future", false },
                 { "option", false },
+                { "addMargin", false },
+                { "borrowCrossMargin", false },
+                { "borrowIsolatedMargin", false },
+                { "borrowMargin", false },
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
                 { "cancelOrders", true },
                 { "closeAllPositions", false },
                 { "closePosition", false },
                 { "createOrder", true },
+                { "createOrderWithTakeProfitAndStopLoss", false },
+                { "createOrderWithTakeProfitAndStopLossWs", false },
+                { "createReduceOnlyOrder", false },
                 { "createStopOrder", true },
                 { "createTriggerOrder", true },
                 { "editOrder", false },
                 { "fetchBalance", true },
+                { "fetchBorrowInterest", false },
+                { "fetchBorrowRate", false },
                 { "fetchBorrowRateHistories", false },
                 { "fetchBorrowRateHistory", false },
+                { "fetchBorrowRates", false },
+                { "fetchBorrowRatesPerSymbol", false },
                 { "fetchClosedOrders", true },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
@@ -43,19 +54,39 @@ public partial class bitopro : Exchange
                 { "fetchDepositWithdrawFee", "emulated" },
                 { "fetchDepositWithdrawFees", true },
                 { "fetchFundingHistory", false },
+                { "fetchFundingInterval", false },
+                { "fetchFundingIntervals", false },
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", false },
                 { "fetchFundingRates", false },
+                { "fetchGreeks", false },
                 { "fetchIndexOHLCV", false },
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
+                { "fetchIsolatedPositions", false },
+                { "fetchLeverage", false },
+                { "fetchLeverages", false },
+                { "fetchLeverageTiers", false },
+                { "fetchLiquidations", false },
+                { "fetchLongShortRatio", false },
+                { "fetchLongShortRatioHistory", false },
+                { "fetchMarginAdjustmentHistory", false },
                 { "fetchMarginMode", false },
+                { "fetchMarginModes", false },
+                { "fetchMarketLeverageTiers", false },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
+                { "fetchMarkPrices", false },
+                { "fetchMyLiquidations", false },
+                { "fetchMySettlementHistory", false },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
+                { "fetchOpenInterest", false },
                 { "fetchOpenInterestHistory", false },
+                { "fetchOpenInterests", false },
                 { "fetchOpenOrders", true },
+                { "fetchOption", false },
+                { "fetchOptionChain", false },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrders", false },
@@ -68,6 +99,7 @@ public partial class bitopro : Exchange
                 { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
+                { "fetchSettlementHistory", false },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
                 { "fetchTime", false },
@@ -78,10 +110,16 @@ public partial class bitopro : Exchange
                 { "fetchTransactions", false },
                 { "fetchTransfer", false },
                 { "fetchTransfers", false },
+                { "fetchVolatilityHistory", false },
                 { "fetchWithdrawal", true },
                 { "fetchWithdrawals", true },
+                { "reduceMargin", false },
+                { "repayCrossMargin", false },
+                { "repayIsolatedMargin", false },
                 { "setLeverage", false },
+                { "setMargin", false },
                 { "setMarginMode", false },
+                { "setPositionMode", false },
                 { "transfer", false },
                 { "withdraw", true },
             } },
@@ -174,6 +212,85 @@ public partial class bitopro : Exchange
                     { "BEP20", "BSC" },
                     { "BSC", "BSC" },
                 } },
+                { "fiatCurrencies", new List<object>() {"TWD"} },
+            } },
+            { "features", new Dictionary<string, object>() {
+                { "spot", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", true },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", false },
+                            { "FOK", false },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyRequiresPrice", false },
+                        { "marketBuyByCost", false },
+                        { "selfTradePrevention", false },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "daysBack", 100000 },
+                        { "daysBackCanceled", 1 },
+                        { "untilDays", 10000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1000 },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
             } },
             { "precisionMode", TICK_SIZE },
             { "exceptions", new Dictionary<string, object>() {
@@ -225,6 +342,7 @@ public partial class bitopro : Exchange
         //     }
         //
         object result = new Dictionary<string, object>() {};
+        object fiatCurrencies = this.safeList(this.options, "fiatCurrencies", new List<object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(currencies)); postFixIncrement(ref i))
         {
             object currency = getValue(currencies, i);
@@ -245,11 +363,12 @@ public partial class bitopro : Exchange
                     { "max", null },
                 } },
             };
+            object isFiat = this.inArray(code, fiatCurrencies);
             ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
                 { "id", currencyId },
                 { "code", code },
                 { "info", currency },
-                { "type", null },
+                { "type", ((bool) isTrue(isFiat)) ? "fiat" : "crypto" },
                 { "name", null },
                 { "active", isTrue(deposit) && isTrue(withdraw) },
                 { "deposit", deposit },
@@ -257,6 +376,7 @@ public partial class bitopro : Exchange
                 { "fee", fee },
                 { "precision", null },
                 { "limits", limits },
+                { "networks", null },
             };
         }
         return result;
@@ -1012,7 +1132,6 @@ public partial class bitopro : Exchange
             { "postOnly", postOnly },
             { "side", side },
             { "price", price },
-            { "stopPrice", null },
             { "triggerPrice", null },
             { "amount", amount },
             { "cost", null },
@@ -1060,14 +1179,14 @@ public partial class bitopro : Exchange
         if (isTrue(isEqual(orderType, "STOP_LIMIT")))
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
-            object stopPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
+            object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
             parameters = this.omit(parameters, new List<object>() {"triggerPrice", "stopPrice"});
-            if (isTrue(isEqual(stopPrice, null)))
+            if (isTrue(isEqual(triggerPrice, null)))
             {
-                throw new InvalidOrder ((string)add(add(add(this.id, " createOrder() requires a stopPrice parameter for "), orderType), " orders")) ;
+                throw new InvalidOrder ((string)add(add(add(this.id, " createOrder() requires a triggerPrice parameter for "), orderType), " orders")) ;
             } else
             {
-                ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, stopPrice);
+                ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, triggerPrice);
             }
             object condition = this.safeString(parameters, "condition");
             if (isTrue(isEqual(condition, null)))

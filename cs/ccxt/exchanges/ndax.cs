@@ -248,6 +248,79 @@ public partial class ndax : Exchange
                     } },
                 } },
             } },
+            { "features", new Dictionary<string, object>() {
+                { "spot", new Dictionary<string, object>() {
+                    { "sandbox", true },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", true },
+                        { "triggerDirection", false },
+                        { "triggerPriceType", new Dictionary<string, object>() {
+                            { "last", true },
+                            { "mark", false },
+                            { "index", false },
+                        } },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyByCost", false },
+                        { "marketBuyRequiresPrice", false },
+                        { "selfTradePrevention", false },
+                        { "iceberg", true },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "daysBack", null },
+                        { "untilDays", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchClosedOrders", null },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", null },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+            } },
             { "fees", new Dictionary<string, object>() {
                 { "trading", new Dictionary<string, object>() {
                     { "tierBased", false },
@@ -347,7 +420,7 @@ public partial class ndax : Exchange
             //
             //     {
             //         "Authenticated": true,
-            //         "UserId":57765,
+            //         "UserId":57764,
             //         "SessionToken":"4a2a5857-c4e5-4fac-b09e-2c4c30b591a0"
             //     }
             //
@@ -375,27 +448,30 @@ public partial class ndax : Exchange
         };
         object response = await this.publicGetGetProducts(this.extend(request, parameters));
         //
-        //     [
-        //         {
-        //             "OMSId":1,
-        //             "ProductId":1,
-        //             "Product":"BTC",
-        //             "ProductFullName":"Bitcoin",
-        //             "ProductType":"CryptoCurrency",
-        //             "DecimalPlaces":8,
-        //             "TickSize":0.0000000100000000000000000000,
-        //             "NoFees":false,
-        //             "IsDisabled":false,
-        //             "MarginEnabled":false
-        //         },
-        //     ]
+        //    [
+        //        {
+        //            "OMSId": "1",
+        //            "ProductId": "1",
+        //            "Product": "BTC",
+        //            "ProductFullName": "Bitcoin",
+        //            "MasterDataUniqueProductSymbol": "",
+        //            "ProductType": "CryptoCurrency",
+        //            "DecimalPlaces": "8",
+        //            "TickSize": "0.0000000100000000000000000000",
+        //            "DepositEnabled": true,
+        //            "WithdrawEnabled": true,
+        //            "NoFees": false,
+        //            "IsDisabled": false,
+        //            "MarginEnabled": false
+        //        },
+        //        ...
         //
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object currency = getValue(response, i);
             object id = this.safeString(currency, "ProductId");
-            object name = this.safeString(currency, "ProductFullName");
+            object code = this.safeCurrencyCode(this.safeString(currency, "Product"));
             object ProductType = this.safeString(currency, "ProductType");
             object type = ((bool) isTrue((isEqual(ProductType, "NationalCurrency")))) ? "fiat" : "crypto";
             if (isTrue(isEqual(ProductType, "Unknown")))
@@ -403,19 +479,16 @@ public partial class ndax : Exchange
                 // such currency is just a blanket entry
                 type = "other";
             }
-            object code = this.safeCurrencyCode(this.safeString(currency, "Product"));
-            object isDisabled = this.safeValue(currency, "IsDisabled");
-            object active = !isTrue(isDisabled);
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", id },
-                { "name", name },
+                { "name", this.safeString(currency, "ProductFullName") },
                 { "code", code },
                 { "type", type },
                 { "precision", this.safeNumber(currency, "TickSize") },
                 { "info", currency },
-                { "active", active },
-                { "deposit", null },
-                { "withdraw", null },
+                { "active", !isTrue(this.safeBool(currency, "IsDisabled")) },
+                { "deposit", this.safeBool(currency, "DepositEnabled") },
+                { "withdraw", this.safeBool(currency, "WithdrawEnabled") },
                 { "fee", null },
                 { "limits", new Dictionary<string, object>() {
                     { "amount", new Dictionary<string, object>() {
@@ -428,7 +501,8 @@ public partial class ndax : Exchange
                     } },
                 } },
                 { "networks", new Dictionary<string, object>() {} },
-            };
+                { "margin", this.safeBool(currency, "MarginEnabled") },
+            });
         }
         return result;
     }
@@ -598,7 +672,8 @@ public partial class ndax : Exchange
             object bidask = this.parseBidAsk(level, priceKey, amountKey);
             object levelSide = this.safeInteger(level, 9);
             object side = ((bool) isTrue(levelSide)) ? asksKey : bidsKey;
-            ((IList<object>)getValue(result, side)).Add(bidask);
+            object resultSide = getValue(result, side);
+            ((IList<object>)resultSide).Add(bidask);
         }
         ((IDictionary<string,object>)result)["bids"] = this.sortBy(getValue(result, "bids"), 0, true);
         ((IDictionary<string,object>)result)["asks"] = this.sortBy(getValue(result, "asks"), 0);
@@ -1134,8 +1209,12 @@ public partial class ndax : Exchange
         object omsId = this.safeInteger(this.options, "omsId", 1);
         await this.loadMarkets();
         await this.loadAccounts();
-        object defaultAccountId = this.safeInteger2(this.options, "accountId", "AccountId", parseInt(getValue(getValue(this.accounts, 0), "id")));
+        object defaultAccountId = this.safeInteger2(this.options, "accountId", "AccountId");
         object accountId = this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
+        if (isTrue(isEqual(accountId, null)))
+        {
+            accountId = parseInt(getValue(getValue(this.accounts, 0), "id"));
+        }
         parameters = this.omit(parameters, new List<object>() {"accountId", "AccountId"});
         object request = new Dictionary<string, object>() {
             { "omsId", omsId },
@@ -1267,7 +1346,7 @@ public partial class ndax : Exchange
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1411,7 +1490,7 @@ public partial class ndax : Exchange
             { "postOnly", null },
             { "side", this.safeStringLower(order, "Side") },
             { "price", this.safeString(order, "Price") },
-            { "stopPrice", this.parseNumber(this.omitZero(this.safeString(order, "StopPrice"))) },
+            { "triggerPrice", this.parseNumber(this.omitZero(this.safeString(order, "StopPrice"))) },
             { "cost", this.safeString(order, "GrossValueExecuted") },
             { "amount", this.safeString(order, "OrigQuantity") },
             { "filled", this.safeString(order, "QuantityExecuted") },
@@ -1434,6 +1513,7 @@ public partial class ndax : Exchange
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] the price at which a trigger order would be triggered
+     * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -1670,6 +1750,7 @@ public partial class ndax : Exchange
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)

@@ -115,6 +115,65 @@ public partial class coinone : Exchange
                     { "maker", 0.002 },
                 } },
             } },
+            { "features", new Dictionary<string, object>() {
+                { "spot", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", false },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", false },
+                            { "FOK", false },
+                            { "PO", false },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyByCost", false },
+                        { "marketBuyRequiresPrice", false },
+                        { "selfTradePrevention", false },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", null },
+                    { "fetchOHLCV", null },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+            } },
             { "precisionMode", TICK_SIZE },
             { "exceptions", new Dictionary<string, object>() {
                 { "104", typeof(OrderNotFound) },
@@ -166,18 +225,16 @@ public partial class coinone : Exchange
         {
             object entry = getValue(currencies, i);
             object id = this.safeString(entry, "symbol");
-            object name = this.safeString(entry, "name");
             object code = this.safeCurrencyCode(id);
-            object withdrawStatus = this.safeString(entry, "withdraw_status", "");
-            object depositStatus = this.safeString(entry, "deposit_status", "");
-            object isWithdrawEnabled = isEqual(withdrawStatus, "normal");
-            object isDepositEnabled = isEqual(depositStatus, "normal");
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            object isWithdrawEnabled = isEqual(this.safeString(entry, "withdraw_status", ""), "normal");
+            object isDepositEnabled = isEqual(this.safeString(entry, "deposit_status", ""), "normal");
+            object type = ((bool) isTrue((!isEqual(code, "KRW")))) ? "crypto" : "fiat";
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "code", code },
                 { "info", entry },
-                { "name", name },
-                { "active", isTrue(isWithdrawEnabled) && isTrue(isDepositEnabled) },
+                { "name", this.safeString(entry, "name") },
+                { "active", null },
                 { "deposit", isDepositEnabled },
                 { "withdraw", isWithdrawEnabled },
                 { "fee", this.safeNumber(entry, "withdrawal_fee") },
@@ -193,7 +250,8 @@ public partial class coinone : Exchange
                     } },
                 } },
                 { "networks", new Dictionary<string, object>() {} },
-            };
+                { "type", type },
+            });
         }
         return result;
     }
@@ -908,7 +966,6 @@ public partial class coinone : Exchange
             { "postOnly", null },
             { "side", side },
             { "price", this.safeString(order, "price") },
-            { "stopPrice", null },
             { "triggerPrice", null },
             { "cost", null },
             { "average", this.safeString(order, "averageExecutedPrice") },

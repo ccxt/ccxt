@@ -19,12 +19,20 @@
             "szDecimals": "5",
             "name": "BTC",
             "maxLeverage": "50"
+            "marginTableId": "40"
         },
+        "id": 0,
+        "numericId": null,
+        "code": "BTC",
+        "precision": null,
+        "type": "crypto",
+        "name": "BTC",
         "active": null,
         "deposit": null,
         "withdraw": null,
-        "networks": null,
         "fee": null,
+        "fees": {},
+        "networks": null,
         "limits": {
             "amount": {
                 "min": null,

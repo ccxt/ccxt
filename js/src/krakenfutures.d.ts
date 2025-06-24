@@ -1,5 +1,5 @@
 import Exchange from './abstract/krakenfutures.js';
-import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OrderRequest, Order, Balances, Str, Dict, Ticker, OrderBook, Tickers, Strings, Market, Currency, Leverage, Leverages, Num, LeverageTier, LeverageTiers, int, FundingRate, FundingRates } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OrderRequest, Order, Balances, Str, Dict, Ticker, OrderBook, Tickers, Strings, Market, Currency, Leverage, Leverages, Num, LeverageTier, LeverageTiers, int, FundingRate, FundingRates, Position } from './base/types.js';
 /**
  * @class krakenfutures
  * @augments Exchange
@@ -39,7 +39,7 @@ export default class krakenfutures extends Exchange {
     parseTicker(ticker: Dict, market?: Market): Ticker;
     /**
      * @method
-     * @name kraken#fetchOHLCV
+     * @name krakenfutures#fetchOHLCV
      * @see https://docs.futures.kraken.com/#http-api-charts-candles
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
@@ -74,7 +74,7 @@ export default class krakenfutures extends Exchange {
      * @method
      * @name krakenfutures#createOrder
      * @description Create an order on the exchange
-     * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-send-order
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/send-order
      * @param {string} symbol unified market symbol
      * @param {string} type 'limit' or 'market'
      * @param {string} side 'buy' or 'sell'
@@ -95,7 +95,7 @@ export default class krakenfutures extends Exchange {
      * @method
      * @name krakenfutures#createOrders
      * @description create a list of trade orders
-     * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-batch-order-management
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/send-batch-order
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -258,7 +258,7 @@ export default class krakenfutures extends Exchange {
      * @param {object} [params] Not used by krakenfutures
      * @returns Parsed exchange response for positions
      */
-    fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
+    fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
     parsePositions(response: any, symbols?: Strings, params?: {}): any[];
     parsePosition(position: Dict, market?: Market): {
         info: Dict;

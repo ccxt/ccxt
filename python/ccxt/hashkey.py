@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.hashkey import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Bool, Currencies, Currency, DepositAddress, Int, LastPrice, LastPrices, LedgerEntry, Leverage, LeverageTier, LeverageTiers, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Any, Balances, Bool, Currencies, Currency, DepositAddress, Int, LastPrice, LastPrices, LedgerEntry, Leverage, LeverageTier, LeverageTiers, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -38,7 +38,7 @@ from ccxt.base.precise import Precise
 
 class hashkey(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(hashkey, self).describe(), {
             'id': 'hashkey',
             'name': 'HashKey Global',
@@ -361,6 +361,85 @@ class hashkey(Exchange, ImplicitAPI):
                 },
                 'defaultNetwork': 'ERC20',
             },
+            'features': {
+                'default': {
+                    'sandbox': True,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': False,
+                        'triggerPriceType': None,
+                        'triggerDirection': False,
+                        'stopLossPrice': False,
+                        'takeProfitPrice': False,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': True,  # todo fix
+                        'selfTradePrevention': True,  # todo implement
+                        'iceberg': False,
+                    },
+                    'createOrders': {
+                        'max': 20,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': 30,
+                        'untilDays': 30,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': None,  # todo
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'forDerivatives': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'triggerPrice': True,
+                        'selfTradePrevention': True,
+                    },
+                    'fetchOpenOrders': {
+                        'trigger': True,
+                        'limit': 500,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
             'commonCurrencies': {},
             'exceptions': {
                 'exact': {
@@ -582,11 +661,7 @@ class hashkey(Exchange, ImplicitAPI):
         :param str [params.symbol]: the id of the market to fetch
         :returns dict[]: an array of objects representing market data
         """
-        symbol: Str = None
         request: dict = {}
-        symbol, params = self.handle_option_and_params(params, 'fetchMarkets', 'symbol')
-        if symbol is not None:
-            request['symbol'] = symbol
         response = self.publicGetApiV1ExchangeInfo(self.extend(request, params))
         #
         #     {
@@ -1076,47 +1151,43 @@ class hashkey(Exchange, ImplicitAPI):
             currecy = coins[i]
             currencyId = self.safe_string(currecy, 'coinId')
             code = self.safe_currency_code(currencyId)
-            allowWithdraw = self.safe_bool(currecy, 'allowWithdraw')
-            allowDeposit = self.safe_bool(currecy, 'allowDeposit')
             networks = self.safe_list(currecy, 'chainTypes')
-            networksById = self.safe_dict(self.options, 'networksById')
             parsedNetworks: dict = {}
             for j in range(0, len(networks)):
                 network = networks[j]
                 networkId = self.safe_string(network, 'chainType')
-                networkName = self.safe_string(networksById, networkId, networkId)
-                maxWithdrawQuantity = self.omit_zero(self.safe_string(network, 'maxWithdrawQuantity'))
-                networkDeposit = self.safe_bool(network, 'allowDeposit')
-                networkWithdraw = self.safe_bool(network, 'allowWithdraw')
-                parsedNetworks[networkName] = {
+                networkCode = self.network_code_to_id(networkId)
+                parsedNetworks[networkCode] = {
                     'id': networkId,
-                    'network': networkName,
+                    'network': networkCode,
                     'limits': {
                         'withdraw': {
                             'min': self.safe_number(network, 'minWithdrawQuantity'),
-                            'max': self.parse_number(maxWithdrawQuantity),
+                            'max': self.parse_number(self.omit_zero(self.safe_string(network, 'maxWithdrawQuantity'))),
                         },
                         'deposit': {
                             'min': self.safe_number(network, 'minDepositQuantity'),
                             'max': None,
                         },
                     },
-                    'active': networkDeposit and networkWithdraw,
-                    'deposit': networkDeposit,
-                    'withdraw': networkWithdraw,
+                    'active': None,
+                    'deposit': self.safe_bool(network, 'allowDeposit'),
+                    'withdraw': self.safe_bool(network, 'allowWithdraw'),
                     'fee': self.safe_number(network, 'withdrawFee'),
                     'precision': None,
                     'info': network,
                 }
-            result[code] = {
+            rawType = self.safe_string(currecy, 'tokenType')
+            type = 'fiat' if (rawType == 'REAL_MONEY') else 'crypto'
+            result[code] = self.safe_currency_structure({
                 'id': currencyId,
                 'code': code,
                 'precision': None,
-                'type': self.parse_currency_type(self.safe_string(currecy, 'tokenType')),
+                'type': type,
                 'name': self.safe_string(currecy, 'coinFullName'),
-                'active': allowWithdraw and allowDeposit,
-                'deposit': allowDeposit,
-                'withdraw': allowWithdraw,
+                'active': None,
+                'deposit': self.safe_bool(currecy, 'allowDeposit'),
+                'withdraw': self.safe_bool(currecy, 'allowWithdraw'),
                 'fee': None,
                 'limits': {
                     'deposit': {
@@ -1130,17 +1201,8 @@ class hashkey(Exchange, ImplicitAPI):
                 },
                 'networks': parsedNetworks,
                 'info': currecy,
-            }
+            })
         return result
-
-    def parse_currency_type(self, type):
-        types = {
-            'CHAIN_TOKEN': 'crypto',
-            'ERC20_TOKEN': 'crypto',
-            'BSC_TOKEN': 'crypto',
-            'REAL_MONEY': 'fiat',
-        }
-        return self.safe_string(types, type)
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
@@ -1254,10 +1316,6 @@ class hashkey(Exchange, ImplicitAPI):
         if marketType == 'spot':
             if market is not None:
                 request['symbol'] = market['id']
-            clientOrderId: Str = None
-            clientOrderId, params = self.handle_option_and_params(params, methodName, 'clientOrderId')
-            if clientOrderId is not None:
-                request['clientOrderId'] = clientOrderId
             if accountId is not None:
                 request['accountId'] = accountId
             response = self.privateGetApiV1AccountTrades(self.extend(request, params))
@@ -1386,9 +1444,14 @@ class hashkey(Exchange, ImplicitAPI):
         if isBuyer is not None:
             side = 'buy' if isBuyer else 'sell'
         takerOrMaker = None
-        isMaker = self.safe_bool_n(trade, ['isMaker', 'isMarker', 'ibm'])
+        isMaker = self.safe_bool_n(trade, ['isMaker', 'isMarker'])
         if isMaker is not None:
             takerOrMaker = 'maker' if isMaker else 'taker'
+        isBuyerMaker = self.safe_bool(trade, 'ibm')
+        # if public trade
+        if isBuyerMaker is not None:
+            takerOrMaker = 'taker'
+            side = 'sell' if isBuyerMaker else 'buy'
         feeCost = self.safe_string(trade, 'commission')
         feeCurrncyId = self.safe_string(trade, 'commissionAsset')
         feeInfo = self.safe_dict(trade, 'fee')
@@ -1601,10 +1664,6 @@ class hashkey(Exchange, ImplicitAPI):
         self.load_markets()
         symbols = self.market_symbols(symbols)
         request: dict = {}
-        symbol: Str = None
-        symbol, params = self.handle_option_and_params(params, 'fetchLastPrices', 'symbol')
-        if symbol is not None:
-            request['symbol'] = symbol
         response = self.publicGetQuoteV1TickerPrice(self.extend(request, params))
         #
         #     [
@@ -1662,10 +1721,6 @@ class hashkey(Exchange, ImplicitAPI):
             balance = self.safe_dict(response, 0, {})
             return self.parse_swap_balance(balance)
         elif marketType == 'spot':
-            accountId: Str = None
-            accountId, params = self.handle_option_and_params(params, methodName, 'accountId')
-            if accountId is not None:
-                request['accountId'] = accountId
             response = self.privateGetApiV1Account(self.extend(request, params))
             #
             #     {
@@ -1931,18 +1986,10 @@ class hashkey(Exchange, ImplicitAPI):
         }
         if tag is not None:
             request['addressExt'] = tag
-        clientOrderId: Str = None
-        clientOrderId, params = self.handle_option_and_params(params, 'withdraw', 'clientOrderId')
-        if clientOrderId is not None:
-            request['clientOrderId'] = clientOrderId
         networkCode: Str = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is not None:
             request['chainType'] = self.network_code_to_id(networkCode)
-        platform: Str = None
-        platform, params = self.handle_option_and_params(params, 'withdraw', 'platform')
-        if platform is not None:
-            request['platform'] = platform
         response = self.privatePostApiV1AccountWithdraw(self.extend(request, params))
         #
         #     {
@@ -2081,14 +2128,6 @@ class hashkey(Exchange, ImplicitAPI):
             'fromAccountId': fromAccount,
             'toAccountId': toAccount,
         }
-        clientOrderId: Str = None
-        clientOrderId, params = self.handle_option_and_params(params, 'transfer', 'clientOrderId')
-        if clientOrderId is not None:
-            request['clientOrderId'] = clientOrderId
-        remark: Str = None
-        remark, params = self.handle_option_and_params(params, 'transfer', 'remark')
-        if remark is not None:
-            request['remark'] = remark
         response = self.privatePostApiV1AccountAssetTransfer(self.extend(request, params))
         #
         #     {
@@ -2199,7 +2238,7 @@ class hashkey(Exchange, ImplicitAPI):
         :param int [params.until]: the latest time in ms to fetch entries for
         :param int [params.flowType]: trade, fee, transfer, deposit, withdrawal
         :param int [params.accountType]: spot, swap, custody
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
         methodName = 'fetchLedger'
         if since is None:
@@ -2347,8 +2386,10 @@ class hashkey(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() is supported for spot markets only')
-        params['cost'] = cost
-        return self.create_order(symbol, 'market', 'buy', cost, None, params)
+        req = {
+            'cost': cost,
+        }
+        return self.create_order(symbol, 'market', 'buy', cost, None, self.extend(req, params))
 
     def create_spot_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """
@@ -2926,10 +2967,6 @@ class hashkey(Exchange, ImplicitAPI):
         if marketType == 'spot':
             if clientOrderId is not None:
                 request['origClientOrderId'] = clientOrderId
-            accountId: Str = None
-            accountId, params = self.handle_option_and_params(params, methodName, 'accountId')
-            if accountId is not None:
-                request['accountId'] = accountId
             response = self.privateGetApiV1SpotOrder(self.extend(request, params))
             #
             #     {
@@ -3065,14 +3102,6 @@ class hashkey(Exchange, ImplicitAPI):
                 request['symbol'] = market['id']
             if limit is not None:
                 request['limit'] = limit
-            orderId: Str = None
-            orderId, params = self.handle_option_and_params(params, methodName, 'orderId')
-            if orderId is not None:
-                request['orderId'] = orderId
-            side: Str = None
-            side, params = self.handle_option_and_params(params, methodName, 'side')
-            if side is not None:
-                request['side'] = side.upper()
             response = self.privateGetApiV1SpotOpenOrders(self.extend(request, params))
             #
             #     [
@@ -3138,10 +3167,6 @@ class hashkey(Exchange, ImplicitAPI):
             request['type'] = 'LIMIT'
         if limit is not None:
             request['limit'] = limit
-        fromOrderId: Str = None
-        fromOrderId, params = self.handle_option_and_params(params, methodName, 'fromOrderId')
-        if fromOrderId is not None:
-            request['fromOrderId'] = fromOrderId
         response = None
         accountId: Str = None
         accountId, params = self.handle_option_and_params(params, methodName, 'accountId')
@@ -3240,14 +3265,6 @@ class hashkey(Exchange, ImplicitAPI):
         if marketType == 'spot':
             if market is not None:
                 request['symbol'] = market['id']
-            orderId: Str = None
-            orderId, params = self.handle_option_and_params(params, methodName, 'orderId')
-            if orderId is not None:
-                request['orderId'] = orderId
-            side: Str = None
-            side, params = self.handle_option_and_params(params, methodName, 'side')
-            if side is not None:
-                request['side'] = side.upper()
             if accountId is not None:
                 request['accountId'] = accountId
             response = self.privateGetApiV1SpotTradeOrders(self.extend(request, params))
@@ -3290,10 +3307,6 @@ class hashkey(Exchange, ImplicitAPI):
                 request['type'] = 'STOP'
             else:
                 request['type'] = 'LIMIT'
-            fromOrderId: Str = None
-            fromOrderId, params = self.handle_option_and_params(params, methodName, 'fromOrderId')
-            if fromOrderId is not None:
-                request['fromOrderId'] = fromOrderId
             if accountId is not None:
                 request['subAccountId'] = accountId
                 response = self.privateGetApiV1FuturesSubAccountHistoryOrders(self.extend(request, params))
@@ -3337,10 +3350,8 @@ class hashkey(Exchange, ImplicitAPI):
             raise BadRequest(self.id + ' ' + methodName + '() type parameter can not be "' + paramsType + '". It should define the type of the market("spot" or "swap"). To define the type of an order use the trigger parameter(True for trigger orders)')
 
     def handle_trigger_option_and_params(self, params: object, methodName: str, defaultValue=None):
-        isStop = defaultValue
-        isStop, params = self.handle_option_and_params(params, methodName, 'stop', isStop)
-        isTrigger = isStop
-        isTrigger, params = self.handle_option_and_params(params, methodName, 'trigger', isTrigger)
+        isTrigger = defaultValue
+        isTrigger, params = self.handle_option_and_params_2(params, methodName, 'stop', 'trigger', isTrigger)
         return [isTrigger, params]
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
@@ -3479,7 +3490,6 @@ class hashkey(Exchange, ImplicitAPI):
         feeCurrncyId = self.safe_string(order, 'feeCoin')
         if feeCurrncyId == '':
             feeCurrncyId = None
-        triggerPrice = self.omit_zero(self.safe_string(order, 'stopPrice'))
         return self.safe_order({
             'id': self.safe_string(order, 'orderId'),
             'clientOrderId': self.safe_string(order, 'clientOrderId'),
@@ -3497,8 +3507,7 @@ class hashkey(Exchange, ImplicitAPI):
             'amount': self.omit_zero(self.safe_string(order, 'origQty')),
             'filled': self.safe_string(order, 'executedQty'),
             'remaining': None,
-            'stopPrice': triggerPrice,
-            'triggerPrice': triggerPrice,
+            'triggerPrice': self.omit_zero(self.safe_string(order, 'stopPrice')),
             'takeProfitPrice': None,
             'stopLossPrice': None,
             'cost': self.omit_zero(self.safe_string_2(order, 'cumulativeQuoteQty', 'cummulativeQuoteQty')),
@@ -3604,8 +3613,7 @@ class hashkey(Exchange, ImplicitAPI):
         #         {"symbol": "ETHUSDT-PERPETUAL", "rate": "0.0001", "nextSettleTime": "1722297600000"}
         #     ]
         #
-        fundingRates = self.parse_funding_rates(response)
-        return self.filter_by_array(fundingRates, 'symbol', symbols)
+        return self.parse_funding_rates(response, symbols)
 
     def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         #
@@ -3732,10 +3740,6 @@ class hashkey(Exchange, ImplicitAPI):
         request: dict = {
             'symbol': market['id'],
         }
-        side: Str = None
-        side, params = self.handle_option_and_params(params, methodName, 'side')
-        if side is not None:
-            request['side'] = side.upper()
         response = self.privateGetApiV1FuturesPositions(self.extend(request, params))
         #
         #     [

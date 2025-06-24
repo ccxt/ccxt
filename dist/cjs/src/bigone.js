@@ -7,7 +7,7 @@ var rsa = require('./base/functions/rsa.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var Precise = require('./base/Precise.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bigone
@@ -296,6 +296,110 @@ class bigone extends bigone$1 {
                     // undetermined: XinFin, YAS, Ycash
                 },
             },
+            'features': {
+                'default': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': true,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': false,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyRequiresPrice': true,
+                        'marketBuyByCost': true,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 200,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                        'symbolRequired': true,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 200,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 200,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 200,
+                        'daysBack': undefined,
+                        'daysBackCanceled': undefined,
+                        'untilDays': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 500,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'forDerivatives': {
+                    'extends': 'default',
+                    'createOrder': {
+                        // todo: implement
+                        'triggerPriceType': {
+                            'mark': true,
+                            'index': true,
+                            'last': true,
+                        },
+                    },
+                    'fetchOrders': {
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                    },
+                    'fetchClosedOrders': {
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
             'precisionMode': number.TICK_SIZE,
             'exceptions': {
                 'exact': {
@@ -398,19 +502,15 @@ class bigone extends bigone$1 {
             const id = this.safeString(currency, 'symbol');
             const code = this.safeCurrencyCode(id);
             const name = this.safeString(currency, 'name');
-            const type = this.safeBool(currency, 'is_fiat') ? 'fiat' : 'crypto';
             const networks = {};
             const chains = this.safeList(currency, 'binding_gateways', []);
-            let currencyMaxPrecision = this.parsePrecision(this.safeString2(currency, 'withdrawal_scale', 'scale'));
-            let currencyDepositEnabled = undefined;
-            let currencyWithdrawEnabled = undefined;
+            const currencyMaxPrecision = this.parsePrecision(this.safeString2(currency, 'withdrawal_scale', 'scale'));
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString(chain, 'gateway_name');
                 const networkCode = this.networkIdToCode(networkId);
                 const deposit = this.safeBool(chain, 'is_deposit_enabled');
                 const withdraw = this.safeBool(chain, 'is_withdrawal_enabled');
-                const isActive = (deposit && withdraw);
                 const minDepositAmount = this.safeString(chain, 'min_deposit_amount');
                 const minWithdrawalAmount = this.safeString(chain, 'min_withdrawal_amount');
                 const withdrawalFee = this.safeString(chain, 'withdrawal_fee');
@@ -421,7 +521,7 @@ class bigone extends bigone$1 {
                     'margin': undefined,
                     'deposit': deposit,
                     'withdraw': withdraw,
-                    'active': isActive,
+                    'active': undefined,
                     'fee': this.parseNumber(withdrawalFee),
                     'precision': this.parseNumber(precision),
                     'limits': {
@@ -436,20 +536,32 @@ class bigone extends bigone$1 {
                     },
                     'info': chain,
                 };
-                // fill global values
-                currencyDepositEnabled = (currencyDepositEnabled === undefined) || deposit ? deposit : currencyDepositEnabled;
-                currencyWithdrawEnabled = (currencyWithdrawEnabled === undefined) || withdraw ? withdraw : currencyWithdrawEnabled;
-                currencyMaxPrecision = (currencyMaxPrecision === undefined) || Precise["default"].stringGt(currencyMaxPrecision, precision) ? precision : currencyMaxPrecision;
             }
-            result[code] = {
+            const chainLength = chains.length;
+            let type = undefined;
+            if (this.safeBool(currency, 'is_fiat')) {
+                type = 'fiat';
+            }
+            else if (chainLength === 0) {
+                if (this.isLeveragedCurrency(id)) {
+                    type = 'leveraged';
+                }
+                else {
+                    type = 'other';
+                }
+            }
+            else {
+                type = 'crypto';
+            }
+            result[code] = this.safeCurrencyStructure({
                 'id': id,
                 'code': code,
                 'info': currency,
                 'name': name,
                 'type': type,
                 'active': undefined,
-                'deposit': currencyDepositEnabled,
-                'withdraw': currencyWithdrawEnabled,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': undefined,
                 'precision': this.parseNumber(currencyMaxPrecision),
                 'limits': {
@@ -463,7 +575,7 @@ class bigone extends bigone$1 {
                     },
                 },
                 'networks': networks,
-            };
+            });
         }
         return result;
     }
@@ -1072,8 +1184,8 @@ class bigone extends bigone$1 {
             'cost': undefined,
             'info': trade,
         };
-        let makerCurrencyCode = undefined;
-        let takerCurrencyCode = undefined;
+        let makerCurrencyCode;
+        let takerCurrencyCode;
         if (takerOrMaker !== undefined) {
             if (side === 'buy') {
                 if (takerOrMaker === 'maker') {
@@ -1202,6 +1314,7 @@ class bigone extends bigone$1 {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the earliest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -1210,20 +1323,32 @@ class bigone extends bigone$1 {
         if (market['contract']) {
             throw new errors.BadRequest(this.id + ' fetchOHLCV () can only fetch ohlcvs for spot markets');
         }
+        const until = this.safeInteger(params, 'until');
+        const untilIsDefined = (until !== undefined);
+        const sinceIsDefined = (since !== undefined);
         if (limit === undefined) {
-            limit = 100; // default 100, max 500
+            limit = (sinceIsDefined && untilIsDefined) ? 500 : 100; // default 100, max 500, if since and limit defined then fetch all the candles between them unless it exceeds the max of 500
         }
         const request = {
             'asset_pair_name': market['id'],
             'period': this.safeString(this.timeframes, timeframe, timeframe),
             'limit': limit,
         };
-        if (since !== undefined) {
+        if (sinceIsDefined) {
             // const start = this.parseToInt (since / 1000);
             const duration = this.parseTimeframe(timeframe);
-            const end = this.sum(since, limit * duration * 1000);
-            request['time'] = this.iso8601(end);
+            const endByLimit = this.sum(since, limit * duration * 1000);
+            if (untilIsDefined) {
+                request['time'] = this.iso8601(Math.min(endByLimit, until + 1));
+            }
+            else {
+                request['time'] = this.iso8601(endByLimit);
+            }
         }
+        else if (untilIsDefined) {
+            request['time'] = this.iso8601(until + 1);
+        }
+        params = this.omit(params, 'until');
         const response = await this.publicGetAssetPairsAssetPairNameCandles(this.extend(request, params));
         //
         //     {
@@ -1375,7 +1500,6 @@ class bigone extends bigone$1 {
             'postOnly': this.safeBool(order, 'post_only'),
             'side': side,
             'price': price,
-            'stopPrice': triggerPrice,
             'triggerPrice': triggerPrice,
             'amount': amount,
             'cost': cost,

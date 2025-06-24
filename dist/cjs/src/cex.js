@@ -6,7 +6,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class cex
@@ -27,33 +27,95 @@ class cex extends cex$1 {
                 'swap': false,
                 'future': false,
                 'option': false,
+                'addMargin': false,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': false,
+                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createOrder': true,
+                'createOrderWithTakeProfitAndStopLoss': false,
+                'createOrderWithTakeProfitAndStopLossWs': false,
+                'createPostOnlyOrder': false,
+                'createReduceOnlyOrder': false,
                 'createStopOrder': true,
                 'createTriggerOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrder': true,
                 'fetchClosedOrders': true,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,
+                'fetchFundingInterval': false,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
+                'fetchGreeks': false,
+                'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
+                'fetchIsolatedPositions': false,
                 'fetchLedger': true,
+                'fetchLeverage': false,
+                'fetchLeverages': false,
+                'fetchLeverageTiers': false,
+                'fetchLiquidations': false,
+                'fetchLongShortRatio': false,
+                'fetchLongShortRatioHistory': false,
+                'fetchMarginAdjustmentHistory': false,
+                'fetchMarginMode': false,
+                'fetchMarginModes': false,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
+                'fetchMarkPrices': false,
+                'fetchMyLiquidations': false,
+                'fetchMySettlementHistory': false,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': false,
+                'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': false,
                 'fetchOpenOrder': true,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrderBook': true,
+                'fetchPosition': false,
+                'fetchPositionHistory': false,
+                'fetchPositionMode': false,
+                'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFees': true,
+                'fetchVolatilityHistory': false,
+                'reduceMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
+                'repayMargin': false,
+                'setLeverage': false,
+                'setMargin': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
                 'transfer': true,
             },
             'urls': {
@@ -108,6 +170,65 @@ class cex extends cex$1 {
                         'do_deposit_funds_from_wallet': 1,
                         'do_withdrawal_funds_to_wallet': 1,
                     },
+                },
+            },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': false,
+                            'GTD': true,
+                        },
+                        'hedged': false,
+                        'leverage': false,
+                        'marketBuyRequiresPrice': false,
+                        'marketBuyByCost': true,
+                        'selfTradePrevention': false,
+                        'trailing': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': undefined,
+                    'fetchOrder': undefined,
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
                 },
             },
             'precisionMode': number.TICK_SIZE,
@@ -242,8 +363,6 @@ class cex extends cex$1 {
         const id = this.safeString(rawCurrency, 'currency');
         const code = this.safeCurrencyCode(id);
         const type = this.safeBool(rawCurrency, 'fiat') ? 'fiat' : 'crypto';
-        const currencyDepositEnabled = this.safeBool(rawCurrency, 'walletDeposit');
-        const currencyWithdrawEnabled = this.safeBool(rawCurrency, 'walletWithdrawal');
         const currencyPrecision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 'precision')));
         const networks = {};
         const rawNetworks = this.safeDict(rawCurrency, 'blockchains', {});
@@ -260,6 +379,7 @@ class cex extends cex$1 {
                 'margin': undefined,
                 'deposit': deposit,
                 'withdraw': withdraw,
+                'active': undefined,
                 'fee': this.safeNumber(rawNetwork, 'withdrawalFee'),
                 'precision': currencyPrecision,
                 'limits': {
@@ -281,8 +401,8 @@ class cex extends cex$1 {
             'name': undefined,
             'type': type,
             'active': undefined,
-            'deposit': currencyDepositEnabled,
-            'withdraw': currencyWithdrawEnabled,
+            'deposit': this.safeBool(rawCurrency, 'walletDeposit'),
+            'withdraw': this.safeBool(rawCurrency, 'walletWithdrawal'),
             'fee': undefined,
             'precision': currencyPrecision,
             'limits': {
@@ -489,7 +609,7 @@ class cex extends cex$1 {
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': this.safeString(ticker, 'lastTradePrice'),
+            'close': this.safeString(ticker, 'last'),
             'previousClose': undefined,
             'change': this.safeNumber(ticker, 'priceChange'),
             'percentage': this.safeNumber(ticker, 'priceChangePercentage'),
@@ -1087,7 +1207,7 @@ class cex extends cex$1 {
             'postOnly': undefined,
             'side': this.safeStringLower(order, 'side'),
             'price': this.safeNumber(order, 'price'),
-            'stopPrice': this.safeNumber(order, 'stopPrice'),
+            'triggerPrice': this.safeNumber(order, 'stopPrice'),
             'amount': requestedBase,
             'cost': executedQuote,
             'average': this.safeNumber(order, 'averagePrice'),
@@ -1261,7 +1381,7 @@ class cex extends cex$1 {
      * @param {int} [limit] max number of ledger entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest ledger entry
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();

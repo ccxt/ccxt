@@ -4,7 +4,7 @@ import Client from '../base/ws/Client.js';
 /**
  * @class bitget
  * @augments Exchange
- * @description watching delivery future markets is not yet implemented (perpertual future / swap is implemented)
+ * @description watching delivery future markets is not yet implemented (perpertual future & swap is implemented)
  */
 export default class bitget extends bitgetRest {
     describe(): any;
@@ -193,7 +193,7 @@ export default class bitget extends bitgetRest {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.stop] *contract only* set to true for watching trigger orders
+     * @param {boolean} [params.trigger] *contract only* set to true for watching trigger orders
      * @param {string} [params.marginMode] 'isolated' or 'cross' for watching spot margin orders]
      * @param {string} [params.type] 'spot', 'swap'
      * @param {string} [params.subType] 'linear', 'inverse'

@@ -1333,7 +1333,7 @@ public partial class cex : ccxt.cex
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
-            throw new ArgumentsRequired ((string)add(this.id, "fetchOpenOrdersWs requires a symbol.")) ;
+            throw new ArgumentsRequired ((string)add(this.id, " fetchOpenOrdersWs requires a symbol.")) ;
         }
         await this.loadMarkets();
         await this.authenticate();

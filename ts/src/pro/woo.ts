@@ -11,7 +11,7 @@ import Client from '../base/ws/Client.js';
 // ----------------------------------------------------------------------------
 
 export default class woo extends wooRest {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -906,7 +906,7 @@ export default class woo extends wooRest {
             'triggerPrice': undefined,
             'amount': amount,
             'cost': undefined,
-            'average': undefined,
+            'average': avgPrice,
             'filled': filled,
             'remaining': remaining,
             'status': status,

@@ -13,13 +13,13 @@ use ccxt\BadRequest;
 use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use React\Async;
-use React\Promise;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise;
+use \React\Promise\PromiseInterface;
 
 class bigone extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bigone',
             'name' => 'BigONE',
@@ -301,6 +301,110 @@ class bigone extends Exchange {
                     // undetermined => XinFin, YAS, Ycash
                 ),
             ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => true, // todo implement
+                        'stopLossPrice' => false, // todo by trigger
+                        'takeProfitPrice' => false, // todo by trigger
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => false,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyRequiresPrice' => true,
+                        'marketBuyByCost' => true,
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null, // todo => implement
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 200,
+                        'daysBack' => null,
+                        'untilDays' => null,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 200,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 200,
+                        'daysBack' => null,
+                        'untilDays' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 200,
+                        'daysBack' => null,
+                        'daysBackCanceled' => null,
+                        'untilDays' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 500,
+                    ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
+                'forDerivatives' => array(
+                    'extends' => 'default',
+                    'createOrder' => array(
+                        // todo => implement
+                        'triggerPriceType' => array(
+                            'mark' => true,
+                            'index' => true,
+                            'last' => true,
+                        ),
+                    ),
+                    'fetchOrders' => array(
+                        'daysBack' => 100000,
+                        'untilDays' => 100000,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'daysBack' => 100000,
+                        'untilDays' => 100000,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
@@ -404,19 +508,15 @@ class bigone extends Exchange {
                 $id = $this->safe_string($currency, 'symbol');
                 $code = $this->safe_currency_code($id);
                 $name = $this->safe_string($currency, 'name');
-                $type = $this->safe_bool($currency, 'is_fiat') ? 'fiat' : 'crypto';
                 $networks = array();
                 $chains = $this->safe_list($currency, 'binding_gateways', array());
                 $currencyMaxPrecision = $this->parse_precision($this->safe_string_2($currency, 'withdrawal_scale', 'scale'));
-                $currencyDepositEnabled = null;
-                $currencyWithdrawEnabled = null;
                 for ($j = 0; $j < count($chains); $j++) {
                     $chain = $chains[$j];
                     $networkId = $this->safe_string($chain, 'gateway_name');
                     $networkCode = $this->network_id_to_code($networkId);
                     $deposit = $this->safe_bool($chain, 'is_deposit_enabled');
                     $withdraw = $this->safe_bool($chain, 'is_withdrawal_enabled');
-                    $isActive = ($deposit && $withdraw);
                     $minDepositAmount = $this->safe_string($chain, 'min_deposit_amount');
                     $minWithdrawalAmount = $this->safe_string($chain, 'min_withdrawal_amount');
                     $withdrawalFee = $this->safe_string($chain, 'withdrawal_fee');
@@ -427,7 +527,7 @@ class bigone extends Exchange {
                         'margin' => null,
                         'deposit' => $deposit,
                         'withdraw' => $withdraw,
-                        'active' => $isActive,
+                        'active' => null,
                         'fee' => $this->parse_number($withdrawalFee),
                         'precision' => $this->parse_number($precision),
                         'limits' => array(
@@ -442,20 +542,29 @@ class bigone extends Exchange {
                         ),
                         'info' => $chain,
                     );
-                    // fill global values
-                    $currencyDepositEnabled = ($currencyDepositEnabled === null) || $deposit ? $deposit : $currencyDepositEnabled;
-                    $currencyWithdrawEnabled = ($currencyWithdrawEnabled === null) || $withdraw ? $withdraw : $currencyWithdrawEnabled;
-                    $currencyMaxPrecision = ($currencyMaxPrecision === null) || Precise::string_gt($currencyMaxPrecision, $precision) ? $precision : $currencyMaxPrecision;
                 }
-                $result[$code] = array(
+                $chainLength = count($chains);
+                $type = null;
+                if ($this->safe_bool($currency, 'is_fiat')) {
+                    $type = 'fiat';
+                } elseif ($chainLength === 0) {
+                    if ($this->is_leveraged_currency($id)) {
+                        $type = 'leveraged';
+                    } else {
+                        $type = 'other';
+                    }
+                } else {
+                    $type = 'crypto';
+                }
+                $result[$code] = $this->safe_currency_structure(array(
                     'id' => $id,
                     'code' => $code,
                     'info' => $currency,
                     'name' => $name,
                     'type' => $type,
                     'active' => null,
-                    'deposit' => $currencyDepositEnabled,
-                    'withdraw' => $currencyWithdrawEnabled,
+                    'deposit' => null,
+                    'withdraw' => null,
                     'fee' => null,
                     'precision' => $this->parse_number($currencyMaxPrecision),
                     'limits' => array(
@@ -469,7 +578,7 @@ class bigone extends Exchange {
                         ),
                     ),
                     'networks' => $networks,
-                );
+                ));
             }
             return $result;
         }) ();
@@ -879,7 +988,7 @@ class bigone extends Exchange {
         }) ();
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer $timestamp in milliseconds from the exchange server
@@ -1092,8 +1201,6 @@ class bigone extends Exchange {
             'cost' => null,
             'info' => $trade,
         );
-        $makerCurrencyCode = null;
-        $takerCurrencyCode = null;
         if ($takerOrMaker !== null) {
             if ($side === 'buy') {
                 if ($takerOrMaker === 'maker') {
@@ -1221,6 +1328,7 @@ class bigone extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {int} [$params->until] timestamp in ms of the earliest candle to fetch
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
@@ -1228,20 +1336,30 @@ class bigone extends Exchange {
             if ($market['contract']) {
                 throw new BadRequest($this->id . ' fetchOHLCV () can only fetch ohlcvs for spot markets');
             }
+            $until = $this->safe_integer($params, 'until');
+            $untilIsDefined = ($until !== null);
+            $sinceIsDefined = ($since !== null);
             if ($limit === null) {
-                $limit = 100; // default 100, max 500
+                $limit = ($sinceIsDefined && $untilIsDefined) ? 500 : 100; // default 100, max 500, if $since and $limit defined then fetch all the candles between them unless it exceeds the max of 500
             }
             $request = array(
                 'asset_pair_name' => $market['id'],
                 'period' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
                 'limit' => $limit,
             );
-            if ($since !== null) {
+            if ($sinceIsDefined) {
                 // $start = $this->parse_to_int($since / 1000);
                 $duration = $this->parse_timeframe($timeframe);
-                $end = $this->sum($since, $limit * $duration * 1000);
-                $request['time'] = $this->iso8601($end);
+                $endByLimit = $this->sum($since, $limit * $duration * 1000);
+                if ($untilIsDefined) {
+                    $request['time'] = $this->iso8601(min ($endByLimit, $until + 1));
+                } else {
+                    $request['time'] = $this->iso8601($endByLimit);
+                }
+            } elseif ($untilIsDefined) {
+                $request['time'] = $this->iso8601($until + 1);
             }
+            $params = $this->omit($params, 'until');
             $response = Async\await($this->publicGetAssetPairsAssetPairNameCandles ($this->extend($request, $params)));
             //
             //     {
@@ -1397,7 +1515,6 @@ class bigone extends Exchange {
             'postOnly' => $this->safe_bool($order, 'post_only'),
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $triggerPrice,
             'triggerPrice' => $triggerPrice,
             'amount' => $amount,
             'cost' => $cost,

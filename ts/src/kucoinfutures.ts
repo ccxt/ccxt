@@ -5,7 +5,7 @@ import { ArgumentsRequired, ExchangeNotAvailable, InvalidOrder, InsufficientFund
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import kucoin from './abstract/kucoinfutures.js';
-import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Order, Trade, OrderRequest, FundingHistory, Balances, Str, Ticker, Tickers, OrderBook, Transaction, Strings, Market, Currency, Num, MarginModification, TradingFeeInterface, Dict, LeverageTier, MarginMode, Leverage, FundingRate, DepositAddress } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Order, Trade, OrderRequest, FundingHistory, Balances, Str, Ticker, Tickers, OrderBook, Transaction, Strings, Market, Currency, Num, MarginModification, TradingFeeInterface, Dict, LeverageTier, MarginMode, Leverage, FundingRate, DepositAddress, Position } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -14,7 +14,7 @@ import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Order, Trade, Ord
  * @augments Exchange
  */
 export default class kucoinfutures extends kucoin {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'kucoinfutures',
             'name': 'KuCoin Futures',
@@ -359,6 +359,94 @@ export default class kucoinfutures extends kucoin {
                 //    'code': 'BTC',
                 // },
             },
+            'features': {
+                'spot': undefined,
+                'forDerivs': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': true,
+                        'triggerPrice': true,
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': true,
+                            'index': true,
+                        },
+                        'triggerDirection': true,
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': undefined,
+                            'price': true,
+                        },
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': false,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': true, // todo implement
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': true, // todo implement
+                        'iceberg': true,
+                    },
+                    'createOrders': {
+                        'max': 20,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': true,
+                        'limit': 1000,
+                        'daysBack': undefined,
+                        'untilDays': 7,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'trigger': true,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': undefined,
+                        'daysBackCanceled': undefined,
+                        'untilDays': undefined,
+                        'trigger': true,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 500,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivs',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivs',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'forDerivs',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivs',
+                    },
+                },
+            },
         });
     }
 
@@ -566,7 +654,7 @@ export default class kucoinfutures extends kucoin {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         const response = await this.futuresPublicGetTimestamp (params);
         //
         //    {
@@ -1177,7 +1265,7 @@ export default class kucoinfutures extends kucoin {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    async fetchPositions (symbols: Strings = undefined, params = {}) {
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         const response = await this.futuresPrivateGetPositions (params);
         //
@@ -1446,8 +1534,8 @@ export default class kucoinfutures extends kucoin {
      * @param {float} amount the amount of currency to trade
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params]  extra parameters specific to the exchange API endpoint
-     * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
-     * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
+     * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered and the triggerPriceType
+     * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered and the triggerPriceType
      * @param {float} [params.triggerPrice] The price a trigger order is triggered at
      * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
      * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
@@ -1455,12 +1543,14 @@ export default class kucoinfutures extends kucoin {
      * @param {string} [params.timeInForce] GTC, GTT, IOC, or FOK, default is GTC, limit orders only
      * @param {string} [params.postOnly] Post only flag, invalid when timeInForce is IOC or FOK
      * @param {float} [params.cost] the cost of the order in units of USDT
+     * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'isolated'
      * ----------------- Exchange Specific Parameters -----------------
      * @param {float} [params.leverage] Leverage size of the order (mandatory param in request, default is 1)
      * @param {string} [params.clientOid] client order id, defaults to uuid if not passed
      * @param {string} [params.remark] remark for the order, length cannot exceed 100 utf8 characters
-     * @param {string} [params.stop] 'up' or 'down', the direction the stopPrice is triggered from, requires stopPrice. down: Triggers when the price reaches or goes below the stopPrice. up: Triggers when the price reaches or goes above the stopPrice.
-     * @param {string} [params.stopPriceType]  TP, IP or MP, defaults to MP: Mark Price
+     * @param {string} [params.stop] 'up' or 'down', the direction the triggerPrice is triggered from, requires triggerPrice. down: Triggers when the price reaches or goes below the triggerPrice. up: Triggers when the price reaches or goes above the triggerPrice.
+     * @param {string} [params.triggerPriceType] "last", "mark", "index" - defaults to "mark"
+     * @param {string} [params.stopPriceType] exchange-specific alternative for triggerPriceType: TP, IP or MP
      * @param {bool} [params.closeOrder] set to true to close position
      * @param {bool} [params.test] set to true to use the test order endpoint (does not submit order, use to validate params)
      * @param {bool} [params.forceHold] A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.
@@ -1557,6 +1647,11 @@ export default class kucoinfutures extends kucoin {
             'type': type, // limit or market
             'leverage': 1,
         };
+        const marginModeUpper = this.safeStringUpper (params, 'marginMode');
+        if (marginModeUpper !== undefined) {
+            params = this.omit (params, 'marginMode');
+            request['marginMode'] = marginModeUpper;
+        }
         const cost = this.safeString (params, 'cost');
         params = this.omit (params, 'cost');
         if (cost !== undefined) {
@@ -1588,12 +1683,14 @@ export default class kucoinfutures extends kucoin {
             if (stopLoss !== undefined) {
                 const slPrice = this.safeString2 (stopLoss, 'triggerPrice', 'stopPrice');
                 request['triggerStopDownPrice'] = this.priceToPrecision (symbol, slPrice);
-                priceType = this.safeString (stopLoss, 'triggerPriceType', triggerPriceTypeValue);
+                priceType = this.safeString (stopLoss, 'triggerPriceType', 'mark');
+                priceType = this.safeString (triggerPriceTypes, priceType, priceType);
             }
             if (takeProfit !== undefined) {
                 const tpPrice = this.safeString2 (takeProfit, 'triggerPrice', 'takeProfitPrice');
                 request['triggerStopUpPrice'] = this.priceToPrecision (symbol, tpPrice);
-                priceType = this.safeString (stopLoss, 'triggerPriceType', triggerPriceTypeValue);
+                priceType = this.safeString (takeProfit, 'triggerPriceType', 'mark');
+                priceType = this.safeString (triggerPriceTypes, priceType, priceType);
             }
             request['stopPriceType'] = priceType;
         } else if (stopLossPrice || takeProfitPrice) {
@@ -1760,10 +1857,10 @@ export default class kucoinfutures extends kucoin {
         if (symbol !== undefined) {
             request['symbol'] = this.marketId (symbol);
         }
-        const stop = this.safeValue2 (params, 'stop', 'trigger');
+        const trigger = this.safeValue2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
         let response = undefined;
-        if (stop) {
+        if (trigger) {
             response = await this.futuresPrivateDeleteStopOrders (this.extend (request, params));
         } else {
             response = await this.futuresPrivateDeleteOrders (this.extend (request, params));
@@ -1949,7 +2046,7 @@ export default class kucoinfutures extends kucoin {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchOrdersByStatus', symbol, since, limit, params) as Order[];
         }
-        const stop = this.safeBool2 (params, 'stop', 'trigger');
+        const trigger = this.safeBool2 (params, 'stop', 'trigger');
         const until = this.safeInteger (params, 'until');
         params = this.omit (params, [ 'stop', 'until', 'trigger' ]);
         if (status === 'closed') {
@@ -1958,7 +2055,7 @@ export default class kucoinfutures extends kucoin {
             status = 'active';
         }
         const request: Dict = {};
-        if (!stop) {
+        if (!trigger) {
             request['status'] = status;
         } else if (status !== 'active') {
             throw new BadRequest (this.id + ' fetchOrdersByStatus() can only fetch untriggered stop orders');
@@ -1975,7 +2072,7 @@ export default class kucoinfutures extends kucoin {
             request['endAt'] = until;
         }
         let response = undefined;
-        if (stop) {
+        if (trigger) {
             response = await this.futuresPrivateGetStopOrders (this.extend (request, params));
         } else {
             response = await this.futuresPrivateGetOrders (this.extend (request, params));
@@ -2098,7 +2195,7 @@ export default class kucoinfutures extends kucoin {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async fetchOrder (id: Str = undefined, symbol: Str = undefined, params = {}) {
+    async fetchOrder (id: Str, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         const request: Dict = {};
         let response = undefined;
@@ -2266,7 +2363,6 @@ export default class kucoinfutures extends kucoin {
         }
         const clientOrderId = this.safeString (order, 'clientOid');
         const timeInForce = this.safeString (order, 'timeInForce');
-        const stopPrice = this.safeNumber (order, 'stopPrice');
         const postOnly = this.safeValue (order, 'postOnly');
         const reduceOnly = this.safeValue (order, 'reduceOnly');
         const lastUpdateTimestamp = this.safeInteger (order, 'updatedAt');
@@ -2281,8 +2377,7 @@ export default class kucoinfutures extends kucoin {
             'side': side,
             'amount': amount,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': this.safeNumber (order, 'stopPrice'),
             'cost': cost,
             'filled': filled,
             'remaining': undefined,
@@ -2609,6 +2704,9 @@ export default class kucoinfutures extends kucoin {
         }
         if (since !== undefined) {
             request['startAt'] = since;
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = Math.min (1000, limit);
         }
         [ request, params ] = this.handleUntilOption ('endAt', request, params);
         const response = await this.futuresPrivateGetFills (this.extend (request, params));

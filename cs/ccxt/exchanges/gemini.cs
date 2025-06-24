@@ -237,7 +237,7 @@ public partial class gemini : Exchange
                 { "fetchMarketFromWebRetries", 10 },
                 { "fetchMarketsFromAPI", new Dictionary<string, object>() {
                     { "fetchDetailsForAllSymbols", false },
-                    { "quoteCurrencies", new List<object>() {"USDT", "GUSD", "USD", "DAI", "EUR", "GBP", "SGD", "BTC", "ETH", "LTC", "BCH"} },
+                    { "quoteCurrencies", new List<object>() {"USDT", "GUSD", "USD", "DAI", "EUR", "GBP", "SGD", "BTC", "ETH", "LTC", "BCH", "SOL"} },
                 } },
                 { "fetchMarkets", new Dictionary<string, object>() {
                     { "webApiEnable", true },
@@ -270,6 +270,72 @@ public partial class gemini : Exchange
                         { "base", "PAXG" },
                         { "quote", "USD" },
                     } },
+                } },
+            } },
+            { "features", new Dictionary<string, object>() {
+                { "default", new Dictionary<string, object>() {
+                    { "sandbox", true },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", false },
+                        { "selfTradePrevention", false },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 500 },
+                        { "daysBack", null },
+                        { "untilDays", null },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", null },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", null },
+                    } },
+                } },
+                { "spot", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                    } },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
                 } },
             } },
         });
@@ -340,9 +406,6 @@ public partial class gemini : Exchange
             if (isTrue(!isEqual(networkId, null)))
             {
                 networkCode = this.networkIdToCode(networkId);
-            }
-            if (isTrue(!isEqual(networkCode, null)))
-            {
                 ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                     { "info", currency },
                     { "id", networkId },
@@ -364,7 +427,7 @@ public partial class gemini : Exchange
                     } },
                 };
             }
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "info", currency },
                 { "id", id },
                 { "code", code },
@@ -386,7 +449,7 @@ public partial class gemini : Exchange
                     } },
                 } },
                 { "networks", networks },
-            };
+            });
         }
         return result;
     }
@@ -1413,7 +1476,6 @@ public partial class gemini : Exchange
             { "postOnly", postOnly },
             { "side", side },
             { "price", price },
-            { "stopPrice", null },
             { "triggerPrice", null },
             { "average", average },
             { "cost", null },
@@ -1558,15 +1620,15 @@ public partial class gemini : Exchange
         };
         type = this.safeString(parameters, "type", type);
         parameters = this.omit(parameters, "type");
-        object rawStopPrice = this.safeString2(parameters, "stop_price", "stopPrice");
-        parameters = this.omit(parameters, new List<object>() {"stop_price", "stopPrice", "type"});
+        object triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stop_price", "stopPrice"});
+        parameters = this.omit(parameters, new List<object>() {"triggerPrice", "stop_price", "stopPrice", "type"});
         if (isTrue(isEqual(type, "stopLimit")))
         {
-            throw new ArgumentsRequired ((string)add(add(add(this.id, " createOrder() requires a stopPrice parameter or a stop_price parameter for "), type), " orders")) ;
+            throw new ArgumentsRequired ((string)add(add(add(this.id, " createOrder() requires a triggerPrice parameter or a stop_price parameter for "), type), " orders")) ;
         }
-        if (isTrue(!isEqual(rawStopPrice, null)))
+        if (isTrue(!isEqual(triggerPrice, null)))
         {
-            ((IDictionary<string,object>)request)["stop_price"] = this.priceToPrecision(symbol, rawStopPrice);
+            ((IDictionary<string,object>)request)["stop_price"] = this.priceToPrecision(symbol, triggerPrice);
             ((IDictionary<string,object>)request)["type"] = "exchange stop limit";
         } else
         {
@@ -2055,6 +2117,7 @@ public partial class gemini : Exchange
             { "currency", code },
             { "address", address },
             { "tag", null },
+            { "network", null },
             { "info", response },
         };
     }

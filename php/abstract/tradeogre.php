@@ -19,8 +19,11 @@ abstract class tradeogre extends \ccxt\Exchange {
     public function public_get_history_market($params = array()) {
         return $this->request('history/{market}', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function private_get_account_balance($params = array()) {
-        return $this->request('account/balance', 'private', 'GET', $params, null, null, array("cost" => 1));
+    public function public_get_chart_interval_market_timestamp($params = array()) {
+        return $this->request('chart/{interval}/{market}/{timestamp}', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_get_chart_interval_market($params = array()) {
+        return $this->request('chart/{interval}/{market}', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_get_account_balances($params = array()) {
         return $this->request('account/balances', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -43,6 +46,9 @@ abstract class tradeogre extends \ccxt\Exchange {
     public function private_post_account_orders($params = array()) {
         return $this->request('account/orders', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function private_post_account_balance($params = array()) {
+        return $this->request('account/balance', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function publicGetMarkets($params = array()) {
         return $this->request('markets', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -55,8 +61,11 @@ abstract class tradeogre extends \ccxt\Exchange {
     public function publicGetHistoryMarket($params = array()) {
         return $this->request('history/{market}', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function privateGetAccountBalance($params = array()) {
-        return $this->request('account/balance', 'private', 'GET', $params, null, null, array("cost" => 1));
+    public function publicGetChartIntervalMarketTimestamp($params = array()) {
+        return $this->request('chart/{interval}/{market}/{timestamp}', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetChartIntervalMarket($params = array()) {
+        return $this->request('chart/{interval}/{market}', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetAccountBalances($params = array()) {
         return $this->request('account/balances', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -78,5 +87,8 @@ abstract class tradeogre extends \ccxt\Exchange {
     }
     public function privatePostAccountOrders($params = array()) {
         return $this->request('account/orders', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostAccountBalance($params = array()) {
+        return $this->request('account/balance', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
 }
