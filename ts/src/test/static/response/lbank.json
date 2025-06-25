@@ -67,17 +67,6 @@
                         },
                         {
                             "amountScale": "4",
-                            "chain": "asa",
-                            "assetCode": "usdt",
-                            "min": "10",
-                            "transferAmtScale": "4",
-                            "canWithDraw": false,
-                            "fee": "5.0000",
-                            "minTransfer": "0.0001",
-                            "type": "1"
-                        },
-                        {
-                            "amountScale": "4",
                             "chain": "arbitrum one",
                             "assetCode": "usdt",
                             "min": "1",
@@ -130,32 +119,10 @@
                             "fee": "1.0000",
                             "minTransfer": "0.0001",
                             "type": "1"
-                        },
-                        {
-                            "amountScale": "4",
-                            "chain": "btc",
-                            "assetCode": "btc",
-                            "min": "0.001",
-                            "transferAmtScale": "4",
-                            "canWithDraw": true,
-                            "fee": "0.0002",
-                            "minTransfer": "0.0001",
-                            "type": "1"
-                        },
-                        {
-                            "amountScale": "4",
-                            "chain": "trc20",
-                            "assetCode": "btc",
-                            "min": "0.001",
-                            "transferAmtScale": "4",
-                            "canWithDraw": true,
-                            "fee": "0.0001",
-                            "minTransfer": "0.0001",
-                            "type": "1"
                         }
                     ],
                     "error_code": "0",
-                    "ts": "1747975748290"
+                    "ts": "1750830601761"
                 },
                 "parsedResponse": {
                     "USDT": {
@@ -212,17 +179,6 @@
                                 "transferAmtScale": "4",
                                 "canWithDraw": false,
                                 "minTransfer": "0",
-                                "type": "1"
-                            },
-                            {
-                                "amountScale": "4",
-                                "chain": "asa",
-                                "assetCode": "usdt",
-                                "min": "10",
-                                "transferAmtScale": "4",
-                                "canWithDraw": false,
-                                "fee": "5.0000",
-                                "minTransfer": "0.0001",
                                 "type": "1"
                             },
                             {
@@ -442,36 +398,6 @@
                                     "type": "1"
                                 }
                             },
-                            "ASA": {
-                                "id": "asa",
-                                "network": "ASA",
-                                "limits": {
-                                    "withdraw": {
-                                        "min": 10,
-                                        "max": null
-                                    },
-                                    "deposit": {
-                                        "min": 0.0001,
-                                        "max": null
-                                    }
-                                },
-                                "active": null,
-                                "deposit": null,
-                                "withdraw": false,
-                                "fee": 5,
-                                "precision": 0.0001,
-                                "info": {
-                                    "amountScale": "4",
-                                    "chain": "asa",
-                                    "assetCode": "usdt",
-                                    "min": "10",
-                                    "transferAmtScale": "4",
-                                    "canWithDraw": false,
-                                    "fee": "5.0000",
-                                    "minTransfer": "0.0001",
-                                    "type": "1"
-                                }
-                            },
                             "arbitrum one": {
                                 "id": "arbitrum one",
                                 "network": "arbitrum one",
@@ -630,115 +556,6 @@
                             },
                             "deposit": {
                                 "min": 0,
-                                "max": null
-                            }
-                        }
-                    },
-                    "BTC": {
-                        "info": [
-                            {
-                                "amountScale": "4",
-                                "chain": "btc",
-                                "assetCode": "btc",
-                                "min": "0.001",
-                                "transferAmtScale": "4",
-                                "canWithDraw": true,
-                                "fee": "0.0002",
-                                "minTransfer": "0.0001",
-                                "type": "1"
-                            },
-                            {
-                                "amountScale": "4",
-                                "chain": "trc20",
-                                "assetCode": "btc",
-                                "min": "0.001",
-                                "transferAmtScale": "4",
-                                "canWithDraw": true,
-                                "fee": "0.0001",
-                                "minTransfer": "0.0001",
-                                "type": "1"
-                            }
-                        ],
-                        "id": "btc",
-                        "numericId": null,
-                        "code": "BTC",
-                        "precision": 0.0001,
-                        "type": null,
-                        "name": null,
-                        "active": null,
-                        "deposit": null,
-                        "withdraw": true,
-                        "fee": 0.0001,
-                        "fees": {},
-                        "networks": {
-                            "BTC": {
-                                "id": "btc",
-                                "network": "BTC",
-                                "limits": {
-                                    "withdraw": {
-                                        "min": 0.001,
-                                        "max": null
-                                    },
-                                    "deposit": {
-                                        "min": 0.0001,
-                                        "max": null
-                                    }
-                                },
-                                "active": null,
-                                "deposit": null,
-                                "withdraw": true,
-                                "fee": 0.0002,
-                                "precision": 0.0001,
-                                "info": {
-                                    "amountScale": "4",
-                                    "chain": "btc",
-                                    "assetCode": "btc",
-                                    "min": "0.001",
-                                    "transferAmtScale": "4",
-                                    "canWithDraw": true,
-                                    "fee": "0.0002",
-                                    "minTransfer": "0.0001",
-                                    "type": "1"
-                                }
-                            },
-                            "TRX": {
-                                "id": "trc20",
-                                "network": "TRX",
-                                "limits": {
-                                    "withdraw": {
-                                        "min": 0.001,
-                                        "max": null
-                                    },
-                                    "deposit": {
-                                        "min": 0.0001,
-                                        "max": null
-                                    }
-                                },
-                                "active": null,
-                                "deposit": null,
-                                "withdraw": true,
-                                "fee": 0.0001,
-                                "precision": 0.0001,
-                                "info": {
-                                    "amountScale": "4",
-                                    "chain": "trc20",
-                                    "assetCode": "btc",
-                                    "min": "0.001",
-                                    "transferAmtScale": "4",
-                                    "canWithDraw": true,
-                                    "fee": "0.0001",
-                                    "minTransfer": "0.0001",
-                                    "type": "1"
-                                }
-                            }
-                        },
-                        "limits": {
-                            "withdraw": {
-                                "min": 0.001,
-                                "max": null
-                            },
-                            "deposit": {
-                                "min": 0.0001,
                                 "max": null
                             }
                         }
