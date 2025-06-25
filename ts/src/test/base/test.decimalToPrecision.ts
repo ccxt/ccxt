@@ -213,7 +213,7 @@ function testDecimalToPrecision () {
 
     // ----------------------------------------------------------------------------
 
-    //Negative Numbers
+    // Negative Numbers
 
     assert (exchange.decimalToPrecision ('-0.123456', TRUNCATE, 5, DECIMAL_PLACES) === '-0.12345');
     assert (exchange.decimalToPrecision ('-0.123456', ROUND, 5, DECIMAL_PLACES) === '-0.12346');
