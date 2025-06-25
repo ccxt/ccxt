@@ -138,17 +138,23 @@ const _decimalToPrecision = (
         const newNumPrecisionDigits = precisionFromString (precisionDigitsString);
         
         if (roundingMode === TRUNCATE) {
-            // For truncate mode, avoid floating-point errors by using integer arithmetic
-            // Convert to appropriate scale to work with integers
-            const scale = Math.pow(10, Math.max(newNumPrecisionDigits, 10));
-            const xScaled = Math.round(Number(x) * scale);
-            const tickScaled = Math.round(numPrecisionDigits * scale);
-            // Perform truncation in integer space
-            const ticks = Math.trunc(xScaled / tickScaled);
-            const resultScaled = ticks * tickScaled;
-            // Convert back to decimal
-            x = resultScaled / scale;
-            return _decimalToPrecision (x, ROUND, newNumPrecisionDigits, DECIMAL_PLACES, paddingMode);
+            // Simple case: check if value is already a valid multiple of tick size
+            const remainder = Number(x) % numPrecisionDigits;
+            const tolerance = numPrecisionDigits * 1e-10; // More appropriate tolerance
+            // if the precision is already matching, no need to manipulate further
+            if (Math.abs(remainder) > tolerance && Math.abs(remainder - numPrecisionDigits) >= tolerance) {
+                // For truncate mode, avoid floating-point errors by using integer arithmetic
+                // Convert to appropriate scale to work with integers
+                const scale = Math.pow(10, Math.max(newNumPrecisionDigits, 10));
+                const xScaled = Math.round(Number(x) * scale);
+                const tickScaled = Math.round(numPrecisionDigits * scale);
+                // Perform truncation in integer space
+                const ticks = Math.trunc(xScaled / tickScaled);
+                const resultScaled = ticks * tickScaled;
+                // Convert back to decimal
+                x = resultScaled / scale;
+            }
+            return _decimalToPrecision (x, ROUND, newNumPrecisionDigits, DECIMAL_PLACES, paddingMode)
         }
         let missing = x % numPrecisionDigits;
         // See: https://github.com/ccxt/ccxt/pull/6486
