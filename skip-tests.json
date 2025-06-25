@@ -419,7 +419,7 @@
                 "currencyIdAndCode": "inexistent ones",
                 "deposit":"not provided",
                 "withdraw":"not provided",
-                "precision":"not provided"
+                "precision":"not provided",
                 "activeMajorCurrencies": "todo"
             },
             "orderBook": {
