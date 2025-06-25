@@ -143,14 +143,11 @@ const _decimalToPrecision = (
             const scale = Math.pow(10, Math.max(newNumPrecisionDigits, 10));
             const xScaled = Math.round(Number(x) * scale);
             const tickScaled = Math.round(numPrecisionDigits * scale);
-            
             // Perform truncation in integer space
             const ticks = Math.trunc(xScaled / tickScaled);
             const resultScaled = ticks * tickScaled;
-            
             // Convert back to decimal
             x = resultScaled / scale;
-            
             return _decimalToPrecision (x, ROUND, newNumPrecisionDigits, DECIMAL_PLACES, paddingMode);
         }
         let missing = x % numPrecisionDigits;
