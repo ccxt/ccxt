@@ -701,8 +701,9 @@ class exmo extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of currencies
              */
+            $promises = array();
             //
-            $currencyList = Async\await($this->publicGetCurrencyListExtended ($params));
+            $promises[] = $this->publicGetCurrencyListExtended ($params);
             //
             //     array(
             //         array("name":"VLX","description":"Velas"),
@@ -711,7 +712,7 @@ class exmo extends Exchange {
             //         array("name":"USD","description":"US Dollar")
             //     )
             //
-            $cryptoList = Async\await($this->publicGetPaymentsProvidersCryptoList ($params));
+            $promises[] = $this->publicGetPaymentsProvidersCryptoList ($params);
             //
             //     {
             //         "BTC":array(
@@ -736,6 +737,9 @@ class exmo extends Exchange {
             //         ),
             //     }
             //
+            $responses = Async\await(Promise\all($promises));
+            $currencyList = $responses[0];
+            $cryptoList = $responses[1];
             $result = array();
             for ($i = 0; $i < count($currencyList); $i++) {
                 $currency = $currencyList[$i];
@@ -798,6 +802,10 @@ class exmo extends Exchange {
                     }
                 }
                 $code = $this->safe_currency_code($currencyId);
+                $info = array(
+                    'currency' => $currency,
+                    'providers' => $providers,
+                );
                 $result[$code] = array(
                     'id' => $currencyId,
                     'code' => $code,
@@ -809,7 +817,7 @@ class exmo extends Exchange {
                     'fee' => $fee,
                     'precision' => $this->parse_number('1e-8'),
                     'limits' => $limits,
-                    'info' => $providers,
+                    'info' => $info,
                     'networks' => array(),
                 );
             }
