@@ -138,10 +138,9 @@ const _decimalToPrecision = (
         const newNumPrecisionDigits = precisionFromString (precisionDigitsString);
         
         if (roundingMode === TRUNCATE) {
-            // Simple case: check if value is already a valid multiple of tick size
             const remainder = Number(x) % numPrecisionDigits;
             const tolerance = numPrecisionDigits * 1e-10; // More appropriate tolerance
-            // if the precision is already matching, no need to manipulate further
+            // we skip below manipulations if value is already a valid multiple of tick size
             if (Math.abs(remainder) > tolerance && Math.abs(remainder - numPrecisionDigits) >= tolerance) {
                 // For truncate mode, avoid floating-point errors by using integer arithmetic
                 // Convert to appropriate scale to work with integers
