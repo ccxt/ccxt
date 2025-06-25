@@ -154,6 +154,12 @@ const _decimalToPrecision = (
                 // Convert back to decimal
                 x = resultScaled / scale;
             }
+            if (paddingMode === NO_PADDING) {
+                if (typeof x !== 'string') {
+                    x = x.toFixed(newNumPrecisionDigits);
+                }
+                return x.replace(/(\.\d*?)0+$/, '$1').replace(/\.$/, '');
+            }
             return _decimalToPrecision (x, ROUND, newNumPrecisionDigits, DECIMAL_PLACES, paddingMode)
         }
         let missing = x % numPrecisionDigits;
