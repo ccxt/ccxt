@@ -44,6 +44,7 @@ class lbank extends Exchange {
                 'fetchClosedOrders' => false,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
+                'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => false,
@@ -118,6 +119,7 @@ class lbank extends Exchange {
                             'currencyPairs' => 2.5,
                             'accuracy' => 2.5,
                             'usdToCny' => 2.5,
+                            'assetConfigs' => 2.5,
                             'withdrawConfigs' => 2.5,
                             'timestamp' => 2.5,
                             'ticker/24hr' => 2.5,
@@ -204,6 +206,7 @@ class lbank extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
+                'XBT' => 'XBT', // not BTC!
                 'HIT' => 'Hiver',
                 'VET_ERC20' => 'VEN',
                 'PNT' => 'Penta',
@@ -271,21 +274,12 @@ class lbank extends Exchange {
                     //     ptx => 1
                     // }
                 ),
-                'inverse-networks' => array(
+                'networksById' => array(
                     'erc20' => 'ERC20',
                     'trc20' => 'TRC20',
-                    'omni' => 'OMNI',
-                    'asa' => 'ASA',
-                    'bep20(bsc)' => 'BSC',
-                    'bep20' => 'BSC',
-                    'heco' => 'HT',
-                    'bep2' => 'BNB',
-                    'btc' => 'BTC',
-                    'dogecoin' => 'DOGE',
-                    'matic' => 'MATIC',
-                    'oec' => 'OEC',
-                    'btctron' => 'BTCTRON',
-                    'xrp' => 'XRP',
+                    'TRX' => 'TRC20',
+                    'bep20(bsc)' => 'BEP20',
+                    'bep20' => 'BEP20',
                 ),
                 'defaultNetworks' => array(
                     'USDT' => 'TRC20',
@@ -407,6 +401,107 @@ class lbank extends Exchange {
         //     }
         //
         return $this->safe_integer($response, 'data');
+    }
+
+    public function fetch_currencies($params = array ()): ?array {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} [$params] extra parameters specific to the exchange API endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
+        $response = $this->spotPublicGetWithdrawConfigs ($params);
+        //
+        //    {
+        //        "msg" => "Success",
+        //        "result" => "true",
+        //        "data" => array(
+        //            array(
+        //                "amountScale" => "4",
+        //                "chain" => "bep20(bsc)",
+        //                "assetCode" => "usdt",
+        //                "min" => "10",
+        //                "transferAmtScale" => "4",
+        //                "canWithDraw" => true,
+        //                "fee" => "0.0000",
+        //                "minTransfer" => "0.0001",
+        //                "type" => "1"
+        //            ),
+        //            array(
+        //                "amountScale" => "4",
+        //                "chain" => "trc20",
+        //                "assetCode" => "usdt",
+        //                "min" => "1",
+        //                "transferAmtScale" => "4",
+        //                "canWithDraw" => true,
+        //                "fee" => "1.0000",
+        //                "minTransfer" => "0.0001",
+        //                "type" => "1"
+        //            ),
+        //            ...
+        //        ),
+        //        "error_code" => "0",
+        //        "ts" => "1747973911431"
+        //    }
+        //
+        $currenciesData = $this->safe_list($response, 'data', array());
+        $grouped = $this->group_by($currenciesData, 'assetCode');
+        $groupedKeys = is_array($grouped) ? array_keys($grouped) : array();
+        $result = array();
+        for ($i = 0; $i < count($groupedKeys); $i++) {
+            $id = (string) ($groupedKeys[$i]); // some currencies are numeric
+            $code = $this->safe_currency_code($id);
+            $networksRaw = $grouped[$id];
+            $networks = array();
+            for ($j = 0; $j < count($networksRaw); $j++) {
+                $networkEntry = $networksRaw[$j];
+                $networkId = $this->safe_string($networkEntry, 'chain');
+                $networkCode = $this->network_id_to_code($networkId);
+                $networks[$networkCode] = array(
+                    'id' => $networkId,
+                    'network' => $networkCode,
+                    'limits' => array(
+                        'withdraw' => array(
+                            'min' => $this->safe_number($networkEntry, 'min'),
+                            'max' => null,
+                        ),
+                        'deposit' => array(
+                            'min' => $this->safe_number($networkEntry, 'minTransfer'),
+                            'max' => null,
+                        ),
+                    ),
+                    'active' => null,
+                    'deposit' => null,
+                    'withdraw' => $this->safe_bool($networkEntry, 'canWithDraw'),
+                    'fee' => $this->safe_number($networkEntry, 'fee'),
+                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($networkEntry, 'transferAmtScale'))),
+                    'info' => $networkEntry,
+                );
+            }
+            $result[$code] = $this->safe_currency_structure(array(
+                'id' => $id,
+                'code' => $code,
+                'precision' => null,
+                'type' => null,
+                'name' => null,
+                'active' => null,
+                'deposit' => null,
+                'withdraw' => null,
+                'fee' => null,
+                'limits' => array(
+                    'withdraw' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'deposit' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
+                'networks' => $networks,
+                'info' => $networksRaw,
+            ));
+        }
+        return $result;
     }
 
     public function fetch_markets($params = array ()): array {
@@ -2179,13 +2274,10 @@ class lbank extends Exchange {
         $result = $this->safe_value($response, 'data');
         $address = $this->safe_string($result, 'address');
         $tag = $this->safe_string($result, 'memo');
-        $networkId = $this->safe_string($result, 'netWork');
-        $inverseNetworks = $this->safe_value($this->options, 'inverse-networks', array());
-        $networkCode = $this->safe_string_upper($inverseNetworks, $networkId, $networkId);
         return array(
             'info' => $response,
             'currency' => $code,
-            'network' => $networkCode,
+            'network' => $this->network_id_to_code($this->safe_string($result, 'netWork')),
             'address' => $address,
             'tag' => $tag,
         );
@@ -2221,12 +2313,10 @@ class lbank extends Exchange {
         $result = $this->safe_value($response, 'data');
         $address = $this->safe_string($result, 'address');
         $tag = $this->safe_string($result, 'memo');
-        $inverseNetworks = $this->safe_value($this->options, 'inverse-networks', array());
-        $networkCode = $this->safe_string_upper($inverseNetworks, $network, $network);
         return array(
             'info' => $response,
             'currency' => $code,
-            'network' => $networkCode, // will be null if not specified in $request
+            'network' => null,
             'address' => $address,
             'tag' => $tag,
         );
@@ -2352,9 +2442,6 @@ class lbank extends Exchange {
         }
         $txid = $this->safe_string($transaction, 'txId');
         $timestamp = $this->safe_integer_2($transaction, 'insertTime', 'applyTime');
-        $networks = $this->safe_value($this->options, 'inverse-networks', array());
-        $networkId = $this->safe_string($transaction, 'networkName');
-        $network = $this->safe_string($networks, $networkId, $networkId);
         $address = $this->safe_string($transaction, 'address');
         $addressFrom = null;
         $addressTo = null;
@@ -2381,7 +2468,7 @@ class lbank extends Exchange {
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'network' => $network,
+            'network' => $this->network_id_to_code($this->safe_string($transaction, 'networkName')),
             'address' => $address,
             'addressTo' => $addressTo,
             'addressFrom' => $addressFrom,
@@ -2584,10 +2671,9 @@ class lbank extends Exchange {
             $withdrawFees[$code] = array();
             for ($j = 0; $j < count($networkList); $j++) {
                 $networkEntry = $networkList[$j];
-                $networkId = $this->safe_string($networkEntry, 'name');
-                $networkCode = $this->safe_string($this->options['inverse-networks'], $networkId, $networkId);
                 $fee = $this->safe_number($networkEntry, 'withdrawFee');
                 if ($fee !== null) {
+                    $networkCode = $this->network_id_to_code($this->safe_string($networkEntry, 'name'));
                     $withdrawFees[$code][$networkCode] = $fee;
                 }
             }
@@ -2640,8 +2726,7 @@ class lbank extends Exchange {
             if ($canWithdraw === 'true') {
                 $currencyId = $this->safe_string($item, 'assetCode');
                 $codeInner = $this->safe_currency_code($currencyId);
-                $chain = $this->safe_string($item, 'chain');
-                $network = $this->safe_string($this->options['inverse-networks'], $chain, $chain);
+                $network = $this->network_id_to_code($this->safe_string($item, 'chain'));
                 if ($network === null) {
                     $network = $codeInner;
                 }
@@ -2793,8 +2878,7 @@ class lbank extends Exchange {
                             $resultCodeInfo = $result[$code]['info'];
                             $resultCodeInfo[] = $fee;
                         }
-                        $chain = $this->safe_string($fee, 'chain');
-                        $networkCode = $this->safe_string($this->options['inverse-networks'], $chain, $chain);
+                        $networkCode = $this->network_id_to_code($this->safe_string($fee, 'chain'));
                         if ($networkCode !== null) {
                             $result[$code]['networks'][$networkCode] = array(
                                 'withdraw' => array(
@@ -2850,8 +2934,7 @@ class lbank extends Exchange {
         $networkList = $this->safe_value($fee, 'networkList', array());
         for ($j = 0; $j < count($networkList); $j++) {
             $networkEntry = $networkList[$j];
-            $networkId = $this->safe_string($networkEntry, 'name');
-            $networkCode = $this->safe_string_upper($this->options['inverse-networks'], $networkId, $networkId);
+            $networkCode = $this->network_id_to_code($this->safe_string($networkEntry, 'name'));
             $withdrawFee = $this->safe_number($networkEntry, 'withdrawFee');
             $isDefault = $this->safe_value($networkEntry, 'isDefault');
             if ($withdrawFee !== null) {
