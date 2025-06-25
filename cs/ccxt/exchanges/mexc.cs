@@ -649,6 +649,7 @@ public partial class mexc : Exchange
                 { "PROS", "PROSFINANCE" },
                 { "SIN", "SINCITYTOKEN" },
                 { "SOUL", "SOULSWAP" },
+                { "XBT", "XBT" },
             } },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
