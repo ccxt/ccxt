@@ -249,7 +249,7 @@
                         "fee": 0,
                         "fees": {},
                         "networks": {
-                            "BSC": {
+                            "BEP20": {
                                 "id": "bep20(bsc)",
                                 "network": "BSC",
                                 "limits": {
@@ -279,7 +279,7 @@
                                     "type": "1"
                                 }
                             },
-                            "TRX": {
+                            "TRC20": {
                                 "id": "trc20",
                                 "network": "TRX",
                                 "limits": {
@@ -309,7 +309,7 @@
                                     "type": "1"
                                 }
                             },
-                            "ETH": {
+                            "ERC20": {
                                 "id": "erc20",
                                 "network": "ETH",
                                 "limits": {

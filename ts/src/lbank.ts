@@ -285,8 +285,8 @@ export default class lbank extends Exchange {
                     'erc20': 'ERC20',
                     'trc20': 'TRC20',
                     'TRX': 'TRC20',
-                    'bep20(bsc)': 'BSC',
-                    'bep20': 'BSC',
+                    'bep20(bsc)': 'BEP20',
+                    'bep20': 'BEP20',
                 },
                 'defaultNetworks': {
                     'USDT': 'TRC20',
