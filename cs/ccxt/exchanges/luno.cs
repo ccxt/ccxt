@@ -34,6 +34,7 @@ public partial class luno : Exchange
                 { "fetchClosedOrders", true },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
+                { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
                 { "fetchFundingHistory", false },
                 { "fetchFundingRate", false },
@@ -111,6 +112,7 @@ public partial class luno : Exchange
                         { "accounts/{id}/transactions", 1 },
                         { "balance", 1 },
                         { "beneficiaries", 1 },
+                        { "send/networks", 1 },
                         { "fee_info", 1 },
                         { "funding_address", 1 },
                         { "listorders", 1 },
@@ -242,6 +244,103 @@ public partial class luno : Exchange
                 } },
             } },
         });
+    }
+
+    /**
+     * @method
+     * @name luno#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @param {dict} [params] extra parameters specific to the exchange API endpoint
+     * @returns {dict} an associative dictionary of currencies
+     */
+    public async override Task<object> fetchCurrencies(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (!isTrue(this.checkRequiredCredentials(false)))
+        {
+            return null;
+        }
+        object response = await this.privateGetSendNetworks(parameters);
+        //
+        //     {
+        //         "networks": [
+        //           {
+        //             "id": 0,
+        //             "name": "Ethereum",
+        //             "native_currency": "ETH"
+        //           },
+        //           ...
+        //         ]
+        //     }
+        //
+        object currenciesData = this.safeList(response, "data", new List<object>() {});
+        object result = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(currenciesData)); postFixIncrement(ref i))
+        {
+            object networkEntry = getValue(currenciesData, i);
+            object id = this.safeString(networkEntry, "native_currency");
+            object code = this.safeCurrencyCode(id);
+            if (!isTrue((inOp(result, code))))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+                    { "id", id },
+                    { "code", code },
+                    { "precision", null },
+                    { "type", null },
+                    { "name", null },
+                    { "active", null },
+                    { "deposit", null },
+                    { "withdraw", null },
+                    { "fee", null },
+                    { "limits", new Dictionary<string, object>() {
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
+                    } },
+                    { "networks", new Dictionary<string, object>() {} },
+                    { "info", new Dictionary<string, object>() {} },
+                };
+            }
+            object networkId = this.safeString(networkEntry, "name");
+            object networkCode = this.networkIdToCode(networkId);
+            ((IDictionary<string,object>)getValue(getValue(result, code), "networks"))[(string)networkCode] = new Dictionary<string, object>() {
+                { "id", networkId },
+                { "network", networkCode },
+                { "limits", new Dictionary<string, object>() {
+                    { "withdraw", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                    { "deposit", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                } },
+                { "active", null },
+                { "deposit", null },
+                { "withdraw", null },
+                { "fee", null },
+                { "precision", null },
+                { "info", networkEntry },
+            };
+            // add entry in info
+            object info = this.safeList(getValue(result, code), "info", new List<object>() {});
+            ((IList<object>)info).Add(networkEntry);
+            ((IDictionary<string,object>)getValue(result, code))["info"] = info;
+        }
+        // only after all entries are formed in currencies, restructure each entry
+        object allKeys = new List<object>(((IDictionary<string,object>)result).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(allKeys)); postFixIncrement(ref i))
+        {
+            object code = getValue(allKeys, i);
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(getValue(result, code)); // this is needed after adding network entry
+        }
+        return result;
     }
 
     /**

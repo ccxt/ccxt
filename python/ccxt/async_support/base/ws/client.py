@@ -1,21 +1,20 @@
 # -*- coding: utf-8 -*-
 
-from asyncio import sleep, ensure_future, wait_for, TimeoutError
+from asyncio import sleep, ensure_future, wait_for, TimeoutError, BaseEventLoop, Future as asyncioFuture
 from .functions import milliseconds, iso8601, deep_extend
 from ccxt import NetworkError, RequestTimeout, NotSupported
 from ccxt.async_support.base.ws.future import Future
-from collections import deque
+from typing import Dict
+
 
 class Client(object):
 
     url = None
     ws = None
-    futures = {}
+    futures: Dict[str, Future] = {}
     options = {}  # ws-specific options
     subscriptions = {}
     rejections = {}
-    message_queue = {}
-    useMessageQueue = False
     on_message_callback = None
     on_error_callback = None
     on_close_callback = None
@@ -37,9 +36,8 @@ class Client(object):
     inflate = False
     throttle = None
     connecting = False
-    asyncio_loop = None
+    asyncio_loop: BaseEventLoop = None
     ping_looper = None
-    receive_looper = None
 
     def __init__(self, url, on_message_callback, on_error_callback, on_close_callback, on_connected_callback, config={}):
         defaults = {
@@ -70,37 +68,19 @@ class Client(object):
         if message_hash in self.rejections:
             future.reject(self.rejections[message_hash])
             del self.rejections[message_hash]
-            del self.message_queue[message_hash]
-            return future
-        if self.useMessageQueue and message_hash in self.message_queue:
-            queue = self.message_queue[message_hash]
-            if len(queue):
-                future.resolve(queue.popleft())
-                del self.futures[message_hash]
         return future
 
     def resolve(self, result, message_hash):
         if self.verbose and message_hash is None:
             self.log(iso8601(milliseconds()), 'resolve received None messageHash')
-
-        if self.useMessageQueue:
-            if message_hash not in self.message_queue:
-                self.message_queue[message_hash] = deque(maxlen=10)
-            queue = self.message_queue[message_hash]
-            queue.append(result)
-            if message_hash in self.futures:
-                future = self.futures[message_hash]
-                future.resolve(queue.popleft())
-                del self.futures[message_hash]
-        else:
-            if message_hash in self.futures:
-                future = self.futures[message_hash]
-                future.resolve(result)
-                del self.futures[message_hash]
+        if message_hash in self.futures:
+            future = self.futures[message_hash]
+            future.resolve(result)
+            del self.futures[message_hash]
         return result
 
     def reject(self, result, message_hash=None):
-        if message_hash:
+        if message_hash is not None:
             if message_hash in self.futures:
                 future = self.futures[message_hash]
                 future.reject(result)
@@ -113,19 +93,38 @@ class Client(object):
                 self.reject(result, message_hash)
         return result
 
-    async def receive_loop(self):
+    def receive_loop(self):
         if self.verbose:
             self.log(iso8601(milliseconds()), 'receive loop')
-        while not self.closed():
-            try:
-                message = await self.receive()
-                # self.log(iso8601(milliseconds()), 'received', message)
-                self.handle_message(message)
-            except Exception as e:
-                error = NetworkError(str(e))
-                if self.verbose:
-                    self.log(iso8601(milliseconds()), 'receive_loop', 'Exception', error)
-                self.reset(error)
+        if not self.closed():
+            # let's drain the aiohttp buffer to avoid latency
+            if len(self.buffer) > 1:
+                size_delta = 0
+                while len(self.buffer) > 1:
+                    message, size = self.buffer.popleft()
+                    size_delta += size
+                    self.handle_message(message)
+                # we must update the size of the last message inside WebSocketDataQueue
+                # self.receive() calls WebSocketDataQueue.read() that calls WebSocketDataQueue._read_from_buffer()
+                # which updates the size of the buffer, the _size will overflow and pause the transport
+                # make sure to set the enviroment variable AIOHTTP_NO_EXTENSIONS=Y to check
+                # print(self.connection._conn.protocol._payload._size)
+                self.buffer[0] = (self.buffer[0][0], self.buffer[0][1] + size_delta)
+
+            task = self.asyncio_loop.create_task(self.receive())
+
+            def after_interrupt(resolved: asyncioFuture):
+                exception = resolved.exception()
+                if exception is None:
+                    self.handle_message(resolved.result())
+                    self.asyncio_loop.call_soon(self.receive_loop)
+                else:
+                    error = NetworkError(str(exception))
+                    if self.verbose:
+                        self.log(iso8601(milliseconds()), 'receive_loop', 'Exception', error)
+                    self.reset(error)
+
+            task.add_done_callback(after_interrupt)
 
     async def open(self, session, backoff_delay=0):
         # exponential backoff for consequent connections if necessary
@@ -146,7 +145,7 @@ class Client(object):
             self.on_connected_callback(self)
             # run both loops forever
             self.ping_looper = ensure_future(self.ping_loop(), loop=self.asyncio_loop)
-            self.receive_looper = ensure_future(self.receive_loop(), loop=self.asyncio_loop)
+            self.asyncio_loop.call_soon(self.receive_loop)
         except TimeoutError:
             # connection timeout
             error = RequestTimeout('Connection timeout')
@@ -160,6 +159,13 @@ class Client(object):
                 self.log(iso8601(milliseconds()), 'NetworkError', error)
             self.on_error(error)
 
+    @property
+    def buffer(self):
+        # looks like they exposed it in C
+        # this means we can bypass it
+        # https://github.com/aio-libs/aiohttp/blob/master/aiohttp/_websocket/reader_c.pxd#L53C24-L53C31
+        return self.connection._conn.protocol._payload._buffer
+
     def connect(self, session, backoff_delay=0):
         if not self.connection and not self.connecting:
             self.connecting = True
@@ -170,7 +176,7 @@ class Client(object):
         if self.verbose:
             self.log(iso8601(milliseconds()), 'on_error', error)
         self.error = error
-        self.reset(error)
+        self.reject(error)
         self.on_error_callback(self, error)
         if not self.closed():
             ensure_future(self.close(1006), loop=self.asyncio_loop)
@@ -179,14 +185,12 @@ class Client(object):
         if self.verbose:
             self.log(iso8601(milliseconds()), 'on_close', code)
         if not self.error:
-            self.reset(NetworkError('Connection closed by remote server, closing code ' + str(code)))
+            self.reject(NetworkError('Connection closed by remote server, closing code ' + str(code)))
         self.on_close_callback(self, code)
-        if not self.closed():
-            ensure_future(self.close(code), loop=self.asyncio_loop)
+        ensure_future(self.aiohttp_close(), loop=self.asyncio_loop)
 
-    def reset(self, error):
-        self.message_queue = {}
-        self.reject(error)
+    def aiohttp_close(self):
+        raise NotSupported('aiohttp_close() not implemented')
 
     async def ping_loop(self):
         if self.verbose:

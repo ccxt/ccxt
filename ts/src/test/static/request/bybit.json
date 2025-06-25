@@ -535,6 +535,16 @@
         ],
         "createMarketBuyOrderWithCost": [
             {
+                "description": "order with cost, using a decimal amount",
+                "method": "createMarketBuyOrderWithCost",
+                "url": "https://api.bybit.com/v5/order/create",
+                "input": [
+                    "DOGE/USDT",
+                    12.45
+                ],
+                "output": "{\"symbol\":\"DOGEUSDT\",\"side\":\"Buy\",\"orderType\":\"Market\",\"category\":\"spot\",\"qty\":\"12.45\"}"
+            },
+            {
                 "description": "Spot market buy with createMarketBuyOrderWithCost",
                 "method": "createMarketBuyOrderWithCost",
                 "url": "https://api-testnet.bybit.com/v5/order/create",

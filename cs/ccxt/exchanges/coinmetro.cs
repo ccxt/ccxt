@@ -381,6 +381,11 @@ public partial class coinmetro : Exchange
                 type = "fiat";
             }
             object precisionDigits = this.safeString2(currency, "digits", "notabeneDecimals");
+            if (isTrue(isEqual(code, "RENDER")))
+            {
+                // RENDER is an exception (with broken info)
+                precisionDigits = "4";
+            }
             ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "code", code },

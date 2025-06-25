@@ -523,7 +523,7 @@ export default class bitstamp extends bitstampRest {
             //
             const sessionToken = this.safeString(response, 'token');
             if (sessionToken !== undefined) {
-                const userId = this.safeNumber(response, 'user_id');
+                const userId = this.safeString(response, 'user_id');
                 const validity = this.safeIntegerProduct(response, 'valid_sec', 1000);
                 this.options['expiresIn'] = this.sum(time, validity);
                 this.options['userId'] = userId;

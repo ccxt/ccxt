@@ -185,12 +185,12 @@ class hyperliquid(Exchange, ImplicitAPI):
             },
             'fees': {
                 'swap': {
-                    'taker': self.parse_number('0.00035'),
-                    'maker': self.parse_number('0.0001'),
+                    'taker': self.parse_number('0.00045'),
+                    'maker': self.parse_number('0.00015'),
                 },
                 'spot': {
-                    'taker': self.parse_number('0.00035'),
-                    'maker': self.parse_number('0.0001'),
+                    'taker': self.parse_number('0.0007'),
+                    'maker': self.parse_number('0.0004'),
                 },
             },
             'requiredCredentials': {
@@ -1495,7 +1495,9 @@ class hyperliquid(Exchange, ImplicitAPI):
             if clientOrderId is not None:
                 orderObj['c'] = clientOrderId
             orderReq.append(orderObj)
-        vaultAddress = self.format_vault_address(self.safe_string(params, 'vaultAddress'))
+        vaultAddress = None
+        vaultAddress, params = self.handle_option_and_params(params, 'createOrder', 'vaultAddress')
+        vaultAddress = self.format_vault_address(vaultAddress)
         orderAction: dict = {
             'type': 'order',
             'orders': orderReq,
@@ -1582,7 +1584,9 @@ class hyperliquid(Exchange, ImplicitAPI):
                     'o': self.parse_to_numeric(ids[i]),
                 })
         cancelAction['cancels'] = cancelReq
-        vaultAddress = self.format_vault_address(self.safe_string(params, 'vaultAddress'))
+        vaultAddress = None
+        vaultAddress, params = self.handle_option_and_params(params, 'cancelOrders', 'vaultAddress')
+        vaultAddress = self.format_vault_address(vaultAddress)
         signature = self.sign_l1_action(cancelAction, nonce, vaultAddress)
         request['action'] = cancelAction
         request['signature'] = signature
@@ -1660,7 +1664,9 @@ class hyperliquid(Exchange, ImplicitAPI):
             cancelReq.append(cancelObj)
         cancelAction['type'] = 'cancelByCloid' if cancelByCloid else 'cancel'
         cancelAction['cancels'] = cancelReq
-        vaultAddress = self.format_vault_address(self.safe_string(params, 'vaultAddress'))
+        vaultAddress = None
+        vaultAddress, params = self.handle_option_and_params(params, 'cancelOrdersForSymbols', 'vaultAddress')
+        vaultAddress = self.format_vault_address(vaultAddress)
         signature = self.sign_l1_action(cancelAction, nonce, vaultAddress)
         request['action'] = cancelAction
         request['signature'] = signature
@@ -1703,7 +1709,9 @@ class hyperliquid(Exchange, ImplicitAPI):
             'type': 'scheduleCancel',
             'time': nonce + timeout,
         }
-        vaultAddress = self.format_vault_address(self.safe_string(params, 'vaultAddress'))
+        vaultAddress = None
+        vaultAddress, params = self.handle_option_and_params(params, 'cancelAllOrdersAfter', 'vaultAddress')
+        vaultAddress = self.format_vault_address(vaultAddress)
         signature = self.sign_l1_action(cancelAction, nonce, vaultAddress)
         request['action'] = cancelAction
         request['signature'] = signature
@@ -1812,7 +1820,9 @@ class hyperliquid(Exchange, ImplicitAPI):
             'type': 'batchModify',
             'modifies': modifies,
         }
-        vaultAddress = self.format_vault_address(self.safe_string(params, 'vaultAddress'))
+        vaultAddress = None
+        vaultAddress, params = self.handle_option_and_params(params, 'editOrder', 'vaultAddress')
+        vaultAddress = self.format_vault_address(vaultAddress)
         signature = self.sign_l1_action(modifyAction, nonce, vaultAddress)
         request: dict = {
             'action': modifyAction,
@@ -1821,7 +1831,6 @@ class hyperliquid(Exchange, ImplicitAPI):
             # 'vaultAddress': vaultAddress,
         }
         if vaultAddress is not None:
-            params = self.omit(params, 'vaultAddress')
             request['vaultAddress'] = vaultAddress
         return request
 
@@ -2639,9 +2648,9 @@ class hyperliquid(Exchange, ImplicitAPI):
             'isCross': isCross,
             'leverage': leverage,
         }
-        vaultAddress = self.safe_string(params, 'vaultAddress')
+        vaultAddress = None
+        vaultAddress, params = self.handle_option_and_params(params, 'setMarginMode', 'vaultAddress')
         if vaultAddress is not None:
-            params = self.omit(params, 'vaultAddress')
             if vaultAddress.startswith('0x'):
                 vaultAddress = vaultAddress.replace('0x', '')
         signature = self.sign_l1_action(updateAction, nonce, vaultAddress)
@@ -2688,7 +2697,9 @@ class hyperliquid(Exchange, ImplicitAPI):
             'isCross': isCross,
             'leverage': leverage,
         }
-        vaultAddress = self.format_vault_address(self.safe_string(params, 'vaultAddress'))
+        vaultAddress = None
+        vaultAddress, params = self.handle_option_and_params(params, 'setLeverage', 'vaultAddress')
+        vaultAddress = self.format_vault_address(vaultAddress)
         signature = self.sign_l1_action(updateAction, nonce, vaultAddress)
         request: dict = {
             'action': updateAction,
@@ -2750,7 +2761,9 @@ class hyperliquid(Exchange, ImplicitAPI):
             'isBuy': True,
             'ntli': sz,
         }
-        vaultAddress = self.format_vault_address(self.safe_string(params, 'vaultAddress'))
+        vaultAddress = None
+        vaultAddress, params = self.handle_option_and_params(params, 'modifyMargin', 'vaultAddress')
+        vaultAddress = self.format_vault_address(vaultAddress)
         signature = self.sign_l1_action(updateAction, nonce, vaultAddress)
         request: dict = {
             'action': updateAction,
@@ -2759,7 +2772,6 @@ class hyperliquid(Exchange, ImplicitAPI):
             # 'vaultAddress': vaultAddress,
         }
         if vaultAddress is not None:
-            params = self.omit(params, 'vaultAddress')
             request['vaultAddress'] = vaultAddress
         response = await self.privatePostExchange(request)
         #
@@ -2816,8 +2828,9 @@ class hyperliquid(Exchange, ImplicitAPI):
             if not self.in_array(toAccount, ['spot', 'swap', 'perp']):
                 raise NotSupported(self.id + ' transfer() only support spot <> swap transfer')
             strAmount = self.number_to_string(amount)
-            vaultAddress = self.format_vault_address(self.safe_string(params, 'vaultAddress'))
-            params = self.omit(params, 'vaultAddress')
+            vaultAddress = None
+            vaultAddress, params = self.handle_option_and_params(params, 'transfer', 'vaultAddress')
+            vaultAddress = self.format_vault_address(vaultAddress)
             if vaultAddress is not None:
                 strAmount = strAmount + ' subaccount:' + vaultAddress
             toPerp = (toAccount == 'perp') or (toAccount == 'swap')
@@ -2913,7 +2926,9 @@ class hyperliquid(Exchange, ImplicitAPI):
             code = code.upper()
             if code != 'USDC':
                 raise NotSupported(self.id + ' withdraw() only support USDC')
-        vaultAddress = self.format_vault_address(self.safe_string(params, 'vaultAddress'))
+        vaultAddress = None
+        vaultAddress, params = self.handle_option_and_params(params, 'withdraw', 'vaultAddress')
+        vaultAddress = self.format_vault_address(vaultAddress)
         params = self.omit(params, 'vaultAddress')
         nonce = self.milliseconds()
         action: dict = {}
@@ -3495,8 +3510,9 @@ class hyperliquid(Exchange, ImplicitAPI):
 
     def parse_create_edit_order_args(self, id: Str, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         market = self.market(symbol)
-        vaultAddress = self.safe_string(params, 'vaultAddress')
-        params = self.omit(params, 'vaultAddress')
+        vaultAddress = None
+        vaultAddress, params = self.handle_option_and_params(params, 'createOrder', 'vaultAddress')
+        vaultAddress = self.format_vault_address(vaultAddress)
         symbol = market['symbol']
         order = {
             'symbol': symbol,

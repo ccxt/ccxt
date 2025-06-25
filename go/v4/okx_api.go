@@ -2551,6 +2551,22 @@ func (this *okx) PrivateGetAccountSpotBorrowRepayHistory (args ...interface{}) <
    return ch
 }
 
+func (this *okx) PrivateGetAccountMovePositionsHistory (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privateGetAccountMovePositionsHistory", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
 func (this *okx) PrivateGetUsersSubaccountList (args ...interface{}) <-chan interface{} {
    parameters := GetArg(args, 0, nil)
    ch := make(chan interface{})
@@ -4514,6 +4530,22 @@ func (this *okx) PrivatePostAccountBillsHistoryArchive (args ...interface{}) <-c
            }
        }()
        ch <- (<-this.callEndpoint ("privatePostAccountBillsHistoryArchive", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *okx) PrivatePostAccountMovePositions (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privatePostAccountMovePositions", parameters))
        PanicOnError(ch)
    }()
    return ch

@@ -19,8 +19,6 @@ public partial class Exchange
         public IDictionary<string, Future> futures = new ConcurrentDictionary<string, Future>();
         public IDictionary<string, object> subscriptions = new ConcurrentDictionary<string, object>();
         public IDictionary<string, object> rejections = new ConcurrentDictionary<string, object>();
-        public IDictionary<string, ConcurrentQueue<object>> messageQueue = new ConcurrentDictionary<string, ConcurrentQueue<object>>();
-        public bool useMessageQueue = false;
         public bool verbose = false;
         public bool isConnected = false;
         public bool startedConnecting = false;
@@ -54,7 +52,7 @@ public partial class Exchange
 
         public bool error = false;
 
-        public WebSocketClient(string url, string proxy, handleMessageDelegate handleMessage, pingDelegate ping = null, onCloseDelegate onClose = null, onErrorDelegate onError = null, bool isVerbose = false, Int64 keepA = 30000, bool useMessageQueue = false)
+        public WebSocketClient(string url, string proxy, handleMessageDelegate handleMessage, pingDelegate ping = null, onCloseDelegate onClose = null, onErrorDelegate onError = null, bool isVerbose = false, Int64 keepA = 30000)
         {
             this.url = url;
             var tcs = new TaskCompletionSource<bool>();
@@ -65,7 +63,6 @@ public partial class Exchange
             this.onClose = onClose;
             this.onError = onError;
             this.keepAlive = keepA;
-            this.useMessageQueue = useMessageQueue;
 
             if (proxy != null)
             {
@@ -81,17 +78,6 @@ public partial class Exchange
             if ((this.rejections as ConcurrentDictionary<string, object>).TryRemove(messageHash, out object rejection))
             {
                 future.reject(rejection);
-                (this.messageQueue as ConcurrentDictionary<string, ConcurrentQueue<object>>).AddOrUpdate(messageHash, new ConcurrentQueue<object>(), (key, value) => new ConcurrentQueue<object>());
-                return future;
-            }
-            if (this.useMessageQueue)
-            {
-                var queue = (this.messageQueue as ConcurrentDictionary<string, ConcurrentQueue<object>>).GetOrAdd(messageHash, (key) => new ConcurrentQueue<object>());
-                if (queue.TryDequeue(out object result))
-                {
-                    future.resolve(result);
-                    (this.futures as ConcurrentDictionary<string, Future>).TryRemove(messageHash, out Future removedFuture);
-                }
             }
             return future;
         }
@@ -103,27 +89,9 @@ public partial class Exchange
                 Console.WriteLine("resolve received undefined messageHash");
             }
             var messageHash = messageHash2.ToString();
-            if (this.useMessageQueue)
+            if ((this.futures as ConcurrentDictionary<string, Future>).TryRemove(messageHash, out Future future))
             {
-                var queue = (this.messageQueue as ConcurrentDictionary<string, ConcurrentQueue<object>>).GetOrAdd(messageHash, (key) => new ConcurrentQueue<object>());
-                queue.Enqueue(content);
-                while (queue.Count > 10) {
-                    queue.TryDequeue(out object _);
-                }
-                if ((this.futures as ConcurrentDictionary<string, Future>).TryRemove(messageHash, out Future future))
-                {
-                    if (queue.TryDequeue(out object result))
-                    {
-                        future.resolve(result);
-                    }
-                }
-            }
-            else
-            {
-                if ((this.futures as ConcurrentDictionary<string, Future>).TryRemove(messageHash, out Future future))
-                {
-                    future.resolve(content);
-                }
+                future.resolve(content);
             }
         }
 
@@ -155,7 +123,6 @@ public partial class Exchange
         public void reset(object message2)
         {
             // stub implement this later
-            this.messageQueue = new ConcurrentDictionary<string, ConcurrentQueue<object>>();
             this.reject(error);
         }
 

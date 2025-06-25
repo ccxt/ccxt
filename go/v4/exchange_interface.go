@@ -34,7 +34,7 @@ type IExchange interface {
 	GetHostname() string
 	GetUrls() interface{}
 	GetApi() map[string]interface{}
-	GetOptions() map[string]interface{}
+	GetOptions() *sync.Map
 	GetCurrencies() map[string]interface{}
 	GetMarkets() map[string]interface{}
 	CheckRequiredCredentials(optionalArgs ...interface{}) interface{}
@@ -172,12 +172,13 @@ type IExchange interface {
 	WarmUpCache()
 	GetItf() interface{}
 	ConvertToSafeDictionary(data interface{}) interface{}
-	CreateSafeDictionary() interface{}
+	CreateSafeDictionary() *sync.Map
 	SetOptions(options interface{})
 	CreateOrders(orders interface{}, optionalArgs ...interface{}) <-chan interface{}
 }
 
 type IDerivedExchange interface {
+	ParseLeverage(leverage interface{}, optionalArgs ...interface{}) interface{}
 	ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{}) interface{}
 	ParseTrade(trade interface{}, optionalArgs ...interface{}) interface{}
 	ParseMarket(market interface{}) interface{}
@@ -234,4 +235,5 @@ type IDerivedExchange interface {
 	Market(symbol interface{}) interface{}
 	ParseConversion(conversion interface{}, optionalArgs ...interface{}) interface{}
 	SafeCurrencyCode(currencyId interface{}, optionalArgs ...interface{}) interface{}
+	HandleErrors(statusCode interface{}, statusText interface{}, url interface{}, method interface{}, responseHeaders interface{}, responseBody interface{}, response interface{}, requestHeaders interface{}, requestBody interface{}) interface{}
 }
