@@ -2476,7 +2476,7 @@ export default class lbank extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': network,
+            'network': this.networkIdToCode (this.safeString (transaction, 'networkName')),
             'address': address,
             'addressTo': addressTo,
             'addressFrom': addressFrom,
