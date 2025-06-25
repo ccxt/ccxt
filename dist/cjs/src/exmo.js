@@ -670,8 +670,9 @@ class exmo extends exmo$1 {
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies(params = {}) {
+        const promises = [];
         //
-        const currencyList = await this.publicGetCurrencyListExtended(params);
+        promises.push(this.publicGetCurrencyListExtended(params));
         //
         //     [
         //         {"name":"VLX","description":"Velas"},
@@ -680,7 +681,7 @@ class exmo extends exmo$1 {
         //         {"name":"USD","description":"US Dollar"}
         //     ]
         //
-        const cryptoList = await this.publicGetPaymentsProvidersCryptoList(params);
+        promises.push(this.publicGetPaymentsProvidersCryptoList(params));
         //
         //     {
         //         "BTC":[
@@ -705,6 +706,9 @@ class exmo extends exmo$1 {
         //         ],
         //     }
         //
+        const responses = await Promise.all(promises);
+        const currencyList = responses[0];
+        const cryptoList = responses[1];
         const result = {};
         for (let i = 0; i < currencyList.length; i++) {
             const currency = currencyList[i];
@@ -771,6 +775,10 @@ class exmo extends exmo$1 {
                 }
             }
             const code = this.safeCurrencyCode(currencyId);
+            const info = {
+                'currency': currency,
+                'providers': providers,
+            };
             result[code] = {
                 'id': currencyId,
                 'code': code,
@@ -782,7 +790,7 @@ class exmo extends exmo$1 {
                 'fee': fee,
                 'precision': this.parseNumber('1e-8'),
                 'limits': limits,
-                'info': providers,
+                'info': info,
                 'networks': {},
             };
         }
