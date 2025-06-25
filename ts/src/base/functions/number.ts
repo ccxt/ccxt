@@ -138,8 +138,9 @@ const _decimalToPrecision = (
         const newNumPrecisionDigits = precisionFromString (precisionDigitsString);
         
         if (roundingMode === TRUNCATE) {
-            // For truncate mode, use a more precise approach to avoid floating-point errors
-            const ticks = Math.floor (Number (x) / numPrecisionDigits);
+            // For truncate mode, avoid floating-point errors
+            // Use Math.trunc instead of Math.floor to truncate towards zero for negative numbers
+            const ticks = Math.trunc (Number (x) / numPrecisionDigits);
             x = ticks * numPrecisionDigits;
             return _decimalToPrecision (x, ROUND, newNumPrecisionDigits, DECIMAL_PLACES, paddingMode);
         }
