@@ -281,21 +281,11 @@ export default class lbank extends Exchange {
                     //     ptx: 1
                     // }
                 },
-                'inverse-networks': {
+                'networksById': {
                     'erc20': 'ERC20',
                     'trc20': 'TRC20',
-                    'omni': 'OMNI',
-                    'asa': 'ASA',
                     'bep20(bsc)': 'BSC',
                     'bep20': 'BSC',
-                    'heco': 'HT',
-                    'bep2': 'BNB',
-                    'btc': 'BTC',
-                    'dogecoin': 'DOGE',
-                    'matic': 'MATIC',
-                    'oec': 'OEC',
-                    'btctron': 'BTCTRON',
-                    'xrp': 'XRP',
                 },
                 'defaultNetworks': {
                     'USDT': 'TRC20',
@@ -2292,13 +2282,10 @@ export default class lbank extends Exchange {
         const result = this.safeValue (response, 'data');
         const address = this.safeString (result, 'address');
         const tag = this.safeString (result, 'memo');
-        const networkId = this.safeString (result, 'netWork');
-        const inverseNetworks = this.safeValue (this.options, 'inverse-networks', {});
-        const networkCode = this.safeStringUpper (inverseNetworks, networkId, networkId);
         return {
             'info': response,
             'currency': code,
-            'network': networkCode,
+            'network': this.networkIdToCode (this.safeString (result, 'netWork')),
             'address': address,
             'tag': tag,
         } as DepositAddress;
@@ -2334,12 +2321,10 @@ export default class lbank extends Exchange {
         const result = this.safeValue (response, 'data');
         const address = this.safeString (result, 'address');
         const tag = this.safeString (result, 'memo');
-        const inverseNetworks = this.safeValue (this.options, 'inverse-networks', {});
-        const networkCode = this.safeStringUpper (inverseNetworks, network, network);
         return {
             'info': response,
             'currency': code,
-            'network': networkCode, // will be undefined if not specified in request
+            'network': undefined,
             'address': address,
             'tag': tag,
         } as DepositAddress;
@@ -2465,9 +2450,6 @@ export default class lbank extends Exchange {
         }
         const txid = this.safeString (transaction, 'txId');
         const timestamp = this.safeInteger2 (transaction, 'insertTime', 'applyTime');
-        const networks = this.safeValue (this.options, 'inverse-networks', {});
-        const networkId = this.safeString (transaction, 'networkName');
-        const network = this.safeString (networks, networkId, networkId);
         const address = this.safeString (transaction, 'address');
         let addressFrom = undefined;
         let addressTo = undefined;
@@ -2699,10 +2681,9 @@ export default class lbank extends Exchange {
             withdrawFees[code] = {};
             for (let j = 0; j < networkList.length; j++) {
                 const networkEntry = networkList[j];
-                const networkId = this.safeString (networkEntry, 'name');
-                const networkCode = this.safeString (this.options['inverse-networks'], networkId, networkId);
                 const fee = this.safeNumber (networkEntry, 'withdrawFee');
                 if (fee !== undefined) {
+                    const networkCode = this.networkIdToCode (this.safeString (networkEntry, 'name'));
                     withdrawFees[code][networkCode] = fee;
                 }
             }
@@ -2755,8 +2736,7 @@ export default class lbank extends Exchange {
             if (canWithdraw === 'true') {
                 const currencyId = this.safeString (item, 'assetCode');
                 const codeInner = this.safeCurrencyCode (currencyId);
-                const chain = this.safeString (item, 'chain');
-                let network = this.safeString (this.options['inverse-networks'], chain, chain);
+                let network = this.networkIdToCode (this.safeString (item, 'chain'));
                 if (network === undefined) {
                     network = codeInner;
                 }
@@ -2908,8 +2888,7 @@ export default class lbank extends Exchange {
                             const resultCodeInfo = result[code]['info'];
                             resultCodeInfo.push (fee);
                         }
-                        const chain = this.safeString (fee, 'chain');
-                        const networkCode = this.safeString (this.options['inverse-networks'], chain, chain);
+                        const networkCode = this.networkIdToCode (this.safeString (fee, 'chain'));
                         if (networkCode !== undefined) {
                             result[code]['networks'][networkCode] = {
                                 'withdraw': {
@@ -2965,8 +2944,7 @@ export default class lbank extends Exchange {
         const networkList = this.safeValue (fee, 'networkList', []);
         for (let j = 0; j < networkList.length; j++) {
             const networkEntry = networkList[j];
-            const networkId = this.safeString (networkEntry, 'name');
-            const networkCode = this.safeStringUpper (this.options['inverse-networks'], networkId, networkId);
+            const networkCode = this.networkIdToCode (this.safeString (networkEntry, 'name'));
             const withdrawFee = this.safeNumber (networkEntry, 'withdrawFee');
             const isDefault = this.safeValue (networkEntry, 'isDefault');
             if (withdrawFee !== undefined) {
