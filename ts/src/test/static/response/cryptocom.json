@@ -193,7 +193,7 @@
                         "id": "USDT",
                         "numericId": null,
                         "code": "USDT",
-                        "precision": null,
+                        "precision": 0.01,
                         "type": "crypto",
                         "name": "Tether USD",
                         "active": true,
