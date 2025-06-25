@@ -462,68 +462,62 @@ export default class lbank extends Exchange {
         //    }
         //
         const currenciesData = this.safeList (response, 'data', []);
+        const grouped = this.groupBy (currenciesData, 'assetCode');
+        const groupedKeys = Object.keys (grouped);
         const result: Dict = {};
-        for (let i = 0; i < currenciesData.length; i++) {
-            const networkEntry = currenciesData[i];
-            const id = this.safeString (networkEntry, 'assetCode');
+        for (let i = 0; i < groupedKeys.length; i++) {
+            const id = groupedKeys[i];
             const code = this.safeCurrencyCode (id);
-            if (!(code in result)) {
-                result[code] = {
-                    'id': id,
-                    'code': code,
-                    'precision': undefined,
-                    'type': undefined,
-                    'name': undefined,
-                    'active': undefined,
-                    'deposit': undefined,
-                    'withdraw': undefined,
-                    'fee': undefined,
+            const networksRaw = grouped[id];
+            const networks = {};
+            for (let j = 0; j < networksRaw.length; j++) {
+                const networkEntry = networksRaw[j];
+                const networkId = this.safeString (networkEntry, 'chain');
+                const networkCode = this.networkIdToCode (networkId);
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
                     'limits': {
                         'withdraw': {
-                            'min': undefined,
+                            'min': this.safeNumber (networkEntry, 'min'),
                             'max': undefined,
                         },
                         'deposit': {
-                            'min': undefined,
+                            'min': this.safeNumber (networkEntry, 'minTransfer'),
                             'max': undefined,
                         },
                     },
-                    'networks': {},
-                    'info': {},
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': this.safeBool (networkEntry, 'canWithDraw'),
+                    'fee': this.safeNumber (networkEntry, 'fee'),
+                    'precision': this.parseNumber (this.parsePrecision (this.safeString (networkEntry, 'transferAmtScale'))),
+                    'info': networkEntry,
                 };
             }
-            const networkId = this.safeString (networkEntry, 'chain');
-            const networkCode = this.networkIdToCode (networkId);
-            result[code]['networks'][networkCode] = {
-                'id': networkId,
-                'network': networkCode,
+            result[code] = this.safeCurrencyStructure ({
+                'id': id,
+                'code': code,
+                'precision': undefined,
+                'type': undefined,
+                'name': undefined,
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
+                'fee': undefined,
                 'limits': {
                     'withdraw': {
-                        'min': this.safeNumber (networkEntry, 'min'),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'deposit': {
-                        'min': this.safeNumber (networkEntry, 'minTransfer'),
+                        'min': undefined,
                         'max': undefined,
                     },
                 },
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': this.safeBool (networkEntry, 'canWithDraw'),
-                'fee': this.safeNumber (networkEntry, 'fee'),
-                'precision': this.parseNumber (this.parsePrecision (this.safeString (networkEntry, 'transferAmtScale'))),
-                'info': networkEntry,
-            };
-            // add entry in info
-            const info = this.safeList (result[code], 'info', []);
-            info.push (networkEntry);
-            result[code]['info'] = info;
-        }
-        // only after all entries are formed in currencies, restructure each entry
-        const allKeys = Object.keys (result);
-        for (let i = 0; i < allKeys.length; i++) {
-            const code = allKeys[i];
-            result[code] = this.safeCurrencyStructure (result[code]); // this is needed after adding network entry
+                'networks': networks,
+                'info': networksRaw,
+            });
         }
         return result;
     }
