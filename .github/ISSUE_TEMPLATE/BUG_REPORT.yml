@@ -12,15 +12,15 @@ body:
         - Read the [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) or search for the specific subject in the [Manual](https://github.com/ccxt/ccxt/wiki/Manual) (eg: `Exchange Properties`, `Rate Limit`, `Authentication`, `API keys`, etc).
         - Read the [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting) to better understand your issue.
 
-        ## Please provide:
+        ## Please:
         - Set `exchange.verbose = true` property before calling exchange functions
-        - minimal, reproducible example/code
-        - surround your code and verbose output with triple backticks:
+        - Provide the minimal, reproducible example/code
+        - Surround your code/output with triple backticks:
           ````markdown
           ```
-          your codes or output
+          your data here
           ```
-        - Do not include keys & credentials.
+        - Hide the keys & credentials.
 
   - type: input
     id: operating-system
