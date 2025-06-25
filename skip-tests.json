@@ -908,7 +908,6 @@
                 "active":"is undefined"
             },
             "fetchCurrencies":{
-                "info":"null",
                 "withdraw":"not provided",
                 "deposit":"not provided",
                 "activeMajorCurrencies": "todo"
