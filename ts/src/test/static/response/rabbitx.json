@@ -1,0 +1,554 @@
+{
+    "exchange": "rabbitx",
+    "skipKeys": [],
+    "outputType": "urlencoded",
+    "secret": "0x327eec",
+    "methods": {
+        "fetchOrderBook": [
+            {
+                "description": "spot orderbook",
+                "method": "fetchOrderBook",
+                "input": [
+                    "BTC/USD",
+                    2
+                ],
+                "httpResponse": {
+                    "result": [{
+                        "market_id": "BTC-USD",
+                        "asks": [
+                            ["50100.5", "0.5"],
+                            ["50101.0", "1.2"]
+                        ],
+                        "bids": [
+                            ["50099.5", "0.8"],
+                            ["50099.0", "2.1"]
+                        ],
+                        "sequence": 1449753575,
+                        "timestamp": 1640995200000
+                    }]
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USD",
+                    "bids": [
+                        [50099.5, 0.8],
+                        [50099.0, 2.1]
+                    ],
+                    "asks": [
+                        [50100.5, 0.5],
+                        [50101.0, 1.2]
+                    ],
+                    "timestamp": 1640995200000,
+                    "datetime": "2022-01-01T00:00:00.000Z",
+                    "nonce": null
+                }
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USD"
+                ],
+                "httpResponse": {
+                    "result": [{
+                       "id": "BTC-USD",
+                        "status": "active",
+                        "min_tick": "1",
+                        "min_order": "0.0001",
+                        "best_bid": "104413",
+                        "best_ask": "104424",
+                        "market_price": "104418.5",
+                        "index_price": "104407",
+                        "last_trade_price": "104412",
+                        "fair_price": "104413",
+                        "instant_funding_rate": "0.00002620256151354251431514818230588705",
+                        "last_funding_rate_basis": "0.00002619465575688710016248802162505845",
+                        "last_update_time": 1750245926476000,
+                        "last_update_sequence": 1449756566,
+                        "average_daily_volume_q": "1078.333",
+                        "last_funding_update_time": 1750244400191577,
+                        "icon_url": "https://d3jcs7jdw2xltq.cloudfront.net/currencies/btc.svg",
+                        "market_title": "Bitcoin",
+                        "base_currency": "BTC",
+                        "quote_currency": "USD",
+                        "product_type": "perpetual",
+                        "open_interest": "414772.3152",
+                        "next_funding_rate_timestamp": 1750248000,
+                        "average_daily_volume": "115150524.7334",
+                        "last_trade_price_24high": "105857",
+                        "last_trade_price_24low": "103380",
+                        "last_trade_price_24h_change_premium": "-1183",
+                        "last_trade_price_24h_change_basis": "-0.01120318196884322174",
+                        "average_daily_volume_change_premium": "3630660.5587",
+                        "average_daily_volume_change_basis": "0.03255617809050086079",
+                        "market_cap": "2075310948689"
+                    }]
+                },
+                "parsedResponse": {
+                    "symbol":"BTC/USD",
+                    "timestamp":1750245926476,
+                    "datetime":"2025-06-18T11:25:26.476Z",
+                    "high":105857,
+                    "low":103380,
+                    "bid":104413,
+                    "bidVolume":null,
+                    "ask":104424,
+                    "askVolume":null,
+                    "markPrice":104413,
+                    "indexPrice":104407,
+                    "vwap":104412.00000000001,
+                    "open":null,
+                    "close":104412,
+                    "last":104412,
+                    "previousClose":null,
+                    "change":null,
+                    "percentage":null,
+                    "average":null,
+                    "baseVolume":1078.333,
+                    "quoteVolume":112590905.19600001,
+                    "info":{"id":"BTC-USD","status":"active","min_tick":"1","min_order":"0.0001","best_bid":"104413","best_ask":"104424","market_price":"104418.5","index_price":"104407","last_trade_price":"104412","fair_price":"104413","instant_funding_rate":"0.00002620256151354251431514818230588705","last_funding_rate_basis":"0.00002619465575688710016248802162505845","last_update_time":1750245926476000,"last_update_sequence":1449756566,"average_daily_volume_q":"1078.333","last_funding_update_time":1750244400191577,"icon_url":"https://d3jcs7jdw2xltq.cloudfront.net/currencies/btc.svg","market_title":"Bitcoin","base_currency":"BTC","quote_currency":"USD","product_type":"perpetual","open_interest":"414772.3152","next_funding_rate_timestamp":1750248000,"average_daily_volume":"115150524.7334","last_trade_price_24high":"105857","last_trade_price_24low":"103380","last_trade_price_24h_change_premium":"-1183","last_trade_price_24h_change_basis":"-0.01120318196884322174","average_daily_volume_change_premium":"3630660.5587","average_daily_volume_change_basis":"0.03255617809050086079","market_cap":"2075310948689"}
+                }
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetches all public trades for a particular market/symbol",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USD"
+                ],
+                "httpResponse": {
+                    "result": [{
+                        "id": "BTC-USD-71837196",
+                        "market_id": "BTC-USD",
+                        "price": "50000.0",
+                        "size": "0.1",
+                        "side": "long",
+                        "timestamp": 1640995200000000,
+                        "liquidation": false,
+                        "taker_size": "0.1"
+                    }]
+                },
+                "parsedResponse": [{
+                    "info": {
+                        "id": "BTC-USD-71837196",
+                        "market_id": "BTC-USD",
+                        "price": "50000.0",
+                        "size": "0.1",
+                        "side": "long",
+                        "timestamp": 1640995200000000,
+                        "liquidation": false,
+                        "taker_size": "0.1"
+                    },
+                    "id":"BTC-USD-71837196",
+                    "timestamp":1640995200000,
+                    "datetime":"2022-01-01T00:00:00.000Z",
+                    "symbol":"BTC/USD",
+                    "order":null,
+                    "type":null,
+                    "side":"buy",
+                    "takerOrMaker":null,
+                    "price":50000,
+                    "amount":0.1,
+                    "cost":5000,
+                    "fee":{
+                        "cost":null,
+                        "currency":null
+                    },
+                    "fees":[]
+                }]
+            },
+            {
+                "description": "fetches all private trades for a particular market/symbol",
+                "method": "fetchMyTrades",
+                "input": [
+                    "BTC/USD"
+                ],
+                "httpResponse": {
+                    "result": [{
+                        "fee": "-0.0178801",
+                        "id": "BTC-USD-62581592",
+                        "is_maker": true,
+                        "market_id": "BTC-USD",
+                        "order_id": "BTC-USD@6509736",
+                        "price": "50100.0",
+                        "profile_id": "123456789",
+                        "size": "0.2",
+                        "side": "short",
+                        "timestamp": 1640995200000000,
+                        "liquidation": false,
+                        "trade_id": "BTC-USD-62581590"
+                    }]
+                },
+                "parsedResponse": [{
+                    "info": {
+                        "fee": "-0.0178801",
+                        "id": "BTC-USD-62581592",
+                        "is_maker": true,
+                        "market_id": "BTC-USD",
+                        "order_id": "BTC-USD@6509736",
+                        "price": "50100.0",
+                        "profile_id": "123456789",
+                        "size": "0.2",
+                        "side": "short",
+                        "timestamp": 1640995200000000,
+                        "liquidation": false,
+                        "trade_id": "BTC-USD-62581590"
+                    },
+                    "id":"BTC-USD-62581592",
+                    "timestamp":1640995200000,
+                    "datetime":"2022-01-01T00:00:00.000Z",
+                    "symbol":"BTC/USD",
+                    "order":"BTC-USD@6509736",
+                    "type":null,
+                    "side":"sell",
+                    "takerOrMaker":"maker",
+                    "price":50100,
+                    "amount":0.2,
+                    "cost":10020,
+                    "fee":{
+                        "cost":-0.0178801,
+                        "currency": "USD"
+                    },
+                    "fees":[{"currency":"USD","cost":-0.0178801}]
+                }]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+            "description": "fetches historical OHLCV data for a particular market/symbol",
+            "method": "fetchOHLCV",
+            "input": [
+                "BTC/USD",
+                "1m",
+                1640995200000,
+                1
+            ],
+            "httpResponse": {
+                "result": [{
+                    "time": 1640995200000,
+                    "open": "50000.0",
+                    "high": "50100.0",
+                    "low": "49900.0",
+                    "close": "50050.0",
+                    "volume": "1.5"
+                }]
+            },
+            "parsedResponse": [
+                [
+                    1640995200000,
+                    50000,
+                    50100,
+                    49900,
+                    50050,
+                    1.5
+                ]
+            ]
+        }],
+        "fetchFundingRate": [
+            {
+                "description": "fetches the current funding rate for a particular market/symbol",
+                "method": "fetchFundingRate",
+                "input": [
+                    "BTC/USD"
+                ],
+                "httpResponse": {
+                    "result": [{
+                        "market_id": "BTC-USD",
+                        "timestamp": 1640995200000000,
+                        "funding_rate": "0.00000345036828584396221344396134618789"
+                    }]
+                },
+                "parsedResponse": {
+                    "info": {
+                        "market_id": "BTC-USD",
+                        "timestamp": 1640995200000000,
+                        "funding_rate": "0.00000345036828584396221344396134618789"
+                    },
+                    "symbol":"BTC/USD",
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "interestRate": null,
+                    "estimatedSettlePrice": null,
+                    "timestamp":1640995200000,
+                    "datetime":"2022-01-01T00:00:00.000Z",
+                    "fundingRate":0.00000345036828584396221344396134618789,
+                    "fundingTimestamp":null,
+                    "fundingDatetime":null,
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": null,
+                    "nextFundingDatetime": null,
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "interval": null
+                }                   
+               
+            }
+        ],
+        "fetchLeverages": [
+            {
+                "description": "fetches the leverage for all market/symbol",
+                "method": "fetchLeverages",
+                "input": [],
+                "httpResponse": {
+                    "result": [{
+                        "leverage": {
+                            "BTC-USD": "20",
+                            "ETH-USD": "1",
+                            "SOL-USD": "1"
+                        }
+                    }]
+                },
+                "parsedResponse": {
+                    "BTC/USD":{
+                        "info":{
+                            "symbol":"BTC-USD",
+                            "leverage":20
+                        },
+                        "symbol":"BTC/USD",
+                        "marginMode":"isolated",
+                        "longLeverage":20,
+                        "shortLeverage":20
+                    },
+                    "ETH/USD":{
+                        "info":{
+                            "symbol":"ETH-USD",
+                            "leverage":1
+                        },
+                        "symbol":"ETH/USD",
+                        "marginMode":"isolated",
+                        "longLeverage":1,
+                        "shortLeverage":1
+                    },
+                    "SOL/USD":{
+                        "info":{
+                            "symbol":"SOL-USD",
+                            "leverage":1
+                        },
+                        "symbol":"SOL/USD",
+                        "marginMode":"isolated",
+                        "longLeverage":1,
+                        "shortLeverage":1
+                    }
+                }
+            }
+        ],
+        "getDeadmanSwitchStatus": [
+            {
+                "description": "fetches the deadman switch status",
+                "method": "getDeadmanSwitchStatus",
+                "input": [
+                    "BTC/USD"
+                ],
+                "httpResponse": {
+                    "result": {
+                        "profile_id":1,
+                        "timeout":600,
+                        "last_updated": 1701324346000000,
+                        "status": "active"
+                    }
+                },
+                "parsedResponse": {
+                    "profileId": 1,
+                    "timeout": 600,
+                    "lastUpdated": 1701324346000000,
+                    "status": "active"
+                }
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "fetches all open orders for a particular market/symbol",
+                "method": "fetchOrders",
+                "input": [
+                    "BTC/USD"
+                ],
+                "httpResponse": {
+                    "result": [{
+                        "id": "BTC-USD@123456789",
+                        "profile_id": "123456789",
+                        "market_id": "BTC-USD",
+                        "order_type": "limit",
+                        "status": "processing",
+                        "price": "50000.0",
+                        "size": "0.1",
+                        "initial_size": "0.1",
+                        "total_filled_size": "0.05",
+                        "side": "long",
+                        "timestamp": 1640995200000000,
+                        "reason": "",
+                        "client_order_id": "ff18cf5c-aeaf-4a2a-a220-74ca02b121ce",
+                        "trigger_price": "0.0",
+                        "size_percent": 0,
+                        "time_in_force": "good_till_cancel",
+                        "created_at": 1640995200000000,
+                        "updated_at": 1640995200000000
+                    }]
+                },
+                "parsedResponse": [{
+                    "info": {
+                        "id": "BTC-USD@123456789",
+                        "profile_id": "123456789",
+                        "market_id": "BTC-USD",
+                        "order_type": "limit",
+                        "status": "processing",
+                        "price": "50000.0",
+                        "size": "0.1",
+                        "initial_size": "0.1",
+                        "total_filled_size": "0.05",
+                        "side": "long",
+                        "timestamp": 1640995200000000,
+                        "reason": "",
+                        "client_order_id": "ff18cf5c-aeaf-4a2a-a220-74ca02b121ce",
+                        "trigger_price": "0.0",
+                        "size_percent": 0,
+                        "time_in_force": "good_till_cancel",
+                        "created_at": 1640995200000000,
+                        "updated_at": 1640995200000000
+                    },
+                    "id": "BTC-USD@123456789",
+                    "clientOrderId": "ff18cf5c-aeaf-4a2a-a220-74ca02b121ce",
+                    "timestamp": 1640995200000,
+                    "datetime": "2022-01-01T00:00:00.000Z",
+                    "lastTradeTimestamp": null,
+                    "status": "open",
+                    "symbol": "BTC/USD",
+                    "type": "limit",
+                    "timeInForce": "good_till_cancel",
+                    "postOnly": false,
+                    "side": "buy",
+                    "price": 50000,
+                    "triggerPrice": null,
+                    "average": 50000,
+                    "cost": 2500,
+                    "amount": 0.1,
+                    "filled": 0.05,
+                    "remaining": 0.05,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+
+                }]
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancels an order by its ID",
+                "method": "cancelOrder",
+                "input": [
+                    "BTC-USD@123456789",
+                    "BTC/USD"
+                ],
+                "httpResponse": {
+                    "result": [{
+                        "id": "BTC-USD@1859",
+                         "market_id": "BTC-USD",
+                         "profile_id": 4,
+                         "status": "canceling"
+                    }]
+                },
+                "parsedResponse": {
+                    "id":"BTC-USD@1859",
+                    "clientOrderId":null,
+                    "info":{
+                        "id":"BTC-USD@1859",
+                        "market_id":"BTC-USD",
+                        "profile_id":4,
+                        "status":"canceling"
+                    },
+                    "timestamp":null,
+                    "datetime":null,
+                    "lastTradeTimestamp":null,
+                    "status":"canceled",
+                    "symbol":"BTC/USD",
+                    "type":null,
+                    "timeInForce":null,
+                    "postOnly":null,
+                    "side":null,
+                    "price":null,
+                    "triggerPrice":null,
+                    "average":null,
+                    "cost":null,
+                    "amount":null,
+                    "filled":null,
+                    "remaining":null,
+                    "fee":null,
+                    "trades":[],
+                    "fees":[],
+                    "lastUpdateTimestamp":null,
+                    "reduceOnly":null,
+                    "stopPrice":null,
+                    "takeProfitPrice":null,
+                    "stopLossPrice":null
+                }
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetches all open positions for a user",
+                "method": "fetchPositions",
+                "input": [],
+                "httpResponse": {
+                    "result": [{
+                        "id": "BTC-USD@123456789",
+                        "profile_id": "123456789",
+                        "market_id": "BTC-USD",
+                        "size": "0.1",
+                        "side": "long",
+                        "entry_price": "49000.0",
+                        "unrealized_pnl": "-50.0",
+                        "liquidation_price": "49000.0",
+                        "margin": "20.88",
+                        "notional": "1044",
+                        "fair_price": "50000.0"
+                    }]
+                },
+                "parsedResponse": {
+                    "BTC/USD": {                   
+                    "info": {
+                        "id": "BTC-USD@123456789",
+                        "profile_id": "123456789",
+                        "market_id": "BTC-USD",
+                        "size": "0.1",
+                        "side": "long",
+                        "entry_price": "49000.0",
+                        "unrealized_pnl": "-50.0",
+                        "liquidation_price": "49000.0",
+                        "margin": "20.88",
+                        "notional": "1044",
+                        "fair_price": "50000.0"
+                    },
+                    "id":"BTC-USD@123456789",
+                    "symbol":"BTC/USD",
+                    "timestamp":null,
+                    "datetime":null,
+                    "initialMargin":20.88,
+                    "initialMarginPercentage":null,
+                    "maintenanceMargin":null,
+                    "maintenanceMarginPercentage":null,
+                    "entryPrice":49000,
+                    "notional":1044,
+                    "leverage":null,
+                    "unrealizedPnl":-50,
+                    "contracts":0.1,
+                    "contractSize":null,
+                    "marginRatio":null,
+                    "liquidationPrice":49000,
+                    "markPrice":50000,
+                    "collateral":20.88,
+                    "marginMode":null,
+                    "side":"buy",
+                    "percentage":null
+                }
+                }
+            }
+        ]
+    }
+}

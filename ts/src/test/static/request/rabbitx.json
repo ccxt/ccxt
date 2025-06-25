@@ -1,0 +1,304 @@
+{
+    "exchange": "rabbitx",
+    "skipKeys": [],
+    "outputType": "urlencoded",
+    "secret": "0x327eec",
+    "methods": {
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets",
+                "method": "fetchMarkets",
+                "url": "https://api.rabbitx.com/markets",
+                "input": []
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "spot fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api.rabbitx.com/markets/trades?market_id=BTC-USD&p_limit=50",
+                "input": [
+                    "BTC/USD"
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "spot orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api.rabbitx.com/markets/orderbook?market_id=BTC-USD&p_limit=100",
+                "input": [
+                    "BTC/USD"
+                ]
+            },
+            {
+                "description": "spot orderbook with limit",
+                "method": "fetchOrderBook",
+                "url": "https://api.rabbitx.com/markets/orderbook?market_id=BTC-USD&p_limit=1000",
+                "input": [
+                    "BTC/USD",
+                    1000
+                ]
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "fetch funding rate",
+                "method": "fetchFundingRate",
+                "url": "https://api.rabbitx.com/markets/fundingrate?market_id=BTC-USD",
+                "input": [
+                    "BTC/USD"
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetch OHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://api.rabbitx.com/candles?market_id=BTC-USD&period=5&timestamp_from=123456&timestamp_to=123456",
+                "input": [
+                    "BTC/USD",
+                    "5m",
+                    123456789,
+                    100,
+                    {"until": 123456789}
+                ]
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetch balance",
+                "method": "fetchBalance",
+                "url": "https://api.rabbitx.com/account",
+                "input": []
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "fetch orders",
+                "method": "fetchOrders",
+                "url": "https://api.rabbitx.com/orders?market_id=BTC-USD&start_time=1669629461258298&p_limit=50",
+                "input": [
+                    "BTC/USD",
+                    1669629461258298,
+                    50
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetch my trades",
+                "method": "fetchMyTrades",
+                "url": "https://api.rabbitx.com/fills?market_id=BTC-USD&start_time=1669629461258298&p_limit=50",
+                "input": [
+                    "BTC/USD",
+                    1669629461258298,
+                    50
+                ]
+            }
+        ],
+        "fetchOrderTrades": [
+            {
+                "description": "fetch order trades",
+                "method": "fetchOrderTrades",
+                "url": "https://api.rabbitx.com/fills/order?order_id=12345",
+                "input": [
+                    "12345"
+                ]
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetch positions",
+                "method": "fetchPositions",
+                "url": "https://api.rabbitx.com/positions",
+                "input": []
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetch order",
+                "method": "fetchOrder",
+                "url": "https://api.rabbitx.com/orders?order_id=12345",
+                "input": [
+                    "12345"
+                ]
+            },
+            {
+                "description": "fetch order with client order ID",
+                "method": "fetchOrder",
+                "url": "https://api.rabbitx.com/orders?market_id=BTC-USD&client_order_id=12345",
+                "input": [
+                    "12345",
+                    "BTC/USD",
+                    {
+                        "client_order_id": "12345"
+                    }
+                ]
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "create order",
+                "method": "createOrder",
+                "url": "https://api.rabbitx.com/orders",
+                "input": [
+                        "BTC/USD",
+                        "limit",
+                        "buy",
+                        0.01,
+                       51000
+                    
+                ],
+                "output": "{\"market_id\":\"BTC-USD\",\"side\":\"long\",\"type\":\"limit\",\"size\":0.01,\"price\":51000}"
+            },
+            {
+                "description": "create order with client order ID",
+                "method": "createOrder",
+                "url": "https://api.rabbitx.com/orders",
+                "input": [
+                    "BTC/USD",
+                    "limit",
+                    "buy",
+                    0.01,
+                    51000,
+                    {
+                        "client_order_id": "12345"
+                    }
+                ],
+                "output": "{\"market_id\":\"BTC-USD\",\"side\":\"long\",\"type\":\"limit\",\"size\":0.01,\"price\":51000,\"client_order_id\":\"12345\"}"
+            },
+            {
+                "description": "create order with time in force",
+                "method": "createOrder",
+                "url": "https://api.rabbitx.com/orders",
+                "input": [
+                    "BTC/USD",
+                    "limit",
+                    "buy",
+                    0.01,
+                    51000,
+                    {
+                        "time_in_force": "good_till_cancel"
+                    }
+                ],
+                "output": "{\"market_id\":\"BTC-USD\",\"side\":\"long\",\"type\":\"limit\",\"size\":0.01,\"price\":51000,\"time_in_force\":\"good_till_cancel\"}"
+            },
+            {
+                "description": "create stop loss order",
+                "method": "createOrder",
+                "url": "https://api.rabbitx.com/orders",
+                "input": [
+                    "BTC/USD",
+                    "stop_loss",
+                    "sell",
+                    1,
+                    50000,
+                    {
+                        "trigger_price": 49999
+                    }
+                ],
+                "output": "{\"market_id\":\"BTC-USD\",\"side\":\"short\",\"type\":\"stop_loss\",\"size\":1,\"price\":50000,\"trigger_price\":49999}"
+            }
+        ],
+        "editOrder": [
+            {
+                "description": "edit order",
+                "method": "editOrder",
+                "url": "https://api.rabbitx.com/orders",
+                "input": [
+                    "12345",
+                    "BTC-USD",
+                    "market",
+                    "buy",
+                    0.02,
+                    52000
+                ],
+                "output": "{\"order_id\":\"12345\",\"market_id\":\"BTC-USD\",\"size\":0.02,\"price\":52000}"
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancel order",
+                "method": "cancelOrder",
+                "url": "https://api.rabbitx.com/orders",
+                "input": [
+                    "12345",
+                    "BTC/USD"
+                ],
+                "output": "{\"order_id\":\"12345\",\"market_id\":\"BTC-USD\"}"
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "cancel all orders",
+                "method": "cancelAllOrders",
+                "url": "https://api.rabbitx.com/orders/cancel_all",
+                "input": [],
+                "output": "{}"
+            }
+        ],
+        "setLeverage": [
+            {
+                "description": "set leverage",
+                "method": "setLeverage",
+                "url": "https://api.rabbitx.com/account/leverage",
+                "input": [
+                    10,
+                    "BTC/USD"
+                ],
+                "output": "{\"market_id\":\"BTC-USD\",\"leverage\":10}"
+            }
+        ],
+        "fetchLeverages": [
+            {
+                "description": "fetch leverage",
+                "method": "fetchLeverages",
+                "url": "https://api.rabbitx.com/account",
+                "input": [
+                    ["BTC/USD"]
+                ]
+            }
+        ],
+        "fetchTiers": [
+            {
+                "description": "fetch tiers",
+                "method": "fetchTiers",
+                "url": "https://api.rabbitx.com/profile",
+                "input": []
+            }
+        ],
+        "setDeadmanSwitch": [
+            {
+                "description": "set deadman switch",
+                "method": "setDeadmanSwitch",
+                "url": "https://api.rabbitx.com/cancel_all_after",
+                "input": [
+                    "BTC/USD"
+                ],
+                "output": "{\"market_id\":\"BTC-USD\",\"timeout\":600}"
+            }
+        ],
+        "getDeadmanSwitchStatus": [
+            {
+                "description": "get deadman switch status",
+                "method": "getDeadmanSwitchStatus",
+                "url": "https://api.rabbitx.com/cancel_all_after?market_id=BTC-USD",
+                "input": [
+                    "BTC/USD"
+                ]
+            }
+        ],
+        "removeDeadmanSwitch": [
+            {
+                "description": "remove deadman switch",
+                "method": "removeDeadmanSwitch",
+                "url": "https://api.rabbitx.com/cancel_all_after",
+                "input": [
+                    "BTC/USD"
+                ],
+                "output": "{\"market_id\":\"BTC-USD\"}"
+            }
+        ]
+    }
+}
