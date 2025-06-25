@@ -1273,7 +1273,8 @@
                 "timestamp": "ts several hours ahead in in future :)"
             },
             "orderBook": {
-                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269364330#L3612"
+                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269364330#L3612",
+                "compareToNextItem": "frequently failing: https://github.com/ccxt/ccxt/actions/runs/15869807959/job/44743669371?pr=26044#step:10:29"
             },
             "ohlcv": {
                 "1":"https://app.travis-ci.com/github/ccxt/ccxt/builds/272644155#L4669"
