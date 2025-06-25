@@ -466,7 +466,7 @@ export default class lbank extends Exchange {
         const groupedKeys = Object.keys (grouped);
         const result: Dict = {};
         for (let i = 0; i < groupedKeys.length; i++) {
-            const id = groupedKeys[i];
+            const id = (groupedKeys[i]).toString (); // some currencies are numeric
             const code = this.safeCurrencyCode (id);
             const networksRaw = grouped[id];
             const networks = {};
