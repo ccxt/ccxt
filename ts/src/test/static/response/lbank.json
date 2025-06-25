@@ -251,7 +251,7 @@
                         "networks": {
                             "BEP20": {
                                 "id": "bep20(bsc)",
-                                "network": "BSC",
+                                "network": "BEP20",
                                 "limits": {
                                     "withdraw": {
                                         "min": 10,
@@ -281,7 +281,7 @@
                             },
                             "TRC20": {
                                 "id": "trc20",
-                                "network": "TRX",
+                                "network": "TRC20",
                                 "limits": {
                                     "withdraw": {
                                         "min": 1,
@@ -311,7 +311,7 @@
                             },
                             "ERC20": {
                                 "id": "erc20",
-                                "network": "ETH",
+                                "network": "ERC20",
                                 "limits": {
                                     "withdraw": {
                                         "min": 1,
