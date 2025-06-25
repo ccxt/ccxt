@@ -10,8 +10,10 @@ function testDecimalToPrecision () {
     const exchange = new ccxt.Exchange ({
         'id': 'regirock',
     });
+
     // ----------------------------------------------------------------------------
-    // testDecimalToPrecisionTruncationToNDigitsAfterDot
+
+    // Truncate To N Digits After Dot
 
     assert (exchange.decimalToPrecision ('12.3456000', TRUNCATE, 100, DECIMAL_PLACES) === '12.3456');
     assert (exchange.decimalToPrecision ('12.3456', TRUNCATE, 100, DECIMAL_PLACES) === '12.3456');
@@ -41,7 +43,8 @@ function testDecimalToPrecision () {
     assert (exchange.decimalToPrecision ('-0.9', TRUNCATE, 0, DECIMAL_PLACES) === '0');
 
     // ----------------------------------------------------------------------------
-    // testDecimalToPrecisionTruncationToNSignificantDigits
+
+    // Truncate To N Significant Digits
 
     assert (exchange.decimalToPrecision ('0.000123456700', TRUNCATE, 100, SIGNIFICANT_DIGITS) === '0.0001234567');
     assert (exchange.decimalToPrecision ('0.0001234567', TRUNCATE, 100, SIGNIFICANT_DIGITS) === '0.0001234567');
@@ -72,7 +75,8 @@ function testDecimalToPrecision () {
     assert (exchange.decimalToPrecision ('1234.69', TRUNCATE, 0, SIGNIFICANT_DIGITS, PAD_WITH_ZERO) === '0');
 
     // ----------------------------------------------------------------------------
-    // testDecimalToPrecisionRoundingToNDigitsAfterDot
+
+    // Round To N Digits After Dot
 
     assert (exchange.decimalToPrecision ('12.3456000', ROUND, 100, DECIMAL_PLACES) === '12.3456');
     assert (exchange.decimalToPrecision ('12.3456', ROUND, 100, DECIMAL_PLACES) === '12.3456');
@@ -111,7 +115,8 @@ function testDecimalToPrecision () {
     assert (exchange.decimalToPrecision ('-99.999', ROUND, 2, DECIMAL_PLACES, PAD_WITH_ZERO) === '-100.00');
 
     // ----------------------------------------------------------------------------
-    // testDecimalToPrecisionRoundingToNSignificantDigits
+
+    // Round To N Significant Digits
 
     assert (exchange.decimalToPrecision ('0.000123456700', ROUND, 100, SIGNIFICANT_DIGITS) === '0.0001234567');
     assert (exchange.decimalToPrecision ('0.0001234567', ROUND, 100, SIGNIFICANT_DIGITS) === '0.0001234567');
@@ -159,7 +164,8 @@ function testDecimalToPrecision () {
 
 
     // ----------------------------------------------------------------------------
-    // testDecimalToPrecisionRoundingToTickSize
+
+    // Round To Tick Size
 
     assert (exchange.decimalToPrecision ('0.000123456700', ROUND, 0.00012, TICK_SIZE) === '0.00012');
     assert (exchange.decimalToPrecision ('0.0001234567', ROUND, 0.00013, TICK_SIZE) === '0.00013');
@@ -203,14 +209,18 @@ function testDecimalToPrecision () {
     // https://github.com/ccxt/ccxt/issues/6731
     assert (exchange.decimalToPrecision ('20', TRUNCATE, 0.00000001, TICK_SIZE) === '20');
 
+    assert (exchange.decimalToPrecision ('0.000123456789', TRUNCATE, 0.00000001, TICK_SIZE) === '0.00012345');
+
     // ----------------------------------------------------------------------------
-    // testDecimalToPrecisionNegativeNumbers
+
+    //Negative Numbers
 
     assert (exchange.decimalToPrecision ('-0.123456', TRUNCATE, 5, DECIMAL_PLACES) === '-0.12345');
     assert (exchange.decimalToPrecision ('-0.123456', ROUND, 5, DECIMAL_PLACES) === '-0.12346');
 
     // ----------------------------------------------------------------------------
-    // decimalToPrecision: without dot / trailing dot
+
+    // without dot / trailing dot
 
     assert (exchange.decimalToPrecision ('123', TRUNCATE, 0) === '123');
 
@@ -224,13 +234,15 @@ function testDecimalToPrecision () {
     assert (exchange.decimalToPrecision ('0.', TRUNCATE, 5, DECIMAL_PLACES, PAD_WITH_ZERO) === '0.00000');
 
     // ----------------------------------------------------------------------------
-    // decimalToPrecision: rounding for equidistant digits
+
+    // rounding for equidistant digits
 
     assert (exchange.decimalToPrecision ('1.44', ROUND, 1, DECIMAL_PLACES) === '1.4');
     assert (exchange.decimalToPrecision ('1.45', ROUND, 1, DECIMAL_PLACES) === '1.5');
     assert (exchange.decimalToPrecision ('1.45', ROUND, 0, DECIMAL_PLACES) === '1'); // not 2
 
     // ----------------------------------------------------------------------------
+
     // negative precision only implemented so far in python
     // pretty useless for decimal applications as anything |x| < 5 === 0
     // NO_PADDING and PAD_WITH_ZERO are ignored
@@ -250,7 +262,8 @@ function testDecimalToPrecision () {
     assert (exchange.decimalToPrecision ('1602000000000000000000', TRUNCATE, 3, SIGNIFICANT_DIGITS) === '1600000000000000000000');
 
     // ----------------------------------------------------------------------------
-    // decimal_to_precision: stringified precision
+
+    // stringified precision
     assert (exchange.decimalToPrecision ('-0.000123456789', ROUND, '0.00000012', TICK_SIZE) === '-0.00012348');
     assert (exchange.decimalToPrecision ('-0.000123456789', TRUNCATE, '0.00000012', TICK_SIZE) === '-0.00012336');
     assert (exchange.decimalToPrecision ('-165', TRUNCATE, '110', TICK_SIZE) === '-110');
