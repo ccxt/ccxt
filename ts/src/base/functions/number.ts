@@ -157,7 +157,7 @@ const _decimalToPrecision = (
                 if (typeof x !== 'string') {
                     x = x.toFixed(newNumPrecisionDigits);
                 }
-                return x.replace(/(\.\d*?)0+$/, '$1').replace(/\.$/, '');
+                return String(parseFloat(x));
             }
             return _decimalToPrecision (x, ROUND, newNumPrecisionDigits, DECIMAL_PLACES, paddingMode)
         }
