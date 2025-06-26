@@ -7641,8 +7641,10 @@ export default class bitget extends Exchange {
      * @description fetch the current funding rate
      * @see https://www.bitget.com/api-doc/contract/market/Get-Current-Funding-Rate
      * @see https://www.bitget.com/api-doc/contract/market/Get-Symbol-Next-Funding-Time
+     * @see https://www.bitget.bike/api-doc/uta/public/Get-Current-Funding-Rate
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @param {string} [params.method] either (default) 'publicMixGetV2MixMarketCurrentFundRate' or 'publicMixGetV2MixMarketFundingTime'
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
      */
@@ -7656,46 +7658,69 @@ export default class bitget extends Exchange {
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
         const request: Dict = {
             'symbol': market['id'],
-            'productType': productType,
         };
-        let method = undefined;
-        [ method, params ] = this.handleOptionAndParams (params, 'fetchFundingRate', 'method', 'publicMixGetV2MixMarketCurrentFundRate');
+        let uta = undefined;
         let response = undefined;
-        if (method === 'publicMixGetV2MixMarketCurrentFundRate') {
-            response = await this.publicMixGetV2MixMarketCurrentFundRate (this.extend (request, params));
+        [ uta, params ] = this.handleOptionAndParams (params, 'fetchFundingRate', 'uta', false);
+        if (uta) {
+            response = await this.publicUtaGetV3MarketCurrentFundRate (this.extend (request, params));
             //
             //     {
             //         "code": "00000",
             //         "msg": "success",
-            //         "requestTime": 1745500709429,
+            //         "requestTime": 1750897372153,
             //         "data": [
             //             {
             //                 "symbol": "BTCUSDT",
-            //                 "fundingRate": "-0.000013",
+            //                 "fundingRate": "0.00001",
             //                 "fundingRateInterval": "8",
-            //                 "nextUpdate": "1745510400000",
+            //                 "nextUpdate": "1750924800000",
             //                 "minFundingRate": "-0.003",
             //                 "maxFundingRate": "0.003"
             //             }
             //         ]
             //     }
             //
-        } else if (method === 'publicMixGetV2MixMarketFundingTime') {
-            response = await this.publicMixGetV2MixMarketFundingTime (this.extend (request, params));
-            //
-            //     {
-            //         "code": "00000",
-            //         "msg": "success",
-            //         "requestTime": 1745402092428,
-            //         "data": [
-            //             {
-            //                 "symbol": "BTCUSDT",
-            //                 "nextFundingTime": "1745424000000",
-            //                 "ratePeriod": "8"
-            //             }
-            //         ]
-            //     }
-            //
+        } else {
+            request['productType'] = productType;
+            let method = undefined;
+            [ method, params ] = this.handleOptionAndParams (params, 'fetchFundingRate', 'method', 'publicMixGetV2MixMarketCurrentFundRate');
+            if (method === 'publicMixGetV2MixMarketCurrentFundRate') {
+                response = await this.publicMixGetV2MixMarketCurrentFundRate (this.extend (request, params));
+                //
+                //     {
+                //         "code": "00000",
+                //         "msg": "success",
+                //         "requestTime": 1745500709429,
+                //         "data": [
+                //             {
+                //                 "symbol": "BTCUSDT",
+                //                 "fundingRate": "-0.000013",
+                //                 "fundingRateInterval": "8",
+                //                 "nextUpdate": "1745510400000",
+                //                 "minFundingRate": "-0.003",
+                //                 "maxFundingRate": "0.003"
+                //             }
+                //         ]
+                //     }
+                //
+            } else if (method === 'publicMixGetV2MixMarketFundingTime') {
+                response = await this.publicMixGetV2MixMarketFundingTime (this.extend (request, params));
+                //
+                //     {
+                //         "code": "00000",
+                //         "msg": "success",
+                //         "requestTime": 1745402092428,
+                //         "data": [
+                //             {
+                //                 "symbol": "BTCUSDT",
+                //                 "nextFundingTime": "1745424000000",
+                //                 "ratePeriod": "8"
+                //             }
+                //         ]
+                //     }
+                //
+            }
         }
         const data = this.safeList (response, 'data', []);
         return this.parseFundingRate (data[0], market);
@@ -7763,7 +7788,7 @@ export default class bitget extends Exchange {
 
     parseFundingRate (contract, market: Market = undefined): FundingRate {
         //
-        // fetchFundingRate: publicMixGetV2MixMarketCurrentFundRate
+        // fetchFundingRate: publicMixGetV2MixMarketCurrentFundRate, publicUtaGetV3MarketCurrentFundRate
         //
         //     {
         //         "symbol": "BTCUSDT",
@@ -10002,7 +10027,7 @@ export default class bitget extends Exchange {
             }
         }
         const sandboxMode = this.safeBool2 (this.options, 'sandboxMode', 'sandbox', false);
-        if (sandboxMode && (path !== 'v2/public/time')) {
+        if (sandboxMode && (path !== 'v2/public/time') && (path !== 'v3/market/current-fund-rate')) {
             // https://github.com/ccxt/ccxt/issues/25252#issuecomment-2662742336
             if (headers === undefined) {
                 headers = {};

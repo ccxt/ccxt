@@ -2062,6 +2062,17 @@
                     "method": "publicMixGetV2MixMarketFundingTime"
                   }
                 ]
+            },
+            {
+                "description": "uta fetchFundingRate",
+                "method": "fetchFundingRate",
+                "url": "https://api.bitget.com/api/v3/market/current-fund-rate?symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT",
+                    {
+                        "uta": true
+                    }
+                ]
             }
         ],
         "fetchDeposits": [

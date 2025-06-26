@@ -4236,6 +4236,58 @@
                     "previousFundingDatetime": null,
                     "interval": "8h"
                 }
+            },
+            {
+                "description": "uta fetchFundingRate",
+                "method": "fetchFundingRate",
+                "input": [
+                    "BTC/USDT:USDT",
+                    {
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1750897372153",
+                    "data": [
+                    {
+                        "symbol": "BTCUSDT",
+                        "fundingRate": "0.00001",
+                        "fundingRateInterval": "8",
+                        "nextUpdate": "1750924800000",
+                        "minFundingRate": "-0.003",
+                        "maxFundingRate": "0.003"
+                    }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": {
+                    "symbol": "BTCUSDT",
+                    "fundingRate": "0.00001",
+                    "fundingRateInterval": "8",
+                    "nextUpdate": "1750924800000",
+                    "minFundingRate": "-0.003",
+                    "maxFundingRate": "0.003"
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "interestRate": null,
+                    "estimatedSettlePrice": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "fundingRate": 0.00001,
+                    "fundingTimestamp": 1750924800000,
+                    "fundingDatetime": "2025-06-26T08:00:00.000Z",
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": null,
+                    "nextFundingDatetime": null,
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "interval": "8h"
+                }
             }
         ],
         "fetchFundingRateHistory": [
