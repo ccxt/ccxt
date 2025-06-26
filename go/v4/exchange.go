@@ -1,14 +1,14 @@
 package ccxt
 
 import (
-	"crypto/rand"
 	"encoding/hex"
-	j "encoding/json"
+	"encoding/json"
 	"errors"
 	"fmt"
-	random2 "math/rand"
+	"log"
+	"math/rand"
 	"net/http"
-	"net/url"
+	neturl "net/url"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -145,6 +145,12 @@ type Exchange struct {
 	Orders     interface{}
 	MyTrades   interface{}
 	Orderbooks interface{}
+	Liquidations interface{}
+	FundingRates interface{}
+	Bidsasks interface{}
+	TriggerOrders interface{}
+	Transactions interface{}
+	MyLiquidations interface{}
 
 	PaddingMode int
 
@@ -155,6 +161,16 @@ type Exchange struct {
 	FetchResponse interface{}
 
 	IsSandboxModeEnabled bool
+
+	// ws
+	WsClients		map[string]*Client	 // one websocket client per URL
+	WsClientsMu 	sync.Mutex
+	Balance    		interface{}
+	Positions 		interface{}
+	Clients 		map[string]*WSClient
+    newUpdates 		bool
+    streaming 		map[string]interface{}
+
 }
 
 const (
@@ -195,6 +211,17 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 	// warmup itf cache
 
 	this.initializeProperties(extendedProperties)
+	
+	// Initialize WebSocket data structures
+	this.Trades = make(map[string]interface{})
+	this.Tickers = make(map[string]interface{})
+	this.Orderbooks = make(map[string]interface{})
+	this.Ohlcvs = make(map[string]interface{})
+	this.Orders = make(map[string]interface{})
+	this.MyTrades = make(map[string]interface{})
+	this.Transactions = make(map[string]interface{})
+	this.Liquidations = make(map[string]interface{})
+	this.MyLiquidations = make(map[string]interface{})
 	// beforeNs := time.Now().UnixNano()
 	// this.WarmUpCache(this.Itf)
 	// afterNs := time.Now().UnixNano()
@@ -570,7 +597,7 @@ func ToSafeFloat(v interface{}) (float64, error) {
 
 // json converts an object to a JSON string
 func (this *Exchange) Json(object interface{}) interface{} {
-	jsonBytes, err := j.Marshal(object)
+	jsonBytes, err := json.Marshal(object)
 	if err != nil {
 		return nil
 	}
@@ -635,43 +662,69 @@ func (this *Exchange) DeepCopy(value reflect.Value) reflect.Value {
 	}
 }
 
-type ArrayCache interface {
+type IArrayCache interface {
 	ToArray() []interface{}
 }
 
 func (this *Exchange) ArraySlice(array interface{}, first interface{}, second ...interface{}) interface{} {
+	// If the incoming object implements IArrayCache convert it first.
+	if cache, ok := array.(IArrayCache); ok {
+		return this.ArraySlice(cache.ToArray(), first, second...)
+	}
+
 	firstInt := reflect.ValueOf(first).Convert(reflect.TypeOf(0)).Interface().(int)
 	parsedArray := reflect.ValueOf(array)
-
+	
 	if parsedArray.Kind() != reflect.Slice {
 		return nil
 	}
 
 	length := parsedArray.Len()
-	isArrayCache := reflect.TypeOf(array).Implements(reflect.TypeOf((*ArrayCache)(nil)).Elem())
 
 	if len(second) == 0 {
 		if firstInt < 0 {
-			index := length + firstInt
-			if index < 0 {
-				index = 0
+			// Negative index, slice from end
+			start := length + firstInt
+			if start < 0 {
+				start = 0
 			}
-			if isArrayCache {
-				return reflect.ValueOf(array).Interface().(ArrayCache).ToArray()[index:]
+			result := parsedArray.Slice(start, length).Interface()
+			return result
+		} else {
+			// Positive index, slice from start
+			if firstInt >= length {
+				return reflect.MakeSlice(parsedArray.Type(), 0, 0).Interface()
 			}
-			return this.sliceToInterface(parsedArray.Slice(index, length))
+			result := parsedArray.Slice(firstInt, length).Interface()
+			return result
 		}
-		if isArrayCache {
-			return reflect.ValueOf(array).Interface().(ArrayCache).ToArray()[firstInt:]
+	} else {
+		// Both first and second parameters provided
+		secondInt := reflect.ValueOf(second[0]).Convert(reflect.TypeOf(0)).Interface().(int)
+		
+		start := firstInt
+		end := secondInt
+		
+		if start < 0 {
+			start = length + start
 		}
-		return this.sliceToInterface(parsedArray.Slice(firstInt, length))
+		if end < 0 {
+			end = length + end
+		}
+		
+		if start < 0 {
+			start = 0
+		}
+		if end > length {
+			end = length
+		}
+		if start > end {
+			start = end
+		}
+		
+		result := parsedArray.Slice(start, end).Interface()
+		return result
 	}
-
-	secondInt := reflect.ValueOf(second[0]).Convert(reflect.TypeOf(0)).Interface().(int)
-	if isArrayCache {
-		return reflect.ValueOf(array).Interface().(ArrayCache).ToArray()[firstInt:secondInt]
-	}
-	return this.sliceToInterface(parsedArray.Slice(firstInt, secondInt))
 }
 
 func (this *Exchange) sliceToInterface(value reflect.Value) []interface{} {
@@ -1249,11 +1302,11 @@ func (this *Exchange) RandNumber(size interface{}) int64 {
 		return 0
 	}
 
-	random2.Seed(time.Now().UnixNano())
+	rand.Seed(time.Now().UnixNano())
 	number := ""
 
 	for i := 0; i < intSize; i++ {
-		digit := random2.Intn(10) // Random digit 0-9
+		digit := rand.Intn(10) // Random digit 0-9
 		number += strconv.Itoa(digit)
 	}
 
@@ -1290,7 +1343,7 @@ func (this *Exchange) UpdateProxySettings() {
 		} else {
 			proxyUrlStr = httpsProxy.(string)
 		}
-		proxyURLParsed, _ := url.Parse(proxyUrlStr)
+		proxyURLParsed, _ := neturl.Parse(proxyUrlStr)
 		proxyTransport.Proxy = http.ProxyURL(proxyURLParsed)
 
 		this.httpClient.Transport = proxyTransport
@@ -1312,3 +1365,498 @@ func (this *Exchange) callEndpointAsync(endpointName string, args ...interface{}
 	}()
 	return ch
 }
+// returns a future (implemented as a channel) that will be resolved by client.Resolve(data, messageHash)
+//
+// Signature in the generated code varies (2-5 parameters), therefore the variadic form is used and parsed internally
+//   - url (string) – WS endpoint
+//   - messageHash (string)
+//   - [message]      subscribe payload (optional)
+//   - [subscribeHash] key for "subscriptions" map (optional)
+//   - [subscription]  arbitrary value stored in subscriptions (optional)
+func (this *Exchange) Watch(args ...interface{}) <-chan interface{} {
+	if len(args) < 2 {
+		// programmer error – return closed chan so callers don't hang
+		ch := make(chan interface{})
+		close(ch)
+		return ch
+	}
+
+	url, _ := args[0].(string)
+	messageHash, _ := args[1].(string)
+
+	var message interface{}
+	if len(args) >= 3 {
+		message = args[2]
+	}
+
+	var subscription interface{}
+	if len(args) >= 5 {
+		subscription = args[4]
+	}
+
+	// avoid unused-lint; in future expand to store real subscription info
+	_ = subscription
+
+	// obtain/create client for URL
+	this.WsClientsMu.Lock()
+	if this.WsClients == nil {
+		this.WsClients = make(map[string]*Client)
+	}
+	client, exists := this.WsClients[url]
+	if !exists {
+		// no custom headers yet
+		cli, err := NewClient(url, nil)
+		this.setOwner(cli)
+		if err != nil {
+			// Return a dummy client that will fail gracefully
+			client = &Client{}
+		} else {
+			client = cli
+		}
+		this.WsClients[url] = client
+	}
+	this.WsClientsMu.Unlock()
+
+	// send subscription message if necessary
+	if message != nil {
+		client.Send(message)
+	}
+
+	// create Future for this message hash
+	fut := client.Future(messageHash)
+
+	// return the channel from the future
+	return fut.Await()
+}
+
+// ------------------- WS helper wrappers (parity with TS) ------------------
+
+// OrderBook returns a new mutable order-book using our Go implementation.
+func (this *Exchange) OrderBook(optionalArgs ...interface{}) *OrderBook {
+	snapshot := GetArg(optionalArgs, 0, map[string]interface{}{})
+	
+	orderbook := NewOrderBook(snapshot)
+	
+	return &orderbook
+}
+
+// IndexedOrderBook and CountedOrderBook share the same implementation for now.
+func (this *Exchange) IndexedOrderBook(args ...interface{}) *OrderBook {
+	return this.OrderBook(args...)
+}
+
+func (this *Exchange) CountedOrderBook(optionalArgs ...interface{}) interface{} {
+	snapshot := GetArg(optionalArgs, 0, map[string]interface{}{})
+	
+	orderbook := this.OrderBook(snapshot)
+	
+	if orderbook != nil {
+		// Ensure cache is a map
+		if orderbook.Cache == nil {
+			orderbook.Cache = make(map[string]interface{})
+		}
+		
+		// Convert slice cache to map if necessary
+		if _, isSlice := orderbook.Cache.([]interface{}); isSlice {
+			orderbook.Cache = make(map[string]interface{})
+		}
+		
+		if cache, ok := orderbook.Cache.(map[string]interface{}); ok {
+			// Create OrderBookSide objects for asks and bids
+			asksOrderBookSide := NewOrderBookSide(false) // false = asks (ascending)
+			bidsOrderBookSide := NewOrderBookSide(true)  // true = bids (descending)
+			
+			cache["asks"] = asksOrderBookSide
+			cache["bids"] = bidsOrderBookSide
+		}
+	}
+	
+	return orderbook
+}
+
+func (this *Exchange) setOwner(cli *Client) {
+	if this.DerivedExchange != nil {
+		cli.Owner = this.DerivedExchange
+	} else {
+		cli.Owner = this
+	}
+}
+
+// Client returns (and caches) a *Client for the given WS URL.
+func (this *Exchange) Client(url interface{}) *Client {
+	this.WsClientsMu.Lock()
+	defer this.WsClientsMu.Unlock()
+	if this.WsClients == nil {
+		this.WsClients = make(map[string]*Client)
+	}
+	if c, ok := this.WsClients[url.(string)]; ok {
+		return c
+	}
+	cli, err := NewClient(url.(string), http.Header{})
+	if err != nil {
+		return nil
+	}
+	// set back-reference so client can dispatch messages
+	this.setOwner(cli)
+	// Throttling can be added later once implemented on Client
+	this.WsClients[url.(string)] = cli
+	return cli
+}
+
+// WatchMultiple awaits any of the messageHashes and returns the first future
+// to resolve (similar to Future.race in TS)
+func (this *Exchange) WatchMultiple(url interface{}, messageHashes interface{}, message interface{}, subscribeHashes interface{}, subscription interface{}) <-chan interface{} {
+	client := this.Client(url.(string))
+	if client == nil {
+		// return empty closed channel if client is nil
+		ch := make(chan interface{})
+		close(ch)
+		return ch
+	}
+
+	// Create a future per symbol, to return data for each symbol
+	futures := make([]Future, len(messageHashes.([]interface{})))
+	for i, h := range messageHashes.([]interface{}) {
+		futures[i] = client.Future(h.(string))
+	}
+
+	missing := []string{}	// Track which subscription hashes we need to create (haven't seen before)
+	if subscribeHashes != nil {
+		for _, sh := range subscribeHashes.([]interface{}) {
+			if _, ok := client.Subscriptions[sh.(string)]; !ok {	// Check if we already have a channel for this subscription hash
+				if ch, ok := subscription.(chan interface{}); ok {
+					// If caller provided a custom channel, use it
+					client.Subscriptions[sh.(string)] = ch
+				} else {
+					// Otherwise create a new buffered channel for this subscription
+					client.Subscriptions[sh.(string)] = make(chan interface{}, 1000)
+				}
+				missing = append(missing, sh.(string))	// Mark this subscription as new (we'll send subscribe message for it)
+			}
+		}
+	}
+
+	go func() {										// Start a goroutine to send subscribe message once connected
+		<-client.Connected 							// blocks until websocket is connected
+		if message != nil && len(missing) > 0 {  	// If we have a new subscription
+			_ = client.Send(message)				// send a subscribe message to the exchange
+		}
+	}()
+
+	// Return a channel that yields results from any resolved future (continuous streaming)
+	out := make(chan interface{}, 1000)
+	go func() {
+		defer close(out)
+		
+		// build select cases for each future
+		cases := make([]reflect.SelectCase, len(futures))
+		for i, fut := range futures {
+			cases[i] = reflect.SelectCase{Dir: reflect.SelectRecv, Chan: reflect.ValueOf(fut.Await())}
+		}
+		
+
+		// Keep listening for results from any future (like TypeScript Future.race)
+		for {
+			chosen, val, ok := reflect.Select(cases)
+			
+			if !ok {
+				// Channel closed, remove it from cases and continue with remaining
+				if len(cases) <= 1 {
+					break // No more active cases
+				}
+				// Remove the closed case
+				cases = append(cases[:chosen], cases[chosen+1:]...)
+				continue
+			}
+
+			result := val.Interface()
+			
+			// Debug the result content
+			if cache, ok := result.(*ArrayCache); ok {
+				arr := cache.ToArray()
+				if len(arr) > 0 {
+				}
+			} else {
+			}
+
+			// Forward the result to output channel
+			select {
+			case out <- result:
+			default:
+				go func(res interface{}) {
+					out <- res
+				}(result)
+			}
+		}
+		
+	}()
+	return out	// channel that will contain ongoing results from any resolved future
+}
+
+func (this *Exchange) Spawn(method interface{}, args ...interface{}) Future {
+	fut := NewFuture()
+	go func() {
+		defer func() { if r := recover(); r != nil { fut.Reject(ToGetsLimit(r)) } }()
+		v := reflect.ValueOf(method)
+		in := make([]reflect.Value, len(args))
+		for i, a := range args { in[i] = reflect.ValueOf(a) }
+		out := v.Call(in)
+		if len(out) == 0 {
+			fut.Resolve(ToGetsLimit(nil))
+			return
+		}
+		if ch, ok := out[0].Interface().(<-chan interface{}); ok {
+			fut.Resolve(ToGetsLimit(<-ch))
+		} else {
+			fut.Resolve(ToGetsLimit(out[0].Interface()))
+		}
+	}()
+	return fut
+}
+
+func (this *Exchange) Delay(timeout interface{}, method interface{}, args ...interface{}) {
+	go func() {
+		time.Sleep(time.Duration(timeout.(int)) * time.Millisecond)
+		this.Spawn(method, args...)
+	}()
+}
+
+func (this *Exchange) LoadOrderBook(client interface{}, messageHash interface{}, symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
+    ch := make(chan interface{})
+    go func() {
+        defer close(ch)
+
+        // Type assertions & helpers
+        cli, _ := client.(*Client)
+        msgHashStr := fmt.Sprintf("%v", messageHash)
+        symStr := fmt.Sprintf("%v", symbol)
+
+        // Retrieve the stored local order-book for this symbol (created by the WS handler)
+        var stored interface{}
+        if obMap, ok := this.Orderbooks.(map[string]interface{}); ok {
+            stored = obMap[symStr]
+        }
+
+        if stored == nil {
+            if cli != nil {
+                cli.Reject(ToGetsLimit(NewError("ExchangeError", this.Id+" loadOrderBook() orderbook is not initiated")), msgHashStr)
+            }
+            ch <- nil
+            return
+        }
+
+        // Check if this is a CountedOrderBook that already has data in main arrays
+        if obPtr, ok := stored.(*OrderBook); ok {
+            if len(obPtr.Bids) > 0 || len(obPtr.Asks) > 0 {
+                if cli != nil {
+                    cli.Resolve(obPtr, msgHashStr)
+                }
+                ch <- obPtr
+                return
+            }
+            
+            // Check if this is a snapshot case - if we have cached data but empty main arrays,
+            // this might be a snapshot that was stored in cache and needs to be processed
+            if cacheMap, ok := obPtr.Cache.(map[string]interface{}); ok && len(cacheMap) > 0 {
+                // Check if we have snapshot data in cache (indicated by datetime/timestamp)
+                if cacheMap["datetime"] != nil || cacheMap["timestamp"] != nil {
+                    
+                    // Extract snapshot data from cache
+                    var asks interface{}
+                    var bids interface{}
+                    if asksCache, ok := cacheMap["asks"]; ok {
+                        asks = asksCache
+                    }
+                    if bidsCache, ok := cacheMap["bids"]; ok {
+                        bids = bidsCache
+                    }
+                    
+                    // For CountedOrderBook, the OrderBookSide objects are stored in cache
+                    // We need to populate them and also update the main arrays for compatibility
+                    if asksArray, ok := asks.([]interface{}); ok {
+                        // Get the cached OrderBookSide for asks
+                        if asksSideCache, exists := cacheMap["asks"]; exists {
+                            if asksSide, ok := asksSideCache.(*OrderBookSide); ok {
+                                // Clear existing levels and populate with snapshot data
+                                asksSide.Levels = []PriceLevel{}
+                                for _, ask := range asksArray {
+                                    if askArray, ok := ask.([]interface{}); ok && len(askArray) >= 2 {
+                                        price := askArray[0]
+                                        amount := askArray[1]
+                                        bidAsk := []interface{}{price, amount, askArray} // Include original for checksum
+                                        asksSide.StoreArray(bidAsk)
+                                    }
+                                }
+                                
+                                // Also populate the main Asks array for compatibility
+                                obPtr.Asks = make([][]float64, len(asksSide.Levels))
+                                for i, level := range asksSide.Levels {
+                                    obPtr.Asks[i] = []float64{level.Price, level.Amount}
+                                }
+                            }
+                        }
+                    }
+                    
+                    if bidsArray, ok := bids.([]interface{}); ok {
+                        // Get the cached OrderBookSide for bids
+                        if bidsSideCache, exists := cacheMap["bids"]; exists {
+                            if bidsSide, ok := bidsSideCache.(*OrderBookSide); ok {
+                                // Clear existing levels and populate with snapshot data
+                                bidsSide.Levels = []PriceLevel{}
+                                for _, bid := range bidsArray {
+                                    if bidArray, ok := bid.([]interface{}); ok && len(bidArray) >= 2 {
+                                        price := bidArray[0]
+                                        amount := bidArray[1]
+                                        bidAsk := []interface{}{price, amount, bidArray} // Include original for checksum
+                                        bidsSide.StoreArray(bidAsk)
+                                    }
+                                }
+                                
+                                // Also populate the main Bids array for compatibility
+                                obPtr.Bids = make([][]float64, len(bidsSide.Levels))
+                                for i, level := range bidsSide.Levels {
+                                    obPtr.Bids[i] = []float64{level.Price, level.Amount}
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Set metadata with proper type assertions
+                    if ts, ok := cacheMap["timestamp"]; ok {
+                        if tsInt64, ok := ts.(int64); ok {
+                            obPtr.Timestamp = &tsInt64
+                        }
+                    }
+                    if dt, ok := cacheMap["datetime"]; ok {
+                        if dtStr, ok := dt.(string); ok {
+                            obPtr.Datetime = &dtStr
+                        }
+                    }
+                    if obPtr.Symbol == nil {
+                        obPtr.Symbol = &symStr
+                    }
+                     
+                    // Clear the cache since we've processed the snapshot
+                    obPtr.Cache = map[string]interface{}{}
+                    
+                    if cli != nil {
+                        cli.Resolve(obPtr, msgHashStr)
+                    }
+                    ch <- obPtr
+                    return
+                }
+            }
+        }
+
+        // Parse optional arguments
+        var limit interface{}
+        var params interface{}
+        if len(optionalArgs) > 0 {
+            limit = optionalArgs[0]
+        }
+        if len(optionalArgs) > 1 {
+            params = optionalArgs[1]
+        }
+        if params == nil {
+            params = map[string]interface{}{}
+        }
+
+        // Get retry settings
+        var snapshotMaxRetries int = 3
+        if retryOpt := this.HandleOption("watchOrderBook", "snapshotMaxRetries", 3); retryOpt != nil {
+            if retryInt, ok := retryOpt.(int); ok {
+                snapshotMaxRetries = retryInt
+            }
+        }
+
+        var tries int = 0
+        var maxRetries int = snapshotMaxRetries
+
+        for tries < maxRetries {
+            snapshot := <-this.FetchRestOrderBookSafe(symbol, limit, params)
+            tries++
+
+            if snapshot != nil {
+                log.Printf("[DEBUG][LoadOrderBook] got snapshot for symbol=%s", symStr)
+                // We got a snapshot – merge it with the cached deltas and resolve
+                if obPtr, ok := stored.(*OrderBook); ok {
+                    obPtr.Reset(snapshot)
+                    // Apply any cached deltas collected before the snapshot arrived
+                    if cacheArr, ok := obPtr.Cache.([]interface{}); ok && len(cacheArr) > 0 {
+                        this.HandleDeltas(obPtr, cacheArr)
+                    }
+                    obPtr.Cache = []interface{}{}
+                    log.Printf("[DEBUG][LoadOrderBook] snapshot merged symbol=%s bids=%d asks=%d", symStr, len(obPtr.Bids), len(obPtr.Asks))
+                    if cli != nil {
+                        cli.Resolve(obPtr, msgHashStr)
+                    }
+                    ch <- obPtr
+                    return
+                }
+            }
+        }
+
+        // If we exit the loop, all retries failed – reject and drop the client
+        if cli != nil {
+            cli.Reject(ToGetsLimit(NewError("ExchangeError", "failed to load orderbook snapshot after retries")), msgHashStr)
+        }
+        ch <- nil
+    }()
+    return ch
+}
+
+// ---------------- Connection lifecycle helpers ----------------
+func (this *Exchange) OnConnected(client interface{}, message interface{}) {}
+
+func (this *Exchange) OnError(client interface{}, err interface{}) {
+	if client == nil { return }
+	this.WsClientsMu.Lock()
+	delete(this.WsClients, client.(*Client).Url)
+	this.WsClientsMu.Unlock()
+	client.(*Client).Err = fmt.Errorf("%v", err)
+}
+
+func (this *Exchange) OnClose(client interface{}, err interface{}) {
+	if client == nil { return }
+	if client.(*Client).Err != nil { return }
+	this.WsClientsMu.Lock()
+	delete(this.WsClients, client.(*Client).Url)
+	this.WsClientsMu.Unlock()
+}
+
+func (this *Exchange) Close() []error {
+	this.WsClientsMu.Lock()
+	clients := make([]*Client, 0, len(this.WsClients))
+	for _, c := range this.WsClients { clients = append(clients, c) }
+	this.WsClients = make(map[string]*Client)
+	this.WsClientsMu.Unlock()
+	errs := make([]error, 0)
+	for _, c := range clients { if err := c.Close(); err != nil { errs = append(errs, err) } }
+	return errs
+}
+// ---------------- Connection lifecycle helpers ----------------
+
+func callDynamically(fn interface{}, args ...interface{}) interface{} {
+    v := reflect.ValueOf(fn)
+    in := make([]reflect.Value, len(args))
+    for i, a := range args {
+        in[i] = reflect.ValueOf(a)
+    }
+    out := v.Call(in)
+    if len(out) > 0 {
+        return out[0].Interface()
+    }
+    return nil
+}
+
+func (this *Exchange) Crc32(str interface{}, signed2 bool) int64 {
+	// signed := false
+	// if len(signed2) > 0 {
+	// 	if b, ok := signed2[0].(bool); ok {
+	// 		signed = b
+	// 	}
+	// }
+	return Crc32(str.(string), signed2)
+}
+
+

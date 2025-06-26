@@ -513,25 +513,14 @@ func NewTransaction(transaction2 interface{}) Transaction {
 // orderbook
 
 type OrderBook struct {
+	// TODO: change type to OrderBookSide to fix panic: interface conversion: interface {} is [][]float64, not *ccxt.OrderBookSide
 	Bids      [][]float64
 	Asks      [][]float64
 	Symbol    *string
 	Timestamp *int64
 	Datetime  *string
 	Nonce     *int64
-}
-
-// NewOrderBook initializes an OrderBook struct from a map.
-func NewOrderBook(orderbook2 interface{}) OrderBook {
-	orderbook := orderbook2.(map[string]interface{})
-	return OrderBook{
-		Bids:      parseOrderBookEntries(orderbook, "bids"),
-		Asks:      parseOrderBookEntries(orderbook, "asks"),
-		Symbol:    SafeStringTyped(orderbook, "symbol"),
-		Timestamp: SafeInt64Typed(orderbook, "timestamp"),
-		Datetime:  SafeStringTyped(orderbook, "datetime"),
-		Nonce:     SafeInt64Typed(orderbook, "nonce"),
-	}
+	Cache     interface{}
 }
 
 // parseOrderBookEntries extracts and converts order book entries to [][]float64.

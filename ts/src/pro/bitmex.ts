@@ -108,7 +108,7 @@ export default class bitmex extends bitmexRest {
             'op': 'subscribe',
             'args': rawSubscriptions,
         };
-        const ticker = await this.watchMultiple (url, messageHashes, this.extend (request, params), rawSubscriptions);
+        const ticker = await this.watchMultiple (url, messageHashes, this.extend (request, params), rawSubscriptions, undefined);
         if (this.newUpdates) {
             const result: Dict = {};
             result[ticker['symbol']] = ticker;
@@ -411,7 +411,7 @@ export default class bitmex extends bitmexRest {
             'op': 'subscribe',
             'args': subscriptionHashes,
         };
-        const newLiquidations = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), subscriptionHashes);
+        const newLiquidations = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), subscriptionHashes, undefined);
         if (this.newUpdates) {
             return newLiquidations;
         }
@@ -1334,7 +1334,7 @@ export default class bitmex extends bitmexRest {
             'op': 'subscribe',
             'args': topics,
         };
-        const orderbook = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), topics);
+        const orderbook = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), topics, undefined);
         return orderbook.limit ();
     }
 
@@ -1368,7 +1368,7 @@ export default class bitmex extends bitmexRest {
             'op': 'subscribe',
             'args': topics,
         };
-        const trades = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), topics);
+        const trades = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), topics, undefined);
         if (this.newUpdates) {
             const first = this.safeValue (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');

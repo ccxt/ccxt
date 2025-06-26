@@ -153,129 +153,6 @@ func IsInteger(value interface{}) bool {
 	}
 }
 
-// func GetValue(collection interface{}, key interface{}) interface{} {
-
-// 	if collection == nil {
-// 		return nil
-// 	}
-// 	if key == nil {
-// 		return nil
-// 	}
-
-// 	keyNum := -1
-// 	keyStr, ok := key.(string)
-// 	if !ok {
-// 		keyNum64 := ParseInt(key)
-// 		if keyNum64 == math.MinInt64 {
-// 			return nil
-// 		}
-// 		keyNum = int(keyNum64)
-// 	}
-
-// 	_, isMap := collection.(map[string]interface{})
-
-// 	if isMap || keyNum != -1 {
-// 		switch v := collection.(type) {
-// 		case map[string]interface{}:
-// 			if !ok {
-// 				return nil
-// 			}
-// 			if val, ok := v[keyStr]; ok {
-// 				return val
-// 			}
-// 			return nil
-// 		case []interface{}:
-// 			if keyNum >= len(v) {
-// 				return nil
-// 			}
-// 			return v[keyNum]
-// 		case []string:
-// 			if keyNum >= len(v) {
-// 				return nil
-// 			}
-// 			return v[keyNum]
-// 		case []int64:
-// 			if keyNum >= len(v) {
-// 				return nil
-// 			}
-// 			return v[keyNum]
-// 		case []float64:
-// 			if keyNum >= len(v) {
-// 				return nil
-// 			}
-// 			return v[keyNum]
-// 		case []bool:
-// 			if keyNum >= len(v) {
-// 				return nil
-// 			}
-// 			return v[keyNum]
-// 		case []int:
-// 			if keyNum >= len(v) {
-// 				return nil
-// 			}
-// 			return v[keyNum]
-// 		case string:
-// 			if keyNum >= len(v) {
-// 				return nil
-// 			}
-// 			return string(v[keyNum])
-// 		}
-// 	}
-
-// 	// this is needed in checkRequiredCredentials or alike
-// 	reflectValue := reflect.ValueOf(collection)
-
-// 	if reflectValue.Kind() == reflect.Ptr {
-// 		reflectValue = reflectValue.Elem()
-// 	}
-// 	if reflectValue.Kind() == reflect.Struct {
-// 		stringKey := key.(string)
-// 		stringKeyCapitalized := Capitalize(stringKey)
-// 		field := reflectValue.FieldByName(stringKey)
-
-// 		fieldCapitalized := reflectValue.FieldByName(stringKeyCapitalized)
-// 		if fieldCapitalized.IsValid() {
-// 			return fieldCapitalized.Interface()
-// 		}
-
-// 		if field.IsValid() {
-// 			return field.Interface()
-// 		}
-
-// 		return nil
-// 	}
-
-// 	switch reflectValue.Kind() {
-// 	case reflect.Slice, reflect.Array:
-// 		// Handle slice or array: key should be an integer index.
-// 		index2 := ParseInt(key)
-// 		if index2 == math.MinInt64 {
-// 			return nil // Key is not an int, invalid index
-// 		}
-// 		index := int(index2)
-// 		if index < 0 || index >= reflectValue.Len() {
-// 			return nil // Index out of bounds
-// 		}
-// 		return reflectValue.Index(index).Interface()
-
-// 	case reflect.Map:
-// 		// Handle map: key needs to be appropriate for the map
-// 		keyStr, ok := key.(string)
-// 		if !ok {
-// 			return nil // Key is not a string, invalid key
-// 		}
-// 		reflectKeyValue := reflect.ValueOf(keyStr)
-// 		if reflectValue.MapIndex(reflectKeyValue).IsValid() {
-// 			return reflectValue.MapIndex(reflectKeyValue).Interface()
-// 		}
-// 		return nil
-
-// 	default:
-// 		// Type not supported
-// 		return nil
-// 	}
-// }
-
 func GetValue(collection interface{}, key interface{}) interface{} {
 
 	if collection == nil || key == nil {
@@ -290,6 +167,15 @@ func GetValue(collection interface{}, key interface{}) interface{} {
 			return nil
 		}
 		keyNum = int(keyNum64)
+	}
+
+	// Special handling for OrderBook WebSocket compatibility - check this FIRST
+	if orderbook, ok := collection.(*OrderBook); ok && isStr {
+		if cache, ok := orderbook.Cache.(map[string]interface{}); ok {
+			if val, exists := cache[keyStr]; exists {
+				return val
+			}
+		}
 	}
 
 	switch v := collection.(type) {
@@ -852,6 +738,13 @@ func PlusEqual(a, value interface{}) interface{} {
 // }
 
 func AppendToArray(slicePtr *interface{}, element interface{}) {
+	// Check if slicePtr is nil, which indicates we received a function return value
+	// In this case, we need to handle it differently
+	if slicePtr == nil {
+		// This shouldn't happen with proper usage, but we'll handle it gracefully
+		return
+	}
+	
 	switch array := (*slicePtr).(type) {
 	case []interface{}:
 		*slicePtr = append(array, element)
@@ -867,92 +760,133 @@ func AppendToArray(slicePtr *interface{}, element interface{}) {
 	}
 }
 
+// AppendToArrayValue handles appending to arrays returned by functions
+// This is needed because you can't take the address of a function return value
+func AppendToArrayValue(slice interface{}, element interface{}) interface{} {
+	switch array := slice.(type) {
+	case []interface{}:
+		return append(array, element)
+	case []string:
+		if strElement, ok := element.(string); ok {
+			return append(array, strElement)
+		}
+		return array // Return unchanged if element type doesn't match
+	case nil:
+		// If slice is nil, create a new slice with the element
+		return []interface{}{element}
+	default:
+		// For unsupported types, try to create a new []interface{} slice
+		return []interface{}{element}
+	}
+}
+
+// AppendToArraySafe handles both pointer-to-slice and direct slice values
+// This is the unified function that the transpiler will use
+func AppendToArraySafe(slice interface{}, element interface{}) interface{} {
+	// Use reflection to determine if we have a pointer or a value
+	v := reflect.ValueOf(slice)
+	
+	// If it's a pointer, dereference it and modify in place
+	if v.Kind() == reflect.Ptr && !v.IsNil() {
+		AppendToArray(slice.(*interface{}), element)
+		return *slice.(*interface{})
+	}
+	
+	// Otherwise treat it as a value and return the new slice
+	return AppendToArrayValue(slice, element)
+}
+
 // without reflection
 func AddElementToObject(arrayOrDict interface{}, stringOrInt interface{}, value interface{}) {
-	switch obj := arrayOrDict.(type) {
-	case []string:
-		if index, ok := stringOrInt.(int); ok {
-			if index >= 0 && index < len(obj) {
-				obj[index] = fmt.Sprintf("%v", value)
-				// return nil
-			} else {
-				// return fmt.Errorf("index out of range")
-			}
-		} else {
-			// return fmt.Errorf("invalid key type for slice: expected int")
-		}
-	case []int:
-		if index, ok := stringOrInt.(int); ok {
-			if index >= 0 && index < len(obj) {
-				if v, ok := value.(int); ok {
-					obj[index] = v
-					// return nil
-				} else {
-					// return fmt.Errorf("value type mismatch for slice of int")
-				}
-			} else {
-				// return fmt.Errorf("index out of range")
-			}
-		} else {
-			// return fmt.Errorf("invalid key type for slice: expected int")
-		}
-	case []interface{}:
-		if index, ok := stringOrInt.(int); ok {
-			if index >= 0 && index < len(obj) {
-				obj[index] = value
-				// return nil
-			} else {
-				// return fmt.Errorf("index out of range")
-			}
-		} else {
-			// return fmt.Errorf("invalid key type for slice: expected int")
-		}
-	case []int64:
-		if index, ok := stringOrInt.(int); ok {
-			if index >= 0 && index < len(obj) {
-				if v, ok := value.(int64); ok {
-					obj[index] = v
-					// return nil
-				} else {
-					// return fmt.Errorf("value type mismatch for slice of int64")
-				}
-			} else {
-				// return fmt.Errorf("index out of range")
-			}
-		} else {
-			// return fmt.Errorf("invalid key type for slice: expected int")
-		}
-	case []float64:
-		if index, ok := stringOrInt.(int); ok {
-			if index >= 0 && index < len(obj) {
-				if v, ok := value.(float64); ok {
-					obj[index] = v
-					// return nil
-				} else {
-					// return fmt.Errorf("value type mismatch for slice of float64")
-				}
-			} else {
-				// return fmt.Errorf("index out of range")
-			}
-		} else {
-			// return fmt.Errorf("invalid key type for slice: expected int")
-		}
-	case map[string]interface{}:
+	
+	// Special handling for OrderBook objects to create OrderBookSide objects for WebSocket compatibility
+	if orderbook, ok := arrayOrDict.(*OrderBook); ok {
 		if key, ok := stringOrInt.(string); ok {
-			obj[key] = value
-			// return nil
-		} else {
-			// return fmt.Errorf("invalid key type for map: expected string")
+			if key == "asks" || key == "bids" {
+				// If we're setting asks or bids on an OrderBook, create OrderBookSide objects
+				// and store them in the Cache for WebSocket access
+				if orderbook.Cache == nil {
+					orderbook.Cache = make(map[string]interface{})
+				}
+				
+				if cache, ok := orderbook.Cache.(map[string]interface{}); ok {
+					// Check if we already have an OrderBookSide for this key
+					if _, exists := cache[key]; !exists {
+						// Create new OrderBookSide object
+						isBid := (key == "bids")
+						orderBookSide := NewOrderBookSide(isBid)
+						cache[key] = orderBookSide
+					}
+				}
+			} else {
+				// For other fields, store them in the cache as well for GetValue access
+				if orderbook.Cache == nil {
+					orderbook.Cache = make(map[string]interface{})
+				}
+				if cache, ok := orderbook.Cache.(map[string]interface{}); ok {
+					cache[key] = value
+				}
+			}
 		}
-	case *sync.Map:
+		return
+	}
+
+	if arrayOrDict == nil {
+		return
+	}
+
+	if dict, ok := arrayOrDict.(map[string]interface{}); ok {
 		if key, ok := stringOrInt.(string); ok {
-			obj.Store(key, value)
-			// return nil
-		} else {
-			// return fmt.Errorf("invalid key type for sync.Map: expected string")
+			dict[key] = value
 		}
-	default:
-		// return fmt.Errorf("unsupported type: %T", arrayOrDict)
+		return
+	}
+
+	if syncMap, ok := arrayOrDict.(*sync.Map); ok {
+		if key, ok := stringOrInt.(string); ok {
+			syncMap.Store(key, value)
+		}
+		return
+	}
+
+	// Fallback: use reflection for other types
+	rv := reflect.ValueOf(arrayOrDict)
+	if rv.Kind() == reflect.Ptr {
+		rv = rv.Elem()
+	}
+
+	if rv.Kind() == reflect.Map {
+		keyVal := reflect.ValueOf(stringOrInt)
+		valueVal := reflect.ValueOf(value)
+		rv.SetMapIndex(keyVal, valueVal)
+		return
+	}
+
+	if rv.Kind() == reflect.Slice || rv.Kind() == reflect.Array {
+		if index, ok := stringOrInt.(int); ok {
+			if index >= 0 && index < rv.Len() {
+				rv.Index(index).Set(reflect.ValueOf(value))
+			}
+		}
+		return
+	}
+
+	if rv.Kind() == reflect.Struct {
+		if key, ok := stringOrInt.(string); ok {
+			field := rv.FieldByName(key)
+			if !field.IsValid() {
+				field = rv.FieldByName(Capitalize(key))
+			}
+			if field.IsValid() && field.CanSet() {
+				valueVal := reflect.ValueOf(value)
+				if valueVal.Type().ConvertibleTo(field.Type()) {
+					field.Set(valueVal.Convert(field.Type()))
+				} else {
+					field.Set(valueVal)
+				}
+			}
+		}
+		return
 	}
 }
 
@@ -2990,4 +2924,49 @@ func getCallerName() string {
 
 func Print(v interface{}) {
 	fmt.Println(v)
+}
+
+func HandleDelta(bookside interface{}, delta interface{}) interface{} {
+	if bookside == nil {
+		return nil
+	}
+
+	// Cast bookside to *OrderBookSide
+	orderbookSide, ok := bookside.(*OrderBookSide)
+	if !ok {
+		return bookside
+	}
+
+	// Cast delta to []interface{}
+	deltaSlice, ok := delta.([]interface{})
+	if !ok || len(deltaSlice) < 2 {
+		return bookside
+	}
+
+	// Extract price and size from delta
+	price := ToFloat64(deltaSlice[0])
+	size := ToFloat64(deltaSlice[1])
+
+	// Create a new entry [price, size]
+	entry := []interface{}{price, size}
+
+	// Store the entry in the OrderBookSide
+	orderbookSide.StoreArray(entry)
+
+	return orderbookSide
+}
+
+func HandleDeltas(bookside interface{}, deltas interface{}) interface{} {
+	// Cast deltas to []interface{}
+	deltasSlice, ok := deltas.([]interface{})
+	if !ok {
+		return bookside
+	}
+
+	// Process each delta
+	for _, delta := range deltasSlice {
+		bookside = HandleDelta(bookside, delta)
+	}
+
+	return bookside
 }

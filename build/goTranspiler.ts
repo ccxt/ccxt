@@ -1,31 +1,29 @@
 import Transpiler from "ast-transpiler";
-import ts from "typescript";
 import path from 'path'
 import errors from "../js/src/base/errors.js"
-import { basename, join, resolve } from 'path'
-// @ts-expect-error
-import { createFolderRecursively, replaceInFile, overwriteFile, writeFile, checkCreateFolder } from './fsLocal.js'
+import { basename, resolve } from 'path'
+import { createFolderRecursively, overwriteFile, writeFile, checkCreateFolder } from './fsLocal.js'
 import { platform } from 'process'
-import fs from 'fs'
+import fs, { readFileSync } from 'fs'
 import log from 'ololog'
-// @ts-expect-error
 import ansi from 'ansicolor'
 import {Transpiler as OldTranspiler, parallelizeTranspiling } from "./transpile.js";
 import { promisify } from 'util';
 import errorHierarchy from '../js/src/base/errorHierarchy.js'
 import Piscina from 'piscina';
 import { isMainEntry } from "./transpile.js";
-import { unCamelCase } from "../js/src/base/functions.js";
 
 type dict = { [key: string]: string }
 
 ansi.nice
 const promisedWriteFile = promisify (fs.writeFile);
 
-let exchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
+// TODO: defining the type causes errors in transpileDerivedExchangeFiles
+// const allExchanges: {ids: string[], ws: string[]} = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
+const allExchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
+let exchanges = allExchanges;
 const exchangeIds = exchanges.ids
 
-        // @ts-expect-error
 let __dirname = new URL('.', import.meta.url).pathname;
 
 let shouldTranspileTests = true;
@@ -36,6 +34,10 @@ function overwriteFileAndFolder (path: string, content: string) {
     }
     overwriteFile (path, content);
     writeFile (path, content);
+}
+
+function capitalize(s: string) {
+    return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
 // this is necessary because for some reason
@@ -51,22 +53,20 @@ if (platform === 'win32') {
 const GLOBAL_WRAPPER_FILE = './go/v4/base/exchange_wrappers.go';
 const EXCHANGE_WRAPPER_FOLDER = './go/v4/'
 const DYNAMIC_INSTANCE_FILE = './go/v4/exchange_dynamic.go';
-// const EXCHANGE_WS_WRAPPER_FOLDER = './go/v4/exchanges/pro/wrappers/'
+const EXCHANGE_WS_WRAPPER_FOLDER = './go/v4/exchanges'
 const ERRORS_FILE = './go/v4/exchange_errors.go';
 const BASE_METHODS_FILE = './go/v4/exchange_generated.go';
 const EXCHANGES_FOLDER = './go/v4/';
-// const EXCHANGES_WS_FOLDER = './go/v4/exchanges/pro/';
-// const GENERATED_TESTS_FOLDER = './go/tests/Generated/Exchange/';
-const BASE_TESTS_FOLDER = './go/tests/base';
+const EXCHANGES_WS_FOLDER = './go/v4/';
+const BASE_TESTS_FOLDER = './go/tests/base/';
 const BASE_TESTS_FILE =  './go/tests/base/tests.go';
 // const EXCHANGE_BASE_FOLDER = './go/tests/Generated/Exchange/Base/';
-// const EXCHANGE_GENERATED_FOLDER = './go/tests/Generated/Exchange/';
+const GENERATED_TESTS_FOLDER = './go/tests/Generated/Exchange/';
 // const EXAMPLES_INPUT_FOLDER = './examples/ts/';
-// const EXAMPLES_OUTPUT_FOLDER = './examples/cs/examples/';
+// const EXAMPLES_OUTPUT_FOLDER = './examples/go/examples/';
 const goComments: any = {};
 
 const goTypeOptions: any = {};
-const goWithMethods = {};
 
 let goTests: string[] = [];
 
@@ -157,10 +157,10 @@ class NewTranspiler {
     pythonStandardLibraries;
     oldTranspiler = new OldTranspiler();
 
-    constructor() {
+    constructor(isWs: boolean = false) {
 
-        this.setupTranspiler()
-        // this.transpiler.goharpTranspiler.VAR_TOKEN = 'var'; // tmp fix
+        this.setupTranspiler(isWs)
+        // this.transpiler.goTranspiler.VAR_TOKEN = 'var'; // tmp fix
 
 
         this.pythonStandardLibraries = {
@@ -173,48 +173,100 @@ class NewTranspiler {
     }
 
     getWsRegexes() {
+        const exchangeNamePattern: string = allExchanges['ids'].map((e: string) => capitalize(e.replace(/\.ts$/, ''))).join('|');
         // hoplefully we won't need this in the future by having everything typed properly in the typescript side
         return [
-            [/new (\w+)Rest\(\)/, 'new ccxt.$1()'],
-            [/return await (\w+);/gm, 'return await ($1 as Exchange.Future);'],
-            // [/typeof\(client\)/gm, 'client'],
-            // [/typeof\(orderbook\)/gm, 'orderbook'], // fix this in the transpiler later
-            [/new\sgetValue\((\w+),\s(\w+)\)\((\w+)\)/gm, 'this.newException(getValue($1, $2), $3)'],
-            [/\(object\)client\).subscriptions/gm, '(WebSocketClient)client).subscriptions'],
-            [/client\.subscriptions/gm, '((WebSocketClient)client).subscriptions'],
-            [/Dictionary<string,object>\)client.futures/gm, 'Dictionary<string, ccxt.Exchange.Future>)client.futures'],
-            [/this\.safeValue\(client\.futures,/gm, 'this.safeValue((client as WebSocketClient).futures,'],
-            [/Dictionary<string,object>\)this\.clients/gm, 'Dictionary<string, ccxt.Exchange.WebSocketClient>)this.clients'],
-            [/(orderbook)(\.reset.+)/gm, '($1 as IOrderBook)$2'],
-            [/(\w+)(\.cache)/gm, '($1 as ccxt.pro.OrderBook)$2'],
-            //  [/(\w+)(\.reset)/gm, '($1 as ccxt.OrderBook)$2'],
-            [/((?:this\.)?\w+)(\.hashmap)/gm, '($1 as ArrayCacheBySymbolById)$2'],
-            [/(countedBookSide)\.store\(((.+),(.+),(.+))\)/gm, '($1 as IOrderBookSide).store($2)'],
-            [/(\w+)\.store\(((.+),(.+),(.+))\)/gm, '($1 as IOrderBookSide).store($2)'],
-            [/(\w+)\.store\(((.+),(.+))\)/gm, '($1 as IOrderBookSide).store($2)'],
-            [/(\w+)(\.storeArray\(.+\))/gm, '($1 as IOrderBookSide)$2'],
-            // [/(.+)\.store\((.+),(.+)\)/gm, '($1 as OrderBookSide).store($2,$3)'],
-            [/(\w+)\.call\(this,(.+)\)/gm, 'DynamicInvoker.InvokeMethod($1, new object[] {$2})'],
-            [/(\w+)(\.limit\(\))/gm, '($1 as IOrderBook)$2'],
-            [/(future)\.resolve\((.*)\)/gm, '($1 as Future).resolve($2)'],
-            [/this\.spawn\((this\.\w+),(.+)\)/gm, 'this.spawn($1, new object[] {$2})'],
-            [/this\.delay\(([^,]+),([^,]+),(.+)\)/gm, 'this.delay($1, $2, new object[] {$3})'],
-            // [/(this\.\w+)\.(append|resolve|getLimit)\((.+)\)/gm, 'callDynamically($1, "$2", new object[] {$3})'], // check this.orders
-            [/(((?:this\.)?\w+))\.(append|resolve|getLimit)\((.+)\)/gm, 'callDynamically($1, "$3", new object[] {$4})'],
-            [/future(\.reject.+)/gm, '((Future)future)$1'],
-            [/(\w+)(\.reject.+)/gm, '((WebSocketClient)$1)$2'],
-            [/(client)(\.reset.+)/gm, '((WebSocketClient)$1)$2'],
-            [/\(client,/g, '(client as WebSocketClient,'],
-            [/\(object client,/gm, '(WebSocketClient client,'],
-            [/\(object client\)/gm, '(WebSocketClient client)'],
-            [/object client =/gm, 'var client ='],
-            [/object future =/gm, 'var future ='],
+            // --- Generic fixes for WS transpilation (Go) ---
+            // Instantiate REST class pointer correctly (e.g., new hitbtcRest() -> &ccxt.hitbtcRest{})
+            [/New(\w+)Rest\(\)/g, '&ccxt.$1{}'],
+
+            // await-style return (C#) → channel read in Go (return await foo; -> return <-$1)
+            [/return await (\w+);/g, 'return <-$1'],
+
+            // new getValue(a, b)(c)  →  this.NewException(GetValue(a, b), c)
+            [/new\s*getValue\((\w+),\s*(\w+)\)\((\w+)\)/g, 'this.NewException(GetValue($1, $2), $3)'],
+
+            // Casted access to subscriptions/futures/clients → exported Go field/prop
+            [/\(object\)client\)\.subscriptions/g, 'client.Subscriptions'],
+            [/client\.subscriptions/g, 'client.Subscriptions'],
+            [/Dictionary<string,object>\)client\.futures/g, 'client.Futures'],
+            [/this\.safeValue\(client\.futures,/g, 'this.SafeValue(client.Futures,'],
+            [/Dictionary<string,object>\)this\.clients/g, 'this.Clients'],
+
+            // OrderBook & OrderBookSide casts → plain method/field access with proper capitalisation
+            [/(orderbook)(\.reset)/g, '$1.Reset'],
+            [/(\w+)(\.cache)/g, '$1.Cache'],
+            [/((\w+)(\.hashmap))/g, '$1.Hashmap'],
+            [/(countedBookSide)\.store\(/g, '$1.Store('],
+            [/(\w+)\.store\(/g, '$1.Store('],
+            [/(\w+)\.storeArray\(/g, '$1.StoreArray('],
+
+            // DynamicInvoker from C# → callDynamically helper in Go
+            [/(\w+)\.call\(this,(.+)\)/g, 'callDynamically($1, $2)'],
+
+            // .limit() on order book variable should be capitalised
+            [/(\w+)\.limit\(\)/g, '$1.Limit()'],
+
+            // Future/Client Resolve/Reject casts
+            [/(future)\.resolve/g, '$1.Resolve'],
+            [/(\w+)\.resolve/g, '$1.Resolve'],
+            [/(\w+)\.reject/g, '$1.Reject'],
+
+            // spawn/delay helpers – convert additional params array creation to variadic list
+            [/this\.spawn\((this\.\w+),(.+)\)/g, 'this.Spawn($1, $2)'],
+            [/this\.delay\(([^,]+),([^,]+),(.+)\)/g, 'this.Delay($1, $2, $3)'],
+
+            // callDynamically array wrapper removal
+            [/(((?:this\.)?\w+))\.(append|resolve|getLimit)\(/g, 'callDynamically($1, "$3", '],
+
+            // Remove C# generics / casts that are invalid in Go
+            [/Future\)/g, ''],
+
+            // Remove stray semicolons that leak from TS/CS syntax
+            [/;\s*\n/g, '\n'],
+            [/\.Append\(/g, '.(appender).Append('],
+            [/orderbook\.(Reset|Limit)/g, 'orderbook.(*OrderBook).$1'],
+            [/promise\.Resolve\(([^)]+)\)/g, 'promise.(*Future).Resolve(ToGetsLimit($1))'],
+            [/future\.Resolve/g, 'future.(*Future).Resolve'],
+            [/([a-zA-Z0-9]+)\.Call\(this, /g, 'callDynamically($1, '], // TODO: maybe put in ast
+            [/\(<\-future\)/g, '<-(future.(*Future).Await())'], // TODO: maybe put in ast
+            [/([a-z]+)\.GetLimit/g, '$1.(GetsLimit).GetLimit'],
+            [/orderbook\.Cache/g, 'orderbook.(*OrderBook).Cache'],
+            [/bookside\.Store/g, 'bookside.(*OrderBookSide).Store'],
+            [/bookside\.StoreArray/g, 'bookside.(*OrderBookSide).StoreArray'],
+            [/bookside\.StoreArray/g, 'bookside.(*OrderBookSide).StoreArray'],
+            [/orderbookSide\.StoreArray/g, 'orderbookSide.(*OrderBookSide).StoreArray'],
+            [/future\.Reject/g, 'future.(*Future).Reject'],
+            [/FindMessageHashes\(client/g, 'FindMessageHashes\(client.(Client)'],
+            [/client\.Url/g, 'client.(*Client).Url'],
+            [/client\.Subscriptions/g, 'client.(*Client).Subscriptions'],
+            [/client\.Futures/g, 'client.(*Client).Futures'],
+            [/client\.Reject/g, 'client.(*Client).Reject'],
+            [/client\.Resolve/g, 'client.(*Client).Resolve'],
+            [/([a-zA-Z0-9]+).StoreArray/g, '$1.(*OrderBookSide).StoreArray'],
+            [/client\.(KeepAlive|Send|Reset|OnPong|LastPong|Reject|Future|Subscriptions|Resolve)/g, 'client.(*Client).$1'],
+            [/(stored|cached)?([Oo]rders)?\.Hashmap/g, '$1$2.(*ArrayCache).Hashmap'],
+            [/storedOrderBook.Cache/g, 'storedOrderBook.(*OrderBook).Cache'],
+            [/(asks|bids|Side).Store/g, '$1.(*OrderBookSide).Store'],
+            [/CleanUnsubscription\(([a-zA-Z0-9]+),/g, 'CleanUnsubscription($1.(Client),'],
+            [/orderbooks.GetLimit/g, 'orderbooks.(GetsLimit).GetLimit'],
+            [/orderbooks.Limit/g, 'orderbooks.(*OrderBook).Limit'],
+            [/order.Limit/g, 'orderbooks.(GetsLimit).GetLimit'],
+            [/<-spawaned/g, '<-spawaned.(*Future).Await()'],
+            // [/New([A-Z][a-z0-9]+)Error\(([^)]+)/g, 'panic($1Error($1)'],  // old regex
+            [/New([A-Za-z0-9]+Error)\(/g, '$1('],
+            [/NewNotSupported/g, 'NotSupported'],
+            [/NewInvalidNonce/g, 'InvalidNonce'],
+            [/NewUnsubscribeError/g, 'UnsubscribeError'],
+            [/NewGetValue\(([A-Za-z0-9]+), ([A-Za-z0-9]+)\)\(([A-Za-z0-9]+)\)/g, 'callDynamically(GetValue($1, $2), $3)'],
+            // [/New([A-Za-z0-9]+Error)\(/g, '$1('],
+            [ new RegExp(`\\s*New(${exchangeNamePattern})(?:Rest)?\\(([^)]*)\\)`, 'g'), 'New$1($2).Exchange' ],
         ]
     }
-
-
-    // c# custom method
-    customgoPropAssignment(node: any, identation: any) {
+    
+    
+    // go custom method
+    customGoPropAssignment(node: any, identation: any) {
         const stringValue = node.getFullText().trim();
         if (Object.keys(errors).includes(stringValue)) {
             return `typeof(${stringValue})`;
@@ -225,14 +277,12 @@ class NewTranspiler {
     // a helper to apply an array of regexes and substitutions to text
     // accepts an array like [ [ regex, substitution ], ... ]
 
-    regexAll (text: string, array: any[]) {
-        for (const i in array) {
-            let regex = array[i][0]
-            const flags = (typeof regex === 'string') ? 'g' : undefined
-            regex = new RegExp (regex, flags)
-            text = text.replace (regex, array[i][1])
+    regexAll (text: string, rules: any[]) {
+        for (const [pattern, replacement] of rules) {
+            const rx = typeof pattern === 'string' ? new RegExp(pattern, 'g') : pattern;
+            text = text.replace(rx, replacement);
         }
-        return text
+        return text;
     }
 
     // ============================================================================
@@ -242,17 +292,25 @@ class NewTranspiler {
     }
     // ============================================================================
 
-    getTranspilerConfig() {
+    getTranspilerConfig(isWs: boolean = false) {
+        const classNameMap = {};
+        if (isWs) {
+            allExchanges['ws'].forEach((exchangeName: string) => {
+                classNameMap[exchangeName] = exchangeName + 'Ws';
+                classNameMap[capitalize(exchangeName)] = capitalize(exchangeName) + 'Ws';
+            });
+        }
         return {
             "verbose": false,
-            // "go": {
+            "go": {
+                "classNameMap": classNameMap,
             //     "parser": {
             //         "ELEMENT_ACCESS_WRAPPER_OPEN": "getValue(",
             //         "ELEMENT_ACCESS_WRAPPER_CLOSE": ")",
             //         // "VAR_TOKEN": "var",
             //     }
-            // },
-        }
+            },
+        };
     }
 
     createSee(link: string) {
@@ -351,14 +409,14 @@ class NewTranspiler {
         if (!exchangeMethods) {
             exchangeMethods = {}
         }
-        // const transformedComment = this.transformTSCommentIntogo(methodName, description, sees,params, returnType, returnDescription);
+        // const transformedComment = this.transformTSCommentIntoGo(methodName, description, sees,params, returnType, returnDescription);
         exchangeMethods[methodName] = comment;
         goComments[exchangeName] = exchangeMethods
         return comment;
     }
 
-    setupTranspiler() {
-        this.transpiler = new Transpiler (this.getTranspilerConfig())
+    setupTranspiler(isWs: boolean = false) {
+        this.transpiler = new Transpiler (this.getTranspilerConfig(isWs))
         this.transpiler.setVerboseMode(false);
         this.transpiler.goTranspiler.transformLeadingComment = this.transformLeadingComment.bind(this);
     }
@@ -378,21 +436,6 @@ class NewTranspiler {
             namespace,
             // 'import "helpers"'
         ]
-        // if (ws) {
-        //     values.push("using System.Reflection;");
-        // }
-        return values;
-    }
-
-    getgoImports(file: any, ws = false) {
-        const namespace = ws ? 'namespace ccxt.pro;' : 'namespace ccxt;';
-        const values = [
-            // "using ccxt;",
-            namespace,
-        ]
-        // if (ws) {
-        //     values.push("using System.Reflection;");
-        // }
         return values;
     }
 
@@ -424,7 +467,7 @@ class NewTranspiler {
 
         // handle watchOrderBook exception here (watchOrderBook and watchOrderBookForSymbols)
         if (name.startsWith('watchOrderBook')) {
-            return `Task<ccxt.pro.IOrderBook>`;
+            return `IOrderBook`;  // TODO: this right?
         }
 
         if (name === 'fetchTime'){
@@ -493,11 +536,13 @@ class NewTranspiler {
         }
 
         if (wrappedType.startsWith('Dictionary<')) {
-            let type = wrappedType.substring(11, wrappedType.length - 1);
-            if (type.startsWith('Dictionary<')) {
-                type = this.convertJavascriptTypeToGoType(name, type) as any;
-            }
-            return addTaskIfNeeded(`map[string]${type}`);
+            // Always convert the value type to ensure array/slice notation is correct.
+            let valueType = wrappedType.substring(11, wrappedType.length - 1).trim();
+
+            // Recursively convert the inner type (handles nested Dictionary and [] types).
+            valueType = this.convertJavascriptTypeToGoType(name, valueType) as any;
+
+            return addTaskIfNeeded(`map[string]${valueType}`);
         }
 
         return addTaskIfNeeded(wrappedType);
@@ -524,7 +569,7 @@ class NewTranspiler {
         const regularParams = params.filter(params => !params.optional && params?.initializer === undefined);
         const regularParamsParsed = regularParams.map(param => this.convertJavascriptParamToGoParam(param));
         // const optionalParams = params.filter(params => params.optional || params?.initializer !== undefined);
-        const allParams =  regularParamsParsed.concat(['options ...' + this.capitalize(methodName) + 'Options']);
+        const allParams =  regularParamsParsed.concat(['options ...' + capitalize(methodName) + 'Options']);
         return allParams.join(', ');
     }
 
@@ -650,13 +695,20 @@ class NewTranspiler {
             return `res.([]map[string]interface{})`;
         }
 
-        const needsToInstantiate = !unwrappedType.startsWith('List<') && !unwrappedType.startsWith('Dictionary<') && unwrappedType !== 'object' && unwrappedType !== 'string' && unwrappedType !== 'float' && unwrappedType !== 'bool' && unwrappedType !== 'Int64';
+        const needsToInstantiate = !unwrappedType.startsWith('List<') &&
+            !unwrappedType.startsWith('Dictionary<') &&
+            !unwrappedType.startsWith('map[') &&
+            unwrappedType !== 'object' &&
+            unwrappedType !== 'string' &&
+            unwrappedType !== 'float' &&
+            unwrappedType !== 'bool' &&
+            unwrappedType !== 'Int64';
         let returnStatement = "";
         if (unwrappedType.startsWith('[]')) {
             const typeWithoutList = this.unwrapListIfNeeded(unwrappedType);
-            returnStatement = `New${this.capitalize(typeWithoutList)}Array(res)`;
+            returnStatement = `New${capitalize(typeWithoutList)}Array(res)`;
         } else {
-            returnStatement =  needsToInstantiate ? `New${this.capitalize(unwrappedType)}(res)` :  `res.(${unwrappedType})`;            ;
+            returnStatement =  needsToInstantiate ? `New${capitalize(unwrappedType)}(res)` :  `res.(${unwrappedType})`;            ;
         }
         return returnStatement;
     }
@@ -669,7 +721,7 @@ class NewTranspiler {
         const i2 = this.inden(2);
         const i1 = this.inden(1);
         if (hasOptionalParams && !isOnlyParams) {
-            const structName = this.capitalize(name) + 'Options';
+            const structName = capitalize(name) + 'Options';
             const initOptions = [
                 '',
                 'opts := ' + structName + 'Struct{}',
@@ -686,7 +738,7 @@ class NewTranspiler {
                 const isOptional =  param.optional || param.initializer === 'undefined' || param.initializer !== undefined || param.initializer === '{}';
                 // const isOptional =  param.optional || param.initializer !== undefined;
                 if (isOptional) {
-                    const capName = this.capitalize(param.name);
+                    const capName = capitalize(param.name);
                     // const decl =  `${this.inden(2)}var ${param.name} = ${param.name}2 == 0 ? null : (object)${param.name}2;`;
                     let decl = `
     var ${this.safeGoName(param.name)} interface{} = nil
@@ -706,7 +758,7 @@ class NewTranspiler {
     }
 
     createOptionsStruct(methodName: string, params: any[]) {
-        const capName = this.capitalize(methodName);
+        const capName = capitalize(methodName);
         const optionalParams = params.filter(param => param.optional || param.initializer !== undefined || param.initializer === 'undefined' || param.initializer === '{}');
         if (optionalParams.length === 0) {
             return
@@ -722,7 +774,7 @@ class NewTranspiler {
             'type ' + capName + 'OptionsStruct struct {'
         ];
         for (const param of optionalParams) {
-            const name = this.capitalize(param.name);
+            const name = capitalize(param.name);
             const type = this.convertJavascriptTypeToGoType(param.name, param.type);
             const decl = `${i1}${name} *${type}`;
             res.push(decl);
@@ -743,9 +795,9 @@ class NewTranspiler {
         //     }
         // }
         const withMethod = optionalParams.filter(param => param.optional || param.initializer !== undefined).map(param => {
-            const name = this.capitalize(param.name);
+            const name = capitalize(param.name);
             const type = this.convertJavascriptTypeToGoType(param.name, param.type);
-            const capName = this.capitalize(methodName);
+            const capName = capitalize(methodName);
             const structName = capName + 'OptionsStruct';
             return [
                 '',
@@ -820,7 +872,7 @@ class NewTranspiler {
             // `${two}return ch`,
         ]
         const method = [
-            `${one}func (this *${this.capitalize(exchangeName)}) ${methodNameCapitalized}(${stringArgs}) (${unwrappedType}, error) {`,
+            `${one}func (this *${capitalize(exchangeName)}) ${methodNameCapitalized}(${stringArgs}) (${unwrappedType}, error) {`,
             ...body,
             // this.getDefaultParamsWrappers(methodNameCapitalized, methodWrapper.parameters),
             // `${two}res := ${isAsync ? '<-' : ''}this.${exchangeName}.${methodNameCapitalized}(${params});`,
@@ -843,14 +895,14 @@ class NewTranspiler {
         return res;
     }
 
-    createGoWrappers(exchange:string, path: string, wrappers: any[], ws = false) {
+    createGoWrappers(exchange: string, path: string, wrappers: any[], ws = false) {
         const wrappersIndented = wrappers.map(wrapper => this.createWrapper(exchange, wrapper, ws)).filter(wrapper => wrapper !== '').join('\n');
         const shouldCreateClassWrappers = exchange === 'Exchange';
         const classes = shouldCreateClassWrappers ? this.createExchangesWrappers().filter(e=> !!e).join('\n') : '';
-        // const exchangeName = ws ? exchange + 'Ws' : exchange;
         const namespace = 'package ccxt';
         const capitizedName = exchange.charAt(0).toUpperCase() + exchange.slice(1);
         // const capitalizeStatement = ws ? `public class  ${capitizedName}: ${exchange} { public ${capitizedName}(object args = null) : base(args) { } }` : '';
+        
         const exchangeStruct = [
             `type ${capitizedName} struct {`,
             `   *${exchange}`,
@@ -961,19 +1013,18 @@ ${constStatements.join('\n')}
     }
 
     transpileBaseMethods(baseExchangeFile: string) {
-        // @ts-expect-error
         log.bright.cyan ('Transpiling base methods →', baseExchangeFile.yellow, BASE_METHODS_FILE.yellow)
         const goExchangeBase = BASE_METHODS_FILE;
         const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP'
 
-        // to c#
+        // to go
         // const tsContent = fs.readFileSync (baseExchangeFile, 'utf8');
         // const delimited = tsContent.split (delimiter)
         const allVirtual = Object.keys(VIRTUAL_BASE_METHODS);
         this.transpiler.goTranspiler.wrapCallMethods = Object.keys(VIRTUAL_BASE_METHODS);
         const baseFile = this.transpiler.transpileGoByPath(baseExchangeFile);
         this.transpiler.goTranspiler.wrapCallMethods = [];
-        let baseClass = baseFile.content as any;// remove this later
+        let baseClass = baseFile.content as any; // remove this later
 
         const syncMethods = allVirtual.filter(elem => !VIRTUAL_BASE_METHODS[elem])
         const asyncMethods = allVirtual.filter(elem => VIRTUAL_BASE_METHODS[elem])
@@ -982,7 +1033,7 @@ ${constStatements.join('\n')}
         // console.log(syncRegex)
         // baseClass = baseClass.replace(syncRegex, 'this.DerivedExchange.$1($2)');
         baseClass = baseClass.replace(syncRegex, (_match: any, p1: string, p2: string) => {
-            const capitalizedMethod = this.capitalize(p1);
+            const capitalizedMethod = capitalize(p1);
             return `this.DerivedExchange.${capitalizedMethod}(${p2})`;
         });
 
@@ -990,11 +1041,11 @@ ${constStatements.join('\n')}
         // console.log(asyncRegex)
         // baseClass = baseClass.replace(asyncRegex, '<-this.DerivedExchange.$1($2)');
         baseClass = baseClass.replace(asyncRegex, (_match: any, p1: string, p2: string) => {
-            const capitalizedMethod = this.capitalize(p1);
+            const capitalizedMethod = capitalize(p1);
             return `<-this.DerivedExchange.${capitalizedMethod}(${p2})`;
         });
         // create wrappers with specific types
-        // this.creategoWrappers('Exchange', GLOBAL_WRAPPER_FILE, baseFile.methodsTypes)
+        // this.createGoWrappers('Exchange', GLOBAL_WRAPPER_FILE, baseFile.methodsTypes)
 
 
         // custom transformations needed for go
@@ -1008,21 +1059,34 @@ ${constStatements.join('\n')}
         baseClass = baseClass.replaceAll (/(\w+)(\.StoreArray\(.+\))/gm, '($1.(*OrderBookSide))$2'); // tmp fix for c#
         baseClass = baseClass.replaceAll (/ch <- nil\s+\/\/.+/g, '');
 
-        // baseClass = baseClass.replaceAll("client.futures", "getValue(client, \"futures\")"); // tmp fix for c# not needed after ws-merge
-        // baseClass = baseClass.replace("((object)this).number = String;", "this.number = typeof(String);"); // tmp fix for c#
-        // baseClass = baseClass.replaceAll("client.resolve", "// client.resolve"); // tmp fix for c#
-        // baseClass = baseClass.replaceAll("((object)this).number = float;", "this.number = typeof(float);"); // tmp fix for c#
-        // // baseClass = baseClass.replace("= new List<Task<List<object>>> {", "= new List<Task<object>> {");
-        // // baseClass = baseClass.replace("this.number = Number;", "this.number = typeof(float);"); // tmp fix for c#
-        // baseClass = baseClass.replace("throw new getValue(broad, broadKey)(((string)message));", "this.throwDynamicException(broad, broadKey, message);"); // tmp fix for c#
-        // baseClass = baseClass.replace("throw new getValue(exact, str)(((string)message));", "this.throwDynamicException(exact, str, message);"); // tmp fix for c#
-        // // baseClass = baseClass.replace("throw new getValue(exact, str)(message);", "throw new Exception ((string) message);"); // tmp fix for c#
+        // --- WebSocket related fixes specific to **Go** ----------------------
+        // 1) Access the strongly-typed field instead of dynamic lookup.
+        baseClass = baseClass.replaceAll("client.futures", "client.Futures");
 
+        // 2) Remove unresolved C# artefacts concerning `number` typing – the
+        //    Go layer already normalises this earlier to a literal string.
+        baseClass = baseClass.replace("((object)this).number = String;", "this.Number = \"string\"");
+        baseClass = baseClass.replace("((object)this).number = float;", "this.Number = 0");
 
-        // // WS fixes
-        // baseClass = baseClass.replace(/\(object client,/gm, '(WebSocketClient client,');
-        // baseClass = baseClass.replace(/Dictionary<string,object>\)client\.futures/gm, 'Dictionary<string, ccxt.Exchange.Future>)client.futures');
-        // baseClass = baseClass.replaceAll (/(\b\w*)RestInstance.describe/g, "(\(Exchange\)$1RestInstance).describe");
+        // 3) Promise-style resolver calls don't exist in Go – comment them.
+        baseClass = baseClass.replaceAll("client.resolve", "// client.resolve");
+        baseClass = baseClass.replace("this.number = Number;", "this.number = typeof(float);"); // tmp fix for c#
+        baseClass = baseClass.replace("= new List<Task<List<object>>> {", "= NewList<Task<List<object?>>> {");
+
+        // 4) Translate the C# `throw new …` syntax into the helper used by Go.
+        baseClass = baseClass.replace("throw NewGetValue(broad, broadKey)(((string)message));", "throwDynamicException(getValue(broad, broadKey), message);");
+        baseClass = baseClass.replace("throw NewGetValue(exact, str)(((string)message));", "throwDynamicException(getValue(exact, str), message);");
+        baseClass = baseClass.replace("throw NewGetValue(exact, str)(message);", "throwDynamicException(getValue(exact, str), message);");
+
+        // 5) Fix error constructors - remove "New" prefix
+        baseClass = baseClass.replace(/NewUnsubscribeError/g, 'UnsubscribeError');
+        baseClass = baseClass.replace(/NewNotSupported/g, 'NotSupported');
+        baseClass = baseClass.replace(/NewInvalidNonce/g, 'InvalidNonce');
+
+        // WS fixes
+        baseClass = baseClass.replace(/\(object client,/gm, '(WebSocketClient client,');
+        baseClass = baseClass.replace(/Dictionary<string,object>\)client\.futures/gm, 'Dictionary<string, ccxt.Exchange.Future>)client.futures');
+        baseClass = baseClass.replaceAll (/(\b\w*)RestInstance.describe/g, "(\(Exchange\)$1RestInstance).describe");
 
         const jsDelimiter = '// ' + delimiter
         const parts = baseClass.split (jsDelimiter)
@@ -1078,7 +1142,7 @@ ${caseStatements.join('\n')}
       }
 
 
-    getgoExamplesWarning() {
+    getGoExamplesWarning() {
         return [
             '',
             '    // !!Warning!! This example was automatically transpiled',
@@ -1104,7 +1168,7 @@ ${caseStatements.join('\n')}
             let tsContent = fs.readFileSync (tsFile).toString ()
             if (tsContent.indexOf (transpileFlagPhrase) > -1) {
                 const fileName = filenameWithExtenstion.replace ('.ts', '')
-                log.magenta ('[C#] Transpiling example from', (tsFile as any).yellow)
+                log.magenta ('[GO] Transpiling example from', (tsFile as any).yellow)
                 const go = this.transpiler.transpileGo(tsContent);
 
                 const transpiledFixed = this.regexAll(
@@ -1121,7 +1185,7 @@ ${caseStatements.join('\n')}
                     'using ccxt;',
                     'using ccxt.pro;',
                     'namespace examples;',
-                    // this.getgoExamplesWarning(),
+                    // this.getGoExamplesWarning(),
                     'partial class Examples',
                     '{',
                     transpiledFixed,
@@ -1140,7 +1204,6 @@ ${caseStatements.join('\n')}
         if (inputExchanges === undefined) {
             inputExchanges = exchanges.ws;
         }
-        // @ts-expect-error
         const options = { goFolder: EXCHANGES_WS_FOLDER, exchanges:inputExchanges }
         // const options = { goFolder: EXCHANGES_WS_FOLDER, exchanges:['bitget'] }
         await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(inputExchanges), true )
@@ -1216,8 +1279,10 @@ ${caseStatements.join('\n')}
         return flatResult;
     }
 
-    safeOptionsStructFile() {
-        const EXCHANGE_OPTIONS_FILE = './go/v4/exchange_wrapper_structs.go';
+    safeOptionsStructFile(ws: boolean = false) {
+        const EXCHANGE_OPTIONS_FILE = ws 
+            ? './go/v4/exchange_wrapper_structs_ws.go' 
+            : './go/v4/exchange_wrapper_structs.go';
 
         const file = [
             'package ccxt',
@@ -1225,10 +1290,12 @@ ${caseStatements.join('\n')}
             ''
         ];
         // add simple Options
-        file.push('type Options struct {');
-        file.push('    Params *map[string]interface{}');
-        file.push('}');
-        file.push('');
+        if (!ws) {
+            file.push('type Options struct {');
+            file.push('    Params *map[string]interface{}');
+            file.push('}');
+            file.push('');
+        }
 
         for (const key in goTypeOptions) {
             const struct = goTypeOptions[key];
@@ -1266,25 +1333,18 @@ ${caseStatements.join('\n')}
         log.blue('[go] Transpiling [', exchanges.join(', '), ']');
         const transpiledFiles =  allFilesPath.map((file: string) => this.transpiler.transpileGoByPath(file));
 
-        if (!ws) {
-            for (let i = 0; i < transpiledFiles.length; i++) {
-                const transpiled = transpiledFiles[i];
-                const exchangeName = exchanges[i].replace('.ts','');
-                const path = EXCHANGE_WRAPPER_FOLDER + exchangeName + '_wrapper.go';
-                this.createGoWrappers(exchangeName, path, transpiled.methodsTypes)
-            }
-        } else {
-            //
-            for (let i = 0; i < transpiledFiles.length; i++) {
-                // const transpiled = transpiledFiles[i];
-                // const exchangeName = exchanges[i].replace('.ts','');
-                // const path = EXCHANGE_WS_WRAPPER_FOLDER + exchangeName + '.go';
-                // this.creategoWrappers(exchangeName, path, transpiled.methodsTypes, true)
-            }
+        for (let i = 0; i < transpiledFiles.length; i++) {
+            const transpiled = transpiledFiles[i];
+            const baseExchangeName = exchanges[i].replace('.ts','');
+            const extension = ws ? '_ws_wrapper.go' : '_wrapper.go';
+            const path = EXCHANGE_WRAPPER_FOLDER + baseExchangeName + extension;
+            const exchangeName = `${baseExchangeName}${ws ? 'Ws' : ''}`;
+
+            this.createGoWrappers(exchangeName, path, transpiled.methodsTypes, ws)
         }
         exchanges.map ((file: string, idx: number) => this.transpileDerivedExchangeFile (jsFolder, file, options, transpiledFiles[idx], force, ws))
         if (exchanges.length > 1) {
-            this.safeOptionsStructFile();
+            this.safeOptionsStructFile(ws);
         }
         const classes = {}
 
@@ -1294,21 +1354,22 @@ ${caseStatements.join('\n')}
     createGoExchange(className: string, goVersion: any, ws = false) {
         const goImports = this.getGoImports(goVersion, ws).join("\n") + "\n\n";
         let content = goVersion.content;
+        const exchangeName = className;
 
         // const isInheritedExchange = content.indexOf('')
 
-        // const baseWsClassRegex = /class\s(\w+)\s+:\s(\w+)/;
-        // const baseWsClassExec = baseWsClassRegex.exec(content);
-        // const baseWsClass = baseWsClassExec ? baseWsClassExec[2] : '';
+        if (ws) {
+            className = className + 'Ws';
+        }
 
         const classExtends = /type\s\w+\sstruct\s{\s*(\w+)/;
         const matches = content.match(classExtends);
-        const baseClass = matches ? matches[1] : '';
+        const baseClass = matches ? matches[1].replace('Rest', '') : '';
 
-        let isAlias = baseClass !== 'Exchange';
+        let isAlias = (baseClass !== 'Exchange') && (baseClass !== exchangeName);
 
+        content = content.replace(/func\sNew(\w+)\(\)/g, 'func New$1Core()');
         if (!ws) {
-            content = content.replace(/func\sNew(\w+)\(\)/g, "func New$1Core()");
             // content = content.replace(/(?<!<-)this\.callInternal/gm, "<-this.callInternal");
             content = content.replace(/base\.(\w+)\(/gm, "this.Exchange.$1(");
             content = content.replace(/base\.Describe/gm, "this.Exchange.Describe");
@@ -1322,29 +1383,24 @@ ${caseStatements.join('\n')}
             content = content.replace(/<\-callDynamically/gm, '<-this.callDynamically') //fix this on the transpiler
 
         } else {
-            // const wsParent =  baseWsClass.endsWith('Rest') ? 'ccxt.' + baseWsClass.replace('Rest', '') : baseWsClass;
-            // content = content.replace(/class\s(\w+)\s:\s(\w+)/gm, `public partial class $1 : ${wsParent}`);
+            content = content.replace(new RegExp(`this\\.${exchangeName}Rest\\.`, 'g'), `this.${exchangeName}.`);                       // Removes 'Rest' suffix
+            content = content.replace(/([^a-zA-Z0-9])base\.([A-Za-z0-9]+)\(/g, `$1this.base.$2(`);                                      // changes 'base' to 'this.base'
+            content = content.replace(/type (\w+)Ws struct \{\s+(\w+)(Ws)?\s*\n\s*/g, `type $1Ws struct {\n\t$2$3\n\tbase $2${isAlias ? 'Ws' : ''}\n`);      // adds 'base exchangeName'
         }
         // content = content.replace(/binaryMessage.byteLength/gm, 'getValue(binaryMessage, "byteLength")'); // idex tmp fix
         // WS fixes
         if (ws) {
-            // const wsRegexes = this.getWsRegexes();
-            // content = this.regexAll (content, wsRegexes);
-            // content = this.replaceImportedRestClasses (content, goVersion.imports);
-            // const classNameRegex = /public\spartial\sclass\s(\w+)\s:\s(\w+)/gm;
-            // const classNameExec = classNameRegex.exec(content);
-            // const className = classNameExec ? classNameExec[1] : '';
-            // const constructorLine = `\npublic partial class ${className} { public ${className}(object args = null) : base(args) { } }\n`
-            // content = constructorLine  + content;
+            const wsRegexes = this.getWsRegexes();
+            content = this.regexAll (content, wsRegexes);
+            content = this.replaceImportedRestClasses (content, goVersion.imports);
         }
 
         if (isAlias) {
             content = content.replace(/this.Exchange.Describe/gm, "this." + baseClass + ".Describe");
         }
 
-        const capitalizedClassName = className.charAt(0).toUpperCase() + className.slice(1);
         let initMethod = '';
-        if (!isAlias) {
+        if (!isAlias && !ws) {
             initMethod = `
 func (this *${className}) Init(userConfig map[string]interface{}) {
     this.Exchange = Exchange{}
@@ -1370,9 +1426,18 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             // { name: "bequantRest", path: "../bequant.js", isDefault: true, }
             const name = imp.name;
             if (name.endsWith('Rest')) {
-                content = content.replaceAll(name, 'ccxt.' + name.replace('Rest', ''));
+                content = content.replaceAll(name, name.replace('Rest', ''));
             }
         }
+
+        // ------------------------------------------------------------------
+        // Additional cleanup: strip `Rest` suffixes that were missed above.
+        // 1) Constructors or function calls like `NewBinancecoinmRest(...)` → `NewBinancecoinm(...)`
+        content = content.replace(/New([A-Za-z0-9_]+)Rest\(/g, 'New$1(');
+        // 2) Any remaining standalone identifiers ending with `Rest` → drop the suffix.
+        content = content.replace(/\b([A-Za-z0-9_]+)Rest\b/g, '$1');
+        // ------------------------------------------------------------------
+
         return content;
     }
 
@@ -1383,11 +1448,12 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
         const { goFolder } = options
 
         const extensionlessName = filename.replace ('.ts', '')
-        const goFilename = filename.replace ('.ts', '.go')
+        const replacement = ws ? '_ws.go' : '.go';
+        const goFilename = filename.replace ('.ts', replacement)
 
         const tsMtime = fs.statSync (tsPath).mtime.getTime ()
 
-        const go  = this.createGoExchange (extensionlessName, goResult, ws)
+        const go  = this.createGoExchange (extensionlessName, goResult, ws);
 
         if (goFolder) {
             overwriteFileAndFolder (goFolder + goFilename, go)
@@ -1487,7 +1553,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
         const go = this.transpiler.transpileGoByPath(jsFile);
         let content = go.content;
         content = this.regexAll (content, [
-            [/new ccxt.Exchange.+\n.+\n.+/gm, 'ccxt.Exchange{}' ],
+            [/Newccxt.Exchange.+\n.+\n.+/gm, 'ccxt.Exchange{}' ],
             [ /func Equals\(.+\n.*\n.*\n.*}/gm, '' ], // remove equals
             // [/(^\s*Assert\(equals\(ecdsa\([^;]+;)/gm, '/*\n $1\nTODO: add ecdsa\n*/'] // temporarily disable ecdsa tests
         ]).trim ()
@@ -1511,7 +1577,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
 
         const parsedName = name.replace('.ts', '');
         const parsedParts = parsedName.split('.');
-        const finalName = parsedParts[0] + this.capitalize(parsedParts[1]);
+        const finalName = parsedParts[0] + capitalize(parsedParts[1]);
 
         content = this.regexAll (content, [
             [/assert/g, 'Assert'],
@@ -1539,7 +1605,6 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
 
     async transpileExchangeTestsToGo() {
         const inputDir = './ts/src/test/exchange/';
-        // @ts-expect-error
         const outDir = GENERATED_TESTS_FOLDER;
         const ignore = [
             // 'exportTests.ts',
@@ -1577,7 +1642,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
                 continue;
             }
 
-            // const goFileName = this.capitalize(testName.replace ('test.', ''));
+            // const goFileName = capitalize(testName.replace ('test.', ''));
             const goFile = `${outDir}/${testName}.go`;
 
             log.magenta ('Transpiling from', (tsFile as any).yellow)
@@ -1585,7 +1650,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             const go = this.transpiler.transpileGoByPath(tsFile);
             let content = go.content;
             content = this.regexAll (content, [
-                [/(\w+) := new ccxt\.Exchange\(([\S\s]+?)\)/gm, '$1 := ccxt.NewExchange().(*ccxt.Exchange); $1.DerivedExchange = $1; $1.InitParent($2, map[string]interface{}{}, $1)' ],
+                [/(\w+) := NewCcxt\.Exchange\(([\S\s]+?)\)/gm, '$1 := ccxt.NewExchange().(*ccxt.Exchange); $1.DerivedExchange = $1; $1.InitParent($2, map[string]interface{}{}, $1)' ],
                 [/exchange interface\{\}, /g,'exchange *ccxt.Exchange, '], // in arguments
                 [/ interface\{\}(?= \= map\[string\]interface\{\} )/g, ' map[string]interface{}'], // fix incorrect variable type
                 [ /interface{}\sfunc\sEquals.+\n.*\n.+\n.+/gm, '' ], // remove equals
@@ -1606,13 +1671,9 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
 
             log.magenta ('→', (goFile as any).yellow)
 
-            goTests.push(this.capitalize(testName));
+            goTests.push(capitalize(testName));
             overwriteFileAndFolder (goFile, file);
         }
-    }
-
-    capitalize(s: string) {
-        return s.charAt(0).toUpperCase() + s.slice(1);
     }
 
     transpileMainTest(files: any) {
@@ -1700,30 +1761,30 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
 
     transpileWsExchangeTests(){
 
-        // const baseFolders = {
-        //     ts: './ts/src/pro/test/Exchange/',
-        //     go: EXCHANGE_GENERATED_FOLDER + 'Ws/',
-        // };
+        const baseFolders = {
+            ts: './ts/src/pro/test/Exchange/',
+            go: GENERATED_TESTS_FOLDER + 'Ws/',
+        };
 
-        // const wsTests = fs.readdirSync (baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
+        const wsTests = fs.readdirSync (baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
 
-        // const tests = [] as any;
+        const tests = [] as any;
 
-        // wsTests.forEach (test => {
-        //     tests.push({
-        //         name: test,
-        //         tsFile: baseFolders.ts + test + '.ts',
-        //         goFile: baseFolders.goharp + test + '.go',
-        //     });
-        // });
+        wsTests.forEach (test => {
+            tests.push({
+                name: test,
+                tsFile: baseFolders.ts + test + '.ts',
+                goFile: baseFolders.go + test + '.go',
+            });
+        });
 
-        // this.transpileAndSaveGoExchangeTests (tests, true);
+        this.transpileAndSaveGoExchangeTests (tests, true);
     }
 
     async transpileAndSaveGoExchangeTests(tests: any[], isWs = false) {
         let paths = tests.map(test => test.tsFile);
         // paths = [paths[30]];
-        const flatResult = await this.webworkerTranspile (paths,  this.getTranspilerConfig());
+        const flatResult = await this.webworkerTranspile (paths,  this.getTranspilerConfig(isWs));
         flatResult.forEach((file, idx) => {
             let contentIndentend = file.content.split('\n').map((line: string) => line ? '    ' + line : line).join('\n');
 
@@ -1798,7 +1859,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
     }
 
     createFunctionsMapFile() {
-        // const normalizedTestNames = goTests.map(test => 'Test' + this.capitalize(test.replace('Test.', '').replace('test.', '')) );
+        // const normalizedTestNames = goTests.map(test => 'Test' + capitalize(test.replace('Test.', '').replace('test.', '')) );
         const normalizedTestNames: string[] = [];
         const normalizedFunctionNames: string[] = [];
         for (let test of goTests) {
@@ -1814,7 +1875,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             }
             const methodName = test.replace('Test.', '').replace('test.', '');
             normalizedFunctionNames.push(methodName);
-            test = 'Test' + this.capitalize(methodName)
+            test = 'Test' + capitalize(methodName)
             normalizedTestNames.push(test);
         }
         const file = [
@@ -1827,12 +1888,9 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             '}',
         ].join('\n');
         overwriteFileAndFolder (BASE_TESTS_FOLDER + '/test.functions.go', file);
+    }
 }
 
-
-}
-
-// @ts-expect-error
 if (isMainEntry(import.meta.url)) {
     const ws = process.argv.includes ('--ws')
     const baseOnly = process.argv.includes ('--baseTests')
@@ -1845,16 +1903,14 @@ if (isMainEntry(import.meta.url)) {
     if (!child && !multiprocess) {
         log.bright.green ({ force })
     }
-    const transpiler = new NewTranspiler ();
+    const transpiler = new NewTranspiler (ws);
     if (ws) {
-        // @ts-expect-error
         await transpiler.transpileWS (force)
     } else if (test) {
         transpiler.transpileTests ()
     } else if (multiprocess) {
         parallelizeTranspiling (exchangeIds)
     } else {
-        // @ts-expect-error
         await transpiler.transpileEverything (force, child, baseOnly, examples)
     }
 }
