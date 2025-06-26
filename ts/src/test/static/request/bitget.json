@@ -968,6 +968,17 @@
                 "input": [
                     "BTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "uta fetchPosition",
+                "method": "fetchPosition",
+                "url": "https://api.bitget.com/api/v3/position/current-position?category=USDT-FUTURES&symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT",
+                    {
+                        "uta": true
+                    }
+                ]
             }
         ],
         "fetchPositions": [

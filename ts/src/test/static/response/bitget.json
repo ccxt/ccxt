@@ -3931,6 +3931,108 @@
                   "stopLossPrice": null,
                   "takeProfitPrice": null
                 }
+            },
+            {
+                "description": "uta fetchPosition",
+                "method": "fetchPosition",
+                "input": [
+                    "BTC/USDT:USDT",
+                    {
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1750929905423",
+                    "data": {
+                        "list": [
+                            {
+                                "category": "USDT-FUTURES",
+                                "symbol": "BTCUSDT",
+                                "marginCoin": "USDT",
+                                "holdMode": "hedge_mode",
+                                "posSide": "long",
+                                "marginMode": "crossed",
+                                "positionBalance": "5.435199",
+                                "available": "0.001",
+                                "frozen": "0",
+                                "total": "0.001",
+                                "leverage": "20",
+                                "curRealisedPnl": "0",
+                                "avgPrice": "107410.3",
+                                "positionStatus": "normal",
+                                "unrealisedPnl": "0.0047",
+                                "liquidationPrice": "0",
+                                "mmr": "0.004",
+                                "profitRate": "0.0008647337475591",
+                                "markPrice": "107415.3",
+                                "breakEvenPrice": "107539.2",
+                                "totalFunding": "0",
+                                "openFeeTotal": "-0.06444618",
+                                "closeFeeTotal": "0",
+                                "createdTime": "1750495670699",
+                                "updatedTime": "1750929883465"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "category": "USDT-FUTURES",
+                        "symbol": "BTCUSDT",
+                        "marginCoin": "USDT",
+                        "holdMode": "hedge_mode",
+                        "posSide": "long",
+                        "marginMode": "crossed",
+                        "positionBalance": "5.435199",
+                        "available": "0.001",
+                        "frozen": "0",
+                        "total": "0.001",
+                        "leverage": "20",
+                        "curRealisedPnl": "0",
+                        "avgPrice": "107410.3",
+                        "positionStatus": "normal",
+                        "unrealisedPnl": "0.0047",
+                        "liquidationPrice": "0",
+                        "mmr": "0.004",
+                        "profitRate": "0.0008647337475591",
+                        "markPrice": "107415.3",
+                        "breakEvenPrice": "107539.2",
+                        "totalFunding": "0",
+                        "openFeeTotal": "-0.06444618",
+                        "closeFeeTotal": "0",
+                        "createdTime": "1750495670699",
+                        "updatedTime": "1750929883465"
+                    },
+                    "id": null,
+                    "symbol": "BTC/USDT:USDT",
+                    "notional": 107.4153,
+                    "marginMode": "cross",
+                    "liquidationPrice": null,
+                    "entryPrice": 107410.3,
+                    "unrealizedPnl": 0.0047,
+                    "realizedPnl": 0,
+                    "percentage": 0.08,
+                    "contracts": 0.001,
+                    "contractSize": 1,
+                    "markPrice": 107415.3,
+                    "lastPrice": null,
+                    "side": "long",
+                    "hedged": true,
+                    "timestamp": 1750495670699,
+                    "datetime": "2025-06-21T08:47:50.699Z",
+                    "lastUpdateTimestamp": 1750929883465,
+                    "maintenanceMargin": 0.06444918,
+                    "maintenanceMarginPercentage": null,
+                    "collateral": null,
+                    "initialMargin": 5.435199,
+                    "initialMarginPercentage": 0.05059985867935015,
+                    "leverage": 20,
+                    "marginRatio": 0.004,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null
+                }
             }
         ],
         "fetchBorrowInterest": [

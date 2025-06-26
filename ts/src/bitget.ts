@@ -7172,8 +7172,10 @@ export default class bitget extends Exchange {
      * @name bitget#fetchPosition
      * @description fetch data on a single open contract trade position
      * @see https://www.bitget.com/api-doc/contract/position/get-single-position
+     * @see https://www.bitget.bike/api-doc/uta/trade/Get-Position
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
     async fetchPosition (symbol: string, params = {}) {
@@ -7183,42 +7185,91 @@ export default class bitget extends Exchange {
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
         const request: Dict = {
             'symbol': market['id'],
-            'marginCoin': market['settleId'],
-            'productType': productType,
         };
-        const response = await this.privateMixGetV2MixPositionSinglePosition (this.extend (request, params));
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1700807531673,
-        //         "data": [
-        //             {
-        //                 "marginCoin": "USDT",
-        //                 "symbol": "BTCUSDT",
-        //                 "holdSide": "long",
-        //                 "openDelegateSize": "0",
-        //                 "marginSize": "3.73555",
-        //                 "available": "0.002",
-        //                 "locked": "0",
-        //                 "total": "0.002",
-        //                 "leverage": "20",
-        //                 "achievedProfits": "0",
-        //                 "openPriceAvg": "37355.5",
-        //                 "marginMode": "crossed",
-        //                 "posMode": "hedge_mode",
-        //                 "unrealizedPL": "0.007",
-        //                 "liquidationPrice": "31724.970702417",
-        //                 "keepMarginRate": "0.004",
-        //                 "markPrice": "37359",
-        //                 "marginRatio": "0.029599540355",
-        //                 "cTime": "1700807507275"
-        //             }
-        //         ]
-        //     }
-        //
-        const data = this.safeList (response, 'data', []);
-        const first = this.safeDict (data, 0, {});
+        let response = undefined;
+        let uta = undefined;
+        let result = undefined;
+        [ uta, params ] = this.handleOptionAndParams (params, 'fetchPosition', 'uta', false);
+        if (uta) {
+            request['category'] = productType;
+            response = await this.privateUtaGetV3PositionCurrentPosition (this.extend (request, params));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1750929905423,
+            //         "data": {
+            //             "list": [
+            //                 {
+            //                     "category": "USDT-FUTURES",
+            //                     "symbol": "BTCUSDT",
+            //                     "marginCoin": "USDT",
+            //                     "holdMode": "hedge_mode",
+            //                     "posSide": "long",
+            //                     "marginMode": "crossed",
+            //                     "positionBalance": "5.435199",
+            //                     "available": "0.001",
+            //                     "frozen": "0",
+            //                     "total": "0.001",
+            //                     "leverage": "20",
+            //                     "curRealisedPnl": "0",
+            //                     "avgPrice": "107410.3",
+            //                     "positionStatus": "normal",
+            //                     "unrealisedPnl": "0.0047",
+            //                     "liquidationPrice": "0",
+            //                     "mmr": "0.004",
+            //                     "profitRate": "0.0008647337475591",
+            //                     "markPrice": "107415.3",
+            //                     "breakEvenPrice": "107539.2",
+            //                     "totalFunding": "0",
+            //                     "openFeeTotal": "-0.06444618",
+            //                     "closeFeeTotal": "0",
+            //                     "createdTime": "1750495670699",
+            //                     "updatedTime": "1750929883465"
+            //                 }
+            //             ]
+            //         }
+            //     }
+            //
+            const data = this.safeDict (response, 'data', {});
+            result = this.safeList (data, 'list', []);
+        } else {
+            request['marginCoin'] = market['settleId'];
+            request['productType'] = productType;
+            response = await this.privateMixGetV2MixPositionSinglePosition (this.extend (request, params));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1700807531673,
+            //         "data": [
+            //             {
+            //                 "marginCoin": "USDT",
+            //                 "symbol": "BTCUSDT",
+            //                 "holdSide": "long",
+            //                 "openDelegateSize": "0",
+            //                 "marginSize": "3.73555",
+            //                 "available": "0.002",
+            //                 "locked": "0",
+            //                 "total": "0.002",
+            //                 "leverage": "20",
+            //                 "achievedProfits": "0",
+            //                 "openPriceAvg": "37355.5",
+            //                 "marginMode": "crossed",
+            //                 "posMode": "hedge_mode",
+            //                 "unrealizedPL": "0.007",
+            //                 "liquidationPrice": "31724.970702417",
+            //                 "keepMarginRate": "0.004",
+            //                 "markPrice": "37359",
+            //                 "marginRatio": "0.029599540355",
+            //                 "cTime": "1700807507275"
+            //             }
+            //         ]
+            //     }
+            //
+            result = this.safeList (response, 'data', []);
+        }
+        const first = this.safeDict (result, 0, {});
         return this.parsePosition (first, market);
     }
 
@@ -7392,6 +7443,36 @@ export default class bitget extends Exchange {
         //         "cTime": "1700807507275"
         //     }
         //
+        // uta: fetchPosition
+        //
+        //     {
+        //         "category": "USDT-FUTURES",
+        //         "symbol": "BTCUSDT",
+        //         "marginCoin": "USDT",
+        //         "holdMode": "hedge_mode",
+        //         "posSide": "long",
+        //         "marginMode": "crossed",
+        //         "positionBalance": "5.435199",
+        //         "available": "0.001",
+        //         "frozen": "0",
+        //         "total": "0.001",
+        //         "leverage": "20",
+        //         "curRealisedPnl": "0",
+        //         "avgPrice": "107410.3",
+        //         "positionStatus": "normal",
+        //         "unrealisedPnl": "0.0047",
+        //         "liquidationPrice": "0",
+        //         "mmr": "0.004",
+        //         "profitRate": "0.0008647337475591",
+        //         "markPrice": "107415.3",
+        //         "breakEvenPrice": "107539.2",
+        //         "totalFunding": "0",
+        //         "openFeeTotal": "-0.06444618",
+        //         "closeFeeTotal": "0",
+        //         "createdTime": "1750495670699",
+        //         "updatedTime": "1750929883465"
+        //     }
+        //
         // fetchPositions: privateMixGetV2MixPositionAllPosition
         //
         //     {
@@ -7446,31 +7527,31 @@ export default class bitget extends Exchange {
         const marketId = this.safeString (position, 'symbol');
         market = this.safeMarket (marketId, market, undefined, 'contract');
         const symbol = market['symbol'];
-        const timestamp = this.safeInteger2 (position, 'cTime', 'ctime');
+        const timestamp = this.safeIntegerN (position, [ 'cTime', 'ctime', 'createdTime' ]);
         let marginMode = this.safeString (position, 'marginMode');
         let collateral = undefined;
         let initialMargin = undefined;
-        const unrealizedPnl = this.safeString (position, 'unrealizedPL');
-        const rawCollateral = this.safeString (position, 'marginSize');
+        const unrealizedPnl = this.safeString2 (position, 'unrealizedPL', 'unrealisedPnl');
+        const rawCollateral = this.safeString2 (position, 'marginSize', 'positionBalance');
         if (marginMode === 'isolated') {
             collateral = Precise.stringAdd (rawCollateral, unrealizedPnl);
         } else if (marginMode === 'crossed') {
             marginMode = 'cross';
             initialMargin = rawCollateral;
         }
-        const holdMode = this.safeString (position, 'posMode');
+        const holdMode = this.safeString2 (position, 'posMode', 'holdMode');
         let hedged = undefined;
         if (holdMode === 'hedge_mode') {
             hedged = true;
         } else if (holdMode === 'one_way_mode') {
             hedged = false;
         }
-        const side = this.safeString (position, 'holdSide');
+        const side = this.safeString2 (position, 'holdSide', 'posSide');
         const leverage = this.safeString (position, 'leverage');
         const contractSizeNumber = this.safeValue (market, 'contractSize');
         const contractSize = this.numberToString (contractSizeNumber);
         const baseAmount = this.safeString (position, 'total');
-        const entryPrice = this.safeString2 (position, 'openPriceAvg', 'openAvgPrice');
+        const entryPrice = this.safeStringN (position, [ 'openPriceAvg', 'openAvgPrice', 'avgPrice' ]);
         const maintenanceMarginPercentage = this.safeString (position, 'keepMarginRate');
         const openNotional = Precise.stringMul (entryPrice, baseAmount);
         if (initialMargin === undefined) {
@@ -7514,7 +7595,7 @@ export default class bitget extends Exchange {
             'liquidationPrice': liquidationPrice,
             'entryPrice': this.parseNumber (entryPrice),
             'unrealizedPnl': this.parseNumber (unrealizedPnl),
-            'realizedPnl': this.safeNumber (position, 'pnl'),
+            'realizedPnl': this.safeNumber2 (position, 'pnl', 'curRealisedPnl'),
             'percentage': this.parseNumber (percentage),
             'contracts': contracts,
             'contractSize': contractSizeNumber,
@@ -7524,14 +7605,14 @@ export default class bitget extends Exchange {
             'hedged': hedged,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastUpdateTimestamp': this.safeInteger (position, 'utime'),
+            'lastUpdateTimestamp': this.safeInteger2 (position, 'utime', 'updatedTime'),
             'maintenanceMargin': this.parseNumber (maintenanceMargin),
             'maintenanceMarginPercentage': this.parseNumber (maintenanceMarginPercentage),
             'collateral': this.parseNumber (collateral),
             'initialMargin': this.parseNumber (initialMargin),
             'initialMarginPercentage': this.parseNumber (initialMarginPercentage),
             'leverage': this.parseNumber (leverage),
-            'marginRatio': this.safeNumber (position, 'marginRatio'),
+            'marginRatio': this.safeNumber2 (position, 'marginRatio', 'mmr'),
             'stopLossPrice': undefined,
             'takeProfitPrice': undefined,
         });
