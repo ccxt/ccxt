@@ -82,7 +82,7 @@ export default class bithumb extends bithumbRest {
             'tickTypes': [ this.safeString (params, 'tickTypes', '24H') ],
         };
         const message = this.extend (request, params);
-        const newTicker = await this.watchMultiple (url, messageHashes, message, messageHashes);
+        const newTicker = await this.watchMultiple (url, messageHashes, message, messageHashes, undefined);
         if (this.newUpdates) {
             const result: Dict = {};
             result[newTicker['symbol']] = newTicker;
