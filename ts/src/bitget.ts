@@ -7524,6 +7524,29 @@ export default class bitget extends Exchange {
         //         "clientOid": "1120923953904893956"
         //     }
         //
+        // uta: fetchPositionsHistory
+        //
+        //     {
+        //         "positionId": "1322441328637100049",
+        //         "category": "USDT-FUTURES",
+        //         "symbol": "BTCUSDT",
+        //         "marginCoin": "USDT",
+        //         "holdMode": "hedge_mode",
+        //         "posSide": "long",
+        //         "marginMode": "crossed",
+        //         "openPriceAvg": "107003.7",
+        //         "closePriceAvg": "107005.4",
+        //         "openTotalPos": "0.0001",
+        //         "closeTotalPos": "0.0001",
+        //         "cumRealisedPnl": "0.00017",
+        //         "netProfit": "-0.01267055",
+        //         "totalFunding": "0",
+        //         "openFeeTotal": "-0.00642022",
+        //         "closeFeeTotal": "-0.00642032",
+        //         "createdTime": "1751020503195",
+        //         "updatedTime": "1751020520458"
+        //     }
+        //
         const marketId = this.safeString (position, 'symbol');
         market = this.safeMarket (marketId, market, undefined, 'contract');
         const symbol = market['symbol'];
@@ -7550,7 +7573,7 @@ export default class bitget extends Exchange {
         const leverage = this.safeString (position, 'leverage');
         const contractSizeNumber = this.safeValue (market, 'contractSize');
         const contractSize = this.numberToString (contractSizeNumber);
-        const baseAmount = this.safeString (position, 'total');
+        const baseAmount = this.safeString2 (position, 'total', 'openTotalPos');
         const entryPrice = this.safeStringN (position, [ 'openPriceAvg', 'openAvgPrice', 'avgPrice' ]);
         const maintenanceMarginPercentage = this.safeString (position, 'keepMarginRate');
         const openNotional = Precise.stringMul (entryPrice, baseAmount);
@@ -7588,19 +7611,19 @@ export default class bitget extends Exchange {
         const percentage = Precise.stringMul (Precise.stringDiv (unrealizedPnl, initialMargin, 4), '100');
         return this.safePosition ({
             'info': position,
-            'id': this.safeString (position, 'orderId'),
+            'id': this.safeString2 (position, 'orderId', 'positionId'),
             'symbol': symbol,
             'notional': this.parseNumber (notional),
             'marginMode': marginMode,
             'liquidationPrice': liquidationPrice,
             'entryPrice': this.parseNumber (entryPrice),
             'unrealizedPnl': this.parseNumber (unrealizedPnl),
-            'realizedPnl': this.safeNumber2 (position, 'pnl', 'curRealisedPnl'),
+            'realizedPnl': this.safeNumberN (position, [ 'pnl', 'curRealisedPnl', 'cumRealisedPnl' ]),
             'percentage': this.parseNumber (percentage),
             'contracts': contracts,
             'contractSize': contractSizeNumber,
             'markPrice': this.parseNumber (markPrice),
-            'lastPrice': this.safeNumber (position, 'closeAvgPrice'),
+            'lastPrice': this.safeNumber2 (position, 'closeAvgPrice', 'closePriceAvg'),
             'side': side,
             'hedged': hedged,
             'timestamp': timestamp,
@@ -9411,43 +9434,71 @@ export default class bitget extends Exchange {
      * @name bitget#closePosition
      * @description closes an open position for a market
      * @see https://www.bitget.com/api-doc/contract/trade/Flash-Close-Position
+     * @see https://www.bitget.bike/api-doc/uta/trade/Close-All-Positions
      * @param {string} symbol unified CCXT market symbol
      * @param {string} [side] one-way mode: 'buy' or 'sell', hedge-mode: 'long' or 'short'
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let productType = undefined;
-        [ productType, params ] = this.handleProductTypeAndParams (market, params);
         const request: Dict = {
             'symbol': market['id'],
-            'productType': productType,
         };
-        if (side !== undefined) {
-            request['holdSide'] = side;
+        let productType = undefined;
+        let uta = undefined;
+        let response = undefined;
+        [ productType, params ] = this.handleProductTypeAndParams (market, params);
+        [ uta, params ] = this.handleOptionAndParams (params, 'closePosition', 'uta', false);
+        if (uta) {
+            if (side !== undefined) {
+                request['posSide'] = side;
+            }
+            request['category'] = productType;
+            response = await this.privateUtaPostV3TradeClosePositions (this.extend (request, params));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1751020218384,
+            //         "data": {
+            //             "list": [
+            //                 {
+            //                     "orderId": "1322440134099320832",
+            //                     "clientOid": "1322440134099320833"
+            //                 }
+            //             ]
+            //         }
+            //     }
+            //
+        } else {
+            if (side !== undefined) {
+                request['holdSide'] = side;
+            }
+            request['productType'] = productType;
+            response = await this.privateMixPostV2MixOrderClosePositions (this.extend (request, params));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1702975017017,
+            //         "data": {
+            //             "successList": [
+            //                 {
+            //                     "orderId": "1120923953904893955",
+            //                     "clientOid": "1120923953904893956"
+            //                 }
+            //             ],
+            //             "failureList": [],
+            //             "result": false
+            //         }
+            //     }
+            //
         }
-        const response = await this.privateMixPostV2MixOrderClosePositions (this.extend (request, params));
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1702975017017,
-        //         "data": {
-        //             "successList": [
-        //                 {
-        //                     "orderId": "1120923953904893955",
-        //                     "clientOid": "1120923953904893956"
-        //                 }
-        //             ],
-        //             "failureList": [],
-        //             "result": false
-        //         }
-        //     }
-        //
         const data = this.safeValue (response, 'data', {});
-        const order = this.safeList (data, 'successList', []);
+        const order = this.safeList2 (data, 'successList', 'list', []);
         return this.parseOrder (order[0], market);
     }
 
@@ -9456,37 +9507,61 @@ export default class bitget extends Exchange {
      * @name bitget#closeAllPositions
      * @description closes all open positions for a market type
      * @see https://www.bitget.com/api-doc/contract/trade/Flash-Close-Position
+     * @see https://www.bitget.bike/api-doc/uta/trade/Close-All-Positions
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.productType] 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} A list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
     async closeAllPositions (params = {}): Promise<Position[]> {
         await this.loadMarkets ();
+        const request: Dict = {};
         let productType = undefined;
+        let uta = undefined;
+        let response = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (undefined, params);
-        const request: Dict = {
-            'productType': productType,
-        };
-        const response = await this.privateMixPostV2MixOrderClosePositions (this.extend (request, params));
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1702975017017,
-        //         "data": {
-        //             "successList": [
-        //                 {
-        //                     "orderId": "1120923953904893955",
-        //                     "clientOid": "1120923953904893956"
-        //                 }
-        //             ],
-        //             "failureList": [],
-        //             "result": false
-        //         }
-        //     }
-        //
+        [ uta, params ] = this.handleOptionAndParams (params, 'closePosition', 'uta', false);
+        if (uta) {
+            request['category'] = productType;
+            response = await this.privateUtaPostV3TradeClosePositions (this.extend (request, params));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1751020218384,
+            //         "data": {
+            //             "list": [
+            //                 {
+            //                     "orderId": "1322440134099320832",
+            //                     "clientOid": "1322440134099320833"
+            //                 }
+            //             ]
+            //         }
+            //     }
+            //
+        } else {
+            request['productType'] = productType;
+            response = await this.privateMixPostV2MixOrderClosePositions (this.extend (request, params));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1702975017017,
+            //         "data": {
+            //             "successList": [
+            //                 {
+            //                     "orderId": "1120923953904893955",
+            //                     "clientOid": "1120923953904893956"
+            //                 }
+            //             ],
+            //             "failureList": [],
+            //             "result": false
+            //         }
+            //     }
+            //
+        }
         const data = this.safeValue (response, 'data', {});
-        const orderInfo = this.safeList (data, 'successList', []);
+        const orderInfo = this.safeList2 (data, 'successList', 'list', []);
         return this.parsePositions (orderInfo, undefined, params);
     }
 
@@ -9557,25 +9632,27 @@ export default class bitget extends Exchange {
      * @name bitget#fetchPositionsHistory
      * @description fetches historical positions
      * @see https://www.bitget.com/api-doc/contract/position/Get-History-Position
+     * @see https://www.bitget.bike/api-doc/uta/trade/Get-Position-History
      * @param {string[]} [symbols] unified contract symbols
      * @param {int} [since] timestamp in ms of the earliest position to fetch, default=3 months ago, max range for params["until"] - since is 3 months
      * @param {int} [limit] the maximum amount of records to fetch, default=20, max=100
      * @param {object} params extra parameters specific to the exchange api endpoint
      * @param {int} [params.until] timestamp in ms of the latest position to fetch, max range for params["until"] - since is 3 months
-     *
-     * EXCHANGE SPECIFIC PARAMETERS
      * @param {string} [params.productType] USDT-FUTURES (default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
     async fetchPositionsHistory (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
-        const until = this.safeInteger (params, 'until');
-        params = this.omit (params, 'until');
-        const request: Dict = {};
+        let request: Dict = {};
+        let market = undefined;
+        let productType = undefined;
+        let uta = undefined;
+        let response = undefined;
         if (symbols !== undefined) {
             const symbolsLength = symbols.length;
             if (symbolsLength > 0) {
-                const market = this.market (symbols[0]);
+                market = this.market (symbols[0]);
                 request['symbol'] = market['id'];
             }
         }
@@ -9585,41 +9662,78 @@ export default class bitget extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        if (until !== undefined) {
-            request['endTime'] = until;
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        [ productType, params ] = this.handleProductTypeAndParams (market, params);
+        [ uta, params ] = this.handleOptionAndParams (params, 'fetchPositionsHistory', 'uta', false);
+        if (uta) {
+            request['category'] = productType;
+            response = await this.privateUtaGetV3PositionHistoryPosition (this.extend (request, params));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1751020950427,
+            //         "data": {
+            //             "list": [
+            //                 {
+            //                     "positionId": "1322441328637100049",
+            //                     "category": "USDT-FUTURES",
+            //                     "symbol": "BTCUSDT",
+            //                     "marginCoin": "USDT",
+            //                     "holdMode": "hedge_mode",
+            //                     "posSide": "long",
+            //                     "marginMode": "crossed",
+            //                     "openPriceAvg": "107003.7",
+            //                     "closePriceAvg": "107005.4",
+            //                     "openTotalPos": "0.0001",
+            //                     "closeTotalPos": "0.0001",
+            //                     "cumRealisedPnl": "0.00017",
+            //                     "netProfit": "-0.01267055",
+            //                     "totalFunding": "0",
+            //                     "openFeeTotal": "-0.00642022",
+            //                     "closeFeeTotal": "-0.00642032",
+            //                     "createdTime": "1751020503195",
+            //                     "updatedTime": "1751020520458"
+            //                 },
+            //             ],
+            //             "cursor": "1322440134158041089"
+            //         }
+            //     }
+            //
+        } else {
+            response = await this.privateMixGetV2MixPositionHistoryPosition (this.extend (request, params));
+            //
+            //    {
+            //        code: '00000',
+            //        msg: 'success',
+            //        requestTime: '1712794148791',
+            //        data: {
+            //            list: [
+            //                {
+            //                    symbol: 'XRPUSDT',
+            //                    marginCoin: 'USDT',
+            //                    holdSide: 'long',
+            //                    openAvgPrice: '0.64967',
+            //                    closeAvgPrice: '0.58799',
+            //                    marginMode: 'isolated',
+            //                    openTotalPos: '10',
+            //                    closeTotalPos: '10',
+            //                    pnl: '-0.62976205',
+            //                    netProfit: '-0.65356802',
+            //                    totalFunding: '-0.01638',
+            //                    openFee: '-0.00389802',
+            //                    closeFee: '-0.00352794',
+            //                    ctime: '1709590322199',
+            //                    utime: '1709667583395'
+            //                },
+            //                ...
+            //            ]
+            //        }
+            //    }
+            //
         }
-        const response = await this.privateMixGetV2MixPositionHistoryPosition (this.extend (request, params));
-        //
-        //    {
-        //        code: '00000',
-        //        msg: 'success',
-        //        requestTime: '1712794148791',
-        //        data: {
-        //            list: [
-        //                {
-        //                    symbol: 'XRPUSDT',
-        //                    marginCoin: 'USDT',
-        //                    holdSide: 'long',
-        //                    openAvgPrice: '0.64967',
-        //                    closeAvgPrice: '0.58799',
-        //                    marginMode: 'isolated',
-        //                    openTotalPos: '10',
-        //                    closeTotalPos: '10',
-        //                    pnl: '-0.62976205',
-        //                    netProfit: '-0.65356802',
-        //                    totalFunding: '-0.01638',
-        //                    openFee: '-0.00389802',
-        //                    closeFee: '-0.00352794',
-        //                    ctime: '1709590322199',
-        //                    utime: '1709667583395'
-        //                },
-        //                ...
-        //            ]
-        //        }
-        //    }
-        //
-        const data = this.safeDict (response, 'data');
-        const responseList = this.safeList (data, 'list');
+        const data = this.safeDict (response, 'data', {});
+        const responseList = this.safeList (data, 'list', []);
         const positions = this.parsePositions (responseList, symbols, params);
         return this.filterBySinceLimit (positions, since, limit);
     }

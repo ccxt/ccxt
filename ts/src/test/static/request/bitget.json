@@ -1010,6 +1010,21 @@
                 ]
             }
         ],
+        "fetchPositionHistory": [
+            {
+                "description": "uta fetchPositionHistory",
+                "method": "fetchPositionHistory",
+                "url": "https://api.bitget.com/api/v3/position/history-position?category=USDT-FUTURES&symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "uta": true
+                    }
+                ]
+            }
+        ],
         "fetchPositionsHistory": [
             {
                 "description": "Fetch Positions History",
@@ -1030,6 +1045,21 @@
                   {
                     "until": 1709590068602
                   }
+                ]
+            },
+            {
+                "description": "uta fetchPositionsHistory",
+                "method": "fetchPositionsHistory",
+                "url": "https://api.bitget.com/api/v3/position/history-position?category=USDT-FUTURES&symbol=BTCUSDT",
+                "input": [
+                    [
+                    "BTC/USDT:USDT"
+                    ],
+                    null,
+                    null,
+                    {
+                        "uta": true
+                    }
                 ]
             }
         ],
@@ -1352,6 +1382,19 @@
                     null
                 ],
                 "output": "{\"symbol\":\"BTCUSDT\",\"productType\":\"USDT-FUTURES\"}"
+            },
+            {
+                "description": "uta closePosition",
+                "method": "closePosition",
+                "url": "https://api.bitget.com/api/v3/trade/close-positions",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "long",
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"posSide\":\"long\",\"category\":\"USDT-FUTURES\"}"
             }
         ],
         "closeAllPositions": [
@@ -1365,6 +1408,17 @@
                     }
                 ],
                 "output": "{\"productType\":\"USDT-FUTURES\"}"
+            },
+            {
+                "description": "uta closeAllPositions",
+                "method": "closeAllPositions",
+                "url": "https://api.bitget.com/api/v3/trade/close-positions",
+                "input": [
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": "{\"category\":\"USDT-FUTURES\"}"
             }
         ],
         "fetchOHLCV": [

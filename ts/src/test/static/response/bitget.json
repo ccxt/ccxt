@@ -4746,6 +4746,453 @@
                     }
                 ]
             }
+        ],
+        "closePosition": [
+            {
+                "description": "uta closePosition",
+                "method": "closePosition",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "long",
+                    {
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1751020218384",
+                    "data": {
+                        "list": [
+                            {
+                                "orderId": "1322440134099320832",
+                                "clientOid": "1322440134099320833"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderId": "1322440134099320832",
+                        "clientOid": "1322440134099320833"
+                    },
+                    "id": "1322440134099320832",
+                    "clientOrderId": "1322440134099320833",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": null,
+                    "side": null,
+                    "price": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
+            }
+        ],
+        "closeAllPositions": [
+            {
+                "description": "uta closeAllPositions",
+                "method": "closeAllPositions",
+                "input": [
+                    {
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1751020520436",
+                    "data": {
+                        "list": [
+                            {
+                                "orderId": "1322441400976261120",
+                                "clientOid": "1322441400976261121"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "orderId": "1322441400976261120",
+                            "clientOid": "1322441400976261121"
+                        },
+                        "id": "1322441400976261120",
+                        "symbol": null,
+                        "notional": null,
+                        "marginMode": null,
+                        "liquidationPrice": null,
+                        "entryPrice": null,
+                        "unrealizedPnl": null,
+                        "realizedPnl": null,
+                        "percentage": null,
+                        "contracts": null,
+                        "contractSize": null,
+                        "markPrice": null,
+                        "lastPrice": null,
+                        "side": null,
+                        "hedged": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "lastUpdateTimestamp": null,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "collateral": null,
+                        "initialMargin": null,
+                        "initialMarginPercentage": null,
+                        "leverage": null,
+                        "marginRatio": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchPositionsHistory": [
+            {
+                "description": "uta fetchPositionHistory",
+                "method": "fetchPositionsHistory",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ],
+                    null,
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1751021563169",
+                    "data": {
+                    "list": [
+                        {
+                            "positionId": "1322441328637100049",
+                            "category": "USDT-FUTURES",
+                            "symbol": "BTCUSDT",
+                            "marginCoin": "USDT",
+                            "holdMode": "hedge_mode",
+                            "posSide": "long",
+                            "marginMode": "crossed",
+                            "openPriceAvg": "107003.7",
+                            "closePriceAvg": "107005.4",
+                            "openTotalPos": "0.0001",
+                            "closeTotalPos": "0.0001",
+                            "cumRealisedPnl": "0.00017",
+                            "netProfit": "-0.01267055",
+                            "totalFunding": "0",
+                            "openFeeTotal": "-0.00642022",
+                            "closeFeeTotal": "-0.00642032",
+                            "createdTime": "1751020503195",
+                            "updatedTime": "1751020520458"
+                        },
+                        {
+                            "positionId": "1322061241945276417",
+                            "category": "USDT-FUTURES",
+                            "symbol": "BTCUSDT",
+                            "marginCoin": "USDT",
+                            "holdMode": "hedge_mode",
+                            "posSide": "long",
+                            "marginMode": "crossed",
+                            "openPriceAvg": "107369.5",
+                            "closePriceAvg": "107007.2",
+                            "openTotalPos": "0.0011",
+                            "closeTotalPos": "0.0011",
+                            "cumRealisedPnl": "-0.3986",
+                            "netProfit": "-0.51234353",
+                            "totalFunding": "0.02774513",
+                            "openFeeTotal": "-0.07086391",
+                            "closeFeeTotal": "-0.07062475",
+                            "createdTime": "1750929883466",
+                            "updatedTime": "1751020218409"
+                        }
+                    ],
+                    "cursor": "1322440134158041089"
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "positionId": "1322441328637100049",
+                            "category": "USDT-FUTURES",
+                            "symbol": "BTCUSDT",
+                            "marginCoin": "USDT",
+                            "holdMode": "hedge_mode",
+                            "posSide": "long",
+                            "marginMode": "crossed",
+                            "openPriceAvg": "107003.7",
+                            "closePriceAvg": "107005.4",
+                            "openTotalPos": "0.0001",
+                            "closeTotalPos": "0.0001",
+                            "cumRealisedPnl": "0.00017",
+                            "netProfit": "-0.01267055",
+                            "totalFunding": "0",
+                            "openFeeTotal": "-0.00642022",
+                            "closeFeeTotal": "-0.00642032",
+                            "createdTime": "1751020503195",
+                            "updatedTime": "1751020520458"
+                        },
+                        "id": "1322441328637100049",
+                        "symbol": "BTC/USDT:USDT",
+                        "notional": null,
+                        "marginMode": "cross",
+                        "liquidationPrice": null,
+                        "entryPrice": 107003.7,
+                        "unrealizedPnl": null,
+                        "realizedPnl": 0.00017,
+                        "percentage": null,
+                        "contracts": 0.0001,
+                        "contractSize": 1,
+                        "markPrice": null,
+                        "lastPrice": 107005.4,
+                        "side": "long",
+                        "hedged": true,
+                        "timestamp": 1751020503195,
+                        "datetime": "2025-06-27T10:35:03.195Z",
+                        "lastUpdateTimestamp": 1751020520458,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "collateral": null,
+                        "initialMargin": null,
+                        "initialMarginPercentage": null,
+                        "leverage": null,
+                        "marginRatio": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null
+                    },
+                    {
+                        "info": {
+                            "positionId": "1322061241945276417",
+                            "category": "USDT-FUTURES",
+                            "symbol": "BTCUSDT",
+                            "marginCoin": "USDT",
+                            "holdMode": "hedge_mode",
+                            "posSide": "long",
+                            "marginMode": "crossed",
+                            "openPriceAvg": "107369.5",
+                            "closePriceAvg": "107007.2",
+                            "openTotalPos": "0.0011",
+                            "closeTotalPos": "0.0011",
+                            "cumRealisedPnl": "-0.3986",
+                            "netProfit": "-0.51234353",
+                            "totalFunding": "0.02774513",
+                            "openFeeTotal": "-0.07086391",
+                            "closeFeeTotal": "-0.07062475",
+                            "createdTime": "1750929883466",
+                            "updatedTime": "1751020218409"
+                        },
+                        "id": "1322061241945276417",
+                        "symbol": "BTC/USDT:USDT",
+                        "notional": null,
+                        "marginMode": "cross",
+                        "liquidationPrice": null,
+                        "entryPrice": 107369.5,
+                        "unrealizedPnl": null,
+                        "realizedPnl": -0.3986,
+                        "percentage": null,
+                        "contracts": 0.0011,
+                        "contractSize": 1,
+                        "markPrice": null,
+                        "lastPrice": 107007.2,
+                        "side": "long",
+                        "hedged": true,
+                        "timestamp": 1750929883466,
+                        "datetime": "2025-06-26T09:24:43.466Z",
+                        "lastUpdateTimestamp": 1751020218409,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "collateral": null,
+                        "initialMargin": null,
+                        "initialMarginPercentage": null,
+                        "leverage": null,
+                        "marginRatio": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchPositionHistory": [
+            {
+                "description": "uta fetchPositionHistory",
+                "method": "fetchPositionHistory",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1751021696588",
+                    "data": {
+                        "list": [
+                            {
+                            "positionId": "1322441328637100049",
+                            "category": "USDT-FUTURES",
+                            "symbol": "BTCUSDT",
+                            "marginCoin": "USDT",
+                            "holdMode": "hedge_mode",
+                            "posSide": "long",
+                            "marginMode": "crossed",
+                            "openPriceAvg": "107003.7",
+                            "closePriceAvg": "107005.4",
+                            "openTotalPos": "0.0001",
+                            "closeTotalPos": "0.0001",
+                            "cumRealisedPnl": "0.00017",
+                            "netProfit": "-0.01267055",
+                            "totalFunding": "0",
+                            "openFeeTotal": "-0.00642022",
+                            "closeFeeTotal": "-0.00642032",
+                            "createdTime": "1751020503195",
+                            "updatedTime": "1751020520458"
+                            },
+                            {
+                            "positionId": "1322061241945276417",
+                            "category": "USDT-FUTURES",
+                            "symbol": "BTCUSDT",
+                            "marginCoin": "USDT",
+                            "holdMode": "hedge_mode",
+                            "posSide": "long",
+                            "marginMode": "crossed",
+                            "openPriceAvg": "107369.5",
+                            "closePriceAvg": "107007.2",
+                            "openTotalPos": "0.0011",
+                            "closeTotalPos": "0.0011",
+                            "cumRealisedPnl": "-0.3986",
+                            "netProfit": "-0.51234353",
+                            "totalFunding": "0.02774513",
+                            "openFeeTotal": "-0.07086391",
+                            "closeFeeTotal": "-0.07062475",
+                            "createdTime": "1750929883466",
+                            "updatedTime": "1751020218409"
+                            }
+                        ],
+                        "cursor": "1322440134158041089"
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "positionId": "1322441328637100049",
+                            "category": "USDT-FUTURES",
+                            "symbol": "BTCUSDT",
+                            "marginCoin": "USDT",
+                            "holdMode": "hedge_mode",
+                            "posSide": "long",
+                            "marginMode": "crossed",
+                            "openPriceAvg": "107003.7",
+                            "closePriceAvg": "107005.4",
+                            "openTotalPos": "0.0001",
+                            "closeTotalPos": "0.0001",
+                            "cumRealisedPnl": "0.00017",
+                            "netProfit": "-0.01267055",
+                            "totalFunding": "0",
+                            "openFeeTotal": "-0.00642022",
+                            "closeFeeTotal": "-0.00642032",
+                            "createdTime": "1751020503195",
+                            "updatedTime": "1751020520458"
+                        },
+                        "id": "1322441328637100049",
+                        "symbol": "BTC/USDT:USDT",
+                        "notional": null,
+                        "marginMode": "cross",
+                        "liquidationPrice": null,
+                        "entryPrice": 107003.7,
+                        "unrealizedPnl": null,
+                        "realizedPnl": 0.00017,
+                        "percentage": null,
+                        "contracts": 0.0001,
+                        "contractSize": 1,
+                        "markPrice": null,
+                        "lastPrice": 107005.4,
+                        "side": "long",
+                        "hedged": true,
+                        "timestamp": 1751020503195,
+                        "datetime": "2025-06-27T10:35:03.195Z",
+                        "lastUpdateTimestamp": 1751020520458,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "collateral": null,
+                        "initialMargin": null,
+                        "initialMarginPercentage": null,
+                        "leverage": null,
+                        "marginRatio": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null
+                    },
+                    {
+                        "info": {
+                            "positionId": "1322061241945276417",
+                            "category": "USDT-FUTURES",
+                            "symbol": "BTCUSDT",
+                            "marginCoin": "USDT",
+                            "holdMode": "hedge_mode",
+                            "posSide": "long",
+                            "marginMode": "crossed",
+                            "openPriceAvg": "107369.5",
+                            "closePriceAvg": "107007.2",
+                            "openTotalPos": "0.0011",
+                            "closeTotalPos": "0.0011",
+                            "cumRealisedPnl": "-0.3986",
+                            "netProfit": "-0.51234353",
+                            "totalFunding": "0.02774513",
+                            "openFeeTotal": "-0.07086391",
+                            "closeFeeTotal": "-0.07062475",
+                            "createdTime": "1750929883466",
+                            "updatedTime": "1751020218409"
+                        },
+                        "id": "1322061241945276417",
+                        "symbol": "BTC/USDT:USDT",
+                        "notional": null,
+                        "marginMode": "cross",
+                        "liquidationPrice": null,
+                        "entryPrice": 107369.5,
+                        "unrealizedPnl": null,
+                        "realizedPnl": -0.3986,
+                        "percentage": null,
+                        "contracts": 0.0011,
+                        "contractSize": 1,
+                        "markPrice": null,
+                        "lastPrice": 107007.2,
+                        "side": "long",
+                        "hedged": true,
+                        "timestamp": 1750929883466,
+                        "datetime": "2025-06-26T09:24:43.466Z",
+                        "lastUpdateTimestamp": 1751020218409,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "collateral": null,
+                        "initialMargin": null,
+                        "initialMarginPercentage": null,
+                        "leverage": null,
+                        "marginRatio": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null
+                    }
+                ]
+            }
         ]
     }
 }
