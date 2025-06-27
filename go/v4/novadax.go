@@ -2003,6 +2003,6 @@ func  (this *novadax) HandleErrors(code interface{}, reason interface{}, url int
 
 func (this *novadax) Init(userConfig map[string]interface{}) {
     this.Exchange = Exchange{}
-    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
     this.Exchange.DerivedExchange = this
+    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
 }

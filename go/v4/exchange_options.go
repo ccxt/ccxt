@@ -1,5 +1,7 @@
 package ccxt
 
+import "sync"
+
 // func (this *Exchange) Describe() map[string]interface{} {
 // 	return map[string]interface{}{
 // 		"id":              nil,
@@ -349,6 +351,7 @@ func (this *Exchange) initializeProperties(extendedProperties map[string]interfa
 	this.UserAgents = SafeValue(extendedProperties, "userAgents", map[string]interface{}{}).(map[string]interface{})
 	this.UserAgent = SafeString(extendedProperties, "userAgent", "").(string)
 	this.Timeout = SafeInteger(extendedProperties, "timeout", 10000).(int64)
+	this.MAX_VALUE = SafeFloat(extendedProperties, "MAX_VALUE", 1.7976931348623157e+308).(float64) // math.MaxFloat64
 	this.Id = SafeString(extendedProperties, "id", "").(string)
 	this.Alias = SafeValue(extendedProperties, "alias", false).(bool)
 
@@ -356,10 +359,11 @@ func (this *Exchange) initializeProperties(extendedProperties map[string]interfa
 	this.Hostname = SafeString(extendedProperties, "hostname", "").(string)
 	this.Urls = SafeValue(extendedProperties, "urls", map[string]interface{}{}).(map[string]interface{})
 
-	this.Options = this.GetDefaultOptions().(map[string]interface{})
+	this.Options = this.MapToSyncMap(this.GetDefaultOptions().(map[string]interface{}))
 	extendedOptions := SafeValue(extendedProperties, "options", map[string]interface{}{}).(map[string]interface{})
 	for k, v := range extendedOptions {
-		this.Options[k] = v
+		// this.Options[k] = v
+		this.Options.Store(k, v)
 	}
 
 	this.Verbose = SafeValue(extendedProperties, "verbose", false).(bool)
@@ -391,4 +395,23 @@ func (this *Exchange) initializeProperties(extendedProperties map[string]interfa
 	this.HttpExceptions = SafeValue(extendedProperties, "httpExceptions", map[string]interface{}{}).(map[string]interface{})
 	this.Headers = SafeValue(extendedProperties, "headers", map[string]interface{}{}).(map[string]interface{})
 	this.ReduceFees = SafeValue(extendedProperties, "reduceFees", true).(bool)
+}
+
+func (this *Exchange) MapToSyncMap(input map[string]interface{}) *sync.Map {
+	var sm sync.Map
+	for k, v := range input {
+		sm.Store(k, v)
+	}
+	return &sm
+}
+
+func (this *Exchange) SyncMapToMap(sm *sync.Map) map[string]interface{} {
+	result := make(map[string]interface{})
+	sm.Range(func(key, value interface{}) bool {
+		if strKey, ok := key.(string); ok {
+			result[strKey] = value
+		}
+		return true
+	})
+	return result
 }

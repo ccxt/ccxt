@@ -10,7 +10,7 @@ use ccxt\abstract\paymium as Exchange;
 
 class paymium extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'paymium',
             'name' => 'Paymium',
@@ -338,7 +338,7 @@ class paymium extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function create_deposit_address(string $code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()): array {
         /**
          * create a currency deposit address
          *

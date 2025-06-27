@@ -3,6 +3,566 @@
     "skipKeys": [],
     "secret": "vSQk39OnxAED29SsG5aiLNgPQaVm8wRvU-XY_loL7g374GLRGrbZzRm-5dgW_GFX3Eu079FmxWF8Rc1ed0uioQ",
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": {
+                    "result": "success",
+                    "request_id": "b3a444ad-7aaf-48bd-8c91-2e57acce28f3",
+                    "time": "0.03695797920227051",
+                    "data": [
+                        {
+                            "Crypto_Token_Info__": "crtev-hbb2lg-2yfn-dwrb-tufn-wb7icm3q",
+                            "Crypto_Token__": "crtok-rbosdd-qhzj-hwdp-jfix-44rykbem",
+                            "Crypto_Chain__": "chain-onw7f4-ktlj-d5zg-ts4w-5dwduiru",
+                            "Type": "ERC20",
+                            "Symbol": null,
+                            "Name": null,
+                            "Contract_Address": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
+                            "Minimum_Deposit": {
+                                "v": "1",
+                                "e": "3",
+                                "f": "0.001"
+                            },
+                            "Minimum_Withdraw": {
+                                "v": "100",
+                                "e": "2",
+                                "f": "1"
+                            },
+                            "Withdraw_Fee": {
+                                "v": "10",
+                                "e": "2",
+                                "f": "0.1"
+                            },
+                            "Minimum_Collect": {
+                                "v": "1000",
+                                "e": "2",
+                                "f": "10"
+                            },
+                            "Status": "valid",
+                            "Can_Deposit": "Y",
+                            "Decimals": "6",
+                            "Priority": "45",
+                            "Created": {
+                                "unix": "1694859779",
+                                "us": "0",
+                                "iso": "2023-09-16 10:22:59.000000",
+                                "tz": "UTC",
+                                "full": "1694859779000000",
+                                "unixms": "1694859779000"
+                            },
+                            "Crypto_Token": {
+                                "Crypto_Token__": "crtok-rbosdd-qhzj-hwdp-jfix-44rykbem",
+                                "Name": "Tether USD",
+                                "Symbol": "USDT",
+                                "Decimals": "6",
+                                "CMC_Id": "825",
+                                "Priority": "0",
+                                "Can_Deposit": "Y",
+                                "Category": "stablecoin",
+                                "Testnet": "N",
+                                "Created": {
+                                    "unix": "1694859692",
+                                    "us": "0",
+                                    "iso": "2023-09-16 10:21:32.000000",
+                                    "tz": "UTC",
+                                    "full": "1694859692000000",
+                                    "unixms": "1694859692000"
+                                },
+                                "Logo": [
+                                    {
+                                        "Crypto_Token_Logo__": "ctklg-ngwkno-khar-c5fa-rzq5-idpksana",
+                                        "Crypto_Token__": "crtok-rbosdd-qhzj-hwdp-jfix-44rykbem",
+                                        "Blob__": "blob-wt3omo-m4hf-gtti-r2uq-tchenchu",
+                                        "Default": "Y",
+                                        "Format": "png",
+                                        "Priority": "0",
+                                        "Created": {
+                                            "unix": "1730196652",
+                                            "us": "604340",
+                                            "iso": "2024-10-29 10:10:52.604340",
+                                            "tz": "UTC",
+                                            "full": "1730196652604340",
+                                            "unixms": "1730196652604"
+                                        },
+                                        "Source": {
+                                            "Media_Image__": "blob-wt3omo-m4hf-gtti-r2uq-tchenchu",
+                                            "Url": "https://static.atonline.net/image/E_ll4YfejhTJczU2X4b6Dgs2-dC1_P5UKbUNToW9er-o3UCOqXFrb1gqqiH_CCmg/1a942eab068a2173e66d08c736283cfe22e1c1ed"
+                                        }
+                                    }
+                                ],
+                                "Convert_Stable": [
+                                    {
+                                        "Crypto_Token_Stable__": "crtst-rpbbef-xpbf-fl7c-qop3-cw46nfse",
+                                        "Crypto_Token__": "crtok-rbosdd-qhzj-hwdp-jfix-44rykbem",
+                                        "Unit__": "unit-jcevlk-soxf-fepb-yjwm-b32q5bom",
+                                        "Index": "1",
+                                        "Fee_Percent": "0.5",
+                                        "Created": {
+                                            "unix": "1728118880",
+                                            "us": "0",
+                                            "iso": "2024-10-05 09:01:20.000000",
+                                            "tz": "UTC",
+                                            "full": "1728118880000000",
+                                            "unixms": "1728118880000"
+                                        }
+                                    }
+                                ]
+                            },
+                            "Crypto_Chain": {
+                                "Crypto_Chain__": "chain-onw7f4-ktlj-d5zg-ts4w-5dwduiru",
+                                "EVM_Chain__": "evmch-f7iqm6-mkyj-dkfc-uqjq-tkzqkq3q",
+                                "Crypto_Token__": "crtok-6tpxrx-qkqj-hxja-3xy7-7fhpsmmi",
+                                "Name": "Polygon",
+                                "Key": "polygon",
+                                "Type": "EVM",
+                                "Curve": "secp256k1",
+                                "Backend_Url": null,
+                                "Wallet_Verification_Methods": {
+                                    "signature": true
+                                },
+                                "Block_Margin": "65",
+                                "Created": {
+                                    "unix": "1648550448",
+                                    "us": "0",
+                                    "iso": "2022-03-29 10:40:48.000000",
+                                    "tz": "UTC",
+                                    "full": "1648550448000000",
+                                    "unixms": "1648550448000"
+                                }
+                            }
+                        },
+                        {
+                            "Crypto_Token_Info__": "crtev-m6g5wj-wxuf-hvfl-f35e-zatqgetm",
+                            "Crypto_Token__": "crtok-rbosdd-qhzj-hwdp-jfix-44rykbem",
+                            "Crypto_Chain__": "chain-viuvaf-23lz-dkhe-5vj4-cwheskeq",
+                            "Type": "ERC20",
+                            "Symbol": null,
+                            "Name": null,
+                            "Contract_Address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+                            "Minimum_Deposit": {
+                                "v": "1",
+                                "e": "3",
+                                "f": "0.001"
+                            },
+                            "Minimum_Withdraw": {
+                                "v": "1600",
+                                "e": "2",
+                                "f": "16"
+                            },
+                            "Withdraw_Fee": {
+                                "v": "400000",
+                                "e": "5",
+                                "f": "4"
+                            },
+                            "Minimum_Collect": {
+                                "v": "5000",
+                                "e": "2",
+                                "f": "50"
+                            },
+                            "Status": "valid",
+                            "Can_Deposit": "Y",
+                            "Decimals": "6",
+                            "Priority": "40",
+                            "Created": {
+                                "unix": "1694859730",
+                                "us": "0",
+                                "iso": "2023-09-16 10:22:10.000000",
+                                "tz": "UTC",
+                                "full": "1694859730000000",
+                                "unixms": "1694859730000"
+                            },
+                            "Crypto_Token": {
+                                "Crypto_Token__": "crtok-rbosdd-qhzj-hwdp-jfix-44rykbem",
+                                "Name": "Tether USD",
+                                "Symbol": "USDT",
+                                "Decimals": "6",
+                                "CMC_Id": "825",
+                                "Priority": "0",
+                                "Can_Deposit": "Y",
+                                "Category": "stablecoin",
+                                "Testnet": "N",
+                                "Created": {
+                                    "unix": "1694859692",
+                                    "us": "0",
+                                    "iso": "2023-09-16 10:21:32.000000",
+                                    "tz": "UTC",
+                                    "full": "1694859692000000",
+                                    "unixms": "1694859692000"
+                                },
+                                "Logo": [
+                                    {
+                                        "Crypto_Token_Logo__": "ctklg-ngwkno-khar-c5fa-rzq5-idpksana",
+                                        "Crypto_Token__": "crtok-rbosdd-qhzj-hwdp-jfix-44rykbem",
+                                        "Blob__": "blob-wt3omo-m4hf-gtti-r2uq-tchenchu",
+                                        "Default": "Y",
+                                        "Format": "png",
+                                        "Priority": "0",
+                                        "Created": {
+                                            "unix": "1730196652",
+                                            "us": "604340",
+                                            "iso": "2024-10-29 10:10:52.604340",
+                                            "tz": "UTC",
+                                            "full": "1730196652604340",
+                                            "unixms": "1730196652604"
+                                        },
+                                        "Source": {
+                                            "Media_Image__": "blob-wt3omo-m4hf-gtti-r2uq-tchenchu",
+                                            "Url": "https://static.atonline.net/image/E_ll4YfejhTJczU2X4b6Dgs2-dC1_P5UKbUNToW9er-o3UCOqXFrb1gqqiH_CCmg/1a942eab068a2173e66d08c736283cfe22e1c1ed"
+                                        }
+                                    }
+                                ],
+                                "Convert_Stable": [
+                                    {
+                                        "Crypto_Token_Stable__": "crtst-rpbbef-xpbf-fl7c-qop3-cw46nfse",
+                                        "Crypto_Token__": "crtok-rbosdd-qhzj-hwdp-jfix-44rykbem",
+                                        "Unit__": "unit-jcevlk-soxf-fepb-yjwm-b32q5bom",
+                                        "Index": "1",
+                                        "Fee_Percent": "0.5",
+                                        "Created": {
+                                            "unix": "1728118880",
+                                            "us": "0",
+                                            "iso": "2024-10-05 09:01:20.000000",
+                                            "tz": "UTC",
+                                            "full": "1728118880000000",
+                                            "unixms": "1728118880000"
+                                        }
+                                    }
+                                ]
+                            },
+                            "Crypto_Chain": {
+                                "Crypto_Chain__": "chain-viuvaf-23lz-dkhe-5vj4-cwheskeq",
+                                "EVM_Chain__": "evmch-2lefns-rcqj-hr5o-bxrk-atmn6n24",
+                                "Crypto_Token__": "crtok-safr5w-lmqb-azxf-ptrk-gsm4rdmq",
+                                "Name": "Ethereum",
+                                "Key": "ethereum",
+                                "Type": "EVM",
+                                "Curve": "secp256k1",
+                                "Backend_Url": null,
+                                "Wallet_Verification_Methods": {
+                                    "signature": true
+                                },
+                                "Block_Margin": "65",
+                                "Created": {
+                                    "unix": "1666101786",
+                                    "us": "0",
+                                    "iso": "2022-10-18 14:03:06.000000",
+                                    "tz": "UTC",
+                                    "full": "1666101786000000",
+                                    "unixms": "1666101786000"
+                                }
+                            }
+                        }
+                    ],
+                    "paging": {
+                        "page_no": "1",
+                        "count": "25",
+                        "page_max": "1",
+                        "results_per_page": "100"
+                    }
+                },
+                "parsedResponse": {
+                    "USDT": {
+                        "info": [
+                            {
+                                "Crypto_Token_Info__": "crtev-hbb2lg-2yfn-dwrb-tufn-wb7icm3q",
+                                "Crypto_Token__": "crtok-rbosdd-qhzj-hwdp-jfix-44rykbem",
+                                "Crypto_Chain__": "chain-onw7f4-ktlj-d5zg-ts4w-5dwduiru",
+                                "Type": "ERC20",
+                                "Symbol": null,
+                                "Name": null,
+                                "Contract_Address": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
+                                "Minimum_Deposit": {
+                                    "v": "1",
+                                    "e": "3",
+                                    "f": "0.001"
+                                },
+                                "Minimum_Withdraw": {
+                                    "v": "100",
+                                    "e": "2",
+                                    "f": "1"
+                                },
+                                "Withdraw_Fee": {
+                                    "v": "10",
+                                    "e": "2",
+                                    "f": "0.1"
+                                },
+                                "Minimum_Collect": {
+                                    "v": "1000",
+                                    "e": "2",
+                                    "f": "10"
+                                },
+                                "Status": "valid",
+                                "Can_Deposit": "Y",
+                                "Decimals": "6",
+                                "Priority": "45",
+                                "Created": {
+                                    "unix": "1694859779",
+                                    "us": "0",
+                                    "iso": "2023-09-16 10:22:59.000000",
+                                    "tz": "UTC",
+                                    "full": "1694859779000000",
+                                    "unixms": "1694859779000"
+                                },
+                                "Crypto_Token": {
+                                    "Crypto_Token__": "crtok-rbosdd-qhzj-hwdp-jfix-44rykbem",
+                                    "Name": "Tether USD",
+                                    "Symbol": "USDT",
+                                    "Decimals": "6",
+                                    "CMC_Id": "825",
+                                    "Priority": "0",
+                                    "Can_Deposit": "Y",
+                                    "Category": "stablecoin",
+                                    "Testnet": "N",
+                                    "Created": {
+                                        "unix": "1694859692",
+                                        "us": "0",
+                                        "iso": "2023-09-16 10:21:32.000000",
+                                        "tz": "UTC",
+                                        "full": "1694859692000000",
+                                        "unixms": "1694859692000"
+                                    },
+                                    "Logo": [
+                                        {
+                                            "Crypto_Token_Logo__": "ctklg-ngwkno-khar-c5fa-rzq5-idpksana",
+                                            "Crypto_Token__": "crtok-rbosdd-qhzj-hwdp-jfix-44rykbem",
+                                            "Blob__": "blob-wt3omo-m4hf-gtti-r2uq-tchenchu",
+                                            "Default": "Y",
+                                            "Format": "png",
+                                            "Priority": "0",
+                                            "Created": {
+                                                "unix": "1730196652",
+                                                "us": "604340",
+                                                "iso": "2024-10-29 10:10:52.604340",
+                                                "tz": "UTC",
+                                                "full": "1730196652604340",
+                                                "unixms": "1730196652604"
+                                            },
+                                            "Source": {
+                                                "Media_Image__": "blob-wt3omo-m4hf-gtti-r2uq-tchenchu",
+                                                "Url": "https://static.atonline.net/image/E_ll4YfejhTJczU2X4b6Dgs2-dC1_P5UKbUNToW9er-o3UCOqXFrb1gqqiH_CCmg/1a942eab068a2173e66d08c736283cfe22e1c1ed"
+                                            }
+                                        }
+                                    ],
+                                    "Convert_Stable": [
+                                        {
+                                            "Crypto_Token_Stable__": "crtst-rpbbef-xpbf-fl7c-qop3-cw46nfse",
+                                            "Crypto_Token__": "crtok-rbosdd-qhzj-hwdp-jfix-44rykbem",
+                                            "Unit__": "unit-jcevlk-soxf-fepb-yjwm-b32q5bom",
+                                            "Index": "1",
+                                            "Fee_Percent": "0.5",
+                                            "Created": {
+                                                "unix": "1728118880",
+                                                "us": "0",
+                                                "iso": "2024-10-05 09:01:20.000000",
+                                                "tz": "UTC",
+                                                "full": "1728118880000000",
+                                                "unixms": "1728118880000"
+                                            }
+                                        }
+                                    ]
+                                },
+                                "Crypto_Chain": {
+                                    "Crypto_Chain__": "chain-onw7f4-ktlj-d5zg-ts4w-5dwduiru",
+                                    "EVM_Chain__": "evmch-f7iqm6-mkyj-dkfc-uqjq-tkzqkq3q",
+                                    "Crypto_Token__": "crtok-6tpxrx-qkqj-hxja-3xy7-7fhpsmmi",
+                                    "Name": "Polygon",
+                                    "Key": "polygon",
+                                    "Type": "EVM",
+                                    "Curve": "secp256k1",
+                                    "Backend_Url": null,
+                                    "Wallet_Verification_Methods": {
+                                        "signature": true
+                                    },
+                                    "Block_Margin": "65",
+                                    "Created": {
+                                        "unix": "1648550448",
+                                        "us": "0",
+                                        "iso": "2022-03-29 10:40:48.000000",
+                                        "tz": "UTC",
+                                        "full": "1648550448000000",
+                                        "unixms": "1648550448000"
+                                    }
+                                }
+                            },
+                            {
+                                "Crypto_Token_Info__": "crtev-m6g5wj-wxuf-hvfl-f35e-zatqgetm",
+                                "Crypto_Token__": "crtok-rbosdd-qhzj-hwdp-jfix-44rykbem",
+                                "Crypto_Chain__": "chain-viuvaf-23lz-dkhe-5vj4-cwheskeq",
+                                "Type": "ERC20",
+                                "Symbol": null,
+                                "Name": null,
+                                "Contract_Address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+                                "Minimum_Deposit": {
+                                    "v": "1",
+                                    "e": "3",
+                                    "f": "0.001"
+                                },
+                                "Minimum_Withdraw": {
+                                    "v": "1600",
+                                    "e": "2",
+                                    "f": "16"
+                                },
+                                "Withdraw_Fee": {
+                                    "v": "400000",
+                                    "e": "5",
+                                    "f": "4"
+                                },
+                                "Minimum_Collect": {
+                                    "v": "5000",
+                                    "e": "2",
+                                    "f": "50"
+                                },
+                                "Status": "valid",
+                                "Can_Deposit": "Y",
+                                "Decimals": "6",
+                                "Priority": "40",
+                                "Created": {
+                                    "unix": "1694859730",
+                                    "us": "0",
+                                    "iso": "2023-09-16 10:22:10.000000",
+                                    "tz": "UTC",
+                                    "full": "1694859730000000",
+                                    "unixms": "1694859730000"
+                                },
+                                "Crypto_Token": {
+                                    "Crypto_Token__": "crtok-rbosdd-qhzj-hwdp-jfix-44rykbem",
+                                    "Name": "Tether USD",
+                                    "Symbol": "USDT",
+                                    "Decimals": "6",
+                                    "CMC_Id": "825",
+                                    "Priority": "0",
+                                    "Can_Deposit": "Y",
+                                    "Category": "stablecoin",
+                                    "Testnet": "N",
+                                    "Created": {
+                                        "unix": "1694859692",
+                                        "us": "0",
+                                        "iso": "2023-09-16 10:21:32.000000",
+                                        "tz": "UTC",
+                                        "full": "1694859692000000",
+                                        "unixms": "1694859692000"
+                                    },
+                                    "Logo": [
+                                        {
+                                            "Crypto_Token_Logo__": "ctklg-ngwkno-khar-c5fa-rzq5-idpksana",
+                                            "Crypto_Token__": "crtok-rbosdd-qhzj-hwdp-jfix-44rykbem",
+                                            "Blob__": "blob-wt3omo-m4hf-gtti-r2uq-tchenchu",
+                                            "Default": "Y",
+                                            "Format": "png",
+                                            "Priority": "0",
+                                            "Created": {
+                                                "unix": "1730196652",
+                                                "us": "604340",
+                                                "iso": "2024-10-29 10:10:52.604340",
+                                                "tz": "UTC",
+                                                "full": "1730196652604340",
+                                                "unixms": "1730196652604"
+                                            },
+                                            "Source": {
+                                                "Media_Image__": "blob-wt3omo-m4hf-gtti-r2uq-tchenchu",
+                                                "Url": "https://static.atonline.net/image/E_ll4YfejhTJczU2X4b6Dgs2-dC1_P5UKbUNToW9er-o3UCOqXFrb1gqqiH_CCmg/1a942eab068a2173e66d08c736283cfe22e1c1ed"
+                                            }
+                                        }
+                                    ],
+                                    "Convert_Stable": [
+                                        {
+                                            "Crypto_Token_Stable__": "crtst-rpbbef-xpbf-fl7c-qop3-cw46nfse",
+                                            "Crypto_Token__": "crtok-rbosdd-qhzj-hwdp-jfix-44rykbem",
+                                            "Unit__": "unit-jcevlk-soxf-fepb-yjwm-b32q5bom",
+                                            "Index": "1",
+                                            "Fee_Percent": "0.5",
+                                            "Created": {
+                                                "unix": "1728118880",
+                                                "us": "0",
+                                                "iso": "2024-10-05 09:01:20.000000",
+                                                "tz": "UTC",
+                                                "full": "1728118880000000",
+                                                "unixms": "1728118880000"
+                                            }
+                                        }
+                                    ]
+                                },
+                                "Crypto_Chain": {
+                                    "Crypto_Chain__": "chain-viuvaf-23lz-dkhe-5vj4-cwheskeq",
+                                    "EVM_Chain__": "evmch-2lefns-rcqj-hr5o-bxrk-atmn6n24",
+                                    "Crypto_Token__": "crtok-safr5w-lmqb-azxf-ptrk-gsm4rdmq",
+                                    "Name": "Ethereum",
+                                    "Key": "ethereum",
+                                    "Type": "EVM",
+                                    "Curve": "secp256k1",
+                                    "Backend_Url": null,
+                                    "Wallet_Verification_Methods": {
+                                        "signature": true
+                                    },
+                                    "Block_Margin": "65",
+                                    "Created": {
+                                        "unix": "1666101786",
+                                        "us": "0",
+                                        "iso": "2022-10-18 14:03:06.000000",
+                                        "tz": "UTC",
+                                        "full": "1666101786000000",
+                                        "unixms": "1666101786000"
+                                    }
+                                }
+                            }
+                        ],
+                        "id": "crtok-rbosdd-qhzj-hwdp-jfix-44rykbem",
+                        "numericId": null,
+                        "code": "USDT",
+                        "precision": 0.000001,
+                        "type": null,
+                        "name": "Tether USD",
+                        "active": true,
+                        "deposit": true,
+                        "withdraw": null,
+                        "fee": 4,
+                        "fees": {},
+                        "networks": {
+                            "default": {
+                                "id": "chain-viuvaf-23lz-dkhe-5vj4-cwheskeq",
+                                "network": "default",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": null,
+                                "fee": 4,
+                                "precision": 0.000001,
+                                "limits": {
+                                    "amount": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": "16",
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": "0.001",
+                                        "max": null
+                                    }
+                                }
+                            }
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": 16,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": 0.001,
+                                "max": null
+                            }
+                        }
+                    }
+                }
+            }
+        ],
         "fetchBalance": [
             {
                 "description": "balance",

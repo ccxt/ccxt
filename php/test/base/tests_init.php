@@ -7,7 +7,10 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 // -----------------------------------------------------------------------------
-include_once __DIR__ . '/test_number.php';
+use \ccxt\Precise;
+include_once __DIR__ . '/test_decimal_to_precision.php';
+include_once __DIR__ . '/test_number_to_string.php';
+include_once __DIR__ . '/test_precise.php';
 include_once __DIR__ . '/test_datetime.php';
 include_once __DIR__ . '/test_cryptography.php';
 include_once __DIR__ . '/test_extend.php';
@@ -19,14 +22,20 @@ include_once __DIR__ . '/test_sum.php';
 include_once __DIR__ . '/test_omit.php';
 include_once __DIR__ . '/test_group_by.php';
 include_once __DIR__ . '/test_filter_by.php';
+include_once __DIR__ . '/test_after_constructor.php';
+include_once __DIR__ . '/test_handle_methods.php';
+include_once __DIR__ . '/test_remove_repeated_elements_from_array.php';
 
 function base_tests_init() {
     test_language_specific();
+    test_after_constructor();
     test_extend();
     test_deep_extend();
     test_cryptography();
     test_datetime();
-    test_number();
+    test_decimal_to_precision();
+    test_number_to_string();
+    test_precise();
     test_safe_methods();
     // testJson ();
     test_sort_by();
@@ -34,4 +43,6 @@ function base_tests_init() {
     test_omit();
     test_group_by();
     test_filter_by();
+    test_handle_methods();
+    test_remove_repeated_elements_from_array();
 }

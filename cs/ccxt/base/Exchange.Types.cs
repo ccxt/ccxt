@@ -820,23 +820,6 @@ public struct WithdrawlResponse
     }
 }
 
-public struct DepositAddressResponse
-{
-    public string? address;
-    public string? tag;
-    public string? status;
-    public Dictionary<string, object>? info;
-
-    public DepositAddressResponse(object depositAddressResponse2)
-    {
-        var depositAddressResponse = (Dictionary<string, object>)depositAddressResponse2;
-        address = Exchange.SafeString(depositAddressResponse, "address");
-        tag = Exchange.SafeString(depositAddressResponse, "tag");
-        status = Exchange.SafeString(depositAddressResponse, "status");
-        info = Helper.GetInfo(depositAddressResponse);
-    }
-}
-
 public struct DepositAddress
 {
     public Dictionary<string, object>? info;
@@ -1570,6 +1553,9 @@ public struct Greeks
     public double? theta;
     public double? vega;
     public double? rho;
+    public double? vanna;
+    public double? volga;
+    public double? charm;
     public double? bidSize;
     public double? askSize;
     public double? bidImpliedVolatility;
@@ -1591,6 +1577,9 @@ public struct Greeks
         theta = Exchange.SafeFloat(greeks, "theta");
         vega = Exchange.SafeFloat(greeks, "vega");
         rho = Exchange.SafeFloat(greeks, "rho");
+        vanna = Exchange.SafeFloat(greeks, "vanna");
+        volga = Exchange.SafeFloat(greeks, "volga");
+        charm = Exchange.SafeFloat(greeks, "charm");
         bidSize = Exchange.SafeFloat(greeks, "bidSize");
         askSize = Exchange.SafeFloat(greeks, "askSize");
         bidImpliedVolatility = Exchange.SafeFloat(greeks, "bidImpliedVolatility");

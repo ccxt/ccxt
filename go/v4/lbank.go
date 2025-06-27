@@ -959,7 +959,7 @@ func  (this *lbank) FetchOrderBook(symbol interface{}, optionalArgs ...interface
                 return nil
             }
         
-            ch <- this.ParseOrderBook(orderbook, GetValue(market, "symbol"), timestamp)
+            ch <- this.ParseOrderBook(orderbook, GetValue(market, "symbol"), timestamp, "bids", "asks", 1, 0)
             return nil
         
             }()
@@ -3639,6 +3639,6 @@ func  (this *lbank) HandleErrors(httpCode interface{}, reason interface{}, url i
 
 func (this *lbank) Init(userConfig map[string]interface{}) {
     this.Exchange = Exchange{}
-    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
     this.Exchange.DerivedExchange = this
+    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
 }

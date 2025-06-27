@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"net/url"
+	"sort"
 	"strings"
 )
 
@@ -92,19 +93,34 @@ func (e *Exchange) Base58ToBinary(pt interface{}) []byte {
 	return e.base58ToBinary(pt)
 }
 
-func (e *Exchange) BinaryConcat(a, b interface{}) []byte {
-	var first, second []byte
-	if s, ok := a.(string); ok {
-		first = []byte(s)
-	} else {
-		first = a.([]byte)
+// func (e *Exchange) BinaryConcat(a, b interface{}) []byte {
+// 	var first, second []byte
+// 	if s, ok := a.(string); ok {
+// 		first = []byte(s)
+// 	} else {
+// 		first = a.([]byte)
+// 	}
+// 	if s, ok := b.(string); ok {
+// 		second = []byte(s)
+// 	} else {
+// 		second = b.([]byte)
+// 	}
+// 	return append(first, second...)
+// }
+
+func (e *Exchange) BinaryConcat(parts ...interface{}) []byte {
+	var result []byte
+	for _, part := range parts {
+		switch v := part.(type) {
+		case string:
+			result = append(result, []byte(v)...)
+		case []byte:
+			result = append(result, v...)
+		default:
+			panic("BinaryConcat: unsupported type, only string and []byte are allowed")
+		}
 	}
-	if s, ok := b.(string); ok {
-		second = []byte(s)
-	} else {
-		second = b.([]byte)
-	}
-	return append(first, second...)
+	return result
 }
 
 func (e *Exchange) binaryConcatArray(a interface{}) string {
@@ -169,12 +185,18 @@ func (e *Exchange) packb(data interface{}) interface{} {
 	return nil
 }
 
-func (e *Exchange) Rawencode(parameters2 interface{}) string {
-	parameters := parameters2.(map[string]interface{})
+func (e *Exchange) Rawencode(params ...interface{}) string {
+	parameters := params[0].(map[string]interface{})
+	shouldSort := GetArg(params, 1, false).(bool)
 	keys := make([]string, 0, len(parameters))
 	for k := range parameters {
 		keys = append(keys, k)
 	}
+
+	if shouldSort {
+		sort.Strings(keys)
+	}
+
 	var outList []string
 	for _, key := range keys {
 		value := parameters[key]
@@ -232,12 +254,51 @@ func (e *Exchange) UrlencodeNested(parameters2 interface{}) string {
 	return res
 }
 
-func (e *Exchange) Urlencode(parameters2 interface{}) string {
-	parameters := parameters2.(map[string]interface{})
+// without sorting
+// func (e *Exchange) Urlencode(params ...interface{}) string {
+// 	parameters := params[0].(map[string]interface{})
+// 	sort := GetArg(params, 1, false).(bool)
+// 	var queryString []string
+// 	for key, value := range parameters {
+// 		encodedKey := url.QueryEscape(key)
+// 		finalValue := ""
+// 		if IsNumber(value) {
+// 			finalValue = NumberToString(value)
+// 		} else {
+// 			finalValue = ToString(value)
+// 		}
+// 		if boolVal, ok := value.(bool); ok {
+// 			finalValue = strings.ToLower(fmt.Sprintf("%v", boolVal))
+// 		}
+// 		if strings.ToLower(key) == "timestamp" {
+// 			finalValue = strings.ToUpper(url.QueryEscape(finalValue))
+// 		} else {
+// 			finalValue = url.QueryEscape(finalValue)
+// 		}
+// 		queryString = append(queryString, fmt.Sprintf("%s=%s", encodedKey, finalValue))
+// 	}
+// 	return strings.Join(queryString, "&")
+// }
+
+func (e *Exchange) Urlencode(params ...interface{}) string {
+	parameters := params[0].(map[string]interface{})
+	shouldSort := GetArg(params, 1, false).(bool)
+
+	var keys []string
+	for key := range parameters {
+		keys = append(keys, key)
+	}
+
+	if shouldSort {
+		sort.Strings(keys)
+	}
+
 	var queryString []string
-	for key, value := range parameters {
+	for _, key := range keys {
+		value := parameters[key]
 		encodedKey := url.QueryEscape(key)
 		finalValue := ""
+
 		if IsNumber(value) {
 			finalValue = NumberToString(value)
 		} else {
@@ -253,6 +314,7 @@ func (e *Exchange) Urlencode(parameters2 interface{}) string {
 		}
 		queryString = append(queryString, fmt.Sprintf("%s=%s", encodedKey, finalValue))
 	}
+
 	return strings.Join(queryString, "&")
 }
 

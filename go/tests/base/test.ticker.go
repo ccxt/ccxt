@@ -29,28 +29,38 @@ import "github.com/ccxt/ccxt/go/v4"
             "quoteVolume": exchange.ParseNumber("1.234"),
         }
         // todo: atm, many exchanges fail, so temporarily decrease stict mode
-        var emptyAllowedFor interface{} = []interface{}{"timestamp", "datetime", "open", "high", "low", "close", "last", "baseVolume", "quoteVolume", "previousClose", "vwap", "change", "percentage", "average"}
+        var emptyAllowedFor interface{} = []interface{}{"timestamp", "datetime", "open", "high", "low", "close", "last", "baseVolume", "quoteVolume", "previousClose", "bidVolume", "askVolume", "vwap", "change", "percentage", "average"}
         // trick csharp-transpiler for string
-        if !IsTrue(Contains(ToString(method),"BidsAsks")) {
+        if !IsTrue((Contains(ToString(method),"BidsAsks"))) {
             AppendToArray(&emptyAllowedFor,"bid")
             AppendToArray(&emptyAllowedFor,"ask")
-            AppendToArray(&emptyAllowedFor,"bidVolume")
-            AppendToArray(&emptyAllowedFor,"askVolume")
         }
         AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor)
         AssertTimestampAndDatetime(exchange, skippedProperties, method, entry)
         var logText interface{} = LogTemplate(exchange, method, entry)
         //
-        AssertGreater(exchange, skippedProperties, method, entry, "open", "0")
-        AssertGreater(exchange, skippedProperties, method, entry, "high", "0")
-        AssertGreater(exchange, skippedProperties, method, entry, "low", "0")
-        AssertGreater(exchange, skippedProperties, method, entry, "close", "0")
-        AssertGreater(exchange, skippedProperties, method, entry, "ask", "0")
+        var market interface{} = nil
+        var symbolForMarket interface{} = Ternary(IsTrue((!IsEqual(symbol, nil))), symbol, exchange.SafeString(entry, "symbol"))
+        if IsTrue(IsTrue(!IsEqual(symbolForMarket, nil)) && IsTrue((InOp(exchange.GetMarkets(), symbolForMarket)))) {
+            market = exchange.Market(symbolForMarket)
+        }
+        var exchangeHasIndexMarkets interface{} = exchange.SafeBool(exchange.GetHas(), "index", false)
+        var isStandardMarket interface{} =     (IsTrue(!IsEqual(market, nil)) && IsTrue(exchange.InArray(GetValue(market, "type"), []interface{}{"spot", "swap", "future", "option"})))
+        // only check "above zero" values if exchange is not supposed to have exotic index markets
+        var valuesShouldBePositive interface{} = IsTrue(isStandardMarket) || IsTrue((IsTrue(IsEqual(market, nil)) && !IsTrue(exchangeHasIndexMarkets)))
+        if IsTrue(valuesShouldBePositive) {
+            AssertGreater(exchange, skippedProperties, method, entry, "open", "0")
+            AssertGreater(exchange, skippedProperties, method, entry, "high", "0")
+            AssertGreater(exchange, skippedProperties, method, entry, "low", "0")
+            AssertGreater(exchange, skippedProperties, method, entry, "close", "0")
+            AssertGreater(exchange, skippedProperties, method, entry, "ask", "0")
+            AssertGreater(exchange, skippedProperties, method, entry, "bid", "0")
+            AssertGreater(exchange, skippedProperties, method, entry, "average", "0")
+            AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "vwap", "0")
+        }
+        // volume can not be negative
         AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "askVolume", "0")
-        AssertGreater(exchange, skippedProperties, method, entry, "bid", "0")
         AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "bidVolume", "0")
-        AssertGreater(exchange, skippedProperties, method, entry, "vwap", "0")
-        AssertGreater(exchange, skippedProperties, method, entry, "average", "0")
         AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "baseVolume", "0")
         AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "quoteVolume", "0")
         var lastString interface{} = exchange.SafeString(entry, "last")
@@ -60,10 +70,27 @@ import "github.com/ccxt/ccxt/go/v4"
         var quoteVolume interface{} = exchange.SafeString(entry, "quoteVolume")
         var high interface{} = exchange.SafeString(entry, "high")
         var low interface{} = exchange.SafeString(entry, "low")
-        if IsTrue(!IsTrue((InOp(skippedProperties, "quoteVolume"))) && !IsTrue((InOp(skippedProperties, "baseVolume")))) {
+        if !IsTrue((InOp(skippedProperties, "compareQuoteVolumeBaseVolume"))) {
             if IsTrue(IsTrue(IsTrue(IsTrue((!IsEqual(baseVolume, nil))) && IsTrue((!IsEqual(quoteVolume, nil)))) && IsTrue((!IsEqual(high, nil)))) && IsTrue((!IsEqual(low, nil)))) {
-                Assert(ccxt.Precise.StringGe(quoteVolume, ccxt.Precise.StringMul(baseVolume, low)), Add("quoteVolume >= baseVolume * low", logText))
-                Assert(ccxt.Precise.StringLe(quoteVolume, ccxt.Precise.StringMul(baseVolume, high)), Add("quoteVolume <= baseVolume * high", logText))
+                var baseLow interface{} = ccxt.Precise.StringMul(baseVolume, low)
+                var baseHigh interface{} = ccxt.Precise.StringMul(baseVolume, high)
+                // to avoid abnormal long precision issues (like https://discord.com/channels/690203284119617602/1338828283902689280/1338846071278927912 )
+                var mPrecision interface{} = exchange.SafeDict(market, "precision")
+                var amountPrecision interface{} = exchange.SafeString(mPrecision, "amount")
+                var tolerance interface{} = "1.0001"
+                if IsTrue(!IsEqual(amountPrecision, nil)) {
+                    baseLow = ccxt.Precise.StringMul(ccxt.Precise.StringSub(baseVolume, amountPrecision), low)
+                    baseHigh = ccxt.Precise.StringMul(ccxt.Precise.StringAdd(baseVolume, amountPrecision), high)
+                } else {
+                    // if nothing found, as an exclusion, just add 0.001%
+                    baseLow = ccxt.Precise.StringMul(ccxt.Precise.StringDiv(baseVolume, tolerance), low)
+                    baseHigh = ccxt.Precise.StringMul(ccxt.Precise.StringMul(baseVolume, tolerance), high)
+                }
+                // because of exchange engines might not rounding numbers propertly, we add some tolerance of calculated 24hr high/low
+                baseLow = ccxt.Precise.StringDiv(baseLow, tolerance)
+                baseHigh = ccxt.Precise.StringMul(baseHigh, tolerance)
+                Assert(ccxt.Precise.StringGe(quoteVolume, baseLow), Add("quoteVolume should be => baseVolume * low", logText))
+                Assert(ccxt.Precise.StringLe(quoteVolume, baseHigh), Add("quoteVolume should be <= baseVolume * high", logText))
             }
         }
         var vwap interface{} = exchange.SafeString(entry, "vwap")
@@ -72,7 +99,8 @@ import "github.com/ccxt/ccxt/go/v4"
             // Assert (high !== undefined, 'vwap is defined, but high is not' + logText);
             // Assert (low !== undefined, 'vwap is defined, but low is not' + logText);
             // Assert (vwap >= low && vwap <= high)
-            Assert(ccxt.Precise.StringGe(vwap, "0"), Add("vwap is not greater than zero", logText))
+            // todo: calc compare
+            Assert(!IsTrue(valuesShouldBePositive) || IsTrue(ccxt.Precise.StringGe(vwap, "0")), Add("vwap is not greater than zero", logText))
             if IsTrue(!IsEqual(baseVolume, nil)) {
                 Assert(!IsEqual(quoteVolume, nil), Add("baseVolume & vwap is defined, but quoteVolume is not", logText))
             }
@@ -80,12 +108,14 @@ import "github.com/ccxt/ccxt/go/v4"
                 Assert(!IsEqual(baseVolume, nil), Add("quoteVolume & vwap is defined, but baseVolume is not", logText))
             }
         }
-        if IsTrue(IsTrue(!IsTrue((InOp(skippedProperties, "spread"))) && !IsTrue((InOp(skippedProperties, "ask")))) && !IsTrue((InOp(skippedProperties, "bid")))) {
-            var askString interface{} = exchange.SafeString(entry, "ask")
-            var bidString interface{} = exchange.SafeString(entry, "bid")
-            if IsTrue(IsTrue((!IsEqual(askString, nil))) && IsTrue((!IsEqual(bidString, nil)))) {
-                AssertGreater(exchange, skippedProperties, method, entry, "ask", exchange.SafeString(entry, "bid"))
-            }
+        var askString interface{} = exchange.SafeString(entry, "ask")
+        var bidString interface{} = exchange.SafeString(entry, "bid")
+        if IsTrue(IsTrue(IsTrue((!IsEqual(askString, nil))) && IsTrue((!IsEqual(bidString, nil)))) && !IsTrue((InOp(skippedProperties, "spread")))) {
+            AssertGreater(exchange, skippedProperties, method, entry, "ask", exchange.SafeString(entry, "bid"))
         }
+        // todo: rethink about this
+        // else {
+        //    Assert ((askString === undefined) && (bidString === undefined), 'ask & bid should be both defined or both undefined' + logText);
+        // }
         AssertSymbol(exchange, skippedProperties, method, entry, "symbol", symbol)
     }

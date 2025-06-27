@@ -87,6 +87,16 @@ func EvalTruthy(val interface{}) bool {
 		return len(v) > 0
 	case map[string]interface{}:
 		return len(v) > 0
+	case *sync.Map:
+		if v == nil {
+			return false
+		}
+		hasAny := false
+		v.Range(func(_, _ interface{}) bool {
+			hasAny = true
+			return false // stop after the first item
+		})
+		return hasAny
 	case []string:
 		return len(v) > 0
 	case []int64:
@@ -143,18 +153,138 @@ func IsInteger(value interface{}) bool {
 	}
 }
 
+// func GetValue(collection interface{}, key interface{}) interface{} {
+
+// 	if collection == nil {
+// 		return nil
+// 	}
+// 	if key == nil {
+// 		return nil
+// 	}
+
+// 	keyNum := -1
+// 	keyStr, ok := key.(string)
+// 	if !ok {
+// 		keyNum64 := ParseInt(key)
+// 		if keyNum64 == math.MinInt64 {
+// 			return nil
+// 		}
+// 		keyNum = int(keyNum64)
+// 	}
+
+// 	_, isMap := collection.(map[string]interface{})
+
+// 	if isMap || keyNum != -1 {
+// 		switch v := collection.(type) {
+// 		case map[string]interface{}:
+// 			if !ok {
+// 				return nil
+// 			}
+// 			if val, ok := v[keyStr]; ok {
+// 				return val
+// 			}
+// 			return nil
+// 		case []interface{}:
+// 			if keyNum >= len(v) {
+// 				return nil
+// 			}
+// 			return v[keyNum]
+// 		case []string:
+// 			if keyNum >= len(v) {
+// 				return nil
+// 			}
+// 			return v[keyNum]
+// 		case []int64:
+// 			if keyNum >= len(v) {
+// 				return nil
+// 			}
+// 			return v[keyNum]
+// 		case []float64:
+// 			if keyNum >= len(v) {
+// 				return nil
+// 			}
+// 			return v[keyNum]
+// 		case []bool:
+// 			if keyNum >= len(v) {
+// 				return nil
+// 			}
+// 			return v[keyNum]
+// 		case []int:
+// 			if keyNum >= len(v) {
+// 				return nil
+// 			}
+// 			return v[keyNum]
+// 		case string:
+// 			if keyNum >= len(v) {
+// 				return nil
+// 			}
+// 			return string(v[keyNum])
+// 		}
+// 	}
+
+// 	// this is needed in checkRequiredCredentials or alike
+// 	reflectValue := reflect.ValueOf(collection)
+
+// 	if reflectValue.Kind() == reflect.Ptr {
+// 		reflectValue = reflectValue.Elem()
+// 	}
+// 	if reflectValue.Kind() == reflect.Struct {
+// 		stringKey := key.(string)
+// 		stringKeyCapitalized := Capitalize(stringKey)
+// 		field := reflectValue.FieldByName(stringKey)
+
+// 		fieldCapitalized := reflectValue.FieldByName(stringKeyCapitalized)
+// 		if fieldCapitalized.IsValid() {
+// 			return fieldCapitalized.Interface()
+// 		}
+
+// 		if field.IsValid() {
+// 			return field.Interface()
+// 		}
+
+// 		return nil
+// 	}
+
+// 	switch reflectValue.Kind() {
+// 	case reflect.Slice, reflect.Array:
+// 		// Handle slice or array: key should be an integer index.
+// 		index2 := ParseInt(key)
+// 		if index2 == math.MinInt64 {
+// 			return nil // Key is not an int, invalid index
+// 		}
+// 		index := int(index2)
+// 		if index < 0 || index >= reflectValue.Len() {
+// 			return nil // Index out of bounds
+// 		}
+// 		return reflectValue.Index(index).Interface()
+
+// 	case reflect.Map:
+// 		// Handle map: key needs to be appropriate for the map
+// 		keyStr, ok := key.(string)
+// 		if !ok {
+// 			return nil // Key is not a string, invalid key
+// 		}
+// 		reflectKeyValue := reflect.ValueOf(keyStr)
+// 		if reflectValue.MapIndex(reflectKeyValue).IsValid() {
+// 			return reflectValue.MapIndex(reflectKeyValue).Interface()
+// 		}
+// 		return nil
+
+// 	default:
+// 		// Type not supported
+// 		return nil
+// 	}
+// }
+
 func GetValue(collection interface{}, key interface{}) interface{} {
 
-	if collection == nil {
-		return nil
-	}
-	if key == nil {
+	if collection == nil || key == nil {
 		return nil
 	}
 
 	keyNum := -1
-	keyStr, ok := key.(string)
-	if !ok {
+	keyStr, isStr := key.(string)
+	if !isStr {
 		keyNum64 := ParseInt(key)
 		if keyNum64 == math.MinInt64 {
 			return nil
@@ -162,31 +292,53 @@ func GetValue(collection interface{}, key interface{}) interface{} {
 		keyNum = int(keyNum64)
 	}
 
-	_, isMap := collection.(map[string]interface{})
-
-	if isMap || keyNum != -1 {
-		switch v := collection.(type) {
-		case map[string]interface{}:
-			if !ok {
-				return nil
-			}
-			if val, ok := v[keyStr]; ok {
-				return val
-			}
+	switch v := collection.(type) {
+	case map[string]interface{}:
+		if !isStr {
 			return nil
-		case []interface{}:
+		}
+		if val, ok := v[keyStr]; ok {
+			return val
+		}
+	case *sync.Map:
+		if v == nil {
+			return nil
+		}
+		if !isStr {
+			return nil
+		}
+		val, ok := v.Load(keyStr)
+		if ok {
+			return val
+		} else {
+			return nil
+		}
+	case []interface{}:
+		if keyNum >= 0 && keyNum < len(v) {
 			return v[keyNum]
-		case []string:
+		}
+	case []string:
+		if keyNum >= 0 && keyNum < len(v) {
 			return v[keyNum]
-		case []int64:
+		}
+	case []int64:
+		if keyNum >= 0 && keyNum < len(v) {
 			return v[keyNum]
-		case []float64:
+		}
+	case []float64:
+		if keyNum >= 0 && keyNum < len(v) {
 			return v[keyNum]
-		case []bool:
+		}
+	case []bool:
+		if keyNum >= 0 && keyNum < len(v) {
 			return v[keyNum]
-		case []int:
+		}
+	case []int:
+		if keyNum >= 0 && keyNum < len(v) {
 			return v[keyNum]
-		case string:
+		}
+	case string:
+		if keyNum >= 0 && keyNum < len(v) {
 			return string(v[keyNum])
 		}
 	}
@@ -560,6 +712,10 @@ func IsEqual(a, b interface{}) bool {
 		if bVal, ok := b.(string); ok {
 			return aVal == bVal
 		}
+	case *sync.Map:
+		if aVal == nil && b == nil {
+			return true
+		}
 	}
 
 	// If types don't match or aren't handled, return false
@@ -788,6 +944,13 @@ func AddElementToObject(arrayOrDict interface{}, stringOrInt interface{}, value 
 		} else {
 			// return fmt.Errorf("invalid key type for map: expected string")
 		}
+	case *sync.Map:
+		if key, ok := stringOrInt.(string); ok {
+			obj.Store(key, value)
+			// return nil
+		} else {
+			// return fmt.Errorf("invalid key type for sync.Map: expected string")
+		}
 	default:
 		// return fmt.Errorf("unsupported type: %T", arrayOrDict)
 	}
@@ -845,6 +1008,15 @@ func InOp(dict interface{}, key interface{}) bool {
 	case map[string]interface{}:
 		if _, ok := v[key.(string)]; ok {
 			return true
+		}
+	case *sync.Map:
+		if v == nil {
+			return false
+		}
+		if keyStr, ok := key.(string); ok {
+			if _, ok := v.Load(keyStr); ok {
+				return true
+			}
 		}
 	}
 
@@ -952,6 +1124,11 @@ func IsDictionary(v interface{}) bool {
 	switch v.(type) {
 	case map[string]interface{}:
 		return true
+	case *sync.Map:
+		if v == nil {
+			return false
+		}
+		return true
 	case Dict:
 		return true
 	case map[interface{}]interface{}:
@@ -1016,8 +1193,8 @@ func IsObject(v interface{}) bool {
 	}
 	kind := reflect.TypeOf(v).Kind()
 	switch kind {
-	case reflect.Array, reflect.Chan, reflect.Func, reflect.Interface,
-		reflect.Map, reflect.Ptr, reflect.Slice, reflect.Struct, reflect.UnsafePointer:
+	case reflect.Chan, reflect.Func, reflect.Interface, // reflect.Array,  reflect.Slice
+		reflect.Map, reflect.Ptr, reflect.Struct, reflect.UnsafePointer:
 		return true
 	default:
 		return false
@@ -1053,6 +1230,12 @@ func ToUpper(v interface{}) string {
 func MathFloor(v interface{}) float64 {
 	if num, ok := v.(float64); ok {
 		return math.Floor(num)
+	}
+	if num, ok := v.(int); ok {
+		return math.Floor(float64(num))
+	}
+	if num, ok := v.(int64); ok {
+		return math.Floor(float64(num))
 	}
 	return 0
 }
@@ -1219,6 +1402,15 @@ func ObjectKeys(v interface{}) []string {
 			keys = append(keys, key)
 		}
 		return keys
+	} else if syncMap, ok := v.(*sync.Map); ok {
+		keys := []string{}
+		syncMap.Range(func(k, _ interface{}) bool {
+			if keyStr, ok := k.(string); ok {
+				keys = append(keys, keyStr)
+			}
+			return true
+		})
+		return keys
 	}
 	return nil
 	// val := reflect.ValueOf(v)
@@ -1242,6 +1434,13 @@ func ObjectValues(v interface{}) []interface{} {
 		for _, value := range mapObject {
 			values = append(values, value)
 		}
+		return values
+	} else if syncMap, ok := v.(*sync.Map); ok {
+		values := []interface{}{}
+		syncMap.Range(func(_, value interface{}) bool {
+			values = append(values, value)
+			return true
+		})
 		return values
 	}
 	return nil
@@ -1814,6 +2013,38 @@ func mathMin(a, b interface{}) interface{} {
 	// default:
 	// 	return nil
 	// }
+}
+
+func MathPow(base interface{}, exp interface{}) float64 {
+	baseFloat, baseOk := base.(float64)
+	expFloat, expOk := exp.(float64)
+	if baseOk && expOk {
+		return math.Pow(baseFloat, expFloat)
+	}
+	return 0
+}
+
+func MathAbs(v interface{}) float64 {
+	switch n := v.(type) {
+	case float64:
+		return math.Abs(n)
+	case float32:
+		return math.Abs(float64(n))
+	case int:
+		return math.Abs(float64(n))
+	case int64:
+		return math.Abs(float64(n))
+	case int32:
+		return math.Abs(float64(n))
+	case int16:
+		return math.Abs(float64(n))
+	case int8:
+		return math.Abs(float64(n))
+	case uint, uint64, uint32, uint16, uint8:
+		return float64(reflect.ValueOf(n).Uint()) // no need for Abs on unsigned values
+	default:
+		return 0
+	}
 }
 
 func MathMax(a, b interface{}) interface{} {
@@ -2486,7 +2717,7 @@ func CallInternalMethod(methodCache *sync.Map, itf interface{}, name2 string, ar
 			ch <- nil
 		}
 
-		ch <- nil
+		// ch <- nil // nught be causing a mem leak
 		close(ch)
 	}()
 	return ch

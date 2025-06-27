@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.mexc import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Account, Balances, Currencies, Currency, DepositAddress, IndexType, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Account, Any, Balances, Currencies, Currency, DepositAddress, IndexType, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -28,7 +28,7 @@ from ccxt.base.precise import Precise
 
 class mexc(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(mexc, self).describe(), {
             'id': 'mexc',
             'name': 'MEXC Global',
@@ -855,6 +855,7 @@ class mexc(Exchange, ImplicitAPI):
                 'PROS': 'PROSFINANCE',  # conflict with Prosper
                 'SIN': 'SINCITYTOKEN',
                 'SOUL': 'SOULSWAP',
+                'XBT': 'XBT',  # restore original mapping
             },
             'exceptions': {
                 'exact': {
@@ -1012,7 +1013,7 @@ class mexc(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def fetch_time(self, params={}):
+    async def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -1097,81 +1098,48 @@ class mexc(Exchange, ImplicitAPI):
             currency = response[i]
             id = self.safe_string(currency, 'coin')
             code = self.safe_currency_code(id)
-            name = self.safe_string(currency, 'name')
-            currencyActive = False
-            currencyFee = None
-            currencyWithdrawMin = None
-            currencyWithdrawMax = None
-            depositEnabled = False
-            withdrawEnabled = False
             networks: dict = {}
             chains = self.safe_value(currency, 'networkList', [])
             for j in range(0, len(chains)):
                 chain = chains[j]
                 networkId = self.safe_string_2(chain, 'netWork', 'network')
                 network = self.network_id_to_code(networkId)
-                isDepositEnabled = self.safe_bool(chain, 'depositEnable', False)
-                isWithdrawEnabled = self.safe_bool(chain, 'withdrawEnable', False)
-                active = (isDepositEnabled and isWithdrawEnabled)
-                currencyActive = active or currencyActive
-                withdrawMin = self.safe_string(chain, 'withdrawMin')
-                withdrawMax = self.safe_string(chain, 'withdrawMax')
-                currencyWithdrawMin = withdrawMin if (currencyWithdrawMin is None) else currencyWithdrawMin
-                currencyWithdrawMax = withdrawMax if (currencyWithdrawMax is None) else currencyWithdrawMax
-                fee = self.safe_number(chain, 'withdrawFee')
-                currencyFee = fee if (currencyFee is None) else currencyFee
-                if Precise.string_gt(currencyWithdrawMin, withdrawMin):
-                    currencyWithdrawMin = withdrawMin
-                if Precise.string_lt(currencyWithdrawMax, withdrawMax):
-                    currencyWithdrawMax = withdrawMax
-                if isDepositEnabled:
-                    depositEnabled = True
-                if isWithdrawEnabled:
-                    withdrawEnabled = True
                 networks[network] = {
                     'info': chain,
                     'id': networkId,
                     'network': network,
-                    'active': active,
-                    'deposit': isDepositEnabled,
-                    'withdraw': isWithdrawEnabled,
-                    'fee': fee,
+                    'active': None,
+                    'deposit': self.safe_bool(chain, 'depositEnable', False),
+                    'withdraw': self.safe_bool(chain, 'withdrawEnable', False),
+                    'fee': self.safe_number(chain, 'withdrawFee'),
                     'precision': None,
                     'limits': {
                         'withdraw': {
-                            'min': withdrawMin,
-                            'max': withdrawMax,
+                            'min': self.safe_string(chain, 'withdrawMin'),
+                            'max': self.safe_string(chain, 'withdrawMax'),
                         },
                     },
+                    'contract': self.safe_string(chain, 'contract'),
                 }
-            networkKeys = list(networks.keys())
-            networkKeysLength = len(networkKeys)
-            if (networkKeysLength == 1) or ('NONE' in networks):
-                defaultNetwork = self.safe_value_2(networks, 'NONE', networkKeysLength - 1)
-                if defaultNetwork is not None:
-                    currencyFee = defaultNetwork['fee']
-            result[code] = {
+            result[code] = self.safe_currency_structure({
                 'info': currency,
                 'id': id,
                 'code': code,
-                'name': name,
-                'active': currencyActive,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
-                'fee': currencyFee,
+                'name': self.safe_string(currency, 'name'),
+                'active': None,
+                'deposit': None,
+                'withdraw': None,
+                'fee': None,
                 'precision': None,
                 'limits': {
                     'amount': {
                         'min': None,
                         'max': None,
                     },
-                    'withdraw': {
-                        'min': currencyWithdrawMin,
-                        'max': currencyWithdrawMax,
-                    },
                 },
+                'type': 'crypto',
                 'networks': networks,
-            }
+            })
         return result
 
     async def fetch_markets(self, params={}) -> List[Market]:
@@ -2196,8 +2164,10 @@ class mexc(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
-        params['cost'] = cost
-        return await self.create_order(symbol, 'market', 'buy', 0, None, params)
+        req = {
+            'cost': cost,
+        }
+        return await self.create_order(symbol, 'market', 'buy', 0, None, self.extend(req, params))
 
     async def create_market_sell_order_with_cost(self, symbol: str, cost: float, params={}):
         """
@@ -2214,8 +2184,10 @@ class mexc(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
-        params['cost'] = cost
-        return await self.create_order(symbol, 'market', 'sell', 0, None, params)
+        req = {
+            'cost': cost,
+        }
+        return await self.create_order(symbol, 'market', 'sell', 0, None, self.extend(req, params))
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
@@ -3250,13 +3222,27 @@ class mexc(Exchange, ImplicitAPI):
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
         #
-        # spot: createOrder
+        # spot
+        #    createOrder
         #
-        #     {
+        #    {
+        #        "symbol": "FARTCOINUSDT",
+        #        "orderId": "C02__342252993005723644225",
+        #        "orderListId": "-1",
+        #        "price": "1.1",
+        #        "origQty": "6.3",
+        #        "type": "IMMEDIATE_OR_CANCEL",
+        #        "side": "SELL",
+        #        "transactTime": "1745852205223"
+        #    }
+        #
+        #    unknown endpoint on spot
+        #
+        #    {
         #         "symbol": "BTCUSDT",
         #         "orderId": "123738410679123456",
         #         "orderListId": -1
-        #     }
+        #    }
         #
         # margin: createOrder
         #
@@ -3418,6 +3404,10 @@ class mexc(Exchange, ImplicitAPI):
             id = order
         else:
             id = self.safe_string_2(order, 'orderId', 'id')
+        timeInForce = self.parse_order_time_in_force(self.safe_string(order, 'timeInForce'))
+        typeRaw = self.safe_string(order, 'type')
+        if timeInForce is None:
+            timeInForce = self.get_tif_from_raw_order_type(typeRaw)
         marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market)
         timestamp = self.safe_integer_n(order, ['time', 'createTime', 'transactTime'])
@@ -3439,8 +3429,8 @@ class mexc(Exchange, ImplicitAPI):
             'lastTradeTimestamp': None,  # TODO: self might be 'updateTime' if order-status is filled, otherwise cancellation time. needs to be checked
             'status': self.parse_order_status(self.safe_string_2(order, 'status', 'state')),
             'symbol': market['symbol'],
-            'type': self.parse_order_type(self.safe_string(order, 'type')),
-            'timeInForce': self.parse_order_time_in_force(self.safe_string(order, 'timeInForce')),
+            'type': self.parse_order_type(typeRaw),
+            'timeInForce': timeInForce,
             'side': self.parse_order_side(self.safe_string(order, 'side')),
             'price': self.safe_number(order, 'price'),
             'triggerPrice': self.safe_number_2(order, 'stopPrice', 'triggerPrice'),
@@ -3469,6 +3459,9 @@ class mexc(Exchange, ImplicitAPI):
             'MARKET': 'market',
             'LIMIT': 'limit',
             'LIMIT_MAKER': 'limit',
+            # on spot, during submission below types are used only accepted order
+            'IMMEDIATE_OR_CANCEL': 'limit',
+            'FILL_OR_KILL': 'limit',
         }
         return self.safe_string(statuses, status, status)
 
@@ -3495,6 +3488,16 @@ class mexc(Exchange, ImplicitAPI):
             'IOC': 'IOC',
         }
         return self.safe_string(statuses, status, status)
+
+    def get_tif_from_raw_order_type(self, orderType: Str = None):
+        statuses: dict = {
+            'LIMIT': 'GTC',
+            'LIMIT_MAKER': 'POST_ONLY',
+            'IMMEDIATE_OR_CANCEL': 'IOC',
+            'FILL_OR_KILL': 'FOK',
+            'MARKET': 'IOC',
+        }
+        return self.safe_string(statuses, orderType, orderType)
 
     async def fetch_account_helper(self, type, params):
         if type == 'spot':
@@ -4534,7 +4537,7 @@ class mexc(Exchange, ImplicitAPI):
         addressStructures = self.parse_deposit_addresses(response, None, False)
         return self.index_by(addressStructures, 'network')
 
-    async def create_deposit_address(self, code: str, params={}):
+    async def create_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         create a currency deposit address
 
@@ -4846,7 +4849,7 @@ class mexc(Exchange, ImplicitAPI):
         response = await self.fetch_positions(None, self.extend(request, params))
         return self.safe_value(response, 0)
 
-    async def fetch_positions(self, symbols: Strings = None, params={}):
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open positions
 

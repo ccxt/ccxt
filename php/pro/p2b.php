@@ -8,12 +8,12 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\BadRequest;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class p2b extends \ccxt\async\p2b {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -528,11 +528,11 @@ class p2b extends \ccxt\async\p2b {
 
     public function on_error(Client $client, $error) {
         $this->options['tickerSubs'] = $this->create_safe_dictionary();
-        $this->on_error($client, $error);
+        parent::on_error($client, $error);
     }
 
     public function on_close(Client $client, $error) {
         $this->options['tickerSubs'] = $this->create_safe_dictionary();
-        $this->on_close($client, $error);
+        parent::on_close($client, $error);
     }
 }

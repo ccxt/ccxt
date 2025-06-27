@@ -7,6 +7,22 @@
 
 package ccxt
 
+func (this *cryptocom) BasePublicGetV1PublicGetAnnouncements (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("basePublicGetV1PublicGetAnnouncements", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
 func (this *cryptocom) V1PublicGetPublicAuth (args ...interface{}) <-chan interface{} {
    parameters := GetArg(args, 0, nil)
    ch := make(chan interface{})
@@ -274,6 +290,22 @@ func (this *cryptocom) V1PrivatePostPrivateCreateOrder (args ...interface{}) <-c
            }
        }()
        ch <- (<-this.callEndpoint ("v1PrivatePostPrivateCreateOrder", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *cryptocom) V1PrivatePostPrivateAmendOrder (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v1PrivatePostPrivateAmendOrder", parameters))
        PanicOnError(ch)
    }()
    return ch

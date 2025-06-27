@@ -12,12 +12,12 @@ use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class onetrading extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'onetrading',
             'name' => 'One Trading',
@@ -367,7 +367,7 @@ class onetrading extends Exchange {
         ));
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
@@ -401,10 +401,13 @@ class onetrading extends Exchange {
             $response = Async\await($this->publicGetCurrencies ($params));
             //
             //     array(
-            //         {
-            //             "code":"BEST",
-            //             "precision":8
-            //         }
+            //         array(
+            //             "code" => "USDT",
+            //             "precision" => 6,
+            //             "unified_cryptoasset_id" => 825,
+            //             "name" => "Tether USDt",
+            //             "collateral_percentage" => 0
+            //         ),
             //     )
             //
             $result = array();
@@ -412,11 +415,11 @@ class onetrading extends Exchange {
                 $currency = $response[$i];
                 $id = $this->safe_string($currency, 'code');
                 $code = $this->safe_currency_code($id);
-                $result[$code] = array(
+                $result[$code] = $this->safe_currency_structure(array(
                     'id' => $id,
                     'code' => $code,
-                    'name' => null,
-                    'info' => $currency, // the original payload
+                    'name' => $this->safe_string($currency, 'name'),
+                    'info' => $currency,
                     'active' => null,
                     'fee' => null,
                     'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'precision'))),
@@ -427,7 +430,7 @@ class onetrading extends Exchange {
                         'withdraw' => array( 'min' => null, 'max' => null ),
                     ),
                     'networks' => array(),
-                );
+                ));
             }
             return $result;
         }) ();

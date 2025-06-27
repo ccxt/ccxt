@@ -6,16 +6,21 @@ package base
 
 func BaseTestsInit()  {
     TestLanguageSpecific()
+    TestAfterConstructor()
     TestExtend()
     TestDeepExtend()
     TestCryptography()
     TestDatetime()
-    TestNumber()
+    TestDecimalToPrecision()
+    TestNumberToString()
+    TestPrecise()
     TestSafeMethods()
     // testJson ();
-    
+    TestSortBy()
     TestSum()
     TestOmit()
     TestGroupBy()
-    
+    TestFilterBy()
+    TestHandleMethods()
+    TestRemoveRepeatedElementsFromArray()
 }

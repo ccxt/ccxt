@@ -60,6 +60,130 @@
                   "takeProfitPrice": null,
                   "stopLossPrice": null
                 }
+            },
+            {
+                "description": "tif IOC",
+                "method": "createOrder",
+                "input": [
+                    "ADA/USDT",
+                    "limit",
+                    "buy",
+                    0.5,
+                    2,
+                    {
+                        "timeInForce": "IOC"
+                    }
+                ],
+                "httpResponse": {
+                    "symbol": "ADAUSDT",
+                    "orderId": "C02__545584045430513665029",
+                    "orderListId": "-1",
+                    "price": "2",
+                    "origQty": "0.5",
+                    "type": "IMMEDIATE_OR_CANCEL",
+                    "side": "BUY",
+                    "transactTime": "1745859608758"
+                },
+                "parsedResponse": {
+                    "id": "C02__545584045430513665029",
+                    "clientOrderId": null,
+                    "timestamp": 1745859608758,
+                    "datetime": "2025-04-28T17:00:08.758Z",
+                    "lastTradeTimestamp": null,
+                    "status": null,
+                    "symbol": "ADA/USDT",
+                    "type": "limit",
+                    "timeInForce": "IOC",
+                    "side": "buy",
+                    "price": 2,
+                    "triggerPrice": null,
+                    "average": null,
+                    "amount": 0.5,
+                    "cost": null,
+                    "filled": null,
+                    "remaining": null,
+                    "fee": null,
+                    "trades": [],
+                    "info": {
+                        "symbol": "ADAUSDT",
+                        "orderId": "C02__545584045430513665029",
+                        "orderListId": "-1",
+                        "price": "2",
+                        "origQty": "0.5",
+                        "type": "IMMEDIATE_OR_CANCEL",
+                        "side": "BUY",
+                        "transactTime": "1745859608758"
+                    },
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "postOnly": false,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "tif FOK",
+                "method": "createOrder",
+                "input": [
+                    "ADA/USDT",
+                    "limit",
+                    "buy",
+                    0.5,
+                    2,
+                    {
+                        "timeInForce": "FOK"
+                    }
+                ],
+                "httpResponse": {
+                    "symbol": "ADAUSDT",
+                    "orderId": "C02__545583953424261120029",
+                    "orderListId": "-1",
+                    "price": "2",
+                    "origQty": "0.5",
+                    "type": "FILL_OR_KILL",
+                    "side": "BUY",
+                    "transactTime": "1745859586822"
+                },
+                "parsedResponse": {
+                    "id": "C02__545583953424261120029",
+                    "clientOrderId": null,
+                    "timestamp": 1745859586822,
+                    "datetime": "2025-04-28T16:59:46.822Z",
+                    "lastTradeTimestamp": null,
+                    "status": null,
+                    "symbol": "ADA/USDT",
+                    "type": "limit",
+                    "timeInForce": "FOK",
+                    "side": "buy",
+                    "price": 2,
+                    "triggerPrice": null,
+                    "average": null,
+                    "amount": 0.5,
+                    "cost": null,
+                    "filled": null,
+                    "remaining": null,
+                    "fee": null,
+                    "trades": [],
+                    "info": {
+                        "symbol": "ADAUSDT",
+                        "orderId": "C02__545583953424261120029",
+                        "orderListId": "-1",
+                        "price": "2",
+                        "origQty": "0.5",
+                        "type": "FILL_OR_KILL",
+                        "side": "BUY",
+                        "transactTime": "1745859586822"
+                    },
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "postOnly": false,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
             }
         ],
         "fetchOrderBook": [

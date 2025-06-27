@@ -10,12 +10,12 @@ use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\ChecksumError;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class bitfinex extends \ccxt\async\bitfinex {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,

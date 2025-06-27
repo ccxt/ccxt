@@ -5,13 +5,22 @@ package base
 
 
 var FunctionsMap = map[string]interface{}{
+    "afterConstructor": TestAfterConstructor,
     "datetime": TestDatetime,
+    "decimalToPrecision": TestDecimalToPrecision,
     "deepExtend": TestDeepExtend,
     "extend": TestExtend,
+    "filterBy": TestFilterBy,
     "groupBy": TestGroupBy,
-    "number": TestNumber,
+    "handleMethods": TestHandleMethods,
+    "json": TestJson,
+    "numberToString": TestNumberToString,
     "omit": TestOmit,
+    "precise": TestPrecise,
+    "removeRepeatedElementsFromArray": TestRemoveRepeatedElementsFromArray,
     "safeMethods": TestSafeMethods,
+    "sort": TestSort,
+    "sortBy": TestSortBy,
     "sum": TestSum,
     "account": TestAccount,
     "balance": TestBalance,

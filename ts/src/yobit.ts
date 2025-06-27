@@ -15,7 +15,7 @@ import type { Transaction, Balances, Dict, Int, Market, Order, OrderBook, OrderS
  * @augments Exchange
  */
 export default class yobit extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'yobit',
             'name': 'YoBit',
@@ -1268,7 +1268,7 @@ export default class yobit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
      */
-    async createDepositAddress (code: string, params = {}) {
+    async createDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         const request: Dict = {
             'need_new': 1,
         };
@@ -1279,8 +1279,9 @@ export default class yobit extends Exchange {
             'currency': code,
             'address': address,
             'tag': undefined,
+            'network': undefined,
             'info': response['info'],
-        };
+        } as DepositAddress;
     }
 
     /**

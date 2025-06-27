@@ -9,12 +9,12 @@ use Exception; // a common import
 use ccxt\async\abstract\coincheck as Exchange;
 use ccxt\ExchangeError;
 use ccxt\BadSymbol;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class coincheck extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coincheck',
             'name' => 'coincheck',

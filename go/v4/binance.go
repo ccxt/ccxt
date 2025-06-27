@@ -18,7 +18,7 @@ func  (this *binance) Describe() interface{}  {
     return this.DeepExtend(this.Exchange.Describe(), map[string]interface{} {
         "id": "binance",
         "name": "Binance",
-        "countries": []interface{}{"JP", "MT"},
+        "countries": []interface{}{},
         "rateLimit": 50,
         "certified": true,
         "pro": true,
@@ -59,6 +59,7 @@ func  (this *binance) Describe() interface{}  {
             "createTrailingPercentOrder": true,
             "createTriggerOrder": true,
             "editOrder": true,
+            "editOrders": true,
             "fetchAccounts": nil,
             "fetchBalance": true,
             "fetchBidsAsks": true,
@@ -463,6 +464,7 @@ func  (this *binance) Describe() interface{}  {
                     "portfolio/margin-asset-leverage": 5,
                     "portfolio/balance": 2,
                     "portfolio/negative-balance-exchange-record": 2,
+                    "portfolio/pmloan-history": 5,
                     "staking/productList": 0.1,
                     "staking/position": 0.1,
                     "staking/stakingRecord": 0.1,
@@ -1303,6 +1305,7 @@ func  (this *binance) Describe() interface{}  {
             "sandboxMode": false,
             "fetchMargins": true,
             "fetchMarkets": []interface{}{"spot", "linear", "inverse"},
+            "loadAllOptions": false,
             "fetchCurrencies": true,
             "defaultTimeInForce": "GTC",
             "defaultType": "spot",
@@ -1320,12 +1323,13 @@ func  (this *binance) Describe() interface{}  {
             },
             "quoteOrderQty": true,
             "broker": map[string]interface{} {
-                "spot": "x-R4BD3S82",
-                "margin": "x-R4BD3S82",
-                "future": "x-xcKtGhcu",
+                "spot": "x-TKT5PX2F",
+                "margin": "x-TKT5PX2F",
+                "future": "x-cvBPrNm9",
                 "delivery": "x-xcKtGhcu",
-                "swap": "x-xcKtGhcu",
+                "swap": "x-cvBPrNm9",
                 "option": "x-xcKtGhcu",
+                "inverse": "x-xcKtGhcu",
             },
             "accountsByType": map[string]interface{} {
                 "main": "MAIN",
@@ -1358,194 +1362,8 @@ func  (this *binance) Describe() interface{}  {
                 "SPL": "SOL",
                 "SOL": "SOL",
             },
-            "reverseNetworks": map[string]interface{} {
-                "tronscan.org": "TRC20",
-                "etherscan.io": "ERC20",
-                "bscscan.com": "BSC",
-                "explorer.binance.org": "BEP2",
-                "bithomp.com": "XRP",
-                "bloks.io": "EOS",
-                "stellar.expert": "XLM",
-                "blockchair.com/bitcoin": "BTC",
-                "blockchair.com/bitcoin-cash": "BCH",
-                "blockchair.com/ecash": "XEC",
-                "explorer.litecoin.net": "LTC",
-                "explorer.avax.network": "AVAX",
-                "solscan.io": "SOL",
-                "polkadot.subscan.io": "DOT",
-                "dashboard.internetcomputer.org": "ICP",
-                "explorer.chiliz.com": "CHZ",
-                "cardanoscan.io": "ADA",
-                "mainnet.theoan.com": "AION",
-                "algoexplorer.io": "ALGO",
-                "explorer.ambrosus.com": "AMB",
-                "viewblock.io/zilliqa": "ZIL",
-                "viewblock.io/arweave": "AR",
-                "explorer.ark.io": "ARK",
-                "atomscan.com": "ATOM",
-                "www.mintscan.io": "CTK",
-                "explorer.bitcoindiamond.org": "BCD",
-                "btgexplorer.com": "BTG",
-                "bts.ai": "BTS",
-                "explorer.celo.org": "CELO",
-                "explorer.nervos.org": "CKB",
-                "cerebro.cortexlabs.ai": "CTXC",
-                "chainz.cryptoid.info": "VIA",
-                "explorer.dcrdata.org": "DCR",
-                "digiexplorer.info": "DGB",
-                "dock.subscan.io": "DOCK",
-                "dogechain.info": "DOGE",
-                "explorer.elrond.com": "EGLD",
-                "blockscout.com": "ETC",
-                "explore-fetchhub.fetch.ai": "FET",
-                "filfox.info": "FIL",
-                "fio.bloks.io": "FIO",
-                "explorer.firo.org": "FIRO",
-                "neoscan.io": "NEO",
-                "ftmscan.com": "FTM",
-                "explorer.gochain.io": "GO",
-                "block.gxb.io": "GXS",
-                "hash-hash.info": "HBAR",
-                "www.hiveblockexplorer.com": "HIVE",
-                "explorer.helium.com": "HNT",
-                "tracker.icon.foundation": "ICX",
-                "www.iostabc.com": "IOST",
-                "explorer.iota.org": "IOTA",
-                "iotexscan.io": "IOTX",
-                "irishub.iobscan.io": "IRIS",
-                "kava.mintscan.io": "KAVA",
-                "scope.klaytn.com": "KLAY",
-                "kmdexplorer.io": "KMD",
-                "kusama.subscan.io": "KSM",
-                "explorer.lto.network": "LTO",
-                "polygonscan.com": "POLYGON",
-                "explorer.ont.io": "ONT",
-                "minaexplorer.com": "MINA",
-                "nanolooker.com": "NANO",
-                "explorer.nebulas.io": "NAS",
-                "explorer.nbs.plus": "NBS",
-                "explorer.nebl.io": "NEBL",
-                "nulscan.io": "NULS",
-                "nxscan.com": "NXS",
-                "explorer.harmony.one": "ONE",
-                "explorer.poa.network": "POA",
-                "qtum.info": "QTUM",
-                "explorer.rsk.co": "RSK",
-                "www.oasisscan.com": "ROSE",
-                "ravencoin.network": "RVN",
-                "sc.tokenview.com": "SC",
-                "secretnodes.com": "SCRT",
-                "explorer.skycoin.com": "SKY",
-                "steemscan.com": "STEEM",
-                "explorer.stacks.co": "STX",
-                "www.thetascan.io": "THETA",
-                "scan.tomochain.com": "TOMO",
-                "explore.vechain.org": "VET",
-                "explorer.vite.net": "VITE",
-                "www.wanscan.org": "WAN",
-                "wavesexplorer.com": "WAVES",
-                "wax.eosx.io": "WAXP",
-                "waltonchain.pro": "WTC",
-                "chain.nem.ninja": "XEM",
-                "verge-blockchain.info": "XVG",
-                "explorer.yoyow.org": "YOYOW",
-                "explorer.zcha.in": "ZEC",
-                "explorer.zensystem.io": "ZEN",
-            },
             "networksById": map[string]interface{} {
                 "SOL": "SOL",
-                "tronscan.org": "TRC20",
-                "etherscan.io": "ERC20",
-                "bscscan.com": "BSC",
-                "explorer.binance.org": "BEP2",
-                "bithomp.com": "XRP",
-                "bloks.io": "EOS",
-                "stellar.expert": "XLM",
-                "blockchair.com/bitcoin": "BTC",
-                "blockchair.com/bitcoin-cash": "BCH",
-                "blockchair.com/ecash": "XEC",
-                "explorer.litecoin.net": "LTC",
-                "explorer.avax.network": "AVAX",
-                "solscan.io": "SOL",
-                "polkadot.subscan.io": "DOT",
-                "dashboard.internetcomputer.org": "ICP",
-                "explorer.chiliz.com": "CHZ",
-                "cardanoscan.io": "ADA",
-                "mainnet.theoan.com": "AION",
-                "algoexplorer.io": "ALGO",
-                "explorer.ambrosus.com": "AMB",
-                "viewblock.io/zilliqa": "ZIL",
-                "viewblock.io/arweave": "AR",
-                "explorer.ark.io": "ARK",
-                "atomscan.com": "ATOM",
-                "www.mintscan.io": "CTK",
-                "explorer.bitcoindiamond.org": "BCD",
-                "btgexplorer.com": "BTG",
-                "bts.ai": "BTS",
-                "explorer.celo.org": "CELO",
-                "explorer.nervos.org": "CKB",
-                "cerebro.cortexlabs.ai": "CTXC",
-                "chainz.cryptoid.info": "VIA",
-                "explorer.dcrdata.org": "DCR",
-                "digiexplorer.info": "DGB",
-                "dock.subscan.io": "DOCK",
-                "dogechain.info": "DOGE",
-                "explorer.elrond.com": "EGLD",
-                "blockscout.com": "ETC",
-                "explore-fetchhub.fetch.ai": "FET",
-                "filfox.info": "FIL",
-                "fio.bloks.io": "FIO",
-                "explorer.firo.org": "FIRO",
-                "neoscan.io": "NEO",
-                "ftmscan.com": "FTM",
-                "explorer.gochain.io": "GO",
-                "block.gxb.io": "GXS",
-                "hash-hash.info": "HBAR",
-                "www.hiveblockexplorer.com": "HIVE",
-                "explorer.helium.com": "HNT",
-                "tracker.icon.foundation": "ICX",
-                "www.iostabc.com": "IOST",
-                "explorer.iota.org": "IOTA",
-                "iotexscan.io": "IOTX",
-                "irishub.iobscan.io": "IRIS",
-                "kava.mintscan.io": "KAVA",
-                "scope.klaytn.com": "KLAY",
-                "kmdexplorer.io": "KMD",
-                "kusama.subscan.io": "KSM",
-                "explorer.lto.network": "LTO",
-                "polygonscan.com": "POLYGON",
-                "explorer.ont.io": "ONT",
-                "minaexplorer.com": "MINA",
-                "nanolooker.com": "NANO",
-                "explorer.nebulas.io": "NAS",
-                "explorer.nbs.plus": "NBS",
-                "explorer.nebl.io": "NEBL",
-                "nulscan.io": "NULS",
-                "nxscan.com": "NXS",
-                "explorer.harmony.one": "ONE",
-                "explorer.poa.network": "POA",
-                "qtum.info": "QTUM",
-                "explorer.rsk.co": "RSK",
-                "www.oasisscan.com": "ROSE",
-                "ravencoin.network": "RVN",
-                "sc.tokenview.com": "SC",
-                "secretnodes.com": "SCRT",
-                "explorer.skycoin.com": "SKY",
-                "steemscan.com": "STEEM",
-                "explorer.stacks.co": "STX",
-                "www.thetascan.io": "THETA",
-                "scan.tomochain.com": "TOMO",
-                "explore.vechain.org": "VET",
-                "explorer.vite.net": "VITE",
-                "www.wanscan.org": "WAN",
-                "wavesexplorer.com": "WAVES",
-                "wax.eosx.io": "WAXP",
-                "waltonchain.pro": "WTC",
-                "chain.nem.ninja": "XEM",
-                "verge-blockchain.info": "XVG",
-                "explorer.yoyow.org": "YOYOW",
-                "explorer.zcha.in": "ZEC",
-                "explorer.zensystem.io": "ZEN",
             },
             "impliedNetworks": map[string]interface{} {
                 "ETH": map[string]interface{} {
@@ -1592,6 +1410,7 @@ func  (this *binance) Describe() interface{}  {
             "legalMoneyCurrenciesById": map[string]interface{} {
                 "BUSD": "USD",
             },
+            "defaultWithdrawPrecision": 1e-8,
         },
         "features": map[string]interface{} {
             "spot": map[string]interface{} {
@@ -2866,9 +2685,9 @@ func  (this *binance) Nonce() interface{}  {
  * @method
  * @name binance#fetchTime
  * @description fetches the current integer timestamp in milliseconds from the exchange server
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#check-server-time                            // spot
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/general-endpoints#check-server-time          // spot
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Check-Server-Time    // swap
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Check-Server-time             // future
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Check-Server-time    // future
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subType] "linear" or "inverse"
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
@@ -3058,6 +2877,7 @@ func  (this *binance) FetchCurrencies(optionalArgs ...interface{}) <- chan inter
                 var id interface{} = this.SafeString(entry, "coin")
                 var name interface{} = this.SafeString(entry, "name")
                 var code interface{} = this.SafeCurrencyCode(id)
+                var isFiat interface{} = this.SafeBool(entry, "isLegalMoney")
                 var minPrecision interface{} = nil
                 var isWithdrawEnabled interface{} = true
                 var isDepositEnabled interface{} = true
@@ -3069,6 +2889,7 @@ func  (this *binance) FetchCurrencies(optionalArgs ...interface{}) <- chan inter
                     var networkItem interface{} = GetValue(networkList, j)
                     var network interface{} = this.SafeString(networkItem, "network")
                     var networkCode interface{} = this.NetworkIdToCode(network)
+                    var isETF interface{} =             (IsEqual(network, "ETF")) // e.g. BTCUP, ETHDOWN
                     // const name = this.safeString (networkItem, 'name');
                     var withdrawFee interface{} = this.SafeNumber(networkItem, "withdrawFee")
                     var depositEnable interface{} = this.SafeBool(networkItem, "depositEnable")
@@ -3080,11 +2901,24 @@ func  (this *binance) FetchCurrencies(optionalArgs ...interface{}) <- chan inter
                     if IsTrue(IsTrue(isDefault) || IsTrue((IsEqual(fee, nil)))) {
                         fee = withdrawFee
                     }
+                    // todo: default networks in "setMarkets" overload
+                    // if (isDefault) {
+                    //     this.options['defaultNetworkCodesForCurrencies'][code] = networkCode;
+                    // }
                     var precisionTick interface{} = this.SafeString(networkItem, "withdrawIntegerMultiple")
-                    // avoid zero values, which are mostly from fiat or leveraged tokens : https://github.com/ccxt/ccxt/pull/14902#issuecomment-1271636731
-                    // so, when there is zero instead of i.e. 0.001, then we skip those cases, because we don't know the precision - it might be because of network is suspended or other reasons
+                    var withdrawPrecision interface{} = precisionTick
+                    // avoid zero values, which are mostly from fiat or leveraged tokens or some abandoned coins : https://github.com/ccxt/ccxt/pull/14902#issuecomment-1271636731
                     if !IsTrue(Precise.StringEq(precisionTick, "0")) {
                         minPrecision = Ternary(IsTrue((IsEqual(minPrecision, nil))), precisionTick, Precise.StringMin(minPrecision, precisionTick))
+                    } else {
+                        if IsTrue(!IsTrue(isFiat) && !IsTrue(isETF)) {
+                            // non-fiat and non-ETF currency, there are many cases when precision is set to zero (probably bug, we've reported to binance already)
+                            // in such cases, we can set default precision of 8 (which is in UI for such coins)
+                            withdrawPrecision = this.OmitZero(this.SafeString(networkItem, "withdrawInternalMin"))
+                            if IsTrue(IsEqual(withdrawPrecision, nil)) {
+                                withdrawPrecision = this.SafeString(this.Options, "defaultWithdrawPrecision")
+                            }
+                        }
                     }
                     AddElementToObject(networks, networkCode, map[string]interface{} {
             "info": networkItem,
@@ -3094,7 +2928,7 @@ func  (this *binance) FetchCurrencies(optionalArgs ...interface{}) <- chan inter
             "deposit": depositEnable,
             "withdraw": withdrawEnable,
             "fee": withdrawFee,
-            "precision": this.ParseNumber(precisionTick),
+            "precision": this.ParseNumber(withdrawPrecision),
             "limits": map[string]interface{} {
                 "withdraw": map[string]interface{} {
                     "min": this.SafeNumber(networkItem, "withdrawMin"),
@@ -3124,6 +2958,7 @@ func  (this *binance) FetchCurrencies(optionalArgs ...interface{}) <- chan inter
             "id": id,
             "name": name,
             "code": code,
+            "type": Ternary(IsTrue(isFiat), "fiat", "crypto"),
             "precision": this.ParseNumber(minPrecision),
             "info": entry,
             "active": active,
@@ -3147,12 +2982,12 @@ func  (this *binance) FetchCurrencies(optionalArgs ...interface{}) <- chan inter
  * @method
  * @name binance#fetchMarkets
  * @description retrieves data on all markets for binance
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#exchange-information                             // spot
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/general-endpoints#exchange-information           // spot
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Exchange-Information     // swap
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Exchange-Information              // future
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Exchange-Information     // future
  * @see https://developers.binance.com/docs/derivatives/option/market-data/Exchange-Information                             // option
- * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Cross-Margin-Pairs                             // cross margin
- * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Isolated-Margin-Symbol                             // isolated margin
+ * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Cross-Margin-Pairs                           // cross margin
+ * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Isolated-Margin-Symbol                       // isolated margin
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
@@ -3165,6 +3000,13 @@ func  (this *binance) FetchMarkets(optionalArgs ...interface{}) <- chan interfac
             _ = params
             var promisesRaw interface{} = []interface{}{}
             var rawFetchMarkets interface{} = this.SafeList(this.Options, "fetchMarkets", []interface{}{"spot", "linear", "inverse"})
+            // handle loadAllOptions option
+            var loadAllOptions interface{} = this.SafeBool(this.Options, "loadAllOptions", false)
+            if IsTrue(loadAllOptions) {
+                if !IsTrue(this.InArray("option", rawFetchMarkets)) {
+                    AppendToArray(&rawFetchMarkets,"option")
+                }
+            }
             var sandboxMode interface{} = this.SafeBool(this.Options, "sandboxMode", false)
             var fetchMarkets interface{} = []interface{}{}
             for i := 0; IsLessThan(i, GetArrayLength(rawFetchMarkets)); i++ {
@@ -3433,8 +3275,8 @@ func  (this *binance) FetchMarkets(optionalArgs ...interface{}) <- chan interfac
             //
             if IsTrue(GetValue(this.Options, "adjustForTimeDifference")) {
         
-                retRes347112 := (<-this.LoadTimeDifference())
-                PanicOnError(retRes347112)
+                retRes331212 := (<-this.LoadTimeDifference())
+                PanicOnError(retRes331212)
             }
             var result interface{} = []interface{}{}
             for i := 0; IsLessThan(i, GetArrayLength(markets)); i++ {
@@ -3760,12 +3602,12 @@ func  (this *binance) ParseBalanceCustom(response interface{}, optionalArgs ...i
  * @method
  * @name binance#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#account-information-user_data                    // spot
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/account-endpoints#account-information-user_data  // spot
  * @see https://developers.binance.com/docs/margin_trading/account/Query-Cross-Margin-Account-Details                       // cross margin
  * @see https://developers.binance.com/docs/margin_trading/account/Query-Isolated-Margin-Account-Info                       // isolated margin
  * @see https://developers.binance.com/docs/wallet/asset/funding-wallet                                                     // funding
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Futures-Account-Balance-V2   // swap
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Futures-Account-Balance               // future
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Futures-Account-Balance      // future
  * @see https://developers.binance.com/docs/derivatives/option/account/Option-Account-Information                           // option
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Account-Balance                            // portfolio margin
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3784,8 +3626,8 @@ func  (this *binance) FetchBalance(optionalArgs ...interface{}) <- chan interfac
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes38078 := (<-this.LoadMarkets())
-            PanicOnError(retRes38078)
+            retRes36488 := (<-this.LoadMarkets())
+            PanicOnError(retRes36488)
             var defaultType interface{} = this.SafeString2(this.Options, "fetchBalance", "defaultType", "spot")
             var typeVar interface{} = this.SafeString(params, "type", defaultType)
             var subType interface{} = nil
@@ -4063,9 +3905,9 @@ func  (this *binance) FetchBalance(optionalArgs ...interface{}) <- chan interfac
  * @method
  * @name binance#fetchOrderBook
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#order-book                           // spot
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#order-book     // spot
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Order-Book   // swap
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Order-Book            // future
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Order-Book   // future
  * @see https://developers.binance.com/docs/derivatives/option/market-data/Order-Book                           // option
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
@@ -4082,8 +3924,8 @@ func  (this *binance) FetchOrderBook(symbol interface{}, optionalArgs ...interfa
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes40658 := (<-this.LoadMarkets())
-            PanicOnError(retRes40658)
+            retRes39068 := (<-this.LoadMarkets())
+            PanicOnError(retRes39068)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -4160,9 +4002,9 @@ func  (this *binance) ParseTicker(ticker interface{}, optionalArgs ...interface{
     //
     //     {
     //         "symbol": "BTCUSDT",
-    //         "markPrice": "11793.63104562",  // mark price
+    //         "markPrice": "11793.63104561", // mark price
     //         "indexPrice": "11781.80495970", // index price
-    //         "estimatedSettlePrice": "11781.16138815", // Estimated Settle Price, only useful in the last hour before the settlement starts.
+    //         "estimatedSettlePrice": "11781.16138815", // Estimated Settle Price, only useful in the last hour before the settlement starts
     //         "lastFundingRate": "0.00038246",  // This is the lastest estimated funding rate
     //         "nextFundingTime": 1597392000000,
     //         "interestRate": "0.00010000",
@@ -4366,10 +4208,10 @@ func  (this *binance) FetchStatus(optionalArgs ...interface{}) <- chan interface
  * @method
  * @name binance#fetchTicker
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#24hr-ticker-price-change-statistics                           // spot
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#rolling-window-price-change-statistics                        // spot
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#24hr-ticker-price-change-statistics     // spot
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#rolling-window-price-change-statistics  // spot
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics   // swap
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/24hr-Ticker-Price-Change-Statistics            // future
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics   // future
  * @see https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics                           // option
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4384,8 +4226,8 @@ func  (this *binance) FetchTicker(symbol interface{}, optionalArgs ...interface{
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes43318 := (<-this.LoadMarkets())
-            PanicOnError(retRes43318)
+            retRes41728 := (<-this.LoadMarkets())
+            PanicOnError(retRes41728)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -4433,9 +4275,9 @@ func  (this *binance) FetchTicker(symbol interface{}, optionalArgs ...interface{
  * @method
  * @name binance#fetchBidsAsks
  * @description fetches the bid and ask price and volume for multiple markets
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#symbol-order-book-ticker                         // spot
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#symbol-order-book-ticker   // spot
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker // swap
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Symbol-Order-Book-Ticker          // future
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker // future
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subType] "linear" or "inverse"
@@ -4451,8 +4293,8 @@ func  (this *binance) FetchBidsAsks(optionalArgs ...interface{}) <- chan interfa
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes43728 := (<-this.LoadMarkets())
-            PanicOnError(retRes43728)
+            retRes42138 := (<-this.LoadMarkets())
+            PanicOnError(retRes42138)
             symbols = this.MarketSymbols(symbols, nil, true, true, true)
             var market interface{} = this.GetMarketFromSymbols(symbols)
             var typeVar interface{} = nil
@@ -4494,9 +4336,9 @@ func  (this *binance) FetchBidsAsks(optionalArgs ...interface{}) <- chan interfa
  * @method
  * @name binance#fetchLastPrices
  * @description fetches the last price for multiple markets
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#symbol-price-ticker                          // spot
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#symbol-price-ticker    // spot
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Price-Ticker  // swap
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Symbol-Price-Ticker           // future
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Symbol-Price-Ticker  // future
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the last prices
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subType] "linear" or "inverse"
@@ -4512,8 +4354,8 @@ func  (this *binance) FetchLastPrices(optionalArgs ...interface{}) <- chan inter
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes44098 := (<-this.LoadMarkets())
-            PanicOnError(retRes44098)
+            retRes42508 := (<-this.LoadMarkets())
+            PanicOnError(retRes42508)
             symbols = this.MarketSymbols(symbols, nil, true, true, true)
             var market interface{} = this.GetMarketFromSymbols(symbols)
             var typeVar interface{} = nil
@@ -4593,9 +4435,9 @@ func  (this *binance) ParseLastPrice(entry interface{}, optionalArgs ...interfac
  * @method
  * @name binance#fetchTickers
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#24hr-ticker-price-change-statistics                          // spot
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#24hr-ticker-price-change-statistics    // spot
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics  // swap
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/24hr-Ticker-Price-Change-Statistics           // future
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics  // future
  * @see https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics                          // option
  * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4613,8 +4455,8 @@ func  (this *binance) FetchTickers(optionalArgs ...interface{}) <- chan interfac
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes45148 := (<-this.LoadMarkets())
-            PanicOnError(retRes45148)
+            retRes43558 := (<-this.LoadMarkets())
+            PanicOnError(retRes43558)
             symbols = this.MarketSymbols(symbols, nil, true, true, true)
             var market interface{} = this.GetMarketFromSymbols(symbols)
             var typeVar interface{} = nil
@@ -4660,8 +4502,8 @@ func  (this *binance) FetchTickers(optionalArgs ...interface{}) <- chan interfac
  * @method
  * @name binance#fetchMarkPrice
  * @description fetches mark price for the market
- * @see https://binance-docs.github.io/apidocs/futures/en/#mark-price
- * @see https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-and-Mark-Price
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subType] "linear" or "inverse"
@@ -4675,8 +4517,8 @@ func  (this *binance) FetchMarkPrice(symbol interface{}, optionalArgs ...interfa
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes45528 := (<-this.LoadMarkets())
-            PanicOnError(retRes45528)
+            retRes43938 := (<-this.LoadMarkets())
+            PanicOnError(retRes43938)
             var market interface{} = this.Market(symbol)
             var typeVar interface{} = nil
             typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchMarkPrice", market, params, "swap");
@@ -4717,8 +4559,8 @@ func  (this *binance) FetchMarkPrice(symbol interface{}, optionalArgs ...interfa
  * @method
  * @name binance#fetchMarkPrices
  * @description fetches mark prices for multiple markets
- * @see https://binance-docs.github.io/apidocs/futures/en/#mark-price
- * @see https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-and-Mark-Price
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
  * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subType] "linear" or "inverse"
@@ -4734,8 +4576,8 @@ func  (this *binance) FetchMarkPrices(optionalArgs ...interface{}) <- chan inter
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes45878 := (<-this.LoadMarkets())
-            PanicOnError(retRes45878)
+            retRes44288 := (<-this.LoadMarkets())
+            PanicOnError(retRes44288)
             symbols = this.MarketSymbols(symbols, nil, true, true, true)
             var market interface{} = this.GetMarketFromSymbols(symbols)
             var typeVar interface{} = nil
@@ -4827,16 +4669,16 @@ func  (this *binance) ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{})
  * @method
  * @name binance#fetchOHLCV
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#klinecandlestick-data
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#klinecandlestick-data
  * @see https://developers.binance.com/docs/derivatives/option/market-data/Kline-Candlestick-Data
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Kline-Candlestick-Data
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Index-Price-Kline-Candlestick-Data
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price-Kline-Candlestick-Data
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Premium-Index-Kline-Data
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Kline-Candlestick-Data
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Index-Price-Kline-Candlestick-Data
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Mark-Price-Kline-Candlestick-Data
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Premium-Index-Kline-Data
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Kline-Candlestick-Data
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-Kline-Candlestick-Data
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Mark-Price-Kline-Candlestick-Data
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Premium-Index-Kline-Data
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -4861,17 +4703,17 @@ func  (this *binance) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes46948 := (<-this.LoadMarkets())
-            PanicOnError(retRes46948)
+            retRes45358 := (<-this.LoadMarkets())
+            PanicOnError(retRes45358)
             var paginate interface{} = false
             paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false);
             paginate = GetValue(paginateparamsVariable,0);
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
         
-                    retRes469819 :=  (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
-                    PanicOnError(retRes469819)
-                    ch <- retRes469819
+                    retRes453919 :=  (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
+                    PanicOnError(retRes453919)
+                    ch <- retRes453919
                     return nil
             }
             var market interface{} = this.Market(symbol)
@@ -5273,17 +5115,17 @@ func  (this *binance) ParseTrade(trade interface{}, optionalArgs ...interface{})
  * @name binance#fetchTrades
  * @description get the list of most recent trades for a particular symbol
  * Default fetchTradesMethod
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#compressedaggregate-trades-list                          // publicGetAggTrades (spot)
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#compressedaggregate-trades-list    // publicGetAggTrades (spot)
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Compressed-Aggregate-Trades-List // fapiPublicGetAggTrades (swap)
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Compressed-Aggregate-Trades-List          // dapiPublicGetAggTrades (future)
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Compressed-Aggregate-Trades-List // dapiPublicGetAggTrades (future)
  * @see https://developers.binance.com/docs/derivatives/option/market-data/Recent-Trades-List                                       // eapiPublicGetTrades (option)
  * Other fetchTradesMethod
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#recent-trades-list                                       // publicGetTrades (spot)
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#recent-trades-list                 // publicGetTrades (spot)
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Recent-Trades-List               // fapiPublicGetTrades (swap)
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Recent-Trades-List                        // dapiPublicGetTrades (future)
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#old-trade-lookup                                         // publicGetHistoricalTrades (spot)
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Recent-Trades-List               // dapiPublicGetTrades (future)
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#old-trade-lookup                   // publicGetHistoricalTrades (spot)
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Old-Trades-Lookup                // fapiPublicGetHistoricalTrades (swap)
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Old-Trades-Lookup                         // dapiPublicGetHistoricalTrades (future)
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Old-Trades-Lookup                // dapiPublicGetHistoricalTrades (future)
  * @see https://developers.binance.com/docs/derivatives/option/market-data/Old-Trades-Lookup                                        // eapiPublicGetHistoricalTrades (option)
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] only used when fetchTradesMethod is 'publicGetAggTrades', 'fapiPublicGetAggTrades', or 'dapiPublicGetAggTrades'
@@ -5309,17 +5151,17 @@ func  (this *binance) FetchTrades(symbol interface{}, optionalArgs ...interface{
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes50998 := (<-this.LoadMarkets())
-            PanicOnError(retRes50998)
+            retRes49408 := (<-this.LoadMarkets())
+            PanicOnError(retRes49408)
             var paginate interface{} = false
             paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTrades", "paginate");
             paginate = GetValue(paginateparamsVariable,0);
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
         
-                    retRes510319 :=  (<-this.FetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, params))
-                    PanicOnError(retRes510319)
-                    ch <- retRes510319
+                    retRes494419 :=  (<-this.FetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, params))
+                    PanicOnError(retRes494419)
+                    ch <- retRes494419
                     return nil
             }
             var market interface{} = this.Market(symbol)
@@ -5443,7 +5285,7 @@ func  (this *binance) FetchTrades(symbol interface{}, optionalArgs ...interface{
  * @name binance#editSpotOrder
  * @ignore
  * @description edit a trade order
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#cancel-an-existing-order-and-send-a-new-order-trade
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#cancel-an-existing-order-and-send-a-new-order-trade
  * @param {string} id cancel order id
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
@@ -5464,8 +5306,8 @@ func  (this *binance) EditSpotOrder(id interface{}, symbol interface{}, typeVar 
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes52308 := (<-this.LoadMarkets())
-            PanicOnError(retRes52308)
+            retRes50718 := (<-this.LoadMarkets())
+            PanicOnError(retRes50718)
             var market interface{} = this.Market(symbol)
             if !IsTrue(GetValue(market, "spot")) {
                 panic(NotSupported(Add(Add(Add(this.Id, " editSpotOrder() does not support "), GetValue(market, "type")), " orders")))
@@ -5499,7 +5341,7 @@ func  (this *binance) EditSpotOrder(id interface{}, symbol interface{}, typeVar 
             //             "symbol": "BTCUSDT",
             //             "orderId": 16383176297,
             //             "orderListId": -1,
-            //             "clientOrderId": "x-R4BD3S8222ecb58eb9074fb1be018c",
+            //             "clientOrderId": "x-TKT5PX2F22ecb58eb9074fb1be018c",
             //             "transactTime": 1670891847932,
             //             "price": "13500.00000000",
             //             "origQty": "0.00085000",
@@ -5553,7 +5395,6 @@ func  (this *binance) EditSpotOrderRequest(id interface{}, symbol interface{}, t
     if IsTrue(postOnly) {
         uppercaseType = "LIMIT_MAKER"
     }
-    AddElementToObject(request, "type", uppercaseType)
     var triggerPrice interface{} = this.SafeNumber2(params, "stopPrice", "triggerPrice")
     if IsTrue(!IsEqual(triggerPrice, nil)) {
         if IsTrue(IsEqual(uppercaseType, "MARKET")) {
@@ -5562,6 +5403,7 @@ func  (this *binance) EditSpotOrderRequest(id interface{}, symbol interface{}, t
             uppercaseType = "STOP_LOSS_LIMIT"
         }
     }
+    AddElementToObject(request, "type", uppercaseType)
     var validOrderTypes interface{} = this.SafeList(GetValue(market, "info"), "orderTypes")
     if !IsTrue(this.InArray(uppercaseType, validOrderTypes)) {
         if IsTrue(!IsEqual(initialUppercaseType, uppercaseType)) {
@@ -5681,7 +5523,7 @@ func  (this *binance) EditContractOrderRequest(id interface{}, symbol interface{
  * @name binance#editContractOrder
  * @description edit a trade order
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Order
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Order
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Modify-Order
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Modify-UM-Order
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Modify-CM-Order
  * @param {string} id cancel order id
@@ -5704,8 +5546,8 @@ func  (this *binance) EditContractOrder(id interface{}, symbol interface{}, type
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes54488 := (<-this.LoadMarkets())
-            PanicOnError(retRes54488)
+            retRes52898 := (<-this.LoadMarkets())
+            PanicOnError(retRes52898)
             var market interface{} = this.Market(symbol)
             var isPortfolioMargin interface{} = nil
             isPortfolioMarginparamsVariable := this.HandleOptionAndParams2(params, "editContractOrder", "papi", "portfolioMargin", false);
@@ -5777,9 +5619,9 @@ func  (this *binance) EditContractOrder(id interface{}, symbol interface{}, type
  * @method
  * @name binance#editOrder
  * @description edit a trade order
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#cancel-an-existing-order-and-send-a-new-order-trade
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#cancel-an-existing-order-and-send-a-new-order-trade
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Order
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Order
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Modify-Order
  * @param {string} id cancel order id
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
@@ -5801,26 +5643,128 @@ func  (this *binance) EditOrder(id interface{}, symbol interface{}, typeVar inte
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes55198 := (<-this.LoadMarkets())
-            PanicOnError(retRes55198)
+            retRes53608 := (<-this.LoadMarkets())
+            PanicOnError(retRes53608)
             var market interface{} = this.Market(symbol)
             if IsTrue(GetValue(market, "option")) {
                 panic(NotSupported(Add(Add(Add(this.Id, " editOrder() does not support "), GetValue(market, "type")), " orders")))
             }
             if IsTrue(GetValue(market, "spot")) {
         
-                    retRes552519 :=  (<-this.EditSpotOrder(id, symbol, typeVar, side, amount, price, params))
-                    PanicOnError(retRes552519)
-                    ch <- retRes552519
+                    retRes536619 :=  (<-this.EditSpotOrder(id, symbol, typeVar, side, amount, price, params))
+                    PanicOnError(retRes536619)
+                    ch <- retRes536619
                     return nil
             } else {
         
-                    retRes552719 :=  (<-this.EditContractOrder(id, symbol, typeVar, side, amount, price, params))
-                    PanicOnError(retRes552719)
-                    ch <- retRes552719
+                    retRes536819 :=  (<-this.EditContractOrder(id, symbol, typeVar, side, amount, price, params))
+                    PanicOnError(retRes536819)
+                    ch <- retRes536819
                     return nil
             }
                 return nil
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name binance#editOrders
+ * @description edit a list of trade orders
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Multiple-Orders
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Modify-Multiple-Orders
+ * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
+func  (this *binance) EditOrders(orders interface{}, optionalArgs ...interface{}) <- chan interface{} {
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]interface{} {})
+            _ = params
+        
+            retRes53838 := (<-this.LoadMarkets())
+            PanicOnError(retRes53838)
+            var ordersRequests interface{} = []interface{}{}
+            var orderSymbols interface{} = []interface{}{}
+            for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
+                var rawOrder interface{} = GetValue(orders, i)
+                var marketId interface{} = this.SafeString(rawOrder, "symbol")
+                AppendToArray(&orderSymbols,marketId)
+                var id interface{} = this.SafeString(rawOrder, "id")
+                var typeVar interface{} = this.SafeString(rawOrder, "type")
+                var side interface{} = this.SafeString(rawOrder, "side")
+                var amount interface{} = this.SafeValue(rawOrder, "amount")
+                var price interface{} = this.SafeValue(rawOrder, "price")
+                var orderParams interface{} = this.SafeDict(rawOrder, "params", map[string]interface{} {})
+                var isPortfolioMargin interface{} = nil
+                isPortfolioMarginorderParamsVariable := this.HandleOptionAndParams2(orderParams, "editOrders", "papi", "portfolioMargin", false);
+                isPortfolioMargin = GetValue(isPortfolioMarginorderParamsVariable,0);
+                orderParams = GetValue(isPortfolioMarginorderParamsVariable,1)
+                if IsTrue(isPortfolioMargin) {
+                    panic(NotSupported(Add(this.Id, " editOrders() does not support portfolio margin orders")))
+                }
+                var orderRequest interface{} = this.EditContractOrderRequest(id, marketId, typeVar, side, amount, price, orderParams)
+                AppendToArray(&ordersRequests,orderRequest)
+            }
+            orderSymbols = this.MarketSymbols(orderSymbols, nil, false, true, true)
+            var market interface{} = this.Market(GetValue(orderSymbols, 0))
+            if IsTrue(IsTrue(GetValue(market, "spot")) || IsTrue(GetValue(market, "option"))) {
+                panic(NotSupported(Add(Add(Add(this.Id, " editOrders() does not support "), GetValue(market, "type")), " orders")))
+            }
+            var response interface{} = nil
+            var request interface{} = map[string]interface{} {
+                "batchOrders": ordersRequests,
+            }
+            request = this.Extend(request, params)
+            if IsTrue(GetValue(market, "linear")) {
+                
+        response = (<-this.FapiPrivatePutBatchOrders(request))
+                PanicOnError(response)
+            } else if IsTrue(GetValue(market, "inverse")) {
+                
+        response = (<-this.DapiPrivatePutBatchOrders(request))
+                PanicOnError(response)
+            }
+        
+                //
+            //   [
+            //       {
+            //          "code": -4005,
+            //          "msg": "Quantity greater than max quantity."
+            //       },
+            //       {
+            //          "orderId": 650640530,
+            //          "symbol": "LTCUSDT",
+            //          "status": "NEW",
+            //          "clientOrderId": "x-xcKtGhcu32184eb13585491289bbaf",
+            //          "price": "54.00",
+            //          "avgPrice": "0.00",
+            //          "origQty": "0.100",
+            //          "executedQty": "0.000",
+            //          "cumQty": "0.000",
+            //          "cumQuote": "0.00000",
+            //          "timeInForce": "GTC",
+            //          "type": "LIMIT",
+            //          "reduceOnly": false,
+            //          "closePosition": false,
+            //          "side": "BUY",
+            //          "positionSide": "BOTH",
+            //          "stopPrice": "0.00",
+            //          "workingType": "CONTRACT_PRICE",
+            //          "priceProtect": false,
+            //          "origType": "LIMIT",
+            //          "priceMatch": "NONE",
+            //          "selfTradePreventionMode": "NONE",
+            //          "goodTillDate": 0,
+            //          "updateTime": 1698073926929
+            //       }
+            //   ]
+            //
+        ch <- this.ParseOrders(response)
+            return nil
+        
             }()
             return ch
         }
@@ -5868,7 +5812,7 @@ func  (this *binance) ParseOrder(order interface{}, optionalArgs ...interface{})
     //         "symbol": "BTCUSDT",
     //         "orderId": 16383176297,
     //         "orderListId": -1,
-    //         "clientOrderId": "x-R4BD3S8222ecb58eb9074fb1be018c",
+    //         "clientOrderId": "x-TKT5PX2F22ecb58eb9074fb1be018c",
     //         "transactTime": 1670891847932,
     //         "price": "13500.00000000",
     //         "origQty": "0.00085000",
@@ -5931,7 +5875,7 @@ func  (this *binance) ParseOrder(order interface{}, optionalArgs ...interface{})
     //       "symbol": "BTCUSDT",
     //       "orderId": 5403233939,
     //       "orderListId": -1,
-    //       "clientOrderId": "x-R4BD3S825e669e75b6c14f69a2c43e",
+    //       "clientOrderId": "x-TKT5PX2F5e669e75b6c14f69a2c43e",
     //       "transactTime": 1617151923742,
     //       "price": "0.00000000",
     //       "origQty": "0.00050000",
@@ -6106,7 +6050,7 @@ func  (this *binance) ParseOrder(order interface{}, optionalArgs ...interface{})
     // createOrder, cancelAllOrders, cancelOrder: portfolio margin spot margin
     //
     //     {
-    //         "clientOrderId": "x-R4BD3S82e9ef29d8346440f0b28b86",
+    //         "clientOrderId": "x-TKT5PX2Fe9ef29d8346440f0b28b86",
     //         "cummulativeQuoteQty": "0.00000000",
     //         "executedQty": "0.00000000",
     //         "fills": [],
@@ -6127,7 +6071,7 @@ func  (this *binance) ParseOrder(order interface{}, optionalArgs ...interface{})
     //     {
     //         "symbol": "BTCUSDT",
     //         "orderId": 24700763749,
-    //         "clientOrderId": "x-R4BD3S826f724c2a4af6425f98c7b6",
+    //         "clientOrderId": "x-TKT5PX2F6f724c2a4af6425f98c7b6",
     //         "price": "35000.00000000",
     //         "origQty": "0.00100000",
     //         "executedQty": "0.00000000",
@@ -6412,7 +6356,7 @@ func  (this *binance) ParseOrder(order interface{}, optionalArgs ...interface{})
  * @method
  * @name binance#createOrders
  * @description *contract only* create a list of trade orders
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Place-Multiple-Orders
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Place-Multiple-Orders
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Place-Multiple-Orders
  * @see https://developers.binance.com/docs/derivatives/option/trade/Place-Multiple-Orders
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
@@ -6427,8 +6371,8 @@ func  (this *binance) CreateOrders(orders interface{}, optionalArgs ...interface
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes61248 := (<-this.LoadMarkets())
-            PanicOnError(retRes61248)
+            retRes60498 := (<-this.LoadMarkets())
+            PanicOnError(retRes60498)
             var ordersRequests interface{} = []interface{}{}
             var orderSymbols interface{} = []interface{}{}
             for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
@@ -6512,12 +6456,12 @@ func  (this *binance) CreateOrders(orders interface{}, optionalArgs ...interface
  * @name binance#createOrder
  * @description create a trade order
  * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#test-new-order-trade
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/testnet/rest-api/trading-endpoints#test-new-order-trade
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Order
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/New-Order
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api
  * @see https://developers.binance.com/docs/derivatives/option/trade/New-Order
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#sor
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#test-new-order-using-sor-trade
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#sor
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/testnet/rest-api/trading-endpoints#sor
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-UM-Order
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-CM-Order
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-Margin-Order
@@ -6556,18 +6500,14 @@ func  (this *binance) CreateOrder(symbol interface{}, typeVar interface{}, side 
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes62338 := (<-this.LoadMarkets())
-            PanicOnError(retRes62338)
+            retRes61588 := (<-this.LoadMarkets())
+            PanicOnError(retRes61588)
             var market interface{} = this.Market(symbol)
+            // don't handle/omit params here, omitting happens inside createOrderRequest
             var marketType interface{} = this.SafeString(params, "type", GetValue(market, "type"))
-            var marginMode interface{} = nil
-            marginModeparamsVariable := this.HandleMarginModeAndParams("createOrder", params);
-            marginMode = GetValue(marginModeparamsVariable,0);
-            params = GetValue(marginModeparamsVariable,1)
-            var isPortfolioMargin interface{} = nil
-            isPortfolioMarginparamsVariable := this.HandleOptionAndParams2(params, "createOrder", "papi", "portfolioMargin", false);
-            isPortfolioMargin = GetValue(isPortfolioMarginparamsVariable,0);
-            params = GetValue(isPortfolioMarginparamsVariable,1)
+            var marginMode interface{} = this.SafeString(params, "marginMode")
+            var porfolioOptionsValue interface{} = this.SafeBool2(this.Options, "papi", "portfolioMargin", false)
+            var isPortfolioMargin interface{} = this.SafeBool2(params, "papi", "portfolioMargin", porfolioOptionsValue)
             var triggerPrice interface{} = this.SafeString2(params, "triggerPrice", "stopPrice")
             var stopLossPrice interface{} = this.SafeString(params, "stopLossPrice")
             var takeProfitPrice interface{} = this.SafeString(params, "takeProfitPrice")
@@ -6579,9 +6519,9 @@ func  (this *binance) CreateOrder(symbol interface{}, typeVar interface{}, side 
             var sor interface{} = this.SafeBool2(params, "sor", "SOR", false)
             var test interface{} = this.SafeBool(params, "test", false)
             params = this.Omit(params, []interface{}{"sor", "SOR", "test"})
-            if IsTrue(isPortfolioMargin) {
-                AddElementToObject(params, "portfolioMargin", isPortfolioMargin)
-            }
+            // if (isPortfolioMargin) {
+            //     params['portfolioMargin'] = isPortfolioMargin;
+            // }
             var request interface{} = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
             var response interface{} = nil
             if IsTrue(GetValue(market, "option")) {
@@ -6778,8 +6718,12 @@ func  (this *binance) CreateOrderRequest(symbol interface{}, typeVar interface{}
     var clientOrderIdRequest interface{} = Ternary(IsTrue(isPortfolioMarginConditional), "newClientStrategyId", "newClientOrderId")
     if IsTrue(IsEqual(clientOrderId, nil)) {
         var broker interface{} = this.SafeDict(this.Options, "broker", map[string]interface{} {})
-        var defaultId interface{} = Ternary(IsTrue((GetValue(market, "contract"))), "x-xcKtGhcu", "x-R4BD3S82")
-        var brokerId interface{} = this.SafeString(broker, marketType, defaultId)
+        var defaultId interface{} = Ternary(IsTrue((GetValue(market, "contract"))), "x-xcKtGhcu", "x-TKT5PX2F")
+        var idMarketType interface{} = "spot"
+        if IsTrue(GetValue(market, "contract")) {
+            idMarketType = Ternary(IsTrue((IsTrue(GetValue(market, "swap")) && IsTrue(GetValue(market, "linear")))), "swap", "inverse")
+        }
+        var brokerId interface{} = this.SafeString(broker, idMarketType, defaultId)
         AddElementToObject(request, clientOrderIdRequest, Add(brokerId, this.Uuid22()))
     } else {
         AddElementToObject(request, clientOrderIdRequest, clientOrderId)
@@ -6978,7 +6922,7 @@ func  (this *binance) CreateOrderRequest(symbol interface{}, typeVar interface{}
  * @method
  * @name binance#createMarketOrderWithCost
  * @description create a market order by providing the symbol, side and cost
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#new-order-trade
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} side 'buy' or 'sell'
  * @param {float} cost how much you want to trade in units of the quote currency
@@ -6993,17 +6937,19 @@ func  (this *binance) CreateMarketOrderWithCost(symbol interface{}, side interfa
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes66218 := (<-this.LoadMarkets())
-            PanicOnError(retRes66218)
+            retRes65508 := (<-this.LoadMarkets())
+            PanicOnError(retRes65508)
             var market interface{} = this.Market(symbol)
             if !IsTrue(GetValue(market, "spot")) {
                 panic(NotSupported(Add(this.Id, " createMarketOrderWithCost() supports spot orders only")))
             }
-            AddElementToObject(params, "cost", cost)
+            var req interface{} = map[string]interface{} {
+                "cost": cost,
+            }
         
-                retRes662715 :=  (<-this.CreateOrder(symbol, "market", side, cost, nil, params))
-                PanicOnError(retRes662715)
-                ch <- retRes662715
+                retRes655815 :=  (<-this.CreateOrder(symbol, "market", side, cost, nil, this.Extend(req, params)))
+                PanicOnError(retRes655815)
+                ch <- retRes655815
                 return nil
         
             }()
@@ -7013,7 +6959,7 @@ func  (this *binance) CreateMarketOrderWithCost(symbol interface{}, side interfa
  * @method
  * @name binance#createMarketBuyOrderWithCost
  * @description create a market buy order by providing the symbol and cost
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#new-order-trade
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -7027,17 +6973,19 @@ func  (this *binance) CreateMarketBuyOrderWithCost(symbol interface{}, cost inte
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes66418 := (<-this.LoadMarkets())
-            PanicOnError(retRes66418)
+            retRes65728 := (<-this.LoadMarkets())
+            PanicOnError(retRes65728)
             var market interface{} = this.Market(symbol)
             if !IsTrue(GetValue(market, "spot")) {
                 panic(NotSupported(Add(this.Id, " createMarketBuyOrderWithCost() supports spot orders only")))
             }
-            AddElementToObject(params, "cost", cost)
+            var req interface{} = map[string]interface{} {
+                "cost": cost,
+            }
         
-                retRes664715 :=  (<-this.CreateOrder(symbol, "market", "buy", cost, nil, params))
-                PanicOnError(retRes664715)
-                ch <- retRes664715
+                retRes658015 :=  (<-this.CreateOrder(symbol, "market", "buy", cost, nil, this.Extend(req, params)))
+                PanicOnError(retRes658015)
+                ch <- retRes658015
                 return nil
         
             }()
@@ -7047,7 +6995,7 @@ func  (this *binance) CreateMarketBuyOrderWithCost(symbol interface{}, cost inte
  * @method
  * @name binance#createMarketSellOrderWithCost
  * @description create a market sell order by providing the symbol and cost
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#new-order-trade
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -7061,17 +7009,17 @@ func  (this *binance) CreateMarketSellOrderWithCost(symbol interface{}, cost int
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes66618 := (<-this.LoadMarkets())
-            PanicOnError(retRes66618)
+            retRes65948 := (<-this.LoadMarkets())
+            PanicOnError(retRes65948)
             var market interface{} = this.Market(symbol)
             if !IsTrue(GetValue(market, "spot")) {
                 panic(NotSupported(Add(this.Id, " createMarketSellOrderWithCost() supports spot orders only")))
             }
             AddElementToObject(params, "quoteOrderQty", cost)
         
-                retRes666715 :=  (<-this.CreateOrder(symbol, "market", "sell", cost, nil, params))
-                PanicOnError(retRes666715)
-                ch <- retRes666715
+                retRes660015 :=  (<-this.CreateOrder(symbol, "market", "sell", cost, nil, params))
+                PanicOnError(retRes660015)
+                ch <- retRes660015
                 return nil
         
             }()
@@ -7081,9 +7029,9 @@ func  (this *binance) CreateMarketSellOrderWithCost(symbol interface{}, cost int
  * @method
  * @name binance#fetchOrder
  * @description fetches information on an order made by the user
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#query-order-user_data
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#query-order-user_data
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-Order
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Query-Order
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Query-Order
  * @see https://developers.binance.com/docs/derivatives/option/trade/Query-Single-Order
  * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Order
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-UM-Order
@@ -7108,8 +7056,8 @@ func  (this *binance) FetchOrder(id interface{}, optionalArgs ...interface{}) <-
                 panic(ArgumentsRequired(Add(this.Id, " fetchOrder() requires a symbol argument")))
             }
         
-            retRes66928 := (<-this.LoadMarkets())
-            PanicOnError(retRes66928)
+            retRes66258 := (<-this.LoadMarkets())
+            PanicOnError(retRes66258)
             var market interface{} = this.Market(symbol)
             var defaultType interface{} = this.SafeString2(this.Options, "fetchOrder", "defaultType", "spot")
             var typeVar interface{} = this.SafeString(params, "type", defaultType)
@@ -7189,9 +7137,9 @@ func  (this *binance) FetchOrder(id interface{}, optionalArgs ...interface{}) <-
  * @method
  * @name binance#fetchOrders
  * @description fetches information on multiple orders made by the user
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#all-orders-user_data
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#all-orders-user_data
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/All-Orders
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/All-Orders
  * @see https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
  * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
@@ -7226,17 +7174,17 @@ func  (this *binance) FetchOrders(optionalArgs ...interface{}) <- chan interface
                 panic(ArgumentsRequired(Add(this.Id, " fetchOrders() requires a symbol argument")))
             }
         
-            retRes67728 := (<-this.LoadMarkets())
-            PanicOnError(retRes67728)
+            retRes67058 := (<-this.LoadMarkets())
+            PanicOnError(retRes67058)
             var paginate interface{} = false
             paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "paginate");
             paginate = GetValue(paginateparamsVariable,0);
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
         
-                    retRes677619 :=  (<-this.FetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, params))
-                    PanicOnError(retRes677619)
-                    ch <- retRes677619
+                    retRes670919 :=  (<-this.FetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, params))
+                    PanicOnError(retRes670919)
+                    ch <- retRes670919
                     return nil
             }
             var market interface{} = this.Market(symbol)
@@ -7479,7 +7427,7 @@ func  (this *binance) FetchOrders(optionalArgs ...interface{}) <- chan interface
             //         {
             //             "symbol": "BTCUSDT",
             //             "orderId": 24684460474,
-            //             "clientOrderId": "x-R4BD3S82e9ef29d8346440f0b28b86",
+            //             "clientOrderId": "x-TKT5PX2Fe9ef29d8346440f0b28b86",
             //             "price": "35000.00000000",
             //             "origQty": "0.00100000",
             //             "executedQty": "0.00000000",
@@ -7510,9 +7458,9 @@ func  (this *binance) FetchOrders(optionalArgs ...interface{}) <- chan interface
  * @method
  * @name binance#fetchOpenOrders
  * @description fetch all unfilled currently open orders
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#current-open-orders-user_data
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#current-open-orders-user_data
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Current-All-Open-Orders
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Current-All-Open-Orders
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Current-All-Open-Orders
  * @see https://developers.binance.com/docs/derivatives/option/trade/Query-Current-Open-Option-Orders
  * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Open-Orders
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-UM-Open-Orders
@@ -7543,8 +7491,8 @@ func  (this *binance) FetchOpenOrders(optionalArgs ...interface{}) <- chan inter
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes70398 := (<-this.LoadMarkets())
-            PanicOnError(retRes70398)
+            retRes69728 := (<-this.LoadMarkets())
+            PanicOnError(retRes69728)
             var market interface{} = nil
             var typeVar interface{} = nil
             var request interface{} = map[string]interface{} {}
@@ -7650,7 +7598,7 @@ func  (this *binance) FetchOpenOrders(optionalArgs ...interface{}) <- chan inter
  * @name binance#fetchOpenOrder
  * @description fetch an open order by the id
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-Current-Open-Order
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Query-Current-Open-Order
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Query-Current-Open-Order
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-UM-Open-Order
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-UM-Open-Conditional-Order
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-CM-Open-Order
@@ -7675,8 +7623,8 @@ func  (this *binance) FetchOpenOrder(id interface{}, optionalArgs ...interface{}
                 panic(ArgumentsRequired(Add(this.Id, " fetchOpenOrder() requires a symbol argument")))
             }
         
-            retRes71318 := (<-this.LoadMarkets())
-            PanicOnError(retRes71318)
+            retRes70648 := (<-this.LoadMarkets())
+            PanicOnError(retRes70648)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -7889,9 +7837,9 @@ func  (this *binance) FetchOpenOrder(id interface{}, optionalArgs ...interface{}
  * @method
  * @name binance#fetchClosedOrders
  * @description fetches information on multiple closed orders made by the user
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#all-orders-user_data
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#all-orders-user_data
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/All-Orders
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/All-Orders
  * @see https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
  * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
@@ -7938,9 +7886,9 @@ func  (this *binance) FetchClosedOrders(optionalArgs ...interface{}) <- chan int
  * @method
  * @name binance#fetchCanceledOrders
  * @description fetches information on multiple canceled orders made by the user
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#all-orders-user_data
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#all-orders-user_data
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/All-Orders
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/All-Orders
  * @see https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
  * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
@@ -7987,9 +7935,9 @@ func  (this *binance) FetchCanceledOrders(optionalArgs ...interface{}) <- chan i
  * @method
  * @name binance#fetchCanceledAndClosedOrders
  * @description fetches information on multiple canceled orders made by the user
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#all-orders-user_data
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#all-orders-user_data
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/All-Orders
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/All-Orders
  * @see https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
  * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
@@ -8039,9 +7987,9 @@ func  (this *binance) FetchCanceledAndClosedOrders(optionalArgs ...interface{}) 
  * @method
  * @name binance#cancelOrder
  * @description cancels an open order
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#cancel-order-trade
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#cancel-order-trade
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-Order
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Cancel-Order
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Cancel-Order
  * @see https://developers.binance.com/docs/derivatives/option/trade/Cancel-Option-Order
  * @see https://developers.binance.com/docs/margin_trading/trade/Margin-Account-Cancel-Order
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-UM-Order
@@ -8069,8 +8017,8 @@ func  (this *binance) CancelOrder(id interface{}, optionalArgs ...interface{}) <
                 panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
             }
         
-            retRes74438 := (<-this.LoadMarkets())
-            PanicOnError(retRes74438)
+            retRes73768 := (<-this.LoadMarkets())
+            PanicOnError(retRes73768)
             var market interface{} = this.Market(symbol)
             var defaultType interface{} = this.SafeString2(this.Options, "cancelOrder", "defaultType", "spot")
             var typeVar interface{} = this.SafeString(params, "type", defaultType)
@@ -8171,8 +8119,9 @@ func  (this *binance) CancelOrder(id interface{}, optionalArgs ...interface{}) <
  * @method
  * @name binance#cancelAllOrders
  * @description cancel all open orders in a market
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#cancel-all-open-orders-on-a-symbol-trade
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#cancel-all-open-orders-on-a-symbol-trade
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-All-Open-Orders
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Cancel-All-Open-Orders
  * @see https://developers.binance.com/docs/derivatives/option/trade/Cancel-all-Option-orders-on-specific-symbol
  * @see https://developers.binance.com/docs/margin_trading/trade/Margin-Account-Cancel-All-Open-Orders
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-UM-Open-Orders
@@ -8200,8 +8149,8 @@ func  (this *binance) CancelAllOrders(optionalArgs ...interface{}) <- chan inter
                 panic(ArgumentsRequired(Add(this.Id, " cancelAllOrders() requires a symbol argument")))
             }
         
-            retRes75368 := (<-this.LoadMarkets())
-            PanicOnError(retRes75368)
+            retRes74708 := (<-this.LoadMarkets())
+            PanicOnError(retRes74708)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -8292,7 +8241,7 @@ func  (this *binance) CancelAllOrders(optionalArgs ...interface{}) <- chan inter
  * @name binance#cancelOrders
  * @description cancel multiple orders
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-Multiple-Orders
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Cancel-Multiple-Orders
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Cancel-Multiple-Orders
  * @param {string[]} ids order ids
  * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -8315,8 +8264,8 @@ func  (this *binance) CancelOrders(ids interface{}, optionalArgs ...interface{})
                 panic(ArgumentsRequired(Add(this.Id, " cancelOrders() requires a symbol argument")))
             }
         
-            retRes76988 := (<-this.LoadMarkets())
-            PanicOnError(retRes76988)
+            retRes76328 := (<-this.LoadMarkets())
+            PanicOnError(retRes76328)
             var market interface{} = this.Market(symbol)
             if !IsTrue(GetValue(market, "contract")) {
                 panic(BadRequest(Add(this.Id, " cancelOrders is only supported for swap markets.")))
@@ -8381,9 +8330,9 @@ func  (this *binance) CancelOrders(ids interface{}, optionalArgs ...interface{})
  * @method
  * @name binance#fetchOrderTrades
  * @description fetch all the trades made from a single order
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#account-trade-list-user_data
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/account-endpoints#account-trade-list-user_data
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Account-Trade-List
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Account-Trade-List
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Account-Trade-List
  * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Trade-List
  * @param {string} id order id
  * @param {string} symbol unified market symbol
@@ -8409,8 +8358,8 @@ func  (this *binance) FetchOrderTrades(id interface{}, optionalArgs ...interface
                 panic(ArgumentsRequired(Add(this.Id, " fetchOrderTrades() requires a symbol argument")))
             }
         
-            retRes77708 := (<-this.LoadMarkets())
-            PanicOnError(retRes77708)
+            retRes77048 := (<-this.LoadMarkets())
+            PanicOnError(retRes77048)
             var market interface{} = this.Market(symbol)
             var typeVar interface{} = this.SafeString(params, "type", GetValue(market, "type"))
             params = this.Omit(params, "type")
@@ -8421,9 +8370,9 @@ func  (this *binance) FetchOrderTrades(id interface{}, optionalArgs ...interface
                 "orderId": id,
             }
         
-                retRes778015 :=  (<-this.FetchMyTrades(symbol, since, limit, this.Extend(request, params)))
-                PanicOnError(retRes778015)
-                ch <- retRes778015
+                retRes771415 :=  (<-this.FetchMyTrades(symbol, since, limit, this.Extend(request, params)))
+                PanicOnError(retRes771415)
+                ch <- retRes771415
                 return nil
         
             }()
@@ -8433,9 +8382,9 @@ func  (this *binance) FetchOrderTrades(id interface{}, optionalArgs ...interface
  * @method
  * @name binance#fetchMyTrades
  * @description fetch all trades made by the user
- * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api#account-trade-list-user_data
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/account-endpoints#account-trade-list-user_data
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Account-Trade-List
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Account-Trade-List
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Account-Trade-List
  * @see https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Trade-List
  * @see https://developers.binance.com/docs/derivatives/option/trade/Account-Trade-List
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/UM-Account-Trade-List
@@ -8463,17 +8412,17 @@ func  (this *binance) FetchMyTrades(optionalArgs ...interface{}) <- chan interfa
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes78048 := (<-this.LoadMarkets())
-            PanicOnError(retRes78048)
+            retRes77388 := (<-this.LoadMarkets())
+            PanicOnError(retRes77388)
             var paginate interface{} = false
             paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate");
             paginate = GetValue(paginateparamsVariable,0);
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
         
-                    retRes780819 :=  (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
-                    PanicOnError(retRes780819)
-                    ch <- retRes780819
+                    retRes774219 :=  (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
+                    PanicOnError(retRes774219)
+                    ch <- retRes774219
                     return nil
             }
             var request interface{} = map[string]interface{} {}
@@ -8736,8 +8685,8 @@ func  (this *binance) FetchMyDustTrades(optionalArgs ...interface{}) <- chan int
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes80318 := (<-this.LoadMarkets())
-            PanicOnError(retRes80318)
+            retRes79658 := (<-this.LoadMarkets())
+            PanicOnError(retRes79658)
             var request interface{} = map[string]interface{} {}
             if IsTrue(!IsEqual(since, nil)) {
                 AddElementToObject(request, "startTime", since)
@@ -8900,17 +8849,17 @@ func  (this *binance) FetchDeposits(optionalArgs ...interface{}) <- chan interfa
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes81748 := (<-this.LoadMarkets())
-            PanicOnError(retRes81748)
+            retRes81088 := (<-this.LoadMarkets())
+            PanicOnError(retRes81088)
             var paginate interface{} = false
             paginateparamsVariable := this.HandleOptionAndParams(params, "fetchDeposits", "paginate");
             paginate = GetValue(paginateparamsVariable,0);
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
         
-                    retRes817819 :=  (<-this.FetchPaginatedCallDynamic("fetchDeposits", code, since, limit, params))
-                    PanicOnError(retRes817819)
-                    ch <- retRes817819
+                    retRes811219 :=  (<-this.FetchPaginatedCallDynamic("fetchDeposits", code, since, limit, params))
+                    PanicOnError(retRes811219)
+                    ch <- retRes811219
                     return nil
             }
             var currency interface{} = nil
@@ -8996,17 +8945,17 @@ func  (this *binance) FetchWithdrawals(optionalArgs ...interface{}) <- chan inte
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes82878 := (<-this.LoadMarkets())
-            PanicOnError(retRes82878)
+            retRes82218 := (<-this.LoadMarkets())
+            PanicOnError(retRes82218)
             var paginate interface{} = false
             paginateparamsVariable := this.HandleOptionAndParams(params, "fetchWithdrawals", "paginate");
             paginate = GetValue(paginateparamsVariable,0);
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
         
-                    retRes829119 :=  (<-this.FetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, params))
-                    PanicOnError(retRes829119)
-                    ch <- retRes829119
+                    retRes822519 :=  (<-this.FetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, params))
+                    PanicOnError(retRes822519)
+                    ch <- retRes822519
                     return nil
             }
             var legalMoney interface{} = this.SafeDict(this.Options, "legalMoney", map[string]interface{} {})
@@ -9205,7 +9154,7 @@ func  (this *binance) ParseTransaction(transaction interface{}, optionalArgs ...
     var internalInteger interface{} = this.SafeInteger(transaction, "transferType")
     var internal interface{} = nil
     if IsTrue(!IsEqual(internalInteger, nil)) {
-        internal = Ternary(IsTrue(internalInteger), true, false)
+        internal = Ternary(IsTrue((!IsEqual(internalInteger, 0))), true, false)
     }
     var network interface{} = this.SafeString(transaction, "network")
     return map[string]interface{} {
@@ -9392,8 +9341,8 @@ func  (this *binance) Transfer(code interface{}, amount interface{}, fromAccount
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes87288 := (<-this.LoadMarkets())
-            PanicOnError(retRes87288)
+            retRes86628 := (<-this.LoadMarkets())
+            PanicOnError(retRes86628)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "asset": GetValue(currency, "id"),
@@ -9514,8 +9463,8 @@ func  (this *binance) FetchTransfers(optionalArgs ...interface{}) <- chan interf
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes88308 := (<-this.LoadMarkets())
-            PanicOnError(retRes88308)
+            retRes87648 := (<-this.LoadMarkets())
+            PanicOnError(retRes87648)
             var internal interface{} = this.SafeBool(params, "internal")
             params = this.Omit(params, "internal")
             var paginate interface{} = false
@@ -9524,9 +9473,9 @@ func  (this *binance) FetchTransfers(optionalArgs ...interface{}) <- chan interf
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(IsTrue(paginate) && !IsTrue(internal)) {
         
-                    retRes883619 :=  (<-this.FetchPaginatedCallDynamic("fetchTransfers", code, since, limit, params))
-                    PanicOnError(retRes883619)
-                    ch <- retRes883619
+                    retRes877019 :=  (<-this.FetchPaginatedCallDynamic("fetchTransfers", code, since, limit, params))
+                    PanicOnError(retRes877019)
+                    ch <- retRes877019
                     return nil
             }
             var currency interface{} = nil
@@ -9605,8 +9554,8 @@ func  (this *binance) FetchDepositAddress(code interface{}, optionalArgs ...inte
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes89718 := (<-this.LoadMarkets())
-            PanicOnError(retRes89718)
+            retRes89058 := (<-this.LoadMarkets())
+            PanicOnError(retRes89058)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "coin": GetValue(currency, "id"),
@@ -9645,49 +9594,21 @@ func  (this *binance) FetchDepositAddress(code interface{}, optionalArgs ...inte
 func  (this *binance) ParseDepositAddress(response interface{}, optionalArgs ...interface{}) interface{}  {
     //
     //     {
-    //         "currency": "XRP",
+    //         "coin": "XRP",
     //         "address": "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh",
     //         "tag": "108618262",
-    //         "info": {
-    //             "coin": "XRP",
-    //             "address": "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh",
-    //             "tag": "108618262",
-    //             "url": "https://bithomp.com/explorer/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh"
-    //         }
+    //         "url": "https://bithomp.com/explorer/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh"
     //     }
     //
     currency := GetArg(optionalArgs, 0, nil)
     _ = currency
-    var info interface{} = this.SafeDict(response, "info", map[string]interface{} {})
-    var url interface{} = this.SafeString(info, "url")
+    var url interface{} = this.SafeString(response, "url")
     var address interface{} = this.SafeString(response, "address")
     var currencyId interface{} = this.SafeString(response, "currency")
     var code interface{} = this.SafeCurrencyCode(currencyId, currency)
-    var impliedNetwork interface{} = nil
-    if IsTrue(!IsEqual(url, nil)) {
-        var reverseNetworks interface{} = this.SafeDict(this.Options, "reverseNetworks", map[string]interface{} {})
-        var parts interface{} = Split(url, "/")
-        var topLevel interface{} = this.SafeString(parts, 2)
-        if IsTrue(IsTrue((IsEqual(topLevel, "blockchair.com"))) || IsTrue((IsEqual(topLevel, "viewblock.io")))) {
-            var subLevel interface{} = this.SafeString(parts, 3)
-            if IsTrue(!IsEqual(subLevel, nil)) {
-                topLevel = Add(Add(topLevel, "/"), subLevel)
-            }
-        }
-        impliedNetwork = this.SafeString(reverseNetworks, topLevel)
-        var impliedNetworks interface{} = this.SafeDict(this.Options, "impliedNetworks", map[string]interface{} {
-            "ETH": map[string]interface{} {
-                "ERC20": "ETH",
-            },
-            "TRX": map[string]interface{} {
-                "TRC20": "TRX",
-            },
-        })
-        if IsTrue(InOp(impliedNetworks, code)) {
-            var conversion interface{} = this.SafeDict(impliedNetworks, code, map[string]interface{} {})
-            impliedNetwork = this.SafeString(conversion, impliedNetwork, impliedNetwork)
-        }
-    }
+    // deposit-address endpoint provides only network url (not network ID/CODE)
+    // so we should map the url to network (their data is inside currencies)
+    var networkCode interface{} = this.GetNetworkCodeByNetworkUrl(code, url)
     var tag interface{} = this.SafeString(response, "tag", "")
     if IsTrue(IsEqual(GetLength(tag), 0)) {
         tag = nil
@@ -9696,7 +9617,7 @@ func  (this *binance) ParseDepositAddress(response interface{}, optionalArgs ...
     return map[string]interface{} {
         "info": response,
         "currency": code,
-        "network": impliedNetwork,
+        "network": networkCode,
         "address": address,
         "tag": tag,
     }
@@ -9721,8 +9642,8 @@ func  (this *binance) FetchTransactionFees(optionalArgs ...interface{}) <- chan 
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes90678 := (<-this.LoadMarkets())
-            PanicOnError(retRes90678)
+            retRes89778 := (<-this.LoadMarkets())
+            PanicOnError(retRes89778)
         
             response:= (<-this.SapiGetCapitalConfigGetall(params))
             PanicOnError(response)
@@ -9852,8 +9773,8 @@ func  (this *binance) FetchDepositWithdrawFees(optionalArgs ...interface{}) <- c
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes91828 := (<-this.LoadMarkets())
-            PanicOnError(retRes91828)
+            retRes90928 := (<-this.LoadMarkets())
+            PanicOnError(retRes90928)
         
             response:= (<-this.SapiGetCapitalConfigGetall(params))
             PanicOnError(response)
@@ -10002,8 +9923,8 @@ func  (this *binance) Withdraw(code interface{}, amount interface{}, address int
             params = GetValue(tagparamsVariable,1)
             this.CheckAddress(address)
         
-            retRes93138 := (<-this.LoadMarkets())
-            PanicOnError(retRes93138)
+            retRes92238 := (<-this.LoadMarkets())
+            PanicOnError(retRes92238)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "coin": GetValue(currency, "id"),
@@ -10068,7 +9989,7 @@ func  (this *binance) ParseTradingFee(fee interface{}, optionalArgs ...interface
  * @description fetch the trading fees for a market
  * @see https://developers.binance.com/docs/wallet/asset/trade-fee
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/User-Commission-Rate
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/User-Commission-Rate
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/User-Commission-Rate
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-User-Commission-Rate-for-UM
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-User-Commission-Rate-for-CM
  * @param {string} symbol unified market symbol
@@ -10085,8 +10006,8 @@ func  (this *binance) FetchTradingFee(symbol interface{}, optionalArgs ...interf
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes93838 := (<-this.LoadMarkets())
-            PanicOnError(retRes93838)
+            retRes92938 := (<-this.LoadMarkets())
+            PanicOnError(retRes92938)
             var market interface{} = this.Market(symbol)
             var typeVar interface{} = GetValue(market, "type")
             var subType interface{} = nil
@@ -10164,7 +10085,7 @@ func  (this *binance) FetchTradingFee(symbol interface{}, optionalArgs ...interf
  * @description fetch the trading fees for multiple markets
  * @see https://developers.binance.com/docs/wallet/asset/trade-fee
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Config
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subType] "linear" or "inverse"
@@ -10178,8 +10099,8 @@ func  (this *binance) FetchTradingFees(optionalArgs ...interface{}) <- chan inte
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes94508 := (<-this.LoadMarkets())
-            PanicOnError(retRes94508)
+            retRes93608 := (<-this.LoadMarkets())
+            PanicOnError(retRes93608)
             var typeVar interface{} = nil
             typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchTradingFees", nil, params);
             typeVar = GetValue(typeVarparamsVariable,0);
@@ -10386,8 +10307,8 @@ func  (this *binance) FuturesTransfer(code interface{}, amount interface{}, type
                 panic(ArgumentsRequired(Add(this.Id, " type must be between 1 and 4")))
             }
         
-            retRes96318 := (<-this.LoadMarkets())
-            PanicOnError(retRes96318)
+            retRes95418 := (<-this.LoadMarkets())
+            PanicOnError(retRes95418)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "asset": GetValue(currency, "id"),
@@ -10414,7 +10335,7 @@ func  (this *binance) FuturesTransfer(code interface{}, amount interface{}, type
  * @name binance#fetchFundingRate
  * @description fetch the current funding rate
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Index-Price-and-Mark-Price
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-and-Mark-Price
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -10427,8 +10348,8 @@ func  (this *binance) FetchFundingRate(symbol interface{}, optionalArgs ...inter
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes96588 := (<-this.LoadMarkets())
-            PanicOnError(retRes96588)
+            retRes95688 := (<-this.LoadMarkets())
+            PanicOnError(retRes95688)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -10472,7 +10393,7 @@ func  (this *binance) FetchFundingRate(symbol interface{}, optionalArgs ...inter
  * @name binance#fetchFundingRateHistory
  * @description fetches historical funding rate prices
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Get-Funding-Rate-History
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Get-Funding-Rate-History-of-Perpetual-Futures
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Get-Funding-Rate-History-of-Perpetual-Futures
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
  * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
@@ -10496,8 +10417,8 @@ func  (this *binance) FetchFundingRateHistory(optionalArgs ...interface{}) <- ch
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes97058 := (<-this.LoadMarkets())
-            PanicOnError(retRes97058)
+            retRes96158 := (<-this.LoadMarkets())
+            PanicOnError(retRes96158)
             var request interface{} = map[string]interface{} {}
             var paginate interface{} = false
             paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate");
@@ -10505,9 +10426,9 @@ func  (this *binance) FetchFundingRateHistory(optionalArgs ...interface{}) <- ch
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
         
-                    retRes971019 :=  (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
-                    PanicOnError(retRes971019)
-                    ch <- retRes971019
+                    retRes962019 :=  (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
+                    PanicOnError(retRes962019)
+                    ch <- retRes962019
                     return nil
             }
             var defaultType interface{} = this.SafeString2(this.Options, "fetchFundingRateHistory", "defaultType", "future")
@@ -10585,7 +10506,7 @@ func  (this *binance) ParseFundingRateHistory(contract interface{}, optionalArgs
  * @name binance#fetchFundingRates
  * @description fetch the funding rate for multiple markets
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Index-Price-and-Mark-Price
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-and-Mark-Price
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subType] "linear" or "inverse"
@@ -10601,8 +10522,8 @@ func  (this *binance) FetchFundingRates(optionalArgs ...interface{}) <- chan int
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes97838 := (<-this.LoadMarkets())
-            PanicOnError(retRes97838)
+            retRes96938 := (<-this.LoadMarkets())
+            PanicOnError(retRes96938)
             symbols = this.MarketSymbols(symbols)
             var defaultType interface{} = this.SafeString2(this.Options, "fetchFundingRates", "defaultType", "future")
             var typeVar interface{} = this.SafeString(params, "type", defaultType)
@@ -11233,8 +11154,8 @@ func  (this *binance) LoadLeverageBrackets(optionalArgs ...interface{}) <- chan 
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes103918 := (<-this.LoadMarkets())
-            PanicOnError(retRes103918)
+            retRes103018 := (<-this.LoadMarkets())
+            PanicOnError(retRes103018)
             // by default cache the leverage bracket
             // it contains useful stuff like the maintenance margin and initial margin for positions
             var leverageBrackets interface{} = this.SafeDict(this.Options, "leverageBrackets")
@@ -11274,7 +11195,7 @@ func  (this *binance) LoadLeverageBrackets(optionalArgs ...interface{}) <- chan 
                 } else {
                     panic(NotSupported(Add(this.Id, " loadLeverageBrackets() supports linear and inverse contracts only")))
                 }
-                AddElementToObject(this.Options, "leverageBrackets", map[string]interface{} {})
+                AddElementToObject(this.Options, "leverageBrackets", this.CreateSafeDictionary())
                 for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
                     var entry interface{} = GetValue(response, i)
                     var marketId interface{} = this.SafeString(entry, "symbol")
@@ -11302,7 +11223,7 @@ func  (this *binance) LoadLeverageBrackets(optionalArgs ...interface{}) <- chan 
  * @name binance#fetchLeverageTiers
  * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Notional-and-Leverage-Brackets
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Notional-Bracket-for-Symbol
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Notional-Bracket-for-Pair
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/UM-Notional-and-Leverage-Brackets
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/CM-Notional-and-Leverage-Brackets
  * @param {string[]|undefined} symbols list of unified market symbols
@@ -11321,8 +11242,8 @@ func  (this *binance) FetchLeverageTiers(optionalArgs ...interface{}) <- chan in
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes104538 := (<-this.LoadMarkets())
-            PanicOnError(retRes104538)
+            retRes103638 := (<-this.LoadMarkets())
+            PanicOnError(retRes103638)
             var typeVar interface{} = nil
             typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchLeverageTiers", nil, params);
             typeVar = GetValue(typeVarparamsVariable,0);
@@ -11465,8 +11386,8 @@ func  (this *binance) FetchPosition(symbol interface{}, optionalArgs ...interfac
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes105708 := (<-this.LoadMarkets())
-            PanicOnError(retRes105708)
+            retRes104808 := (<-this.LoadMarkets())
+            PanicOnError(retRes104808)
             var market interface{} = this.Market(symbol)
             if !IsTrue(GetValue(market, "option")) {
                 panic(NotSupported(Add(this.Id, " fetchPosition() supports option markets only")))
@@ -11526,8 +11447,8 @@ func  (this *binance) FetchOptionPositions(optionalArgs ...interface{}) <- chan 
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes106158 := (<-this.LoadMarkets())
-            PanicOnError(retRes106158)
+            retRes105258 := (<-this.LoadMarkets())
+            PanicOnError(retRes105258)
             symbols = this.MarketSymbols(symbols)
             var request interface{} = map[string]interface{} {}
             var market interface{} = nil
@@ -11646,9 +11567,9 @@ func  (this *binance) ParsePosition(position interface{}, optionalArgs ...interf
  * @name binance#fetchPositions
  * @description fetch all open positions
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Position-Information
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Position-Information
  * @see https://developers.binance.com/docs/derivatives/option/trade/Option-Position-Information
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -11680,21 +11601,21 @@ func  (this *binance) FetchPositions(optionalArgs ...interface{}) <- chan interf
             }
             if IsTrue(IsEqual(defaultMethod, "positionRisk")) {
         
-                    retRes1075019 :=  (<-this.FetchPositionsRisk(symbols, params))
-                    PanicOnError(retRes1075019)
-                    ch <- retRes1075019
+                    retRes1066019 :=  (<-this.FetchPositionsRisk(symbols, params))
+                    PanicOnError(retRes1066019)
+                    ch <- retRes1066019
                     return nil
             } else if IsTrue(IsEqual(defaultMethod, "account")) {
         
-                    retRes1075219 :=  (<-this.FetchAccountPositions(symbols, params))
-                    PanicOnError(retRes1075219)
-                    ch <- retRes1075219
+                    retRes1066219 :=  (<-this.FetchAccountPositions(symbols, params))
+                    PanicOnError(retRes1066219)
+                    ch <- retRes1066219
                     return nil
             } else if IsTrue(IsEqual(defaultMethod, "option")) {
         
-                    retRes1075419 :=  (<-this.FetchOptionPositions(symbols, params))
-                    PanicOnError(retRes1075419)
-                    ch <- retRes1075419
+                    retRes1066419 :=  (<-this.FetchOptionPositions(symbols, params))
+                    PanicOnError(retRes1066419)
+                    ch <- retRes1066419
                     return nil
             } else {
                 panic(NotSupported(Add(Add(Add(this.Id, ".options[\"fetchPositions\"][\"method\"] or params[\"method\"] = \""), defaultMethod), "\" is invalid, please choose between \"account\", \"positionRisk\" and \"option\"")))
@@ -11709,9 +11630,9 @@ func  (this *binance) FetchPositions(optionalArgs ...interface{}) <- chan interf
  * @ignore
  * @description fetch account positions
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Position-Information
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Position-Information
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V3
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -11736,11 +11657,11 @@ func  (this *binance) FetchAccountPositions(optionalArgs ...interface{}) <- chan
                 }
             }
         
-            retRes107848 := (<-this.LoadMarkets())
-            PanicOnError(retRes107848)
+            retRes106948 := (<-this.LoadMarkets())
+            PanicOnError(retRes106948)
         
-            retRes107858 := (<-this.LoadLeverageBrackets(false, params))
-            PanicOnError(retRes107858)
+            retRes106958 := (<-this.LoadLeverageBrackets(false, params))
+            PanicOnError(retRes106958)
             var defaultType interface{} = this.SafeString(this.Options, "defaultType", "future")
             var typeVar interface{} = this.SafeString(params, "type", defaultType)
             params = this.Omit(params, "type")
@@ -11805,7 +11726,7 @@ func  (this *binance) FetchAccountPositions(optionalArgs ...interface{}) <- chan
  * @ignore
  * @description fetch positions risk
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Position-Information
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Position-Information
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Query-UM-Position-Information
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Query-CM-Position-Information
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V3
@@ -11831,11 +11752,11 @@ func  (this *binance) FetchPositionsRisk(optionalArgs ...interface{}) <- chan in
                 }
             }
         
-            retRes109118 := (<-this.LoadMarkets())
-            PanicOnError(retRes109118)
+            retRes108218 := (<-this.LoadMarkets())
+            PanicOnError(retRes108218)
         
-            retRes109128 := (<-this.LoadLeverageBrackets(false, params))
-            PanicOnError(retRes109128)
+            retRes108228 := (<-this.LoadLeverageBrackets(false, params))
+            PanicOnError(retRes108228)
             var request interface{} = map[string]interface{} {}
             var defaultType interface{} = "future"
             defaultType = this.SafeString(this.Options, "defaultType", defaultType)
@@ -11986,7 +11907,7 @@ func  (this *binance) FetchPositionsRisk(optionalArgs ...interface{}) <- chan in
  * @name binance#fetchFundingHistory
  * @description fetch the history of funding payments paid and received on this account
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Get-Income-History
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Get-Income-History
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Get-Income-History
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Income-History
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Income-History
  * @param {string} symbol unified market symbol
@@ -12012,8 +11933,8 @@ func  (this *binance) FetchFundingHistory(optionalArgs ...interface{}) <- chan i
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes110828 := (<-this.LoadMarkets())
-            PanicOnError(retRes110828)
+            retRes109928 := (<-this.LoadMarkets())
+            PanicOnError(retRes109928)
             var market interface{} = nil
             var request interface{} = map[string]interface{} {
                 "incomeType": "FUNDING_FEE",
@@ -12081,7 +12002,7 @@ func  (this *binance) FetchFundingHistory(optionalArgs ...interface{}) <- chan i
  * @name binance#setLeverage
  * @description set the level of leverage for a market
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Change-Initial-Leverage
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Change-Initial-Leverage
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Change-Initial-Leverage
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Change-UM-Initial-Leverage
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Change-CM-Initial-Leverage
  * @param {float} leverage the rate of leverage
@@ -12108,8 +12029,8 @@ func  (this *binance) SetLeverage(leverage interface{}, optionalArgs ...interfac
                 panic(BadRequest(Add(this.Id, " leverage should be between 1 and 125")))
             }
         
-            retRes111508 := (<-this.LoadMarkets())
-            PanicOnError(retRes111508)
+            retRes110608 := (<-this.LoadMarkets())
+            PanicOnError(retRes110608)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -12155,7 +12076,7 @@ func  (this *binance) SetLeverage(leverage interface{}, optionalArgs ...interfac
  * @name binance#setMarginMode
  * @description set margin mode to 'cross' or 'isolated'
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Change-Margin-Type
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Change-Margin-Type
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Change-Margin-Type
  * @param {string} marginMode 'cross' or 'isolated'
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -12188,8 +12109,8 @@ func  (this *binance) SetMarginMode(marginMode interface{}, optionalArgs ...inte
                 panic(BadRequest(Add(this.Id, " marginMode must be either isolated or cross")))
             }
         
-            retRes112068 := (<-this.LoadMarkets())
-            PanicOnError(retRes112068)
+            retRes111168 := (<-this.LoadMarkets())
+            PanicOnError(retRes111168)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -12257,7 +12178,7 @@ func  (this *binance) SetMarginMode(marginMode interface{}, optionalArgs ...inte
  * @name binance#setPositionMode
  * @description set hedged to true or false for a market
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Change-Position-Mode
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Change-Position-Mode
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Change-Position-Mode
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Current-Position-Mode
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Current-Position-Mode
  * @param {bool} hedged set to true to use dualSidePosition
@@ -12338,7 +12259,7 @@ func  (this *binance) SetPositionMode(hedged interface{}, optionalArgs ...interf
  * @name binance#fetchLeverages
  * @description fetch the set leverage for all markets
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Account-Detail
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Account-Detail
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
@@ -12357,11 +12278,11 @@ func  (this *binance) FetchLeverages(optionalArgs ...interface{}) <- chan interf
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes113138 := (<-this.LoadMarkets())
-            PanicOnError(retRes113138)
+            retRes112238 := (<-this.LoadMarkets())
+            PanicOnError(retRes112238)
         
-            retRes113148 := (<-this.LoadLeverageBrackets(false, params))
-            PanicOnError(retRes113148)
+            retRes112248 := (<-this.LoadLeverageBrackets(false, params))
+            PanicOnError(retRes112248)
             var typeVar interface{} = nil
             typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchLeverages", nil, params);
             typeVar = GetValue(typeVarparamsVariable,0);
@@ -12467,8 +12388,8 @@ func  (this *binance) FetchSettlementHistory(optionalArgs ...interface{}) <- cha
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes113888 := (<-this.LoadMarkets())
-            PanicOnError(retRes113888)
+            retRes112988 := (<-this.LoadMarkets())
+            PanicOnError(retRes112988)
             var market interface{} = Ternary(IsTrue((IsEqual(symbol, nil))), nil, this.Market(symbol))
             var typeVar interface{} = nil
             typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchSettlementHistory", market, params);
@@ -12536,8 +12457,8 @@ func  (this *binance) FetchMySettlementHistory(optionalArgs ...interface{}) <- c
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes114358 := (<-this.LoadMarkets())
-            PanicOnError(retRes114358)
+            retRes113458 := (<-this.LoadMarkets())
+            PanicOnError(retRes113458)
             var market interface{} = Ternary(IsTrue((IsEqual(symbol, nil))), nil, this.Market(symbol))
             var typeVar interface{} = nil
             typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchMySettlementHistory", market, params);
@@ -12690,8 +12611,8 @@ func  (this *binance) FetchLedgerEntry(id interface{}, optionalArgs ...interface
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes115738 := (<-this.LoadMarkets())
-            PanicOnError(retRes115738)
+            retRes114838 := (<-this.LoadMarkets())
+            PanicOnError(retRes114838)
             var typeVar interface{} = nil
             typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchLedgerEntry", nil, params);
             typeVar = GetValue(typeVarparamsVariable,0);
@@ -12733,7 +12654,7 @@ func  (this *binance) FetchLedgerEntry(id interface{}, optionalArgs ...interface
  * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
  * @see https://developers.binance.com/docs/derivatives/option/account/Account-Funding-Flow
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Get-Income-History
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Get-Income-History
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Get-Income-History
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Income-History
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Income-History
  * @param {string} [code] unified currency code
@@ -12760,17 +12681,17 @@ func  (this *binance) FetchLedger(optionalArgs ...interface{}) <- chan interface
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes116218 := (<-this.LoadMarkets())
-            PanicOnError(retRes116218)
+            retRes115318 := (<-this.LoadMarkets())
+            PanicOnError(retRes115318)
             var paginate interface{} = false
             paginateparamsVariable := this.HandleOptionAndParams(params, "fetchLedger", "paginate");
             paginate = GetValue(paginateparamsVariable,0);
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
         
-                    retRes1162519 :=  (<-this.FetchPaginatedCallDynamic("fetchLedger", code, since, limit, params, nil, false))
-                    PanicOnError(retRes1162519)
-                    ch <- retRes1162519
+                    retRes1153519 :=  (<-this.FetchPaginatedCallDynamic("fetchLedger", code, since, limit, params, nil, false))
+                    PanicOnError(retRes1153519)
+                    ch <- retRes1153519
                     return nil
             }
             var typeVar interface{} = nil
@@ -12948,6 +12869,43 @@ func  (this *binance) ParseLedgerEntryType(typeVar interface{}) interface{}  {
     }
     return this.SafeString(ledgerType, typeVar, typeVar)
 }
+func  (this *binance) GetNetworkCodeByNetworkUrl(currencyCode interface{}, optionalArgs ...interface{}) interface{}  {
+    // depositUrl is like : https://bscscan.com/address/0xEF238AB229342849..
+    depositUrl := GetArg(optionalArgs, 0, nil)
+    _ = depositUrl
+    if IsTrue(IsEqual(depositUrl, nil)) {
+        return nil
+    }
+    var networkCode interface{} = nil
+    var currency interface{} = this.Currency(currencyCode)
+    var networks interface{} = this.SafeDict(currency, "networks", map[string]interface{} {})
+    var networkCodes interface{} = ObjectKeys(networks)
+    for i := 0; IsLessThan(i, GetArrayLength(networkCodes)); i++ {
+        var currentNetworkCode interface{} = GetValue(networkCodes, i)
+        var info interface{} = this.SafeDict(GetValue(networks, currentNetworkCode), "info", map[string]interface{} {})
+        var siteUrl interface{} = this.SafeString(info, "contractAddressUrl")
+        // check if url matches the field's value
+        if IsTrue(IsTrue(!IsEqual(siteUrl, nil)) && IsTrue(StartsWith(depositUrl, this.GetBaseDomainFromUrl(siteUrl)))) {
+            networkCode = currentNetworkCode
+        }
+    }
+    return networkCode
+}
+func  (this *binance) GetBaseDomainFromUrl(url interface{}) interface{}  {
+    if IsTrue(IsEqual(url, nil)) {
+        return nil
+    }
+    var urlParts interface{} = Split(url, "/")
+    var scheme interface{} = this.SafeString(urlParts, 0)
+    if IsTrue(IsEqual(scheme, nil)) {
+        return nil
+    }
+    var domain interface{} = this.SafeString(urlParts, 2)
+    if IsTrue(IsEqual(domain, nil)) {
+        return nil
+    }
+    return Add(Add(Add(scheme, "//"), domain), "/")
+}
 func  (this *binance) Sign(path interface{}, optionalArgs ...interface{}) interface{}  {
     api := GetArg(optionalArgs, 0, "public")
     _ = api
@@ -12996,7 +12954,7 @@ func  (this *binance) Sign(path interface{}, optionalArgs ...interface{}) interf
             if IsTrue(IsEqual(newClientOrderId, nil)) {
                 var isSpotOrMargin interface{} =                 (IsTrue(IsGreaterThan(GetIndexOf(api, "sapi"), OpNeg(1))) || IsTrue(IsEqual(api, "private")))
                 var marketType interface{} = Ternary(IsTrue(isSpotOrMargin), "spot", "future")
-                var defaultId interface{} = Ternary(IsTrue((!IsTrue(isSpotOrMargin))), "x-xcKtGhcu", "x-R4BD3S82")
+                var defaultId interface{} = Ternary(IsTrue((!IsTrue(isSpotOrMargin))), "x-xcKtGhcu", "x-TKT5PX2F")
                 var broker interface{} = this.SafeDict(this.Options, "broker", map[string]interface{} {})
                 var brokerId interface{} = this.SafeString(broker, marketType, defaultId)
                 AddElementToObject(params, "newClientOrderId", Add(brokerId, this.Uuid22()))
@@ -13004,9 +12962,26 @@ func  (this *binance) Sign(path interface{}, optionalArgs ...interface{}) interf
         }
         var query interface{} = nil
         // handle batchOrders
-        if IsTrue(IsTrue((IsEqual(path, "batchOrders"))) && IsTrue((IsEqual(method, "POST")))) {
-            var batchOrders interface{} = this.SafeValue(params, "batchOrders")
-            var queryBatch interface{} =             (this.Json(batchOrders))
+        if IsTrue(IsTrue((IsEqual(path, "batchOrders"))) && IsTrue((IsTrue((IsEqual(method, "POST"))) || IsTrue((IsEqual(method, "PUT")))))) {
+            var batchOrders interface{} = this.SafeList(params, "batchOrders")
+            var checkedBatchOrders interface{} = batchOrders
+            if IsTrue(IsTrue(IsEqual(method, "POST")) && IsTrue(IsEqual(api, "fapiPrivate"))) {
+                // check broker id if batchOrders are called with fapiPrivatePostBatchOrders
+                checkedBatchOrders = []interface{}{}
+                for i := 0; IsLessThan(i, GetArrayLength(batchOrders)); i++ {
+                    var batchOrder interface{} = GetValue(batchOrders, i)
+                    var newClientOrderId interface{} = this.SafeString(batchOrder, "newClientOrderId")
+                    if IsTrue(IsEqual(newClientOrderId, nil)) {
+                        var defaultId interface{} = "x-xcKtGhcu" // batchOrders can not be spot or margin
+                        var broker interface{} = this.SafeDict(this.Options, "broker", map[string]interface{} {})
+                        var brokerId interface{} = this.SafeString(broker, "future", defaultId)
+                        newClientOrderId = Add(brokerId, this.Uuid22())
+                        AddElementToObject(batchOrder, "newClientOrderId", newClientOrderId)
+                    }
+                    AppendToArray(&checkedBatchOrders,batchOrder)
+                }
+            }
+            var queryBatch interface{} =             (this.Json(checkedBatchOrders))
             AddElementToObject(params, "batchOrders", queryBatch)
         }
         var defaultRecvWindow interface{} = this.SafeInteger(this.Options, "recvWindow")
@@ -13264,8 +13239,8 @@ func  (this *binance) ModifyMarginHelper(symbol interface{}, amount interface{},
                 panic(NotSupported(Add(this.Id, " add / reduce margin only supported with type future or delivery")))
             }
         
-            retRes120448 := (<-this.LoadMarkets())
-            PanicOnError(retRes120448)
+            retRes120088 := (<-this.LoadMarkets())
+            PanicOnError(retRes120088)
             var market interface{} = this.Market(symbol)
             amount = this.AmountToPrecision(symbol, amount)
             var request interface{} = map[string]interface{} {
@@ -13354,7 +13329,7 @@ func  (this *binance) ParseMarginModification(data interface{}, optionalArgs ...
  * @name binance#reduceMargin
  * @description remove margin from a position
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Isolated-Position-Margin
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Isolated-Position-Margin
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Modify-Isolated-Position-Margin
  * @param {string} symbol unified market symbol
  * @param {float} amount the amount of margin to remove
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -13368,9 +13343,9 @@ func  (this *binance) ReduceMargin(symbol interface{}, amount interface{}, optio
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-                retRes1213115 :=  (<-this.ModifyMarginHelper(symbol, amount, 2, params))
-                PanicOnError(retRes1213115)
-                ch <- retRes1213115
+                retRes1209515 :=  (<-this.ModifyMarginHelper(symbol, amount, 2, params))
+                PanicOnError(retRes1209515)
+                ch <- retRes1209515
                 return nil
         
             }()
@@ -13381,7 +13356,7 @@ func  (this *binance) ReduceMargin(symbol interface{}, amount interface{}, optio
  * @name binance#addMargin
  * @description add margin
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Isolated-Position-Margin
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Isolated-Position-Margin
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Modify-Isolated-Position-Margin
  * @param {string} symbol unified market symbol
  * @param {float} amount amount of margin to add
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -13395,9 +13370,9 @@ func  (this *binance) AddMargin(symbol interface{}, amount interface{}, optional
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-                retRes1214615 :=  (<-this.ModifyMarginHelper(symbol, amount, 1, params))
-                PanicOnError(retRes1214615)
-                ch <- retRes1214615
+                retRes1211015 :=  (<-this.ModifyMarginHelper(symbol, amount, 1, params))
+                PanicOnError(retRes1211015)
+                ch <- retRes1211015
                 return nil
         
             }()
@@ -13420,8 +13395,8 @@ func  (this *binance) FetchCrossBorrowRate(code interface{}, optionalArgs ...int
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes121598 := (<-this.LoadMarkets())
-            PanicOnError(retRes121598)
+            retRes121238 := (<-this.LoadMarkets())
+            PanicOnError(retRes121238)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "asset": GetValue(currency, "id"),
@@ -13499,8 +13474,8 @@ func  (this *binance) FetchIsolatedBorrowRates(optionalArgs ...interface{}) <- c
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes122138 := (<-this.LoadMarkets())
-            PanicOnError(retRes122138)
+            retRes121778 := (<-this.LoadMarkets())
+            PanicOnError(retRes121778)
             var request interface{} = map[string]interface{} {}
             var symbol interface{} = this.SafeString(params, "symbol")
             params = this.Omit(params, "symbol")
@@ -13562,8 +13537,8 @@ func  (this *binance) FetchBorrowRateHistory(code interface{}, optionalArgs ...i
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes122588 := (<-this.LoadMarkets())
-            PanicOnError(retRes122588)
+            retRes122228 := (<-this.LoadMarkets())
+            PanicOnError(retRes122228)
             if IsTrue(IsEqual(limit, nil)) {
                 limit = 93
             } else if IsTrue(IsGreaterThan(limit, 93)) {
@@ -13679,8 +13654,8 @@ func  (this *binance) CreateGiftCode(code interface{}, amount interface{}, optio
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes123608 := (<-this.LoadMarkets())
-            PanicOnError(retRes123608)
+            retRes123248 := (<-this.LoadMarkets())
+            PanicOnError(retRes123248)
             var currency interface{} = this.Currency(code)
             // ensure you have enough token in your funding account before calling this code
             var request interface{} = map[string]interface{} {
@@ -13821,8 +13796,8 @@ func  (this *binance) FetchBorrowInterest(optionalArgs ...interface{}) <- chan i
             params := GetArg(optionalArgs, 4, map[string]interface{} {})
             _ = params
         
-            retRes124568 := (<-this.LoadMarkets())
-            PanicOnError(retRes124568)
+            retRes124208 := (<-this.LoadMarkets())
+            PanicOnError(retRes124208)
             var isPortfolioMargin interface{} = nil
             isPortfolioMarginparamsVariable := this.HandleOptionAndParams2(params, "fetchBorrowInterest", "papi", "portfolioMargin", false);
             isPortfolioMargin = GetValue(isPortfolioMarginparamsVariable,0);
@@ -13942,8 +13917,8 @@ func  (this *binance) RepayCrossMargin(code interface{}, amount interface{}, opt
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes125568 := (<-this.LoadMarkets())
-            PanicOnError(retRes125568)
+            retRes125208 := (<-this.LoadMarkets())
+            PanicOnError(retRes125208)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "asset": GetValue(currency, "id"),
@@ -14001,8 +13976,8 @@ func  (this *binance) RepayIsolatedMargin(symbol interface{}, code interface{}, 
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes126148 := (<-this.LoadMarkets())
-            PanicOnError(retRes126148)
+            retRes125788 := (<-this.LoadMarkets())
+            PanicOnError(retRes125788)
             var currency interface{} = this.Currency(code)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
@@ -14048,8 +14023,8 @@ func  (this *binance) BorrowCrossMargin(code interface{}, amount interface{}, op
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes126478 := (<-this.LoadMarkets())
-            PanicOnError(retRes126478)
+            retRes126118 := (<-this.LoadMarkets())
+            PanicOnError(retRes126118)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "asset": GetValue(currency, "id"),
@@ -14103,8 +14078,8 @@ func  (this *binance) BorrowIsolatedMargin(symbol interface{}, code interface{},
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes126848 := (<-this.LoadMarkets())
-            PanicOnError(retRes126848)
+            retRes126488 := (<-this.LoadMarkets())
+            PanicOnError(retRes126488)
             var currency interface{} = this.Currency(code)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
@@ -14166,7 +14141,7 @@ func  (this *binance) ParseMarginLoan(info interface{}, optionalArgs ...interfac
  * @name binance#fetchOpenInterestHistory
  * @description Retrieves the open interest history of a currency
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Open-Interest-Statistics
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Open-Interest-Statistics
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Open-Interest-Statistics
  * @param {string} symbol Unified CCXT market symbol
  * @param {string} timeframe "5m","15m","30m","1h","2h","4h","6h","12h", or "1d"
  * @param {int} [since] the time(ms) of the earliest record to retrieve as a unix timestamp
@@ -14193,17 +14168,17 @@ func  (this *binance) FetchOpenInterestHistory(symbol interface{}, optionalArgs 
                 panic(BadRequest(Add(this.Id, " fetchOpenInterestHistory cannot use the 1m timeframe")))
             }
         
-            retRes127538 := (<-this.LoadMarkets())
-            PanicOnError(retRes127538)
+            retRes127178 := (<-this.LoadMarkets())
+            PanicOnError(retRes127178)
             var paginate interface{} = false
             paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOpenInterestHistory", "paginate", false);
             paginate = GetValue(paginateparamsVariable,0);
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
         
-                    retRes1275719 :=  (<-this.FetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, timeframe, params, 500))
-                    PanicOnError(retRes1275719)
-                    ch <- retRes1275719
+                    retRes1272119 :=  (<-this.FetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, timeframe, params, 500))
+                    PanicOnError(retRes1272119)
+                    ch <- retRes1272119
                     return nil
             }
             var market interface{} = this.Market(symbol)
@@ -14266,7 +14241,7 @@ func  (this *binance) FetchOpenInterestHistory(symbol interface{}, optionalArgs 
  * @name binance#fetchOpenInterest
  * @description retrieves the open interest of a contract trading pair
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Open-Interest
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Open-Interest
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Open-Interest
  * @see https://developers.binance.com/docs/derivatives/option/market-data/Open-Interest
  * @param {string} symbol unified CCXT market symbol
  * @param {object} [params] exchange specific parameters
@@ -14280,8 +14255,8 @@ func  (this *binance) FetchOpenInterest(symbol interface{}, optionalArgs ...inte
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes128188 := (<-this.LoadMarkets())
-            PanicOnError(retRes128188)
+            retRes127828 := (<-this.LoadMarkets())
+            PanicOnError(retRes127828)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {}
             if IsTrue(GetValue(market, "option")) {
@@ -14385,7 +14360,7 @@ func  (this *binance) ParseOpenInterest(interest interface{}, optionalArgs ...in
  * @description retrieves the users liquidated positions
  * @see https://developers.binance.com/docs/margin_trading/trade/Get-Force-Liquidation-Record
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Users-Force-Orders
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Users-Force-Orders
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Users-Force-Orders
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Users-UM-Force-Orders
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Users-CM-Force-Orders
  * @param {string} [symbol] unified CCXT market symbol
@@ -14413,17 +14388,17 @@ func  (this *binance) FetchMyLiquidations(optionalArgs ...interface{}) <- chan i
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes129238 := (<-this.LoadMarkets())
-            PanicOnError(retRes129238)
+            retRes128878 := (<-this.LoadMarkets())
+            PanicOnError(retRes128878)
             var paginate interface{} = false
             paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyLiquidations", "paginate");
             paginate = GetValue(paginateparamsVariable,0);
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
         
-                    retRes1292719 :=  (<-this.FetchPaginatedCallIncremental("fetchMyLiquidations", symbol, since, limit, params, "current", 100))
-                    PanicOnError(retRes1292719)
-                    ch <- retRes1292719
+                    retRes1289119 :=  (<-this.FetchPaginatedCallIncremental("fetchMyLiquidations", symbol, since, limit, params, "current", 100))
+                    PanicOnError(retRes1289119)
+                    ch <- retRes1289119
                     return nil
             }
             var market interface{} = nil
@@ -14686,8 +14661,8 @@ func  (this *binance) FetchGreeks(symbol interface{}, optionalArgs ...interface{
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes131578 := (<-this.LoadMarkets())
-            PanicOnError(retRes131578)
+            retRes131218 := (<-this.LoadMarkets())
+            PanicOnError(retRes131218)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -14794,7 +14769,7 @@ func  (this *binance) FetchTradingLimits(optionalArgs ...interface{}) <- chan in
  * @name binance#fetchPositionMode
  * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Get-Current-Position-Mode
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Get-Current-Position-Mode
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Get-Current-Position-Mode
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subType] "linear" or "inverse"
@@ -14849,7 +14824,7 @@ func  (this *binance) FetchPositionMode(optionalArgs ...interface{}) <- chan int
  * @method
  * @name binance#fetchMarginModes
  * @description fetches margin modes ("isolated" or "cross") that the market for the symbol in in, with symbol=undefined all markets for a subType (linear/inverse) are returned
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
  * @param {string[]} symbols unified market symbols
@@ -14867,8 +14842,8 @@ func  (this *binance) FetchMarginModes(optionalArgs ...interface{}) <- chan inte
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes132898 := (<-this.LoadMarkets())
-            PanicOnError(retRes132898)
+            retRes132538 := (<-this.LoadMarkets())
+            PanicOnError(retRes132538)
             var market interface{} = nil
             if IsTrue(!IsEqual(symbols, nil)) {
                 symbols = this.MarketSymbols(symbols)
@@ -14906,7 +14881,7 @@ func  (this *binance) FetchMarginModes(optionalArgs ...interface{}) <- chan inte
  * @name binance#fetchMarginMode
  * @description fetches the margin mode of a specific symbol
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subType] "linear" or "inverse"
@@ -14920,8 +14895,8 @@ func  (this *binance) FetchMarginMode(symbol interface{}, optionalArgs ...interf
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes133838 := (<-this.LoadMarkets())
-            PanicOnError(retRes133838)
+            retRes133478 := (<-this.LoadMarkets())
+            PanicOnError(retRes133478)
             var market interface{} = this.Market(symbol)
             var subType interface{} = nil
             subTypeparamsVariable := this.HandleSubTypeAndParams("fetchMarginMode", market, params);
@@ -14989,8 +14964,8 @@ func  (this *binance) FetchOption(symbol interface{}, optionalArgs ...interface{
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes134428 := (<-this.LoadMarkets())
-            PanicOnError(retRes134428)
+            retRes134068 := (<-this.LoadMarkets())
+            PanicOnError(retRes134068)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -15084,7 +15059,7 @@ func  (this *binance) ParseOption(chain interface{}, optionalArgs ...interface{}
  * @name binance#fetchMarginAdjustmentHistory
  * @description fetches the history of margin added or reduced from contract isolated positions
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Get-Position-Margin-Change-History
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Get-Position-Margin-Change-History
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Get-Position-Margin-Change-History
  * @param {string} symbol unified market symbol
  * @param {string} [type] "add" or "reduce"
  * @param {int} [since] timestamp in ms of the earliest change to fetch
@@ -15109,8 +15084,8 @@ func  (this *binance) FetchMarginAdjustmentHistory(optionalArgs ...interface{}) 
             params := GetArg(optionalArgs, 4, map[string]interface{} {})
             _ = params
         
-            retRes135378 := (<-this.LoadMarkets())
-            PanicOnError(retRes135378)
+            retRes135018 := (<-this.LoadMarkets())
+            PanicOnError(retRes135018)
             if IsTrue(IsEqual(symbol, nil)) {
                 panic(ArgumentsRequired(Add(this.Id, " fetchMarginAdjustmentHistory () requires a symbol argument")))
             }
@@ -15183,8 +15158,8 @@ func  (this *binance) FetchConvertCurrencies(optionalArgs ...interface{}) <- cha
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes135958 := (<-this.LoadMarkets())
-            PanicOnError(retRes135958)
+            retRes135598 := (<-this.LoadMarkets())
+            PanicOnError(retRes135598)
         
             response:= (<-this.SapiGetConvertAssetInfo(params))
             PanicOnError(response)
@@ -15262,8 +15237,8 @@ func  (this *binance) FetchConvertQuote(fromCode interface{}, toCode interface{}
                 panic(ArgumentsRequired(Add(this.Id, " fetchConvertQuote() requires an amount argument")))
             }
         
-            retRes136588 := (<-this.LoadMarkets())
-            PanicOnError(retRes136588)
+            retRes136228 := (<-this.LoadMarkets())
+            PanicOnError(retRes136228)
             var request interface{} = map[string]interface{} {
                 "fromAsset": fromCode,
                 "toAsset": toCode,
@@ -15313,8 +15288,8 @@ func  (this *binance) CreateConvertTrade(id interface{}, fromCode interface{}, t
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes136938 := (<-this.LoadMarkets())
-            PanicOnError(retRes136938)
+            retRes136578 := (<-this.LoadMarkets())
+            PanicOnError(retRes136578)
             var request interface{} = map[string]interface{} {}
             var response interface{} = nil
             if IsTrue(IsTrue((IsEqual(fromCode, "BUSD"))) || IsTrue((IsEqual(toCode, "BUSD")))) {
@@ -15363,8 +15338,8 @@ func  (this *binance) FetchConvertTrade(id interface{}, optionalArgs ...interfac
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes137388 := (<-this.LoadMarkets())
-            PanicOnError(retRes137388)
+            retRes137028 := (<-this.LoadMarkets())
+            PanicOnError(retRes137028)
             var request interface{} = map[string]interface{} {}
             var response interface{} = nil
             if IsTrue(IsEqual(code, "BUSD")) {
@@ -15434,8 +15409,8 @@ func  (this *binance) FetchConvertTradeHistory(optionalArgs ...interface{}) <- c
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes138188 := (<-this.LoadMarkets())
-            PanicOnError(retRes138188)
+            retRes137828 := (<-this.LoadMarkets())
+            PanicOnError(retRes137828)
             var request interface{} = map[string]interface{} {}
             var msInThirtyDays interface{} = 2592000000
             var now interface{} = this.Milliseconds()
@@ -15586,8 +15561,8 @@ func  (this *binance) ParseConversion(conversion interface{}, optionalArgs ...in
  * @method
  * @name binance#fetchFundingIntervals
  * @description fetch the funding rate interval for multiple markets
- * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Get-Funding-Info
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Get-Funding-Info
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Get-Funding-Rate-Info
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Get-Funding-Info
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subType] "linear" or "inverse"
@@ -15603,8 +15578,8 @@ func  (this *binance) FetchFundingIntervals(optionalArgs ...interface{}) <- chan
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes140068 := (<-this.LoadMarkets())
-            PanicOnError(retRes140068)
+            retRes139708 := (<-this.LoadMarkets())
+            PanicOnError(retRes139708)
             var market interface{} = nil
             if IsTrue(!IsEqual(symbols, nil)) {
                 symbols = this.MarketSymbols(symbols)
@@ -15650,7 +15625,7 @@ func  (this *binance) FetchFundingIntervals(optionalArgs ...interface{}) <- chan
  * @name binance#fetchLongShortRatioHistory
  * @description fetches the long short ratio history for a unified market symbol
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Long-Short-Ratio
- * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Long-Short-Ratio
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Long-Short-Ratio
  * @param {string} symbol unified symbol of the market to fetch the long short ratio for
  * @param {string} [timeframe] the period for the ratio, default is 24 hours
  * @param {int} [since] the earliest time in ms to fetch ratios for
@@ -15675,8 +15650,8 @@ func  (this *binance) FetchLongShortRatioHistory(optionalArgs ...interface{}) <-
             params := GetArg(optionalArgs, 4, map[string]interface{} {})
             _ = params
         
-            retRes140528 := (<-this.LoadMarkets())
-            PanicOnError(retRes140528)
+            retRes140168 := (<-this.LoadMarkets())
+            PanicOnError(retRes140168)
             var market interface{} = this.Market(symbol)
             if IsTrue(IsEqual(timeframe, nil)) {
                 timeframe = "1d"
@@ -15757,6 +15732,6 @@ func  (this *binance) ParseLongShortRatio(info interface{}, optionalArgs ...inte
 
 func (this *binance) Init(userConfig map[string]interface{}) {
     this.Exchange = Exchange{}
-    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
     this.Exchange.DerivedExchange = this
+    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
 }

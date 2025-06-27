@@ -5,9 +5,9 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.woofipro import ImplicitAPI
-from ccxt.base.types import Balances, Currencies, Currency, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, FundingRate, FundingRates, Trade, TradingFees, Transaction
+import asyncio
+from ccxt.base.types import Any, Balances, Currencies, Currency, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, FundingRate, FundingRates, Trade, TradingFees, Transaction
 from typing import List
-from typing import Any
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -23,7 +23,7 @@ from ccxt.base.precise import Precise
 
 class woofipro(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(woofipro, self).describe(), {
             'id': 'woofipro',
             'name': 'WOOFI PRO',
@@ -471,7 +471,7 @@ class woofipro(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def fetch_time(self, params={}):
+    async def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -549,7 +549,7 @@ class woofipro(Exchange, ImplicitAPI):
             'active': None,
             'contract': True,
             'linear': True,
-            'inverse': None,
+            'inverse': False,
             'contractSize': self.parse_number('1'),
             'expiry': None,
             'expiryDatetime': None,
@@ -634,13 +634,14 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetches all available currencies on an exchange
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-token-info
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-supported-collateral-info#get-supported-collateral-info
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-supported-chains-per-builder#get-supported-chains-per-builder
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
         result: dict = {}
-        response = await self.v1PublicGetPublicToken(params)
+        tokenPromise = self.v1PublicGetPublicToken(params)
         #
         # {
         #     "success": True,
@@ -663,25 +664,28 @@ class woofipro(Exchange, ImplicitAPI):
         #     }
         # }
         #
-        data = self.safe_dict(response, 'data', {})
-        tokenRows = self.safe_list(data, 'rows', [])
+        chainPromise = self.v1PublicGetPublicChainInfo(params)
+        tokenResponse, chainResponse = await asyncio.gather(*[tokenPromise, chainPromise])
+        tokenData = self.safe_dict(tokenResponse, 'data', {})
+        tokenRows = self.safe_list(tokenData, 'rows', [])
+        chainData = self.safe_dict(chainResponse, 'data', {})
+        chainRows = self.safe_list(chainData, 'rows', [])
+        indexedChains = self.index_by(chainRows, 'chain_id')
         for i in range(0, len(tokenRows)):
             token = tokenRows[i]
             currencyId = self.safe_string(token, 'token')
             networks = self.safe_list(token, 'chain_details')
             code = self.safe_currency_code(currencyId)
-            minPrecision = None
             resultingNetworks: dict = {}
             for j in range(0, len(networks)):
-                network = networks[j]
-                # TODO: transform chain id to human readable name
-                networkId = self.safe_string(network, 'chain_id')
-                precision = self.parse_precision(self.safe_string(network, 'decimals'))
-                if precision is not None:
-                    minPrecision = precision if (minPrecision is None) else Precise.string_min(precision, minPrecision)
-                resultingNetworks[networkId] = {
+                networkEntry = networks[j]
+                networkId = self.safe_string(networkEntry, 'chain_id')
+                networkRow = self.safe_dict(indexedChains, networkId)
+                networkName = self.safe_string(networkRow, 'name')
+                networkCode = self.network_id_to_code(networkName, code)
+                resultingNetworks[networkCode] = {
                     'id': networkId,
-                    'network': networkId,
+                    'network': networkCode,
                     'limits': {
                         'withdraw': {
                             'min': None,
@@ -695,15 +699,15 @@ class woofipro(Exchange, ImplicitAPI):
                     'active': None,
                     'deposit': None,
                     'withdraw': None,
-                    'fee': self.safe_number(network, 'withdrawal_fee'),
-                    'precision': self.parse_number(precision),
-                    'info': network,
+                    'fee': self.safe_number(networkEntry, 'withdrawal_fee'),
+                    'precision': self.parse_number(self.parse_precision(self.safe_string(networkEntry, 'decimals'))),
+                    'info': [networkEntry, networkRow],
                 }
-            result[code] = {
+            result[code] = self.safe_currency_structure({
                 'id': currencyId,
-                'name': currencyId,
+                'name': None,
                 'code': code,
-                'precision': self.parse_number(minPrecision),
+                'precision': None,
                 'active': None,
                 'fee': None,
                 'networks': resultingNetworks,
@@ -720,7 +724,7 @@ class woofipro(Exchange, ImplicitAPI):
                     },
                 },
                 'info': token,
-            }
+            })
         return result
 
     def parse_token_and_fee_temp(self, item, feeTokenKey, feeAmountKey):
@@ -2600,7 +2604,7 @@ class woofipro(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data')
         return self.parse_position(data, market)
 
-    async def fetch_positions(self, symbols: Strings = None, params={}):
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open positions
 

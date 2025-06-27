@@ -10,12 +10,12 @@ use ccxt\async\abstract\coinmetro as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class coinmetro extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coinmetro',
             'name' => 'Coinmetro',
@@ -382,24 +382,38 @@ class coinmetro extends Exchange {
                 $currency = $response[$i];
                 $id = $this->safe_string($currency, 'symbol');
                 $code = $this->safe_currency_code($id);
-                $withdraw = $this->safe_value($currency, 'canWithdraw');
-                $deposit = $this->safe_value($currency, 'canDeposit');
-                $canTrade = $this->safe_value($currency, 'canTrade');
-                $active = $canTrade ? $withdraw : true;
-                $minAmount = $this->safe_number($currency, 'minQty');
+                $typeRaw = $this->safe_string($currency, 'type');
+                $type = null;
+                if ($typeRaw === 'coin' || $typeRaw === 'token' || $typeRaw === 'erc20') {
+                    $type = 'crypto';
+                } elseif ($typeRaw === 'fiat') {
+                    $type = 'fiat';
+                }
+                $precisionDigits = $this->safe_string_2($currency, 'digits', 'notabeneDecimals');
+                if ($code === 'RENDER') {
+                    // RENDER is an exception (with broken info)
+                    $precisionDigits = '4';
+                }
                 $result[$code] = $this->safe_currency_structure(array(
                     'id' => $id,
                     'code' => $code,
                     'name' => $code,
+                    'type' => $type,
                     'info' => $currency,
-                    'active' => $active,
-                    'deposit' => $deposit,
-                    'withdraw' => $withdraw,
+                    'active' => $this->safe_bool($currency, 'canTrade'),
+                    'deposit' => $this->safe_bool($currency, 'canDeposit'),
+                    'withdraw' => $this->safe_bool($currency, 'canWithdraw'),
                     'fee' => null,
-                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'digits'))),
+                    'precision' => $this->parse_number($this->parse_precision($precisionDigits)),
                     'limits' => array(
-                        'amount' => array( 'min' => $minAmount, 'max' => null ),
-                        'withdraw' => array( 'min' => null, 'max' => null ),
+                        'amount' => array(
+                            'min' => $this->safe_number($currency, 'minQty'),
+                            'max' => null,
+                        ),
+                        'withdraw' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
                     ),
                     'networks' => array(),
                 ));

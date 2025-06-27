@@ -10,12 +10,12 @@ use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\NetworkError;
 use ccxt\ChecksumError;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class cryptocom extends \ccxt\async\cryptocom {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -34,6 +34,7 @@ class cryptocom extends \ccxt\async\cryptocom {
                 'createOrderWs' => true,
                 'cancelOrderWs' => true,
                 'cancelAllOrders' => true,
+                'editOrderWs' => true,
             ),
             'urls' => array(
                 'api' => array(
@@ -1144,6 +1145,34 @@ class cryptocom extends \ccxt\async\cryptocom {
         }) ();
     }
 
+    public function edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * edit a trade order
+             *
+             * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-amend-order
+             *
+             * @param {string} $id order $id
+             * @param {string} $symbol unified market $symbol of the order to edit
+             * @param {string} [$type] not used by cryptocom editOrder
+             * @param {string} [$side] not used by cryptocom editOrder
+             * @param {float} $amount (mandatory) how much of the currency you want to trade in units of the base currency
+             * @param {float} $price (mandatory) the $price for the order, in units of the quote currency, ignored in market orders
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->clientOrderId] the original client order $id of the order to edit, required if $id is not provided
+             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            $params = $this->edit_order_request($id, $symbol, $amount, $price, $params);
+            $request = array(
+                'method' => 'private/amend-order',
+                'params' => $params,
+            );
+            $messageHash = $this->nonce();
+            return Async\await($this->watch_private_request($messageHash, $request));
+        }) ();
+    }
+
     public function handle_order(Client $client, $message) {
         //
         //    {
@@ -1418,6 +1447,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             'public/heartbeat' => array($this, 'handle_ping'),
             'public/auth' => array($this, 'handle_authenticate'),
             'private/create-order' => array($this, 'handle_order'),
+            'private/amend-order' => array($this, 'handle_order'),
             'private/cancel-order' => array($this, 'handle_order'),
             'private/cancel-all-orders' => array($this, 'handle_cancel_all_orders'),
             'private/close-position' => array($this, 'handle_order'),

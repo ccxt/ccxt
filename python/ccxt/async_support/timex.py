@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.timex import ImplicitAPI
-from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -24,7 +24,7 @@ from ccxt.base.precise import Precise
 
 class timex(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(timex, self).describe(), {
             'id': 'timex',
             'name': 'TimeX',
@@ -354,7 +354,7 @@ class timex(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_time(self, params={}):
+    async def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1393,11 +1393,6 @@ class timex(Exchange, ImplicitAPI):
         #
         id = self.safe_string(currency, 'symbol')
         code = self.safe_currency_code(id)
-        name = self.safe_string(currency, 'name')
-        depositEnabled = self.safe_value(currency, 'depositEnabled')
-        withdrawEnabled = self.safe_value(currency, 'withdrawalEnabled')
-        isActive = self.safe_value(currency, 'active')
-        active = depositEnabled and withdrawEnabled and isActive
         # fee = self.safe_number(currency, 'withdrawalFee')
         feeString = self.safe_string(currency, 'withdrawalFee')
         tradeDecimals = self.safe_integer(currency, 'tradeDecimals')
@@ -1419,14 +1414,14 @@ class timex(Exchange, ImplicitAPI):
             'code': code,
             'info': currency,
             'type': None,
-            'name': name,
-            'active': active,
-            'deposit': depositEnabled,
-            'withdraw': withdrawEnabled,
+            'name': self.safe_string(currency, 'name'),
+            'active': self.safe_bool(currency, 'active'),
+            'deposit': self.safe_bool(currency, 'depositEnabled'),
+            'withdraw': self.safe_bool(currency, 'withdrawalEnabled'),
             'fee': fee,
             'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'decimals'))),
             'limits': {
-                'withdraw': {'min': fee, 'max': None},
+                'withdraw': {'min': None, 'max': None},
                 'amount': {'min': None, 'max': None},
             },
             'networks': {},
@@ -1526,7 +1521,7 @@ class timex(Exchange, ImplicitAPI):
                 'cost': feeCost,
                 'currency': feeCurrency,
             }
-        return {
+        return self.safe_trade({
             'info': trade,
             'id': id,
             'timestamp': timestamp,
@@ -1540,7 +1535,7 @@ class timex(Exchange, ImplicitAPI):
             'cost': cost,
             'takerOrMaker': takerOrMaker,
             'fee': fee,
-        }
+        })
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #

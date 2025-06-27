@@ -5,9 +5,10 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.phemex import ImplicitAPI
+import asyncio
 import hashlib
 import numbers
-from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, Int, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Conversion, Currencies, Currency, DepositAddress, Int, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -29,7 +30,7 @@ from ccxt.base.precise import Precise
 
 class phemex(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(phemex, self).describe(), {
             'id': 'phemex',
             'name': 'Phemex',
@@ -50,6 +51,7 @@ class phemex(Exchange, ImplicitAPI):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'closePosition': False,
+                'createConvertTrade': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': True,
                 'createStopLimitOrder': True,
@@ -60,6 +62,9 @@ class phemex(Exchange, ImplicitAPI):
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
                 'fetchClosedOrders': True,
+                'fetchConvertQuote': True,
+                'fetchConvertTrade': False,
+                'fetchConvertTradeHistory': True,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
@@ -593,6 +598,7 @@ class phemex(Exchange, ImplicitAPI):
                 },
                 'defaultNetworks': {
                     'USDT': 'ETH',
+                    'MKR': 'ETH',
                 },
                 'defaultSubType': 'linear',
                 'accountsByType': {
@@ -681,7 +687,8 @@ class phemex(Exchange, ImplicitAPI):
         #     }
         #
         id = self.safe_string(market, 'symbol')
-        baseId = self.safe_string_2(market, 'baseCurrency', 'contractUnderlyingAssets')
+        contractUnderlyingAssets = self.safe_string(market, 'contractUnderlyingAssets')
+        baseId = self.safe_string(market, 'baseCurrency', contractUnderlyingAssets)
         quoteId = self.safe_string(market, 'quoteCurrency')
         settleId = self.safe_string(market, 'settleCurrency')
         base = self.safe_currency_code(baseId)
@@ -691,6 +698,9 @@ class phemex(Exchange, ImplicitAPI):
         inverse = False
         if settleId != quoteId:
             inverse = True
+            # some unhandled cases
+            if not ('baseCurrency' in market) and base == quote:
+                base = settle
         priceScale = self.safe_integer(market, 'priceScale')
         ratioScale = self.safe_integer(market, 'ratioScale')
         valueScale = self.safe_integer(market, 'valueScale')
@@ -876,7 +886,7 @@ class phemex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        v2Products = await self.v2GetPublicProducts(params)
+        v2ProductsPromise = self.v2GetPublicProducts(params)
         #
         #     {
         #         "code":0,
@@ -1026,7 +1036,8 @@ class phemex(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        v1Products = await self.v1GetExchangePublicProducts(params)
+        v1ProductsPromise = self.v1GetExchangePublicProducts(params)
+        v2Products, v1Products = await asyncio.gather(*[v2ProductsPromise, v1ProductsPromise])
         v1ProductsData = self.safe_value(v1Products, 'data', [])
         #
         #     {
@@ -1063,14 +1074,14 @@ class phemex(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        v2ProductsData = self.safe_value(v2Products, 'data', {})
-        products = self.safe_value(v2ProductsData, 'products', [])
-        perpetualProductsV2 = self.safe_value(v2ProductsData, 'perpProductsV2', [])
+        v2ProductsData = self.safe_dict(v2Products, 'data', {})
+        products = self.safe_list(v2ProductsData, 'products', [])
+        perpetualProductsV2 = self.safe_list(v2ProductsData, 'perpProductsV2', [])
         products = self.array_concat(products, perpetualProductsV2)
-        riskLimits = self.safe_value(v2ProductsData, 'riskLimits', [])
-        riskLimitsV2 = self.safe_value(v2ProductsData, 'riskLimitsV2', [])
+        riskLimits = self.safe_list(v2ProductsData, 'riskLimits', [])
+        riskLimitsV2 = self.safe_list(v2ProductsData, 'riskLimitsV2', [])
         riskLimits = self.array_concat(riskLimits, riskLimitsV2)
-        currencies = self.safe_value(v2ProductsData, 'currencies', [])
+        currencies = self.safe_list(v2ProductsData, 'currencies', [])
         riskLimitsById = self.index_by(riskLimits, 'symbol')
         v1ProductsById = self.index_by(v1ProductsData, 'symbol')
         currenciesByCode = self.index_by(currencies, 'currency')
@@ -1078,16 +1089,16 @@ class phemex(Exchange, ImplicitAPI):
         for i in range(0, len(products)):
             market = products[i]
             type = self.safe_string_lower(market, 'type')
-            if (type == 'perpetual') or (type == 'perpetualv2'):
+            if (type == 'perpetual') or (type == 'perpetualv2') or (type == 'perpetualpilot'):
                 id = self.safe_string(market, 'symbol')
-                riskLimitValues = self.safe_value(riskLimitsById, id, {})
+                riskLimitValues = self.safe_dict(riskLimitsById, id, {})
                 market = self.extend(market, riskLimitValues)
-                v1ProductsValues = self.safe_value(v1ProductsById, id, {})
+                v1ProductsValues = self.safe_dict(v1ProductsById, id, {})
                 market = self.extend(market, v1ProductsValues)
                 market = self.parse_swap_market(market)
             else:
                 baseCurrency = self.safe_string(market, 'baseCurrency')
-                currencyValues = self.safe_value(currenciesByCode, baseCurrency, {})
+                currencyValues = self.safe_dict(currenciesByCode, baseCurrency, {})
                 valueScale = self.safe_string(currencyValues, 'valueScale', '8')
                 market = self.extend(market, {'valueScale': valueScale})
                 market = self.parse_spot_market(market)
@@ -1121,9 +1132,7 @@ class phemex(Exchange, ImplicitAPI):
         for i in range(0, len(currencies)):
             currency = currencies[i]
             id = self.safe_string(currency, 'currency')
-            name = self.safe_string(currency, 'name')
             code = self.safe_currency_code(id)
-            status = self.safe_string(currency, 'status')
             valueScaleString = self.safe_string(currency, 'valueScale')
             valueScale = int(valueScaleString)
             minValueEv = self.safe_string(currency, 'minValueEv')
@@ -1136,12 +1145,12 @@ class phemex(Exchange, ImplicitAPI):
                 precision = self.parse_number(precisionString)
                 minAmount = self.parse_number(Precise.string_mul(minValueEv, precisionString))
                 maxAmount = self.parse_number(Precise.string_mul(maxValueEv, precisionString))
-            result[code] = {
+            result[code] = self.safe_currency_structure({
                 'id': id,
                 'info': currency,
                 'code': code,
-                'name': name,
-                'active': status == 'Listed',
+                'name': self.safe_string(currency, 'name'),
+                'active': self.safe_string(currency, 'status') == 'Listed',
                 'deposit': None,
                 'withdraw': None,
                 'fee': None,
@@ -1157,8 +1166,9 @@ class phemex(Exchange, ImplicitAPI):
                     },
                 },
                 'valueScale': valueScale,
-                'networks': {},
-            }
+                'networks': None,
+                'type': 'crypto',
+            })
         return result
 
     def custom_parse_bid_ask(self, bidask, priceKey=0, amountKey=1, market: Market = None):
@@ -1254,7 +1264,7 @@ class phemex(Exchange, ImplicitAPI):
         precise.decimals = precise.decimals - scale
         precise.reduce()
         preciseString = str(precise)
-        return self.parse_to_int(preciseString)
+        return self.parse_to_numeric(preciseString)
 
     def to_ev(self, amount, market: Market = None):
         if (amount is None) or (market is None):
@@ -2547,7 +2557,6 @@ class phemex(Exchange, ImplicitAPI):
         market = self.market(symbol)
         requestSide = self.capitalize(side)
         type = self.capitalize(type)
-        reduceOnly = self.safe_bool(params, 'reduceOnly')
         request: dict = {
             # common
             'symbol': market['id'],
@@ -2630,8 +2639,10 @@ class phemex(Exchange, ImplicitAPI):
             posSide = self.safe_string_lower(params, 'posSide')
             if posSide is None:
                 if hedged:
+                    reduceOnly = self.safe_bool(params, 'reduceOnly')
                     if reduceOnly:
                         side = 'sell' if (side == 'buy') else 'buy'
+                        params = self.omit(params, 'reduceOnly')
                     posSide = 'Long' if (side == 'buy') else 'Short'
                 else:
                     posSide = 'Merged'
@@ -2709,7 +2720,6 @@ class phemex(Exchange, ImplicitAPI):
             else:
                 request['stopLossEp'] = self.to_ep(stopLossPrice, market)
             params = self.omit(params, 'stopLossPrice')
-        params = self.omit(params, 'reduceOnly')
         response = None
         if market['settle'] == 'USDT':
             response = await self.privatePostGOrders(self.extend(request, params))
@@ -3313,6 +3323,7 @@ class phemex(Exchange, ImplicitAPI):
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.network]: the chain name to fetch the deposit address e.g. ETH, TRX, EOS, SOL, etc.
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         await self.load_markets()
@@ -3323,20 +3334,26 @@ class phemex(Exchange, ImplicitAPI):
         defaultNetworks = self.safe_dict(self.options, 'defaultNetworks')
         defaultNetwork = self.safe_string_upper(defaultNetworks, code)
         networks = self.safe_dict(self.options, 'networks', {})
-        network = self.safe_string_upper(params, 'network', defaultNetwork)
+        network = self.safe_string_upper_2(params, 'network', 'chainName', defaultNetwork)
         network = self.safe_string(networks, network, network)
         if network is None:
-            request['chainName'] = currency['id']
+            raise ArgumentsRequired(self.id + ' fetchDepositAddress() requires a network parameter')
         else:
             request['chainName'] = network
             params = self.omit(params, 'network')
-        response = await self.privateGetPhemexUserWalletsV2DepositAddress(self.extend(request, params))
+        response = await self.privateGetExchangeWalletsV2DepositAddress(self.extend(request, params))
+        #
         #     {
-        #         "code":0,
-        #         "msg":"OK",
-        #         "data":{
-        #             "address":"0x5bfbf60e0fa7f63598e6cfd8a7fd3ffac4ccc6ad",
-        #             "tag":null
+        #         "code": 0,
+        #         "msg": "OK",
+        #         "data": {
+        #             "address": "tb1qxel5wq5gumt",
+        #             "tag": "",
+        #             "notice": False,
+        #             "accountType": 1,
+        #             "contractName": null,
+        #             "chainTokenUrl": null,
+        #             "sign": null
         #         }
         #     }
         #
@@ -3561,7 +3578,7 @@ class phemex(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    async def fetch_positions(self, symbols: Strings = None, params={}):
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open positions
 
@@ -3571,14 +3588,14 @@ class phemex(Exchange, ImplicitAPI):
 
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.code]: the currency code to fetch positions for, USD, BTC or USDT, USD is the default
+        :param str [params.code]: the currency code to fetch positions for, USD, BTC or USDT, USDT is the default
         :param str [params.method]: *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetAccountsPositions' default is 'privateGetGAccountsAccountPositions'
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
         subType = None
-        code = self.safe_string_2(params, 'currency', 'code', 'USD')
+        code = self.safe_string_2(params, 'currency', 'code', 'USDT')
         params = self.omit(params, ['currency', 'code'])
         settle = None
         market = None
@@ -4759,6 +4776,218 @@ class phemex(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }, market)
+
+    async def fetch_convert_quote(self, fromCode: str, toCode: str, amount: Num = None, params={}) -> Conversion:
+        """
+        fetch a quote for converting from one currency to another
+
+        https://phemex-docs.github.io/#rfq-quote
+
+        :param str fromCode: the currency that you want to sell and convert from
+        :param str toCode: the currency that you want to buy and convert into
+        :param float amount: how much you want to trade in units of the from currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `conversion structure <https://docs.ccxt.com/#/?id=conversion-structure>`
+        """
+        await self.load_markets()
+        fromCurrency = self.currency(fromCode)
+        toCurrency = self.currency(toCode)
+        valueScale = self.safe_integer(fromCurrency, 'valueScale')
+        request: dict = {
+            'fromCurrency': fromCode,
+            'toCurrency': toCode,
+            'fromAmountEv': self.to_en(amount, valueScale),
+        }
+        response = await self.privateGetAssetsQuote(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "OK",
+        #         "data": {
+        #             "code": "GIF...AAA",
+        #             "quoteArgs": {
+        #                 "origin": 10,
+        #                 "price": "0.00000939",
+        #                 "proceeds": "0.00000000",
+        #                 "ttlMs": 7000,
+        #                 "expireAt": 1739875826009,
+        #                 "requestAt": 1739875818009,
+        #                 "quoteAt": 1739875816594
+        #             }
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        return self.parse_conversion(data, fromCurrency, toCurrency)
+
+    async def create_convert_trade(self, id: str, fromCode: str, toCode: str, amount: Num = None, params={}) -> Conversion:
+        """
+        convert from one currency to another
+
+        https://phemex-docs.github.io/#convert
+
+        :param str id: the id of the trade that you want to make
+        :param str fromCode: the currency that you want to sell and convert from
+        :param str toCode: the currency that you want to buy and convert into
+        :param float [amount]: how much you want to trade in units of the from currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `conversion structure <https://docs.ccxt.com/#/?id=conversion-structure>`
+        """
+        await self.load_markets()
+        fromCurrency = self.currency(fromCode)
+        toCurrency = self.currency(toCode)
+        valueScale = self.safe_integer(fromCurrency, 'valueScale')
+        request: dict = {
+            'code': id,
+            'fromCurrency': fromCode,
+            'toCurrency': toCode,
+        }
+        if amount is not None:
+            request['fromAmountEv'] = self.to_en(amount, valueScale)
+        response = await self.privatePostAssetsConvert(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "OK",
+        #         "data": {
+        #             "moveOp": 0,
+        #             "fromCurrency": "USDT",
+        #             "toCurrency": "BTC",
+        #             "fromAmountEv": 4000000000,
+        #             "toAmountEv": 41511,
+        #             "linkKey": "45c8ed8e-d3f4-472d-8262-e464e8c46247",
+        #             "status": 10
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        fromCurrencyId = self.safe_string(data, 'fromCurrency')
+        fromResult = self.safe_currency(fromCurrencyId, fromCurrency)
+        toCurrencyId = self.safe_string(data, 'toCurrency')
+        to = self.safe_currency(toCurrencyId, toCurrency)
+        return self.parse_conversion(data, fromResult, to)
+
+    async def fetch_convert_trade_history(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Conversion]:
+        """
+        fetch the users history of conversion trades
+
+        https://phemex-docs.github.io/#query-convert-history
+
+        :param str [code]: the unified currency code
+        :param int [since]: the earliest time in ms to fetch conversions for
+        :param int [limit]: the maximum number of conversion structures to retrieve, default 20, max 200
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.until]: the end time in ms
+        :param str [params.fromCurrency]: the currency that you sold and converted from
+        :param str [params.toCurrency]: the currency that you bought and converted into
+        :returns dict[]: a list of `conversion structures <https://docs.ccxt.com/#/?id=conversion-structure>`
+        """
+        await self.load_markets()
+        request: dict = {}
+        if code is not None:
+            request['fromCurrency'] = code
+        if since is not None:
+            request['startTime'] = since
+        if limit is not None:
+            request['limit'] = limit
+        request, params = self.handle_until_option('endTime', request, params)
+        response = await self.privateGetAssetsConvert(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "OK",
+        #         "data": {
+        #             "total": 2,
+        #             "rows": [
+        #                 {
+        #                     "linkKey": "45c8ed8e-d3f4-472d-8262-e464e8c46247",
+        #                     "createTime": 1739882294000,
+        #                     "fromCurrency": "USDT",
+        #                     "toCurrency": "BTC",
+        #                     "fromAmountEv": 4000000000,
+        #                     "toAmountEv": 41511,
+        #                     "status": 10,
+        #                     "conversionRate": 1037,
+        #                     "errorCode": 0
+        #                 },
+        #             ]
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        rows = self.safe_list(data, 'rows', [])
+        return self.parse_conversions(rows, code, 'fromCurrency', 'toCurrency', since, limit)
+
+    def parse_conversion(self, conversion: dict, fromCurrency: Currency = None, toCurrency: Currency = None) -> Conversion:
+        #
+        # fetchConvertQuote
+        #
+        #     {
+        #         "code": "GIF...AAA",
+        #         "quoteArgs": {
+        #             "origin": 10,
+        #             "price": "0.00000939",
+        #             "proceeds": "0.00000000",
+        #             "ttlMs": 7000,
+        #             "expireAt": 1739875826009,
+        #             "requestAt": 1739875818009,
+        #             "quoteAt": 1739875816594
+        #         }
+        #     }
+        #
+        # createConvertTrade
+        #
+        #     {
+        #         "moveOp": 0,
+        #         "fromCurrency": "USDT",
+        #         "toCurrency": "BTC",
+        #         "fromAmountEv": 4000000000,
+        #         "toAmountEv": 41511,
+        #         "linkKey": "45c8ed8e-d3f4-472d-8262-e464e8c46247",
+        #         "status": 10
+        #     }
+        #
+        # fetchConvertTradeHistory
+        #
+        #     {
+        #         "linkKey": "45c8ed8e-d3f4-472d-8262-e464e8c46247",
+        #         "createTime": 1739882294000,
+        #         "fromCurrency": "USDT",
+        #         "toCurrency": "BTC",
+        #         "fromAmountEv": 4000000000,
+        #         "toAmountEv": 41511,
+        #         "status": 10,
+        #         "conversionRate": 1037,
+        #         "errorCode": 0
+        #     }
+        #
+        quoteArgs = self.safe_dict(conversion, 'quoteArgs', {})
+        requestTime = self.safe_integer(quoteArgs, 'requestAt')
+        timestamp = self.safe_integer(conversion, 'createTime', requestTime)
+        fromCoin = self.safe_string(conversion, 'fromCurrency', self.safe_string(fromCurrency, 'code'))
+        fromCode = self.safe_currency_code(fromCoin, fromCurrency)
+        toCoin = self.safe_string(conversion, 'toCurrency', self.safe_string(toCurrency, 'code'))
+        toCode = self.safe_currency_code(toCoin, toCurrency)
+        fromValueScale = self.safe_integer(fromCurrency, 'valueScale')
+        toValueScale = self.safe_integer(toCurrency, 'valueScale')
+        fromAmount = self.from_en(self.safe_string(conversion, 'fromAmountEv'), fromValueScale)
+        if fromAmount is None and quoteArgs is not None:
+            fromAmount = self.from_en(self.safe_string(quoteArgs, 'origin'), fromValueScale)
+        toAmount = self.from_en(self.safe_string(conversion, 'toAmountEv'), toValueScale)
+        if toAmount is None and quoteArgs is not None:
+            toAmount = self.from_en(self.safe_string(quoteArgs, 'proceeds'), toValueScale)
+        return {
+            'info': conversion,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'id': self.safe_string(conversion, 'code'),
+            'fromCurrency': fromCode,
+            'fromAmount': self.parse_number(fromAmount),
+            'toCurrency': toCode,
+            'toAmount': self.parse_number(toAmount),
+            'price': self.safe_number(quoteArgs, 'price'),
+            'fee': None,
+        }
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:

@@ -3511,6 +3511,22 @@ func (this *binanceus) SapiGetPortfolioNegativeBalanceExchangeRecord (args ...in
    return ch
 }
 
+func (this *binanceus) SapiGetPortfolioPmloanHistory (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("sapiGetPortfolioPmloanHistory", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
 func (this *binanceus) SapiGetStakingProductList (args ...interface{}) <-chan interface{} {
    parameters := GetArg(args, 0, nil)
    ch := make(chan interface{})

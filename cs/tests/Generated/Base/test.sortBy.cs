@@ -39,10 +39,8 @@ public partial class BaseTest
         }, new Dictionary<string, object>() {
             { "x", 5 },
         }});
-            try
-            {
-                object newArrayDescending = exchange.sortBy(arr, "x", true);
-                AssertDeepEqual(exchange, null, "sortBy", newArrayDescending, new List<object>() {new Dictionary<string, object>() {
+            object newArrayDescending = exchange.sortBy(arr, "x", true);
+            AssertDeepEqual(exchange, null, "sortBy", newArrayDescending, new List<object>() {new Dictionary<string, object>() {
             { "x", 5 },
         }, new Dictionary<string, object>() {
             { "x", 4 },
@@ -55,18 +53,7 @@ public partial class BaseTest
         }, new Dictionary<string, object>() {
             { "x", 0 },
         }});
-                object emptyArray = exchange.sortBy(new List<object>() {}, "x");
-                AssertDeepEqual(exchange, null, "sortBy", emptyArray, new List<object>() {});
-            } catch(Exception e)
-            {
-                // skip c# , todo
-                if (isTrue(isTrue(isTrue((((object)e).ToString()).Contains("BaseTest.Assert")) || isTrue((((object)e).ToString()).Contains("at System."))) || isTrue((((object)e).ToString()).Contains("at ccxt.Exchange."))))
-                {
-                    return;
-                } else
-                {
-                    throw e;
-                }
-            }
+            object emptyArray = exchange.sortBy(new List<object>() {}, "x");
+            AssertDeepEqual(exchange, null, "sortBy", emptyArray, new List<object>() {});
         }
 }

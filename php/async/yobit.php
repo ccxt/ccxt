@@ -10,13 +10,13 @@ use ccxt\async\abstract\yobit as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\Precise;
-use React\Async;
-use React\Promise;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise;
+use \React\Promise\PromiseInterface;
 
 class yobit extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'yobit',
             'name' => 'YoBit',
@@ -1288,7 +1288,7 @@ class yobit extends Exchange {
         }) ();
     }
 
-    public function create_deposit_address(string $code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              *
@@ -1309,6 +1309,7 @@ class yobit extends Exchange {
                 'currency' => $code,
                 'address' => $address,
                 'tag' => null,
+                'network' => null,
                 'info' => $response['info'],
             );
         }) ();

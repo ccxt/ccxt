@@ -10,7 +10,7 @@ use ccxt\abstract\blockchaincom as Exchange;
 
 class blockchaincom extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'blockchaincom',
             'secret' => null,

@@ -7,7 +7,7 @@ on:
     branches: [ main, master ]
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     if: ${{ !startsWith(github.event.head_commit.message, '[Automated changes]') && !contains(github.event.head_commit.message, 'Merge branch ''master'' of https://github.com/ccxt/ccxt') }}
     timeout-minutes: 60
     steps:
@@ -114,7 +114,7 @@ jobs:
             git commit -m "[Automated changes] GO files" || echo "No changes to commit."
             git remote set-url origin https://${GITHUB_TOKEN}@github.com/${{ github.repository }}
             git config --global pull.rebase false
-            git pull origin master
+            git pull --rebase --autostash origin master
             git push
 
   live-tests:

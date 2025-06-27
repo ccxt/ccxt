@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.luno import ImplicitAPI
-from ccxt.base.types import Account, Balances, Currency, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface
+from ccxt.base.types import Account, Any, Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -15,7 +15,7 @@ from ccxt.base.precise import Precise
 
 class luno(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(luno, self).describe(), {
             'id': 'luno',
             'name': 'luno',
@@ -35,6 +35,7 @@ class luno(Exchange, ImplicitAPI):
                 'cancelOrder': True,
                 'closeAllPositions': False,
                 'closePosition': False,
+                'createDepositAddress': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
                 'fetchAccounts': True,
@@ -43,6 +44,8 @@ class luno(Exchange, ImplicitAPI):
                 'fetchClosedOrders': True,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
+                'fetchCurrencies': True,
+                'fetchDepositAddress': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -123,6 +126,7 @@ class luno(Exchange, ImplicitAPI):
                         'accounts/{id}/transactions': 1,
                         'balance': 1,
                         'beneficiaries': 1,
+                        'send/networks': 1,
                         'fee_info': 1,
                         'funding_address': 1,
                         'listorders': 1,
@@ -262,6 +266,90 @@ class luno(Exchange, ImplicitAPI):
                 },
             },
         })
+
+    def fetch_currencies(self, params={}) -> Currencies:
+        """
+        fetches all available currencies on an exchange
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an associative dictionary of currencies
+        """
+        if not self.check_required_credentials(False):
+            return None
+        response = self.privateGetSendNetworks(params)
+        #
+        #     {
+        #         "networks": [
+        #           {
+        #             "id": 0,
+        #             "name": "Ethereum",
+        #             "native_currency": "ETH"
+        #           },
+        #           ...
+        #         ]
+        #     }
+        #
+        currenciesData = self.safe_list(response, 'data', [])
+        result: dict = {}
+        for i in range(0, len(currenciesData)):
+            networkEntry = currenciesData[i]
+            id = self.safe_string(networkEntry, 'native_currency')
+            code = self.safe_currency_code(id)
+            if not (code in result):
+                result[code] = {
+                    'id': id,
+                    'code': code,
+                    'precision': None,
+                    'type': None,
+                    'name': None,
+                    'active': None,
+                    'deposit': None,
+                    'withdraw': None,
+                    'fee': None,
+                    'limits': {
+                        'withdraw': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'deposit': {
+                            'min': None,
+                            'max': None,
+                        },
+                    },
+                    'networks': {},
+                    'info': {},
+                }
+            networkId = self.safe_string(networkEntry, 'name')
+            networkCode = self.network_id_to_code(networkId)
+            result[code]['networks'][networkCode] = {
+                'id': networkId,
+                'network': networkCode,
+                'limits': {
+                    'withdraw': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'deposit': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+                'active': None,
+                'deposit': None,
+                'withdraw': None,
+                'fee': None,
+                'precision': None,
+                'info': networkEntry,
+            }
+            # add entry in info
+            info = self.safe_list(result[code], 'info', [])
+            info.append(networkEntry)
+            result[code]['info'] = info
+        # only after all entries are formed in currencies, restructure each entry
+        allKeys = list(result.keys())
+        for i in range(0, len(allKeys)):
+            code = allKeys[i]
+            result[code] = self.safe_currency_structure(result[code])  # self is needed after adding network entry
+        return result
 
     def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -1157,6 +1245,116 @@ class luno(Exchange, ImplicitAPI):
             'status': status,
             'fee': None,
         }, currency)
+
+    def create_deposit_address(self, code: str, params={}) -> DepositAddress:
+        """
+        create a currency deposit address
+
+        https://www.luno.com/en/developers/api#tag/Receive/operation/createFundingAddress
+
+        :param str code: unified currency code of the currency for the deposit address
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.name]: an optional name for the new address
+        :param int [params.account_id]: an optional account id for the new address
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        """
+        self.load_markets()
+        currency = self.currency(code)
+        request: dict = {
+            'asset': currency['id'],
+        }
+        response = self.privatePostFundingAddress(self.extend(request, params))
+        #
+        #     {
+        #         "account_id": "string",
+        #         "address": "string",
+        #         "address_meta": [
+        #             {
+        #                 "label": "string",
+        #                 "value": "string"
+        #             }
+        #         ],
+        #         "asset": "string",
+        #         "assigned_at": 0,
+        #         "name": "string",
+        #         "network": 0,
+        #         "qr_code_uri": "string",
+        #         "receive_fee": "string",
+        #         "total_received": "string",
+        #         "total_unconfirmed": "string"
+        #     }
+        #
+        return self.parse_deposit_address(response, currency)
+
+    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
+        """
+        fetch the deposit address for a currency associated with self account
+
+        https://www.luno.com/en/developers/api#tag/Receive/operation/getFundingAddress
+
+        :param str code: unified currency code
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.address]: a specific cryptocurrency address to retrieve
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        """
+        self.load_markets()
+        currency = self.currency(code)
+        request: dict = {
+            'asset': currency['id'],
+        }
+        response = self.privateGetFundingAddress(self.extend(request, params))
+        #
+        #     {
+        #         "account_id": "string",
+        #         "address": "string",
+        #         "address_meta": [
+        #             {
+        #                 "label": "string",
+        #                 "value": "string"
+        #             }
+        #         ],
+        #         "asset": "string",
+        #         "assigned_at": 0,
+        #         "name": "string",
+        #         "network": 0,
+        #         "qr_code_uri": "string",
+        #         "receive_fee": "string",
+        #         "total_received": "string",
+        #         "total_unconfirmed": "string"
+        #     }
+        #
+        return self.parse_deposit_address(response, currency)
+
+    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
+        #
+        #     {
+        #         "account_id": "string",
+        #         "address": "string",
+        #         "address_meta": [
+        #             {
+        #                 "label": "string",
+        #                 "value": "string"
+        #             }
+        #         ],
+        #         "asset": "string",
+        #         "assigned_at": 0,
+        #         "name": "string",
+        #         "network": 0,
+        #         "qr_code_uri": "string",
+        #         "receive_fee": "string",
+        #         "total_received": "string",
+        #         "total_unconfirmed": "string"
+        #     }
+        #
+        currencyId = self.safe_string_upper(depositAddress, 'currency')
+        code = self.safe_currency_code(currencyId, currency)
+        return {
+            'info': depositAddress,
+            'currency': code,
+            'network': None,
+            'address': self.safe_string(depositAddress, 'address'),
+            'tag': self.safe_string(depositAddress, 'name'),
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api] + '/' + self.version + '/' + self.implode_params(path, params)

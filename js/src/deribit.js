@@ -40,6 +40,7 @@ export default class deribit extends Exchange {
                 'cancelOrders': false,
                 'createDepositAddress': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
@@ -636,21 +637,21 @@ export default class deribit extends Exchange {
         //      "testnet": true
         //    }
         //
-        const data = this.safeValue(response, 'result', {});
+        const data = this.safeList(response, 'result', []);
         const result = {};
         for (let i = 0; i < data.length; i++) {
             const currency = data[i];
             const currencyId = this.safeString(currency, 'currency');
             const code = this.safeCurrencyCode(currencyId);
-            const name = this.safeString(currency, 'currency_long');
-            result[code] = {
+            result[code] = this.safeCurrencyStructure({
                 'info': currency,
                 'code': code,
                 'id': currencyId,
-                'name': name,
+                'name': this.safeString(currency, 'currency_long'),
                 'active': undefined,
                 'deposit': undefined,
                 'withdraw': undefined,
+                'type': 'crypto',
                 'fee': this.safeNumber(currency, 'withdrawal_fee'),
                 'precision': this.parseNumber(this.parsePrecision(this.safeString(currency, 'fee_precision'))),
                 'limits': {
@@ -668,7 +669,7 @@ export default class deribit extends Exchange {
                     },
                 },
                 'networks': undefined,
-            };
+            });
         }
         return result;
     }
@@ -1150,6 +1151,7 @@ export default class deribit extends Exchange {
             'currency': code,
             'address': address,
             'tag': undefined,
+            'network': undefined,
             'info': response,
         };
     }
@@ -1334,8 +1336,21 @@ export default class deribit extends Exchange {
     async fetchTickers(symbols = undefined, params = {}) {
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        const code = this.safeString2(params, 'code', 'currency');
+        let code = this.safeString2(params, 'code', 'currency');
+        let type = undefined;
         params = this.omit(params, ['code']);
+        if (symbols !== undefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                const market = this.market(symbols[i]);
+                if (code !== undefined && code !== market['base']) {
+                    throw new BadRequest(this.id + ' fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/#public-get_book_summary_by_currency');
+                }
+                if (code === undefined) {
+                    code = market['base'];
+                    type = market['type'];
+                }
+            }
+        }
         if (code === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchTickers requires a currency/code (eg: BTC/ETH/USDT) parameter to fetch tickers for');
         }
@@ -1343,6 +1358,21 @@ export default class deribit extends Exchange {
         const request = {
             'currency': currency['id'],
         };
+        if (type !== undefined) {
+            let requestType = undefined;
+            if (type === 'spot') {
+                requestType = 'spot';
+            }
+            else if (type === 'future' || (type === 'contract')) {
+                requestType = 'future';
+            }
+            else if (type === 'option') {
+                requestType = 'option';
+            }
+            if (requestType !== undefined) {
+                request['kind'] = requestType;
+            }
+        }
         const response = await this.publicGetGetBookSummaryByCurrency(this.extend(request, params));
         //
         //     {

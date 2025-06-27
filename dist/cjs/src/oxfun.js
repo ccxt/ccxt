@@ -1,7 +1,6 @@
 'use strict';
 
 var oxfun$1 = require('./abstract/oxfun.js');
-var Precise = require('./base/Precise.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
@@ -67,7 +66,7 @@ class oxfun extends oxfun$1 {
                 'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': true,
-                'fetchFundingRate': 'emulated',
+                'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
@@ -599,66 +598,7 @@ class oxfun extends oxfun$1 {
         //                         "minDeposit": "0.00010",
         //                         "minWithdrawal": "0.00010"
         //                     },
-        //                     {
-        //                         "network": "Arbitrum",
-        //                         "tokenId": "0xba0Dda8762C24dA9487f5FA026a9B64b695A07Ea",
-        //                         "transactionPrecision": "18",
-        //                         "isWithdrawalFeeChargedToUser": true,
-        //                         "canDeposit": true,
-        //                         "canWithdraw": true,
-        //                         "minDeposit": "0.00010",
-        //                         "minWithdrawal": "0.00010"
-        //                     },
-        //                     {
-        //                         "network": "Ethereum",
-        //                         "tokenId": "0xba0Dda8762C24dA9487f5FA026a9B64b695A07Ea",
-        //                         "transactionPrecision": "18",
-        //                         "isWithdrawalFeeChargedToUser": true,
-        //                         "canDeposit": true,
-        //                         "canWithdraw": true,
-        //                         "minDeposit": "0.00010",
-        //                         "minWithdrawal": "0.00010"
-        //                     },
-        //                     {
-        //                         "network": "Arbitrum",
-        //                         "tokenId": "0x78a0A62Fba6Fb21A83FE8a3433d44C73a4017A6f",
-        //                         "transactionPrecision": "18",
-        //                         "isWithdrawalFeeChargedToUser": true,
-        //                         "canDeposit": true,
-        //                         "canWithdraw": false,
-        //                         "minDeposit": "0.00010",
-        //                         "minWithdrawal": "0.00010"
-        //                     },
-        //                     {
-        //                         "network": "Avalanche",
-        //                         "tokenId": "0x78a0A62Fba6Fb21A83FE8a3433d44C73a4017A6f",
-        //                         "transactionPrecision": "18",
-        //                         "isWithdrawalFeeChargedToUser": true,
-        //                         "canDeposit": true,
-        //                         "canWithdraw": false,
-        //                         "minDeposit": "0.00010",
-        //                         "minWithdrawal": "0.00010"
-        //                     },
-        //                     {
-        //                         "network": "Solana",
-        //                         "tokenId": "DV3845GEAVXfwpyVGGgWbqBVCtzHdCXNCGfcdboSEuZz",
-        //                         "transactionPrecision": "8",
-        //                         "isWithdrawalFeeChargedToUser": true,
-        //                         "canDeposit": true,
-        //                         "canWithdraw": true,
-        //                         "minDeposit": "0.00010",
-        //                         "minWithdrawal": "0.00010"
-        //                     },
-        //                     {
-        //                         "network": "Ethereum",
-        //                         "tokenId": "0x78a0A62Fba6Fb21A83FE8a3433d44C73a4017A6f",
-        //                         "transactionPrecision": "18",
-        //                         "isWithdrawalFeeChargedToUser": true,
-        //                         "canDeposit": true,
-        //                         "canWithdraw": false,
-        //                         "minDeposit": "0.00010",
-        //                         "minWithdrawal": "0.00010"
-        //                     }
+        //                     ...
         //                 ]
         //             },
         //             {
@@ -708,79 +648,67 @@ class oxfun extends oxfun$1 {
             const parts = fullId.split('.');
             const id = parts[0];
             const code = this.safeCurrencyCode(id);
-            let networks = {};
+            if (!(code in result)) {
+                result[code] = {
+                    'id': id,
+                    'code': code,
+                    'precision': undefined,
+                    'type': undefined,
+                    'name': undefined,
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                    },
+                    'networks': {},
+                    'info': [],
+                };
+            }
             const chains = this.safeList(currency, 'networkList', []);
-            let currencyMaxPrecision = undefined;
-            let currencyDepositEnabled = undefined;
-            let currencyWithdrawEnabled = undefined;
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString(chain, 'network');
                 const networkCode = this.networkIdToCode(networkId);
-                const deposit = this.safeBool(chain, 'canDeposit');
-                const withdraw = this.safeBool(chain, 'canWithdraw');
-                const active = (deposit && withdraw);
-                const minDeposit = this.safeString(chain, 'minDeposit');
-                const minWithdrawal = this.safeString(chain, 'minWithdrawal');
-                const precision = this.parsePrecision(this.safeString(chain, 'transactionPrecision'));
-                networks[networkCode] = {
+                result[code]['networks'][networkCode] = {
                     'id': networkId,
                     'network': networkCode,
                     'margin': undefined,
-                    'deposit': deposit,
-                    'withdraw': withdraw,
-                    'active': active,
+                    'deposit': this.safeBool(chain, 'canDeposit'),
+                    'withdraw': this.safeBool(chain, 'canWithdraw'),
+                    'active': undefined,
                     'fee': undefined,
-                    'precision': this.parseNumber(precision),
+                    'precision': this.parseNumber(this.parsePrecision(this.safeString(chain, 'transactionPrecision'))),
                     'limits': {
                         'deposit': {
-                            'min': minDeposit,
+                            'min': this.safeNumber(chain, 'minDeposit'),
                             'max': undefined,
                         },
                         'withdraw': {
-                            'min': minWithdrawal,
+                            'min': this.safeNumber(chain, 'minWithdrawal'),
                             'max': undefined,
                         },
                     },
                     'info': chain,
                 };
-                if ((currencyDepositEnabled === undefined) || deposit) {
-                    currencyDepositEnabled = deposit;
-                }
-                if ((currencyWithdrawEnabled === undefined) || withdraw) {
-                    currencyWithdrawEnabled = withdraw;
-                }
-                if ((currencyMaxPrecision === undefined) || Precise["default"].stringGt(currencyMaxPrecision, precision)) {
-                    currencyMaxPrecision = precision;
-                }
             }
-            if (code in result) {
-                // checking for specific ids as USDC.ARB
-                networks = this.extend(result[code]['networks'], networks);
-            }
-            result[code] = {
-                'id': id,
-                'code': code,
-                'name': undefined,
-                'type': undefined,
-                'active': undefined,
-                'deposit': currencyDepositEnabled,
-                'withdraw': currencyWithdrawEnabled,
-                'fee': undefined,
-                'precision': this.parseNumber(currencyMaxPrecision),
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'networks': networks,
-                'info': currency,
-            };
+            const infos = this.safeList(result[code], 'info', []);
+            infos.push(currency);
+            result[code]['info'] = infos;
+        }
+        // only after all entries are formed in currencies, restructure each entry
+        const allKeys = Object.keys(result);
+        for (let i = 0; i < allKeys.length; i++) {
+            const code = allKeys[i];
+            result[code] = this.safeCurrencyStructure(result[code]); // this is needed after adding network entry
         }
         return result;
     }
@@ -1100,6 +1028,26 @@ class oxfun extends oxfun$1 {
         //
         const data = this.safeList(response, 'data', []);
         return this.parseFundingRates(data, symbols);
+    }
+    /**
+     * @method
+     * @name oxfun#fetchFundingRate
+     * @description fetch the current funding rates for a symbol
+     * @see https://docs.ox.fun/?json#get-v3-funding-estimates
+     * @param {string} symbol unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
+    async fetchFundingRate(symbol, params = {}) {
+        await this.loadMarkets();
+        const request = {
+            'marketCode': this.marketId(symbol),
+        };
+        const response = await this.publicGetV3FundingEstimates(this.extend(request, params));
+        //
+        const data = this.safeList(response, 'data', []);
+        const first = this.safeDict(data, 0, {});
+        return this.parseFundingRate(first, this.market(symbol));
     }
     parseFundingRate(fundingRate, market = undefined) {
         //
@@ -2947,7 +2895,7 @@ class oxfun extends oxfun$1 {
                 'AccessKey': this.apiKey,
                 'Timestamp': datetime,
                 'Signature': signature,
-                'Nonce': nonce,
+                'Nonce': nonce.toString(),
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

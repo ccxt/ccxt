@@ -29,17 +29,27 @@ func  (this *btcmarkets) Describe() interface{}  {
             "future": false,
             "option": false,
             "addMargin": false,
+            "borrowCrossMargin": false,
+            "borrowIsolatedMargin": false,
+            "borrowMargin": false,
             "cancelOrder": true,
             "cancelOrders": true,
             "closeAllPositions": false,
             "closePosition": false,
             "createDepositAddress": false,
             "createOrder": true,
+            "createOrderWithTakeProfitAndStopLoss": false,
+            "createOrderWithTakeProfitAndStopLossWs": false,
+            "createPostOnlyOrder": false,
             "createReduceOnlyOrder": false,
             "createTriggerOrder": true,
             "fetchBalance": true,
+            "fetchBorrowInterest": false,
+            "fetchBorrowRate": false,
             "fetchBorrowRateHistories": false,
             "fetchBorrowRateHistory": false,
+            "fetchBorrowRates": false,
+            "fetchBorrowRatesPerSymbol": false,
             "fetchClosedOrders": "emulated",
             "fetchCrossBorrowRate": false,
             "fetchCrossBorrowRates": false,
@@ -49,20 +59,39 @@ func  (this *btcmarkets) Describe() interface{}  {
             "fetchDeposits": true,
             "fetchDepositsWithdrawals": true,
             "fetchFundingHistory": false,
+            "fetchFundingInterval": false,
+            "fetchFundingIntervals": false,
             "fetchFundingRate": false,
             "fetchFundingRateHistory": false,
             "fetchFundingRates": false,
+            "fetchGreeks": false,
             "fetchIndexOHLCV": false,
             "fetchIsolatedBorrowRate": false,
             "fetchIsolatedBorrowRates": false,
+            "fetchIsolatedPositions": false,
             "fetchLeverage": false,
+            "fetchLeverages": false,
+            "fetchLeverageTiers": false,
+            "fetchLiquidations": false,
+            "fetchLongShortRatio": false,
+            "fetchLongShortRatioHistory": false,
+            "fetchMarginAdjustmentHistory": false,
             "fetchMarginMode": false,
+            "fetchMarginModes": false,
+            "fetchMarketLeverageTiers": false,
             "fetchMarkets": true,
             "fetchMarkOHLCV": false,
+            "fetchMarkPrices": false,
+            "fetchMyLiquidations": false,
+            "fetchMySettlementHistory": false,
             "fetchMyTrades": true,
             "fetchOHLCV": true,
+            "fetchOpenInterest": false,
             "fetchOpenInterestHistory": false,
+            "fetchOpenInterests": false,
             "fetchOpenOrders": true,
+            "fetchOption": false,
+            "fetchOptionChain": false,
             "fetchOrder": true,
             "fetchOrderBook": true,
             "fetchOrders": true,
@@ -74,13 +103,19 @@ func  (this *btcmarkets) Describe() interface{}  {
             "fetchPositionsHistory": false,
             "fetchPositionsRisk": false,
             "fetchPremiumIndexOHLCV": false,
+            "fetchSettlementHistory": false,
             "fetchTicker": true,
             "fetchTime": true,
             "fetchTrades": true,
             "fetchTransactions": "emulated",
+            "fetchVolatilityHistory": false,
             "fetchWithdrawals": true,
             "reduceMargin": false,
+            "repayCrossMargin": false,
+            "repayIsolatedMargin": false,
+            "repayMargin": false,
             "setLeverage": false,
+            "setMargin": false,
             "setMarginMode": false,
             "setPositionMode": false,
             "withdraw": true,
@@ -232,8 +267,8 @@ func  (this *btcmarkets) FetchTransactionsWithMethod(method interface{}, optiona
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes2678 := (<-this.LoadMarkets())
-            PanicOnError(retRes2678)
+            retRes3028 := (<-this.LoadMarkets())
+            PanicOnError(retRes3028)
             var request interface{} = map[string]interface{} {}
             if IsTrue(!IsEqual(limit, nil)) {
                 AddElementToObject(request, "limit", limit)
@@ -280,9 +315,9 @@ func  (this *btcmarkets) FetchDepositsWithdrawals(optionalArgs ...interface{}) <
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-                retRes29515 :=  (<-this.FetchTransactionsWithMethod("privateGetTransfers", code, since, limit, params))
-                PanicOnError(retRes29515)
-                ch <- retRes29515
+                retRes33015 :=  (<-this.FetchTransactionsWithMethod("privateGetTransfers", code, since, limit, params))
+                PanicOnError(retRes33015)
+                ch <- retRes33015
                 return nil
         
             }()
@@ -313,9 +348,9 @@ func  (this *btcmarkets) FetchDeposits(optionalArgs ...interface{}) <- chan inte
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-                retRes31015 :=  (<-this.FetchTransactionsWithMethod("privateGetDeposits", code, since, limit, params))
-                PanicOnError(retRes31015)
-                ch <- retRes31015
+                retRes34515 :=  (<-this.FetchTransactionsWithMethod("privateGetDeposits", code, since, limit, params))
+                PanicOnError(retRes34515)
+                ch <- retRes34515
                 return nil
         
             }()
@@ -346,9 +381,9 @@ func  (this *btcmarkets) FetchWithdrawals(optionalArgs ...interface{}) <- chan i
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-                retRes32515 :=  (<-this.FetchTransactionsWithMethod("privateGetWithdrawals", code, since, limit, params))
-                PanicOnError(retRes32515)
-                ch <- retRes32515
+                retRes36015 :=  (<-this.FetchTransactionsWithMethod("privateGetWithdrawals", code, since, limit, params))
+                PanicOnError(retRes36015)
+                ch <- retRes36015
                 return nil
         
             }()
@@ -501,7 +536,7 @@ func  (this *btcmarkets) FetchMarkets(optionalArgs ...interface{}) <- chan inter
             //             "marketId":"COMP-AUD",
             //             "baseAssetName":"COMP",
             //             "quoteAssetName":"AUD",
-            //             "minOrderAmount":"0.00007",
+            //             "minOrderAmount":"0.00006",
             //             "maxOrderAmount":"1000000",
             //             "amountDecimals":"8",
             //             "priceDecimals":"2",
@@ -644,8 +679,8 @@ func  (this *btcmarkets) FetchBalance(optionalArgs ...interface{}) <- chan inter
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes5888 := (<-this.LoadMarkets())
-            PanicOnError(retRes5888)
+            retRes6238 := (<-this.LoadMarkets())
+            PanicOnError(retRes6238)
         
             response:= (<-this.PrivateGetAccountsMeBalances(params))
             PanicOnError(response)
@@ -697,8 +732,8 @@ func  (this *btcmarkets) FetchOHLCV(symbol interface{}, optionalArgs ...interfac
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes6278 := (<-this.LoadMarkets())
-            PanicOnError(retRes6278)
+            retRes6628 := (<-this.LoadMarkets())
+            PanicOnError(retRes6628)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "marketId": GetValue(market, "id"),
@@ -747,8 +782,8 @@ func  (this *btcmarkets) FetchOrderBook(symbol interface{}, optionalArgs ...inte
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes6668 := (<-this.LoadMarkets())
-            PanicOnError(retRes6668)
+            retRes7018 := (<-this.LoadMarkets())
+            PanicOnError(retRes7018)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "marketId": GetValue(market, "id"),
@@ -851,8 +886,8 @@ func  (this *btcmarkets) FetchTicker(symbol interface{}, optionalArgs ...interfa
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes7558 := (<-this.LoadMarkets())
-            PanicOnError(retRes7558)
+            retRes7908 := (<-this.LoadMarkets())
+            PanicOnError(retRes7908)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "marketId": GetValue(market, "id"),
@@ -890,8 +925,8 @@ func  (this *btcmarkets) FetchTicker2(symbol interface{}, optionalArgs ...interf
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes7808 := (<-this.LoadMarkets())
-            PanicOnError(retRes7808)
+            retRes8158 := (<-this.LoadMarkets())
+            PanicOnError(retRes8158)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "id": GetValue(market, "id"),
@@ -997,8 +1032,8 @@ func  (this *btcmarkets) FetchTrades(symbol interface{}, optionalArgs ...interfa
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes8688 := (<-this.LoadMarkets())
-            PanicOnError(retRes8688)
+            retRes9038 := (<-this.LoadMarkets())
+            PanicOnError(retRes9038)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "marketId": GetValue(market, "id"),
@@ -1044,8 +1079,8 @@ func  (this *btcmarkets) CreateOrder(symbol interface{}, typeVar interface{}, si
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes9008 := (<-this.LoadMarkets())
-            PanicOnError(retRes9008)
+            retRes9358 := (<-this.LoadMarkets())
+            PanicOnError(retRes9358)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "marketId": GetValue(market, "id"),
@@ -1143,8 +1178,8 @@ func  (this *btcmarkets) CancelOrders(ids interface{}, optionalArgs ...interface
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes9948 := (<-this.LoadMarkets())
-            PanicOnError(retRes9948)
+            retRes10298 := (<-this.LoadMarkets())
+            PanicOnError(retRes10298)
             for i := 0; IsLessThan(i, GetArrayLength(ids)); i++ {
                 AddElementToObject(ids, i, ParseInt(GetValue(ids, i)))
             }
@@ -1202,8 +1237,8 @@ func  (this *btcmarkets) CancelOrder(id interface{}, optionalArgs ...interface{}
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes10378 := (<-this.LoadMarkets())
-            PanicOnError(retRes10378)
+            retRes10728 := (<-this.LoadMarkets())
+            PanicOnError(retRes10728)
             var request interface{} = map[string]interface{} {
                 "id": id,
             }
@@ -1360,8 +1395,8 @@ func  (this *btcmarkets) FetchOrder(id interface{}, optionalArgs ...interface{})
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes11768 := (<-this.LoadMarkets())
-            PanicOnError(retRes11768)
+            retRes12118 := (<-this.LoadMarkets())
+            PanicOnError(retRes12118)
             var request interface{} = map[string]interface{} {
                 "id": id,
             }
@@ -1400,8 +1435,8 @@ func  (this *btcmarkets) FetchOrders(optionalArgs ...interface{}) <- chan interf
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes11968 := (<-this.LoadMarkets())
-            PanicOnError(retRes11968)
+            retRes12318 := (<-this.LoadMarkets())
+            PanicOnError(retRes12318)
             var request interface{} = map[string]interface{} {
                 "status": "all",
             }
@@ -1454,9 +1489,9 @@ func  (this *btcmarkets) FetchOpenOrders(optionalArgs ...interface{}) <- chan in
                 "status": "open",
             }
         
-                retRes122815 :=  (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-                PanicOnError(retRes122815)
-                ch <- retRes122815
+                retRes126315 :=  (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+                PanicOnError(retRes126315)
+                ch <- retRes126315
                 return nil
         
             }()
@@ -1521,8 +1556,8 @@ func  (this *btcmarkets) FetchMyTrades(optionalArgs ...interface{}) <- chan inte
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes12598 := (<-this.LoadMarkets())
-            PanicOnError(retRes12598)
+            retRes12948 := (<-this.LoadMarkets())
+            PanicOnError(retRes12948)
             var request interface{} = map[string]interface{} {}
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
@@ -1597,8 +1632,8 @@ func  (this *btcmarkets) Withdraw(code interface{}, amount interface{}, address 
             tag = GetValue(tagparamsVariable,0);
             params = GetValue(tagparamsVariable,1)
         
-            retRes13178 := (<-this.LoadMarkets())
-            PanicOnError(retRes13178)
+            retRes13528 := (<-this.LoadMarkets())
+            PanicOnError(retRes13528)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "currency_id": GetValue(currency, "id"),
@@ -1711,6 +1746,6 @@ func  (this *btcmarkets) HandleErrors(code interface{}, reason interface{}, url 
 
 func (this *btcmarkets) Init(userConfig map[string]interface{}) {
     this.Exchange = Exchange{}
-    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
     this.Exchange.DerivedExchange = this
+    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
 }

@@ -10,7 +10,7 @@ use ccxt\abstract\defx as Exchange;
 
 class defx extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'defx',
             'name' => 'Defx X',
@@ -391,7 +391,7 @@ class defx extends Exchange {
         );
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          *
@@ -610,7 +610,7 @@ class defx extends Exchange {
             'active' => $this->safe_string($market, 'status', '') === 'active',
             'contract' => true,
             'linear' => true,
-            'inverse' => null,
+            'inverse' => false,
             'taker' => $this->safe_number($fees, 'taker'),
             'maker' => $this->safe_number($fees, 'maker'),
             'contractSize' => $this->parse_number('1'),
@@ -1543,7 +1543,7 @@ class defx extends Exchange {
         return $this->parse_position($first, $market);
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): array {
         /**
          * fetch all open $positions
          *

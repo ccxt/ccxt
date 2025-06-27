@@ -33,7 +33,7 @@ jobs:
         fi
     - uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '7.0.x'
+        dotnet-version: '9.0.x'
         dotnet-quality: 'preview'
     - uses: actions/setup-node@v4
       with:
@@ -112,7 +112,7 @@ jobs:
           git commit -m "[Automated changes] C# files" || echo "No changes to commit."
           git remote set-url origin https://${GITHUB_TOKEN}@github.com/${{ github.repository }}
           git config --global pull.rebase false
-          git pull origin master
+          git pull --rebase --autostash origin master
           git push
 
   live-tests:

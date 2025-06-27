@@ -15,7 +15,7 @@ import { BadRequest } from './base/errors.js';
  * @augments Exchange
  */
 export default class independentreserve extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'independentreserve',
             'name': 'Independent Reserve',

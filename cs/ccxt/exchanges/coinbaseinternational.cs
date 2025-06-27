@@ -11,7 +11,7 @@ public partial class coinbaseinternational : Exchange
             { "id", "coinbaseinternational" },
             { "name", "Coinbase International" },
             { "countries", new List<object>() {"US"} },
-            { "certified", true },
+            { "certified", false },
             { "pro", true },
             { "rateLimit", 100 },
             { "version", "v1" },
@@ -810,6 +810,7 @@ public partial class coinbaseinternational : Exchange
             { "currency", code },
             { "tag", tag },
             { "address", address },
+            { "network", null },
             { "info", response },
         };
     }

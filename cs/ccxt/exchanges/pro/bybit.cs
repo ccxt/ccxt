@@ -848,7 +848,7 @@ public partial class bybit : ccxt.bybit
         object stored = getValue(getValue(this.ohlcvs, symbol), timeframe);
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
-            object parsed = this.parseWsOHLCV(getValue(data, i));
+            object parsed = this.parseWsOHLCV(getValue(data, i), market);
             callDynamically(stored, "append", new object[] {parsed});
         }
         object messageHash = add(add(add("ohlcv::", symbol), "::"), timeframe);
@@ -873,7 +873,8 @@ public partial class bybit : ccxt.bybit
         //         "timestamp": 1670363219614
         //     }
         //
-        return new List<object> {this.safeInteger(ohlcv, "start"), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber2(ohlcv, "volume", "turnover")};
+        object volumeIndex = ((bool) isTrue((getValue(market, "inverse")))) ? "turnover" : "volume";
+        return new List<object> {this.safeInteger(ohlcv, "start"), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, volumeIndex)};
     }
 
     /**
@@ -934,7 +935,13 @@ public partial class bybit : ccxt.bybit
                     }
                 } else if (isTrue(isTrue(isTrue(isTrue((!isEqual(limit, 1))) && isTrue((!isEqual(limit, 50)))) && isTrue((!isEqual(limit, 200)))) && isTrue((!isEqual(limit, 500)))))
                 {
-                    throw new BadRequest ((string)add(this.id, " watchOrderBookForSymbols() can only use limit 1, 50, 200 and 500.")) ;
+                    throw new BadRequest ((string)add(this.id, " watchOrderBookForSymbols() can only use limit 1, 50, 200 and 500 for swap and future markets.")) ;
+                }
+            } else
+            {
+                if (isTrue(isTrue(isTrue((!isEqual(limit, 1))) && isTrue((!isEqual(limit, 50)))) && isTrue((!isEqual(limit, 200)))))
+                {
+                    throw new BadRequest ((string)add(this.id, " watchOrderBookForSymbols() can only use limit 1,50, and 200 for spot markets.")) ;
                 }
             }
         }
@@ -1720,6 +1727,7 @@ public partial class bybit : ccxt.bybit
      * @param {int} [since] the earliest time in ms to fetch liquidations for
      * @param {int} [limit] the maximum number of liquidation structures to retrieve
      * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+     * @param {string} [params.method] exchange specific method, supported: liquidation, allLiquidation
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
     public async override Task<object> watchLiquidations(object symbol, object since = null, object limit = null, object parameters = null)
@@ -1730,8 +1738,12 @@ public partial class bybit : ccxt.bybit
         symbol = getValue(market, "symbol");
         object url = await this.getUrlByMarketType(symbol, false, "watchLiquidations", parameters);
         parameters = this.cleanParams(parameters);
+        object method = null;
+        var methodparametersVariable = this.handleOptionAndParams(parameters, "watchLiquidations", "method", "liquidation");
+        method = ((IList<object>)methodparametersVariable)[0];
+        parameters = ((IList<object>)methodparametersVariable)[1];
         object messageHash = add("liquidations::", symbol);
-        object topic = add("liquidation.", getValue(market, "id"));
+        object topic = add(add(method, "."), getValue(market, "id"));
         object newLiquidation = await this.watchTopics(url, new List<object>() {messageHash}, new List<object>() {topic}, parameters);
         if (isTrue(this.newUpdates))
         {
@@ -1743,56 +1755,103 @@ public partial class bybit : ccxt.bybit
     public virtual void handleLiquidation(WebSocketClient client, object message)
     {
         //
-        //   {
-        //       "data": {
-        //           "price": "0.03803",
-        //           "side": "Buy",
-        //           "size": "1637",
-        //           "symbol": "GALAUSDT",
-        //           "updatedTime": 1673251091822
-        //       },
-        //       "topic": "liquidation.GALAUSDT",
-        //       "ts": 1673251091822,
-        //       "type": "snapshot"
-        //   }
+        //     {
+        //         "data": {
+        //             "price": "0.03803",
+        //             "side": "Buy",
+        //             "size": "1637",
+        //             "symbol": "GALAUSDT",
+        //             "updatedTime": 1673251091822
+        //         },
+        //         "topic": "liquidation.GALAUSDT",
+        //         "ts": 1673251091822,
+        //         "type": "snapshot"
+        //     }
         //
-        object rawLiquidation = this.safeDict(message, "data", new Dictionary<string, object>() {});
-        object marketId = this.safeString(rawLiquidation, "symbol");
-        object market = this.safeMarket(marketId, null, "", "contract");
-        object symbol = getValue(market, "symbol");
-        object liquidation = this.parseWsLiquidation(rawLiquidation, market);
-        object liquidations = this.safeValue(this.liquidations, symbol);
-        if (isTrue(isEqual(liquidations, null)))
+        //     {
+        //         "topic": "allLiquidation.ROSEUSDT",
+        //         "type": "snapshot",
+        //         "ts": 1739502303204,
+        //         "data": [
+        //             {
+        //                 "T": 1739502302929,
+        //                 "s": "ROSEUSDT",
+        //                 "S": "Sell",
+        //                 "v": "20000",
+        //                 "p": "0.04499"
+        //             }
+        //         ]
+        //     }
+        //
+        if (isTrue(((getValue(message, "data") is IList<object>) || (getValue(message, "data").GetType().IsGenericType && getValue(message, "data").GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
-            object limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
-            liquidations = new ArrayCache(limit);
+            object rawLiquidations = this.safeList(message, "data", new List<object>() {});
+            for (object i = 0; isLessThan(i, getArrayLength(rawLiquidations)); postFixIncrement(ref i))
+            {
+                object rawLiquidation = getValue(rawLiquidations, i);
+                object marketId = this.safeString(rawLiquidation, "s");
+                object market = this.safeMarket(marketId, null, "", "contract");
+                object symbol = getValue(market, "symbol");
+                object liquidation = this.parseWsLiquidation(rawLiquidation, market);
+                object liquidations = this.safeValue(this.liquidations, symbol);
+                if (isTrue(isEqual(liquidations, null)))
+                {
+                    object limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
+                    liquidations = new ArrayCache(limit);
+                }
+                callDynamically(liquidations, "append", new object[] {liquidation});
+                ((IDictionary<string,object>)this.liquidations)[(string)symbol] = liquidations;
+                callDynamically(client as WebSocketClient, "resolve", new object[] {new List<object>() {liquidation}, "liquidations"});
+                callDynamically(client as WebSocketClient, "resolve", new object[] {new List<object>() {liquidation}, add("liquidations::", symbol)});
+            }
+        } else
+        {
+            object rawLiquidation = this.safeDict(message, "data", new Dictionary<string, object>() {});
+            object marketId = this.safeString(rawLiquidation, "symbol");
+            object market = this.safeMarket(marketId, null, "", "contract");
+            object symbol = getValue(market, "symbol");
+            object liquidation = this.parseWsLiquidation(rawLiquidation, market);
+            object liquidations = this.safeValue(this.liquidations, symbol);
+            if (isTrue(isEqual(liquidations, null)))
+            {
+                object limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
+                liquidations = new ArrayCache(limit);
+            }
+            callDynamically(liquidations, "append", new object[] {liquidation});
+            ((IDictionary<string,object>)this.liquidations)[(string)symbol] = liquidations;
+            callDynamically(client as WebSocketClient, "resolve", new object[] {new List<object>() {liquidation}, "liquidations"});
+            callDynamically(client as WebSocketClient, "resolve", new object[] {new List<object>() {liquidation}, add("liquidations::", symbol)});
         }
-        callDynamically(liquidations, "append", new object[] {liquidation});
-        ((IDictionary<string,object>)this.liquidations)[(string)symbol] = liquidations;
-        callDynamically(client as WebSocketClient, "resolve", new object[] {new List<object>() {liquidation}, "liquidations"});
-        callDynamically(client as WebSocketClient, "resolve", new object[] {new List<object>() {liquidation}, add("liquidations::", symbol)});
     }
 
     public virtual object parseWsLiquidation(object liquidation, object market = null)
     {
         //
-        //    {
-        //        "price": "0.03803",
-        //        "side": "Buy",
-        //        "size": "1637",
-        //        "symbol": "GALAUSDT",
-        //        "updatedTime": 1673251091822
-        //    }
+        //     {
+        //         "price": "0.03803",
+        //         "side": "Buy",
+        //         "size": "1637",
+        //         "symbol": "GALAUSDT",
+        //         "updatedTime": 1673251091822
+        //     }
         //
-        object marketId = this.safeString(liquidation, "symbol");
+        //     {
+        //         "T": 1739502302929,
+        //         "s": "ROSEUSDT",
+        //         "S": "Sell",
+        //         "v": "20000",
+        //         "p": "0.04499"
+        //     }
+        //
+        object marketId = this.safeString2(liquidation, "symbol", "s");
         market = this.safeMarket(marketId, market, "", "contract");
-        object timestamp = this.safeInteger(liquidation, "updatedTime");
+        object timestamp = this.safeInteger2(liquidation, "updatedTime", "T");
         return this.safeLiquidation(new Dictionary<string, object>() {
             { "info", liquidation },
             { "symbol", getValue(market, "symbol") },
-            { "contracts", this.safeNumber(liquidation, "size") },
+            { "contracts", this.safeNumber2(liquidation, "size", "v") },
             { "contractSize", this.safeNumber(market, "contractSize") },
-            { "price", this.safeNumber(liquidation, "price") },
+            { "price", this.safeNumber2(liquidation, "price", "p") },
             { "baseValue", null },
             { "quoteValue", null },
             { "timestamp", timestamp },
@@ -1848,7 +1907,7 @@ public partial class bybit : ccxt.bybit
      * @param {boolean} [params.unifiedMargin] use unified margin account
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public async virtual Task<object> unWatchOrders(object symbol = null, object parameters = null)
+    public async override Task<object> unWatchOrders(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2001,14 +2060,12 @@ public partial class bybit : ccxt.bybit
         object symbols = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(rawOrders)); postFixIncrement(ref i))
         {
-            object parsed = null;
-            if (isTrue(isSpot))
-            {
-                parsed = this.parseWsSpotOrder(getValue(rawOrders, i));
-            } else
-            {
-                parsed = this.parseOrder(getValue(rawOrders, i));
-            }
+            object parsed = this.parseOrder(getValue(rawOrders, i));
+            // if (isSpot) {
+            //     parsed = this.parseWsSpotOrder (rawOrders[i]);
+            // } else {
+            //     parsed = this.parseOrder (rawOrders[i]);
+            // }
             object symbol = getValue(parsed, "symbol");
             ((IDictionary<string,object>)symbols)[(string)symbol] = true;
             callDynamically(orders, "append", new object[] {parsed});
@@ -2021,148 +2078,6 @@ public partial class bybit : ccxt.bybit
         }
         object messageHash = "orders";
         callDynamically(client as WebSocketClient, "resolve", new object[] {orders, messageHash});
-    }
-
-    public virtual object parseWsSpotOrder(object order, object market = null)
-    {
-        //
-        //    {
-        //        "e": "executionReport",
-        //        "E": "1653297251061", // timestamp
-        //        "s": "LTCUSDT", // symbol
-        //        "c": "1653297250740", // user id
-        //        "S": "SELL", // side
-        //        "o": "MARKET_OF_BASE", // order type
-        //        "f": "GTC", // time in force
-        //        "q": "0.16233", // quantity
-        //        "p": "0", // price
-        //        "X": "NEW", // status
-        //        "i": "1162336018974750208", // order id
-        //        "M": "0",
-        //        "l": "0", // last filled
-        //        "z": "0", // total filled
-        //        "L": "0", // last traded price
-        //        "n": "0", // trading fee
-        //        "N": '', // fee asset
-        //        "u": true,
-        //        "w": true,
-        //        "m": false, // is limit_maker
-        //        "O": "1653297251042", // order creation
-        //        "Z": "0", // total filled
-        //        "A": "0", // account id
-        //        "C": false, // is close
-        //        "v": "0", // leverage
-        //        "d": "NO_LIQ"
-        //    }
-        // v5
-        //    {
-        //        "category":"spot",
-        //        "symbol":"LTCUSDT",
-        //        "orderId":"1474764674982492160",
-        //        "orderLinkId":"1690541649154749",
-        //        "blockTradeId":"",
-        //        "side":"Buy",
-        //        "positionIdx":0,
-        //        "orderStatus":"Cancelled",
-        //        "cancelType":"UNKNOWN",
-        //        "rejectReason":"EC_NoError",
-        //        "timeInForce":"GTC",
-        //        "isLeverage":"0",
-        //        "price":"0",
-        //        "qty":"5.00000",
-        //        "avgPrice":"0",
-        //        "leavesQty":"0.00000",
-        //        "leavesValue":"5.0000000",
-        //        "cumExecQty":"0.00000",
-        //        "cumExecValue":"0.0000000",
-        //        "cumExecFee":"",
-        //        "orderType":"Market",
-        //        "stopOrderType":"",
-        //        "orderIv":"",
-        //        "triggerPrice":"0.000",
-        //        "takeProfit":"",
-        //        "stopLoss":"",
-        //        "triggerBy":"",
-        //        "tpTriggerBy":"",
-        //        "slTriggerBy":"",
-        //        "triggerDirection":0,
-        //        "placeType":"",
-        //        "lastPriceOnCreated":"0.000",
-        //        "closeOnTrigger":false,
-        //        "reduceOnly":false,
-        //        "smpGroup":0,
-        //        "smpType":"None",
-        //        "smpOrderId":"",
-        //        "createdTime":"1690541649160",
-        //        "updatedTime":"1690541649168"
-        //     }
-        //
-        object id = this.safeString2(order, "i", "orderId");
-        object marketId = this.safeString2(order, "s", "symbol");
-        object symbol = this.safeSymbol(marketId, market, null, "spot");
-        object timestamp = this.safeInteger2(order, "O", "createdTime");
-        object price = this.safeString2(order, "p", "price");
-        if (isTrue(isEqual(price, "0")))
-        {
-            price = null; // market orders
-        }
-        object filled = this.safeString2(order, "z", "cumExecQty");
-        object status = this.parseOrderStatus(this.safeString2(order, "X", "orderStatus"));
-        object side = this.safeStringLower2(order, "S", "side");
-        object lastTradeTimestamp = this.safeString2(order, "E", "updatedTime");
-        object timeInForce = this.safeString2(order, "f", "timeInForce");
-        object amount = null;
-        object cost = this.safeString2(order, "Z", "cumExecValue");
-        object type = this.safeStringLower2(order, "o", "orderType");
-        if (isTrue(isTrue((!isEqual(type, null))) && isTrue((isGreaterThanOrEqual(getIndexOf(type, "market"), 0)))))
-        {
-            type = "market";
-        }
-        if (isTrue(isTrue(isEqual(type, "market")) && isTrue(isEqual(side, "buy"))))
-        {
-            amount = filled;
-        } else
-        {
-            amount = this.safeString2(order, "orderQty", "qty");
-        }
-        object fee = null;
-        object feeCost = this.safeString2(order, "n", "cumExecFee");
-        if (isTrue(isTrue(!isEqual(feeCost, null)) && isTrue(!isEqual(feeCost, "0"))))
-        {
-            object feeCurrencyId = this.safeString(order, "N");
-            object feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
-            fee = new Dictionary<string, object>() {
-                { "cost", feeCost },
-                { "currency", feeCurrencyCode },
-            };
-        }
-        object triggerPrice = this.omitZero(this.safeString(order, "triggerPrice"));
-        return this.safeOrder(new Dictionary<string, object>() {
-            { "info", order },
-            { "id", id },
-            { "clientOrderId", this.safeString2(order, "c", "orderLinkId") },
-            { "timestamp", timestamp },
-            { "datetime", this.iso8601(timestamp) },
-            { "lastTradeTimestamp", lastTradeTimestamp },
-            { "symbol", symbol },
-            { "type", type },
-            { "timeInForce", timeInForce },
-            { "postOnly", null },
-            { "side", side },
-            { "price", price },
-            { "stopPrice", triggerPrice },
-            { "triggerPrice", triggerPrice },
-            { "takeProfitPrice", this.safeString(order, "takeProfit") },
-            { "stopLossPrice", this.safeString(order, "stopLoss") },
-            { "reduceOnly", this.safeValue(order, "reduceOnly") },
-            { "amount", amount },
-            { "cost", cost },
-            { "average", this.safeString(order, "avgPrice") },
-            { "filled", filled },
-            { "remaining", null },
-            { "status", status },
-            { "fee", fee },
-        }, market);
     }
 
     /**
@@ -2681,6 +2596,7 @@ public partial class bybit : ccxt.bybit
             { "user.openapi.perp.trade", this.handleMyTrades },
             { "position", this.handlePositions },
             { "liquidation", this.handleLiquidation },
+            { "allLiquidation", this.handleLiquidation },
             { "pong", this.handlePong },
             { "order.create", this.handleOrderWs },
             { "order.amend", this.handleOrderWs },

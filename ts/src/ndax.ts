@@ -15,7 +15,7 @@ import type { IndexType, Balances, Currency, Int, Market, OHLCV, Order, OrderBoo
  * @augments Exchange
  */
 export default class ndax extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'ndax',
             'name': 'NDAX',
@@ -455,45 +455,45 @@ export default class ndax extends Exchange {
         };
         const response = await this.publicGetGetProducts (this.extend (request, params));
         //
-        //     [
-        //         {
-        //             "OMSId":1,
-        //             "ProductId":1,
-        //             "Product":"BTC",
-        //             "ProductFullName":"Bitcoin",
-        //             "ProductType":"CryptoCurrency",
-        //             "DecimalPlaces":8,
-        //             "TickSize":0.0000000100000000000000000000,
-        //             "NoFees":false,
-        //             "IsDisabled":false,
-        //             "MarginEnabled":false
-        //         },
-        //     ]
+        //    [
+        //        {
+        //            "OMSId": "1",
+        //            "ProductId": "1",
+        //            "Product": "BTC",
+        //            "ProductFullName": "Bitcoin",
+        //            "MasterDataUniqueProductSymbol": "",
+        //            "ProductType": "CryptoCurrency",
+        //            "DecimalPlaces": "8",
+        //            "TickSize": "0.0000000100000000000000000000",
+        //            "DepositEnabled": true,
+        //            "WithdrawEnabled": true,
+        //            "NoFees": false,
+        //            "IsDisabled": false,
+        //            "MarginEnabled": false
+        //        },
+        //        ...
         //
         const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const currency = response[i];
             const id = this.safeString (currency, 'ProductId');
-            const name = this.safeString (currency, 'ProductFullName');
+            const code = this.safeCurrencyCode (this.safeString (currency, 'Product'));
             const ProductType = this.safeString (currency, 'ProductType');
             let type = (ProductType === 'NationalCurrency') ? 'fiat' : 'crypto';
             if (ProductType === 'Unknown') {
                 // such currency is just a blanket entry
                 type = 'other';
             }
-            const code = this.safeCurrencyCode (this.safeString (currency, 'Product'));
-            const isDisabled = this.safeValue (currency, 'IsDisabled');
-            const active = !isDisabled;
-            result[code] = {
+            result[code] = this.safeCurrencyStructure ({
                 'id': id,
-                'name': name,
+                'name': this.safeString (currency, 'ProductFullName'),
                 'code': code,
                 'type': type,
                 'precision': this.safeNumber (currency, 'TickSize'),
                 'info': currency,
-                'active': active,
-                'deposit': undefined,
-                'withdraw': undefined,
+                'active': !this.safeBool (currency, 'IsDisabled'),
+                'deposit': this.safeBool (currency, 'DepositEnabled'),
+                'withdraw': this.safeBool (currency, 'WithdrawEnabled'),
                 'fee': undefined,
                 'limits': {
                     'amount': {
@@ -506,7 +506,8 @@ export default class ndax extends Exchange {
                     },
                 },
                 'networks': {},
-            };
+                'margin': this.safeBool (currency, 'MarginEnabled'),
+            });
         }
         return result;
     }
@@ -2166,7 +2167,7 @@ export default class ndax extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
      */
-    async createDepositAddress (code: string, params = {}) {
+    async createDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         const request: Dict = {
             'GenerateNewKey': true,
         };

@@ -947,6 +947,7 @@
         "fetchOrderBook": [
             {
                 "description": "Swap orderbook",
+                "disabledGO": true,
                 "method": "fetchOrderBook",
                 "input": [
                     "BTC/USDT:USDT",
@@ -1022,6 +1023,7 @@
             },
             {
                 "description": "spot orderbook",
+                "disabledGO": true,
                 "method": "fetchOrderBook",
                 "input": [
                     "BTC/USDT",

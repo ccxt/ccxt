@@ -653,9 +653,10 @@ public partial class exmo : Exchange
      */
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
-        //
         parameters ??= new Dictionary<string, object>();
-        object currencyList = await this.publicGetCurrencyListExtended(parameters);
+        object promises = new List<object>() {};
+        //
+        ((IList<object>)promises).Add(this.publicGetCurrencyListExtended(parameters));
         //
         //     [
         //         {"name":"VLX","description":"Velas"},
@@ -664,7 +665,7 @@ public partial class exmo : Exchange
         //         {"name":"USD","description":"US Dollar"}
         //     ]
         //
-        object cryptoList = await this.publicGetPaymentsProvidersCryptoList(parameters);
+        ((IList<object>)promises).Add(this.publicGetPaymentsProvidersCryptoList(parameters));
         //
         //     {
         //         "BTC":[
@@ -689,6 +690,9 @@ public partial class exmo : Exchange
         //         ],
         //     }
         //
+        object responses = await promiseAll(promises);
+        object currencyList = getValue(responses, 0);
+        object cryptoList = getValue(responses, 1);
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(currencyList)); postFixIncrement(ref i))
         {
@@ -765,6 +769,10 @@ public partial class exmo : Exchange
                 }
             }
             object code = this.safeCurrencyCode(currencyId);
+            object info = new Dictionary<string, object>() {
+                { "currency", currency },
+                { "providers", providers },
+            };
             ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
                 { "id", currencyId },
                 { "code", code },
@@ -776,7 +784,7 @@ public partial class exmo : Exchange
                 { "fee", fee },
                 { "precision", this.parseNumber("1e-8") },
                 { "limits", limits },
-                { "info", providers },
+                { "info", info },
                 { "networks", new Dictionary<string, object>() {} },
             };
         }
@@ -794,7 +802,8 @@ public partial class exmo : Exchange
     public async override Task<object> fetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await this.publicGetPairSettings(parameters);
+        object promises = new List<object>() {};
+        ((IList<object>)promises).Add(this.publicGetPairSettings(parameters));
         //
         //     {
         //         "BTC_USD":{
@@ -811,48 +820,26 @@ public partial class exmo : Exchange
         //     }
         //
         object marginPairsDict = new Dictionary<string, object>() {};
-        if (isTrue(this.checkRequiredCredentials(false)))
+        object fetchMargin = this.checkRequiredCredentials(false);
+        if (isTrue(fetchMargin))
         {
-            object marginPairs = await this.privatePostMarginPairList(parameters);
-            //
-            //    {
-            //        "pairs": [
-            //            {
-            //                "buy_price": "55978.85",
-            //                "default_leverage": "3",
-            //                "is_fair_price": true,
-            //                "last_trade_price": "55999.23",
-            //                "liquidation_fee": "2",
-            //                "liquidation_level": "10",
-            //                "margin_call_level": "15",
-            //                "max_leverage": "3",
-            //                "max_order_price": "150000",
-            //                "max_order_quantity": "1",
-            //                "max_position_quantity": "1",
-            //                "max_price_precision": 2,
-            //                "min_order_price": "1",
-            //                "min_order_quantity": "0.00002",
-            //                "name": "BTC_USD",
-            //                "position": 1,
-            //                "sell_price": "55985.51",
-            //                "ticker_updated": "1619019818936107989",
-            //                "trade_maker_fee": "0",
-            //                "trade_taker_fee": "0.05",
-            //                "updated": "1619008608955599013"
-            //            }
-            //        ]
-            //    }
-            //
-            object pairs = this.safeValue(marginPairs, "pairs");
+            ((IList<object>)promises).Add(this.privatePostMarginPairList(parameters));
+        }
+        object responses = await promiseAll(promises);
+        object spotResponse = getValue(responses, 0);
+        if (isTrue(fetchMargin))
+        {
+            object marginPairs = getValue(responses, 1);
+            object pairs = this.safeList(marginPairs, "pairs");
             marginPairsDict = this.indexBy(pairs, "name");
         }
-        object keys = new List<object>(((IDictionary<string,object>)response).Keys);
+        object keys = new List<object>(((IDictionary<string,object>)spotResponse).Keys);
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object id = getValue(keys, i);
-            object market = getValue(response, id);
-            object marginMarket = this.safeValue(marginPairsDict, id);
+            object market = getValue(spotResponse, id);
+            object marginMarket = this.safeDict(marginPairsDict, id);
             object symbol = ((string)id).Replace((string)"_", (string)"/");
             var baseIdquoteIdVariable = ((string)symbol).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
             var baseId = ((IList<object>) baseIdquoteIdVariable)[0];
