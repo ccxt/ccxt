@@ -1671,6 +1671,7 @@ export default class exkoin extends Exchange {
             headers = {
                 'Content-Type': 'application/json',
                 'authorization': 'Basic ' + this.stringToBase64 (this.apiKey + ':' + this.secret),
+                'user-agent': 'ccxt',
             };
             if (method !== 'GET') {
                 body = this.json (params);
