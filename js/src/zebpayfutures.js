@@ -62,8 +62,8 @@ export default class zebpayfutures extends Exchange {
             'urls': {
                 'logo': '',
                 'api': {
-                    'public': 'https://futuresbe.zebpay.com',
-                    'private': 'https://futuresbe.zebpay.com',
+                    'public': 'https://dev-futuresbe.zebstage.com',
+                    'private': 'https://dev-futuresbe.zebstage.com', // 'https://futuresbe.zebpay.com',
                 },
                 'www': 'https://www.zebpay.com',
                 'doc': '',
@@ -149,7 +149,7 @@ export default class zebpayfutures extends Exchange {
         //     "customMessage": ["OK"]
         // }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const status = this.safeString(data, 'systemStatus');
         return {
             'status': status,
@@ -194,9 +194,6 @@ export default class zebpayfutures extends Exchange {
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
      */
     async fetchTradingFee(symbol, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' fetchTradingFee() requires a symbol argument');
-        }
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -273,9 +270,6 @@ export default class zebpayfutures extends Exchange {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' fetchOrderBook() requires a symbol argument');
-        }
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -338,6 +332,8 @@ export default class zebpayfutures extends Exchange {
         //            "takerFee": "0.01",
         //            "minLeverage": "1",
         //            "maxLeverage": "20"
+        //            "tickSz": "0.1",
+        //            "lotSz": "0.1"
         //        }
         //    }
         //
@@ -352,9 +348,10 @@ export default class zebpayfutures extends Exchange {
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
             const status = this.safeString(market, 'status');
-            result.push({
+            const symbol = base + '/' + quote;
+            result.push(this.safeMarketStructure({
                 'id': id,
-                'symbol': market.symbol,
+                'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'baseId': baseId,
@@ -369,7 +366,10 @@ export default class zebpayfutures extends Exchange {
                 'maker': this.safeNumber(market, 'makerFee'),
                 'strike': undefined,
                 'optionType': undefined,
-                'precision': undefined,
+                'precision': {
+                    'amount': this.safeNumber(market, 'lotSz'),
+                    'price': this.safeNumber(market, 'tickSz'),
+                },
                 'limits': {
                     'leverage': {
                         'min': this.safeNumber(market, 'minLeverage'),
@@ -377,7 +377,7 @@ export default class zebpayfutures extends Exchange {
                     },
                 },
                 'info': market,
-            });
+            }));
         }
         return result;
     }
@@ -391,9 +391,6 @@ export default class zebpayfutures extends Exchange {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' fetchTicker() requires a symbol argument');
-        }
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -437,9 +434,6 @@ export default class zebpayfutures extends Exchange {
         await this.loadMarkets();
         const request = {};
         const response = await this.privateGetWalletBalance(this.extend(request, params));
-        if (response.statusCode !== 200) {
-            throw new ExchangeError(JSON.stringify(response));
-        }
         //
         //     {
         //         "data": [
@@ -487,52 +481,45 @@ export default class zebpayfutures extends Exchange {
         if (leverage === undefined) {
             throw new ArgumentsRequired(this.id + ' createOrder() requires a leverage parameter argument');
         }
-        if (type !== 'limit' && type !== 'market') {
-            throw new BadRequest(`${this.id} createOrder() type must be either 'market' or 'limit'`);
-        }
         const formType = this.safeString(params, 'formType', 'ORDER_FORM');
         const upperCaseFormType = formType.toUpperCase();
         const upperCaseType = type.toUpperCase();
-        const takeProfit = this.safeBool(params, 'takeProfit', false);
-        const stopLoss = this.safeBool(params, 'stopLoss', false);
-        const timestamp = this.safeInteger(params, 'timestamp');
+        const takeProfitPrice = this.safeNumber(params, 'takeProfitPrice');
+        const stopLossPrice = this.safeNumber(params, 'stopLossPrice');
         const orderType = this.safeString(params, 'orderType');
         const positionId = this.safeString(params, 'positionId', undefined);
-        params = this.omit(params, ['marginAsset', 'leverage', 'formType', 'positionId', 'orderType']);
+        params = this.omit(params, ['marginAsset', 'leverage', 'formType', 'positionId', 'orderType', 'takeProfitPrice', 'stopLossPrice']);
         const request = {
             'formType': upperCaseFormType,
-            'amount': amount,
-            'side': side,
+            'amount': parseFloat(this.amountToPrecision(market['symbol'], amount)),
+            'side': side.toUpperCase(),
             'marginAsset': marginAsset,
             'leverage': leverage,
             'symbol': market['id'],
-            'type': upperCaseType,
-            'timestamp': timestamp,
         };
-        if (type === 'limit') {
-            if (price === undefined) {
-                throw new ArgumentsRequired(this.id + ' createOrder() requires a price argument for limit orders');
+        let response;
+        const hasTP = takeProfitPrice !== undefined;
+        const hasSL = stopLossPrice !== undefined;
+        if (hasTP || hasSL) {
+            if (hasTP) {
+                request['takeProfitPrice'] = parseFloat(this.priceToPrecision(symbol, takeProfitPrice));
             }
-            else {
-                request['price'] = price;
+            if (hasSL) {
+                request['stopLossPrice'] = parseFloat(this.priceToPrecision(symbol, stopLossPrice));
             }
-        }
-        if (takeProfit === true) {
-            request['takeProfitPrice'] = price;
             request['positionId'] = positionId;
             request['orderType'] = orderType;
-        }
-        if (stopLoss === true) {
-            request['stopLossPrice'] = price;
-            request['positionId'] = positionId;
-            request['orderType'] = orderType;
-        }
-        params = this.omit(params, ['price']);
-        let response = undefined;
-        if (takeProfit === true || stopLoss === true) {
             response = await this.privatePostTradeOrderAddTPSL(this.extend(request, params));
         }
         else {
+            request['type'] = upperCaseType;
+            if (type === 'limit') {
+                if (price === undefined) {
+                    throw new ArgumentsRequired(this.id + ' createOrder() requires a price argument for limit orders');
+                }
+                request['price'] = parseFloat(this.priceToPrecision(symbol, price));
+            }
+            params = this.omit(params, ['price']);
             response = await this.privatePostTradeOrder(this.extend(request, params));
         }
         //
@@ -543,29 +530,30 @@ export default class zebpayfutures extends Exchange {
         //    }
         //
         const data = this.safeValue(response, 'data', {});
-        return this.safeOrder({
-            'id': undefined,
-            'clientOrderId': this.safeString(data, 'clientOrderId'),
-            'timestamp': this.safeString(data, 'timestamp'),
-            'datetime': this.safeString(data, 'datetime'),
-            'lastTradeTimestamp': undefined,
-            'symbol': this.safeString(data, 'symbol'),
-            'type': this.safeString(data, 'type'),
-            'side': this.safeString(data, 'side'),
-            'price': this.safeString(data, 'price'),
-            'amount': this.safeNumber(data, 'amount'),
-            'cost': this.safeNumber(data, 'cost'),
-            'average': undefined,
-            'filled': this.safeNumber(data, 'filled'),
-            'remaining': this.safeNumber(data, 'remaining'),
-            'status': this.safeString(data, 'status'),
-            'fee': undefined,
-            'trades': undefined,
-            'timeInForce': this.safeString(data, 'timeInForce'),
-            'postOnly': undefined,
-            'triggerPrice': undefined,
-            'info': response,
-        }, market);
+        return this.parseOrder(data, market);
+        // return this.safeOrder ({
+        //     'id': undefined,
+        //     'clientOrderId': this.safeString (data, 'clientOrderId'),
+        //     'timestamp': this.safeString (data, 'timestamp'),
+        //     'datetime': this.safeString (data, 'datetime'),
+        //     'lastTradeTimestamp': undefined,
+        //     'symbol': this.safeString (data, 'symbol'),
+        //     'type': this.safeString (data, 'type'),
+        //     'side': this.safeString (data, 'side'),
+        //     'price': this.safeString (data, 'price'),
+        //     'amount': this.safeNumber (data, 'amount'),
+        //     'cost': this.safeNumber (data, 'cost'),
+        //     'average': undefined,
+        //     'filled': this.safeNumber (data, 'filled'),
+        //     'remaining': this.safeNumber (data, 'remaining'),
+        //     'status': this.safeString (data, 'status'),
+        //     'fee': undefined,
+        //     'trades': undefined,
+        //     'timeInForce': this.safeString (data, 'timeInForce'),
+        //     'postOnly': undefined,
+        //     'triggerPrice': undefined,
+        //     'info': response,
+        // }, market);
     }
     /**
      * @method
@@ -580,12 +568,9 @@ export default class zebpayfutures extends Exchange {
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
         await this.loadMarkets();
-        const timestamp = this.safeInteger(params, 'timestamp');
-        params = this.omit(params, ['timestamp']);
         const request = {
             'clientOrderId': id,
             'symbol': symbol,
-            'timestamp': timestamp,
         };
         const response = await this.privateDeleteTradeOrder(this.extend(request, params));
         //
@@ -614,16 +599,14 @@ export default class zebpayfutures extends Exchange {
         await this.loadMarkets();
         const market = this.market(symbol);
         const positionId = this.safeString(params, 'positionId');
-        const timestamp = this.safeInteger(params, 'timestamp');
         if (positionId === undefined) {
             throw new ArgumentsRequired(this.id + ' addMargin() requires a positionId parameter argument');
         }
-        params = this.omit(params, ['positionId', 'timestamp']);
+        params = this.omit(params, ['positionId']);
         const request = {
             'symbol': market['id'],
             'amount': amount,
             'positionId': positionId,
-            'timestamp': timestamp,
         };
         const response = await this.privatePostTradeAddMargin(this.extend(request, params));
         //
@@ -666,16 +649,14 @@ export default class zebpayfutures extends Exchange {
         await this.loadMarkets();
         const market = this.market(symbol);
         const positionId = this.safeString(params, 'positionId');
-        const timestamp = this.safeInteger(params, 'timestamp');
         if (positionId === undefined) {
             throw new ArgumentsRequired(this.id + ' reduceMargin() requires a positionId parameter argument');
         }
-        params = this.omit(params, ['positionId', 'timestamp']);
+        params = this.omit(params, ['positionId']);
         const request = {
             'symbol': market['id'],
             'amount': amount,
             'positionId': positionId,
-            'timestamp': timestamp,
         };
         const response = await this.privatePostTradeReduceMargin(this.extend(request, params));
         if (response.statusCode !== 200 && response.statusCode !== '201') {
@@ -719,16 +700,19 @@ export default class zebpayfutures extends Exchange {
             market = this.market(symbol);
             request['symbol'] = market['id'];
         }
-        if (since !== undefined) {
-            request['since'] = since || Date.now();
+        if (typeof since !== 'undefined') {
+            request['since'] = since;
         }
-        if (limit !== undefined) {
-            request['limit'] = limit || 100;
+        else {
+            request['since'] = Date.now();
+        }
+        if (typeof limit !== 'undefined') {
+            request['limit'] = limit;
+        }
+        else {
+            request['limit'] = 100;
         }
         const response = await this.privateGetTradeOrderOpenOrders(this.extend(request, params));
-        if (response.statusCode !== 200) {
-            throw new ExchangeError(JSON.stringify(response));
-        }
         //
         //     {
         //         "data": {
@@ -775,7 +759,7 @@ export default class zebpayfutures extends Exchange {
     }
     /**
      * @method
-     * @name kucoinfutures#fetchOrder
+     * @name zebpayfutures#fetchOrder
      * @description fetches information on an order made by the user
      * @see https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-get-order-details
      * @param {string} id order id
@@ -787,19 +771,10 @@ export default class zebpayfutures extends Exchange {
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
         await this.loadMarkets();
-        const request = {};
-        const clientOrderId = this.safeString(params, 'clientOrderId');
-        const timestamp = this.safeInteger(params, 'timestamp');
-        if (clientOrderId === undefined) {
-            throw new InvalidOrder(this.id + ' fetchOrder() requires parameter clientOrderId in params');
-        }
-        params = this.omit(params, ['clientOrderId', 'timestamp']);
-        request['id'] = clientOrderId;
-        request['timestamp'] = timestamp;
+        const request = {
+            'id': id,
+        };
         const response = await this.privateGetTradeOrder(this.extend(request, params));
-        if (response.statusCode !== 200) {
-            throw new ExchangeError(JSON.stringify(response));
-        }
         //
         //     {
         //         "data": {
@@ -844,15 +819,13 @@ export default class zebpayfutures extends Exchange {
         await this.loadMarkets();
         const market = this.market(symbol);
         const positionId = this.safeString(params, 'positionId');
-        const timestamp = this.safeInteger(params, 'timestamp');
-        params = this.omit(params, ['positionId', 'timestamp']);
+        params = this.omit(params, ['positionId']);
         if (positionId === undefined) {
             throw new InvalidOrder(this.id + ' closePosition() requires positionId');
         }
         const request = {
             'symbol': market['id'],
             'positionId': positionId,
-            'timestamp': timestamp,
         };
         const response = await this.privatePostTradePositionClose(this.extend(request, params));
         if (response.statusCode !== 200 && response.statusCode !== '201') {
@@ -872,15 +845,8 @@ export default class zebpayfutures extends Exchange {
      */
     async fetchLeverages(symbols = undefined, params = {}) {
         await this.loadMarkets();
-        const timestamp = this.safeInteger(params, 'timestamp');
-        params = this.omit(params, ['timestamp']);
-        const request = {
-            'timestamp': timestamp,
-        };
+        const request = {};
         const response = await this.privateGetTradeUserLeverages(this.extend(request, params));
-        if (response.statusCode !== 200) {
-            throw new ExchangeError(JSON.stringify(response));
-        }
         //
         //     {
         //         "leveragePreferences": [
@@ -906,21 +872,12 @@ export default class zebpayfutures extends Exchange {
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
      */
     async fetchLeverage(symbol, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' fetchLeverage() requires a symbol argument');
-        }
         await this.loadMarkets();
-        const timestamp = this.safeInteger(params, 'timestamp');
-        params = this.omit(params, ['timestamp']);
         const market = this.market(symbol);
         const request = {
             'symbol': this.marketId(symbol).toUpperCase(),
-            'timestamp': timestamp,
         };
         const response = await this.privateGetTradeUserLeverage(this.extend(request, params));
-        if (response.statusCode !== 200) {
-            throw new ExchangeError(JSON.stringify(response));
-        }
         //
         //     {
         //         "data": { symbol: "ETHINR", longLeverage: 1, shortLeverage: 1, marginMode: "isolated" }
@@ -944,12 +901,9 @@ export default class zebpayfutures extends Exchange {
             throw new ArgumentsRequired(this.id + ' setLeverage() requires a symbol argument');
         }
         await this.loadMarkets();
-        const timestamp = this.safeInteger(params, 'timestamp');
-        params = this.omit(params, ['timestamp']);
         const request = {
             'leverage': leverage,
             'symbol': this.marketId(symbol).toUpperCase(),
-            'timestamp': timestamp,
         };
         //
         // { data: { "symbol", "longLeverage": 10, "shortLeverage": 1, "marginMode": "isolated" }
@@ -968,17 +922,8 @@ export default class zebpayfutures extends Exchange {
      */
     async fetchPositions(symbols = undefined, params = {}) {
         await this.loadMarkets();
-        const timestamp = this.safeInteger(params, 'timestamp');
-        const status = this.safeString(params, 'status');
-        params = this.omit(params, ['timestamp', 'status']);
-        const request = {
-            'status': status,
-            'timestamp': timestamp,
-        };
-        const response = await this.privateGetTradePositions(request);
-        if (response.statusCode !== 200) {
-            throw new ExchangeError(JSON.stringify(response));
-        }
+        const request = {};
+        const response = await this.privateGetTradePositions(this.extend(request, params));
         //
         //    {
         //        "data": [
@@ -992,17 +937,9 @@ export default class zebpayfutures extends Exchange {
         //        ],
         //    }
         //
-        const result = this.parsePositions(response);
+        const positions = this.safeList(response, 'data');
+        const result = this.parsePositions(positions);
         return this.filterByArrayPositions(result, 'symbol', symbols, false);
-    }
-    parsePositions(response, symbols = undefined, params = {}) {
-        const result = [];
-        const positions = this.safeValue(response, 'data');
-        for (let i = 0; i < positions.length; i++) {
-            const position = this.parsePosition(positions[i]);
-            result.push(position);
-        }
-        return result;
     }
     parsePosition(position, market = undefined) {
         //
@@ -1223,12 +1160,7 @@ export default class zebpayfutures extends Exchange {
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
-        const versions = this.safeValue(this.options, 'versions', {});
-        const apiVersions = this.safeValue(versions, api, {});
-        const methodVersions = this.safeValue(apiVersions, method, {});
-        const defaultVersion = this.safeString(methodVersions, path, this.version);
-        const version = this.safeString(params, 'version', defaultVersion);
-        const tail = '/api/' + version + '/' + this.implodeParams(path, params);
+        const tail = '/api/' + this.version + '/' + this.implodeParams(path, params);
         url += tail;
         // const timestamp = this.milliseconds ().toString ();
         let signature = '';
@@ -1267,6 +1199,12 @@ export default class zebpayfutures extends Exchange {
             this.throwBroadlyMatchedException(this.exceptions['broad'], body, body);
             return undefined;
         }
+        if ('statusDescription' in response && response['statusDescription'] !== 'OK') {
+            throw new ExchangeError(`${this.id} API error: ${body}`);
+        }
+        // if ('error' in response) {
+        //     throw new ExchangeError (`${this.id} API error: ${response.error}`);
+        // }
         //
         // bad
         //     { "code": "400100", "msg": "validation.createOrder.clientOidIsRequired" }

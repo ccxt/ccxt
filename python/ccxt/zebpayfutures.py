@@ -70,8 +70,8 @@ class zebpayfutures(Exchange, ImplicitAPI):
             'urls': {
                 'logo': '',
                 'api': {
-                    'public': 'https://futuresbe.zebpay.com',
-                    'private': 'https://futuresbe.zebpay.com',
+                    'public': 'https://dev-futuresbe.zebstage.com',  # 'https://futuresbe.zebpay.com',
+                    'private': 'https://dev-futuresbe.zebstage.com',  # 'https://futuresbe.zebpay.com',
                 },
                 'www': 'https://www.zebpay.com',
                 'doc': '',
@@ -158,7 +158,7 @@ class zebpayfutures(Exchange, ImplicitAPI):
         #     "customMessage": ["OK"]
         # }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         status = self.safe_string(data, 'systemStatus')
         return {
             'status': status,
@@ -203,8 +203,6 @@ class zebpayfutures(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchTradingFee() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request: dict = {
@@ -280,8 +278,6 @@ class zebpayfutures(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrderBook() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request: dict = {
@@ -344,6 +340,8 @@ class zebpayfutures(Exchange, ImplicitAPI):
         #            "takerFee": "0.01",
         #            "minLeverage": "1",
         #            "maxLeverage": "20"
+        #            "tickSz": "0.1",
+        #            "lotSz": "0.1"
         #        }
         #    }
         #
@@ -358,9 +356,10 @@ class zebpayfutures(Exchange, ImplicitAPI):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             status = self.safe_string(market, 'status')
-            result.append({
+            symbol = base + '/' + quote
+            result.append(self.safe_market_structure({
                 'id': id,
-                'symbol': market.symbol,
+                'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'baseId': baseId,
@@ -375,7 +374,10 @@ class zebpayfutures(Exchange, ImplicitAPI):
                 'maker': self.safe_number(market, 'makerFee'),
                 'strike': None,
                 'optionType': None,
-                'precision': None,
+                'precision': {
+                    'amount': self.safe_number(market, 'lotSz'),
+                    'price': self.safe_number(market, 'tickSz'),
+                },
                 'limits': {
                     'leverage': {
                         'min': self.safe_number(market, 'minLeverage'),
@@ -383,7 +385,7 @@ class zebpayfutures(Exchange, ImplicitAPI):
                     },
                 },
                 'info': market,
-            })
+            }))
         return result
 
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
@@ -396,8 +398,6 @@ class zebpayfutures(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchTicker() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request: dict = {
@@ -441,8 +441,6 @@ class zebpayfutures(Exchange, ImplicitAPI):
         self.load_markets()
         request: dict = {}
         response = self.privateGetWalletBalance(self.extend(request, params))
-        if response.statusCode != 200:
-            raise ExchangeError(json.dumps(response))
         #
         #     {
         #         "data": [
@@ -489,45 +487,40 @@ class zebpayfutures(Exchange, ImplicitAPI):
         leverage = self.safe_string(params, 'leverage')
         if leverage is None:
             raise ArgumentsRequired(self.id + ' createOrder() requires a leverage parameter argument')
-        if type != 'limit' and type != 'market':
-            raise BadRequest(`${self.id} createOrder() type must be either 'market' or 'limit'`)
         formType = self.safe_string(params, 'formType', 'ORDER_FORM')
         upperCaseFormType = formType.upper()
         upperCaseType = type.upper()
-        takeProfit = self.safe_bool(params, 'takeProfit', False)
-        stopLoss = self.safe_bool(params, 'stopLoss', False)
-        timestamp = self.safe_integer(params, 'timestamp')
+        takeProfitPrice = self.safe_number(params, 'takeProfitPrice')
+        stopLossPrice = self.safe_number(params, 'stopLossPrice')
         orderType = self.safe_string(params, 'orderType')
         positionId = self.safe_string(params, 'positionId', None)
-        params = self.omit(params, ['marginAsset', 'leverage', 'formType', 'positionId', 'orderType'])
+        params = self.omit(params, ['marginAsset', 'leverage', 'formType', 'positionId', 'orderType', 'takeProfitPrice', 'stopLossPrice'])
         request: dict = {
             'formType': upperCaseFormType,
-            'amount': amount,
-            'side': side,
+            'amount': float(self.amount_to_precision(market['symbol'], amount)),
+            'side': side.upper(),
             'marginAsset': marginAsset,
             'leverage': leverage,
             'symbol': market['id'],
-            'type': upperCaseType,  # limit or market
-            'timestamp': timestamp,
         }
-        if type == 'limit':
-            if price is None:
-                raise ArgumentsRequired(self.id + ' createOrder() requires a price argument for limit orders')
-            else:
-                request['price'] = price
-        if takeProfit is True:
-            request['takeProfitPrice'] = price
+        response
+        hasTP = takeProfitPrice is not None
+        hasSL = stopLossPrice is not None
+        if hasTP or hasSL:
+            if hasTP:
+                request['takeProfitPrice'] = float(self.price_to_precision(symbol, takeProfitPrice))
+            if hasSL:
+                request['stopLossPrice'] = float(self.price_to_precision(symbol, stopLossPrice))
             request['positionId'] = positionId
             request['orderType'] = orderType
-        if stopLoss is True:
-            request['stopLossPrice'] = price
-            request['positionId'] = positionId
-            request['orderType'] = orderType
-        params = self.omit(params, ['price'])
-        response = None
-        if takeProfit is True or stopLoss is True:
             response = self.privatePostTradeOrderAddTPSL(self.extend(request, params))
         else:
+            request['type'] = upperCaseType
+            if type == 'limit':
+                if price is None:
+                    raise ArgumentsRequired(self.id + ' createOrder() requires a price argument for limit orders')
+                request['price'] = float(self.price_to_precision(symbol, price))
+            params = self.omit(params, ['price'])
             response = self.privatePostTradeOrder(self.extend(request, params))
         #
         #    {
@@ -537,29 +530,30 @@ class zebpayfutures(Exchange, ImplicitAPI):
         #    }
         #
         data = self.safe_value(response, 'data', {})
-        return self.safe_order({
-            'id': None,
-            'clientOrderId': self.safe_string(data, 'clientOrderId'),
-            'timestamp': self.safe_string(data, 'timestamp'),
-            'datetime': self.safe_string(data, 'datetime'),
-            'lastTradeTimestamp': None,
-            'symbol': self.safe_string(data, 'symbol'),
-            'type': self.safe_string(data, 'type'),
-            'side': self.safe_string(data, 'side'),
-            'price': self.safe_string(data, 'price'),
-            'amount': self.safe_number(data, 'amount'),
-            'cost': self.safe_number(data, 'cost'),
-            'average': None,
-            'filled': self.safe_number(data, 'filled'),
-            'remaining': self.safe_number(data, 'remaining'),
-            'status': self.safe_string(data, 'status'),
-            'fee': None,
-            'trades': None,
-            'timeInForce': self.safe_string(data, 'timeInForce'),
-            'postOnly': None,
-            'triggerPrice': None,
-            'info': response,
-        }, market)
+        return self.parse_order(data, market)
+        # return self.safe_order({
+        #     'id': None,
+        #     'clientOrderId': self.safe_string(data, 'clientOrderId'),
+        #     'timestamp': self.safe_string(data, 'timestamp'),
+        #     'datetime': self.safe_string(data, 'datetime'),
+        #     'lastTradeTimestamp': None,
+        #     'symbol': self.safe_string(data, 'symbol'),
+        #     'type': self.safe_string(data, 'type'),
+        #     'side': self.safe_string(data, 'side'),
+        #     'price': self.safe_string(data, 'price'),
+        #     'amount': self.safe_number(data, 'amount'),
+        #     'cost': self.safe_number(data, 'cost'),
+        #     'average': None,
+        #     'filled': self.safe_number(data, 'filled'),
+        #     'remaining': self.safe_number(data, 'remaining'),
+        #     'status': self.safe_string(data, 'status'),
+        #     'fee': None,
+        #     'trades': None,
+        #     'timeInForce': self.safe_string(data, 'timeInForce'),
+        #     'postOnly': None,
+        #     'triggerPrice': None,
+        #     'info': response,
+        # }, market)
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
@@ -574,12 +568,9 @@ class zebpayfutures(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        timestamp = self.safe_integer(params, 'timestamp')
-        params = self.omit(params, ['timestamp'])
         request: dict = {
             'clientOrderId': id,
             'symbol': symbol,
-            'timestamp': timestamp,
         }
         response = self.privateDeleteTradeOrder(self.extend(request, params))
         #
@@ -608,15 +599,13 @@ class zebpayfutures(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         positionId = self.safe_string(params, 'positionId')
-        timestamp = self.safe_integer(params, 'timestamp')
         if positionId is None:
             raise ArgumentsRequired(self.id + ' addMargin() requires a positionId parameter argument')
-        params = self.omit(params, ['positionId', 'timestamp'])
+        params = self.omit(params, ['positionId'])
         request: dict = {
             'symbol': market['id'],
             'amount': amount,
             'positionId': positionId,
-            'timestamp': timestamp,
         }
         response = self.privatePostTradeAddMargin(self.extend(request, params))
         #
@@ -659,15 +648,13 @@ class zebpayfutures(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         positionId = self.safe_string(params, 'positionId')
-        timestamp = self.safe_integer(params, 'timestamp')
         if positionId is None:
             raise ArgumentsRequired(self.id + ' reduceMargin() requires a positionId parameter argument')
-        params = self.omit(params, ['positionId', 'timestamp'])
+        params = self.omit(params, ['positionId'])
         request: dict = {
             'symbol': market['id'],
             'amount': amount,
             'positionId': positionId,
-            'timestamp': timestamp,
         }
         response = self.privatePostTradeReduceMargin(self.extend(request, params))
         if response.statusCode != 200 and response.statusCode != '201':
@@ -710,12 +697,14 @@ class zebpayfutures(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['symbol'] = market['id']
         if since is not None:
-            request['since'] = since or Date.now()
+            request['since'] = since
+        else:
+            request['since'] = Date.now()
         if limit is not None:
-            request['limit'] = limit or 100
+            request['limit'] = limit
+        else:
+            request['limit'] = 100
         response = self.privateGetTradeOrderOpenOrders(self.extend(request, params))
-        if response.statusCode != 200:
-            raise ExchangeError(json.dumps(response))
         #
         #     {
         #         "data": {
@@ -774,17 +763,10 @@ class zebpayfutures(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request: dict = {}
-        clientOrderId = self.safe_string(params, 'clientOrderId')
-        timestamp = self.safe_integer(params, 'timestamp')
-        if clientOrderId is None:
-            raise InvalidOrder(self.id + ' fetchOrder() requires parameter clientOrderId in params')
-        params = self.omit(params, ['clientOrderId', 'timestamp'])
-        request['id'] = clientOrderId
-        request['timestamp'] = timestamp
+        request: dict = {
+            'id': id,
+        }
         response = self.privateGetTradeOrder(self.extend(request, params))
-        if response.statusCode != 200:
-            raise ExchangeError(json.dumps(response))
         #
         #     {
         #         "data": {
@@ -829,14 +811,12 @@ class zebpayfutures(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         positionId = self.safe_string(params, 'positionId')
-        timestamp = self.safe_integer(params, 'timestamp')
-        params = self.omit(params, ['positionId', 'timestamp'])
+        params = self.omit(params, ['positionId'])
         if positionId is None:
             raise InvalidOrder(self.id + ' closePosition() requires positionId')
         request: dict = {
             'symbol': market['id'],
             'positionId': positionId,
-            'timestamp': timestamp,
         }
         response = self.privatePostTradePositionClose(self.extend(request, params))
         if response.statusCode != 200 and response.statusCode != '201':
@@ -855,14 +835,8 @@ class zebpayfutures(Exchange, ImplicitAPI):
         :returns dict: a list of `leverage structures <https://docs.ccxt.com/#/?id=leverage-structure>`
         """
         self.load_markets()
-        timestamp = self.safe_integer(params, 'timestamp')
-        params = self.omit(params, ['timestamp'])
-        request: dict = {
-            'timestamp': timestamp,
-        }
+        request: dict = {}
         response = self.privateGetTradeUserLeverages(self.extend(request, params))
-        if response.statusCode != 200:
-            raise ExchangeError(json.dumps(response))
         #
         #     {
         #         "leveragePreferences": [
@@ -888,19 +862,12 @@ class zebpayfutures(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `leverage structure <https://docs.ccxt.com/#/?id=leverage-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchLeverage() requires a symbol argument')
         self.load_markets()
-        timestamp = self.safe_integer(params, 'timestamp')
-        params = self.omit(params, ['timestamp'])
         market = self.market(symbol)
         request: dict = {
             'symbol': self.market_id(symbol).upper(),
-            'timestamp': timestamp,
         }
         response = self.privateGetTradeUserLeverage(self.extend(request, params))
-        if response.statusCode != 200:
-            raise ExchangeError(json.dumps(response))
         #
         #     {
         #         "data": {symbol: "ETHINR", longLeverage: 1, shortLeverage: 1, marginMode: "isolated"}
@@ -923,12 +890,9 @@ class zebpayfutures(Exchange, ImplicitAPI):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
         self.load_markets()
-        timestamp = self.safe_integer(params, 'timestamp')
-        params = self.omit(params, ['timestamp'])
         request: dict = {
             'leverage': leverage,
             'symbol': self.market_id(symbol).upper(),
-            'timestamp': timestamp,
         }
         #
         # {data: {"symbol", "longLeverage": 10, "shortLeverage": 1, "marginMode": "isolated"}
@@ -947,16 +911,8 @@ class zebpayfutures(Exchange, ImplicitAPI):
         :returns: Parsed exchange response for positions
         """
         self.load_markets()
-        timestamp = self.safe_integer(params, 'timestamp')
-        status = self.safe_string(params, 'status')
-        params = self.omit(params, ['timestamp', 'status'])
-        request: dict = {
-            'status': status,
-            'timestamp': timestamp,
-        }
-        response = self.privateGetTradePositions(request)
-        if response.statusCode != 200:
-            raise ExchangeError(json.dumps(response))
+        request = {}
+        response = self.privateGetTradePositions(self.extend(request, params))
         #
         #    {
         #        "data": [
@@ -970,16 +926,9 @@ class zebpayfutures(Exchange, ImplicitAPI):
         #        ],
         #    }
         #
-        result = self.parse_positions(response)
+        positions = self.safe_list(response, 'data')
+        result = self.parse_positions(positions)
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
-
-    def parse_positions(self, response, symbols: Strings = None, params={}):
-        result = []
-        positions = self.safe_value(response, 'data')
-        for i in range(0, len(positions)):
-            position = self.parse_position(positions[i])
-            result.append(position)
-        return result
 
     def parse_position(self, position: dict, market: Market = None):
         #
@@ -1199,12 +1148,7 @@ class zebpayfutures(Exchange, ImplicitAPI):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]
-        versions = self.safe_value(self.options, 'versions', {})
-        apiVersions = self.safe_value(versions, api, {})
-        methodVersions = self.safe_value(apiVersions, method, {})
-        defaultVersion = self.safe_string(methodVersions, path, self.version)
-        version = self.safe_string(params, 'version', defaultVersion)
-        tail = '/api/' + version + '/' + self.implode_params(path, params)
+        tail = '/api/' + self.version + '/' + self.implode_params(path, params)
         url += tail
         # timestamp = str(self.milliseconds())
         signature = ''
@@ -1237,6 +1181,11 @@ class zebpayfutures(Exchange, ImplicitAPI):
         if not response:
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, body)
             return None
+        if 'statusDescription' in response and response['statusDescription'] != 'OK':
+            raise ExchangeError(`${self.id} API error: ${body}`)
+        # if 'error' in response:
+        #     raise ExchangeError(`${self.id} API error: ${response.error}`)
+        # }
         #
         # bad
         #     {"code": "400100", "msg": "validation.createOrder.clientOidIsRequired"}

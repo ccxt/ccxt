@@ -13,7 +13,6 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
-from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
@@ -71,8 +70,10 @@ class zebpayspot(Exchange, ImplicitAPI):
             'urls': {
                 'logo': '',
                 'api': {
-                    'public': 'https://sapi.zebpay.com',
-                    'private': 'https://sapi.zebpay.com',
+                    # 'public': 'https://sapi.zebpay.com',
+                    # 'private': 'https://sapi.zebpay.com',
+                    'public': 'https://dev-trade-zrevamp.znewstage.co',
+                    'private': 'https://dev-trade-zrevamp.znewstage.co',
                 },
                 'www': 'https://www.zebpay.com',
                 'doc': '',
@@ -168,7 +169,7 @@ class zebpayspot(Exchange, ImplicitAPI):
         #    }
         #
         result = []
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         markets = self.safe_value(data, 'tradePairs', [])
         for i in range(0, len(markets)):
             market = markets[i]
@@ -177,9 +178,10 @@ class zebpayspot(Exchange, ImplicitAPI):
             quoteId = self.safe_string(market, 'quoteCurrency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            symbol = base + '/' + quote
             result.append({
                 'id': id,
-                'symbol': market.symbol,
+                'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'baseId': baseId,
@@ -197,8 +199,8 @@ class zebpayspot(Exchange, ImplicitAPI):
                 'precision': None,
                 'limits': {
                     'size': {
-                        'min': self.safe_string(market, 'baseMinSize'),
-                        'max': self.safe_string(market, 'baseMaxSize'),
+                        'min': self.safe_number(market, 'baseMinSize'),
+                        'max': self.safe_number(market, 'baseMaxSize'),
                     },
                 },
                 'info': market,
@@ -298,7 +300,7 @@ class zebpayspot(Exchange, ImplicitAPI):
                         },
                     },
                 }
-            result[code] = {
+            result[code] = self.safe_currency_structure({
                 'info': currency,
                 'code': code,
                 'id': currencyId,
@@ -323,7 +325,7 @@ class zebpayspot(Exchange, ImplicitAPI):
                     },
                 },
                 'networks': networks,
-            }
+            })
         return result
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
@@ -348,12 +350,10 @@ class zebpayspot(Exchange, ImplicitAPI):
         }
         request, params = self.order_request(symbol, type, amount, request, price, params)
         response = self.privatePostExOrders(self.extend(request, params))
-        if response.data == None:
-            raise ExchangeError(json.dumps(response))
         orderId = self.safe_value(response.data, 'orderId')
         return self.safe_order({
             'info': response,
-            'id': str(orderId),
+            'id': orderId,
         }, market)
 
     def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
@@ -627,13 +627,15 @@ class zebpayspot(Exchange, ImplicitAPI):
         # market = self.market(symbol)
         request: dict = {
             'symbol': symbol,
-            'page': since,
-            'limit': limit,
         }
-        if limit is None:
-            request['limit'] = 10
-        if since is None:
+        if since is not None:
+            request['page'] = since
+        else:
             request['page'] = 1
+        if limit is not None:
+            request['limit'] = limit
+        else:
+            request['limit'] = 10
         response = self.publicGetMarketTrades(self.extend(request, params))
         #
         #     [
@@ -676,10 +678,7 @@ class zebpayspot(Exchange, ImplicitAPI):
         :param int [params.endtime]: the latest time in ms to fetch orders for
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a symbol argument')
         endtime = self.safe_string(params, 'endTime')
-        starttime = self.safe_string(params, 'startTime')
         params = self.omit(params, ['endtime'])
         self.load_markets()
         market = self.market(symbol)
@@ -688,7 +687,7 @@ class zebpayspot(Exchange, ImplicitAPI):
         }
         if limit is None:
             limit = 200  # default is 200
-        request['startTime'] = starttime
+        request['startTime'] = since
         request['limit'] = limit  # max 200, default 200
         request['endTime'] = endtime
         request['interval'] = timeframe
@@ -743,12 +742,7 @@ class zebpayspot(Exchange, ImplicitAPI):
         """
         self.load_markets()
         request: dict = {}
-        timestamp = self.safe_integer(params, 'timestamp')
-        if id is None:
-            raise InvalidOrder(self.id + ' fetchOrder() requires parameter orderId in params')
-        params = self.omit(params, ['timestamp'])
         request['orderId'] = id
-        request['timestamp'] = timestamp
         response = self.privateGetExOrdersOrderId(self.extend(request, params))
         if response.data == None:
             raise ExchangeError(json.dumps(response))
@@ -792,16 +786,11 @@ class zebpayspot(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        status = self.safe_string(params, 'status')
-        timestamp = self.safe_integer(params, 'timestamp')
         request: dict = {
             'currentPage': 1,
-            'pageSize': limit or 100,
+            'pageSize': limit,
             'symbol': symbol,
-            'status': status,
-            'timestamp': timestamp,
         }
-        params = self.omit(params, ['status', 'timestamp'])
         response = self.privateGetExOrders(self.extend(request, params))
         if response.data == None:
             raise ExchangeError(json.dumps(response))
@@ -853,12 +842,9 @@ class zebpayspot(Exchange, ImplicitAPI):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         self.load_markets()
-        timestamp = self.safe_integer(params, 'timestamp')
         request: dict = {
             'orderId': id,
-            'timestamp': timestamp,
         }
-        params = self.omit(params, ['timestamp'])
         response = self.privateGetExOrdersFillsOrderId(self.extend(request, params))
         if response.data == None:
             raise ExchangeError(json.dumps(response))
@@ -882,16 +868,6 @@ class zebpayspot(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         trades = [data]
         return self.parse_trades(trades)
-
-    def parse_trades(self, trades: List[Any], market: Market = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
-        trades = self.to_array(trades)
-        result = []
-        for i in range(0, len(trades)):
-            trade = self.extend(self.parse_trade(trades[i], market), params)
-            result.append(trade)
-        result = self.sort_by_2(result, 'timestamp', 'id')
-        symbol = market['symbol'] if (market is not None) else None
-        return self.filter_by_symbol_since_limit(result, symbol, since, limit)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
@@ -1058,9 +1034,8 @@ class zebpayspot(Exchange, ImplicitAPI):
     def order_request(self, symbol, type, amount, request, price=None, params={}):
         upperCaseType = type.upper()
         triggerPrice = self.safe_string(params, 'stopPrice')
-        timestamp = self.safe_integer(params, 'timestamp')
         quoteOrderQty = self.safe_string(params, 'quoteOrderQty')
-        params = self.omit(params, ['stopPrice', 'timestamp', 'quoteOrderQty'])
+        params = self.omit(params, ['stopPrice', 'quoteOrderQty'])
         request['type'] = upperCaseType
         if upperCaseType == 'MARKET':
             if quoteOrderQty is None:
@@ -1068,9 +1043,8 @@ class zebpayspot(Exchange, ImplicitAPI):
             request['quoteOrderQty'] = quoteOrderQty
         else:
             request['stopPrice'] = triggerPrice
-            request['quantity'] = str(amount)
-            request['price'] = str(price)
-        request['timestamp'] = timestamp
+            request['quantity'] = self.amount_to_precision(symbol, amount)
+            request['price'] = self.price_to_precision(symbol, price)
         return [request, params]
 
     def parse_balance(self, response) -> Balances:
@@ -1093,12 +1067,7 @@ class zebpayspot(Exchange, ImplicitAPI):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]
-        versions = self.safe_value(self.options, 'versions', {})
-        apiVersions = self.safe_value(versions, api, {})
-        methodVersions = self.safe_value(apiVersions, method, {})
-        defaultVersion = self.safe_string(methodVersions, path, self.version)
-        version = self.safe_string(params, 'version', defaultVersion)
-        tail = '/api/' + version + '/' + self.implode_params(path, params)
+        tail = '/api/' + self.version + '/' + self.implode_params(path, params)
         url += tail
         # timestamp = str(self.milliseconds())
         signature = ''

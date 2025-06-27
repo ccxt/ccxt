@@ -173,7 +173,7 @@ export default class zebpayfutures extends Exchange {
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     /**
      * @method
-     * @name kucoinfutures#fetchOrder
+     * @name zebpayfutures#fetchOrder
      * @description fetches information on an order made by the user
      * @see https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-get-order-details
      * @param {string} id order id
@@ -237,7 +237,6 @@ export default class zebpayfutures extends Exchange {
      * @returns Parsed exchange response for positions
      */
     fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
-    parsePositions(response: any, symbols?: Strings, params?: {}): any[];
     parsePosition(position: Dict, market?: Market): {
         info: Dict;
         symbol: string;

@@ -1271,6 +1271,7 @@ export default class okx extends Exchange {
                     },
                     'fetchOHLCV': {
                         'limit': 300,
+                        'historical': 100,
                     },
                 },
                 'spot': {
@@ -2409,6 +2410,9 @@ export default class okx extends Exchange {
         if (limit === undefined) {
             limit = 100; // default 100, max 100
         }
+        else {
+            limit = Math.min(limit, 300); // max 100
+        }
         const duration = this.parseTimeframe(timeframe);
         let bar = this.safeString(this.timeframes, timeframe, timeframe);
         if ((timezone === 'UTC') && (duration >= 21600)) { // if utc and timeframe >= 6h
@@ -2427,6 +2431,7 @@ export default class okx extends Exchange {
             const historyBorder = now - ((1440 - 1) * durationInMilliseconds);
             if (since < historyBorder) {
                 defaultType = 'HistoryCandles';
+                limit = Math.min(limit, 100); // max 100 for historical endpoint
             }
             const startTime = Math.max(since - 1, 0);
             request['before'] = startTime;

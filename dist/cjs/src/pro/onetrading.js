@@ -74,7 +74,7 @@ class onetrading extends onetrading$1 {
     }
     /**
      * @method
-     * @name bitpanda#watchBalance
+     * @name onetrading#watchBalance
      * @see https://developers.bitpanda.com/exchange/#account-history-channel
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -133,7 +133,7 @@ class onetrading extends onetrading$1 {
     }
     /**
      * @method
-     * @name bitpanda#watchTicker
+     * @name onetrading#watchTicker
      * @see https://developers.bitpanda.com/exchange/#market-ticker-channel
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
@@ -159,7 +159,7 @@ class onetrading extends onetrading$1 {
     }
     /**
      * @method
-     * @name bitpanda#watchTickers
+     * @name onetrading#watchTickers
      * @see https://developers.bitpanda.com/exchange/#market-ticker-channel
      * @description watches price tickers, a statistical calculation with the information for all markets or those specified.
      * @param {string} symbols unified symbols of the markets to fetch the ticker for
@@ -255,7 +255,7 @@ class onetrading extends onetrading$1 {
     }
     /**
      * @method
-     * @name bitpanda#watchMyTrades
+     * @name onetrading#watchMyTrades
      * @see https://developers.bitpanda.com/exchange/#account-history-channel
      * @description get the list of trades associated with the user
      * @param {string} symbol unified symbol of the market to fetch trades for. Use 'any' to watch all trades
@@ -299,7 +299,7 @@ class onetrading extends onetrading$1 {
     }
     /**
      * @method
-     * @name bitpanda#watchOrderBook
+     * @name onetrading#watchOrderBook
      * @see https://developers.bitpanda.com/exchange/#market-ticker-channel
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
@@ -416,7 +416,7 @@ class onetrading extends onetrading$1 {
     }
     /**
      * @method
-     * @name bitpanda#watchOrders
+     * @name onetrading#watchOrders
      * @see https://developers.bitpanda.com/exchange/#account-history-channel
      * @description watches information on multiple orders made by the user
      * @param {string} symbol unified market symbol of the market orders were made in
@@ -1031,7 +1031,7 @@ class onetrading extends onetrading$1 {
     }
     /**
      * @method
-     * @name bitpanda#watchOHLCV
+     * @name onetrading#watchOHLCV
      * @see https://developers.bitpanda.com/exchange/#candlesticks-channel
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for

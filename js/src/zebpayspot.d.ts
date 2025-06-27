@@ -188,7 +188,6 @@ export default class zebpayspot extends Exchange {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
     fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    parseTrades(trades: any[], market?: Market, since?: Int, limit?: Int, params?: {}): Trade[];
     parseTrade(trade: Dict, market?: Market): Trade;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     parseOrder(order: Dict, market?: Market): Order;

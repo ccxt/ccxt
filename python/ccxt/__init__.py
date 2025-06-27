@@ -189,6 +189,8 @@ from ccxt.woofipro import woofipro                                    # noqa: F4
 from ccxt.xt import xt                                                # noqa: F401
 from ccxt.yobit import yobit                                          # noqa: F401
 from ccxt.zaif import zaif                                            # noqa: F401
+from ccxt.zebpayfutures import zebpayfutures                          # noqa: F401
+from ccxt.zebpayspot import zebpayspot                                # noqa: F401
 from ccxt.zonda import zonda                                          # noqa: F401
 
 exchanges = [
@@ -298,6 +300,8 @@ exchanges = [
     'xt',
     'yobit',
     'zaif',
+    'zebpayfutures',
+    'zebpayspot',
     'zonda',
 ]
 

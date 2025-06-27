@@ -1482,6 +1482,11 @@ class gate extends gate$1 {
         const takerPercent = this.safeString(market, 'taker_fee_rate');
         const makerPercent = this.safeString(market, 'maker_fee_rate', takerPercent);
         const isLinear = quote === settle;
+        let contractSize = this.safeString(market, 'quanto_multiplier');
+        // exception only for one market: https://api.gateio.ws/api/v4/futures/btc/contracts
+        if (contractSize === '0') {
+            contractSize = '1'; // 1 USD in WEB: https://i.imgur.com/MBBUI04.png
+        }
         return {
             'id': id,
             'symbol': symbol,
@@ -1503,7 +1508,7 @@ class gate extends gate$1 {
             'inverse': !isLinear,
             'taker': this.parseNumber(Precise["default"].stringDiv(takerPercent, '100')),
             'maker': this.parseNumber(Precise["default"].stringDiv(makerPercent, '100')),
-            'contractSize': this.safeNumber(market, 'quanto_multiplier'),
+            'contractSize': this.parseNumber(contractSize),
             'expiry': expiry,
             'expiryDatetime': this.iso8601(expiry),
             'strike': undefined,
@@ -6758,7 +6763,7 @@ class gate extends gate$1 {
                     queryString = this.urlencode(query);
                     // https://github.com/ccxt/ccxt/issues/25570
                     if (queryString.indexOf('currencies=') >= 0 && queryString.indexOf('%2C') >= 0) {
-                        queryString = queryString.replaceAll('%2', ',');
+                        queryString = queryString.replaceAll('%2C', ',');
                     }
                     url += '?' + queryString;
                 }

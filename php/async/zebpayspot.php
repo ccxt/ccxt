@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\async\abstract\zebpayspot as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
-use ccxt\InvalidOrder;
 use ccxt\Precise;
 use \React\Async;
 use \React\Promise\PromiseInterface;
@@ -64,8 +63,10 @@ class zebpayspot extends Exchange {
             'urls' => array(
                 'logo' => '',
                 'api' => array(
-                    'public' => 'https://sapi.zebpay.com',
-                    'private' => 'https://sapi.zebpay.com',
+                    // 'public' => 'https://sapi.zebpay.com',
+                    // 'private' => 'https://sapi.zebpay.com',
+                    'public' => 'https://dev-trade-zrevamp.znewstage.co',
+                    'private' => 'https://dev-trade-zrevamp.znewstage.co',
                 ),
                 'www' => 'https://www.zebpay.com',
                 'doc' => '',
@@ -163,7 +164,7 @@ class zebpayspot extends Exchange {
             //    }
             //
             $result = array();
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_dict($response, 'data', array());
             $markets = $this->safe_value($data, 'tradePairs', array());
             for ($i = 0; $i < count($markets); $i++) {
                 $market = $markets[$i];
@@ -172,9 +173,10 @@ class zebpayspot extends Exchange {
                 $quoteId = $this->safe_string($market, 'quoteCurrency');
                 $base = $this->safe_currency_code($baseId);
                 $quote = $this->safe_currency_code($quoteId);
+                $symbol = $base . '/' . $quote;
                 $result[] = array(
                     'id' => $id,
-                    'symbol' => $market->symbol,
+                    'symbol' => $symbol,
                     'base' => $base,
                     'quote' => $quote,
                     'baseId' => $baseId,
@@ -192,8 +194,8 @@ class zebpayspot extends Exchange {
                     'precision' => null,
                     'limits' => array(
                         'size' => array(
-                            'min' => $this->safe_string($market, 'baseMinSize'),
-                            'max' => $this->safe_string($market, 'baseMaxSize'),
+                            'min' => $this->safe_number($market, 'baseMinSize'),
+                            'max' => $this->safe_number($market, 'baseMaxSize'),
                         ),
                     ),
                     'info' => $market,
@@ -301,7 +303,7 @@ class zebpayspot extends Exchange {
                         ),
                     );
                 }
-                $result[$code] = array(
+                $result[$code] = $this->safe_currency_structure(array(
                     'info' => $currency,
                     'code' => $code,
                     'id' => $currencyId,
@@ -326,7 +328,7 @@ class zebpayspot extends Exchange {
                         ),
                     ),
                     'networks' => $networks,
-                );
+                ));
             }
             return $result;
         }) ();
@@ -355,13 +357,10 @@ class zebpayspot extends Exchange {
             );
             list($request, $params) = $this->order_request($symbol, $type, $amount, $request, $price, $params);
             $response = Async\await($this->privatePostExOrders ($this->extend($request, $params)));
-            if ($response->data === null) {
-                throw new ExchangeError(json_encode ($response));
-            }
             $orderId = $this->safe_value($response->data, 'orderId');
             return $this->safe_order(array(
                 'info' => $response,
-                'id' => (string) $orderId,
+                'id' => $orderId,
             ), $market);
         }) ();
     }
@@ -668,14 +667,16 @@ class zebpayspot extends Exchange {
             // $market = $this->market($symbol);
             $request = array(
                 'symbol' => $symbol,
-                'page' => $since,
-                'limit' => $limit,
             );
-            if ($limit === null) {
-                $request['limit'] = 10;
-            }
-            if ($since === null) {
+            if ($since !== null) {
+                $request['page'] = $since;
+            } else {
                 $request['page'] = 1;
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            } else {
+                $request['limit'] = 10;
             }
             $response = Async\await($this->publicGetMarketTrades ($this->extend($request, $params)));
             //
@@ -725,11 +726,7 @@ class zebpayspot extends Exchange {
              * @param {int} [$params->endtime] the latest time in ms to fetch orders for
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $symbol argument');
-            }
             $endtime = $this->safe_string($params, 'endTime');
-            $starttime = $this->safe_string($params, 'startTime');
             $params = $this->omit($params, array( 'endtime' ));
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -739,7 +736,7 @@ class zebpayspot extends Exchange {
             if ($limit === null) {
                 $limit = 200; // default is 200
             }
-            $request['startTime'] = $starttime;
+            $request['startTime'] = $since;
             $request['limit'] = $limit; // max 200, default 200
             $request['endTime'] = $endtime;
             $request['interval'] = $timeframe;
@@ -798,13 +795,7 @@ class zebpayspot extends Exchange {
              */
             Async\await($this->load_markets());
             $request = array();
-            $timestamp = $this->safe_integer($params, 'timestamp');
-            if ($id === null) {
-                throw new InvalidOrder($this->id . ' fetchOrder() requires parameter orderId in params');
-            }
-            $params = $this->omit($params, array( 'timestamp' ));
             $request['orderId'] = $id;
-            $request['timestamp'] = $timestamp;
             $response = Async\await($this->privateGetExOrdersOrderId ($this->extend($request, $params)));
             if ($response->data === null) {
                 throw new ExchangeError(json_encode ($response));
@@ -852,16 +843,11 @@ class zebpayspot extends Exchange {
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
-            $status = $this->safe_string($params, 'status');
-            $timestamp = $this->safe_integer($params, 'timestamp');
             $request = array(
                 'currentPage' => 1,
-                'pageSize' => $limit || 100,
+                'pageSize' => $limit,
                 'symbol' => $symbol,
-                'status' => $status,
-                'timestamp' => $timestamp,
             );
-            $params = $this->omit($params, array( 'status', 'timestamp' ));
             $response = Async\await($this->privateGetExOrders ($this->extend($request, $params)));
             if ($response->data === null) {
                 throw new ExchangeError(json_encode ($response));
@@ -918,12 +904,9 @@ class zebpayspot extends Exchange {
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
-            $timestamp = $this->safe_integer($params, 'timestamp');
             $request = array(
                 'orderId' => $id,
-                'timestamp' => $timestamp,
             );
-            $params = $this->omit($params, array( 'timestamp' ));
             $response = Async\await($this->privateGetExOrdersFillsOrderId ($this->extend($request, $params)));
             if ($response->data === null) {
                 throw new ExchangeError(json_encode ($response));
@@ -949,18 +932,6 @@ class zebpayspot extends Exchange {
             $trades = array( $data );
             return $this->parse_trades($trades);
         }) ();
-    }
-
-    public function parse_trades(array $trades, ?array $market = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
-        $trades = $this->to_array($trades);
-        $result = array();
-        for ($i = 0; $i < count($trades); $i++) {
-            $trade = $this->extend($this->parse_trade($trades[$i], $market), $params);
-            $result[] = $trade;
-        }
-        $result = $this->sort_by_2($result, 'timestamp', 'id');
-        $symbol = ($market !== null) ? $market['symbol'] : null;
-        return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -1131,9 +1102,8 @@ class zebpayspot extends Exchange {
     public function order_request($symbol, $type, $amount, $request, $price = null, $params = array ()) {
         $upperCaseType = strtoupper($type);
         $triggerPrice = $this->safe_string($params, 'stopPrice');
-        $timestamp = $this->safe_integer($params, 'timestamp');
         $quoteOrderQty = $this->safe_string($params, 'quoteOrderQty');
-        $params = $this->omit($params, array( 'stopPrice', 'timestamp', 'quoteOrderQty' ));
+        $params = $this->omit($params, array( 'stopPrice', 'quoteOrderQty' ));
         $request['type'] = $upperCaseType;
         if ($upperCaseType === 'MARKET') {
             if ($quoteOrderQty === null) {
@@ -1142,10 +1112,9 @@ class zebpayspot extends Exchange {
             $request['quoteOrderQty'] = $quoteOrderQty;
         } else {
             $request['stopPrice'] = $triggerPrice;
-            $request['quantity'] = 'strval' ($amount);
-            $request['price'] = 'strval' ($price);
+            $request['quantity'] = $this->amount_to_precision($symbol, $amount);
+            $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        $request['timestamp'] = $timestamp;
         return array( $request, $params );
     }
 
@@ -1171,12 +1140,7 @@ class zebpayspot extends Exchange {
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api];
-        $versions = $this->safe_value($this->options, 'versions', array());
-        $apiVersions = $this->safe_value($versions, $api, array());
-        $methodVersions = $this->safe_value($apiVersions, $method, array());
-        $defaultVersion = $this->safe_string($methodVersions, $path, $this->version);
-        $version = $this->safe_string($params, 'version', $defaultVersion);
-        $tail = '/api/' . $version . '/' . $this->implode_params($path, $params);
+        $tail = '/api/' . $this->version . '/' . $this->implode_params($path, $params);
         $url .= $tail;
         // $timestamp = (string) $this->milliseconds();
         $signature = '';

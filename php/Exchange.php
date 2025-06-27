@@ -443,6 +443,8 @@ class Exchange {
         'xt',
         'yobit',
         'zaif',
+        'zebpayfutures',
+        'zebpayspot',
         'zonda',
     );
 
