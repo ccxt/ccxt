@@ -101,6 +101,7 @@ def test_market(exchange, skipped_properties, method, market):
     test_shared_methods.assert_symbol(exchange, skipped_properties, method, market, 'symbol')
     log_text = test_shared_methods.log_template(exchange, method, market)
     # check taker/maker
+    # todo: check not all to be within 0-1.0
     test_shared_methods.assert_greater(exchange, skipped_properties, method, market, 'taker', '-100')
     test_shared_methods.assert_less(exchange, skipped_properties, method, market, 'taker', '100')
     test_shared_methods.assert_greater(exchange, skipped_properties, method, market, 'maker', '-100')
@@ -149,11 +150,11 @@ def test_market(exchange, skipped_properties, method, market):
             assert linear is not None, 'linear must be defined when "contract" is true' + log_text
             assert linear != inverse, 'linear and inverse must not be the same' + log_text
         # contract size should be defined
-        assert (not ('contractSize' in skipped_properties) or contract_size is not None), '"contractSize" must be defined when "contract" is true' + log_text
+        assert (('contractSize' in skipped_properties) or contract_size is not None), '"contractSize" must be defined when "contract" is true' + log_text
         # contract size should be above zero
-        assert not ('contractSize' in skipped_properties) or Precise.string_gt(contract_size, '0'), '"contractSize" must be > 0 when "contract" is true' + log_text
+        assert ('contractSize' in skipped_properties) or Precise.string_gt(contract_size, '0'), '"contractSize" must be > 0 when "contract" is true' + log_text
         # settle should be defined
-        assert not ('settle' in skipped_properties) or (market['settle'] is not None and market['settleId'] is not None), '"settle" & "settleId" must be defined when "contract" is true' + log_text
+        assert ('settle' in skipped_properties) or (market['settle'] is not None and market['settleId'] is not None), '"settle" & "settleId" must be defined when "contract" is true' + log_text
     else:
         # linear & inverse needs to be undefined
         assert linear is None and inverse is None and quanto is None, 'market linear and inverse (and quanto) must be undefined when "contract" is false' + log_text
@@ -188,27 +189,35 @@ def test_market(exchange, skipped_properties, method, market):
             # if not option, then strike and optionType should be undefined
             assert market['strike'] is None, '"strike" must be undefined when "option" is false' + log_text
             assert market['optionType'] is None, '"optionType" must be undefined when "option" is false' + log_text
-    else:
+    elif spot:
         # otherwise, expiry needs to be undefined
         assert (market['expiry'] is None) and (market['expiryDatetime'] is None), '"expiry" and "expiryDatetime" must be undefined when it is not future|option market' + log_text
     # check precisions
-    if not ('precision' in skipped_properties):
-        precision_keys = list(market['precision'].keys())
-        keys_length = len(precision_keys)
-        assert keys_length >= 2, 'precision should have "amount" and "price" keys at least' + log_text
-        for i in range(0, len(precision_keys)):
-            test_shared_methods.check_precision_accuracy(exchange, skipped_properties, method, market['precision'], precision_keys[i])
+    precision_keys = list(market['precision'].keys())
+    precision_keys_len = len(precision_keys)
+    assert precision_keys_len >= 2, 'precision should have "amount" and "price" keys at least' + log_text
+    for i in range(0, len(precision_keys)):
+        price_or_amount_key = precision_keys[i]
+        # only allow very high priced markets (wher coin costs around 100k) to have a 5$ price tickSize
+        is_exclusive_pair = market['baseId'] == 'BTC'
+        is_non_spot = not spot  # such high precision is only allowed in contract markets
+        is_price = price_or_amount_key == 'price'
+        is_tick_size_5 = Precise.string_eq('5', exchange.safe_string(market['precision'], price_or_amount_key))
+        if is_non_spot and is_price and is_exclusive_pair and is_tick_size_5:
+            continue
+        if not ('precision' in skipped_properties):
+            test_shared_methods.check_precision_accuracy(exchange, skipped_properties, method, market['precision'], price_or_amount_key)
     is_inactive_market = market['active'] is False
     # check limits
-    if not ('limits' in skipped_properties):
-        limits_keys = list(market['limits'].keys())
-        keys_length = len(limits_keys)
-        assert keys_length >= 3, 'limits should have "amount", "price" and "cost" keys at least' + log_text
-        for i in range(0, len(limits_keys)):
-            key = limits_keys[i]
-            limit_entry = market['limits'][key]
-            if is_inactive_market:
-                continue
+    limits_keys = list(market['limits'].keys())
+    limits_keys_length = len(limits_keys)
+    assert limits_keys_length >= 3, 'limits should have "amount", "price" and "cost" keys at least' + log_text
+    for i in range(0, len(limits_keys)):
+        key = limits_keys[i]
+        limit_entry = market['limits'][key]
+        if is_inactive_market:
+            continue  # check limits
+        if not ('limits' in skipped_properties):
             # min >= 0
             test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, limit_entry, 'min', '0')
             # max >= 0
@@ -217,11 +226,11 @@ def test_market(exchange, skipped_properties, method, market):
             min_string = exchange.safe_string(limit_entry, 'min')
             if min_string is not None:
                 test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, limit_entry, 'max', min_string)
-    # check whether valid currency ID and CODE is used
-    if not ('currency' in skipped_properties) and not ('currencyIdAndCode' in skipped_properties):
-        test_shared_methods.assert_valid_currency_id_and_code(exchange, skipped_properties, method, market, market['baseId'], market['base'])
-        test_shared_methods.assert_valid_currency_id_and_code(exchange, skipped_properties, method, market, market['quoteId'], market['quote'])
-        test_shared_methods.assert_valid_currency_id_and_code(exchange, skipped_properties, method, market, market['settleId'], market['settle'])
+    # check currencies
+    test_shared_methods.assert_valid_currency_id_and_code(exchange, skipped_properties, method, market, market['baseId'], market['base'])
+    test_shared_methods.assert_valid_currency_id_and_code(exchange, skipped_properties, method, market, market['quoteId'], market['quote'])
+    test_shared_methods.assert_valid_currency_id_and_code(exchange, skipped_properties, method, market, market['settleId'], market['settle'])
+    # check ts
     test_shared_methods.assert_timestamp(exchange, skipped_properties, method, market, None, 'created')
     # margin modes
     if not ('marginModes' in skipped_properties):

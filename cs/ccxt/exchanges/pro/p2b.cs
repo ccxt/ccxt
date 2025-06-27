@@ -552,12 +552,12 @@ public partial class p2b : ccxt.p2b
     public override void onError(WebSocketClient client, object error)
     {
         ((IDictionary<string,object>)this.options)["tickerSubs"] = this.createSafeDictionary();
-        this.onError(client as WebSocketClient, error);
+        base.onError(client as WebSocketClient, error);
     }
 
     public override void onClose(WebSocketClient client, object error)
     {
         ((IDictionary<string,object>)this.options)["tickerSubs"] = this.createSafeDictionary();
-        this.onClose(client as WebSocketClient, error);
+        base.onClose(client as WebSocketClient, error);
     }
 }

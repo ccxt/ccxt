@@ -58,6 +58,9 @@ public partial class bitmart : ccxt.bitmart
                 { "watchOrderBookForSymbols", new Dictionary<string, object>() {
                     { "depth", "depth/increase100" },
                 } },
+                { "watchTrades", new Dictionary<string, object>() {
+                    { "ignoreDuplicates", true },
+                } },
                 { "ws", new Dictionary<string, object>() {
                     { "inflate", true },
                 } },
@@ -348,7 +351,14 @@ public partial class bitmart : ccxt.bitmart
             object tradeSymbol = this.safeString(first, "symbol");
             limit = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limit});
         }
-        return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+        object result = this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+        if (isTrue(this.handleOption("watchTrades", "ignoreDuplicates", true)))
+        {
+            object filtered = this.removeRepeatedTradesFromArray(result);
+            filtered = this.sortBy(filtered, "timestamp");
+            return filtered;
+        }
+        return result;
     }
 
     public virtual object getParamsForMultipleSub(object methodName, object symbols, object limit = null, object parameters = null)

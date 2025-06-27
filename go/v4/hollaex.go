@@ -253,6 +253,7 @@ func  (this *hollaex) Describe() interface{}  {
         },
         "exceptions": map[string]interface{} {
             "broad": map[string]interface{} {
+                "API request is expired": InvalidNonce,
                 "Invalid token": AuthenticationError,
                 "Order not found": OrderNotFound,
                 "Insufficient balance": InsufficientFunds,
@@ -281,6 +282,14 @@ func  (this *hollaex) Describe() interface{}  {
                 "XLM": "xlm",
                 "BNB": "bnb",
                 "MATIC": "matic",
+            },
+            "networksById": map[string]interface{} {
+                "eth": "ERC20",
+                "ETH": "ERC20",
+                "ERC20": "ERC20",
+                "trx": "TRC20",
+                "TRX": "TRC20",
+                "TRC20": "TRC20",
             },
         },
     })
@@ -433,66 +442,116 @@ func  (this *hollaex) FetchCurrencies(optionalArgs ...interface{}) <- chan inter
             response:= (<-this.PublicGetConstants(params))
             PanicOnError(response)
             //
-            //     {
-            //         "coins":{
-            //             "bch":{
-            //                 "id":4,
-            //                 "fullname":"Bitcoin Cash",
-            //                 "symbol":"bch",
-            //                 "active":true,
-            //                 "verified":true,
-            //                 "allow_deposit":true,
-            //                 "allow_withdrawal":true,
-            //                 "withdrawal_fee":0.0002,
-            //                 "min":0.001,
-            //                 "max":100000,
-            //                 "increment_unit":0.001,
-            //                 "logo":"https://bitholla.s3.ap-northeast-2.amazonaws.com/icon/BCH-hollaex-asset-01.svg",
-            //                 "code":"bch",
-            //                 "is_public":true,
-            //                 "meta":{},
-            //                 "estimated_price":null,
-            //                 "description":null,
-            //                 "type":"blockchain",
-            //                 "network":null,
-            //                 "standard":null,
-            //                 "issuer":"HollaEx",
-            //                 "withdrawal_fees":null,
-            //                 "created_at":"2019-08-09T10:45:43.367Z",
-            //                 "updated_at":"2021-12-13T03:08:32.372Z",
-            //                 "created_by":1,
-            //                 "owner_id":1
-            //             },
+            //    {
+            //        "coins": {
+            //            "usdt": {
+            //                "id": "6",
+            //                "fullname": "USD Tether",
+            //                "symbol": "usdt",
+            //                "active": true,
+            //                "verified": true,
+            //                "allow_deposit": true,
+            //                "allow_withdrawal": true,
+            //                "withdrawal_fee": "20",
+            //                "min": "1",
+            //                "max": "10000000",
+            //                "increment_unit": "0.0001",
+            //                "logo": "https://hollaex-resources.s3.ap-southeast-1.amazonaws.com/icons/usdt.svg",
+            //                "code": "usdt",
+            //                "is_public": true,
+            //                "meta": {
+            //                    "color": "#27a17a",
+            //                    "website": "https://tether.to",
+            //                    "explorer": "https://blockchair.com/tether",
+            //                    "decimal_points": "6"
+            //                },
+            //                "estimated_price": "1",
+            //                "description": "<p>Tether (USDT) is a stablecoin pegged 1:1 to the US dollar. It is a digital currency that aims to maintain its value while allowing for fast and secure transfer of funds. It was the first stablecoin, and is the most widely used due stablecoin due to its stability and low volatility compared to other cryptocurrencies. It was launched in 2014 by Tether Limited.</p>",
+            //                "type": "blockchain",
+            //                "network": "eth,trx,bnb,matic",
+            //                "standard": "",
+            //                "issuer": "HollaEx",
+            //                "withdrawal_fees": {
+            //                    "bnb": {
+            //                        "value": "0.8",
+            //                        "active": true,
+            //                        "symbol": "usdt"
+            //                    },
+            //                    "eth": {
+            //                        "value": "1.5",
+            //                        "active": true,
+            //                        "symbol": "usdt"
+            //                    },
+            //                    "trx": {
+            //                        "value": "4",
+            //                        "active": true,
+            //                        "symbol": "usdt"
+            //                    },
+            //                    "matic": {
+            //                        "value": "0.3",
+            //                        "active": true,
+            //                        "symbol": "usdt"
+            //                    }
+            //                },
+            //                "display_name": null,
+            //                "deposit_fees": null,
+            //                "is_risky": false,
+            //                "market_cap": "144568098696.29",
+            //                "category": "stable",
+            //                "created_at": "2019-08-09T10:45:43.367Z",
+            //                "updated_at": "2025-03-25T17:12:37.970Z",
+            //                "created_by": "168",
+            //                "owner_id": "1"
+            //            },
             //         },
             //         "network":"https://api.hollaex.network"
             //     }
             //
-            var coins interface{} = this.SafeValue(response, "coins", map[string]interface{} {})
+            var coins interface{} = this.SafeDict(response, "coins", map[string]interface{} {})
             var keys interface{} = ObjectKeys(coins)
             var result interface{} = map[string]interface{} {}
             for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
                 var key interface{} = GetValue(keys, i)
                 var currency interface{} = GetValue(coins, key)
                 var id interface{} = this.SafeString(currency, "symbol")
-                var numericId interface{} = this.SafeInteger(currency, "id")
                 var code interface{} = this.SafeCurrencyCode(id)
-                var name interface{} = this.SafeString(currency, "fullname")
-                var depositEnabled interface{} = this.SafeValue(currency, "allow_deposit")
-                var withdrawEnabled interface{} = this.SafeValue(currency, "allow_withdrawal")
-                var isActive interface{} = this.SafeValue(currency, "active")
-                var active interface{} = IsTrue(IsTrue(isActive) && IsTrue(depositEnabled)) && IsTrue(withdrawEnabled)
-                var fee interface{} = this.SafeNumber(currency, "withdrawal_fee")
-                var withdrawalLimits interface{} = this.SafeValue(currency, "withdrawal_limits", []interface{}{})
-                AddElementToObject(result, code, map[string]interface{} {
+                var withdrawalLimits interface{} = this.SafeList(currency, "withdrawal_limits", []interface{}{})
+                var rawType interface{} = this.SafeString(currency, "type")
+                var typeVar interface{} = Ternary(IsTrue((IsEqual(rawType, "blockchain"))), "crypto", "other")
+                var rawNetworks interface{} = this.SafeDict(currency, "withdrawal_fees", map[string]interface{} {})
+                var networks interface{} = map[string]interface{} {}
+                var networkIds interface{} = ObjectKeys(rawNetworks)
+                for j := 0; IsLessThan(j, GetArrayLength(networkIds)); j++ {
+                    var networkId interface{} = GetValue(networkIds, j)
+                    var networkEntry interface{} = this.SafeDict(rawNetworks, networkId)
+                    var networkCode interface{} = this.NetworkIdToCode(networkId)
+                    AddElementToObject(networks, networkCode, map[string]interface{} {
+            "id": networkId,
+            "network": networkCode,
+            "active": this.SafeBool(networkEntry, "active"),
+            "deposit": nil,
+            "withdraw": nil,
+            "fee": this.SafeNumber(networkEntry, "value"),
+            "precision": nil,
+            "limits": map[string]interface{} {
+                "withdraw": map[string]interface{} {
+                    "min": nil,
+                    "max": nil,
+                },
+            },
+            "info": networkEntry,
+        })
+                }
+                AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]interface{} {
             "id": id,
-            "numericId": numericId,
+            "numericId": this.SafeInteger(currency, "id"),
             "code": code,
             "info": currency,
-            "name": name,
-            "active": active,
-            "deposit": depositEnabled,
-            "withdraw": withdrawEnabled,
-            "fee": fee,
+            "name": this.SafeString(currency, "fullname"),
+            "active": this.SafeBool(currency, "active"),
+            "deposit": this.SafeBool(currency, "allow_deposit"),
+            "withdraw": this.SafeBool(currency, "allow_withdrawal"),
+            "fee": this.SafeNumber(currency, "withdrawal_fee"),
             "precision": this.SafeNumber(currency, "increment_unit"),
             "limits": map[string]interface{} {
                 "amount": map[string]interface{} {
@@ -504,8 +563,9 @@ func  (this *hollaex) FetchCurrencies(optionalArgs ...interface{}) <- chan inter
                     "max": this.SafeValue(withdrawalLimits, 0),
                 },
             },
-            "networks": map[string]interface{} {},
-        })
+            "networks": networks,
+            "type": typeVar,
+        }))
             }
         
             ch <- result
@@ -536,8 +596,8 @@ func  (this *hollaex) FetchOrderBooks(optionalArgs ...interface{}) <- chan inter
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes5088 := (<-this.LoadMarkets())
-            PanicOnError(retRes5088)
+            retRes5688 := (<-this.LoadMarkets())
+            PanicOnError(retRes5688)
         
             response:= (<-this.PublicGetOrderbooks(params))
             PanicOnError(response)
@@ -577,8 +637,8 @@ func  (this *hollaex) FetchOrderBook(symbol interface{}, optionalArgs ...interfa
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes5338 := (<-this.LoadMarkets())
-            PanicOnError(retRes5338)
+            retRes5938 := (<-this.LoadMarkets())
+            PanicOnError(retRes5938)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -631,8 +691,8 @@ func  (this *hollaex) FetchTicker(symbol interface{}, optionalArgs ...interface{
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes5738 := (<-this.LoadMarkets())
-            PanicOnError(retRes5738)
+            retRes6338 := (<-this.LoadMarkets())
+            PanicOnError(retRes6338)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -677,8 +737,8 @@ func  (this *hollaex) FetchTickers(optionalArgs ...interface{}) <- chan interfac
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes6038 := (<-this.LoadMarkets())
-            PanicOnError(retRes6038)
+            retRes6638 := (<-this.LoadMarkets())
+            PanicOnError(retRes6638)
             symbols = this.MarketSymbols(symbols)
         
             response:= (<-this.PublicGetTickers(params))
@@ -802,8 +862,8 @@ func  (this *hollaex) FetchTrades(symbol interface{}, optionalArgs ...interface{
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes7068 := (<-this.LoadMarkets())
-            PanicOnError(retRes7068)
+            retRes7668 := (<-this.LoadMarkets())
+            PanicOnError(retRes7668)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -851,7 +911,8 @@ func  (this *hollaex) ParseTrade(trade interface{}, optionalArgs ...interface{})
     //      "price":0.147411,
     //      "timestamp":"2022-01-26T17:53:34.650Z",
     //      "order_id":"cba78ecb-4187-4da2-9d2f-c259aa693b5a",
-    //      "fee":0.01031877,"fee_coin":"usdt"
+    //      "fee":0.01031877,
+    //      "fee_coin":"usdt"
     //  }
     //
     market := GetArg(optionalArgs, 0, nil)
@@ -866,11 +927,12 @@ func  (this *hollaex) ParseTrade(trade interface{}, optionalArgs ...interface{})
     var priceString interface{} = this.SafeString(trade, "price")
     var amountString interface{} = this.SafeString(trade, "size")
     var feeCostString interface{} = this.SafeString(trade, "fee")
+    var feeCoin interface{} = this.SafeString(trade, "fee_coin")
     var fee interface{} = nil
     if IsTrue(!IsEqual(feeCostString, nil)) {
         fee = map[string]interface{} {
             "cost": feeCostString,
-            "currency": GetValue(market, "quote"),
+            "currency": this.SafeCurrencyCode(feeCoin),
         }
     }
     return this.SafeTrade(map[string]interface{} {
@@ -905,8 +967,8 @@ func  (this *hollaex) FetchTradingFees(optionalArgs ...interface{}) <- chan inte
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes7948 := (<-this.LoadMarkets())
-            PanicOnError(retRes7948)
+            retRes8568 := (<-this.LoadMarkets())
+            PanicOnError(retRes8568)
         
             response:= (<-this.PublicGetTiers(params))
             PanicOnError(response)
@@ -972,7 +1034,7 @@ func  (this *hollaex) FetchTradingFees(optionalArgs ...interface{}) <- chan inte
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
- * @param {int} [limit] the maximum amount of candles to fetch
+ * @param {int} [limit] the maximum amount of candles to fetch (max 500)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest candle to fetch
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -991,25 +1053,39 @@ func  (this *hollaex) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes8608 := (<-this.LoadMarkets())
-            PanicOnError(retRes8608)
+            retRes9228 := (<-this.LoadMarkets())
+            PanicOnError(retRes9228)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
                 "resolution": this.SafeString(this.Timeframes, timeframe, timeframe),
             }
+            var paginate interface{} = false
+            var maxLimit interface{} = 500
+            paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", paginate);
+            paginate = GetValue(paginateparamsVariable,0);
+            params = GetValue(paginateparamsVariable,1)
+            if IsTrue(paginate) {
+        
+                    retRes93219 :=  (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit))
+                    PanicOnError(retRes93219)
+                    ch <- retRes93219
+                    return nil
+            }
             var until interface{} = this.SafeInteger(params, "until")
-            var end interface{} = this.Seconds()
-            if IsTrue(!IsEqual(until, nil)) {
-                end = this.ParseToInt(Divide(until, 1000))
+            var timeDelta interface{} = Multiply(Multiply(this.ParseTimeframe(timeframe), maxLimit), 1000)
+            var start interface{} = since
+            var now interface{} = this.Milliseconds()
+            if IsTrue(IsTrue(IsEqual(until, nil)) && IsTrue(IsEqual(start, nil))) {
+                until = now
+                start = Subtract(until, timeDelta)
+            } else if IsTrue(IsEqual(until, nil)) {
+                until = now // the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
+            } else if IsTrue(IsEqual(start, nil)) {
+                start = Subtract(until, timeDelta)
             }
-            var defaultSpan interface{} = 2592000 // 30 days
-            if IsTrue(!IsEqual(since, nil)) {
-                AddElementToObject(request, "from", this.ParseToInt(Divide(since, 1000)))
-            } else {
-                AddElementToObject(request, "from", Subtract(end, defaultSpan))
-            }
-            AddElementToObject(request, "to", end)
+            AddElementToObject(request, "from", this.ParseToInt(Divide(start, 1000))) // convert to seconds
+            AddElementToObject(request, "to", this.ParseToInt(Divide(until, 1000))) // convert to seconds
             params = this.Omit(params, "until")
         
             response:= (<-this.PublicGetChart(this.Extend(request, params)))
@@ -1084,8 +1160,8 @@ func  (this *hollaex) FetchBalance(optionalArgs ...interface{}) <- chan interfac
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes9468 := (<-this.LoadMarkets())
-            PanicOnError(retRes9468)
+            retRes10168 := (<-this.LoadMarkets())
+            PanicOnError(retRes10168)
         
             response:= (<-this.PrivateGetUserBalance(params))
             PanicOnError(response)
@@ -1128,8 +1204,8 @@ func  (this *hollaex) FetchOpenOrder(id interface{}, optionalArgs ...interface{}
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes9748 := (<-this.LoadMarkets())
-            PanicOnError(retRes9748)
+            retRes10448 := (<-this.LoadMarkets())
+            PanicOnError(retRes10448)
             var request interface{} = map[string]interface{} {
                 "order_id": id,
             }
@@ -1195,9 +1271,9 @@ func  (this *hollaex) FetchOpenOrders(optionalArgs ...interface{}) <- chan inter
                 "open": true,
             }
         
-                retRes102115 :=  (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-                PanicOnError(retRes102115)
-                ch <- retRes102115
+                retRes109115 :=  (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+                PanicOnError(retRes109115)
+                ch <- retRes109115
                 return nil
         
             }()
@@ -1231,9 +1307,9 @@ func  (this *hollaex) FetchClosedOrders(optionalArgs ...interface{}) <- chan int
                 "open": false,
             }
         
-                retRes103915 :=  (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-                PanicOnError(retRes103915)
-                ch <- retRes103915
+                retRes110915 :=  (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+                PanicOnError(retRes110915)
+                ch <- retRes110915
                 return nil
         
             }()
@@ -1259,8 +1335,8 @@ func  (this *hollaex) FetchOrder(id interface{}, optionalArgs ...interface{}) <-
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes10538 := (<-this.LoadMarkets())
-            PanicOnError(retRes10538)
+            retRes11238 := (<-this.LoadMarkets())
+            PanicOnError(retRes11238)
             var request interface{} = map[string]interface{} {
                 "order_id": id,
             }
@@ -1325,8 +1401,8 @@ func  (this *hollaex) FetchOrders(optionalArgs ...interface{}) <- chan interface
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes10998 := (<-this.LoadMarkets())
-            PanicOnError(retRes10998)
+            retRes11698 := (<-this.LoadMarkets())
+            PanicOnError(retRes11698)
             var market interface{} = nil
             var request interface{} = map[string]interface{} {}
             if IsTrue(!IsEqual(symbol, nil)) {
@@ -1480,14 +1556,13 @@ func  (this *hollaex) CreateOrder(symbol interface{}, typeVar interface{}, side 
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes12498 := (<-this.LoadMarkets())
-            PanicOnError(retRes12498)
+            retRes13198 := (<-this.LoadMarkets())
+            PanicOnError(retRes13198)
             var market interface{} = this.Market(symbol)
-            var convertedAmount interface{} = ParseFloat(this.AmountToPrecision(symbol, amount))
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
                 "side": side,
-                "size": this.NormalizeNumberIfNeeded(convertedAmount),
+                "size": this.AmountToPrecision(symbol, amount),
                 "type": typeVar,
             }
             var triggerPrice interface{} = this.SafeNumberN(params, []interface{}{"triggerPrice", "stopPrice", "stop"})
@@ -1496,11 +1571,10 @@ func  (this *hollaex) CreateOrder(symbol interface{}, typeVar interface{}, side 
             var isMarketOrder interface{} = IsEqual(typeVar, "market")
             var postOnly interface{} = this.IsPostOnly(isMarketOrder, exchangeSpecificParam, params)
             if !IsTrue(isMarketOrder) {
-                var convertedPrice interface{} = ParseFloat(this.PriceToPrecision(symbol, price))
-                AddElementToObject(request, "price", this.NormalizeNumberIfNeeded(convertedPrice))
+                AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
             }
             if IsTrue(!IsEqual(triggerPrice, nil)) {
-                AddElementToObject(request, "stop", this.NormalizeNumberIfNeeded(ParseFloat(this.PriceToPrecision(symbol, triggerPrice))))
+                AddElementToObject(request, "stop", this.PriceToPrecision(symbol, triggerPrice))
             }
             if IsTrue(postOnly) {
                 AddElementToObject(request, "meta", map[string]interface{} {
@@ -1561,8 +1635,8 @@ func  (this *hollaex) CancelOrder(id interface{}, optionalArgs ...interface{}) <
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes13148 := (<-this.LoadMarkets())
-            PanicOnError(retRes13148)
+            retRes13828 := (<-this.LoadMarkets())
+            PanicOnError(retRes13828)
             var request interface{} = map[string]interface{} {
                 "order_id": id,
             }
@@ -1611,8 +1685,8 @@ func  (this *hollaex) CancelAllOrders(optionalArgs ...interface{}) <- chan inter
                 panic(ArgumentsRequired(Add(this.Id, " cancelAllOrders() requires a symbol argument")))
             }
         
-            retRes13488 := (<-this.LoadMarkets())
-            PanicOnError(retRes13488)
+            retRes14168 := (<-this.LoadMarkets())
+            PanicOnError(retRes14168)
             var request interface{} = map[string]interface{} {}
             var market interface{} = nil
             market = this.Market(symbol)
@@ -1667,8 +1741,8 @@ func  (this *hollaex) FetchMyTrades(optionalArgs ...interface{}) <- chan interfa
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes13848 := (<-this.LoadMarkets())
-            PanicOnError(retRes13848)
+            retRes14528 := (<-this.LoadMarkets())
+            PanicOnError(retRes14528)
             var request interface{} = map[string]interface{} {}
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
@@ -1758,8 +1832,8 @@ func  (this *hollaex) FetchDepositAddresses(optionalArgs ...interface{}) <- chan
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes14668 := (<-this.LoadMarkets())
-            PanicOnError(retRes14668)
+            retRes15348 := (<-this.LoadMarkets())
+            PanicOnError(retRes15348)
             var network interface{} = this.SafeString(params, "network")
             params = this.Omit(params, "network")
         
@@ -1844,8 +1918,8 @@ func  (this *hollaex) FetchDeposits(optionalArgs ...interface{}) <- chan interfa
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes15328 := (<-this.LoadMarkets())
-            PanicOnError(retRes15328)
+            retRes16008 := (<-this.LoadMarkets())
+            PanicOnError(retRes16008)
             var request interface{} = map[string]interface{} {}
             var currency interface{} = nil
             if IsTrue(!IsEqual(code, nil)) {
@@ -1912,8 +1986,8 @@ func  (this *hollaex) FetchWithdrawal(id interface{}, optionalArgs ...interface{
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes15928 := (<-this.LoadMarkets())
-            PanicOnError(retRes15928)
+            retRes16608 := (<-this.LoadMarkets())
+            PanicOnError(retRes16608)
             var request interface{} = map[string]interface{} {
                 "transaction_id": id,
             }
@@ -1982,8 +2056,8 @@ func  (this *hollaex) FetchWithdrawals(optionalArgs ...interface{}) <- chan inte
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes16428 := (<-this.LoadMarkets())
-            PanicOnError(retRes16428)
+            retRes17108 := (<-this.LoadMarkets())
+            PanicOnError(retRes17108)
             var request interface{} = map[string]interface{} {}
             var currency interface{} = nil
             if IsTrue(!IsEqual(code, nil)) {
@@ -2156,8 +2230,8 @@ func  (this *hollaex) Withdraw(code interface{}, amount interface{}, address int
             params = GetValue(tagparamsVariable,1)
             this.CheckAddress(address)
         
-            retRes18058 := (<-this.LoadMarkets())
-            PanicOnError(retRes18058)
+            retRes18738 := (<-this.LoadMarkets())
+            PanicOnError(retRes18738)
             var currency interface{} = this.Currency(code)
             if IsTrue(!IsEqual(tag, nil)) {
                 address = Add(address, Add(":", tag))
@@ -2329,12 +2403,6 @@ func  (this *hollaex) FetchDepositWithdrawFees(optionalArgs ...interface{}) <- c
             }()
             return ch
         }
-func  (this *hollaex) NormalizeNumberIfNeeded(number interface{}) interface{}  {
-    if IsTrue(this.IsRoundNumber(number)) {
-        number = ParseInt(number)
-    }
-    return number
-}
 func  (this *hollaex) Sign(path interface{}, optionalArgs ...interface{}) interface{}  {
     api := GetArg(optionalArgs, 0, "public")
     _ = api

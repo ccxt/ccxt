@@ -51,6 +51,21 @@ func (this *Mexc) FetchTime(params ...interface{}) ( int64, error) {
     return (res).(int64), nil
 }
 /**
+ * @method
+ * @name mexc#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Mexc) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
  * @ignore
  * @method
  * @name mexc#fetchMarkets

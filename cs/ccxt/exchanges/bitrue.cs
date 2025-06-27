@@ -11,7 +11,7 @@ public partial class bitrue : Exchange
             { "id", "bitrue" },
             { "name", "Bitrue" },
             { "countries", new List<object>() {"SG"} },
-            { "rateLimit", 1000 },
+            { "rateLimit", 10 },
             { "certified", false },
             { "version", "v1" },
             { "pro", true },
@@ -22,20 +22,32 @@ public partial class bitrue : Exchange
                 { "swap", true },
                 { "future", false },
                 { "option", false },
+                { "addMargin", false },
+                { "borrowCrossMargin", false },
+                { "borrowIsolatedMargin", false },
+                { "borrowMargin", false },
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
+                { "closeAllPositions", false },
+                { "closePosition", false },
                 { "createMarketBuyOrderWithCost", true },
                 { "createMarketOrderWithCost", false },
                 { "createMarketSellOrderWithCost", false },
                 { "createOrder", true },
+                { "createOrderWithTakeProfitAndStopLoss", false },
+                { "createOrderWithTakeProfitAndStopLossWs", false },
                 { "createReduceOnlyOrder", true },
                 { "createStopLimitOrder", true },
                 { "createStopMarketOrder", true },
                 { "createStopOrder", true },
                 { "fetchBalance", true },
                 { "fetchBidsAsks", true },
+                { "fetchBorrowInterest", false },
+                { "fetchBorrowRate", false },
                 { "fetchBorrowRateHistories", false },
                 { "fetchBorrowRateHistory", false },
+                { "fetchBorrowRates", false },
+                { "fetchBorrowRatesPerSymbol", false },
                 { "fetchClosedOrders", true },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
@@ -46,20 +58,50 @@ public partial class bitrue : Exchange
                 { "fetchDepositWithdrawFee", "emulated" },
                 { "fetchDepositWithdrawFees", true },
                 { "fetchFundingHistory", false },
+                { "fetchFundingInterval", false },
+                { "fetchFundingIntervals", false },
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", false },
                 { "fetchFundingRates", false },
+                { "fetchGreeks", false },
+                { "fetchIndexOHLCV", false },
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
+                { "fetchIsolatedPositions", false },
+                { "fetchLeverage", false },
+                { "fetchLeverages", false },
+                { "fetchLeverageTiers", false },
+                { "fetchLiquidations", false },
+                { "fetchLongShortRatio", false },
+                { "fetchLongShortRatioHistory", false },
+                { "fetchMarginAdjustmentHistory", false },
                 { "fetchMarginMode", false },
+                { "fetchMarginModes", false },
+                { "fetchMarketLeverageTiers", false },
                 { "fetchMarkets", true },
+                { "fetchMarkOHLCV", false },
+                { "fetchMarkPrices", false },
+                { "fetchMyLiquidations", false },
+                { "fetchMySettlementHistory", false },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
+                { "fetchOpenInterest", false },
+                { "fetchOpenInterestHistory", false },
+                { "fetchOpenInterests", false },
                 { "fetchOpenOrders", true },
+                { "fetchOption", false },
+                { "fetchOptionChain", false },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrders", false },
+                { "fetchPosition", false },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
+                { "fetchPositions", false },
+                { "fetchPositionsHistory", false },
+                { "fetchPositionsRisk", false },
+                { "fetchPremiumIndexOHLCV", false },
+                { "fetchSettlementHistory", false },
                 { "fetchStatus", true },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
@@ -70,9 +112,15 @@ public partial class bitrue : Exchange
                 { "fetchTransactionFees", false },
                 { "fetchTransactions", false },
                 { "fetchTransfers", true },
+                { "fetchVolatilityHistory", false },
                 { "fetchWithdrawals", true },
+                { "reduceMargin", false },
+                { "repayCrossMargin", false },
+                { "repayIsolatedMargin", false },
                 { "setLeverage", true },
                 { "setMargin", true },
+                { "setMarginMode", false },
+                { "setPositionMode", false },
                 { "transfer", true },
                 { "withdraw", true },
             } },
@@ -105,66 +153,57 @@ public partial class bitrue : Exchange
                     { "kline", new Dictionary<string, object>() {
                         { "public", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
-                                { "public.json", 1 },
-                                { "public{currency}.json", 1 },
+                                { "public.json", 0.24 },
+                                { "public{currency}.json", 0.24 },
                             } },
                         } },
                     } },
                     { "v1", new Dictionary<string, object>() {
                         { "public", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
-                                { "ping", 1 },
-                                { "time", 1 },
-                                { "exchangeInfo", 1 },
+                                { "ping", 0.24 },
+                                { "time", 0.24 },
+                                { "exchangeInfo", 0.24 },
                                 { "depth", new Dictionary<string, object>() {
                                     { "cost", 1 },
-                                    { "byLimit", new List<object>() {new List<object>() {100, 1}, new List<object>() {500, 5}, new List<object>() {1000, 10}} },
+                                    { "byLimit", new List<object>() {new List<object>() {100, 0.24}, new List<object>() {500, 1.2}, new List<object>() {1000, 2.4}} },
                                 } },
-                                { "trades", 1 },
-                                { "historicalTrades", 5 },
-                                { "aggTrades", 1 },
+                                { "trades", 0.24 },
+                                { "historicalTrades", 1.2 },
+                                { "aggTrades", 0.24 },
                                 { "ticker/24hr", new Dictionary<string, object>() {
-                                    { "cost", 1 },
-                                    { "noSymbol", 40 },
+                                    { "cost", 0.24 },
+                                    { "noSymbol", 9.6 },
                                 } },
-                                { "ticker/price", new Dictionary<string, object>() {
-                                    { "cost", 1 },
-                                    { "noSymbol", 2 },
-                                } },
-                                { "ticker/bookTicker", new Dictionary<string, object>() {
-                                    { "cost", 1 },
-                                    { "noSymbol", 2 },
-                                } },
-                                { "market/kline", 1 },
+                                { "ticker/price", 0.24 },
+                                { "ticker/bookTicker", 0.24 },
+                                { "market/kline", 0.24 },
                             } },
                         } },
                         { "private", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
-                                { "order", 1 },
-                                { "openOrders", 1 },
-                                { "allOrders", 5 },
-                                { "account", 5 },
-                                { "myTrades", new Dictionary<string, object>() {
-                                    { "cost", 5 },
-                                    { "noSymbol", 40 },
-                                } },
-                                { "etf/net-value/{symbol}", 1 },
-                                { "withdraw/history", 1 },
-                                { "deposit/history", 1 },
+                                { "order", 5 },
+                                { "openOrders", 5 },
+                                { "allOrders", 25 },
+                                { "account", 25 },
+                                { "myTrades", 25 },
+                                { "etf/net-value/{symbol}", 0.24 },
+                                { "withdraw/history", 120 },
+                                { "deposit/history", 120 },
                             } },
                             { "post", new Dictionary<string, object>() {
-                                { "order", 4 },
-                                { "withdraw/commit", 1 },
+                                { "order", 5 },
+                                { "withdraw/commit", 120 },
                             } },
                             { "delete", new Dictionary<string, object>() {
-                                { "order", 1 },
+                                { "order", 5 },
                             } },
                         } },
                     } },
                     { "v2", new Dictionary<string, object>() {
                         { "private", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
-                                { "myTrades", 5 },
+                                { "myTrades", 1.2 },
                             } },
                         } },
                     } },
@@ -173,34 +212,34 @@ public partial class bitrue : Exchange
                     { "v1", new Dictionary<string, object>() {
                         { "public", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
-                                { "ping", 1 },
-                                { "time", 1 },
-                                { "contracts", 1 },
-                                { "depth", 1 },
-                                { "ticker", 1 },
-                                { "klines", 1 },
+                                { "ping", 0.24 },
+                                { "time", 0.24 },
+                                { "contracts", 0.24 },
+                                { "depth", 0.24 },
+                                { "ticker", 0.24 },
+                                { "klines", 0.24 },
                             } },
                         } },
                     } },
                     { "v2", new Dictionary<string, object>() {
                         { "private", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
-                                { "myTrades", 1 },
-                                { "openOrders", 1 },
-                                { "order", 1 },
-                                { "account", 1 },
-                                { "leverageBracket", 1 },
-                                { "commissionRate", 1 },
-                                { "futures_transfer_history", 1 },
-                                { "forceOrdersHistory", 1 },
+                                { "myTrades", 5 },
+                                { "openOrders", 5 },
+                                { "order", 5 },
+                                { "account", 5 },
+                                { "leverageBracket", 5 },
+                                { "commissionRate", 5 },
+                                { "futures_transfer_history", 5 },
+                                { "forceOrdersHistory", 5 },
                             } },
                             { "post", new Dictionary<string, object>() {
-                                { "positionMargin", 1 },
-                                { "level_edit", 1 },
-                                { "cancel", 1 },
-                                { "order", 1 },
-                                { "allOpenOrders", 1 },
-                                { "futures_transfer", 1 },
+                                { "positionMargin", 5 },
+                                { "level_edit", 5 },
+                                { "cancel", 5 },
+                                { "order", 25 },
+                                { "allOpenOrders", 5 },
+                                { "futures_transfer", 5 },
                             } },
                         } },
                     } },
@@ -209,34 +248,34 @@ public partial class bitrue : Exchange
                     { "v1", new Dictionary<string, object>() {
                         { "public", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
-                                { "ping", 1 },
-                                { "time", 1 },
-                                { "contracts", 1 },
-                                { "depth", 1 },
-                                { "ticker", 1 },
-                                { "klines", 1 },
+                                { "ping", 0.24 },
+                                { "time", 0.24 },
+                                { "contracts", 0.24 },
+                                { "depth", 0.24 },
+                                { "ticker", 0.24 },
+                                { "klines", 0.24 },
                             } },
                         } },
                     } },
                     { "v2", new Dictionary<string, object>() {
                         { "private", new Dictionary<string, object>() {
                             { "get", new Dictionary<string, object>() {
-                                { "myTrades", 1 },
-                                { "openOrders", 1 },
-                                { "order", 1 },
-                                { "account", 1 },
-                                { "leverageBracket", 1 },
-                                { "commissionRate", 1 },
-                                { "futures_transfer_history", 1 },
-                                { "forceOrdersHistory", 1 },
+                                { "myTrades", 5 },
+                                { "openOrders", 5 },
+                                { "order", 5 },
+                                { "account", 5 },
+                                { "leverageBracket", 5 },
+                                { "commissionRate", 5 },
+                                { "futures_transfer_history", 5 },
+                                { "forceOrdersHistory", 5 },
                             } },
                             { "post", new Dictionary<string, object>() {
-                                { "positionMargin", 1 },
-                                { "level_edit", 1 },
-                                { "cancel", 1 },
-                                { "order", 1 },
-                                { "allOpenOrders", 1 },
-                                { "futures_transfer", 1 },
+                                { "positionMargin", 5 },
+                                { "level_edit", 5 },
+                                { "cancel", 5 },
+                                { "order", 5 },
+                                { "allOpenOrders", 5 },
+                                { "futures_transfer", 5 },
                             } },
                         } },
                     } },
@@ -682,11 +721,6 @@ public partial class bitrue : Exchange
             object id = this.safeString(currency, "coin");
             object name = this.safeString(currency, "coinFulName");
             object code = this.safeCurrencyCode(id);
-            object deposit = null;
-            object withdraw = null;
-            object minWithdrawString = null;
-            object maxWithdrawString = null;
-            object minWithdrawFeeString = null;
             object networkDetails = this.safeList(currency, "chainDetail", new List<object>() {});
             object networks = new Dictionary<string, object>() {};
             for (object j = 0; isLessThan(j, getArrayLength(networkDetails)); postFixIncrement(ref j))
@@ -694,60 +728,43 @@ public partial class bitrue : Exchange
                 object entry = getValue(networkDetails, j);
                 object networkId = this.safeString(entry, "chain");
                 object network = this.networkIdToCode(networkId, code);
-                object enableDeposit = this.safeBool(entry, "enableDeposit");
-                deposit = ((bool) isTrue((enableDeposit))) ? enableDeposit : deposit;
-                object enableWithdraw = this.safeBool(entry, "enableWithdraw");
-                withdraw = ((bool) isTrue((enableWithdraw))) ? enableWithdraw : withdraw;
-                object networkWithdrawFeeString = this.safeString(entry, "withdrawFee");
-                if (isTrue(!isEqual(networkWithdrawFeeString, null)))
-                {
-                    minWithdrawFeeString = ((bool) isTrue((isEqual(minWithdrawFeeString, null)))) ? networkWithdrawFeeString : Precise.stringMin(networkWithdrawFeeString, minWithdrawFeeString);
-                }
-                object networkMinWithdrawString = this.safeString(entry, "minWithdraw");
-                if (isTrue(!isEqual(networkMinWithdrawString, null)))
-                {
-                    minWithdrawString = ((bool) isTrue((isEqual(minWithdrawString, null)))) ? networkMinWithdrawString : Precise.stringMin(networkMinWithdrawString, minWithdrawString);
-                }
-                object networkMaxWithdrawString = this.safeString(entry, "maxWithdraw");
-                if (isTrue(!isEqual(networkMaxWithdrawString, null)))
-                {
-                    maxWithdrawString = ((bool) isTrue((isEqual(maxWithdrawString, null)))) ? networkMaxWithdrawString : Precise.stringMax(networkMaxWithdrawString, maxWithdrawString);
-                }
                 ((IDictionary<string,object>)networks)[(string)network] = new Dictionary<string, object>() {
                     { "info", entry },
                     { "id", networkId },
                     { "network", network },
-                    { "deposit", enableDeposit },
-                    { "withdraw", enableWithdraw },
-                    { "active", isTrue(enableDeposit) && isTrue(enableWithdraw) },
-                    { "fee", this.parseNumber(networkWithdrawFeeString) },
+                    { "deposit", this.safeBool(entry, "enableDeposit") },
+                    { "withdraw", this.safeBool(entry, "enableWithdraw") },
+                    { "active", null },
+                    { "fee", this.safeNumber(entry, "withdrawFee") },
                     { "precision", null },
                     { "limits", new Dictionary<string, object>() {
                         { "withdraw", new Dictionary<string, object>() {
-                            { "min", this.parseNumber(networkMinWithdrawString) },
-                            { "max", this.parseNumber(networkMaxWithdrawString) },
+                            { "min", this.safeNumber(entry, "minWithdraw") },
+                            { "max", this.safeNumber(entry, "maxWithdraw") },
                         } },
                     } },
                 };
             }
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "name", name },
                 { "code", code },
                 { "precision", null },
                 { "info", currency },
-                { "active", isTrue(deposit) && isTrue(withdraw) },
-                { "deposit", deposit },
-                { "withdraw", withdraw },
+                { "active", null },
+                { "deposit", null },
+                { "withdraw", null },
                 { "networks", networks },
-                { "fee", this.parseNumber(minWithdrawFeeString) },
+                { "fee", null },
+                { "fees", null },
+                { "type", "crypto" },
                 { "limits", new Dictionary<string, object>() {
                     { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.parseNumber(minWithdrawString) },
-                        { "max", this.parseNumber(maxWithdrawString) },
+                        { "min", null },
+                        { "max", null },
                     } },
                 } },
-            };
+            });
         }
         return result;
     }

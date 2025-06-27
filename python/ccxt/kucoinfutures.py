@@ -5,7 +5,7 @@
 
 from ccxt.kucoin import kucoin
 from ccxt.abstract.kucoinfutures import ImplicitAPI
-from ccxt.base.types import Any, Balances, Currency, DepositAddress, Int, Leverage, LeverageTier, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Currency, DepositAddress, Int, Leverage, LeverageTier, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -1232,7 +1232,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_position(data, market)
 
-    def fetch_positions(self, symbols: Strings = None, params={}):
+    def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open positions
 
@@ -1510,6 +1510,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :param str [params.timeInForce]: GTC, GTT, IOC, or FOK, default is GTC, limit orders only
         :param str [params.postOnly]: Post only flag, invalid when timeInForce is IOC or FOK
         :param float [params.cost]: the cost of the order in units of USDT
+        :param str [params.marginMode]: 'cross' or 'isolated', default is 'isolated'
  ----------------- Exchange Specific Parameters -----------------
         :param float [params.leverage]: Leverage size of the order(mandatory param in request, default is 1)
         :param str [params.clientOid]: client order id, defaults to uuid if not passed
@@ -1607,6 +1608,10 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'type': type,  # limit or market
             'leverage': 1,
         }
+        marginModeUpper = self.safe_string_upper(params, 'marginMode')
+        if marginModeUpper is not None:
+            params = self.omit(params, 'marginMode')
+            request['marginMode'] = marginModeUpper
         cost = self.safe_string(params, 'cost')
         params = self.omit(params, 'cost')
         if cost is not None:

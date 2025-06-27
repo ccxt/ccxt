@@ -2551,6 +2551,22 @@ func (this *okx) PrivateGetAccountSpotBorrowRepayHistory (args ...interface{}) <
    return ch
 }
 
+func (this *okx) PrivateGetAccountMovePositionsHistory (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privateGetAccountMovePositionsHistory", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
 func (this *okx) PrivateGetUsersSubaccountList (args ...interface{}) <-chan interface{} {
    parameters := GetArg(args, 0, nil)
    ch := make(chan interface{})
@@ -2674,6 +2690,22 @@ func (this *okx) PrivateGetAccountSubaccountInterestLimits (args ...interface{})
            }
        }()
        ch <- (<-this.callEndpoint ("privateGetAccountSubaccountInterestLimits", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *okx) PrivateGetUsersSubaccountApikey (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privateGetUsersSubaccountApikey", parameters))
        PanicOnError(ch)
    }()
    return ch
@@ -4503,6 +4535,22 @@ func (this *okx) PrivatePostAccountBillsHistoryArchive (args ...interface{}) <-c
    return ch
 }
 
+func (this *okx) PrivatePostAccountMovePositions (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privatePostAccountMovePositions", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
 func (this *okx) PrivatePostUsersSubaccountModifyApikey (args ...interface{}) <-chan interface{} {
    parameters := GetArg(args, 0, nil)
    ch := make(chan interface{})
@@ -4562,6 +4610,54 @@ func (this *okx) PrivatePostAccountSubaccountSetLoanAllocation (args ...interfac
            }
        }()
        ch <- (<-this.callEndpoint ("privatePostAccountSubaccountSetLoanAllocation", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *okx) PrivatePostUsersSubaccountCreateSubaccount (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privatePostUsersSubaccountCreateSubaccount", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *okx) PrivatePostUsersSubaccountSubaccountApikey (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privatePostUsersSubaccountSubaccountApikey", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *okx) PrivatePostUsersSubaccountDeleteApikey (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privatePostUsersSubaccountDeleteApikey", parameters))
        PanicOnError(ch)
    }()
    return ch

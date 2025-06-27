@@ -14,13 +14,16 @@ import { execSync } from 'child_process';
 import { replaceInFile } from './fsLocal.js'
 import asTable from 'as-table'
 import { promisify } from 'util'
-import { capitalize } from '../js/src/base/functions.js'
 
 const { keys, values, entries, fromEntries } = Object
 
 ansi.nice
 
 const unlimitedLog = log.unlimited;
+
+const capitalize = (s) => {
+    return s.length ? (s.charAt (0).toUpperCase () + s.slice (1)) : s;
+};
 
 function cloneGitHubWiki (gitWikiPath) {
 
@@ -400,11 +403,12 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
 
     if (allExchangesPaths && numExchanges) {
         const supportedExchangesMarkdownTable = createMarkdownTable (arrayOfExchanges, createMarkdownListOfExchanges, [ 3 ])
-            , beginning = "The CCXT library currently supports the following "
+            , beginning = "<!--- init list -->The CCXT library currently supports the following "
             , ending = " cryptocurrency exchange markets and trading APIs:\n\n"
             , totalString = beginning + numExchanges + ending
-            , allExchangesReplacement = totalString + supportedExchangesMarkdownTable + "$1"
-            , allExchangesRegex = new RegExp ("[^\n]+[\n]{2}\\| logo[^`]+\\|([\n][\n]|[\n]$|$)", 'm')
+            // , allExchangesReplacement = totalString + supportedExchangesMarkdownTable + "$1"
+            , allExchangesReplacement = totalString + supportedExchangesMarkdownTable + "\n<!--- end list -->"
+            , allExchangesRegex = new RegExp (/<!--- init list -->([\s\S]*?)<!--- end list -->/)
         for (const exchangePath of allExchangesPaths) {
             logExportExchanges (exchangePath, allExchangesRegex, allExchangesReplacement)
         }
@@ -414,11 +418,11 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
     const numProExchanges = proExchanges.length
     if (proExchangesPaths && numProExchanges) {
         const proExchangesMarkdownTable = createMarkdownTable (proExchanges, createMarkdownListOfExchanges, [ 3 ])
-            , beginning = "The CCXT Pro library currently supports the following "
+            , beginning = "<!--- init list -->The CCXT Pro library currently supports the following "
             , ending = " cryptocurrency exchange markets and WebSocket trading APIs:\n\n"
             , totalString = beginning + numProExchanges + ending
-            , proExchangesReplacement = totalString + proExchangesMarkdownTable + "$1"
-            , proExchangesRegex = new RegExp ("[^\n]+[\n]{2}\\|[^`]+\\|([\n][\n]|[\n]$|$)", 'm')
+            , proExchangesReplacement = totalString + proExchangesMarkdownTable + "\n<!--- end list -->"
+            , proExchangesRegex = new RegExp (/<!--- init list -->([\s\S]*?)<!--- end list -->/)
         for (const exchangePath of proExchangesPaths) {
             logExportExchanges (exchangePath, proExchangesRegex, proExchangesReplacement)
         }
@@ -675,6 +679,11 @@ async function exportEverything () {
         },
         {
             file: './python/ccxt/pro/__init__.py',
+            regex: /(# DO_NOT_REMOVE__ERROR_IMPORTS_START)[\s\S]*?(# DO_NOT_REMOVE__ERROR_IMPORTS_END\n)[\n]/s,
+            replacement: '$1\n' +flat.map (error => ('from ccxt.base.errors' + ' import ' + error).padEnd (70) + '# noqa: F401').join ("\n") + "\n$2\n",
+        },
+        {
+            file: './python/ccxt/pro/__init__.py',
             regex: /(?:from ccxt\.pro\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
             replacement: wsIds.map (id => ('from ccxt.pro.' + id + ' import ' + id).padEnd (74) + '# noqa: F401').join ("\n") + "\n\nexchanges",
         },
@@ -691,7 +700,7 @@ async function exportEverything () {
         {
             file: './go/v4/exchange_metadata.go',
             regex: /var Exchanges \[\]string = \[\]string\{.+$/gm,
-            replacement: `var Exchanges []string = []string{ ${ids.map(i=>`"${capitalize(i)}"`).join(', ')} };`,
+            replacement: `var Exchanges []string = []string{ ${ids.map(i=>`"${capitalize(i)}"`).join(', ')} }`,
         },
     ]
 

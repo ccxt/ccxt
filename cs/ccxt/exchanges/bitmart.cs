@@ -76,7 +76,7 @@ public partial class bitmart : Exchange
                 { "fetchOrders", false },
                 { "fetchOrderTrades", true },
                 { "fetchPosition", true },
-                { "fetchPositionMode", false },
+                { "fetchPositionMode", true },
                 { "fetchPositions", true },
                 { "fetchStatus", true },
                 { "fetchTicker", true },
@@ -98,6 +98,7 @@ public partial class bitmart : Exchange
                 { "repayIsolatedMargin", true },
                 { "setLeverage", true },
                 { "setMarginMode", false },
+                { "setPositionMode", true },
                 { "transfer", true },
                 { "withdraw", true },
             } },
@@ -187,6 +188,7 @@ public partial class bitmart : Exchange
                         { "contract/private/order", 1.2 },
                         { "contract/private/order-history", 10 },
                         { "contract/private/position", 10 },
+                        { "contract/private/position-v2", 10 },
                         { "contract/private/get-open-orders", 1.2 },
                         { "contract/private/current-plan-order", 1.2 },
                         { "contract/private/trades", 10 },
@@ -194,6 +196,7 @@ public partial class bitmart : Exchange
                         { "contract/private/affilate/rebate-list", 10 },
                         { "contract/private/affilate/trade-list", 10 },
                         { "contract/private/transaction-history", 10 },
+                        { "contract/private/get-position-mode", 1 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "account/sub-account/main/v1/sub-to-main", 30 },
@@ -240,6 +243,7 @@ public partial class bitmart : Exchange
                         { "contract/private/modify-tp-sl-order", 2.5 },
                         { "contract/private/submit-trail-order", 2.5 },
                         { "contract/private/cancel-trail-order", 1.5 },
+                        { "contract/private/set-position-mode", 1 },
                     } },
                 } },
             } },
@@ -1122,6 +1126,7 @@ public partial class bitmart : Exchange
         //                 {
         //                     "currency": "BTC",
         //                     "name": "Bitcoin",
+        //                     "recharge_minsize": '0.00000001',
         //                     "contract_address": null,
         //                     "network": "BTC",
         //                     "withdraw_enabled": true,
@@ -1144,7 +1149,8 @@ public partial class bitmart : Exchange
             object fullId = this.safeString(currency, "currency");
             object currencyId = fullId;
             object networkId = this.safeString(currency, "network");
-            if (isTrue(isLessThan(getIndexOf(fullId, "NFT"), 0)))
+            object isNtf = (isGreaterThanOrEqual(getIndexOf(fullId, "NFT"), 0));
+            if (!isTrue(isNtf))
             {
                 object parts = ((string)fullId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
                 currencyId = this.safeString(parts, 0);
@@ -1168,6 +1174,7 @@ public partial class bitmart : Exchange
                     { "withdraw", null },
                     { "active", null },
                     { "networks", new Dictionary<string, object>() {} },
+                    { "type", ((bool) isTrue(isNtf)) ? "other" : "crypto" },
                 };
             }
             object networkCode = this.networkIdToCode(networkId);
@@ -2260,7 +2267,7 @@ public partial class bitmart : Exchange
                 object code = this.safeCurrencyCode(currencyId);
                 object account = this.account();
                 ((IDictionary<string,object>)account)["free"] = this.safeString2(balance, "available", "available_balance");
-                ((IDictionary<string,object>)account)["used"] = this.safeString2(balance, "frozen", "frozen_balance");
+                ((IDictionary<string,object>)account)["used"] = this.safeStringN(balance, new List<object>() {"unAvailable", "frozen", "frozen_balance"});
                 ((IDictionary<string,object>)result)[(string)code] = account;
             }
             return this.safeBalance(result);
@@ -5085,6 +5092,7 @@ public partial class bitmart : Exchange
      * @name bitmart#fetchPositions
      * @description fetch all open contract positions
      * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-keyed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-v2-keyed
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
@@ -5107,7 +5115,7 @@ public partial class bitmart : Exchange
             // only supports symbols as undefined or sending one symbol
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         }
-        object response = await this.privateGetContractPrivatePosition(this.extend(request, parameters));
+        object response = await this.privateGetContractPrivatePositionV2(this.extend(request, parameters));
         //
         //     {
         //         "code": 1000,
@@ -5716,6 +5724,75 @@ public partial class bitmart : Exchange
             }
         }
         return addresses;
+    }
+
+    /**
+     * @method
+     * @name bitmart#setPositionMode
+     * @description set hedged to true or false for a market
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-leverage-signed
+     * @param {bool} hedged set to true to use dualSidePosition
+     * @param {string} symbol not used by bingx setPositionMode ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    public async override Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object positionMode = null;
+        if (isTrue(hedged))
+        {
+            positionMode = "hedge_mode";
+        } else
+        {
+            positionMode = "one_way_mode";
+        }
+        object request = new Dictionary<string, object>() {
+            { "position_mode", positionMode },
+        };
+        //
+        // {
+        //     "code": 1000,
+        //     "trace": "0cc6f4c4-8b8c-4253-8e90-8d3195aa109c",
+        //     "message": "Ok",
+        //     "data": {
+        //       "position_mode":"one_way_mode"
+        //     }
+        // }
+        //
+        return await this.privatePostContractPrivateSetPositionMode(this.extend(request, parameters));
+    }
+
+    /**
+     * @method
+     * @name bitmart#fetchPositionMode
+     * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-position-mode-keyed
+     * @param {string} symbol not used
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an object detailing whether the market is in hedged or one-way mode
+     */
+    public async override Task<object> fetchPositionMode(object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object response = await this.privateGetContractPrivateGetPositionMode(parameters);
+        //
+        // {
+        //     "code": 1000,
+        //     "trace": "0cc6f4c4-8b8c-4253-8e90-8d3195aa109c",
+        //     "message": "Ok",
+        //     "data": {
+        //       "position_mode":"one_way_mode"
+        //     }
+        // }
+        //
+        object data = this.safeDict(response, "data");
+        object positionMode = this.safeString(data, "position_mode");
+        return new Dictionary<string, object>() {
+            { "info", response },
+            { "hedged", (isEqual(positionMode, "hedge_mode")) },
+        };
     }
 
     public override object nonce()

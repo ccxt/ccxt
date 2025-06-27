@@ -500,7 +500,6 @@ public partial class testMainClass
             { "fetchOHLCV", new List<object>() {symbol} },
             { "fetchTrades", new List<object>() {symbol} },
             { "fetchOrderBook", new List<object>() {symbol} },
-            { "fetchL2OrderBook", new List<object>() {symbol} },
             { "fetchOrderBooks", new List<object>() {} },
             { "fetchBidsAsks", new List<object>() {} },
             { "fetchStatus", new List<object>() {} },
@@ -1316,6 +1315,10 @@ public partial class testMainClass
     {
         object output = null;
         object requestUrl = null;
+        if (isTrue(this.info))
+        {
+            dump("[INFO] STATIC REQUEST TEST:", method, ":", getValue(data, "description"));
+        }
         try
         {
             if (!isTrue(isSync()))
@@ -1351,6 +1354,10 @@ public partial class testMainClass
     {
         object expectedResult = exchange.safeValue(data, "parsedResponse");
         var mockedExchange = setFetchResponse(exchange, getValue(data, "httpResponse"));
+        if (isTrue(this.info))
+        {
+            dump("[INFO] STATIC RESPONSE TEST:", method, ":", getValue(data, "description"));
+        }
         try
         {
             if (!isTrue(isSync()))
@@ -1604,6 +1611,36 @@ public partial class testMainClass
         return sum;
     }
 
+    public virtual object checkIfExchangeIsDisabled(object exchangeName, object exchangeData)
+    {
+        Exchange exchange = initExchange("Exchange", new Dictionary<string, object>() {});
+        object isDisabledPy = exchange.safeBool(exchangeData, "disabledPy", false);
+        if (isTrue(isTrue(isDisabledPy) && isTrue((isEqual(this.lang, "PY")))))
+        {
+            dump(add(add("[TEST_WARNING] Exchange ", exchangeName), " is disabled in python"));
+            return true;
+        }
+        object isDisabledPHP = exchange.safeBool(exchangeData, "disabledPHP", false);
+        if (isTrue(isTrue(isDisabledPHP) && isTrue((isEqual(this.lang, "PHP")))))
+        {
+            dump(add(add("[TEST_WARNING] Exchange ", exchangeName), " is disabled in php"));
+            return true;
+        }
+        object isDisabledCSharp = exchange.safeBool(exchangeData, "disabledCS", false);
+        if (isTrue(isTrue(isDisabledCSharp) && isTrue((isEqual(this.lang, "C#")))))
+        {
+            dump(add(add("[TEST_WARNING] Exchange ", exchangeName), " is disabled in c#"));
+            return true;
+        }
+        object isDisabledGO = exchange.safeBool(exchangeData, "disabledGO", false);
+        if (isTrue(isTrue(isDisabledGO) && isTrue((isEqual(this.lang, "GO")))))
+        {
+            dump(add(add("[TEST_WARNING] Exchange ", exchangeName), " is disabled in go"));
+            return true;
+        }
+        return false;
+    }
+
     public async virtual Task<object> runStaticRequestTests(object targetExchange = null, object testName = null)
     {
         await this.runStaticTests("request", targetExchange, testName);
@@ -1634,6 +1671,11 @@ public partial class testMainClass
         {
             object exchangeName = getValue(exchanges, i);
             object exchangeData = getValue(staticData, exchangeName);
+            object disabled = this.checkIfExchangeIsDisabled(exchangeName, exchangeData);
+            if (isTrue(disabled))
+            {
+                continue;
+            }
             object numberOfTests = this.getNumberOfTestsFromExchange(exchange, exchangeData, testName);
             sum = exchange.sum(sum, numberOfTests);
             if (isTrue(isEqual(type, "request")))
@@ -1685,7 +1727,7 @@ public partial class testMainClass
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        object promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBitmart(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testHyperliquid(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testOxfun(), this.testXT(), this.testVertex(), this.testParadex(), this.testHashkey(), this.testCoincatch(), this.testDefx(), this.testCryptomus(), this.testDerive()};
+        object promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBitmart(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testHyperliquid(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testOxfun(), this.testXT(), this.testVertex(), this.testParadex(), this.testHashkey(), this.testCoincatch(), this.testDefx(), this.testCryptomus(), this.testDerive(), this.testModeTrade()};
         await promiseAll(promises);
         object successMessage = add(add("[", this.lang), "][TEST_SUCCESS] brokerId tests passed.");
         dump(add("[INFO]", successMessage));
@@ -2454,6 +2496,29 @@ public partial class testMainClass
             request = jsonParse(exchange.last_request_body);
         }
         assert(isEqual(getValue(request, "referral_code"), id), add(add("derive - referral_code: ", id), " not in request."));
+        if (!isTrue(isSync()))
+        {
+            await close(exchange);
+        }
+        return true;
+    }
+
+    public async virtual Task<object> testModeTrade()
+    {
+        Exchange exchange = this.initOfflineExchange("modetrade");
+        exchange.secret = "secretsecretsecretsecretsecretsecretsecrets";
+        object id = "CCXTMODE";
+        await exchange.loadMarkets();
+        object request = null;
+        try
+        {
+            await exchange.createOrder("BTC/USDC:USDC", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            request = jsonParse(exchange.last_request_body);
+        }
+        object brokerId = getValue(request, "order_tag");
+        assert(isEqual(brokerId, id), add(add(add("modetrade - id: ", id), " different from  broker_id: "), brokerId));
         if (!isTrue(isSync()))
         {
             await close(exchange);

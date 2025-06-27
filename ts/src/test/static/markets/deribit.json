@@ -1,48 +1,89 @@
 {
     "BTC/USDT": {
         "id": "BTC_USDT",
+        "lowercaseId": null,
         "symbol": "BTC/USDT",
         "base": "BTC",
         "quote": "USDT",
-        "settle": "",
+        "settle": null,
         "baseId": "BTC",
         "quoteId": "USDT",
-        "settleId": "",
+        "settleId": null,
         "type": "spot",
         "spot": true,
         "margin": false,
         "swap": false,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": false,
-        "linear": false,
-        "inverse": true,
-        "taker": "0",
-        "maker": "0",
-        "contractSize": "0.0001",
-        "expiry": "32503708800000",
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0,
+        "maker": 0,
+        "contractSize": 0.0001,
+        "expiry": 32503708800000,
         "expiryDatetime": "3000-01-01T08:00:00.000Z",
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.0001,
-            "price": 0.01
+            "price": 1
         },
         "limits": {
-            "leverage": {},
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
-                "min": 0.0001
+                "min": 0.0001,
+                "max": null
             },
             "price": {
-                "min": 0.01
+                "min": 1,
+                "max": null
             },
-            "cost": {}
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
         },
         "created": 1702374650000,
-        "strike": "",
-        "optionType": ""
+        "info": {
+            "price_index": "btc_usdt",
+            "rfq": false,
+            "kind": "spot",
+            "min_trade_amount": "0.0001",
+            "instrument_name": "BTC_USDT",
+            "maker_commission": "0.0",
+            "taker_commission": "0.0",
+            "instrument_type": "linear",
+            "expiration_timestamp": "32503708800000",
+            "creation_timestamp": "1702374650000",
+            "is_active": true,
+            "tick_size": "1.0",
+            "contract_size": "0.0001",
+            "instrument_id": "282196",
+            "block_trade_commission": "0.0",
+            "block_trade_min_trade_amount": "1",
+            "block_trade_tick_size": "0.0001",
+            "base_currency": "BTC",
+            "counter_currency": "USDT",
+            "quote_currency": "USDT",
+            "tick_size_steps": []
+        },
+        "tierBased": null,
+        "percentage": null
     },
     "BTC/USDT:USDT": {
         "id": "BTC_USDT-PERPETUAL",
+        "lowercaseId": null,
         "symbol": "BTC/USDT:USDT",
         "base": "BTC",
         "quote": "USDT",
@@ -56,6 +97,7 @@
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": true,
         "linear": true,
@@ -66,49 +108,65 @@
         "contractSize": 0.001,
         "expiry": 32503708800000,
         "expiryDatetime": "3000-01-01T08:00:00.000Z",
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.001,
             "price": 1
         },
         "limits": {
-            "leverage": {},
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
-                "min": 0.001
+                "min": 0.001,
+                "max": null
             },
             "price": {
-                "min": 1
+                "min": 1,
+                "max": null
             },
-            "cost": {}
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
         },
         "created": 1702464293000,
         "info": {
-            "tick_size_steps": [],
-            "quote_currency": "USDT",
+            "price_index": "btc_usdt",
+            "rfq": false,
+            "kind": "future",
             "min_trade_amount": "0.001",
-            "expiration_timestamp": "32503708800000",
-            "counter_currency": "USDT",
-            "settlement_currency": "USDT",
-            "block_trade_tick_size": "1.0",
-            "block_trade_min_trade_amount": "200000",
-            "block_trade_commission": "0.0001",
-            "max_liquidation_commission": "0.0075",
-            "max_leverage": "50",
-            "future_type": "linear",
-            "settlement_period": "perpetual",
-            "creation_timestamp": "1702464293000",
-            "base_currency": "BTC",
-            "instrument_id": "282352",
-            "instrument_type": "linear",
-            "taker_commission": "0.0005",
+            "instrument_name": "BTC_USDT-PERPETUAL",
             "maker_commission": "0.0",
+            "taker_commission": "0.0005",
+            "instrument_type": "linear",
+            "expiration_timestamp": "32503708800000",
+            "creation_timestamp": "1702464293000",
+            "is_active": true,
             "tick_size": "1.0",
             "contract_size": "0.001",
-            "is_active": true,
-            "instrument_name": "BTC_USDT-PERPETUAL",
-            "kind": "future",
-            "rfq": false,
-            "price_index": "btc_usdt"
-        }
+            "instrument_id": "282352",
+            "settlement_period": "perpetual",
+            "future_type": "linear",
+            "max_leverage": "50",
+            "max_liquidation_commission": "0.0075",
+            "block_trade_commission": "0.0001",
+            "block_trade_min_trade_amount": "200000",
+            "block_trade_tick_size": "1.0",
+            "settlement_currency": "USDT",
+            "base_currency": "BTC",
+            "counter_currency": "USDT",
+            "quote_currency": "USDT",
+            "tick_size_steps": []
+        },
+        "tierBased": null,
+        "percentage": null
     },
     "BTC/USD:BTC-240126-39000-C": {
         "id": "BTC-26JAN24-39000-C",
@@ -187,68 +245,89 @@
     },
     "ETH/USDT": {
         "id": "ETH_USDT",
+        "lowercaseId": null,
         "symbol": "ETH/USDT",
         "base": "ETH",
         "quote": "USDT",
+        "settle": null,
         "baseId": "ETH",
         "quoteId": "USDT",
+        "settleId": null,
         "type": "spot",
         "spot": true,
         "margin": false,
         "swap": false,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": false,
-        "linear": false,
-        "inverse": true,
-        "subType": "inverse",
+        "linear": null,
+        "inverse": null,
+        "subType": null,
         "taker": 0,
         "maker": 0,
         "contractSize": 0.0001,
         "expiry": 32503708800000,
         "expiryDatetime": "3000-01-01T08:00:00.000Z",
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.0001,
-            "price": 0.01
+            "price": 0.1
         },
         "limits": {
-            "leverage": {},
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
-                "min": 0.0001
+                "min": 0.0001,
+                "max": null
             },
             "price": {
-                "min": 0.01
+                "min": 0.1,
+                "max": null
             },
-            "cost": {}
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
         },
         "created": 1702374671000,
         "info": {
-            "tick_size_steps": [],
-            "quote_currency": "USDT",
-            "min_trade_amount": "0.0001",
-            "counter_currency": "USDT",
-            "block_trade_tick_size": "0.0001",
-            "block_trade_min_trade_amount": "10",
-            "block_trade_commission": "0.0",
-            "creation_timestamp": "1702374671000",
-            "instrument_id": "282197",
-            "base_currency": "ETH",
-            "tick_size": "0.01",
-            "contract_size": "0.0001",
-            "is_active": true,
-            "expiration_timestamp": "32503708800000",
-            "instrument_type": "linear",
-            "instrument_name": "ETH_USDT",
-            "taker_commission": "0.0",
-            "maker_commission": "0.0",
-            "kind": "spot",
+            "price_index": "eth_usdt",
             "rfq": false,
-            "price_index": "eth_usdt"
-        }
+            "kind": "spot",
+            "min_trade_amount": "0.0001",
+            "instrument_name": "ETH_USDT",
+            "maker_commission": "0.0",
+            "taker_commission": "0.0",
+            "instrument_type": "linear",
+            "expiration_timestamp": "32503708800000",
+            "creation_timestamp": "1702374671000",
+            "is_active": true,
+            "tick_size": "0.1",
+            "contract_size": "0.0001",
+            "instrument_id": "282197",
+            "block_trade_commission": "0.0",
+            "block_trade_min_trade_amount": "50",
+            "block_trade_tick_size": "0.0001",
+            "base_currency": "ETH",
+            "counter_currency": "USDT",
+            "quote_currency": "USDT",
+            "tick_size_steps": []
+        },
+        "tierBased": null,
+        "percentage": null
     },
     "ETH/USDT:USDT": {
         "id": "ETH_USDT-PERPETUAL",
+        "lowercaseId": null,
         "symbol": "ETH/USDT:USDT",
         "base": "ETH",
         "quote": "USDT",
@@ -262,6 +341,7 @@
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": true,
         "linear": true,
@@ -272,108 +352,146 @@
         "contractSize": 0.01,
         "expiry": 32503708800000,
         "expiryDatetime": "3000-01-01T08:00:00.000Z",
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.01,
             "price": 0.1
         },
         "limits": {
-            "leverage": {},
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
-                "min": 0.01
+                "min": 0.01,
+                "max": null
             },
             "price": {
-                "min": 0.1
+                "min": 0.1,
+                "max": null
             },
-            "cost": {}
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
         },
         "created": 1702464293000,
         "info": {
-            "tick_size_steps": [],
-            "quote_currency": "USDT",
+            "price_index": "eth_usdt",
+            "rfq": false,
+            "kind": "future",
             "min_trade_amount": "0.01",
-            "counter_currency": "USDT",
-            "settlement_period": "perpetual",
-            "settlement_currency": "USDT",
-            "block_trade_tick_size": "0.1",
-            "block_trade_min_trade_amount": "200000",
-            "block_trade_commission": "0.0001",
-            "max_liquidation_commission": "0.0075",
-            "max_leverage": "50",
-            "future_type": "linear",
+            "instrument_name": "ETH_USDT-PERPETUAL",
+            "maker_commission": "0.0",
+            "taker_commission": "0.0005",
+            "instrument_type": "linear",
+            "expiration_timestamp": "32503708800000",
             "creation_timestamp": "1702464293000",
-            "instrument_id": "282353",
-            "base_currency": "ETH",
+            "is_active": true,
             "tick_size": "0.1",
             "contract_size": "0.01",
-            "is_active": true,
-            "expiration_timestamp": "32503708800000",
-            "instrument_type": "linear",
-            "instrument_name": "ETH_USDT-PERPETUAL",
-            "taker_commission": "0.0005",
-            "maker_commission": "0.0",
-            "kind": "future",
-            "rfq": false,
-            "price_index": "eth_usdt"
-        }
+            "instrument_id": "282353",
+            "settlement_period": "perpetual",
+            "future_type": "linear",
+            "max_leverage": "50",
+            "max_liquidation_commission": "0.0075",
+            "block_trade_commission": "0.0001",
+            "block_trade_min_trade_amount": "200000",
+            "block_trade_tick_size": "0.1",
+            "settlement_currency": "USDT",
+            "base_currency": "ETH",
+            "counter_currency": "USDT",
+            "quote_currency": "USDT",
+            "tick_size_steps": []
+        },
+        "tierBased": null,
+        "percentage": null
     },
     "SOL/USDC": {
         "id": "SOL_USDC",
+        "lowercaseId": null,
         "symbol": "SOL/USDC",
         "base": "SOL",
         "quote": "USDC",
+        "settle": null,
         "baseId": "SOL",
         "quoteId": "USDC",
+        "settleId": null,
         "type": "spot",
         "spot": true,
         "margin": false,
         "swap": false,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
         "taker": 0,
         "maker": 0,
         "contractSize": 0.1,
         "expiry": 32503708800000,
         "expiryDatetime": "3000-01-01T08:00:00.000Z",
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.1,
             "price": 0.01
         },
         "limits": {
-            "leverage": {},
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
-                "min": 0.1
+                "min": 0.1,
+                "max": null
             },
             "price": {
-                "min": 0.01
+                "min": 0.01,
+                "max": null
             },
-            "cost": {}
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
-        "marginModes": {},
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
         "created": 1709035215000,
         "info": {
-            "tick_size_steps": [],
-            "quote_currency": "USDC",
+            "price_index": "sol_usdc",
+            "rfq": false,
+            "kind": "spot",
             "min_trade_amount": "0.1",
-            "counter_currency": "USDC",
-            "block_trade_min_trade_amount": "10",
-            "block_trade_commission": "0.0",
+            "instrument_name": "SOL_USDC",
+            "maker_commission": "0.0",
+            "taker_commission": "0.0",
+            "instrument_type": "linear",
+            "expiration_timestamp": "32503708800000",
             "creation_timestamp": "1709035215000",
-            "instrument_id": "296588",
-            "base_currency": "SOL",
-            "block_trade_tick_size": "0.0001",
+            "is_active": true,
             "tick_size": "0.01",
             "contract_size": "0.1",
-            "is_active": true,
-            "expiration_timestamp": "32503708800000",
-            "instrument_type": "linear",
-            "taker_commission": "0.0",
-            "maker_commission": "0.0",
-            "instrument_name": "SOL_USDC",
-            "kind": "spot",
-            "rfq": false,
-            "price_index": "sol_usdc"
-        }
+            "instrument_id": "296588",
+            "block_trade_commission": "0.0",
+            "block_trade_min_trade_amount": "1000",
+            "block_trade_tick_size": "0.0001",
+            "base_currency": "SOL",
+            "counter_currency": "USDC",
+            "quote_currency": "USDC",
+            "tick_size_steps": []
+        },
+        "tierBased": null,
+        "percentage": null
     }
 }

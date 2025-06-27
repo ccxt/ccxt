@@ -36,6 +36,7 @@ class cryptocom(ccxt.async_support.cryptocom):
                 'createOrderWs': True,
                 'cancelOrderWs': True,
                 'cancelAllOrders': True,
+                'editOrderWs': True,
             },
             'urls': {
                 'api': {
@@ -1019,6 +1020,31 @@ class cryptocom(ccxt.async_support.cryptocom):
         messageHash = self.nonce()
         return await self.watch_private_request(messageHash, request)
 
+    async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}) -> Order:
+        """
+        edit a trade order
+
+        https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-amend-order
+
+        :param str id: order id
+        :param str symbol: unified market symbol of the order to edit
+        :param str [type]: not used by cryptocom editOrder
+        :param str [side]: not used by cryptocom editOrder
+        :param float amount:(mandatory) how much of the currency you want to trade in units of the base currency
+        :param float price:(mandatory) the price for the order, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.clientOrderId]: the original client order id of the order to edit, required if id is not provided
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        params = self.edit_order_request(id, symbol, amount, price, params)
+        request: dict = {
+            'method': 'private/amend-order',
+            'params': params,
+        }
+        messageHash = self.nonce()
+        return await self.watch_private_request(messageHash, request)
+
     def handle_order(self, client: Client, message):
         #
         #    {
@@ -1258,6 +1284,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             'public/heartbeat': self.handle_ping,
             'public/auth': self.handle_authenticate,
             'private/create-order': self.handle_order,
+            'private/amend-order': self.handle_order,
             'private/cancel-order': self.handle_order,
             'private/cancel-all-orders': self.handle_cancel_all_orders,
             'private/close-position': self.handle_order,

@@ -95,7 +95,11 @@ class hyperliquid extends hyperliquid$1 {
         await this.loadMarkets();
         const [order, globalParams] = this.parseCreateEditOrderArgs(undefined, symbol, type, side, amount, price, params);
         const orders = await this.createOrdersWs([order], globalParams);
-        return orders[0];
+        const parsedOrder = orders[0];
+        const orderInfo = this.safeDict(parsedOrder, 'info');
+        // handle potential error here
+        this.handleErrors(undefined, undefined, undefined, undefined, undefined, this.json(orderInfo), orderInfo, undefined, undefined);
+        return parsedOrder;
     }
     /**
      * @method
@@ -132,7 +136,11 @@ class hyperliquid extends hyperliquid$1 {
         const dataObject = this.safeDict(responseObject, 'data', {});
         const statuses = this.safeList(dataObject, 'statuses', []);
         const first = this.safeDict(statuses, 0, {});
-        return this.parseOrder(first, market);
+        const parsedOrder = this.parseOrder(first, market);
+        const orderInfo = this.safeDict(parsedOrder, 'info');
+        // handle potential error here
+        this.handleErrors(undefined, undefined, undefined, undefined, undefined, this.json(orderInfo), orderInfo, undefined, undefined);
+        return parsedOrder;
     }
     /**
      * @method
@@ -617,7 +625,7 @@ class hyperliquid extends hyperliquid$1 {
             'datetime': this.iso8601(timestamp),
             'symbol': symbol,
             'id': id,
-            'order': undefined,
+            'order': this.safeString(trade, 'oid'),
             'type': undefined,
             'side': side,
             'takerOrMaker': undefined,

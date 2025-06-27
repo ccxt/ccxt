@@ -24,7 +24,7 @@ class tradeogre(Exchange, ImplicitAPI):
             'countries': [],
             'rateLimit': 100,
             'version': 'v2',
-            'pro': False,
+            'pro': True,
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -425,13 +425,13 @@ class tradeogre(Exchange, ImplicitAPI):
             'vwap': None,
             'open': self.safe_string(ticker, 'initialprice'),
             'close': self.safe_string(ticker, 'price'),
-            'last': None,
+            'last': self.safe_string(ticker, 'price'),
             'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': None,
-            'quoteVolume': self.safe_string(ticker, 'volume'),
+            'baseVolume': self.safe_string(ticker, 'volume'),
+            'quoteVolume': None,
             'info': ticker,
         }, market)
 
@@ -525,6 +525,7 @@ class tradeogre(Exchange, ImplicitAPI):
             'asks': rawAsks,
         }
         orderbook = self.parse_order_book(rawOrderbook, symbol)
+        orderbook['nonce'] = self.safe_integer(response, 's')
         return orderbook
 
     def parse_bids_asks(self, bidasks, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):

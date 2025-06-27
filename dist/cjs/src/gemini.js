@@ -261,7 +261,7 @@ class gemini extends gemini$1 {
                 'fetchMarketFromWebRetries': 10,
                 'fetchMarketsFromAPI': {
                     'fetchDetailsForAllSymbols': false,
-                    'quoteCurrencies': ['USDT', 'GUSD', 'USD', 'DAI', 'EUR', 'GBP', 'SGD', 'BTC', 'ETH', 'LTC', 'BCH'],
+                    'quoteCurrencies': ['USDT', 'GUSD', 'USD', 'DAI', 'EUR', 'GBP', 'SGD', 'BTC', 'ETH', 'LTC', 'BCH', 'SOL'],
                 },
                 'fetchMarkets': {
                     'webApiEnable': true,
@@ -421,8 +421,6 @@ class gemini extends gemini$1 {
             let networkCode = undefined;
             if (networkId !== undefined) {
                 networkCode = this.networkIdToCode(networkId);
-            }
-            if (networkCode !== undefined) {
                 networks[networkCode] = {
                     'info': currency,
                     'id': networkId,
@@ -444,7 +442,7 @@ class gemini extends gemini$1 {
                     },
                 };
             }
-            result[code] = {
+            result[code] = this.safeCurrencyStructure({
                 'info': currency,
                 'id': id,
                 'code': code,
@@ -466,7 +464,7 @@ class gemini extends gemini$1 {
                     },
                 },
                 'networks': networks,
-            };
+            });
         }
         return result;
     }

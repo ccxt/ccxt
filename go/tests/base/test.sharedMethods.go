@@ -49,6 +49,10 @@ import "github.com/ccxt/ccxt/go/v4"
         var logText interface{} = LogTemplate(exchange, method, entry)
         Assert(!IsEqual(entry, nil), Add("item is null/undefined", logText))
         // get all expected & predefined keys for this specific item and ensure thos ekeys exist in parsed structure
+        var allowEmptySkips interface{} = exchange.SafeList(skippedProperties, "allowNull", []interface{}{})
+        if IsTrue(!IsEqual(emptyAllowedFor, nil)) {
+            emptyAllowedFor = Concat(emptyAllowedFor, allowEmptySkips)
+        }
         if IsTrue(IsArray(format)) {
             Assert(IsArray(entry), Add("entry is not an array", logText))
             var realLength interface{} =         GetArrayLength(entry)
@@ -600,6 +604,27 @@ import "github.com/ccxt/ccxt/go/v4"
         exchange.SetHttpProxy(httpProxy)
         exchange.SetHttpsProxy(httpsProxy)
         exchange.SetSocksProxy(socksProxy)
+    }
+    func Concat(optionalArgs ...interface{}) interface{}  {
+        // we use this method temporarily, because of ast-transpiler issue across langs
+        a := GetArg(optionalArgs, 0, nil)
+        _ = a
+        b := GetArg(optionalArgs, 1, nil)
+        _ = b
+        if IsTrue(IsEqual(a, nil)) {
+            return b
+        } else if IsTrue(IsEqual(b, nil)) {
+            return a
+        } else {
+            var result interface{} = []interface{}{}
+            for i := 0; IsLessThan(i, GetArrayLength(a)); i++ {
+                AppendToArray(&result,GetValue(a, i))
+            }
+            for j := 0; IsLessThan(j, GetArrayLength(b)); j++ {
+                AppendToArray(&result,GetValue(b, j))
+            }
+            return result
+        }
     }
     func AssertNonEmtpyArray(exchange ccxt.IExchange, skippedProperties interface{}, method interface{}, entry interface{}, optionalArgs ...interface{})  {
         hint := GetArg(optionalArgs, 0, nil)

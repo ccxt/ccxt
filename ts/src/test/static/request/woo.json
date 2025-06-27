@@ -3,6 +3,38 @@
     "skipKeys": [],
     "outputType": "urlencoded",
     "methods": {
+        "withdraw": [
+            {
+                "description": "withdraw USDT on ETH",
+                "method": "withdraw",
+                "url": "https://api.woox.io/v1/asset/withdraw",
+                "input": [
+                    "USDT",
+                    10,
+                    "0x0000000000000000000000000000000000000000",
+                    null,
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "output": "address=0x0000000000000000000000000000000000000000&amount=10&token=ETH_USDT"
+            },
+            {
+                "description": "withdraw USDT on ERC20",
+                "method": "withdraw",
+                "url": "https://api.woox.io/v1/asset/withdraw",
+                "input": [
+                    "USDT",
+                    10,
+                    "0x0000000000000000000000000000000000000000",
+                    null,
+                    {
+                        "network": "ERC20"
+                    }
+                ],
+                "output": "address=0x0000000000000000000000000000000000000000&amount=10&token=ETH_USDT"
+            }
+        ],
         "createOrder": [
             {
                 "description": "spot limit buy",
@@ -195,7 +227,7 @@
             {
                 "description": "Swap trailing orders",
                 "method": "fetchOrders",
-                "url": "https://api.staging.woox.io/v3/algo/orders?algoType=TRAILING_STOP&symbol=PERP_BTC_USDT&size=500",
+                "url": "https://api.staging.woox.io/v3/algo/orders?algoType=TRAILING_STOP&symbol=PERP_BTC_USDT&size=50",
                 "input": [
                     "BTC/USDT:USDT",
                     null,
@@ -387,12 +419,64 @@
         ],
         "fetchDepositAddress": [
             {
-                "description": "fetch usdt address",
+                "description": "fetchDepositAddress USDT on ERC20",
                 "method": "fetchDepositAddress",
                 "url": "https://api.woox.io/v1/asset/deposit?token=ETH_USDT",
                 "input": [
-                    "USDT"
-                ]
+                    "USDT",
+                    {
+                        "network": "ERC20"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchDepositAddress ETH on ETH",
+                "method": "fetchDepositAddress",
+                "url": "https://api.woox.io/v1/asset/deposit?token=ETH",
+                "input": [
+                    "ETH",
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchDepositAddress ETH on ERC20",
+                "method": "fetchDepositAddress",
+                "url": "https://api.woox.io/v1/asset/deposit?token=ETH",
+                "input": [
+                    "ETH",
+                    {
+                        "network": "ERC20"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchDepositAddress BTC on BTC",
+                "method": "fetchDepositAddress",
+                "url": "https://api.woox.io/v1/asset/deposit?token=BTC",
+                "input": [
+                    "BTC",
+                    {
+                        "network": "BTC"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchDepositAddress USDT on ETH",
+                "method": "fetchDepositAddress",
+                "url": "https://api.woox.io/v1/asset/deposit?token=ETH_USDT",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "output": null
             }
         ],
         "fetchOHLCV": [
@@ -556,6 +640,8 @@
         ],
         "fetchCurrencies": [
             {
+                "disabled": true,
+                "disabledReason": "multiple urls called",
                 "description": "fetchCurrencies",
                 "method": "fetchCurrencies",
                 "url": "https://api.woox.io/v1/public/token",
@@ -655,6 +741,20 @@
             }
         ],
         "fetchOpenOrders": [
+            {
+                "description": "fetch trailing spot orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.woox.io/v3/algo/orders?algoType=TRAILING_STOP&size=50&status=INCOMPLETE",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "trailing": true
+                    }
+                ],
+                "output": null
+            },
             {
                 "description": "open orders",
                 "method": "fetchOpenOrders",

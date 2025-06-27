@@ -92,6 +92,12 @@ public partial class hyperliquid
     /// string : wallet type, ['spot', 'swap'], defaults to swap
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}.</returns>
@@ -355,6 +361,11 @@ public partial class hyperliquid
     {
         var res = await this.createOrders(orders, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    public Dictionary<string, object> CreateOrderRequest(string symbol, string type, string side, string amount, string price = null, Dictionary<string, object> parameters = null)
+    {
+        var res = this.createOrderRequest(symbol, type, side, amount, price, parameters);
+        return ((Dictionary<string, object>)res);
     }
     /// <summary>
     /// create a list of trade orders

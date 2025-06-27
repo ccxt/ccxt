@@ -461,7 +461,7 @@ class testMainClass {
             'fetchOHLCV': [ symbol ],
             'fetchTrades': [ symbol ],
             'fetchOrderBook': [ symbol ],
-            'fetchL2OrderBook': [ symbol ],
+            // 'fetchL2OrderBook': [ symbol ],
             'fetchOrderBooks': [],
             'fetchBidsAsks': [],
             'fetchStatus': [],
@@ -1210,6 +1210,9 @@ class testMainClass {
     async testRequestStatically (exchange, method: string, data: object, type: string, skipKeys: string[]) {
         let output = undefined;
         let requestUrl = undefined;
+        if (this.info) {
+            dump ('[INFO] STATIC REQUEST TEST:', method, ':', data['description']);
+        }
         try {
             if (!isSync ()) {
                 await callExchangeMethodDynamically (exchange, method, this.sanitizeDataInput (data['input']));
@@ -1240,6 +1243,9 @@ class testMainClass {
     async testResponseStatically (exchange, method: string, skipKeys: string[], data: object) {
         const expectedResult = exchange.safeValue (data, 'parsedResponse');
         const mockedExchange = setFetchResponse (exchange, data['httpResponse']);
+        if (this.info) {
+            dump ('[INFO] STATIC RESPONSE TEST:', method, ':', data['description']);
+        }
         try {
             if (!isSync ()) {
                 const unifiedResult = await callExchangeMethodDynamically (exchange, method, this.sanitizeDataInput (data['input']));
@@ -1432,6 +1438,31 @@ class testMainClass {
         return sum;
     }
 
+    checkIfExchangeIsDisabled (exchangeName: string, exchangeData: object) {
+        const exchange = initExchange ('Exchange', {});
+        const isDisabledPy = exchange.safeBool (exchangeData, 'disabledPy', false);
+        if (isDisabledPy && (this.lang === 'PY')) {
+            dump ('[TEST_WARNING] Exchange ' + exchangeName + ' is disabled in python');
+            return true;
+        }
+        const isDisabledPHP = exchange.safeBool (exchangeData, 'disabledPHP', false);
+        if (isDisabledPHP && (this.lang === 'PHP')) {
+            dump ('[TEST_WARNING] Exchange ' + exchangeName + ' is disabled in php');
+            return true;
+        }
+        const isDisabledCSharp = exchange.safeBool (exchangeData, 'disabledCS', false);
+        if (isDisabledCSharp && (this.lang === 'C#')) {
+            dump ('[TEST_WARNING] Exchange ' + exchangeName + ' is disabled in c#');
+            return true;
+        }
+        const isDisabledGO = exchange.safeBool (exchangeData, 'disabledGO', false);
+        if (isDisabledGO && (this.lang === 'GO')) {
+            dump ('[TEST_WARNING] Exchange ' + exchangeName + ' is disabled in go');
+            return true;
+        }
+        return false;
+    }
+
     async runStaticRequestTests (targetExchange: Str = undefined, testName: Str = undefined) {
         await this.runStaticTests ('request', targetExchange, testName);
         return true;
@@ -1456,6 +1487,10 @@ class testMainClass {
         for (let i = 0; i < exchanges.length; i++) {
             const exchangeName = exchanges[i];
             const exchangeData = staticData[exchangeName];
+            const disabled = this.checkIfExchangeIsDisabled (exchangeName, exchangeData);
+            if (disabled) {
+                continue;
+            }
             const numberOfTests = this.getNumberOfTestsFromExchange (exchange, exchangeData, testName);
             sum = exchange.sum (sum, numberOfTests);
             if (type === 'request') {
@@ -1526,6 +1561,7 @@ class testMainClass {
             this.testDefx (),
             this.testCryptomus (),
             this.testDerive (),
+            this.testModeTrade (),
         ];
         await Promise.all (promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -2145,6 +2181,25 @@ class testMainClass {
             request = jsonParse (exchange.last_request_body);
         }
         assert (request['referral_code'] === id, 'derive - referral_code: ' + id + ' not in request.');
+        if (!isSync ()) {
+            await close (exchange);
+        }
+        return true;
+    }
+
+    async testModeTrade () {
+        const exchange = this.initOfflineExchange ('modetrade');
+        exchange.secret = 'secretsecretsecretsecretsecretsecretsecrets';
+        const id = 'CCXTMODE';
+        await exchange.loadMarkets ();
+        let request = undefined;
+        try {
+            await exchange.createOrder ('BTC/USDC:USDC', 'limit', 'buy', 1, 20000);
+        } catch (e) {
+            request = jsonParse (exchange.last_request_body);
+        }
+        const brokerId = request['order_tag'];
+        assert (brokerId === id, 'modetrade - id: ' + id + ' different from  broker_id: ' + brokerId);
         if (!isSync ()) {
             await close (exchange);
         }

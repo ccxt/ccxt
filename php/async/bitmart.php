@@ -91,7 +91,7 @@ class bitmart extends Exchange {
                 'fetchOrders' => false,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
-                'fetchPositionMode' => false,
+                'fetchPositionMode' => true,
                 'fetchPositions' => true,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
@@ -113,6 +113,7 @@ class bitmart extends Exchange {
                 'repayIsolatedMargin' => true,
                 'setLeverage' => true,
                 'setMarginMode' => false,
+                'setPositionMode' => true,
                 'transfer' => true,
                 'withdraw' => true,
             ),
@@ -211,6 +212,7 @@ class bitmart extends Exchange {
                         'contract/private/order' => 1.2,
                         'contract/private/order-history' => 10,
                         'contract/private/position' => 10,
+                        'contract/private/position-v2' => 10,
                         'contract/private/get-open-orders' => 1.2,
                         'contract/private/current-plan-order' => 1.2,
                         'contract/private/trades' => 10,
@@ -218,6 +220,7 @@ class bitmart extends Exchange {
                         'contract/private/affilate/rebate-list' => 10,
                         'contract/private/affilate/trade-list' => 10,
                         'contract/private/transaction-history' => 10,
+                        'contract/private/get-position-mode' => 1,
                     ),
                     'post' => array(
                         // sub-account endpoints
@@ -270,6 +273,7 @@ class bitmart extends Exchange {
                         'contract/private/modify-tp-sl-order' => 2.5,
                         'contract/private/submit-trail-order' => 2.5, // weight is not provided by the exchange, is set order
                         'contract/private/cancel-trail-order' => 1.5, // weight is not provided by the exchange, is set order
+                        'contract/private/set-position-mode' => 1,
                     ),
                 ),
             ),
@@ -1222,6 +1226,7 @@ class bitmart extends Exchange {
             //                 {
             //                     "currency" => "BTC",
             //                     "name" => "Bitcoin",
+            //                     "recharge_minsize" => '0.00000001',
             //                     "contract_address" => null,
             //                     "network" => "BTC",
             //                     "withdraw_enabled" => true,
@@ -1243,7 +1248,8 @@ class bitmart extends Exchange {
                 $fullId = $this->safe_string($currency, 'currency');
                 $currencyId = $fullId;
                 $networkId = $this->safe_string($currency, 'network');
-                if (mb_strpos($fullId, 'NFT') === false) {
+                $isNtf = (mb_strpos($fullId, 'NFT') !== false);
+                if (!$isNtf) {
                     $parts = explode('-', $fullId);
                     $currencyId = $this->safe_string($parts, 0);
                     $second = $this->safe_string($parts, 1);
@@ -1264,6 +1270,7 @@ class bitmart extends Exchange {
                         'withdraw' => null,
                         'active' => null,
                         'networks' => array(),
+                        'type' => $isNtf ? 'other' : 'crypto',
                     );
                 }
                 $networkCode = $this->network_id_to_code($networkId);
@@ -2394,7 +2401,7 @@ class bitmart extends Exchange {
                 $code = $this->safe_currency_code($currencyId);
                 $account = $this->account();
                 $account['free'] = $this->safe_string_2($balance, 'available', 'available_balance');
-                $account['used'] = $this->safe_string_2($balance, 'frozen', 'frozen_balance');
+                $account['used'] = $this->safe_string_n($balance, array( 'unAvailable', 'frozen', 'frozen_balance' ));
                 $result[$code] = $account;
             }
             return $this->safe_balance($result);
@@ -4979,12 +4986,13 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open contract $positions
              *
              * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-keyed
+             * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-v2-keyed
              *
              * @param {string[]|null} $symbols list of unified $market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -5003,7 +5011,7 @@ class bitmart extends Exchange {
                 // only supports $symbols or sending one symbol
                 $request['symbol'] = $market['id'];
             }
-            $response = Async\await($this->privateGetContractPrivatePosition ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetContractPrivatePositionV2 ($this->extend($request, $params)));
             //
             //     {
             //         "code" => 1000,
@@ -5592,6 +5600,73 @@ class bitmart extends Exchange {
                 }
             }
             return $addresses;
+        }) ();
+    }
+
+    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($hedged, $symbol, $params) {
+            /**
+             * set $hedged to true or false for a market
+             *
+             * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-leverage-signed
+             *
+             * @param {bool} $hedged set to true to use dualSidePosition
+             * @param {string} $symbol not used by bingx setPositionMode ()
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} response from the exchange
+             */
+            Async\await($this->load_markets());
+            $positionMode = null;
+            if ($hedged) {
+                $positionMode = 'hedge_mode';
+            } else {
+                $positionMode = 'one_way_mode';
+            }
+            $request = array(
+                'position_mode' => $positionMode,
+            );
+            //
+            // {
+            //     "code" => 1000,
+            //     "trace" => "0cc6f4c4-8b8c-4253-8e90-8d3195aa109c",
+            //     "message" => "Ok",
+            //     "data" => {
+            //       "position_mode":"one_way_mode"
+            //     }
+            // }
+            //
+            return Async\await($this->privatePostContractPrivateSetPositionMode ($this->extend($request, $params)));
+        }) ();
+    }
+
+    public function fetch_position_mode(?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+             *
+             * @see https://developer-pro.bitmart.com/en/futuresv2/#get-position-mode-keyed
+             *
+             * @param {string} $symbol not used
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an object detailing whether the market is in hedged or one-way mode
+             */
+            $response = Async\await($this->privateGetContractPrivateGetPositionMode ($params));
+            //
+            // {
+            //     "code" => 1000,
+            //     "trace" => "0cc6f4c4-8b8c-4253-8e90-8d3195aa109c",
+            //     "message" => "Ok",
+            //     "data" => {
+            //       "position_mode":"one_way_mode"
+            //     }
+            // }
+            //
+            $data = $this->safe_dict($response, 'data');
+            $positionMode = $this->safe_string($data, 'position_mode');
+            return array(
+                'info' => $response,
+                'hedged' => ($positionMode === 'hedge_mode'),
+            );
         }) ();
     }
 

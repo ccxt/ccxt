@@ -1273,8 +1273,32 @@ export default class gate extends gateRest {
         for (let i = 0; i < data.length; i++) {
             const rawPosition = data[i];
             const position = this.parsePosition (rawPosition);
-            newPositions.push (position);
-            cache.append (position);
+            const symbol = this.safeString (position, 'symbol');
+            const side = this.safeString (position, 'side');
+            // Control when position is closed no side is returned
+            if (side === undefined) {
+                const prevLongPosition = this.safeDict (cache, symbol + 'long');
+                if (prevLongPosition !== undefined) {
+                    position['side'] = prevLongPosition['side'];
+                    newPositions.push (position);
+                    cache.append (position);
+                }
+                const prevShortPosition = this.safeDict (cache, symbol + 'short');
+                if (prevShortPosition !== undefined) {
+                    position['side'] = prevShortPosition['side'];
+                    newPositions.push (position);
+                    cache.append (position);
+                }
+                // if no prev position is found, default to long
+                if (prevLongPosition === undefined && prevShortPosition === undefined) {
+                    position['side'] = 'long';
+                    newPositions.push (position);
+                    cache.append (position);
+                }
+            } else {
+                newPositions.push (position);
+                cache.append (position);
+            }
         }
         const messageHashes = this.findMessageHashes (client, type + ':positions::');
         for (let i = 0; i < messageHashes.length; i++) {

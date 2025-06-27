@@ -95,6 +95,7 @@ import "github.com/ccxt/ccxt/go/v4"
         AssertSymbol(exchange, skippedProperties, method, market, "symbol")
         var logText interface{} = LogTemplate(exchange, method, market)
         // check taker/maker
+        // todo: check not all to be within 0-1.0
         AssertGreater(exchange, skippedProperties, method, market, "taker", "-100")
         AssertLess(exchange, skippedProperties, method, market, "taker", "100")
         AssertGreater(exchange, skippedProperties, method, market, "maker", "-100")
@@ -151,11 +152,11 @@ import "github.com/ccxt/ccxt/go/v4"
                 Assert(!IsEqual(linear, inverse), Add("linear and inverse must not be the same", logText))
             }
             // contract size should be defined
-            Assert((!IsTrue((InOp(skippedProperties, "contractSize"))) || IsTrue(!IsEqual(contractSize, nil))), Add("\"contractSize\" must be defined when \"contract\" is true", logText))
+            Assert((IsTrue((InOp(skippedProperties, "contractSize"))) || IsTrue(!IsEqual(contractSize, nil))), Add("\"contractSize\" must be defined when \"contract\" is true", logText))
             // contract size should be above zero
-            Assert(!IsTrue((InOp(skippedProperties, "contractSize"))) || IsTrue(ccxt.Precise.StringGt(contractSize, "0")), Add("\"contractSize\" must be > 0 when \"contract\" is true", logText))
+            Assert(IsTrue((InOp(skippedProperties, "contractSize"))) || IsTrue(ccxt.Precise.StringGt(contractSize, "0")), Add("\"contractSize\" must be > 0 when \"contract\" is true", logText))
             // settle should be defined
-            Assert(!IsTrue((InOp(skippedProperties, "settle"))) || IsTrue((IsTrue(!IsEqual(GetValue(market, "settle"), nil)) && IsTrue(!IsEqual(GetValue(market, "settleId"), nil)))), Add("\"settle\" & \"settleId\" must be defined when \"contract\" is true", logText))
+            Assert(IsTrue((InOp(skippedProperties, "settle"))) || IsTrue((IsTrue(!IsEqual(GetValue(market, "settle"), nil)) && IsTrue(!IsEqual(GetValue(market, "settleId"), nil)))), Add("\"settle\" & \"settleId\" must be defined when \"contract\" is true", logText))
         } else {
             // linear & inverse needs to be undefined
             Assert(IsTrue(IsTrue(IsEqual(linear, nil)) && IsTrue(IsEqual(inverse, nil))) && IsTrue(IsEqual(quanto, nil)), Add("market linear and inverse (and quanto) must be undefined when \"contract\" is false", logText))
@@ -193,31 +194,40 @@ import "github.com/ccxt/ccxt/go/v4"
                 Assert(IsEqual(GetValue(market, "strike"), nil), Add("\"strike\" must be undefined when \"option\" is false", logText))
                 Assert(IsEqual(GetValue(market, "optionType"), nil), Add("\"optionType\" must be undefined when \"option\" is false", logText))
             }
-        } else {
+        } else if IsTrue(spot) {
             // otherwise, expiry needs to be undefined
             Assert(IsTrue((IsEqual(GetValue(market, "expiry"), nil))) && IsTrue((IsEqual(GetValue(market, "expiryDatetime"), nil))), Add("\"expiry\" and \"expiryDatetime\" must be undefined when it is not future|option market", logText))
         }
         // check precisions
-        if !IsTrue((InOp(skippedProperties, "precision"))) {
-            var precisionKeys interface{} = ObjectKeys(GetValue(market, "precision"))
-            var keysLength interface{} =         GetArrayLength(precisionKeys)
-            Assert(IsGreaterThanOrEqual(keysLength, 2), Add("precision should have \"amount\" and \"price\" keys at least", logText))
-            for i := 0; IsLessThan(i, GetArrayLength(precisionKeys)); i++ {
-                CheckPrecisionAccuracy(exchange, skippedProperties, method, GetValue(market, "precision"), GetValue(precisionKeys, i))
+        var precisionKeys interface{} = ObjectKeys(GetValue(market, "precision"))
+        var precisionKeysLen interface{} =     GetArrayLength(precisionKeys)
+        Assert(IsGreaterThanOrEqual(precisionKeysLen, 2), Add("precision should have \"amount\" and \"price\" keys at least", logText))
+        for i := 0; IsLessThan(i, GetArrayLength(precisionKeys)); i++ {
+            var priceOrAmountKey interface{} = GetValue(precisionKeys, i)
+            // only allow very high priced markets (wher coin costs around 100k) to have a 5$ price tickSize
+            var isExclusivePair interface{} = IsEqual(GetValue(market, "baseId"), "BTC")
+            var isNonSpot interface{} =         !IsTrue(spot) // such high precision is only allowed in contract markets
+            var isPrice interface{} = IsEqual(priceOrAmountKey, "price")
+            var isTickSize5 interface{} = ccxt.Precise.StringEq("5", exchange.SafeString(GetValue(market, "precision"), priceOrAmountKey))
+            if IsTrue(IsTrue(IsTrue(IsTrue(isNonSpot) && IsTrue(isPrice)) && IsTrue(isExclusivePair)) && IsTrue(isTickSize5)) {
+                continue
+            }
+            if !IsTrue((InOp(skippedProperties, "precision"))) {
+                CheckPrecisionAccuracy(exchange, skippedProperties, method, GetValue(market, "precision"), priceOrAmountKey)
             }
         }
         var isInactiveMarket interface{} = IsEqual(GetValue(market, "active"), false)
         // check limits
-        if !IsTrue((InOp(skippedProperties, "limits"))) {
-            var limitsKeys interface{} = ObjectKeys(GetValue(market, "limits"))
-            var keysLength interface{} =         GetArrayLength(limitsKeys)
-            Assert(IsGreaterThanOrEqual(keysLength, 3), Add("limits should have \"amount\", \"price\" and \"cost\" keys at least", logText))
-            for i := 0; IsLessThan(i, GetArrayLength(limitsKeys)); i++ {
-                var key interface{} = GetValue(limitsKeys, i)
-                var limitEntry interface{} = GetValue(GetValue(market, "limits"), key)
-                if IsTrue(isInactiveMarket) {
-                    continue
-                }
+        var limitsKeys interface{} = ObjectKeys(GetValue(market, "limits"))
+        var limitsKeysLength interface{} =     GetArrayLength(limitsKeys)
+        Assert(IsGreaterThanOrEqual(limitsKeysLength, 3), Add("limits should have \"amount\", \"price\" and \"cost\" keys at least", logText))
+        for i := 0; IsLessThan(i, GetArrayLength(limitsKeys)); i++ {
+            var key interface{} = GetValue(limitsKeys, i)
+            var limitEntry interface{} = GetValue(GetValue(market, "limits"), key)
+            if IsTrue(isInactiveMarket) {
+                continue
+            } // check limits
+            if !IsTrue((InOp(skippedProperties, "limits"))) {
                 // min >= 0
                 AssertGreaterOrEqual(exchange, skippedProperties, method, limitEntry, "min", "0")
                 // max >= 0
@@ -229,12 +239,11 @@ import "github.com/ccxt/ccxt/go/v4"
                 }
             }
         }
-        // check whether valid currency ID and CODE is used
-        if IsTrue(!IsTrue((InOp(skippedProperties, "currency"))) && !IsTrue((InOp(skippedProperties, "currencyIdAndCode")))) {
-            AssertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, GetValue(market, "baseId"), GetValue(market, "base"))
-            AssertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, GetValue(market, "quoteId"), GetValue(market, "quote"))
-            AssertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, GetValue(market, "settleId"), GetValue(market, "settle"))
-        }
+        // check currencies
+        AssertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, GetValue(market, "baseId"), GetValue(market, "base"))
+        AssertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, GetValue(market, "quoteId"), GetValue(market, "quote"))
+        AssertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, GetValue(market, "settleId"), GetValue(market, "settle"))
+        // check ts
         AssertTimestamp(exchange, skippedProperties, method, market, nil, "created")
         // margin modes
         if !IsTrue((InOp(skippedProperties, "marginModes"))) {

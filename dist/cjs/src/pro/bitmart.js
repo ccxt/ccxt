@@ -63,6 +63,9 @@ class bitmart extends bitmart$1 {
                 'watchOrderBookForSymbols': {
                     'depth': 'depth/increase100',
                 },
+                'watchTrades': {
+                    'ignoreDuplicates': true,
+                },
                 'ws': {
                     'inflate': true,
                 },
@@ -308,7 +311,13 @@ class bitmart extends bitmart$1 {
             const tradeSymbol = this.safeString(first, 'symbol');
             limit = trades.getLimit(tradeSymbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        const result = this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        if (this.handleOption('watchTrades', 'ignoreDuplicates', true)) {
+            let filtered = this.removeRepeatedTradesFromArray(result);
+            filtered = this.sortBy(filtered, 'timestamp');
+            return filtered;
+        }
+        return result;
     }
     getParamsForMultipleSub(methodName, symbols, limit = undefined, params = {}) {
         symbols = this.marketSymbols(symbols, undefined, false, true);

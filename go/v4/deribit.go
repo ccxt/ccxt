@@ -641,21 +641,21 @@ func  (this *deribit) FetchCurrencies(optionalArgs ...interface{}) <- chan inter
             //      "testnet": true
             //    }
             //
-            var data interface{} = this.SafeValue(response, "result", map[string]interface{} {})
+            var data interface{} = this.SafeList(response, "result", []interface{}{})
             var result interface{} = map[string]interface{} {}
             for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
                 var currency interface{} = GetValue(data, i)
                 var currencyId interface{} = this.SafeString(currency, "currency")
                 var code interface{} = this.SafeCurrencyCode(currencyId)
-                var name interface{} = this.SafeString(currency, "currency_long")
-                AddElementToObject(result, code, map[string]interface{} {
+                AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]interface{} {
             "info": currency,
             "code": code,
             "id": currencyId,
-            "name": name,
+            "name": this.SafeString(currency, "currency_long"),
             "active": nil,
             "deposit": nil,
             "withdraw": nil,
+            "type": "crypto",
             "fee": this.SafeNumber(currency, "withdrawal_fee"),
             "precision": this.ParseNumber(this.ParsePrecision(this.SafeString(currency, "fee_precision"))),
             "limits": map[string]interface{} {
@@ -673,7 +673,7 @@ func  (this *deribit) FetchCurrencies(optionalArgs ...interface{}) <- chan inter
                 },
             },
             "networks": nil,
-        })
+        }))
             }
         
             ch <- result

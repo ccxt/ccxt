@@ -29,35 +29,64 @@ func  (this *btcturk) Describe() interface{}  {
             "future": false,
             "option": false,
             "addMargin": false,
+            "borrowCrossMargin": false,
+            "borrowIsolatedMargin": false,
+            "borrowMargin": false,
             "cancelOrder": true,
             "closeAllPositions": false,
             "closePosition": false,
             "createDepositAddress": false,
             "createOrder": true,
+            "createOrderWithTakeProfitAndStopLoss": false,
+            "createOrderWithTakeProfitAndStopLossWs": false,
+            "createPostOnlyOrder": false,
             "createReduceOnlyOrder": false,
             "fetchBalance": true,
+            "fetchBorrowInterest": false,
+            "fetchBorrowRate": false,
             "fetchBorrowRateHistories": false,
             "fetchBorrowRateHistory": false,
+            "fetchBorrowRates": false,
+            "fetchBorrowRatesPerSymbol": false,
             "fetchCrossBorrowRate": false,
             "fetchCrossBorrowRates": false,
             "fetchDepositAddress": false,
             "fetchDepositAddresses": false,
             "fetchDepositAddressesByNetwork": false,
             "fetchFundingHistory": false,
+            "fetchFundingInterval": false,
+            "fetchFundingIntervals": false,
             "fetchFundingRate": false,
             "fetchFundingRateHistory": false,
             "fetchFundingRates": false,
+            "fetchGreeks": false,
             "fetchIndexOHLCV": false,
             "fetchIsolatedBorrowRate": false,
             "fetchIsolatedBorrowRates": false,
+            "fetchIsolatedPositions": false,
             "fetchLeverage": false,
+            "fetchLeverages": false,
+            "fetchLeverageTiers": false,
+            "fetchLiquidations": false,
+            "fetchLongShortRatio": false,
+            "fetchLongShortRatioHistory": false,
+            "fetchMarginAdjustmentHistory": false,
             "fetchMarginMode": false,
+            "fetchMarginModes": false,
+            "fetchMarketLeverageTiers": false,
             "fetchMarkets": true,
             "fetchMarkOHLCV": false,
+            "fetchMarkPrices": false,
+            "fetchMyLiquidations": false,
+            "fetchMySettlementHistory": false,
             "fetchMyTrades": true,
             "fetchOHLCV": true,
+            "fetchOpenInterest": false,
             "fetchOpenInterestHistory": false,
+            "fetchOpenInterests": false,
             "fetchOpenOrders": true,
+            "fetchOption": false,
+            "fetchOptionChain": false,
             "fetchOrderBook": true,
             "fetchOrders": true,
             "fetchPosition": false,
@@ -68,11 +97,17 @@ func  (this *btcturk) Describe() interface{}  {
             "fetchPositionsHistory": false,
             "fetchPositionsRisk": false,
             "fetchPremiumIndexOHLCV": false,
+            "fetchSettlementHistory": false,
             "fetchTicker": true,
             "fetchTickers": true,
             "fetchTrades": true,
+            "fetchVolatilityHistory": false,
             "reduceMargin": false,
+            "repayCrossMargin": false,
+            "repayIsolatedMargin": false,
+            "repayMargin": false,
             "setLeverage": false,
+            "setMargin": false,
             "setMarginMode": false,
             "setPositionMode": false,
             "ws": false,
@@ -251,7 +286,7 @@ func  (this *btcturk) FetchMarkets(optionalArgs ...interface{}) <- chan interfac
             //                            "minPrice": "0.0000000000001",
             //                            "maxPrice": "10000000",
             //                            "tickSize": "10",
-            //                            "minExchangeValue": "99.91",
+            //                            "minExchangeValue": "99.92",
             //                            "minAmount": null,
             //                            "maxAmount": null
             //                        }
@@ -390,8 +425,8 @@ func  (this *btcturk) FetchBalance(optionalArgs ...interface{}) <- chan interfac
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes3778 := (<-this.LoadMarkets())
-            PanicOnError(retRes3778)
+            retRes4128 := (<-this.LoadMarkets())
+            PanicOnError(retRes4128)
         
             response:= (<-this.PrivateGetUsersBalances(params))
             PanicOnError(response)
@@ -438,8 +473,8 @@ func  (this *btcturk) FetchOrderBook(symbol interface{}, optionalArgs ...interfa
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes4098 := (<-this.LoadMarkets())
-            PanicOnError(retRes4098)
+            retRes4448 := (<-this.LoadMarkets())
+            PanicOnError(retRes4448)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "pairSymbol": GetValue(market, "id"),
@@ -537,8 +572,8 @@ func  (this *btcturk) FetchTickers(optionalArgs ...interface{}) <- chan interfac
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes4918 := (<-this.LoadMarkets())
-            PanicOnError(retRes4918)
+            retRes5268 := (<-this.LoadMarkets())
+            PanicOnError(retRes5268)
         
             response:= (<-this.PublicGetTicker(params))
             PanicOnError(response)
@@ -567,8 +602,8 @@ func  (this *btcturk) FetchTicker(symbol interface{}, optionalArgs ...interface{
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes5078 := (<-this.LoadMarkets())
-            PanicOnError(retRes5078)
+            retRes5428 := (<-this.LoadMarkets())
+            PanicOnError(retRes5428)
         
             tickers:= (<-this.FetchTickers([]interface{}{symbol}, params))
             PanicOnError(tickers)
@@ -666,8 +701,8 @@ func  (this *btcturk) FetchTrades(symbol interface{}, optionalArgs ...interface{
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes5878 := (<-this.LoadMarkets())
-            PanicOnError(retRes5878)
+            retRes6228 := (<-this.LoadMarkets())
+            PanicOnError(retRes6228)
             var market interface{} = this.Market(symbol)
             // let maxCount = 50;
             var request interface{} = map[string]interface{} {
@@ -746,8 +781,8 @@ func  (this *btcturk) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes6538 := (<-this.LoadMarkets())
-            PanicOnError(retRes6538)
+            retRes6888 := (<-this.LoadMarkets())
+            PanicOnError(retRes6888)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -874,8 +909,8 @@ func  (this *btcturk) CreateOrder(symbol interface{}, typeVar interface{}, side 
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes7568 := (<-this.LoadMarkets())
-            PanicOnError(retRes7568)
+            retRes7918 := (<-this.LoadMarkets())
+            PanicOnError(retRes7918)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "orderType": side,
@@ -968,8 +1003,8 @@ func  (this *btcturk) FetchOpenOrders(optionalArgs ...interface{}) <- chan inter
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes8168 := (<-this.LoadMarkets())
-            PanicOnError(retRes8168)
+            retRes8518 := (<-this.LoadMarkets())
+            PanicOnError(retRes8518)
             var request interface{} = map[string]interface{} {}
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
@@ -1014,8 +1049,8 @@ func  (this *btcturk) FetchOrders(optionalArgs ...interface{}) <- chan interface
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes8428 := (<-this.LoadMarkets())
-            PanicOnError(retRes8428)
+            retRes8778 := (<-this.LoadMarkets())
+            PanicOnError(retRes8778)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "pairSymbol": GetValue(market, "id"),
@@ -1160,8 +1195,8 @@ func  (this *btcturk) FetchMyTrades(optionalArgs ...interface{}) <- chan interfa
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes9688 := (<-this.LoadMarkets())
-            PanicOnError(retRes9688)
+            retRes10038 := (<-this.LoadMarkets())
+            PanicOnError(retRes10038)
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
                 market = this.Market(symbol)

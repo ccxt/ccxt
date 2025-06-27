@@ -670,8 +670,9 @@ class exmo extends exmo$1 {
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies(params = {}) {
+        const promises = [];
         //
-        const currencyList = await this.publicGetCurrencyListExtended(params);
+        promises.push(this.publicGetCurrencyListExtended(params));
         //
         //     [
         //         {"name":"VLX","description":"Velas"},
@@ -680,7 +681,7 @@ class exmo extends exmo$1 {
         //         {"name":"USD","description":"US Dollar"}
         //     ]
         //
-        const cryptoList = await this.publicGetPaymentsProvidersCryptoList(params);
+        promises.push(this.publicGetPaymentsProvidersCryptoList(params));
         //
         //     {
         //         "BTC":[
@@ -705,6 +706,9 @@ class exmo extends exmo$1 {
         //         ],
         //     }
         //
+        const responses = await Promise.all(promises);
+        const currencyList = responses[0];
+        const cryptoList = responses[1];
         const result = {};
         for (let i = 0; i < currencyList.length; i++) {
             const currency = currencyList[i];
@@ -771,6 +775,10 @@ class exmo extends exmo$1 {
                 }
             }
             const code = this.safeCurrencyCode(currencyId);
+            const info = {
+                'currency': currency,
+                'providers': providers,
+            };
             result[code] = {
                 'id': currencyId,
                 'code': code,
@@ -782,7 +790,7 @@ class exmo extends exmo$1 {
                 'fee': fee,
                 'precision': this.parseNumber('1e-8'),
                 'limits': limits,
-                'info': providers,
+                'info': info,
                 'networks': {},
             };
         }
@@ -797,7 +805,8 @@ class exmo extends exmo$1 {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
-        const response = await this.publicGetPairSettings(params);
+        const promises = [];
+        promises.push(this.publicGetPairSettings(params));
         //
         //     {
         //         "BTC_USD":{
@@ -814,8 +823,9 @@ class exmo extends exmo$1 {
         //     }
         //
         let marginPairsDict = {};
-        if (this.checkRequiredCredentials(false)) {
-            const marginPairs = await this.privatePostMarginPairList(params);
+        const fetchMargin = this.checkRequiredCredentials(false);
+        if (fetchMargin) {
+            promises.push(this.privatePostMarginPairList(params));
             //
             //    {
             //        "pairs": [
@@ -845,15 +855,20 @@ class exmo extends exmo$1 {
             //        ]
             //    }
             //
-            const pairs = this.safeValue(marginPairs, 'pairs');
+        }
+        const responses = await Promise.all(promises);
+        const spotResponse = responses[0];
+        if (fetchMargin) {
+            const marginPairs = responses[1];
+            const pairs = this.safeList(marginPairs, 'pairs');
             marginPairsDict = this.indexBy(pairs, 'name');
         }
-        const keys = Object.keys(response);
+        const keys = Object.keys(spotResponse);
         const result = [];
         for (let i = 0; i < keys.length; i++) {
             const id = keys[i];
-            const market = response[id];
-            const marginMarket = this.safeValue(marginPairsDict, id);
+            const market = spotResponse[id];
+            const marginMarket = this.safeDict(marginPairsDict, id);
             const symbol = id.replace('_', '/');
             const [baseId, quoteId] = symbol.split('/');
             const base = this.safeCurrencyCode(baseId);

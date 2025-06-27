@@ -8,6 +8,33 @@
     ],
     "outputType": "urlencoded",
     "methods": {
+        "fetchTransfers": [
+            {
+                "description": "fetch transfers from spot to swap",
+                "method": "fetchTransfers",
+                "url": "https://open-api.bingx.com/openApi/api/v3/asset/transfer?timestamp=1749733844965&type=SPOT_PFUTURES&signature=3d9306381ddb1ba6ec0374ba69c6c776166d4c103986bcea858e1df1a9fe5531",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "fromAccount": "spot",
+                        "toAccount": "swap"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "disabled": true,
+                "url": "https://open-api.bingx.com/openApi/wallets/v1/capital/config/getall?timestamp=1747127546816&signature=6e1ce65a1c34a706d933e692b11b58f5295e2a610269e8b0d35acbb58739b9fd",
+                "input": [],
+                "output": null
+            }
+        ],
         "withdraw": [
             {
                 "description": "sol",
@@ -1182,9 +1209,21 @@
         ],
         "transfer": [
             {
+                "description": "transfer from funding to spot",
+                "method": "transfer",
+                "url": "https://open-api.bingx.com/openApi/api/v3/get/asset/transfer?amount=10&asset=USDT&timestamp=1749730163429&type=FUND_SPOT&signature=c667ad589979f420fff6e246b446dc841464461c0d037de3467b0e6f854928eb",
+                "input": [
+                    "USDT",
+                    10,
+                    "funding",
+                    "spot"
+                ],
+                "output": null
+            },
+            {
                 "description": "transfer from spot to swap",
                 "method": "transfer",
-                "url": "https://open-api.bingx.com/openApi/api/v3/get/asset/transfer?amount=1&asset=USDT&timestamp=1699460638047&type=FUND_PFUTURES&signature=602ba000bf84c64cb933a3d94ed44c0f9260416994d2b2fcf8ab3cf993800c2b",
+                "url": "https://open-api.bingx.com/openApi/api/v3/get/asset/transfer?amount=1&asset=USDT&timestamp=1699460638047&type=SPOT_PFUTURES&signature=602ba000bf84c64cb933a3d94ed44c0f9260416994d2b2fcf8ab3cf993800c2b",
                 "input": [
                     "USDT",
                     1,
@@ -1425,7 +1464,7 @@
             {
                 "description": "Inverse swap set the margin mode",
                 "method": "setMarginMode",
-                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/marginType?marginType=CROSSED&symbol=SOL-USD&timestamp=1721977131380&signature=ab360e84bb56b27440fe1ca0835e07d936eaa75b4bdf57feb6771de45865e2bc",        
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/marginType?marginType=CROSSED&symbol=SOL-USD&timestamp=1721977131380&signature=ab360e84bb56b27440fe1ca0835e07d936eaa75b4bdf57feb6771de45865e2bc",
                 "input": [
                   "cross",
                   "SOL/USD:SOL"

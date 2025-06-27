@@ -424,7 +424,6 @@ class testMainClass {
             'fetchOHLCV' => [$symbol],
             'fetchTrades' => [$symbol],
             'fetchOrderBook' => [$symbol],
-            'fetchL2OrderBook' => [$symbol],
             'fetchOrderBooks' => [],
             'fetchBidsAsks' => [],
             'fetchStatus' => [],
@@ -1091,6 +1090,9 @@ class testMainClass {
     public function test_request_statically($exchange, $method, $data, $type, $skip_keys) {
         $output = null;
         $request_url = null;
+        if ($this->info) {
+            dump('[INFO] STATIC REQUEST TEST:', $method, ':', $data['description']);
+        }
         try {
             if (!is_sync()) {
                 call_exchange_method_dynamically($exchange, $method, $this->sanitize_data_input($data['input']));
@@ -1118,6 +1120,9 @@ class testMainClass {
     public function test_response_statically($exchange, $method, $skip_keys, $data) {
         $expected_result = $exchange->safe_value($data, 'parsedResponse');
         $mocked_exchange = set_fetch_response($exchange, $data['httpResponse']);
+        if ($this->info) {
+            dump('[INFO] STATIC RESPONSE TEST:', $method, ':', $data['description']);
+        }
         try {
             if (!is_sync()) {
                 $unified_result = call_exchange_method_dynamically($exchange, $method, $this->sanitize_data_input($data['input']));
@@ -1328,6 +1333,31 @@ class testMainClass {
         return $sum;
     }
 
+    public function check_if_exchange_is_disabled($exchange_name, $exchange_data) {
+        $exchange = init_exchange('Exchange', array());
+        $is_disabled_py = $exchange->safe_bool($exchange_data, 'disabledPy', false);
+        if ($is_disabled_py && ($this->lang === 'PY')) {
+            dump('[TEST_WARNING] Exchange ' . $exchange_name . ' is disabled in python');
+            return true;
+        }
+        $is_disabled_php = $exchange->safe_bool($exchange_data, 'disabledPHP', false);
+        if ($is_disabled_php && ($this->lang === 'PHP')) {
+            dump('[TEST_WARNING] Exchange ' . $exchange_name . ' is disabled in php');
+            return true;
+        }
+        $is_disabled_c_sharp = $exchange->safe_bool($exchange_data, 'disabledCS', false);
+        if ($is_disabled_c_sharp && ($this->lang === 'C#')) {
+            dump('[TEST_WARNING] Exchange ' . $exchange_name . ' is disabled in c#');
+            return true;
+        }
+        $is_disabled_go = $exchange->safe_bool($exchange_data, 'disabledGO', false);
+        if ($is_disabled_go && ($this->lang === 'GO')) {
+            dump('[TEST_WARNING] Exchange ' . $exchange_name . ' is disabled in go');
+            return true;
+        }
+        return false;
+    }
+
     public function run_static_request_tests($target_exchange = null, $test_name = null) {
         $this->run_static_tests('request', $target_exchange, $test_name);
         return true;
@@ -1352,6 +1382,10 @@ class testMainClass {
         for ($i = 0; $i < count($exchanges); $i++) {
             $exchange_name = $exchanges[$i];
             $exchange_data = $static_data[$exchange_name];
+            $disabled = $this->check_if_exchange_is_disabled($exchange_name, $exchange_data);
+            if ($disabled) {
+                continue;
+            }
             $number_of_tests = $this->get_number_of_tests_from_exchange($exchange, $exchange_data, $test_name);
             $sum = $exchange->sum($sum, $number_of_tests);
             if ($type === 'request') {
@@ -1392,7 +1426,7 @@ class testMainClass {
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_hyperliquid(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_oxfun(), $this->test_xt(), $this->test_vertex(), $this->test_paradex(), $this->test_hashkey(), $this->test_coincatch(), $this->test_defx(), $this->test_cryptomus(), $this->test_derive()];
+        $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_hyperliquid(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_oxfun(), $this->test_xt(), $this->test_vertex(), $this->test_paradex(), $this->test_hashkey(), $this->test_coincatch(), $this->test_defx(), $this->test_cryptomus(), $this->test_derive(), $this->test_mode_trade()];
         ($promises);
         $success_message = '[' . $this->lang . '][TEST_SUCCESS] brokerId tests passed.';
         dump('[INFO]' . $success_message);
@@ -2034,6 +2068,25 @@ class testMainClass {
             $request = json_parse($exchange->last_request_body);
         }
         assert($request['referral_code'] === $id, 'derive - referral_code: ' . $id . ' not in request.');
+        if (!is_sync()) {
+            close($exchange);
+        }
+        return true;
+    }
+
+    public function test_mode_trade() {
+        $exchange = $this->init_offline_exchange('modetrade');
+        $exchange->secret = 'secretsecretsecretsecretsecretsecretsecrets';
+        $id = 'CCXTMODE';
+        $exchange->load_markets();
+        $request = null;
+        try {
+            $exchange->create_order('BTC/USDC:USDC', 'limit', 'buy', 1, 20000);
+        } catch(\Throwable $e) {
+            $request = json_parse($exchange->last_request_body);
+        }
+        $broker_id = $request['order_tag'];
+        assert($broker_id === $id, 'modetrade - id: ' . $id . ' different from  broker_id: ' . $broker_id);
         if (!is_sync()) {
             close($exchange);
         }

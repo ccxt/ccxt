@@ -13,7 +13,7 @@ public partial class tradeogre : Exchange
             { "countries", new List<object>() {} },
             { "rateLimit", 100 },
             { "version", "v2" },
-            { "pro", false },
+            { "pro", true },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
                 { "spot", true },
@@ -431,13 +431,13 @@ public partial class tradeogre : Exchange
             { "vwap", null },
             { "open", this.safeString(ticker, "initialprice") },
             { "close", this.safeString(ticker, "price") },
-            { "last", null },
+            { "last", this.safeString(ticker, "price") },
             { "previousClose", null },
             { "change", null },
             { "percentage", null },
             { "average", null },
-            { "baseVolume", null },
-            { "quoteVolume", this.safeString(ticker, "volume") },
+            { "baseVolume", this.safeString(ticker, "volume") },
+            { "quoteVolume", null },
             { "info", ticker },
         }, market);
     }
@@ -540,6 +540,7 @@ public partial class tradeogre : Exchange
             { "asks", rawAsks },
         };
         object orderbook = this.parseOrderBook(rawOrderbook, symbol);
+        ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(response, "s");
         return orderbook;
     }
 

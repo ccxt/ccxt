@@ -6,7 +6,7 @@ import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { totp } from './base/functions/totp.js';
-import type { Balances, Currency, FundingRateHistory, Greeks, Int, Liquidation, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, MarketInterface, Num, Account, Option, OptionChain, Currencies, TradingFees, Dict, int, FundingRate, DepositAddress } from './base/types.js';
+import type { Balances, Currency, FundingRateHistory, Greeks, Int, Liquidation, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, MarketInterface, Num, Account, Option, OptionChain, Currencies, TradingFees, Dict, int, FundingRate, DepositAddress, Position } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -637,21 +637,21 @@ export default class deribit extends Exchange {
         //      "testnet": true
         //    }
         //
-        const data = this.safeValue (response, 'result', {});
+        const data = this.safeList (response, 'result', []);
         const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const currency = data[i];
             const currencyId = this.safeString (currency, 'currency');
             const code = this.safeCurrencyCode (currencyId);
-            const name = this.safeString (currency, 'currency_long');
-            result[code] = {
+            result[code] = this.safeCurrencyStructure ({
                 'info': currency,
                 'code': code,
                 'id': currencyId,
-                'name': name,
+                'name': this.safeString (currency, 'currency_long'),
                 'active': undefined,
                 'deposit': undefined,
                 'withdraw': undefined,
+                'type': 'crypto',
                 'fee': this.safeNumber (currency, 'withdrawal_fee'),
                 'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'fee_precision'))),
                 'limits': {
@@ -669,7 +669,7 @@ export default class deribit extends Exchange {
                     },
                 },
                 'networks': undefined,
-            };
+            });
         }
         return result;
     }
@@ -2794,7 +2794,7 @@ export default class deribit extends Exchange {
      * @param {int} [params.subaccount_id] the user id for the subaccount
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    async fetchPositions (symbols: Strings = undefined, params = {}) {
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         const code = this.safeString (params, 'currency');
         const request: Dict = {};

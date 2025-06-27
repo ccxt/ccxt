@@ -666,8 +666,9 @@ class exmo(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
+        promises = []
         #
-        currencyList = self.publicGetCurrencyListExtended(params)
+        promises.append(self.publicGetCurrencyListExtended(params))
         #
         #     [
         #         {"name":"VLX","description":"Velas"},
@@ -676,7 +677,7 @@ class exmo(Exchange, ImplicitAPI):
         #         {"name":"USD","description":"US Dollar"}
         #     ]
         #
-        cryptoList = self.publicGetPaymentsProvidersCryptoList(params)
+        promises.append(self.publicGetPaymentsProvidersCryptoList(params))
         #
         #     {
         #         "BTC":[
@@ -701,6 +702,9 @@ class exmo(Exchange, ImplicitAPI):
         #         ],
         #     }
         #
+        responses = promises
+        currencyList = responses[0]
+        cryptoList = responses[1]
         result: dict = {}
         for i in range(0, len(currencyList)):
             currency = currencyList[i]
@@ -754,6 +758,10 @@ class exmo(Exchange, ImplicitAPI):
                                 commissionDesc = self.safe_string(provider, 'commission_desc')
                                 fee = self.parse_fixed_float_value(commissionDesc)
             code = self.safe_currency_code(currencyId)
+            info = {
+                'currency': currency,
+                'providers': providers,
+            }
             result[code] = {
                 'id': currencyId,
                 'code': code,
@@ -765,7 +773,7 @@ class exmo(Exchange, ImplicitAPI):
                 'fee': fee,
                 'precision': self.parse_number('1e-8'),
                 'limits': limits,
-                'info': providers,
+                'info': info,
                 'networks': {},
             }
         return result
@@ -779,7 +787,8 @@ class exmo(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        response = self.publicGetPairSettings(params)
+        promises = []
+        promises.append(self.publicGetPairSettings(params))
         #
         #     {
         #         "BTC_USD":{
@@ -796,8 +805,9 @@ class exmo(Exchange, ImplicitAPI):
         #     }
         #
         marginPairsDict: dict = {}
-        if self.check_required_credentials(False):
-            marginPairs = self.privatePostMarginPairList(params)
+        fetchMargin = self.check_required_credentials(False)
+        if fetchMargin:
+            promises.append(self.privatePostMarginPairList(params))
             #
             #    {
             #        "pairs": [
@@ -827,14 +837,18 @@ class exmo(Exchange, ImplicitAPI):
             #        ]
             #    }
             #
-            pairs = self.safe_value(marginPairs, 'pairs')
+        responses = promises
+        spotResponse = responses[0]
+        if fetchMargin:
+            marginPairs = responses[1]
+            pairs = self.safe_list(marginPairs, 'pairs')
             marginPairsDict = self.index_by(pairs, 'name')
-        keys = list(response.keys())
+        keys = list(spotResponse.keys())
         result = []
         for i in range(0, len(keys)):
             id = keys[i]
-            market = response[id]
-            marginMarket = self.safe_value(marginPairsDict, id)
+            market = spotResponse[id]
+            marginMarket = self.safe_dict(marginPairsDict, id)
             symbol = id.replace('_', '/')
             baseId, quoteId = symbol.split('/')
             base = self.safe_currency_code(baseId)

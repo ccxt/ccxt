@@ -73,6 +73,9 @@ export default class bitget extends bitgetRest {
                 'watchOrderBook': {
                     'checksum': true,
                 },
+                'watchTrades': {
+                    'ignoreDuplicates': true,
+                },
             },
             'streaming': {
                 'ping': this.ping,
@@ -809,7 +812,13 @@ export default class bitget extends bitgetRest {
             const tradeSymbol = this.safeString (first, 'symbol');
             limit = trades.getLimit (tradeSymbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const result = this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        if (this.handleOption ('watchTrades', 'ignoreDuplicates', true)) {
+            let filtered = this.removeRepeatedTradesFromArray (result);
+            filtered = this.sortBy (filtered, 'timestamp');
+            return filtered as Trade[];
+        }
+        return result as Trade[];
     }
 
     /**

@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"regexp"
 	"sort"
+	"sync"
 )
 
 func (this *Exchange) Ordered(a interface{}) interface{} {
@@ -15,19 +16,76 @@ func (this *Exchange) Ordered(a interface{}) interface{} {
 }
 
 // keysort sorts the keys of a map and returns a new map with the sorted keys.
+// func (this *Exchange) Keysort(parameters2 interface{}) map[string]interface{} {
+// 	parameters := parameters2.(map[string]interface{})
+// 	keys := make([]string, 0, len(parameters))
+// 	for k := range parameters {
+// 		keys = append(keys, k)
+// 	}
+// 	sort.Strings(keys)
+
+// 	outDict := make(map[string]interface{})
+// 	for _, key := range keys {
+// 		outDict[key] = parameters[key]
+// 	}
+// 	return outDict
+// }
+
 func (this *Exchange) Keysort(parameters2 interface{}) map[string]interface{} {
-	parameters := parameters2.(map[string]interface{})
-	keys := make([]string, 0, len(parameters))
-	for k := range parameters {
+	var tempMap map[string]interface{}
+
+	switch v := parameters2.(type) {
+	case map[string]interface{}:
+		tempMap = v
+
+	case *sync.Map:
+		tempMap = make(map[string]interface{})
+		v.Range(func(k, val interface{}) bool {
+			keyStr, ok := k.(string)
+			if ok {
+				tempMap[keyStr] = val
+			}
+			return true
+		})
+
+	default:
+		// Unsupported type; return empty map
+		return map[string]interface{}{}
+	}
+
+	keys := make([]string, 0, len(tempMap))
+	for k := range tempMap {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
 
-	outDict := make(map[string]interface{})
+	outDict := make(map[string]interface{}, len(keys))
 	for _, key := range keys {
-		outDict[key] = parameters[key]
+		outDict[key] = tempMap[key]
 	}
 	return outDict
+}
+
+
+func (this *Exchange) Sort(input interface{}) []string {
+	var list []string
+
+	switch v := input.(type) {
+	case []string:
+		list = append([]string{}, v...) // Copy to avoid modifying the original
+	case []interface{}:
+		for _, item := range v {
+			if str, ok := item.(string); ok {
+				list = append(list, str)
+			}
+		}
+	default:
+		// Unsupported type
+		return []string{}
+	}
+
+	sort.Strings(list)
+	return list
 }
 
 // omit removes specified keys from a map.
@@ -44,7 +102,6 @@ func (this *Exchange) Keysort(parameters2 interface{}) map[string]interface{} {
 // 	}
 // 	return this.OmitMap(a, keys)
 // }
-
 
 func (this *Exchange) Omit(a interface{}, parameters ...interface{}) interface{} {
 	if len(parameters) == 1 {
@@ -84,7 +141,6 @@ func (this *Exchange) OmitMap(aa interface{}, k interface{}) interface{} {
 	case []interface{}, []string, []bool, []int, []int64, []float64, []map[string]interface{}:
 		return aa
 	}
-
 
 	var keys []interface{}
 	switch k.(type) {

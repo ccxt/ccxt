@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.cryptocom import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Any, Balances, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction
+from ccxt.base.types import Account, Any, Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -60,6 +60,7 @@ class cryptocom(Exchange, ImplicitAPI):
                 'createOrders': True,
                 'createStopOrder': True,
                 'createTriggerOrder': True,
+                'editOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': False,
@@ -69,7 +70,7 @@ class cryptocom(Exchange, ImplicitAPI):
                 'fetchClosedOrders': 'emulated',
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
-                'fetchCurrencies': False,
+                'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': True,
@@ -152,6 +153,7 @@ class cryptocom(Exchange, ImplicitAPI):
                     'derivatives': 'https://uat-api.3ona.co/v2',
                 },
                 'api': {
+                    'base': 'https://api.crypto.com',
                     'v1': 'https://api.crypto.com/exchange/v1',
                     'v2': 'https://api.crypto.com/v2',
                     'derivatives': 'https://deriv-api.crypto.com/v1',
@@ -169,6 +171,13 @@ class cryptocom(Exchange, ImplicitAPI):
                 'fees': 'https://crypto.com/exchange/document/fees-limits',
             },
             'api': {
+                'base': {
+                    'public': {
+                        'get': {
+                            'v1/public/get-announcements': 1,  # no description of rate limit
+                        },
+                    },
+                },
                 'v1': {
                     'public': {
                         'get': {
@@ -195,6 +204,7 @@ class cryptocom(Exchange, ImplicitAPI):
                             'private/user-balance-history': 10 / 3,
                             'private/get-positions': 10 / 3,
                             'private/create-order': 2 / 3,
+                            'private/amend-order': 4 / 3,  # no description of rate limit
                             'private/create-order-list': 10 / 3,
                             'private/cancel-order': 2 / 3,
                             'private/cancel-order-list': 10 / 3,
@@ -525,6 +535,128 @@ class cryptocom(Exchange, ImplicitAPI):
                 'broad': {},
             },
         })
+
+    async def fetch_currencies(self, params={}) -> Currencies:
+        """
+        fetches all available currencies on an exchange
+
+        https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-currency-networks
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an associative dictionary of currencies
+        """
+        # self endpoint requires authentication
+        if not self.check_required_credentials(False):
+            return None
+        skipFetchCurrencies = False
+        skipFetchCurrencies, params = self.handle_option_and_params(params, 'fetchCurrencies', 'skipFetchCurrencies', False)
+        if skipFetchCurrencies:
+            # sub-accounts can't access self endpoint
+            return None
+        response = {}
+        try:
+            response = await self.v1PrivatePostPrivateGetCurrencyNetworks(params)
+        except Exception as e:
+            if isinstance(e, ExchangeError):
+                # sub-accounts can't access self endpoint
+                # {"code":"10001","msg":"SYS_ERROR"}
+                return None
+            raise e
+            # do nothing
+            # sub-accounts can't access self endpoint
+        #
+        #    {
+        #        "id": "1747502328559",
+        #        "method": "private/get-currency-networks",
+        #        "code": "0",
+        #        "result": {
+        #            "update_time": "1747502281000",
+        #            "currency_map": {
+        #                "USDT": {
+        #                    "full_name": "Tether USD",
+        #                    "default_network": "ETH",
+        #                    "network_list": [
+        #                        {
+        #                            "network_id": "ETH",
+        #                            "withdrawal_fee": "10.00000000",
+        #                            "withdraw_enabled": True,
+        #                            "min_withdrawal_amount": "20.0",
+        #                            "deposit_enabled": True,
+        #                            "confirmation_required": "32"
+        #                        },
+        #                        {
+        #                            "network_id": "CRONOS",
+        #                            "withdrawal_fee": "0.18000000",
+        #                            "withdraw_enabled": True,
+        #                            "min_withdrawal_amount": "0.35",
+        #                            "deposit_enabled": True,
+        #                            "confirmation_required": "15"
+        #                        },
+        #                        {
+        #                            "network_id": "SOL",
+        #                            "withdrawal_fee": "5.31000000",
+        #                            "withdraw_enabled": True,
+        #                            "min_withdrawal_amount": "10.62",
+        #                            "deposit_enabled": True,
+        #                            "confirmation_required": "1"
+        #                        }
+        #                    ]
+        #                }
+        #            }
+        #        }
+        #    }
+        #
+        resultData = self.safe_dict(response, 'result', {})
+        currencyMap = self.safe_dict(resultData, 'currency_map', {})
+        keys = list(currencyMap.keys())
+        result: dict = {}
+        for i in range(0, len(keys)):
+            key = keys[i]
+            currency = currencyMap[key]
+            id = key
+            code = self.safe_currency_code(id)
+            networks: dict = {}
+            chains = self.safe_list(currency, 'network_list', [])
+            for j in range(0, len(chains)):
+                chain = chains[j]
+                networkId = self.safe_string(chain, 'network_id')
+                network = self.network_id_to_code(networkId)
+                networks[network] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': network,
+                    'active': None,
+                    'deposit': self.safe_bool(chain, 'deposit_enabled', False),
+                    'withdraw': self.safe_bool(chain, 'withdraw_enabled', False),
+                    'fee': self.safe_number(chain, 'withdrawal_fee'),
+                    'precision': None,
+                    'limits': {
+                        'withdraw': {
+                            'min': self.safe_number(chain, 'min_withdrawal_amount'),
+                            'max': None,
+                        },
+                    },
+                }
+            result[code] = self.safe_currency_structure({
+                'info': currency,
+                'id': id,
+                'code': code,
+                'name': self.safe_string(currency, 'full_name'),
+                'active': None,
+                'deposit': None,
+                'withdraw': None,
+                'fee': None,
+                'precision': None,
+                'limits': {
+                    'amount': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+                'type': 'crypto',  # only crypto now
+                'networks': networks,
+            })
+        return result
 
     async def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -1442,6 +1574,45 @@ class cryptocom(Exchange, ImplicitAPI):
         else:
             request['quantity'] = self.amount_to_precision(symbol, amount)
         params = self.omit(params, ['postOnly', 'clientOrderId', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice'])
+        return self.extend(request, params)
+
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
+        """
+        edit a trade order
+
+        https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-amend-order
+
+        :param str id: order id
+        :param str symbol: unified market symbol of the order to edit
+        :param str [type]: not used by cryptocom editOrder
+        :param str [side]: not used by cryptocom editOrder
+        :param float amount:(mandatory) how much of the currency you want to trade in units of the base currency
+        :param float price:(mandatory) the price for the order, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.clientOrderId]: the original client order id of the order to edit, required if id is not provided
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        request = self.edit_order_request(id, symbol, amount, price, params)
+        response = await self.v1PrivatePostPrivateAmendOrder(request)
+        result = self.safe_dict(response, 'result', {})
+        return self.parse_order(result)
+
+    def edit_order_request(self, id: str, symbol: str, amount: float, price: Num = None, params={}):
+        request: dict = {}
+        if id is not None:
+            request['order_id'] = id
+        else:
+            originalClientOrderId = self.safe_string_2(params, 'orig_client_oid', 'clientOrderId')
+            if originalClientOrderId is None:
+                raise ArgumentsRequired(self.id + ' editOrder() requires an id argument or orig_client_oid parameter')
+            else:
+                request['orig_client_oid'] = originalClientOrderId
+                params = self.omit(params, ['orig_client_oid', 'clientOrderId'])
+        if (amount is None) or (price is None):
+            raise ArgumentsRequired(self.id + ' editOrder() requires both amount and price arguments. If you do not want to change the amount or price, you should pass the original values')
+        request['new_quantity'] = self.amount_to_precision(symbol, amount)
+        request['new_price'] = self.price_to_precision(symbol, price)
         return self.extend(request, params)
 
     async def cancel_all_orders(self, symbol: Str = None, params={}):
@@ -2789,7 +2960,7 @@ class cryptocom(Exchange, ImplicitAPI):
         data = self.safe_list(result, 'data', [])
         return self.parse_position(self.safe_dict(data, 0), market)
 
-    async def fetch_positions(self, symbols: Strings = None, params={}):
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open positions
 

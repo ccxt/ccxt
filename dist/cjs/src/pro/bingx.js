@@ -77,6 +77,9 @@ class bingx extends bingx$1 {
                     'depth': 100,
                     'interval': 500, // 100, 200, 500, 1000
                 },
+                'watchTrades': {
+                    'ignoreDuplicates': true,
+                },
             },
             'streaming': {
                 'keepAlive': 1800000, // 30 minutes
@@ -498,7 +501,13 @@ class bingx extends bingx$1 {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        const result = this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        if (this.handleOption('watchTrades', 'ignoreDuplicates', true)) {
+            let filtered = this.removeRepeatedTradesFromArray(result);
+            filtered = this.sortBy(filtered, 'timestamp');
+            return filtered;
+        }
+        return result;
     }
     handleTrades(client, message) {
         //
