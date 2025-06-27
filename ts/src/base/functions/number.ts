@@ -141,16 +141,8 @@ const _decimalToPrecision = (
             const scale = Math.pow (10, Math.max (newNumPrecisionDigits, 10));
             const xScaled = Math.round (Number(x) * scale);
             const tickScaled = Math.round (numPrecisionDigits * scale);
-
-            // Simpler remainder check
-            const remainder = xScaled % tickScaled;
-            if (remainder !== 0) {
-                const ticks = Math.trunc (xScaled / tickScaled);
-                x = (ticks * tickScaled) / scale;
-            } else {
-                x = xScaled / scale;
-            }
-
+            const ticks = Math.trunc (xScaled / tickScaled);
+            x = (ticks * tickScaled) / scale;
             if (paddingMode === NO_PADDING) {
                 return String (Number (x.toFixed (newNumPrecisionDigits)));
             }
