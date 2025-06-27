@@ -684,7 +684,7 @@ export default class exmo extends Exchange {
     async fetchCurrencies (params = {}): Promise<Currencies> {
         const promises = [];
         //
-        const currencyListPromise = this.publicGetCurrencyListExtended (params);
+        promises.push (this.publicGetCurrencyListExtended (params));
         //
         //     [
         //         {"name":"VLX","description":"Velas"},
