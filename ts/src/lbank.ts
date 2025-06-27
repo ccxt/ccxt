@@ -385,7 +385,7 @@ export default class lbank extends Exchange {
         if (type === 'swap') {
             response = await this.contractPublicGetCfdOpenApiV1PubGetTime (params);
         } else {
-            response = await this.spotPublicGetTimestamp (params);
+            response = await this.spotPublicGetTimestampDo (params);
         }
         //
         // spot
@@ -418,7 +418,7 @@ export default class lbank extends Exchange {
      * @returns {dict} an associative dictionary of currencies
      */
     async fetchCurrencies (params = {}): Promise<Currencies> {
-        const response = await this.spotPublicGetWithdrawConfigs (params);
+        const response = await this.spotPublicGetWithdrawConfigsDo (params);
         //
         //    {
         //        "msg": "Success",
@@ -532,7 +532,7 @@ export default class lbank extends Exchange {
     }
 
     async fetchSpotMarkets (params = {}) {
-        const response = await this.spotPublicGetAccuracy (params);
+        const response = await this.spotPublicGetAccuracyDo (params);
         //
         //     {
         //         "result": "true",
@@ -790,7 +790,7 @@ export default class lbank extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        const response = await this.spotPublicGetTicker24hr (this.extend (request, params));
+        const response = await this.spotPublicGetTicker24hrDo (this.extend (request, params));
         //
         //     {
         //         "result": "true",
@@ -846,7 +846,7 @@ export default class lbank extends Exchange {
             response = await this.contractPublicGetCfdOpenApiV1PubMarketData (this.extend (request, params));
         } else {
             request['symbol'] = 'all';
-            response = await this.spotPublicGetTicker24hr (this.extend (request, params));
+            response = await this.spotPublicGetTicker24hrDo (this.extend (request, params));
         }
         //
         // spot
@@ -925,7 +925,7 @@ export default class lbank extends Exchange {
             response = await this.contractPublicGetCfdOpenApiV1PubMarketOrder (this.extend (request, params));
         } else {
             request['size'] = limit;
-            response = await this.spotPublicGetDepth (this.extend (request, params));
+            response = await this.spotPublicGetDepthDo (this.extend (request, params));
         }
         //
         // spot
@@ -1118,9 +1118,9 @@ export default class lbank extends Exchange {
         params = this.omit (params, 'method');
         let response = undefined;
         if (method === 'spotPublicGetSupplementTrades') {
-            response = await this.spotPublicGetSupplementTrades (this.extend (request, params));
+            response = await this.spotPublicGetSupplementTradesDo (this.extend (request, params));
         } else {
-            response = await this.spotPublicGetTrades (this.extend (request, params));
+            response = await this.spotPublicGetTradesDo (this.extend (request, params));
         }
         //
         //      {
@@ -1194,7 +1194,7 @@ export default class lbank extends Exchange {
             'time': this.parseToInt (since / 1000),
             'size': Math.min (limit + 1, 2000), // max 2000
         };
-        const response = await this.spotPublicGetKline (this.extend (request, params));
+        const response = await this.spotPublicGetKlineDo (this.extend (request, params));
         const ohlcvs = this.safeList (response, 'data', []);
         //
         //
@@ -1476,11 +1476,11 @@ export default class lbank extends Exchange {
         const method = this.safeString (params, 'method', defaultMethod);
         let response = undefined;
         if (method === 'spotPrivatePostSupplementUserInfoAccount') {
-            response = await this.spotPrivatePostSupplementUserInfoAccount ();
+            response = await this.spotPrivatePostSupplementUserInfoAccountDo ();
         } else if (method === 'spotPrivatePostUserInfo') {
-            response = await this.spotPrivatePostUserInfo ();
+            response = await this.spotPrivatePostUserInfoDo ();
         } else {
-            response = await this.spotPrivatePostSupplementUserInfo ();
+            response = await this.spotPrivatePostSupplementUserInfoDo ();
         }
         //
         //    {
@@ -1561,7 +1561,7 @@ export default class lbank extends Exchange {
     async fetchTradingFees (params = {}): Promise<TradingFees> {
         await this.loadMarkets ();
         const request: Dict = {};
-        const response = await this.spotPrivatePostSupplementCustomerTradeFee (this.extend (request, params));
+        const response = await this.spotPrivatePostSupplementCustomerTradeFeeDo (this.extend (request, params));
         const fees = this.safeValue (response, 'data', []);
         const result: Dict = {};
         for (let i = 0; i < fees.length; i++) {
@@ -1672,9 +1672,9 @@ export default class lbank extends Exchange {
         params = this.omit (params, 'method');
         let response = undefined;
         if (method === 'spotPrivatePostCreateOrder') {
-            response = await this.spotPrivatePostCreateOrder (this.extend (request, params));
+            response = await this.spotPrivatePostCreateOrderDo (this.extend (request, params));
         } else {
-            response = await this.spotPrivatePostSupplementCreateOrder (this.extend (request, params));
+            response = await this.spotPrivatePostSupplementCreateOrderDo (this.extend (request, params));
         }
         //
         //      {
@@ -1886,7 +1886,7 @@ export default class lbank extends Exchange {
             'symbol': market['id'],
             'orderId': id,
         };
-        const response = await this.spotPrivatePostSupplementOrdersInfo (this.extend (request, params));
+        const response = await this.spotPrivatePostSupplementOrdersInfoDo (this.extend (request, params));
         //
         //      {
         //          "result":true,
@@ -1923,7 +1923,7 @@ export default class lbank extends Exchange {
             'symbol': market['id'],
             'order_id': id,
         };
-        const response = await this.spotPrivatePostOrdersInfo (this.extend (request, params));
+        const response = await this.spotPrivatePostOrdersInfoDo (this.extend (request, params));
         //
         //      {
         //          "result":true,
@@ -1994,7 +1994,7 @@ export default class lbank extends Exchange {
             request['start_date'] = this.ymd (since, '-'); // max query 2 days ago
             request['end_date'] = this.ymd (since + 86400000, '-'); // will cover 2 days
         }
-        const response = await this.spotPrivatePostTransactionHistory (this.extend (request, params));
+        const response = await this.spotPrivatePostTransactionHistoryDo (this.extend (request, params));
         //
         //      {
         //          "result":true,
@@ -2047,7 +2047,7 @@ export default class lbank extends Exchange {
             'page_length': limit,
             // 'status'  -1: Cancelled, 0: Unfilled, 1: Partially filled, 2: Completely filled, 3: Partially filled and cancelled, 4: Cancellation is being processed
         };
-        const response = await this.spotPrivatePostSupplementOrdersInfoHistory (this.extend (request, params));
+        const response = await this.spotPrivatePostSupplementOrdersInfoHistoryDo (this.extend (request, params));
         //
         //      {
         //          "result":true,
@@ -2105,7 +2105,7 @@ export default class lbank extends Exchange {
             'current_page': 1,
             'page_length': limit,
         };
-        const response = await this.spotPrivatePostSupplementOrdersInfoNoDeal (this.extend (request, params));
+        const response = await this.spotPrivatePostSupplementOrdersInfoNoDealDo (this.extend (request, params));
         //
         //      {
         //          "result":true,
@@ -2163,7 +2163,7 @@ export default class lbank extends Exchange {
         if (clientOrderId !== undefined) {
             request['origClientOrderId'] = clientOrderId;
         }
-        const response = await this.spotPrivatePostSupplementCancelOrder (this.extend (request, params));
+        const response = await this.spotPrivatePostSupplementCancelOrderDo (this.extend (request, params));
         //
         //   {
         //      "result":true,
@@ -2199,7 +2199,7 @@ export default class lbank extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        const response = await this.spotPrivatePostSupplementCancelOrderBySymbol (this.extend (request, params));
+        const response = await this.spotPrivatePostSupplementCancelOrderBySymbolDo (this.extend (request, params));
         //
         //      {
         //          "result":"true",
@@ -2266,7 +2266,7 @@ export default class lbank extends Exchange {
             request['netWork'] = network; // ... yes, really lol
             params = this.omit (params, 'network');
         }
-        const response = await this.spotPrivatePostGetDepositAddress (this.extend (request, params));
+        const response = await this.spotPrivatePostGetDepositAddressDo (this.extend (request, params));
         //
         //      {
         //          "result":true,
@@ -2374,7 +2374,7 @@ export default class lbank extends Exchange {
         if (networkId !== undefined) {
             request['networkName'] = networkId;
         }
-        const response = await this.spotPrivatePostSupplementWithdraw (this.extend (request, params));
+        const response = await this.spotPrivatePostSupplementWithdrawDo (this.extend (request, params));
         //
         //      {
         //          "result":true,
@@ -2520,7 +2520,7 @@ export default class lbank extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const response = await this.spotPrivatePostSupplementDepositHistory (this.extend (request, params));
+        const response = await this.spotPrivatePostSupplementDepositHistoryDo (this.extend (request, params));
         //
         //      {
         //          "result":true,
@@ -2575,7 +2575,7 @@ export default class lbank extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const response = await this.spotPrivatePostSupplementWithdraws (this.extend (request, params));
+        const response = await this.spotPrivatePostSupplementWithdrawsDo (this.extend (request, params));
         //
         //      {
         //          "result":true,
@@ -2641,7 +2641,7 @@ export default class lbank extends Exchange {
         // complete response
         // incl. for coins which undefined in public method
         await this.loadMarkets ();
-        const response = await this.spotPrivatePostSupplementUserInfo ();
+        const response = await this.spotPrivatePostSupplementUserInfoDo ();
         //
         //    {
         //        "result": "true",
@@ -2707,7 +2707,7 @@ export default class lbank extends Exchange {
             const currency = this.currency (code);
             request['assetCode'] = currency['id'];
         }
-        const response = await this.spotPublicGetWithdrawConfigs (this.extend (request, params));
+        const response = await this.spotPublicGetWithdrawConfigsDo (this.extend (request, params));
         //
         //    {
         //        "result": "true",
@@ -2789,7 +2789,7 @@ export default class lbank extends Exchange {
         // complete response
         // incl. for coins which undefined in public method
         await this.loadMarkets ();
-        const response = await this.spotPrivatePostSupplementUserInfo (params);
+        const response = await this.spotPrivatePostSupplementUserInfoDo (params);
         //
         //    {
         //        "result": "true",
@@ -2829,7 +2829,7 @@ export default class lbank extends Exchange {
         // vast majority fees undefined
         await this.loadMarkets ();
         const request: Dict = {};
-        const response = await this.spotPublicGetWithdrawConfigs (this.extend (request, params));
+        const response = await this.spotPublicGetWithdrawConfigsDo (this.extend (request, params));
         //
         //    {
         //        "result": "true",
