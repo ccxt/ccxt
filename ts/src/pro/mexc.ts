@@ -808,6 +808,9 @@ export default class mexc extends mexcRest {
         const messageHash = 'orderbook:' + symbol;
         const subscription = this.safeValue (client.subscriptions, messageHash);
         const limit = this.safeInteger (subscription, 'limit');
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook ();
+        }
         const storedOrderBook = this.orderbooks[symbol];
         const nonce = this.safeInteger (storedOrderBook, 'nonce');
         if (nonce === undefined) {
@@ -1121,7 +1124,6 @@ export default class mexc extends mexcRest {
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        params = this.omit (params, 'type');
         let messageHash = 'orders';
         let market = undefined;
         if (symbol !== undefined) {
@@ -1536,7 +1538,7 @@ export default class mexc extends mexcRest {
 
     /**
      * @method
-     * @name mexc#watchBidsAsks
+     * @name mexc#unWatchBidsAsks
      * @description unWatches best bid & ask for symbols
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint

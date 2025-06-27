@@ -30,6 +30,99 @@
         "authToken": "token"
     },
     "methods": {
+        "fetchOrder": [
+            {
+                "description": "fetch canceled order",
+                "method": "fetchOrder",
+                "input": [
+                    "1748360402930201709192260001"
+                ],
+                "httpResponse": {
+                    "id": "1748360402930201709192260001",
+                    "account": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941ec6cfd3b31402ec42d72e",
+                    "market": "ADA-USD-PERP",
+                    "side": "BUY",
+                    "type": "LIMIT",
+                    "size": "100",
+                    "remaining_size": "100",
+                    "price": "0.6",
+                    "status": "CLOSED",
+                    "created_at": "1748360402936",
+                    "last_updated_at": "1748360421841",
+                    "timestamp": "1748360402000",
+                    "cancel_reason": "USER_CANCELED",
+                    "client_id": "",
+                    "seq_no": "1748360421841413772",
+                    "instruction": "",
+                    "avg_fill_price": "",
+                    "stp": "EXPIRE_TAKER",
+                    "received_at": "1748360588232",
+                    "published_at": "1748360588233",
+                    "flags": [],
+                    "trigger_price": "0"
+                },
+                "parsedResponse": {
+                    "id": "1748360402930201709192260001",
+                    "clientOrderId": null,
+                    "timestamp": 1748360402936,
+                    "datetime": "2025-05-27T15:40:02.936Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1748360421841,
+                    "status": "canceled",
+                    "symbol": "ADA/USD:USDC",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": "buy",
+                    "price": 0.6,
+                    "triggerPrice": 0,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "average": null,
+                    "amount": 100,
+                    "filled": 0,
+                    "remaining": 100,
+                    "cost": 0,
+                    "trades": [],
+                    "fee": {
+                        "cost": null,
+                        "currency": null
+                    },
+                    "info": {
+                        "id": "1748360402930201709192260001",
+                        "account": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941ec6cfd3b31402ec42d72e",
+                        "market": "ADA-USD-PERP",
+                        "side": "BUY",
+                        "type": "LIMIT",
+                        "size": "100",
+                        "remaining_size": "100",
+                        "price": "0.6",
+                        "status": "CLOSED",
+                        "created_at": "1748360402936",
+                        "last_updated_at": "1748360421841",
+                        "timestamp": "1748360402000",
+                        "cancel_reason": "USER_CANCELED",
+                        "client_id": "",
+                        "seq_no": "1748360421841413772",
+                        "instruction": "",
+                        "avg_fill_price": "",
+                        "stp": "EXPIRE_TAKER",
+                        "received_at": "1748360588232",
+                        "published_at": "1748360588233",
+                        "flags": [],
+                        "trigger_price": "0"
+                    },
+                    "fees": [
+                        {
+                            "cost": null,
+                            "currency": null
+                        }
+                    ],
+                    "stopPrice": 0
+                }
+            }
+        ],
         "fetchTime": [
             {
                 "description": "fetchTime",
@@ -786,7 +879,7 @@
                     "datetime": "2024-07-25T10:36:48.505Z",
                     "lastTradeTimestamp": null,
                     "lastUpdateTimestamp": 1721903808521,
-                    "status": "closed",
+                    "status": "canceled",
                     "symbol": "SOL/USD:USDC",
                     "type": "limit",
                     "timeInForce": null,

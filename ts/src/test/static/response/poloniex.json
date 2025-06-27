@@ -2,6 +2,672 @@
     "exchange": "poloniex",
     "skipKeys": [],
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "USDT": {
+                            "id": 214,
+                            "name": "Tether USD",
+                            "description": "Sweep to Main Account",
+                            "type": "address",
+                            "withdrawalFee": "0.00000000",
+                            "minConf": 2,
+                            "depositAddress": null,
+                            "blockchain": "OMNI",
+                            "delisted": false,
+                            "tradingState": "NORMAL",
+                            "walletState": "DISABLED",
+                            "walletDepositState": "DISABLED",
+                            "walletWithdrawalState": "DISABLED",
+                            "supportCollateral": true,
+                            "supportBorrow": true,
+                            "parentChain": null,
+                            "isMultiChain": true,
+                            "isChildChain": false,
+                            "childChains": [
+                                "USDTBSC",
+                                "USDTETH",
+                                "USDTSOL",
+                                "USDTTRON"
+                            ]
+                        }
+                    },
+                    {
+                        "USDTBSC": {
+                            "id": 582,
+                            "name": "Binance-Peg BSC-USD",
+                            "description": "Sweep to Main Account",
+                            "type": "address",
+                            "withdrawalFee": "0.00000000",
+                            "minConf": 15,
+                            "depositAddress": null,
+                            "blockchain": "BSC",
+                            "delisted": false,
+                            "tradingState": "OFFLINE",
+                            "walletState": "ENABLED",
+                            "walletDepositState": "ENABLED",
+                            "walletWithdrawalState": "DISABLED",
+                            "supportCollateral": false,
+                            "supportBorrow": false,
+                            "parentChain": "USDT",
+                            "isMultiChain": true,
+                            "isChildChain": true,
+                            "childChains": []
+                        }
+                    },
+                    {
+                        "USDTETH": {
+                            "id": 318,
+                            "name": "USDT on ETH",
+                            "description": "Sweep to Main Account",
+                            "type": "address",
+                            "withdrawalFee": "0.77606900",
+                            "minConf": 64,
+                            "depositAddress": null,
+                            "blockchain": "ETH",
+                            "delisted": false,
+                            "tradingState": "NORMAL",
+                            "walletState": "ENABLED",
+                            "walletDepositState": "ENABLED",
+                            "walletWithdrawalState": "ENABLED",
+                            "supportCollateral": false,
+                            "supportBorrow": false,
+                            "parentChain": "USDT",
+                            "isMultiChain": true,
+                            "isChildChain": true,
+                            "childChains": []
+                        }
+                    },
+                    {
+                        "USDTSOL": {
+                            "id": 1936,
+                            "name": "USDT",
+                            "description": "Sweep to Main Account",
+                            "type": "address",
+                            "withdrawalFee": "0.91000000",
+                            "minConf": 300,
+                            "depositAddress": null,
+                            "blockchain": "SOL",
+                            "delisted": false,
+                            "tradingState": "OFFLINE",
+                            "walletState": "ENABLED",
+                            "walletDepositState": "ENABLED",
+                            "walletWithdrawalState": "DISABLED",
+                            "supportCollateral": false,
+                            "supportBorrow": false,
+                            "parentChain": "USDT",
+                            "isMultiChain": true,
+                            "isChildChain": true,
+                            "childChains": []
+                        }
+                    },
+                    {
+                        "USDTTRON": {
+                            "id": 316,
+                            "name": "USDT on TRON",
+                            "description": "Sweep to Main Account",
+                            "type": "address",
+                            "withdrawalFee": "1.20000000",
+                            "minConf": 0,
+                            "depositAddress": null,
+                            "blockchain": "TRX",
+                            "delisted": false,
+                            "tradingState": "NORMAL",
+                            "walletState": "ENABLED",
+                            "walletDepositState": "ENABLED",
+                            "walletWithdrawalState": "ENABLED",
+                            "supportCollateral": false,
+                            "supportBorrow": false,
+                            "parentChain": "USDT",
+                            "isMultiChain": true,
+                            "isChildChain": true,
+                            "childChains": []
+                        }
+                    }
+                ],
+                "parsedResponse": {
+                    "USDT": {
+                        "info": {
+                            "id": 214,
+                            "name": "Tether USD",
+                            "description": "Sweep to Main Account",
+                            "type": "address",
+                            "withdrawalFee": "0.00000000",
+                            "minConf": 2,
+                            "depositAddress": null,
+                            "blockchain": "OMNI",
+                            "delisted": false,
+                            "tradingState": "NORMAL",
+                            "walletState": "DISABLED",
+                            "walletDepositState": "DISABLED",
+                            "walletWithdrawalState": "DISABLED",
+                            "supportCollateral": true,
+                            "supportBorrow": true,
+                            "parentChain": null,
+                            "isMultiChain": true,
+                            "isChildChain": false,
+                            "childChains": [
+                                "USDTBSC",
+                                "USDTETH",
+                                "USDTSOL",
+                                "USDTTRON"
+                            ]
+                        },
+                        "id": "USDT",
+                        "numericId": 214,
+                        "code": "USDT",
+                        "precision": null,
+                        "type": "crypto",
+                        "name": "Tether USD",
+                        "active": true,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": 0,
+                        "fees": {},
+                        "networks": {
+                            "BEP20": {
+                                "info": {
+                                    "id": 582,
+                                    "name": "Binance-Peg BSC-USD",
+                                    "description": "Sweep to Main Account",
+                                    "type": "address",
+                                    "withdrawalFee": "0.00000000",
+                                    "minConf": 15,
+                                    "depositAddress": null,
+                                    "blockchain": "BSC",
+                                    "delisted": false,
+                                    "tradingState": "OFFLINE",
+                                    "walletState": "ENABLED",
+                                    "walletDepositState": "ENABLED",
+                                    "walletWithdrawalState": "DISABLED",
+                                    "supportCollateral": false,
+                                    "supportBorrow": false,
+                                    "parentChain": "USDT",
+                                    "isMultiChain": true,
+                                    "isChildChain": true,
+                                    "childChains": []
+                                },
+                                "id": "USDTBSC",
+                                "numericId": 582,
+                                "network": "BEP20",
+                                "active": false,
+                                "deposit": true,
+                                "withdraw": false,
+                                "fee": 0,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "ERC20": {
+                                "info": {
+                                    "id": 318,
+                                    "name": "USDT on ETH",
+                                    "description": "Sweep to Main Account",
+                                    "type": "address",
+                                    "withdrawalFee": "0.77606900",
+                                    "minConf": 64,
+                                    "depositAddress": null,
+                                    "blockchain": "ETH",
+                                    "delisted": false,
+                                    "tradingState": "NORMAL",
+                                    "walletState": "ENABLED",
+                                    "walletDepositState": "ENABLED",
+                                    "walletWithdrawalState": "ENABLED",
+                                    "supportCollateral": false,
+                                    "supportBorrow": false,
+                                    "parentChain": "USDT",
+                                    "isMultiChain": true,
+                                    "isChildChain": true,
+                                    "childChains": []
+                                },
+                                "id": "USDTETH",
+                                "numericId": 318,
+                                "network": "ERC20",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 0.776069,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "SOL": {
+                                "info": {
+                                    "id": 1936,
+                                    "name": "USDT",
+                                    "description": "Sweep to Main Account",
+                                    "type": "address",
+                                    "withdrawalFee": "0.91000000",
+                                    "minConf": 300,
+                                    "depositAddress": null,
+                                    "blockchain": "SOL",
+                                    "delisted": false,
+                                    "tradingState": "OFFLINE",
+                                    "walletState": "ENABLED",
+                                    "walletDepositState": "ENABLED",
+                                    "walletWithdrawalState": "DISABLED",
+                                    "supportCollateral": false,
+                                    "supportBorrow": false,
+                                    "parentChain": "USDT",
+                                    "isMultiChain": true,
+                                    "isChildChain": true,
+                                    "childChains": []
+                                },
+                                "id": "USDTSOL",
+                                "numericId": 1936,
+                                "network": "SOL",
+                                "active": false,
+                                "deposit": true,
+                                "withdraw": false,
+                                "fee": 0.91,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "TRC20": {
+                                "info": {
+                                    "id": 316,
+                                    "name": "USDT on TRON",
+                                    "description": "Sweep to Main Account",
+                                    "type": "address",
+                                    "withdrawalFee": "1.20000000",
+                                    "minConf": 0,
+                                    "depositAddress": null,
+                                    "blockchain": "TRX",
+                                    "delisted": false,
+                                    "tradingState": "NORMAL",
+                                    "walletState": "ENABLED",
+                                    "walletDepositState": "ENABLED",
+                                    "walletWithdrawalState": "ENABLED",
+                                    "supportCollateral": false,
+                                    "supportBorrow": false,
+                                    "parentChain": "USDT",
+                                    "isMultiChain": true,
+                                    "isChildChain": true,
+                                    "childChains": []
+                                },
+                                "id": "USDTTRON",
+                                "numericId": 316,
+                                "network": "TRC20",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 1.2,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "OMNI": {
+                                "info": {
+                                    "id": 214,
+                                    "name": "Tether USD",
+                                    "description": "Sweep to Main Account",
+                                    "type": "address",
+                                    "withdrawalFee": "0.00000000",
+                                    "minConf": 2,
+                                    "depositAddress": null,
+                                    "blockchain": "OMNI",
+                                    "delisted": false,
+                                    "tradingState": "NORMAL",
+                                    "walletState": "DISABLED",
+                                    "walletDepositState": "DISABLED",
+                                    "walletWithdrawalState": "DISABLED",
+                                    "supportCollateral": true,
+                                    "supportBorrow": true,
+                                    "parentChain": null,
+                                    "isMultiChain": true,
+                                    "isChildChain": false,
+                                    "childChains": [
+                                        "USDTBSC",
+                                        "USDTETH",
+                                        "USDTSOL",
+                                        "USDTTRON"
+                                    ]
+                                },
+                                "id": "USDT",
+                                "numericId": 214,
+                                "network": "OMNI",
+                                "active": false,
+                                "deposit": false,
+                                "withdraw": false,
+                                "fee": 0,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            }
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    }
+                }
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "fetchDepositAddress ETH on ETH",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "ETH",
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "httpResponse": {
+                    "ETH": "0xe55fbe593113c1e9ed3175e304a27555689a5e22"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "ETH": "0xe55fbe593113c1e9ed3175e304a27555689a5e22"
+                    },
+                    "currency": "ETH",
+                    "network": "ETH",
+                    "address": "0xe55fbe593113c1e9ed3175e304a27555689a5e22",
+                    "tag": null
+                }
+            },
+            {
+                "description": "fetchDepositAddress USDT on TRC20",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "TRC20"
+                    }
+                ],
+                "httpResponse": {
+                    "USDTTRON": "TXae5onz4UzHXwHjwHWUPxrwfxNqBZ5efD"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "USDTTRON": "TXae5onz4UzHXwHjwHWUPxrwfxNqBZ5efD"
+                    },
+                    "currency": "USDT",
+                    "network": "TRC20",
+                    "address": "TXae5onz4UzHXwHjwHWUPxrwfxNqBZ5efD",
+                    "tag": null
+                }
+            },
+            {
+                "description": "fetchDepositAddress USDT on ERC20",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ERC20"
+                    }
+                ],
+                "httpResponse": {
+                    "USDTETH": "0xe55fbe593113c1e9ed3175e304a27555689a5e22"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "USDTETH": "0xe55fbe593113c1e9ed3175e304a27555689a5e22"
+                    },
+                    "currency": "USDT",
+                    "network": "ERC20",
+                    "address": "0xe55fbe593113c1e9ed3175e304a27555689a5e22",
+                    "tag": null
+                }
+            },
+            {
+                "description": "fetchDepositAddress USDT on ETH",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "httpResponse": {
+                    "USDTETH": "0xe55fbe593113c1e9ed3175e304a27555689a5e22"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "USDTETH": "0xe55fbe593113c1e9ed3175e304a27555689a5e22"
+                    },
+                    "currency": "USDT",
+                    "network": "ERC20",
+                    "address": "0xe55fbe593113c1e9ed3175e304a27555689a5e22",
+                    "tag": null
+                }
+            },
+            {
+                "description": "fetchDepositAddress BTC on BTC",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "BTC",
+                    {
+                        "network": "BTC"
+                    }
+                ],
+                "httpResponse": {
+                    "BTC": "1Da5szYQXyWxNEZo4tThewzKRi5fdkYPla"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "BTC": "1Da5szYQXyWxNEZo4tThewzKRi5fdkYPla"
+                    },
+                    "currency": "BTC",
+                    "network": "BTC",
+                    "address": "1Da5szYQXyWxNEZo4tThewzKRi5fdkYPla",
+                    "tag": null
+                }
+            }
+        ],
+        "createDepositAddress": [
+            {
+                "description": "create ETH on ETH",
+                "method": "createDepositAddress",
+                "input": [
+                    "ETH",
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "httpResponse": {
+                    "address": "0xe55fbe593113c1e9ed3175e304a27555689a5e22"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "address": "0xe55fbe593113c1e9ed3175e304a27555689a5e22"
+                    },
+                    "currency": "ETH",
+                    "network": "ETH",
+                    "address": "0xe55fbe593113c1e9ed3175e304a27555689a5e22",
+                    "tag": null
+                }
+            },
+            {
+                "description": "create BTC",
+                "method": "createDepositAddress",
+                "input": [
+                    "BTC",
+                    {
+                        "network": "BTC"
+                    }
+                ],
+                "httpResponse": {
+                    "address": "1Da5szYQXyWxNEZo4tThewzKRi5fdkYPla"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "address": "1Da5szYQXyWxNEZo4tThewzKRi5fdkYPla"
+                    },
+                    "currency": "BTC",
+                    "network": "BTC",
+                    "address": "1Da5szYQXyWxNEZo4tThewzKRi5fdkYPla",
+                    "tag": null
+                }
+            },
+            {
+                "description": "create ETH",
+                "method": "createDepositAddress",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "httpResponse": {
+                    "address": "0xe55fbe593113c1e9ed3175e304a27555689a5e22"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "address": "0xe55fbe593113c1e9ed3175e304a27555689a5e22"
+                    },
+                    "currency": "USDT",
+                    "network": "ERC20",
+                    "address": "0xe55fbe593113c1e9ed3175e304a27555689a5e22",
+                    "tag": null
+                }
+            },
+            {
+                "description": "create ERC20",
+                "method": "createDepositAddress",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ERC20"
+                    }
+                ],
+                "httpResponse": {
+                    "address": "0xe55fbe593113c1e9ed3175e304a27555689a5e22"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "address": "0xe55fbe593113c1e9ed3175e304a27555689a5e22"
+                    },
+                    "currency": "USDT",
+                    "network": "ERC20",
+                    "address": "0xe55fbe593113c1e9ed3175e304a27555689a5e22",
+                    "tag": null
+                }
+            },
+            {
+                "description": "create TRC20",
+                "method": "createDepositAddress",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "TRC20"
+                    }
+                ],
+                "httpResponse": {
+                    "address": "TXae5onz4UzHXwHjwHWUPxrwfxNqBZ5efD"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "address": "TXae5onz4UzHXwHjwHWUPxrwfxNqBZ5efD"
+                    },
+                    "currency": "USDT",
+                    "network": "TRC20",
+                    "address": "TXae5onz4UzHXwHjwHWUPxrwfxNqBZ5efD",
+                    "tag": null
+                }
+            }
+        ],
+        "withdraw": [
+            {
+                "description": "withdraw USDT on ETH",
+                "method": "withdraw",
+                "input": [
+                    "USDT",
+                    5,
+                    "0x2a1cd2a93eac9403203ab118a4e7d90916ae3356",
+                    null,
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "httpResponse": {
+                    "withdrawalRequestsId": 18514179
+                },
+                "parsedResponse": {
+                    "info": {
+                        "withdrawalRequestsId": 18514179
+                    },
+                    "id": "18514179",
+                    "currency": null,
+                    "amount": null,
+                    "network": null,
+                    "address": null,
+                    "addressTo": null,
+                    "addressFrom": null,
+                    "tag": null,
+                    "tagTo": null,
+                    "tagFrom": null,
+                    "status": "pending",
+                    "type": "withdrawal",
+                    "updated": null,
+                    "txid": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "comment": null,
+                    "internal": null,
+                    "fee": {
+                        "currency": null,
+                        "cost": null,
+                        "rate": null
+                    }
+                }
+            }
+        ],
         "fetchClosedOrders": [
             {
                 "description": "linear",

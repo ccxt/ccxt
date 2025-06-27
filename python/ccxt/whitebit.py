@@ -623,25 +623,51 @@ class whitebit(Exchange, ImplicitAPI):
         for i in range(0, len(ids)):
             id = ids[i]
             currency = response[id]
-            # breaks down in Python due to utf8 encoding issues on the exchange side
-            # name = self.safe_string(currency, 'name')
-            canDeposit = self.safe_bool(currency, 'can_deposit', True)
-            canWithdraw = self.safe_bool(currency, 'can_withdraw', True)
-            active = canDeposit and canWithdraw
+            # name = self.safe_string(currency, 'name')  # breaks down in Python due to utf8 encoding issues on the exchange side
             code = self.safe_currency_code(id)
             hasProvider = ('providers' in currency)
-            result[code] = {
+            networks = {}
+            rawNetworks = self.safe_dict(currency, 'networks', {})
+            depositsNetworks = self.safe_list(rawNetworks, 'deposits', [])
+            withdrawsNetworks = self.safe_list(rawNetworks, 'withdraws', [])
+            networkLimits = self.safe_dict(currency, 'limits', {})
+            depositLimits = self.safe_dict(networkLimits, 'deposit', {})
+            withdrawLimits = self.safe_dict(networkLimits, 'withdraw', {})
+            allNetworks = self.array_concat(depositsNetworks, withdrawsNetworks)
+            for j in range(0, len(allNetworks)):
+                networkId = allNetworks[j]
+                networkCode = self.network_id_to_code(networkId)
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': None,
+                    'deposit': self.in_array(networkId, depositsNetworks),
+                    'withdraw': self.in_array(networkId, withdrawsNetworks),
+                    'fee': None,
+                    'precision': None,
+                    'limits': {
+                        'deposit': {
+                            'min': self.safe_number(depositLimits, 'min', None),
+                            'max': self.safe_number(depositLimits, 'max', None),
+                        },
+                        'withdraw': {
+                            'min': self.safe_number(withdrawLimits, 'min', None),
+                            'max': self.safe_number(withdrawLimits, 'max', None),
+                        },
+                    },
+                }
+            result[code] = self.safe_currency_structure({
                 'id': id,
                 'code': code,
                 'info': currency,  # the original payload
                 'name': None,  # see the comment above
-                'active': active,
-                'deposit': canDeposit,
-                'withdraw': canWithdraw,
+                'active': None,
+                'deposit': self.safe_bool(currency, 'can_deposit'),
+                'withdraw': self.safe_bool(currency, 'can_withdraw'),
                 'fee': None,
                 'networks': None,  # todo
                 'type': 'fiat' if hasProvider else 'crypto',
-                'precision': None,
+                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'currency_precision'))),
                 'limits': {
                     'amount': {
                         'min': None,
@@ -651,8 +677,12 @@ class whitebit(Exchange, ImplicitAPI):
                         'min': self.safe_number(currency, 'min_withdraw'),
                         'max': self.safe_number(currency, 'max_withdraw'),
                     },
+                    'deposit': {
+                        'min': self.safe_number(currency, 'min_deposit'),
+                        'max': self.safe_number(currency, 'max_deposit'),
+                    },
                 },
-            }
+            })
         return result
 
     def fetch_transaction_fees(self, codes: Strings = None, params={}):

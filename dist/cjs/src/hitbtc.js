@@ -918,29 +918,46 @@ class hitbtc extends hitbtc$1 {
     async fetchCurrencies(params = {}) {
         const response = await this.publicGetPublicCurrency(params);
         //
-        //     {
-        //       "WEALTH": {
-        //         "full_name": "ConnectWealth",
-        //         "payin_enabled": false,
-        //         "payout_enabled": false,
-        //         "transfer_enabled": true,
-        //         "precision_transfer": "0.001",
-        //         "networks": [
-        //           {
-        //             "network": "ETH",
-        //             "protocol": "ERC20",
-        //             "default": true,
-        //             "payin_enabled": false,
-        //             "payout_enabled": false,
-        //             "precision_payout": "0.001",
-        //             "payout_fee": "0.016800000000",
-        //             "payout_is_payment_id": false,
-        //             "payin_payment_id": false,
-        //             "payin_confirmations": "2"
-        //           }
-        //         ]
-        //       }
-        //     }
+        //    {
+        //        "DFC": {
+        //            "full_name": "DeFiScale",
+        //            "crypto": true,
+        //            "payin_enabled": false,
+        //            "payout_enabled": true,
+        //            "transfer_enabled": false,
+        //            "transfer_to_wallet_enabled": true,
+        //            "transfer_to_exchange_enabled": false,
+        //            "sign": "D",
+        //            "crypto_payment_id_name": "",
+        //            "crypto_explorer": "https://etherscan.io/tx/{tx}",
+        //            "precision_transfer": "0.00000001",
+        //            "delisted": false,
+        //            "networks": [
+        //                {
+        //                    "code": "ETH",
+        //                    "network_name": "Ethereum",
+        //                    "network": "ETH",
+        //                    "protocol": "ERC-20",
+        //                    "default": true,
+        //                    "is_ens_available": true,
+        //                    "payin_enabled": true,
+        //                    "payout_enabled": true,
+        //                    "precision_payout": "0.000000000000000001",
+        //                    "payout_fee": "277000.0000000000",
+        //                    "payout_is_payment_id": false,
+        //                    "payin_payment_id": false,
+        //                    "payin_confirmations": "2",
+        //                    "contract_address": "0x1b2a76da77d03b7fc21189d9838f55bd849014af",
+        //                    "crypto_payment_id_name": "",
+        //                    "crypto_explorer": "https://etherscan.io/tx/{tx}",
+        //                    "is_multichain": true,
+        //                    "asset_id": {
+        //                        "contract_address": "0x1b2a76da77d03b7fc21189d9838f55bd849014af"
+        //                    }
+        //                }
+        //            ]
+        //        },
+        //    }
         //
         const result = {};
         const currencies = Object.keys(response);
@@ -948,50 +965,22 @@ class hitbtc extends hitbtc$1 {
             const currencyId = currencies[i];
             const code = this.safeCurrencyCode(currencyId);
             const entry = response[currencyId];
-            const name = this.safeString(entry, 'full_name');
-            const precision = this.safeNumber(entry, 'precision_transfer');
-            const payinEnabled = this.safeBool(entry, 'payin_enabled', false);
-            const payoutEnabled = this.safeBool(entry, 'payout_enabled', false);
-            const transferEnabled = this.safeBool(entry, 'transfer_enabled', false);
-            const active = payinEnabled && payoutEnabled && transferEnabled;
-            const rawNetworks = this.safeValue(entry, 'networks', []);
-            const isCrypto = this.safeBool(entry, 'crypto');
-            const type = isCrypto ? 'crypto' : 'fiat';
+            const rawNetworks = this.safeList(entry, 'networks', []);
             const networks = {};
-            let fee = undefined;
-            let depositEnabled = undefined;
-            let withdrawEnabled = undefined;
             for (let j = 0; j < rawNetworks.length; j++) {
                 const rawNetwork = rawNetworks[j];
                 const networkId = this.safeString2(rawNetwork, 'protocol', 'network');
                 let networkCode = this.networkIdToCode(networkId);
-                networkCode = (networkCode !== undefined) ? networkCode.toUpperCase() : undefined;
-                fee = this.safeNumber(rawNetwork, 'payout_fee');
-                const networkPrecision = this.safeNumber(rawNetwork, 'precision_payout');
-                const payinEnabledNetwork = this.safeBool(rawNetwork, 'payin_enabled', false);
-                const payoutEnabledNetwork = this.safeBool(rawNetwork, 'payout_enabled', false);
-                const activeNetwork = payinEnabledNetwork && payoutEnabledNetwork;
-                if (payinEnabledNetwork && !depositEnabled) {
-                    depositEnabled = true;
-                }
-                else if (!payinEnabledNetwork) {
-                    depositEnabled = false;
-                }
-                if (payoutEnabledNetwork && !withdrawEnabled) {
-                    withdrawEnabled = true;
-                }
-                else if (!payoutEnabledNetwork) {
-                    withdrawEnabled = false;
-                }
+                networkCode = (networkCode !== undefined) ? networkCode.toUpperCase() : code; // as hitbtc is white label, ensure we safeguard from possible bugs
                 networks[networkCode] = {
                     'info': rawNetwork,
                     'id': networkId,
                     'network': networkCode,
-                    'fee': fee,
-                    'active': activeNetwork,
-                    'deposit': payinEnabledNetwork,
-                    'withdraw': payoutEnabledNetwork,
-                    'precision': networkPrecision,
+                    'active': undefined,
+                    'fee': this.safeNumber(rawNetwork, 'payout_fee'),
+                    'deposit': this.safeBool(rawNetwork, 'payin_enabled'),
+                    'withdraw': this.safeBool(rawNetwork, 'payout_enabled'),
+                    'precision': this.safeNumber(rawNetwork, 'precision_payout'),
                     'limits': {
                         'withdraw': {
                             'min': undefined,
@@ -1000,27 +989,25 @@ class hitbtc extends hitbtc$1 {
                     },
                 };
             }
-            const networksKeys = Object.keys(networks);
-            const networksLength = networksKeys.length;
-            result[code] = {
+            result[code] = this.safeCurrencyStructure({
                 'info': entry,
                 'code': code,
                 'id': currencyId,
-                'precision': precision,
-                'name': name,
-                'active': active,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
+                'precision': this.safeNumber(entry, 'precision_transfer'),
+                'name': this.safeString(entry, 'full_name'),
+                'active': !this.safeBool(entry, 'delisted'),
+                'deposit': this.safeBool(entry, 'payin_enabled'),
+                'withdraw': this.safeBool(entry, 'payout_enabled'),
                 'networks': networks,
-                'fee': (networksLength <= 1) ? fee : undefined,
+                'fee': undefined,
                 'limits': {
                     'amount': {
                         'min': undefined,
                         'max': undefined,
                     },
                 },
-                'type': type,
-            };
+                'type': undefined, // 'crypto' field emits incorrect values
+            });
         }
         return result;
     }

@@ -929,29 +929,46 @@ class hitbtc(Exchange, ImplicitAPI):
         """
         response = self.publicGetPublicCurrency(params)
         #
-        #     {
-        #       "WEALTH": {
-        #         "full_name": "ConnectWealth",
-        #         "payin_enabled": False,
-        #         "payout_enabled": False,
-        #         "transfer_enabled": True,
-        #         "precision_transfer": "0.001",
-        #         "networks": [
-        #           {
-        #             "network": "ETH",
-        #             "protocol": "ERC20",
-        #             "default": True,
-        #             "payin_enabled": False,
-        #             "payout_enabled": False,
-        #             "precision_payout": "0.001",
-        #             "payout_fee": "0.016800000000",
-        #             "payout_is_payment_id": False,
-        #             "payin_payment_id": False,
-        #             "payin_confirmations": "2"
-        #           }
-        #         ]
-        #       }
-        #     }
+        #    {
+        #        "DFC": {
+        #            "full_name": "DeFiScale",
+        #            "crypto": True,
+        #            "payin_enabled": False,
+        #            "payout_enabled": True,
+        #            "transfer_enabled": False,
+        #            "transfer_to_wallet_enabled": True,
+        #            "transfer_to_exchange_enabled": False,
+        #            "sign": "D",
+        #            "crypto_payment_id_name": "",
+        #            "crypto_explorer": "https://etherscan.io/tx/{tx}",
+        #            "precision_transfer": "0.00000001",
+        #            "delisted": False,
+        #            "networks": [
+        #                {
+        #                    "code": "ETH",
+        #                    "network_name": "Ethereum",
+        #                    "network": "ETH",
+        #                    "protocol": "ERC-20",
+        #                    "default": True,
+        #                    "is_ens_available": True,
+        #                    "payin_enabled": True,
+        #                    "payout_enabled": True,
+        #                    "precision_payout": "0.000000000000000001",
+        #                    "payout_fee": "277000.0000000000",
+        #                    "payout_is_payment_id": False,
+        #                    "payin_payment_id": False,
+        #                    "payin_confirmations": "2",
+        #                    "contract_address": "0x1b2a76da77d03b7fc21189d9838f55bd849014af",
+        #                    "crypto_payment_id_name": "",
+        #                    "crypto_explorer": "https://etherscan.io/tx/{tx}",
+        #                    "is_multichain": True,
+        #                    "asset_id": {
+        #                        "contract_address": "0x1b2a76da77d03b7fc21189d9838f55bd849014af"
+        #                    }
+        #                }
+        #            ]
+        #        },
+        #    }
         #
         result: dict = {}
         currencies = list(response.keys())
@@ -959,46 +976,22 @@ class hitbtc(Exchange, ImplicitAPI):
             currencyId = currencies[i]
             code = self.safe_currency_code(currencyId)
             entry = response[currencyId]
-            name = self.safe_string(entry, 'full_name')
-            precision = self.safe_number(entry, 'precision_transfer')
-            payinEnabled = self.safe_bool(entry, 'payin_enabled', False)
-            payoutEnabled = self.safe_bool(entry, 'payout_enabled', False)
-            transferEnabled = self.safe_bool(entry, 'transfer_enabled', False)
-            active = payinEnabled and payoutEnabled and transferEnabled
-            rawNetworks = self.safe_value(entry, 'networks', [])
-            isCrypto = self.safe_bool(entry, 'crypto')
-            type = 'crypto' if isCrypto else 'fiat'
+            rawNetworks = self.safe_list(entry, 'networks', [])
             networks: dict = {}
-            fee = None
-            depositEnabled = None
-            withdrawEnabled = None
             for j in range(0, len(rawNetworks)):
                 rawNetwork = rawNetworks[j]
                 networkId = self.safe_string_2(rawNetwork, 'protocol', 'network')
                 networkCode = self.network_id_to_code(networkId)
-                networkCode = networkCode.upper() if (networkCode is not None) else None
-                fee = self.safe_number(rawNetwork, 'payout_fee')
-                networkPrecision = self.safe_number(rawNetwork, 'precision_payout')
-                payinEnabledNetwork = self.safe_bool(rawNetwork, 'payin_enabled', False)
-                payoutEnabledNetwork = self.safe_bool(rawNetwork, 'payout_enabled', False)
-                activeNetwork = payinEnabledNetwork and payoutEnabledNetwork
-                if payinEnabledNetwork and not depositEnabled:
-                    depositEnabled = True
-                elif not payinEnabledNetwork:
-                    depositEnabled = False
-                if payoutEnabledNetwork and not withdrawEnabled:
-                    withdrawEnabled = True
-                elif not payoutEnabledNetwork:
-                    withdrawEnabled = False
+                networkCode = networkCode.upper() if (networkCode is not None) else code  # is white label, ensure we safeguard from possible bugs
                 networks[networkCode] = {
                     'info': rawNetwork,
                     'id': networkId,
                     'network': networkCode,
-                    'fee': fee,
-                    'active': activeNetwork,
-                    'deposit': payinEnabledNetwork,
-                    'withdraw': payoutEnabledNetwork,
-                    'precision': networkPrecision,
+                    'active': None,
+                    'fee': self.safe_number(rawNetwork, 'payout_fee'),
+                    'deposit': self.safe_bool(rawNetwork, 'payin_enabled'),
+                    'withdraw': self.safe_bool(rawNetwork, 'payout_enabled'),
+                    'precision': self.safe_number(rawNetwork, 'precision_payout'),
                     'limits': {
                         'withdraw': {
                             'min': None,
@@ -1006,27 +999,25 @@ class hitbtc(Exchange, ImplicitAPI):
                         },
                     },
                 }
-            networksKeys = list(networks.keys())
-            networksLength = len(networksKeys)
-            result[code] = {
+            result[code] = self.safe_currency_structure({
                 'info': entry,
                 'code': code,
                 'id': currencyId,
-                'precision': precision,
-                'name': name,
-                'active': active,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
+                'precision': self.safe_number(entry, 'precision_transfer'),
+                'name': self.safe_string(entry, 'full_name'),
+                'active': not self.safe_bool(entry, 'delisted'),
+                'deposit': self.safe_bool(entry, 'payin_enabled'),
+                'withdraw': self.safe_bool(entry, 'payout_enabled'),
                 'networks': networks,
-                'fee': fee if (networksLength <= 1) else None,
+                'fee': None,
                 'limits': {
                     'amount': {
                         'min': None,
                         'max': None,
                     },
                 },
-                'type': type,
-            }
+                'type': None,  # 'crypto' field emits incorrect values
+            })
         return result
 
     def create_deposit_address(self, code: str, params={}) -> DepositAddress:

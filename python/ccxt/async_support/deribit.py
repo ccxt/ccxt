@@ -640,18 +640,17 @@ class deribit(Exchange, ImplicitAPI):
         #      "testnet": True
         #    }
         #
-        data = self.safe_value(response, 'result', {})
+        data = self.safe_list(response, 'result', [])
         result: dict = {}
         for i in range(0, len(data)):
             currency = data[i]
             currencyId = self.safe_string(currency, 'currency')
             code = self.safe_currency_code(currencyId)
-            name = self.safe_string(currency, 'currency_long')
-            result[code] = {
+            result[code] = self.safe_currency_structure({
                 'info': currency,
                 'code': code,
                 'id': currencyId,
-                'name': name,
+                'name': self.safe_string(currency, 'currency_long'),
                 'active': None,
                 'deposit': None,
                 'withdraw': None,
@@ -673,7 +672,7 @@ class deribit(Exchange, ImplicitAPI):
                     },
                 },
                 'networks': None,
-            }
+            })
         return result
 
     def code_from_options(self, methodName, params={}):

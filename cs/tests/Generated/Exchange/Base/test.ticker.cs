@@ -49,16 +49,24 @@ public partial class testMainClass : BaseTest
         {
             market = exchange.market(symbolForMarket);
         }
-        testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, "open", "0");
-        testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, "high", "0");
-        testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, "low", "0");
-        testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, "close", "0");
-        testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, "ask", "0");
+        object exchangeHasIndexMarkets = exchange.safeBool(exchange.has, "index", false);
+        object isStandardMarket = (isTrue(!isEqual(market, null)) && isTrue(exchange.inArray(getValue(market, "type"), new List<object>() {"spot", "swap", "future", "option"})));
+        // only check "above zero" values if exchange is not supposed to have exotic index markets
+        object valuesShouldBePositive = isTrue(isStandardMarket) || isTrue((isTrue(isEqual(market, null)) && !isTrue(exchangeHasIndexMarkets)));
+        if (isTrue(valuesShouldBePositive))
+        {
+            testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, "open", "0");
+            testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, "high", "0");
+            testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, "low", "0");
+            testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, "close", "0");
+            testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, "ask", "0");
+            testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, "bid", "0");
+            testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, "average", "0");
+            testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, "vwap", "0");
+        }
+        // volume can not be negative
         testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, "askVolume", "0");
-        testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, "bid", "0");
         testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, "bidVolume", "0");
-        testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, "vwap", "0");
-        testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, "average", "0");
         testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, "baseVolume", "0");
         testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, "quoteVolume", "0");
         object lastString = exchange.safeString(entry, "last");
@@ -77,6 +85,7 @@ public partial class testMainClass : BaseTest
                 // to avoid abnormal long precision issues (like https://discord.com/channels/690203284119617602/1338828283902689280/1338846071278927912 )
                 object mPrecision = exchange.safeDict(market, "precision");
                 object amountPrecision = exchange.safeString(mPrecision, "amount");
+                object tolerance = "1.0001";
                 if (isTrue(!isEqual(amountPrecision, null)))
                 {
                     baseLow = Precise.stringMul(Precise.stringSub(baseVolume, amountPrecision), low);
@@ -84,9 +93,12 @@ public partial class testMainClass : BaseTest
                 } else
                 {
                     // if nothing found, as an exclusion, just add 0.001%
-                    baseLow = Precise.stringMul(Precise.stringMul(baseVolume, "1.0001"), low);
-                    baseHigh = Precise.stringMul(Precise.stringDiv(baseVolume, "1.0001"), high);
+                    baseLow = Precise.stringMul(Precise.stringDiv(baseVolume, tolerance), low);
+                    baseHigh = Precise.stringMul(Precise.stringMul(baseVolume, tolerance), high);
                 }
+                // because of exchange engines might not rounding numbers propertly, we add some tolerance of calculated 24hr high/low
+                baseLow = Precise.stringDiv(baseLow, tolerance);
+                baseHigh = Precise.stringMul(baseHigh, tolerance);
                 assert(Precise.stringGe(quoteVolume, baseLow), add("quoteVolume should be => baseVolume * low", logText));
                 assert(Precise.stringLe(quoteVolume, baseHigh), add("quoteVolume should be <= baseVolume * high", logText));
             }
@@ -99,7 +111,7 @@ public partial class testMainClass : BaseTest
             // assert (low !== undefined, 'vwap is defined, but low is not' + logText);
             // assert (vwap >= low && vwap <= high)
             // todo: calc compare
-            assert(Precise.stringGe(vwap, "0"), add("vwap is not greater than zero", logText));
+            assert(!isTrue(valuesShouldBePositive) || isTrue(Precise.stringGe(vwap, "0")), add("vwap is not greater than zero", logText));
             if (isTrue(!isEqual(baseVolume, null)))
             {
                 assert(!isEqual(quoteVolume, null), add("baseVolume & vwap is defined, but quoteVolume is not", logText));

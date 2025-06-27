@@ -677,8 +677,9 @@ class exmo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
+        $promises = array();
         //
-        $currencyList = $this->publicGetCurrencyListExtended ($params);
+        $promises[] = $this->publicGetCurrencyListExtended ($params);
         //
         //     array(
         //         array("name":"VLX","description":"Velas"),
@@ -687,7 +688,7 @@ class exmo extends Exchange {
         //         array("name":"USD","description":"US Dollar")
         //     )
         //
-        $cryptoList = $this->publicGetPaymentsProvidersCryptoList ($params);
+        $promises[] = $this->publicGetPaymentsProvidersCryptoList ($params);
         //
         //     {
         //         "BTC":array(
@@ -712,6 +713,9 @@ class exmo extends Exchange {
         //         ),
         //     }
         //
+        $responses = $promises;
+        $currencyList = $responses[0];
+        $cryptoList = $responses[1];
         $result = array();
         for ($i = 0; $i < count($currencyList); $i++) {
             $currency = $currencyList[$i];
@@ -774,6 +778,10 @@ class exmo extends Exchange {
                 }
             }
             $code = $this->safe_currency_code($currencyId);
+            $info = array(
+                'currency' => $currency,
+                'providers' => $providers,
+            );
             $result[$code] = array(
                 'id' => $currencyId,
                 'code' => $code,
@@ -785,7 +793,7 @@ class exmo extends Exchange {
                 'fee' => $fee,
                 'precision' => $this->parse_number('1e-8'),
                 'limits' => $limits,
-                'info' => $providers,
+                'info' => $info,
                 'networks' => array(),
             );
         }
@@ -801,7 +809,8 @@ class exmo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing $market data
          */
-        $response = $this->publicGetPairSettings ($params);
+        $promises = array();
+        $promises[] = $this->publicGetPairSettings ($params);
         //
         //     {
         //         "BTC_USD":array(
@@ -818,8 +827,9 @@ class exmo extends Exchange {
         //     }
         //
         $marginPairsDict = array();
-        if ($this->check_required_credentials(false)) {
-            $marginPairs = $this->privatePostMarginPairList ($params);
+        $fetchMargin = $this->check_required_credentials(false);
+        if ($fetchMargin) {
+            $promises[] = $this->privatePostMarginPairList ($params);
             //
             //    {
             //        "pairs" => array(
@@ -849,15 +859,20 @@ class exmo extends Exchange {
             //        )
             //    }
             //
-            $pairs = $this->safe_value($marginPairs, 'pairs');
+        }
+        $responses = $promises;
+        $spotResponse = $responses[0];
+        if ($fetchMargin) {
+            $marginPairs = $responses[1];
+            $pairs = $this->safe_list($marginPairs, 'pairs');
             $marginPairsDict = $this->index_by($pairs, 'name');
         }
-        $keys = is_array($response) ? array_keys($response) : array();
+        $keys = is_array($spotResponse) ? array_keys($spotResponse) : array();
         $result = array();
         for ($i = 0; $i < count($keys); $i++) {
             $id = $keys[$i];
-            $market = $response[$id];
-            $marginMarket = $this->safe_value($marginPairsDict, $id);
+            $market = $spotResponse[$id];
+            $marginMarket = $this->safe_dict($marginPairsDict, $id);
             $symbol = str_replace('_', '/', $id);
             list($baseId, $quoteId) = explode('/', $symbol);
             $base = $this->safe_currency_code($baseId);

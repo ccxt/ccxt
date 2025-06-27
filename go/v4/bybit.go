@@ -2413,17 +2413,11 @@ func  (this *bybit) FetchTicker(symbol interface{}, optionalArgs ...interface{})
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
             }
-            if IsTrue(GetValue(market, "spot")) {
-                AddElementToObject(request, "category", "spot")
-            } else {
-                if IsTrue(GetValue(market, "option")) {
-                    AddElementToObject(request, "category", "option")
-                } else if IsTrue(GetValue(market, "linear")) {
-                    AddElementToObject(request, "category", "linear")
-                } else if IsTrue(GetValue(market, "inverse")) {
-                    AddElementToObject(request, "category", "inverse")
-                }
-            }
+            var category interface{} = nil
+            categoryparamsVariable := this.GetBybitType("fetchTicker", market, params);
+            category = GetValue(categoryparamsVariable,0);
+            params = GetValue(categoryparamsVariable,1)
+            AddElementToObject(request, "category", category)
         
             response:= (<-this.PublicGetV5MarketTickers(this.Extend(request, params)))
             PanicOnError(response)
@@ -2496,8 +2490,8 @@ func  (this *bybit) FetchTickers(optionalArgs ...interface{}) <- chan interface{
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes24218 := (<-this.LoadMarkets())
-            PanicOnError(retRes24218)
+            retRes24138 := (<-this.LoadMarkets())
+            PanicOnError(retRes24138)
             var code interface{} = this.SafeStringN(params, []interface{}{"code", "currency", "baseCoin"})
             var market interface{} = nil
             var parsedSymbols interface{} = nil
@@ -2535,29 +2529,17 @@ func  (this *bybit) FetchTickers(optionalArgs ...interface{}) <- chan interface{
                 }
             }
             var request interface{} = map[string]interface{} {}
-            var typeVar interface{} = nil
-            typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchTickers", market, params);
-            typeVar = GetValue(typeVarparamsVariable,0);
-            params = GetValue(typeVarparamsVariable,1)
-            // Calls like `.fetchTickers (undefined, {subType:'inverse'})` should be supported for this exchange, so
-            // as "options.defaultSubType" is also set in exchange options, we should consider `params.subType`
-            // with higher priority and only default to spot, if `subType` is not set in params
-            var passedSubType interface{} = this.SafeString(params, "subType")
-            var subType interface{} = nil
-            subTypeparamsVariable := this.HandleSubTypeAndParams("fetchTickers", market, params, "linear");
-            subType = GetValue(subTypeparamsVariable,0);
-            params = GetValue(subTypeparamsVariable,1)
-            // only if passedSubType is undefined, then use spot
-            if IsTrue(IsTrue(IsEqual(typeVar, "spot")) && IsTrue(IsEqual(passedSubType, nil))) {
-                AddElementToObject(request, "category", "spot")
-            } else if IsTrue(IsEqual(typeVar, "option")) {
+            var category interface{} = nil
+            categoryparamsVariable := this.GetBybitType("fetchTickers", market, params);
+            category = GetValue(categoryparamsVariable,0);
+            params = GetValue(categoryparamsVariable,1)
+            AddElementToObject(request, "category", category)
+            if IsTrue(IsEqual(category, "option")) {
                 AddElementToObject(request, "category", "option")
                 if IsTrue(IsEqual(code, nil)) {
                     code = "BTC"
                 }
                 AddElementToObject(request, "baseCoin", code)
-            } else if IsTrue(IsTrue(IsTrue(IsEqual(typeVar, "swap")) || IsTrue(IsEqual(typeVar, "future"))) || IsTrue(!IsEqual(subType, nil))) {
-                AddElementToObject(request, "category", subType)
             }
         
             response:= (<-this.PublicGetV5MarketTickers(this.Extend(request, params)))
@@ -2630,9 +2612,9 @@ func  (this *bybit) FetchBidsAsks(optionalArgs ...interface{}) <- chan interface
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-                retRes253915 :=  (<-this.FetchTickers(symbols, params))
-                PanicOnError(retRes253915)
-                ch <- retRes253915
+                retRes252115 :=  (<-this.FetchTickers(symbols, params))
+                PanicOnError(retRes252115)
+                ch <- retRes252115
                 return nil
         
             }()
@@ -2689,17 +2671,17 @@ func  (this *bybit) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) 
                 panic(ArgumentsRequired(Add(this.Id, " fetchOHLCV() requires a symbol argument")))
             }
         
-            retRes25868 := (<-this.LoadMarkets())
-            PanicOnError(retRes25868)
+            retRes25688 := (<-this.LoadMarkets())
+            PanicOnError(retRes25688)
             var paginate interface{} = false
             paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate");
             paginate = GetValue(paginateparamsVariable,0);
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
         
-                    retRes259019 :=  (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
-                    PanicOnError(retRes259019)
-                    ch <- retRes259019
+                    retRes257219 :=  (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
+                    PanicOnError(retRes257219)
+                    ch <- retRes257219
                     return nil
             }
             var market interface{} = this.Market(symbol)
@@ -2886,8 +2868,8 @@ func  (this *bybit) FetchFundingRates(optionalArgs ...interface{}) <- chan inter
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes27508 := (<-this.LoadMarkets())
-            PanicOnError(retRes27508)
+            retRes27328 := (<-this.LoadMarkets())
+            PanicOnError(retRes27328)
             var market interface{} = nil
             var request interface{} = map[string]interface{} {}
             if IsTrue(!IsEqual(symbols, nil)) {
@@ -2993,17 +2975,17 @@ func  (this *bybit) FetchFundingRateHistory(optionalArgs ...interface{}) <- chan
                 panic(ArgumentsRequired(Add(this.Id, " fetchFundingRateHistory() requires a symbol argument")))
             }
         
-            retRes28338 := (<-this.LoadMarkets())
-            PanicOnError(retRes28338)
+            retRes28158 := (<-this.LoadMarkets())
+            PanicOnError(retRes28158)
             var paginate interface{} = false
             paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate");
             paginate = GetValue(paginateparamsVariable,0);
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
         
-                    retRes283719 :=  (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params, 200))
-                    PanicOnError(retRes283719)
-                    ch <- retRes283719
+                    retRes281919 :=  (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params, 200))
+                    PanicOnError(retRes281919)
+                    ch <- retRes281919
                     return nil
             }
             if IsTrue(IsEqual(limit, nil)) {
@@ -3295,8 +3277,8 @@ func  (this *bybit) FetchTrades(symbol interface{}, optionalArgs ...interface{})
                 panic(ArgumentsRequired(Add(this.Id, " fetchTrades() requires a symbol argument")))
             }
         
-            retRes31128 := (<-this.LoadMarkets())
-            PanicOnError(retRes31128)
+            retRes30948 := (<-this.LoadMarkets())
+            PanicOnError(retRes30948)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -3368,8 +3350,8 @@ func  (this *bybit) FetchOrderBook(symbol interface{}, optionalArgs ...interface
                 panic(ArgumentsRequired(Add(this.Id, " fetchOrderBook() requires a symbol argument")))
             }
         
-            retRes31698 := (<-this.LoadMarkets())
-            PanicOnError(retRes31698)
+            retRes31518 := (<-this.LoadMarkets())
+            PanicOnError(retRes31518)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -3615,8 +3597,8 @@ func  (this *bybit) FetchBalance(optionalArgs ...interface{}) <- chan interface{
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes34038 := (<-this.LoadMarkets())
-            PanicOnError(retRes34038)
+            retRes33858 := (<-this.LoadMarkets())
+            PanicOnError(retRes33858)
             var request interface{} = map[string]interface{} {}
             enableUnifiedMarginenableUnifiedAccountVariable := (<-this.IsUnifiedEnabled());
             enableUnifiedMargin := GetValue(enableUnifiedMarginenableUnifiedAccountVariable,0);
@@ -4070,16 +4052,19 @@ func  (this *bybit) CreateMarketBuyOrderWithCost(symbol interface{}, cost interf
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes38368 := (<-this.LoadMarkets())
-            PanicOnError(retRes38368)
+            retRes38188 := (<-this.LoadMarkets())
+            PanicOnError(retRes38188)
             var market interface{} = this.Market(symbol)
             if !IsTrue(GetValue(market, "spot")) {
                 panic(NotSupported(Add(this.Id, " createMarketBuyOrderWithCost() supports spot orders only")))
             }
+            var req interface{} = map[string]interface{} {
+                "cost": cost,
+            }
         
-                retRes384115 :=  (<-this.CreateOrder(symbol, "market", "buy", cost, 1, params))
-                PanicOnError(retRes384115)
-                ch <- retRes384115
+                retRes382615 :=  (<-this.CreateOrder(symbol, "market", "buy", OpNeg(1), nil, this.Extend(req, params)))
+                PanicOnError(retRes382615)
+                ch <- retRes382615
                 return nil
         
             }()
@@ -4103,8 +4088,8 @@ func  (this *bybit) CreateMarketSellOrderWithCost(symbol interface{}, cost inter
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes38558 := (<-this.LoadMarkets())
-            PanicOnError(retRes38558)
+            retRes38408 := (<-this.LoadMarkets())
+            PanicOnError(retRes38408)
         
             types:= (<-this.IsUnifiedEnabled())
             PanicOnError(types)
@@ -4116,10 +4101,13 @@ func  (this *bybit) CreateMarketSellOrderWithCost(symbol interface{}, cost inter
             if !IsTrue(GetValue(market, "spot")) {
                 panic(NotSupported(Add(this.Id, " createMarketSellOrderWithCost() supports spot orders only")))
             }
+            var req interface{} = map[string]interface{} {
+                "cost": cost,
+            }
         
-                retRes386515 :=  (<-this.CreateOrder(symbol, "market", "sell", cost, 1, params))
-                PanicOnError(retRes386515)
-                ch <- retRes386515
+                retRes385315 :=  (<-this.CreateOrder(symbol, "market", "sell", OpNeg(1), nil, this.Extend(req, params)))
+                PanicOnError(retRes385315)
+                ch <- retRes385315
                 return nil
         
             }()
@@ -4167,8 +4155,8 @@ func  (this *bybit) CreateOrder(symbol interface{}, typeVar interface{}, side in
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes39018 := (<-this.LoadMarkets())
-            PanicOnError(retRes39018)
+            retRes38898 := (<-this.LoadMarkets())
+            PanicOnError(retRes38898)
             var market interface{} = this.Market(symbol)
         
             parts:= (<-this.IsUnifiedEnabled())
@@ -4327,15 +4315,11 @@ func  (this *bybit) CreateOrderRequest(symbol interface{}, typeVar interface{}, 
             AddElementToObject(request, "price", priceString)
         }
     }
-    if IsTrue(GetValue(market, "spot")) {
-        AddElementToObject(request, "category", "spot")
-    } else if IsTrue(GetValue(market, "option")) {
-        AddElementToObject(request, "category", "option")
-    } else if IsTrue(GetValue(market, "linear")) {
-        AddElementToObject(request, "category", "linear")
-    } else if IsTrue(GetValue(market, "inverse")) {
-        AddElementToObject(request, "category", "inverse")
-    }
+    var category interface{} = nil
+    categoryparamsVariable := this.GetBybitType("createOrderRequest", market, params);
+    category = GetValue(categoryparamsVariable,0);
+    params = GetValue(categoryparamsVariable,1)
+    AddElementToObject(request, "category", category)
     var cost interface{} = this.SafeString(params, "cost")
     params = this.Omit(params, "cost")
     // if the cost is inferable, let's keep the old logic and ignore marketUnit, to minimize the impact of the changes
@@ -4367,7 +4351,7 @@ func  (this *bybit) CreateOrderRequest(symbol interface{}, typeVar interface{}, 
             if IsTrue(IsTrue((IsEqual(price, nil))) && IsTrue((IsEqual(cost, nil)))) {
                 panic(InvalidOrder(Add(this.Id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")))
             } else {
-                var quoteAmount interface{} = Precise.StringMul(amountString, priceString)
+                var quoteAmount interface{} = Precise.StringMul(this.NumberToString(amount), priceString)
                 var costRequest interface{} = Ternary(IsTrue((!IsEqual(cost, nil))), cost, quoteAmount)
                 AddElementToObject(request, "qty", this.GetCost(symbol, costRequest))
             }
@@ -4464,8 +4448,8 @@ func  (this *bybit) CreateOrders(orders interface{}, optionalArgs ...interface{}
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes41898 := (<-this.LoadMarkets())
-            PanicOnError(retRes41898)
+            retRes41718 := (<-this.LoadMarkets())
+            PanicOnError(retRes41718)
         
             accounts:= (<-this.IsUnifiedEnabled())
             PanicOnError(accounts)
@@ -4570,15 +4554,11 @@ func  (this *bybit) EditOrderRequest(id interface{}, symbol interface{}, typeVar
         "symbol": GetValue(market, "id"),
         "orderId": id,
     }
-    if IsTrue(GetValue(market, "spot")) {
-        AddElementToObject(request, "category", "spot")
-    } else if IsTrue(GetValue(market, "linear")) {
-        AddElementToObject(request, "category", "linear")
-    } else if IsTrue(GetValue(market, "inverse")) {
-        AddElementToObject(request, "category", "inverse")
-    } else if IsTrue(GetValue(market, "option")) {
-        AddElementToObject(request, "category", "option")
-    }
+    var category interface{} = nil
+    categoryparamsVariable := this.GetBybitType("editOrderRequest", market, params);
+    category = GetValue(categoryparamsVariable,0);
+    params = GetValue(categoryparamsVariable,1)
+    AddElementToObject(request, "category", category)
     if IsTrue(!IsEqual(amount, nil)) {
         AddElementToObject(request, "qty", this.GetAmount(symbol, amount))
     }
@@ -4664,8 +4644,8 @@ func  (this *bybit) EditOrder(id interface{}, symbol interface{}, typeVar interf
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes43718 := (<-this.LoadMarkets())
-            PanicOnError(retRes43718)
+            retRes43478 := (<-this.LoadMarkets())
+            PanicOnError(retRes43478)
             if IsTrue(IsEqual(symbol, nil)) {
                 panic(ArgumentsRequired(Add(this.Id, " editOrder() requires a symbol argument")))
             }
@@ -4713,8 +4693,8 @@ func  (this *bybit) EditOrders(orders interface{}, optionalArgs ...interface{}) 
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes44068 := (<-this.LoadMarkets())
-            PanicOnError(retRes44068)
+            retRes43828 := (<-this.LoadMarkets())
+            PanicOnError(retRes43828)
             var ordersRequests interface{} = []interface{}{}
             var orderSymbols interface{} = []interface{}{}
             for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
@@ -4820,15 +4800,11 @@ func  (this *bybit) CancelOrderRequest(id interface{}, optionalArgs ...interface
     if IsTrue(!IsEqual(id, nil)) {
         AddElementToObject(request, "orderId", id)
     }
-    if IsTrue(GetValue(market, "spot")) {
-        AddElementToObject(request, "category", "spot")
-    } else if IsTrue(GetValue(market, "linear")) {
-        AddElementToObject(request, "category", "linear")
-    } else if IsTrue(GetValue(market, "inverse")) {
-        AddElementToObject(request, "category", "inverse")
-    } else if IsTrue(GetValue(market, "option")) {
-        AddElementToObject(request, "category", "option")
-    }
+    var category interface{} = nil
+    categoryparamsVariable := this.GetBybitType("cancelOrderRequest", market, params);
+    category = GetValue(categoryparamsVariable,0);
+    params = GetValue(categoryparamsVariable,1)
+    AddElementToObject(request, "category", category)
     return this.Extend(request, params)
 }
 /**
@@ -4857,8 +4833,8 @@ func  (this *bybit) CancelOrder(id interface{}, optionalArgs ...interface{}) <- 
                 panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
             }
         
-            retRes45338 := (<-this.LoadMarkets())
-            PanicOnError(retRes45338)
+            retRes45038 := (<-this.LoadMarkets())
+            PanicOnError(retRes45038)
             var market interface{} = this.Market(symbol)
             var requestExtended interface{} = this.CancelOrderRequest(id, symbol, params)
         
@@ -4908,8 +4884,8 @@ func  (this *bybit) CancelOrders(ids interface{}, optionalArgs ...interface{}) <
                 panic(ArgumentsRequired(Add(this.Id, " cancelOrders() requires a symbol argument")))
             }
         
-            retRes45688 := (<-this.LoadMarkets())
-            PanicOnError(retRes45688)
+            retRes45388 := (<-this.LoadMarkets())
+            PanicOnError(retRes45388)
             var market interface{} = this.Market(symbol)
         
             types:= (<-this.IsUnifiedEnabled())
@@ -5009,8 +4985,8 @@ func  (this *bybit) CancelAllOrdersAfter(timeout interface{}, optionalArgs ...in
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes46518 := (<-this.LoadMarkets())
-            PanicOnError(retRes46518)
+            retRes46218 := (<-this.LoadMarkets())
+            PanicOnError(retRes46218)
             var request interface{} = map[string]interface{} {
                 "timeWindow": this.ParseToInt(Divide(timeout, 1000)),
             }
@@ -5058,8 +5034,8 @@ func  (this *bybit) CancelOrdersForSymbols(orders interface{}, optionalArgs ...i
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes46848 := (<-this.LoadMarkets())
-            PanicOnError(retRes46848)
+            retRes46548 := (<-this.LoadMarkets())
+            PanicOnError(retRes46548)
         
             types:= (<-this.IsUnifiedEnabled())
             PanicOnError(types)
@@ -5172,8 +5148,8 @@ func  (this *bybit) CancelAllOrders(optionalArgs ...interface{}) <- chan interfa
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes47788 := (<-this.LoadMarkets())
-            PanicOnError(retRes47788)
+            retRes47488 := (<-this.LoadMarkets())
+            PanicOnError(retRes47488)
             enableUnifiedMarginenableUnifiedAccountVariable := (<-this.IsUnifiedEnabled());
             enableUnifiedMargin := GetValue(enableUnifiedMarginenableUnifiedAccountVariable,0);
             enableUnifiedAccount := GetValue(enableUnifiedMarginenableUnifiedAccountVariable,1)
@@ -5272,8 +5248,8 @@ func  (this *bybit) FetchOrderClassic(id interface{}, optionalArgs ...interface{
                 panic(ArgumentsRequired(Add(this.Id, " fetchOrder() requires a symbol argument")))
             }
         
-            retRes48568 := (<-this.LoadMarkets())
-            PanicOnError(retRes48568)
+            retRes48268 := (<-this.LoadMarkets())
+            PanicOnError(retRes48268)
             var market interface{} = this.Market(symbol)
             if IsTrue(GetValue(market, "spot")) {
                 panic(NotSupported(Add(this.Id, " fetchOrder() is not supported for spot markets")))
@@ -5321,17 +5297,17 @@ func  (this *bybit) FetchOrder(id interface{}, optionalArgs ...interface{}) <- c
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes48898 := (<-this.LoadMarkets())
-            PanicOnError(retRes48898)
+            retRes48598 := (<-this.LoadMarkets())
+            PanicOnError(retRes48598)
             enableUnifiedMarginenableUnifiedAccountVariable := (<-this.IsUnifiedEnabled());
             enableUnifiedMargin := GetValue(enableUnifiedMarginenableUnifiedAccountVariable,0);
             enableUnifiedAccount := GetValue(enableUnifiedMarginenableUnifiedAccountVariable,1)
             var isUnifiedAccount interface{} =     (IsTrue(enableUnifiedMargin) || IsTrue(enableUnifiedAccount))
             if !IsTrue(isUnifiedAccount) {
         
-                    retRes489319 :=  (<-this.FetchOrderClassic(id, symbol, params))
-                    PanicOnError(retRes489319)
-                    ch <- retRes489319
+                    retRes486319 :=  (<-this.FetchOrderClassic(id, symbol, params))
+                    PanicOnError(retRes486319)
+                    ch <- retRes486319
                     return nil
             }
             var acknowledge interface{} = false
@@ -5463,9 +5439,9 @@ func  (this *bybit) FetchOrders(optionalArgs ...interface{}) <- chan interface{}
                 panic(NotSupported(Add(this.Id, " fetchOrders() is not supported after the 5/02 update for UTA accounts, please use fetchOpenOrders, fetchClosedOrders or fetchCanceledOrders")))
             }
         
-                retRes499715 :=  (<-this.FetchOrdersClassic(symbol, since, limit, params))
-                PanicOnError(retRes499715)
-                ch <- retRes499715
+                retRes496715 :=  (<-this.FetchOrdersClassic(symbol, since, limit, params))
+                PanicOnError(retRes496715)
+                ch <- retRes496715
                 return nil
         
             }()
@@ -5503,17 +5479,17 @@ func  (this *bybit) FetchOrdersClassic(optionalArgs ...interface{}) <- chan inte
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes50198 := (<-this.LoadMarkets())
-            PanicOnError(retRes50198)
+            retRes49898 := (<-this.LoadMarkets())
+            PanicOnError(retRes49898)
             var paginate interface{} = false
             paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "paginate");
             paginate = GetValue(paginateparamsVariable,0);
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
         
-                    retRes502319 :=  (<-this.FetchPaginatedCallCursor("fetchOrders", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 50))
-                    PanicOnError(retRes502319)
-                    ch <- retRes502319
+                    retRes499319 :=  (<-this.FetchPaginatedCallCursor("fetchOrders", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 50))
+                    PanicOnError(retRes499319)
+                    ch <- retRes499319
                     return nil
             }
             var request interface{} = map[string]interface{} {}
@@ -5633,8 +5609,8 @@ func  (this *bybit) FetchClosedOrder(id interface{}, optionalArgs ...interface{}
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes51258 := (<-this.LoadMarkets())
-            PanicOnError(retRes51258)
+            retRes50958 := (<-this.LoadMarkets())
+            PanicOnError(retRes50958)
             var request interface{} = map[string]interface{} {
                 "orderId": id,
             }
@@ -5684,8 +5660,8 @@ func  (this *bybit) FetchOpenOrder(id interface{}, optionalArgs ...interface{}) 
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes51608 := (<-this.LoadMarkets())
-            PanicOnError(retRes51608)
+            retRes51308 := (<-this.LoadMarkets())
+            PanicOnError(retRes51308)
             var request interface{} = map[string]interface{} {
                 "orderId": id,
             }
@@ -5740,17 +5716,17 @@ func  (this *bybit) FetchCanceledAndClosedOrders(optionalArgs ...interface{}) <-
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes51968 := (<-this.LoadMarkets())
-            PanicOnError(retRes51968)
+            retRes51668 := (<-this.LoadMarkets())
+            PanicOnError(retRes51668)
             var paginate interface{} = false
             paginateparamsVariable := this.HandleOptionAndParams(params, "fetchCanceledAndClosedOrders", "paginate");
             paginate = GetValue(paginateparamsVariable,0);
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
         
-                    retRes520019 :=  (<-this.FetchPaginatedCallCursor("fetchCanceledAndClosedOrders", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 50))
-                    PanicOnError(retRes520019)
-                    ch <- retRes520019
+                    retRes517019 :=  (<-this.FetchPaginatedCallCursor("fetchCanceledAndClosedOrders", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 50))
+                    PanicOnError(retRes517019)
+                    ch <- retRes517019
                     return nil
             }
             var request interface{} = map[string]interface{} {}
@@ -5874,15 +5850,15 @@ func  (this *bybit) FetchClosedOrders(optionalArgs ...interface{}) <- chan inter
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes53028 := (<-this.LoadMarkets())
-            PanicOnError(retRes53028)
+            retRes52728 := (<-this.LoadMarkets())
+            PanicOnError(retRes52728)
             var request interface{} = map[string]interface{} {
                 "orderStatus": "Filled",
             }
         
-                retRes530615 :=  (<-this.FetchCanceledAndClosedOrders(symbol, since, limit, this.Extend(request, params)))
-                PanicOnError(retRes530615)
-                ch <- retRes530615
+                retRes527615 :=  (<-this.FetchCanceledAndClosedOrders(symbol, since, limit, this.Extend(request, params)))
+                PanicOnError(retRes527615)
+                ch <- retRes527615
                 return nil
         
             }()
@@ -5920,15 +5896,15 @@ func  (this *bybit) FetchCanceledOrders(optionalArgs ...interface{}) <- chan int
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes53288 := (<-this.LoadMarkets())
-            PanicOnError(retRes53288)
+            retRes52988 := (<-this.LoadMarkets())
+            PanicOnError(retRes52988)
             var request interface{} = map[string]interface{} {
                 "orderStatus": "Cancelled",
             }
         
-                retRes533215 :=  (<-this.FetchCanceledAndClosedOrders(symbol, since, limit, this.Extend(request, params)))
-                PanicOnError(retRes533215)
-                ch <- retRes533215
+                retRes530215 :=  (<-this.FetchCanceledAndClosedOrders(symbol, since, limit, this.Extend(request, params)))
+                PanicOnError(retRes530215)
+                ch <- retRes530215
                 return nil
         
             }()
@@ -5967,17 +5943,17 @@ func  (this *bybit) FetchOpenOrders(optionalArgs ...interface{}) <- chan interfa
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes53558 := (<-this.LoadMarkets())
-            PanicOnError(retRes53558)
+            retRes53258 := (<-this.LoadMarkets())
+            PanicOnError(retRes53258)
             var paginate interface{} = false
             paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOpenOrders", "paginate");
             paginate = GetValue(paginateparamsVariable,0);
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
         
-                    retRes535919 :=  (<-this.FetchPaginatedCallCursor("fetchOpenOrders", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 50))
-                    PanicOnError(retRes535919)
-                    ch <- retRes535919
+                    retRes532919 :=  (<-this.FetchPaginatedCallCursor("fetchOpenOrders", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 50))
+                    PanicOnError(retRes532919)
+                    ch <- retRes532919
                     return nil
             }
             var request interface{} = map[string]interface{} {}
@@ -6101,9 +6077,9 @@ func  (this *bybit) FetchOrderTrades(id interface{}, optionalArgs ...interface{}
             }
             params = this.Omit(params, []interface{}{"clientOrderId", "orderLinkId"})
         
-                retRes546115 :=  (<-this.FetchMyTrades(symbol, since, limit, this.Extend(request, params)))
-                PanicOnError(retRes546115)
-                ch <- retRes546115
+                retRes543115 :=  (<-this.FetchMyTrades(symbol, since, limit, this.Extend(request, params)))
+                PanicOnError(retRes543115)
+                ch <- retRes543115
                 return nil
         
             }()
@@ -6137,17 +6113,17 @@ func  (this *bybit) FetchMyTrades(optionalArgs ...interface{}) <- chan interface
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes54798 := (<-this.LoadMarkets())
-            PanicOnError(retRes54798)
+            retRes54498 := (<-this.LoadMarkets())
+            PanicOnError(retRes54498)
             var paginate interface{} = false
             paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate");
             paginate = GetValue(paginateparamsVariable,0);
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
         
-                    retRes548319 :=  (<-this.FetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 100))
-                    PanicOnError(retRes548319)
-                    ch <- retRes548319
+                    retRes545319 :=  (<-this.FetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 100))
+                    PanicOnError(retRes545319)
+                    ch <- retRes545319
                     return nil
             }
             var request interface{} = map[string]interface{} {
@@ -6263,8 +6239,8 @@ func  (this *bybit) FetchDepositAddressesByNetwork(code interface{}, optionalArg
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes55808 := (<-this.LoadMarkets())
-            PanicOnError(retRes55808)
+            retRes55508 := (<-this.LoadMarkets())
+            PanicOnError(retRes55508)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "coin": GetValue(currency, "id"),
@@ -6329,8 +6305,8 @@ func  (this *bybit) FetchDepositAddress(code interface{}, optionalArgs ...interf
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes56308 := (<-this.LoadMarkets())
-            PanicOnError(retRes56308)
+            retRes56008 := (<-this.LoadMarkets())
+            PanicOnError(retRes56008)
             var currency interface{} = this.Currency(code)
             networkCodeparamsOmitedVariable := this.HandleNetworkCodeAndParams(params);
             networkCode := GetValue(networkCodeparamsOmitedVariable,0);
@@ -6375,17 +6351,17 @@ func  (this *bybit) FetchDeposits(optionalArgs ...interface{}) <- chan interface
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes56548 := (<-this.LoadMarkets())
-            PanicOnError(retRes56548)
+            retRes56248 := (<-this.LoadMarkets())
+            PanicOnError(retRes56248)
             var paginate interface{} = false
             paginateparamsVariable := this.HandleOptionAndParams(params, "fetchDeposits", "paginate");
             paginate = GetValue(paginateparamsVariable,0);
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
         
-                    retRes565819 :=  (<-this.FetchPaginatedCallCursor("fetchDeposits", code, since, limit, params, "nextPageCursor", "cursor", nil, 50))
-                    PanicOnError(retRes565819)
-                    ch <- retRes565819
+                    retRes562819 :=  (<-this.FetchPaginatedCallCursor("fetchDeposits", code, since, limit, params, "nextPageCursor", "cursor", nil, 50))
+                    PanicOnError(retRes562819)
+                    ch <- retRes562819
                     return nil
             }
             var request interface{} = map[string]interface{} {}
@@ -6468,17 +6444,17 @@ func  (this *bybit) FetchWithdrawals(optionalArgs ...interface{}) <- chan interf
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes57238 := (<-this.LoadMarkets())
-            PanicOnError(retRes57238)
+            retRes56938 := (<-this.LoadMarkets())
+            PanicOnError(retRes56938)
             var paginate interface{} = false
             paginateparamsVariable := this.HandleOptionAndParams(params, "fetchWithdrawals", "paginate");
             paginate = GetValue(paginateparamsVariable,0);
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
         
-                    retRes572719 :=  (<-this.FetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, params, "nextPageCursor", "cursor", nil, 50))
-                    PanicOnError(retRes572719)
-                    ch <- retRes572719
+                    retRes569719 :=  (<-this.FetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, params, "nextPageCursor", "cursor", nil, 50))
+                    PanicOnError(retRes569719)
+                    ch <- retRes569719
                     return nil
             }
             var request interface{} = map[string]interface{} {}
@@ -6674,17 +6650,17 @@ func  (this *bybit) FetchLedger(optionalArgs ...interface{}) <- chan interface{}
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes59078 := (<-this.LoadMarkets())
-            PanicOnError(retRes59078)
+            retRes58778 := (<-this.LoadMarkets())
+            PanicOnError(retRes58778)
             var paginate interface{} = false
             paginateparamsVariable := this.HandleOptionAndParams(params, "fetchLedger", "paginate");
             paginate = GetValue(paginateparamsVariable,0);
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
         
-                    retRes591119 :=  (<-this.FetchPaginatedCallCursor("fetchLedger", code, since, limit, params, "nextPageCursor", "cursor", nil, 50))
-                    PanicOnError(retRes591119)
-                    ch <- retRes591119
+                    retRes588119 :=  (<-this.FetchPaginatedCallCursor("fetchLedger", code, since, limit, params, "nextPageCursor", "cursor", nil, 50))
+                    PanicOnError(retRes588119)
+                    ch <- retRes588119
                     return nil
             }
             var request interface{} = map[string]interface{} {}
@@ -6974,8 +6950,8 @@ func  (this *bybit) Withdraw(code interface{}, amount interface{}, address inter
             accountType = GetValue(accountTypeparamsVariable,0);
             params = GetValue(accountTypeparamsVariable,1)
         
-            retRes61928 := (<-this.LoadMarkets())
-            PanicOnError(retRes61928)
+            retRes61628 := (<-this.LoadMarkets())
+            PanicOnError(retRes61628)
             this.CheckAddress(address)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
@@ -7037,8 +7013,8 @@ func  (this *bybit) FetchPosition(symbol interface{}, optionalArgs ...interface{
                 panic(ArgumentsRequired(Add(this.Id, " fetchPosition() requires a symbol argument")))
             }
         
-            retRes62398 := (<-this.LoadMarkets())
-            PanicOnError(retRes62398)
+            retRes62098 := (<-this.LoadMarkets())
+            PanicOnError(retRes62098)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -7130,17 +7106,17 @@ func  (this *bybit) FetchPositions(optionalArgs ...interface{}) <- chan interfac
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes63148 := (<-this.LoadMarkets())
-            PanicOnError(retRes63148)
+            retRes62848 := (<-this.LoadMarkets())
+            PanicOnError(retRes62848)
             var paginate interface{} = false
             paginateparamsVariable := this.HandleOptionAndParams(params, "fetchPositions", "paginate");
             paginate = GetValue(paginateparamsVariable,0);
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
         
-                    retRes631819 :=  (<-this.FetchPaginatedCallCursor("fetchPositions", symbols, nil, nil, params, "nextPageCursor", "cursor", nil, 200))
-                    PanicOnError(retRes631819)
-                    ch <- retRes631819
+                    retRes628819 :=  (<-this.FetchPaginatedCallCursor("fetchPositions", symbols, nil, nil, params, "nextPageCursor", "cursor", nil, 200))
+                    PanicOnError(retRes628819)
+                    ch <- retRes628819
                     return nil
             }
             var symbol interface{} = nil
@@ -7501,8 +7477,8 @@ func  (this *bybit) FetchLeverage(symbol interface{}, optionalArgs ...interface{
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes66628 := (<-this.LoadMarkets())
-            PanicOnError(retRes66628)
+            retRes66328 := (<-this.LoadMarkets())
+            PanicOnError(retRes66328)
             var market interface{} = this.Market(symbol)
         
             position:= (<-this.FetchPosition(symbol, params))
@@ -7549,8 +7525,8 @@ func  (this *bybit) SetMarginMode(marginMode interface{}, optionalArgs ...interf
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes66938 := (<-this.LoadMarkets())
-            PanicOnError(retRes66938)
+            retRes66638 := (<-this.LoadMarkets())
+            PanicOnError(retRes66638)
             enableUnifiedMarginenableUnifiedAccountVariable := (<-this.IsUnifiedEnabled());
             enableUnifiedMargin := GetValue(enableUnifiedMarginenableUnifiedAccountVariable,0);
             enableUnifiedAccount := GetValue(enableUnifiedMarginenableUnifiedAccountVariable,1)
@@ -7671,8 +7647,8 @@ func  (this *bybit) SetLeverage(leverage interface{}, optionalArgs ...interface{
                 panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
             }
         
-            retRes67918 := (<-this.LoadMarkets())
-            PanicOnError(retRes67918)
+            retRes67618 := (<-this.LoadMarkets())
+            PanicOnError(retRes67618)
             var market interface{} = this.Market(symbol)
             // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
             // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
@@ -7723,8 +7699,8 @@ func  (this *bybit) SetPositionMode(hedged interface{}, optionalArgs ...interfac
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes68278 := (<-this.LoadMarkets())
-            PanicOnError(retRes68278)
+            retRes67978 := (<-this.LoadMarkets())
+            PanicOnError(retRes67978)
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
@@ -7786,8 +7762,8 @@ func  (this *bybit) FetchDerivativesOpenInterestHistory(symbol interface{}, opti
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes68688 := (<-this.LoadMarkets())
-            PanicOnError(retRes68688)
+            retRes68388 := (<-this.LoadMarkets())
+            PanicOnError(retRes68388)
             var market interface{} = this.Market(symbol)
             var subType interface{} = Ternary(IsTrue(GetValue(market, "linear")), "linear", "inverse")
             var category interface{} = this.SafeString(params, "category", subType)
@@ -7868,8 +7844,8 @@ func  (this *bybit) FetchOpenInterest(symbol interface{}, optionalArgs ...interf
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes69368 := (<-this.LoadMarkets())
-            PanicOnError(retRes69368)
+            retRes69068 := (<-this.LoadMarkets())
+            PanicOnError(retRes69068)
             var market interface{} = this.Market(symbol)
             if !IsTrue(GetValue(market, "contract")) {
                 panic(BadRequest(Add(this.Id, " fetchOpenInterest() supports contract markets only")))
@@ -7954,16 +7930,16 @@ func  (this *bybit) FetchOpenInterestHistory(symbol interface{}, optionalArgs ..
                 panic(BadRequest(Add(this.Id, " fetchOpenInterestHistory cannot use the 1m timeframe")))
             }
         
-            retRes70028 := (<-this.LoadMarkets())
-            PanicOnError(retRes70028)
+            retRes69728 := (<-this.LoadMarkets())
+            PanicOnError(retRes69728)
             var paginate interface{} = this.SafeBool(params, "paginate")
             if IsTrue(paginate) {
                 params = this.Omit(params, "paginate")
                 AddElementToObject(params, "timeframe", timeframe)
         
-                    retRes700719 :=  (<-this.FetchPaginatedCallCursor("fetchOpenInterestHistory", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 200))
-                    PanicOnError(retRes700719)
-                    ch <- retRes700719
+                    retRes697719 :=  (<-this.FetchPaginatedCallCursor("fetchOpenInterestHistory", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 200))
+                    PanicOnError(retRes697719)
+                    ch <- retRes697719
                     return nil
             }
             var market interface{} = this.Market(symbol)
@@ -7977,9 +7953,9 @@ func  (this *bybit) FetchOpenInterestHistory(symbol interface{}, optionalArgs ..
                 AddElementToObject(request, "limit", limit)
             }
         
-                retRes701915 :=  (<-this.FetchDerivativesOpenInterestHistory(symbol, timeframe, since, limit, params))
-                PanicOnError(retRes701915)
-                ch <- retRes701915
+                retRes698915 :=  (<-this.FetchDerivativesOpenInterestHistory(symbol, timeframe, since, limit, params))
+                PanicOnError(retRes698915)
+                ch <- retRes698915
                 return nil
         
             }()
@@ -8025,8 +8001,8 @@ func  (this *bybit) FetchCrossBorrowRate(code interface{}, optionalArgs ...inter
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes70548 := (<-this.LoadMarkets())
-            PanicOnError(retRes70548)
+            retRes70248 := (<-this.LoadMarkets())
+            PanicOnError(retRes70248)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "coin": GetValue(currency, "id"),
@@ -8119,8 +8095,8 @@ func  (this *bybit) FetchBorrowInterest(optionalArgs ...interface{}) <- chan int
             params := GetArg(optionalArgs, 4, map[string]interface{} {})
             _ = params
         
-            retRes71258 := (<-this.LoadMarkets())
-            PanicOnError(retRes71258)
+            retRes70958 := (<-this.LoadMarkets())
+            PanicOnError(retRes70958)
             var request interface{} = map[string]interface{} {}
         
             response:= (<-this.PrivateGetV5SpotCrossMarginTradeAccount(this.Extend(request, params)))
@@ -8184,8 +8160,8 @@ func  (this *bybit) FetchBorrowRateHistory(code interface{}, optionalArgs ...int
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes71728 := (<-this.LoadMarkets())
-            PanicOnError(retRes71728)
+            retRes71428 := (<-this.LoadMarkets())
+            PanicOnError(retRes71428)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "currency": GetValue(currency, "id"),
@@ -8276,8 +8252,8 @@ func  (this *bybit) Transfer(code interface{}, amount interface{}, fromAccount i
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes72498 := (<-this.LoadMarkets())
-            PanicOnError(retRes72498)
+            retRes72198 := (<-this.LoadMarkets())
+            PanicOnError(retRes72198)
             var transferId interface{} = this.SafeString(params, "transferId", this.Uuid())
             var accountTypes interface{} = this.SafeDict(this.Options, "accountsByType", map[string]interface{} {})
             var fromId interface{} = this.SafeString(accountTypes, fromAccount, fromAccount)
@@ -8350,17 +8326,17 @@ func  (this *bybit) FetchTransfers(optionalArgs ...interface{}) <- chan interfac
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes73038 := (<-this.LoadMarkets())
-            PanicOnError(retRes73038)
+            retRes72738 := (<-this.LoadMarkets())
+            PanicOnError(retRes72738)
             var paginate interface{} = false
             paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTransfers", "paginate");
             paginate = GetValue(paginateparamsVariable,0);
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
         
-                    retRes730719 :=  (<-this.FetchPaginatedCallCursor("fetchTransfers", code, since, limit, params, "nextPageCursor", "cursor", nil, 50))
-                    PanicOnError(retRes730719)
-                    ch <- retRes730719
+                    retRes727719 :=  (<-this.FetchPaginatedCallCursor("fetchTransfers", code, since, limit, params, "nextPageCursor", "cursor", nil, 50))
+                    PanicOnError(retRes727719)
+                    ch <- retRes727719
                     return nil
             }
             var currency interface{} = nil
@@ -8429,8 +8405,8 @@ func  (this *bybit) BorrowCrossMargin(code interface{}, amount interface{}, opti
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes73608 := (<-this.LoadMarkets())
-            PanicOnError(retRes73608)
+            retRes73308 := (<-this.LoadMarkets())
+            PanicOnError(retRes73308)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "coin": GetValue(currency, "id"),
@@ -8480,8 +8456,8 @@ func  (this *bybit) RepayCrossMargin(code interface{}, amount interface{}, optio
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes73978 := (<-this.LoadMarkets())
-            PanicOnError(retRes73978)
+            retRes73678 := (<-this.LoadMarkets())
+            PanicOnError(retRes73678)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "coin": GetValue(currency, "id"),
@@ -8596,8 +8572,8 @@ func  (this *bybit) FetchDerivativesMarketLeverageTiers(symbol interface{}, opti
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes74988 := (<-this.LoadMarkets())
-            PanicOnError(retRes74988)
+            retRes74688 := (<-this.LoadMarkets())
+            PanicOnError(retRes74688)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -8659,8 +8635,8 @@ func  (this *bybit) FetchMarketLeverageTiers(symbol interface{}, optionalArgs ..
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes75478 := (<-this.LoadMarkets())
-            PanicOnError(retRes75478)
+            retRes75178 := (<-this.LoadMarkets())
+            PanicOnError(retRes75178)
             var request interface{} = map[string]interface{} {}
             var market interface{} = nil
             market = this.Market(symbol)
@@ -8669,9 +8645,9 @@ func  (this *bybit) FetchMarketLeverageTiers(symbol interface{}, optionalArgs ..
             }
             AddElementToObject(request, "symbol", GetValue(market, "id"))
         
-                retRes755515 :=  (<-this.FetchDerivativesMarketLeverageTiers(symbol, params))
-                PanicOnError(retRes755515)
-                ch <- retRes755515
+                retRes752515 :=  (<-this.FetchDerivativesMarketLeverageTiers(symbol, params))
+                PanicOnError(retRes752515)
+                ch <- retRes752515
                 return nil
         
             }()
@@ -8716,22 +8692,16 @@ func  (this *bybit) FetchTradingFee(symbol interface{}, optionalArgs ...interfac
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes75898 := (<-this.LoadMarkets())
-            PanicOnError(retRes75898)
+            retRes75598 := (<-this.LoadMarkets())
+            PanicOnError(retRes75598)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
             }
             var category interface{} = nil
-            if IsTrue(GetValue(market, "linear")) {
-                category = "linear"
-            } else if IsTrue(GetValue(market, "inverse")) {
-                category = "inverse"
-            } else if IsTrue(GetValue(market, "spot")) {
-                category = "spot"
-            } else {
-                category = "option"
-            }
+            categoryparamsVariable := this.GetBybitType("fetchTradingFee", market, params);
+            category = GetValue(categoryparamsVariable,0);
+            params = GetValue(categoryparamsVariable,1)
             AddElementToObject(request, "category", category)
         
             response:= (<-this.PrivateGetV5AccountFeeRate(this.Extend(request, params)))
@@ -8780,8 +8750,8 @@ func  (this *bybit) FetchTradingFees(optionalArgs ...interface{}) <- chan interf
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes76398 := (<-this.LoadMarkets())
-            PanicOnError(retRes76398)
+            retRes76018 := (<-this.LoadMarkets())
+            PanicOnError(retRes76018)
             var typeVar interface{} = nil
             typeVarparamsVariable := this.HandleOptionAndParams(params, "fetchTradingFees", "type", "future");
             typeVar = GetValue(typeVarparamsVariable,0);
@@ -8905,8 +8875,8 @@ func  (this *bybit) FetchDepositWithdrawFees(optionalArgs ...interface{}) <- cha
             _ = params
             this.CheckRequiredCredentials()
         
-            retRes77398 := (<-this.LoadMarkets())
-            PanicOnError(retRes77398)
+            retRes77018 := (<-this.LoadMarkets())
+            PanicOnError(retRes77018)
         
             response:= (<-this.PrivateGetV5AssetCoinQueryInfo(params))
             PanicOnError(response)
@@ -8976,8 +8946,8 @@ func  (this *bybit) FetchSettlementHistory(optionalArgs ...interface{}) <- chan 
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes77908 := (<-this.LoadMarkets())
-            PanicOnError(retRes77908)
+            retRes77528 := (<-this.LoadMarkets())
+            PanicOnError(retRes77528)
             var request interface{} = map[string]interface{} {}
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
@@ -9055,8 +9025,8 @@ func  (this *bybit) FetchMySettlementHistory(optionalArgs ...interface{}) <- cha
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes78478 := (<-this.LoadMarkets())
-            PanicOnError(retRes78478)
+            retRes78098 := (<-this.LoadMarkets())
+            PanicOnError(retRes78098)
             var request interface{} = map[string]interface{} {}
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
@@ -9067,10 +9037,10 @@ func  (this *bybit) FetchMySettlementHistory(optionalArgs ...interface{}) <- cha
             typeVarparamsVariable := this.GetBybitType("fetchMySettlementHistory", market, params);
             typeVar = GetValue(typeVarparamsVariable,0);
             params = GetValue(typeVarparamsVariable,1)
-            if IsTrue(IsTrue(IsEqual(typeVar, "spot")) || IsTrue(IsEqual(typeVar, "inverse"))) {
+            if IsTrue(IsEqual(typeVar, "spot")) {
                 panic(NotSupported(Add(this.Id, " fetchMySettlementHistory() is not supported for spot market")))
             }
-            AddElementToObject(request, "category", "linear")
+            AddElementToObject(request, "category", typeVar)
             if IsTrue(!IsEqual(limit, nil)) {
                 AddElementToObject(request, "limit", limit)
             }
@@ -9196,8 +9166,8 @@ func  (this *bybit) FetchVolatilityHistory(code interface{}, optionalArgs ...int
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes79748 := (<-this.LoadMarkets())
-            PanicOnError(retRes79748)
+            retRes79368 := (<-this.LoadMarkets())
+            PanicOnError(retRes79368)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "category": "option",
@@ -9266,8 +9236,8 @@ func  (this *bybit) FetchGreeks(symbol interface{}, optionalArgs ...interface{})
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes80318 := (<-this.LoadMarkets())
-            PanicOnError(retRes80318)
+            retRes79938 := (<-this.LoadMarkets())
+            PanicOnError(retRes79938)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -9414,17 +9384,17 @@ func  (this *bybit) FetchMyLiquidations(optionalArgs ...interface{}) <- chan int
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes81588 := (<-this.LoadMarkets())
-            PanicOnError(retRes81588)
+            retRes81208 := (<-this.LoadMarkets())
+            PanicOnError(retRes81208)
             var paginate interface{} = false
             paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyLiquidations", "paginate");
             paginate = GetValue(paginateparamsVariable,0);
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
         
-                    retRes816219 :=  (<-this.FetchPaginatedCallCursor("fetchMyLiquidations", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 100))
-                    PanicOnError(retRes816219)
-                    ch <- retRes816219
+                    retRes812419 :=  (<-this.FetchPaginatedCallCursor("fetchMyLiquidations", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 100))
+                    PanicOnError(retRes812419)
+                    ch <- retRes812419
                     return nil
             }
             var request interface{} = map[string]interface{} {
@@ -9560,8 +9530,8 @@ func  (this *bybit) GetLeverageTiersPaginated(optionalArgs ...interface{}) <- ch
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes82778 := (<-this.LoadMarkets())
-            PanicOnError(retRes82778)
+            retRes82398 := (<-this.LoadMarkets())
+            PanicOnError(retRes82398)
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
@@ -9572,9 +9542,9 @@ func  (this *bybit) GetLeverageTiersPaginated(optionalArgs ...interface{}) <- ch
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
         
-                    retRes828519 :=  (<-this.FetchPaginatedCallCursor("getLeverageTiersPaginated", symbol, nil, nil, params, "nextPageCursor", "cursor", nil, 100))
-                    PanicOnError(retRes828519)
-                    ch <- retRes828519
+                    retRes824719 :=  (<-this.FetchPaginatedCallCursor("getLeverageTiersPaginated", symbol, nil, nil, params, "nextPageCursor", "cursor", nil, 100))
+                    PanicOnError(retRes824719)
+                    ch <- retRes824719
                     return nil
             }
             var subType interface{} = nil
@@ -9625,8 +9595,8 @@ func  (this *bybit) FetchLeverageTiers(optionalArgs ...interface{}) <- chan inte
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes83188 := (<-this.LoadMarkets())
-            PanicOnError(retRes83188)
+            retRes82808 := (<-this.LoadMarkets())
+            PanicOnError(retRes82808)
             var market interface{} = nil
             var symbol interface{} = nil
             if IsTrue(!IsEqual(symbols, nil)) {
@@ -9750,17 +9720,17 @@ func  (this *bybit) FetchFundingHistory(optionalArgs ...interface{}) <- chan int
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes84168 := (<-this.LoadMarkets())
-            PanicOnError(retRes84168)
+            retRes83788 := (<-this.LoadMarkets())
+            PanicOnError(retRes83788)
             var paginate interface{} = false
             paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate");
             paginate = GetValue(paginateparamsVariable,0);
             params = GetValue(paginateparamsVariable,1)
             if IsTrue(paginate) {
         
-                    retRes842019 :=  (<-this.FetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 100))
-                    PanicOnError(retRes842019)
-                    ch <- retRes842019
+                    retRes838219 :=  (<-this.FetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 100))
+                    PanicOnError(retRes838219)
+                    ch <- retRes838219
                     return nil
             }
             var request interface{} = map[string]interface{} {
@@ -9873,8 +9843,8 @@ func  (this *bybit) FetchOption(symbol interface{}, optionalArgs ...interface{})
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes85148 := (<-this.LoadMarkets())
-            PanicOnError(retRes85148)
+            retRes84768 := (<-this.LoadMarkets())
+            PanicOnError(retRes84768)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "category": "option",
@@ -9950,8 +9920,8 @@ func  (this *bybit) FetchOptionChain(code interface{}, optionalArgs ...interface
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes85778 := (<-this.LoadMarkets())
-            PanicOnError(retRes85778)
+            retRes85398 := (<-this.LoadMarkets())
+            PanicOnError(retRes85398)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "category": "option",
@@ -10092,8 +10062,8 @@ func  (this *bybit) FetchPositionsHistory(optionalArgs ...interface{}) <- chan i
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes86968 := (<-this.LoadMarkets())
-            PanicOnError(retRes86968)
+            retRes86588 := (<-this.LoadMarkets())
+            PanicOnError(retRes86588)
             var market interface{} = nil
             var subType interface{} = nil
             var symbolsLength interface{} = 0
@@ -10186,8 +10156,8 @@ func  (this *bybit) FetchConvertCurrencies(optionalArgs ...interface{}) <- chan 
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes87748 := (<-this.LoadMarkets())
-            PanicOnError(retRes87748)
+            retRes87368 := (<-this.LoadMarkets())
+            PanicOnError(retRes87368)
             var accountType interface{} = nil
             enableUnifiedMarginenableUnifiedAccountVariable := (<-this.IsUnifiedEnabled());
             enableUnifiedMargin := GetValue(enableUnifiedMarginenableUnifiedAccountVariable,0);
@@ -10304,8 +10274,8 @@ func  (this *bybit) FetchConvertQuote(fromCode interface{}, toCode interface{}, 
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes88728 := (<-this.LoadMarkets())
-            PanicOnError(retRes88728)
+            retRes88348 := (<-this.LoadMarkets())
+            PanicOnError(retRes88348)
             var accountType interface{} = nil
             enableUnifiedMarginenableUnifiedAccountVariable := (<-this.IsUnifiedEnabled());
             enableUnifiedMargin := GetValue(enableUnifiedMarginenableUnifiedAccountVariable,0);
@@ -10379,8 +10349,8 @@ func  (this *bybit) CreateConvertTrade(id interface{}, fromCode interface{}, toC
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes89278 := (<-this.LoadMarkets())
-            PanicOnError(retRes89278)
+            retRes88898 := (<-this.LoadMarkets())
+            PanicOnError(retRes88898)
             var request interface{} = map[string]interface{} {
                 "quoteTxId": id,
             }
@@ -10428,8 +10398,8 @@ func  (this *bybit) FetchConvertTrade(id interface{}, optionalArgs ...interface{
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes89608 := (<-this.LoadMarkets())
-            PanicOnError(retRes89608)
+            retRes89228 := (<-this.LoadMarkets())
+            PanicOnError(retRes89228)
             var accountType interface{} = nil
             enableUnifiedMarginenableUnifiedAccountVariable := (<-this.IsUnifiedEnabled());
             enableUnifiedMargin := GetValue(enableUnifiedMarginenableUnifiedAccountVariable,0);
@@ -10516,8 +10486,8 @@ func  (this *bybit) FetchConvertTradeHistory(optionalArgs ...interface{}) <- cha
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes90248 := (<-this.LoadMarkets())
-            PanicOnError(retRes90248)
+            retRes89868 := (<-this.LoadMarkets())
+            PanicOnError(retRes89868)
             var request interface{} = map[string]interface{} {}
             if IsTrue(!IsEqual(limit, nil)) {
                 AddElementToObject(request, "limit", limit)
@@ -10653,8 +10623,8 @@ func  (this *bybit) FetchLongShortRatioHistory(optionalArgs ...interface{}) <- c
             params := GetArg(optionalArgs, 4, map[string]interface{} {})
             _ = params
         
-            retRes91368 := (<-this.LoadMarkets())
-            PanicOnError(retRes91368)
+            retRes90988 := (<-this.LoadMarkets())
+            PanicOnError(retRes90988)
             var market interface{} = this.Market(symbol)
             var typeVar interface{} = nil
             typeVarparamsVariable := this.GetBybitType("fetchLongShortRatioHistory", market, params);

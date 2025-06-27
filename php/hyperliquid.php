@@ -42,6 +42,7 @@ class hyperliquid extends Exchange {
                 'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createOrders' => true,
+                'createOrderWithTakeProfitAndStopLoss' => true,
                 'createReduceOnlyOrder' => true,
                 'createStopOrder' => true,
                 'createTriggerOrder' => true,
@@ -170,12 +171,12 @@ class hyperliquid extends Exchange {
             ),
             'fees' => array(
                 'swap' => array(
-                    'taker' => $this->parse_number('0.00035'),
-                    'maker' => $this->parse_number('0.0001'),
+                    'taker' => $this->parse_number('0.00045'),
+                    'maker' => $this->parse_number('0.00015'),
                 ),
                 'spot' => array(
-                    'taker' => $this->parse_number('0.00035'),
-                    'maker' => $this->parse_number('0.0001'),
+                    'taker' => $this->parse_number('0.0007'),
+                    'maker' => $this->parse_number('0.0004'),
                 ),
             ),
             'requiredCredentials' => array(
@@ -225,7 +226,16 @@ class hyperliquid extends Exchange {
                         'triggerDirection' => false,
                         'stopLossPrice' => false,
                         'takeProfitPrice' => false,
-                        'attachedStopLossTakeProfit' => null,
+                        'attachedStopLossTakeProfit' => array(
+                            'triggerPriceType' => array(
+                                'last' => false,
+                                'mark' => false,
+                                'index' => false,
+                            ),
+                            'triggerPrice' => true,
+                            'type' => true,
+                            'price' => true,
+                        ),
                         'timeInForce' => array(
                             'IOC' => true,
                             'FOK' => false,
@@ -356,7 +366,7 @@ class hyperliquid extends Exchange {
             $id = $i;
             $name = $this->safe_string($data, 'name');
             $code = $this->safe_currency_code($name);
-            $result[$code] = array(
+            $result[$code] = $this->safe_currency_structure(array(
                 'id' => $id,
                 'name' => $name,
                 'code' => $code,
@@ -378,7 +388,7 @@ class hyperliquid extends Exchange {
                         'max' => null,
                     ),
                 ),
-            );
+            ));
         }
         return $result;
     }
@@ -1442,6 +1452,72 @@ class hyperliquid extends Exchange {
         return $this->parse_orders($statuses, null);
     }
 
+    public function create_order_request(string $symbol, string $type, string $side, string $amount, ?string $price = null, $params = array ()) {
+        $market = $this->market($symbol);
+        $type = strtoupper($type);
+        $side = strtoupper($side);
+        $isMarket = ($type === 'MARKET');
+        $isBuy = ($side === 'BUY');
+        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_id');
+        $slippage = $this->safe_string($params, 'slippage');
+        $defaultTimeInForce = ($isMarket) ? 'ioc' : 'gtc';
+        $postOnly = $this->safe_bool($params, 'postOnly', false);
+        if ($postOnly) {
+            $defaultTimeInForce = 'alo';
+        }
+        $timeInForce = $this->safe_string_lower($params, 'timeInForce', $defaultTimeInForce);
+        $timeInForce = $this->capitalize($timeInForce);
+        $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
+        $stopLossPrice = $this->safe_string($params, 'stopLossPrice', $triggerPrice);
+        $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
+        $isTrigger = ($stopLossPrice || $takeProfitPrice);
+        $px = null;
+        if ($isMarket) {
+            if ($price === null) {
+                throw new ArgumentsRequired($this->id . '  $market orders require $price to calculate the max $slippage $price-> Default $slippage can be set in options (default is 5%).');
+            }
+            $px = ($isBuy) ? Precise::string_mul($price, Precise::string_add('1', $slippage)) : Precise::string_mul($price, Precise::string_sub('1', $slippage));
+            $px = $this->price_to_precision($symbol, $px); // round after adding $slippage
+        } else {
+            $px = $this->price_to_precision($symbol, $price);
+        }
+        $sz = $this->amount_to_precision($symbol, $amount);
+        $reduceOnly = $this->safe_bool($params, 'reduceOnly', false);
+        $orderType = array();
+        if ($isTrigger) {
+            $isTp = false;
+            if ($takeProfitPrice !== null) {
+                $triggerPrice = $this->price_to_precision($symbol, $takeProfitPrice);
+                $isTp = true;
+            } else {
+                $triggerPrice = $this->price_to_precision($symbol, $stopLossPrice);
+            }
+            $orderType['trigger'] = array(
+                'isMarket' => $isMarket,
+                'triggerPx' => $triggerPrice,
+                'tpsl' => ($isTp) ? 'tp' : 'sl',
+            );
+        } else {
+            $orderType['limit'] = array(
+                'tif' => $timeInForce,
+            );
+        }
+        $params = $this->omit($params, array( 'clientOrderId', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce', 'client_id', 'reduceOnly', 'postOnly' ));
+        $orderObj = array(
+            'a' => $this->parse_to_int($market['baseId']),
+            'b' => $isBuy,
+            'p' => $px,
+            's' => $sz,
+            'r' => $reduceOnly,
+            't' => $orderType,
+            // 'c' => $clientOrderId,
+        );
+        if ($clientOrderId !== null) {
+            $orderObj['c'] = $clientOrderId;
+        }
+        return $orderObj;
+    }
+
     public function create_orders_request($orders, $params = array ()): array {
         /**
          * create a list of trade $orders
@@ -1474,82 +1550,64 @@ class hyperliquid extends Exchange {
         $params = $this->omit($params, array( 'slippage', 'clientOrderId', 'client_id', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce' ));
         $nonce = $this->milliseconds();
         $orderReq = array();
+        $grouping = 'na';
         for ($i = 0; $i < count($orders); $i++) {
             $rawOrder = $orders[$i];
             $marketId = $this->safe_string($rawOrder, 'symbol');
             $market = $this->market($marketId);
             $symbol = $market['symbol'];
             $type = $this->safe_string_upper($rawOrder, 'type');
-            $isMarket = ($type === 'MARKET');
             $side = $this->safe_string_upper($rawOrder, 'side');
-            $isBuy = ($side === 'BUY');
             $amount = $this->safe_string($rawOrder, 'amount');
             $price = $this->safe_string($rawOrder, 'price');
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
-            $clientOrderId = $this->safe_string_2($orderParams, 'clientOrderId', 'client_id');
             $slippage = $this->safe_string($orderParams, 'slippage', $defaultSlippage);
-            $defaultTimeInForce = ($isMarket) ? 'ioc' : 'gtc';
-            $postOnly = $this->safe_bool($orderParams, 'postOnly', false);
-            if ($postOnly) {
-                $defaultTimeInForce = 'alo';
-            }
-            $timeInForce = $this->safe_string_lower($orderParams, 'timeInForce', $defaultTimeInForce);
-            $timeInForce = $this->capitalize($timeInForce);
-            $triggerPrice = $this->safe_string_2($orderParams, 'triggerPrice', 'stopPrice');
-            $stopLossPrice = $this->safe_string($orderParams, 'stopLossPrice', $triggerPrice);
-            $takeProfitPrice = $this->safe_string($orderParams, 'takeProfitPrice');
-            $isTrigger = ($stopLossPrice || $takeProfitPrice);
-            $px = null;
-            if ($isMarket) {
-                if ($price === null) {
-                    throw new ArgumentsRequired($this->id . '  $market $orders require $price to calculate the max $slippage $price-> Default $slippage can be set in options (default is 5%).');
-                }
-                $px = ($isBuy) ? Precise::string_mul($price, Precise::string_add('1', $slippage)) : Precise::string_mul($price, Precise::string_sub('1', $slippage));
-                $px = $this->price_to_precision($symbol, $px); // round after adding $slippage
-            } else {
-                $px = $this->price_to_precision($symbol, $price);
-            }
-            $sz = $this->amount_to_precision($symbol, $amount);
-            $reduceOnly = $this->safe_bool($orderParams, 'reduceOnly', false);
-            $orderType = array();
+            $orderParams['slippage'] = $slippage;
+            $stopLoss = $this->safe_value($orderParams, 'stopLoss');
+            $takeProfit = $this->safe_value($orderParams, 'takeProfit');
+            $isTrigger = ($stopLoss || $takeProfit);
+            $orderParams = $this->omit($orderParams, array( 'stopLoss', 'takeProfit' ));
+            $mainOrderObj = $this->create_order_request($symbol, $type, $side, $amount, $price, $orderParams);
+            $orderReq[] = $mainOrderObj;
             if ($isTrigger) {
-                $isTp = false;
-                if ($takeProfitPrice !== null) {
-                    $triggerPrice = $this->price_to_precision($symbol, $takeProfitPrice);
-                    $isTp = true;
+                // $grouping opposed $orders for sl/tp
+                $stopLossOrderTriggerPrice = $this->safe_string_n($stopLoss, array( 'triggerPrice', 'stopPrice' ));
+                $stopLossOrderType = $this->safe_string($stopLoss, 'type');
+                $stopLossOrderLimitPrice = $this->safe_string_n($stopLoss, array( 'price', 'stopLossPrice' ), $stopLossOrderTriggerPrice);
+                $takeProfitOrderTriggerPrice = $this->safe_string_n($takeProfit, array( 'triggerPrice', 'stopPrice' ));
+                $takeProfitOrderType = $this->safe_string($takeProfit, 'type');
+                $takeProfitOrderLimitPrice = $this->safe_string_n($takeProfit, array( 'price', 'takeProfitPrice' ), $takeProfitOrderTriggerPrice);
+                $grouping = 'normalTpsl';
+                $orderParams = $this->omit($orderParams, array( 'stopLoss', 'takeProfit' ));
+                $triggerOrderSide = '';
+                if ($side === 'BUY') {
+                    $triggerOrderSide = 'sell';
                 } else {
-                    $triggerPrice = $this->price_to_precision($symbol, $stopLossPrice);
+                    $triggerOrderSide = 'buy';
                 }
-                $orderType['trigger'] = array(
-                    'isMarket' => $isMarket,
-                    'triggerPx' => $triggerPrice,
-                    'tpsl' => ($isTp) ? 'tp' : 'sl',
-                );
-            } else {
-                $orderType['limit'] = array(
-                    'tif' => $timeInForce,
-                );
+                if ($takeProfit !== null) {
+                    $orderObj = $this->create_order_request($symbol, $takeProfitOrderType, $triggerOrderSide, $amount, $takeProfitOrderLimitPrice, $this->extend($orderParams, array(
+                        'takeProfitPrice' => $takeProfitOrderTriggerPrice,
+                        'reduceOnly' => true,
+                    )));
+                    $orderReq[] = $orderObj;
+                }
+                if ($stopLoss !== null) {
+                    $orderObj = $this->create_order_request($symbol, $stopLossOrderType, $triggerOrderSide, $amount, $stopLossOrderLimitPrice, $this->extend($orderParams, array(
+                        'stopLossPrice' => $stopLossOrderTriggerPrice,
+                        'reduceOnly' => true,
+                    )));
+                    $orderReq[] = $orderObj;
+                }
             }
-            $orderParams = $this->omit($orderParams, array( 'clientOrderId', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce', 'client_id', 'reduceOnly', 'postOnly' ));
-            $orderObj = array(
-                'a' => $this->parse_to_int($market['baseId']),
-                'b' => $isBuy,
-                'p' => $px,
-                's' => $sz,
-                'r' => $reduceOnly,
-                't' => $orderType,
-                // 'c' => $clientOrderId,
-            );
-            if ($clientOrderId !== null) {
-                $orderObj['c'] = $clientOrderId;
-            }
-            $orderReq[] = $orderObj;
         }
-        $vaultAddress = $this->format_vault_address($this->safe_string($params, 'vaultAddress'));
+        $vaultAddress = null;
+        list($vaultAddress, $params) = $this->handle_option_and_params($params, 'createOrder', 'vaultAddress');
+        $vaultAddress = $this->format_vault_address($vaultAddress);
         $orderAction = array(
             'type' => 'order',
             'orders' => $orderReq,
-            'grouping' => 'na',
+            'grouping' => $grouping,
             // 'brokerCode' => 1, // cant
         );
         if ($vaultAddress === null) {
@@ -1641,7 +1699,9 @@ class hyperliquid extends Exchange {
             }
         }
         $cancelAction['cancels'] = $cancelReq;
-        $vaultAddress = $this->format_vault_address($this->safe_string($params, 'vaultAddress'));
+        $vaultAddress = null;
+        list($vaultAddress, $params) = $this->handle_option_and_params($params, 'cancelOrders', 'vaultAddress');
+        $vaultAddress = $this->format_vault_address($vaultAddress);
         $signature = $this->sign_l1_action($cancelAction, $nonce, $vaultAddress);
         $request['action'] = $cancelAction;
         $request['signature'] = $signature;
@@ -1726,7 +1786,9 @@ class hyperliquid extends Exchange {
         }
         $cancelAction['type'] = $cancelByCloid ? 'cancelByCloid' : 'cancel';
         $cancelAction['cancels'] = $cancelReq;
-        $vaultAddress = $this->format_vault_address($this->safe_string($params, 'vaultAddress'));
+        $vaultAddress = null;
+        list($vaultAddress, $params) = $this->handle_option_and_params($params, 'cancelOrdersForSymbols', 'vaultAddress');
+        $vaultAddress = $this->format_vault_address($vaultAddress);
         $signature = $this->sign_l1_action($cancelAction, $nonce, $vaultAddress);
         $request['action'] = $cancelAction;
         $request['signature'] = $signature;
@@ -1771,7 +1833,9 @@ class hyperliquid extends Exchange {
             'type' => 'scheduleCancel',
             'time' => $nonce . $timeout,
         );
-        $vaultAddress = $this->format_vault_address($this->safe_string($params, 'vaultAddress'));
+        $vaultAddress = null;
+        list($vaultAddress, $params) = $this->handle_option_and_params($params, 'cancelAllOrdersAfter', 'vaultAddress');
+        $vaultAddress = $this->format_vault_address($vaultAddress);
         $signature = $this->sign_l1_action($cancelAction, $nonce, $vaultAddress);
         $request['action'] = $cancelAction;
         $request['signature'] = $signature;
@@ -1894,7 +1958,9 @@ class hyperliquid extends Exchange {
             'type' => 'batchModify',
             'modifies' => $modifies,
         );
-        $vaultAddress = $this->format_vault_address($this->safe_string($params, 'vaultAddress'));
+        $vaultAddress = null;
+        list($vaultAddress, $params) = $this->handle_option_and_params($params, 'editOrder', 'vaultAddress');
+        $vaultAddress = $this->format_vault_address($vaultAddress);
         $signature = $this->sign_l1_action($modifyAction, $nonce, $vaultAddress);
         $request = array(
             'action' => $modifyAction,
@@ -1903,7 +1969,6 @@ class hyperliquid extends Exchange {
             // 'vaultAddress' => $vaultAddress,
         );
         if ($vaultAddress !== null) {
-            $params = $this->omit($params, 'vaultAddress');
             $request['vaultAddress'] = $vaultAddress;
         }
         return $request;
@@ -2762,9 +2827,9 @@ class hyperliquid extends Exchange {
             'isCross' => $isCross,
             'leverage' => $leverage,
         );
-        $vaultAddress = $this->safe_string($params, 'vaultAddress');
+        $vaultAddress = null;
+        list($vaultAddress, $params) = $this->handle_option_and_params($params, 'setMarginMode', 'vaultAddress');
         if ($vaultAddress !== null) {
-            $params = $this->omit($params, 'vaultAddress');
             if (str_starts_with($vaultAddress, '0x')) {
                 $vaultAddress = str_replace('0x', '', $vaultAddress);
             }
@@ -2816,7 +2881,9 @@ class hyperliquid extends Exchange {
             'isCross' => $isCross,
             'leverage' => $leverage,
         );
-        $vaultAddress = $this->format_vault_address($this->safe_string($params, 'vaultAddress'));
+        $vaultAddress = null;
+        list($vaultAddress, $params) = $this->handle_option_and_params($params, 'setLeverage', 'vaultAddress');
+        $vaultAddress = $this->format_vault_address($vaultAddress);
         $signature = $this->sign_l1_action($updateAction, $nonce, $vaultAddress);
         $request = array(
             'action' => $updateAction,
@@ -2883,7 +2950,9 @@ class hyperliquid extends Exchange {
             'isBuy' => true,
             'ntli' => $sz,
         );
-        $vaultAddress = $this->format_vault_address($this->safe_string($params, 'vaultAddress'));
+        $vaultAddress = null;
+        list($vaultAddress, $params) = $this->handle_option_and_params($params, 'modifyMargin', 'vaultAddress');
+        $vaultAddress = $this->format_vault_address($vaultAddress);
         $signature = $this->sign_l1_action($updateAction, $nonce, $vaultAddress);
         $request = array(
             'action' => $updateAction,
@@ -2892,7 +2961,6 @@ class hyperliquid extends Exchange {
             // 'vaultAddress' => $vaultAddress,
         );
         if ($vaultAddress !== null) {
-            $params = $this->omit($params, 'vaultAddress');
             $request['vaultAddress'] = $vaultAddress;
         }
         $response = $this->privatePostExchange ($request);
@@ -2953,8 +3021,9 @@ class hyperliquid extends Exchange {
                 throw new NotSupported($this->id . ' transfer() only support spot <> swap transfer');
             }
             $strAmount = $this->number_to_string($amount);
-            $vaultAddress = $this->format_vault_address($this->safe_string($params, 'vaultAddress'));
-            $params = $this->omit($params, 'vaultAddress');
+            $vaultAddress = null;
+            list($vaultAddress, $params) = $this->handle_option_and_params($params, 'transfer', 'vaultAddress');
+            $vaultAddress = $this->format_vault_address($vaultAddress);
             if ($vaultAddress !== null) {
                 $strAmount = $strAmount . ' subaccount:' . $vaultAddress;
             }
@@ -3059,7 +3128,9 @@ class hyperliquid extends Exchange {
                 throw new NotSupported($this->id . ' withdraw() only support USDC');
             }
         }
-        $vaultAddress = $this->format_vault_address($this->safe_string($params, 'vaultAddress'));
+        $vaultAddress = null;
+        list($vaultAddress, $params) = $this->handle_option_and_params($params, 'withdraw', 'vaultAddress');
+        $vaultAddress = $this->format_vault_address($vaultAddress);
         $params = $this->omit($params, 'vaultAddress');
         $nonce = $this->milliseconds();
         $action = array();
@@ -3689,8 +3760,9 @@ class hyperliquid extends Exchange {
 
     public function parse_create_edit_order_args(?string $id, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         $market = $this->market($symbol);
-        $vaultAddress = $this->safe_string($params, 'vaultAddress');
-        $params = $this->omit($params, 'vaultAddress');
+        $vaultAddress = null;
+        list($vaultAddress, $params) = $this->handle_option_and_params($params, 'createOrder', 'vaultAddress');
+        $vaultAddress = $this->format_vault_address($vaultAddress);
         $symbol = $market['symbol'];
         $order = array(
             'symbol' => $symbol,

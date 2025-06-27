@@ -1577,9 +1577,9 @@ public struct Greeks
         theta = Exchange.SafeFloat(greeks, "theta");
         vega = Exchange.SafeFloat(greeks, "vega");
         rho = Exchange.SafeFloat(greeks, "rho");
-        rho = Exchange.SafeFloat(greeks, "vanna");
-        rho = Exchange.SafeFloat(greeks, "volga");
-        rho = Exchange.SafeFloat(greeks, "charm");
+        vanna = Exchange.SafeFloat(greeks, "vanna");
+        volga = Exchange.SafeFloat(greeks, "volga");
+        charm = Exchange.SafeFloat(greeks, "charm");
         bidSize = Exchange.SafeFloat(greeks, "bidSize");
         askSize = Exchange.SafeFloat(greeks, "askSize");
         bidImpliedVolatility = Exchange.SafeFloat(greeks, "bidImpliedVolatility");

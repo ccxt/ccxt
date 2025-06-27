@@ -522,6 +522,12 @@ public partial class phemex
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.network</term>
+    /// <description>
+    /// string : the chain name to fetch the deposit address e.g. ETH, TRX, EOS, SOL, etc.
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>

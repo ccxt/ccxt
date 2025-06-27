@@ -295,6 +295,22 @@ func (this *blofin) PrivateGetAccountMarginMode (args ...interface{}) <-chan int
    return ch
 }
 
+func (this *blofin) PrivateGetAccountPositionMode (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privateGetAccountPositionMode", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
 func (this *blofin) PrivateGetAccountBatchLeverageInfo (args ...interface{}) <-chan interface{} {
    parameters := GetArg(args, 0, nil)
    ch := make(chan interface{})
@@ -370,6 +386,38 @@ func (this *blofin) PrivateGetTradeOrdersTpslHistory (args ...interface{}) <-cha
            }
        }()
        ch <- (<-this.callEndpoint ("privateGetTradeOrdersTpslHistory", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *blofin) PrivateGetTradeOrdersAlgoHistory (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privateGetTradeOrdersAlgoHistory", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *blofin) PrivateGetTradeOrderPriceRange (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privateGetTradeOrderPriceRange", parameters))
        PanicOnError(ch)
    }()
    return ch
@@ -594,6 +642,38 @@ func (this *blofin) PrivateGetCopytradingTradePendingTpslByOrder (args ...interf
            }
        }()
        ch <- (<-this.callEndpoint ("privateGetCopytradingTradePendingTpslByOrder", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *blofin) PrivatePostAccountSetMarginMode (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privatePostAccountSetMarginMode", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *blofin) PrivatePostAccountSetPositionMode (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("privatePostAccountSetPositionMode", parameters))
        PanicOnError(ch)
    }()
    return ch
