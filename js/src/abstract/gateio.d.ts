@@ -31,6 +31,7 @@ interface gate {
     publicFuturesGetSettleContractStats(params?: {}): Promise<implicitReturnType>;
     publicFuturesGetSettleIndexConstituentsIndex(params?: {}): Promise<implicitReturnType>;
     publicFuturesGetSettleLiqOrders(params?: {}): Promise<implicitReturnType>;
+    publicFuturesGetSettleRiskLimitTiers(params?: {}): Promise<implicitReturnType>;
     publicDeliveryGetSettleContracts(params?: {}): Promise<implicitReturnType>;
     publicDeliveryGetSettleContractsContract(params?: {}): Promise<implicitReturnType>;
     publicDeliveryGetSettleOrderBook(params?: {}): Promise<implicitReturnType>;
@@ -53,11 +54,13 @@ interface gate {
     publicEarnGetUniCurrencies(params?: {}): Promise<implicitReturnType>;
     publicEarnGetUniCurrenciesCurrency(params?: {}): Promise<implicitReturnType>;
     privateWithdrawalsPostWithdrawals(params?: {}): Promise<implicitReturnType>;
+    privateWithdrawalsPostPush(params?: {}): Promise<implicitReturnType>;
     privateWithdrawalsDeleteWithdrawalsWithdrawalId(params?: {}): Promise<implicitReturnType>;
     privateWalletGetDepositAddress(params?: {}): Promise<implicitReturnType>;
     privateWalletGetWithdrawals(params?: {}): Promise<implicitReturnType>;
     privateWalletGetDeposits(params?: {}): Promise<implicitReturnType>;
     privateWalletGetSubAccountTransfers(params?: {}): Promise<implicitReturnType>;
+    privateWalletGetOrderStatus(params?: {}): Promise<implicitReturnType>;
     privateWalletGetWithdrawStatus(params?: {}): Promise<implicitReturnType>;
     privateWalletGetSubAccountBalances(params?: {}): Promise<implicitReturnType>;
     privateWalletGetSubAccountMarginBalances(params?: {}): Promise<implicitReturnType>;
@@ -68,6 +71,7 @@ interface gate {
     privateWalletGetTotalBalance(params?: {}): Promise<implicitReturnType>;
     privateWalletGetSmallBalance(params?: {}): Promise<implicitReturnType>;
     privateWalletGetSmallBalanceHistory(params?: {}): Promise<implicitReturnType>;
+    privateWalletGetPush(params?: {}): Promise<implicitReturnType>;
     privateWalletPostTransfers(params?: {}): Promise<implicitReturnType>;
     privateWalletPostSubAccountTransfers(params?: {}): Promise<implicitReturnType>;
     privateWalletPostSubAccountToSubAccount(params?: {}): Promise<implicitReturnType>;
@@ -94,9 +98,12 @@ interface gate {
     privateUnifiedGetRiskUnits(params?: {}): Promise<implicitReturnType>;
     privateUnifiedGetUnifiedMode(params?: {}): Promise<implicitReturnType>;
     privateUnifiedGetLoanMarginTiers(params?: {}): Promise<implicitReturnType>;
+    privateUnifiedGetLeverageUserCurrencyConfig(params?: {}): Promise<implicitReturnType>;
+    privateUnifiedGetLeverageUserCurrencySetting(params?: {}): Promise<implicitReturnType>;
     privateUnifiedPostAccountMode(params?: {}): Promise<implicitReturnType>;
     privateUnifiedPostLoans(params?: {}): Promise<implicitReturnType>;
     privateUnifiedPostPortfolioCalculator(params?: {}): Promise<implicitReturnType>;
+    privateUnifiedPostLeverageUserCurrencySetting(params?: {}): Promise<implicitReturnType>;
     privateUnifiedPutUnifiedMode(params?: {}): Promise<implicitReturnType>;
     privateSpotGetFee(params?: {}): Promise<implicitReturnType>;
     privateSpotGetBatchFee(params?: {}): Promise<implicitReturnType>;
@@ -225,7 +232,11 @@ interface gate {
     privateOptionsGetOrders(params?: {}): Promise<implicitReturnType>;
     privateOptionsGetOrdersOrderId(params?: {}): Promise<implicitReturnType>;
     privateOptionsGetMyTrades(params?: {}): Promise<implicitReturnType>;
+    privateOptionsGetMmp(params?: {}): Promise<implicitReturnType>;
     privateOptionsPostOrders(params?: {}): Promise<implicitReturnType>;
+    privateOptionsPostCountdownCancelAll(params?: {}): Promise<implicitReturnType>;
+    privateOptionsPostMmp(params?: {}): Promise<implicitReturnType>;
+    privateOptionsPostMmpReset(params?: {}): Promise<implicitReturnType>;
     privateOptionsDeleteOrders(params?: {}): Promise<implicitReturnType>;
     privateOptionsDeleteOrdersOrderId(params?: {}): Promise<implicitReturnType>;
     privateEarnGetUniCurrencies(params?: {}): Promise<implicitReturnType>;
@@ -253,6 +264,7 @@ interface gate {
     privateLoanGetMultiCollateralCurrencies(params?: {}): Promise<implicitReturnType>;
     privateLoanGetMultiCollateralLtv(params?: {}): Promise<implicitReturnType>;
     privateLoanGetMultiCollateralFixedRate(params?: {}): Promise<implicitReturnType>;
+    privateLoanGetMultiCollateralCurrentRate(params?: {}): Promise<implicitReturnType>;
     privateLoanPostCollateralOrders(params?: {}): Promise<implicitReturnType>;
     privateLoanPostCollateralRepay(params?: {}): Promise<implicitReturnType>;
     privateLoanPostCollateralCollaterals(params?: {}): Promise<implicitReturnType>;
@@ -260,8 +272,10 @@ interface gate {
     privateLoanPostMultiCollateralRepay(params?: {}): Promise<implicitReturnType>;
     privateLoanPostMultiCollateralMortgage(params?: {}): Promise<implicitReturnType>;
     privateAccountGetDetail(params?: {}): Promise<implicitReturnType>;
+    privateAccountGetRateLimit(params?: {}): Promise<implicitReturnType>;
     privateAccountGetStpGroups(params?: {}): Promise<implicitReturnType>;
     privateAccountGetStpGroupsStpIdUsers(params?: {}): Promise<implicitReturnType>;
+    privateAccountGetStpGroupsDebitFee(params?: {}): Promise<implicitReturnType>;
     privateAccountPostStpGroups(params?: {}): Promise<implicitReturnType>;
     privateAccountPostStpGroupsStpIdUsers(params?: {}): Promise<implicitReturnType>;
     privateAccountDeleteStpGroupsStpIdUsers(params?: {}): Promise<implicitReturnType>;

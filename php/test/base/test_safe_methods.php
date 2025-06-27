@@ -23,6 +23,12 @@ function test_safe_methods() {
         ),
         'str' => 'heLlo',
         'strNumber' => '3',
+        'zeroNumeric' => 0,
+        'zeroString' => '0',
+        'undefined' => null,
+        'emptyString' => '',
+        'floatNumeric' => 0.123,
+        'floatString' => '0.123',
     );
     $input_list = ['Hi', 2];
     $compare_dict = array(
@@ -229,6 +235,10 @@ function test_safe_methods() {
     assert($exchange->safe_number($input_dict, 'f') === $exchange->parse_number(0.123));
     assert($exchange->safe_number($input_dict, 'strNumber') === $exchange->parse_number(3));
     assert($exchange->safe_number($input_list, 1) === $exchange->parse_number(2));
+    assert($exchange->safe_number($input_list, 'bool') === null);
+    assert($exchange->safe_number($input_list, 'list') === null);
+    assert($exchange->safe_number($input_list, 'dict') === null);
+    assert($exchange->safe_number($input_list, 'str') === null);
     // safeNumber2
     assert($exchange->safe_number_2($input_dict, 'a', 'i') === $exchange->parse_number(1));
     assert($exchange->safe_number_2($input_dict, 'a', 'f') === $exchange->parse_number(0.123));
@@ -248,4 +258,11 @@ function test_safe_methods() {
     // safeBoolN
     assert($exchange->safe_bool_n($input_dict, ['a', 'b', 'bool']) === true);
     assert($exchange->safe_bool_n($input_list, [3, 2, 1]) === null);
+    // safeNumberOmitZero
+    assert($exchange->safe_number_omit_zero($input_dict, 'zeroNumeric') === null);
+    assert($exchange->safe_number_omit_zero($input_dict, 'zeroString') === null);
+    assert($exchange->safe_number_omit_zero($input_dict, 'undefined') === null);
+    assert($exchange->safe_number_omit_zero($input_dict, 'emptyString') === null);
+    assert($exchange->safe_number_omit_zero($input_dict, 'floatNumeric') !== null);
+    assert($exchange->safe_number_omit_zero($input_dict, 'floatString') !== null);
 }

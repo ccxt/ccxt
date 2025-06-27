@@ -867,7 +867,7 @@
         ],
         "fetchMyTrades": [
             {
-                "description": "Fill this with a description of the method call",
+                "description": "fetch spot trades",
                 "method": "fetchMyTrades",
                 "input": [
                     "BTC/EUR",
@@ -904,7 +904,82 @@
                         "clientOrderId": "0fc26ff3-a21a-4292-b823-f6ad1e00373a"
                     }
                 ],
-                "parsedResponse": []
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "aeb6afe9-40cf-4391-b4d9-e012cfe4fb4d",
+                            "orderId": "b8a4b71b-d435-4664-913d-ee81829e6109",
+                            "timestamp": "1700130593656",
+                            "market": "BTC-EUR",
+                            "side": "buy",
+                            "amount": "0.0002",
+                            "price": "34488",
+                            "taker": true,
+                            "fee": "0.0224",
+                            "feeCurrency": "EUR",
+                            "settled": true,
+                            "clientOrderId": "0fc26ff3-a21a-4292-b823-f6ad1e00373a"
+                        },
+                        "id": "aeb6afe9-40cf-4391-b4d9-e012cfe4fb4d",
+                        "symbol": "BTC/EUR",
+                        "timestamp": 1700130593656,
+                        "datetime": "2023-11-16T10:29:53.656Z",
+                        "order": "b8a4b71b-d435-4664-913d-ee81829e6109",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 34488,
+                        "amount": 0.0002,
+                        "cost": 6.8976,
+                        "fee": {
+                            "currency": "EUR",
+                            "cost": 0.0224
+                        },
+                        "fees": [
+                            {
+                                "currency": "EUR",
+                                "cost": 0.0224
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "id": "66aaa9c7-c9e9-4920-8629-d0e878d9cc3d",
+                            "orderId": "af596202-5712-4453-81fa-41bdca71e7b4",
+                            "timestamp": "1700130652275",
+                            "market": "BTC-EUR",
+                            "side": "sell",
+                            "amount": "0.00020002",
+                            "price": "34469",
+                            "taker": true,
+                            "fee": "0.02448938",
+                            "feeCurrency": "EUR",
+                            "settled": true,
+                            "clientOrderId": "123b3e62-bb61-41db-8425-cbc541c05fe9"
+                        },
+                        "id": "66aaa9c7-c9e9-4920-8629-d0e878d9cc3d",
+                        "symbol": "BTC/EUR",
+                        "timestamp": 1700130652275,
+                        "datetime": "2023-11-16T10:30:52.275Z",
+                        "order": "af596202-5712-4453-81fa-41bdca71e7b4",
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 34469,
+                        "amount": 0.00020002,
+                        "cost": 6.89448938,
+                        "fee": {
+                            "currency": "EUR",
+                            "cost": 0.02448938
+                        },
+                        "fees": [
+                            {
+                                "currency": "EUR",
+                                "cost": 0.02448938
+                            }
+                        ]
+                    }
+                ]
             }
         ],
         "fetchBalance": [

@@ -14,7 +14,7 @@ public partial class testMainClass : BaseTest
         // 'httpsProxy', 'socksProxy'
         await testProxyForExceptions(exchange, skippedProperties);
     }
-    async static public Task testProxyUrl(Exchange exchange, object skippedProperties)
+    async static public Task<object> testProxyUrl(Exchange exchange, object skippedProperties)
     {
         object method = "proxyUrl";
         object proxyServerIp = "5.75.153.75";
@@ -31,6 +31,7 @@ public partial class testMainClass : BaseTest
         assert(isEqual(response, proxyServerIp), add(add(add(add(add(add(add(exchange.id, " "), method), " test failed. Returned response is "), response), " while it should be \""), proxyServerIp), "\""));
         // reset the instance property
         testSharedMethods.setProxyOptions(exchange, skippedProperties, proxyUrl, httpProxy, httpsProxy, socksProxy);
+        return true;
     }
     async static public Task testHttpProxy(Exchange exchange, object skippedProperties)
     {

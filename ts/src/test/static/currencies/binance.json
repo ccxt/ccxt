@@ -3,13 +3,14 @@
     "id": "BTC",
     "name": "Bitcoin",
     "code": "BTC",
+    "type": "crypto",
     "precision": 1e-8,
     "info": {
       "coin": "BTC",
       "depositAllEnable": true,
       "withdrawAllEnable": true,
       "name": "Bitcoin",
-      "free": "0.00000607",
+      "free": "0",
       "locked": "0",
       "freeze": "0",
       "withdrawing": "0",
@@ -34,16 +35,17 @@
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "0.0000088",
-          "withdrawMin": "0.000018",
+          "withdrawFee": "0.0000069",
+          "withdrawMin": "0.000014",
           "withdrawMax": "10000000000",
+          "withdrawInternalMin": "0.00000001",
           "depositDust": "0.00000002",
           "minConfirm": "15",
           "unLockConfirm": "0",
           "sameAddress": false,
-          "estimatedArrivalTime": "5",
+          "estimatedArrivalTime": "2",
           "busy": false,
-          "contractAddressUrl": "https://bscscan.com/token/",
+          "contractAddressUrl": "https://bsctrace.com/token/",
           "contractAddress": "0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c"
         },
         {
@@ -61,41 +63,16 @@
           "resetAddressStatus": false,
           "addressRegex": "^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$|^[(bc1q)|(bc1p)][0-9A-Za-z]{37,62}$",
           "memoRegex": "",
-          "withdrawFee": "0.0001",
-          "withdrawMin": "0.00015",
+          "withdrawFee": "0.00003",
+          "withdrawMin": "0.00011",
           "withdrawMax": "4000",
+          "withdrawInternalMin": "0.00000001",
           "depositDust": "0.000006",
           "minConfirm": "1",
           "unLockConfirm": "2",
           "sameAddress": false,
           "estimatedArrivalTime": "60",
           "busy": false
-        },
-        {
-          "network": "BNB",
-          "coin": "BTC",
-          "withdrawIntegerMultiple": "0.00000001",
-          "isDefault": false,
-          "depositEnable": true,
-          "withdrawEnable": false,
-          "depositDesc": "",
-          "withdrawDesc": "Withdrawal for this token is not supported, please try other networks.",
-          "specialTips": "Both a memo/tag and an address are required to successfully deposit your assets to Binance.",
-          "name": "BNB Beacon Chain (BEP2)",
-          "resetAddressStatus": false,
-          "addressRegex": "^(bnb1)[0-9a-z]{38}$",
-          "memoRegex": "^[0-9A-Za-z\\-_]{1,120}$",
-          "withdrawFee": "0.0000044",
-          "withdrawMin": "0.0000088",
-          "withdrawMax": "10000000000",
-          "depositDust": "0.00001",
-          "minConfirm": "1",
-          "unLockConfirm": "0",
-          "sameAddress": true,
-          "estimatedArrivalTime": "2",
-          "busy": false,
-          "contractAddressUrl": "https://explorer.bnbchain.org/asset/",
-          "contractAddress": "BTCB-1DE"
         },
         {
           "network": "SEGWITBTC",
@@ -115,7 +92,8 @@
           "withdrawFee": "0.001",
           "withdrawMin": "0.002",
           "withdrawMax": "10000000000",
-          "depositDust": "0.00000002",
+          "withdrawInternalMin": "0.00000001",
+          "depositDust": "0.000006",
           "minConfirm": "1",
           "unLockConfirm": "2",
           "sameAddress": false,
@@ -131,20 +109,21 @@
           "withdrawEnable": true,
           "depositDesc": "",
           "withdrawDesc": "",
-          "specialTips": "",
+          "specialTips": "You are depositing Binance Wrapped BTC (BBTC). Please ensure the token contract address ends with 22541.",
           "specialWithdrawTips": "You are withdrawing Binance Wrapped BTC (BBTC). Please ensure that the receiving platform supports this token or you will be at risk of losing your assets.",
           "name": "Ethereum (ERC20)",
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "0.000076",
-          "withdrawMin": "0.00015",
+          "withdrawFee": "0.000019",
+          "withdrawMin": "0.000038",
           "withdrawMax": "10000000000",
+          "withdrawInternalMin": "0.00000001",
           "depositDust": "0.00000002",
           "minConfirm": "6",
           "unLockConfirm": "64",
           "sameAddress": false,
-          "estimatedArrivalTime": "4",
+          "estimatedArrivalTime": "3",
           "busy": false,
           "contractAddressUrl": "https://etherscan.io/address/",
           "contractAddress": "0x9be89d2a4cd102d8fecc6bf9da793be995c22541"
@@ -166,7 +145,8 @@
           "withdrawFee": "0.000001",
           "withdrawMin": "0.00002",
           "withdrawMax": "0.01",
-          "depositDust": "0",
+          "withdrawInternalMin": "0.00000001",
+          "depositDust": "0.00001999",
           "minConfirm": "1",
           "unLockConfirm": "0",
           "sameAddress": false,
@@ -195,16 +175,17 @@
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "0.0000088",
-          "withdrawMin": "0.000018",
+          "withdrawFee": "0.0000069",
+          "withdrawMin": "0.000014",
           "withdrawMax": "10000000000",
+          "withdrawInternalMin": "0.00000001",
           "depositDust": "0.00000002",
           "minConfirm": "15",
           "unLockConfirm": "0",
           "sameAddress": false,
-          "estimatedArrivalTime": "5",
+          "estimatedArrivalTime": "2",
           "busy": false,
-          "contractAddressUrl": "https://bscscan.com/token/",
+          "contractAddressUrl": "https://bsctrace.com/token/",
           "contractAddress": "0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c"
         },
         "id": "BSC",
@@ -212,15 +193,16 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.0000088,
+        "fee": 0.0000069,
         "precision": 1e-8,
         "limits": {
           "withdraw": {
-            "min": 0.000018,
+            "min": 0.000014,
             "max": 10000000000
           },
           "deposit": {
-            "min": 2e-8
+            "min": 2e-8,
+            "max": null
           }
         }
       },
@@ -240,9 +222,10 @@
           "resetAddressStatus": false,
           "addressRegex": "^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$|^[(bc1q)|(bc1p)][0-9A-Za-z]{37,62}$",
           "memoRegex": "",
-          "withdrawFee": "0.0001",
-          "withdrawMin": "0.00015",
+          "withdrawFee": "0.00003",
+          "withdrawMin": "0.00011",
           "withdrawMax": "4000",
+          "withdrawInternalMin": "0.00000001",
           "depositDust": "0.000006",
           "minConfirm": "1",
           "unLockConfirm": "2",
@@ -255,59 +238,16 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.0001,
+        "fee": 0.00003,
         "precision": 1e-8,
         "limits": {
           "withdraw": {
-            "min": 0.00015,
+            "min": 0.00011,
             "max": 4000
           },
           "deposit": {
-            "min": 0.000006
-          }
-        }
-      },
-      "BEP2": {
-        "info": {
-          "network": "BNB",
-          "coin": "BTC",
-          "withdrawIntegerMultiple": "0.00000001",
-          "isDefault": false,
-          "depositEnable": true,
-          "withdrawEnable": false,
-          "depositDesc": "",
-          "withdrawDesc": "Withdrawal for this token is not supported, please try other networks.",
-          "specialTips": "Both a memo/tag and an address are required to successfully deposit your assets to Binance.",
-          "name": "BNB Beacon Chain (BEP2)",
-          "resetAddressStatus": false,
-          "addressRegex": "^(bnb1)[0-9a-z]{38}$",
-          "memoRegex": "^[0-9A-Za-z\\-_]{1,120}$",
-          "withdrawFee": "0.0000044",
-          "withdrawMin": "0.0000088",
-          "withdrawMax": "10000000000",
-          "depositDust": "0.00001",
-          "minConfirm": "1",
-          "unLockConfirm": "0",
-          "sameAddress": true,
-          "estimatedArrivalTime": "2",
-          "busy": false,
-          "contractAddressUrl": "https://explorer.bnbchain.org/asset/",
-          "contractAddress": "BTCB-1DE"
-        },
-        "id": "BNB",
-        "network": "BEP2",
-        "active": false,
-        "deposit": true,
-        "withdraw": false,
-        "fee": 0.0000044,
-        "precision": 1e-8,
-        "limits": {
-          "withdraw": {
-            "min": 0.0000088,
-            "max": 10000000000
-          },
-          "deposit": {
-            "min": 0.00001
+            "min": 0.000006,
+            "max": null
           }
         }
       },
@@ -330,7 +270,8 @@
           "withdrawFee": "0.001",
           "withdrawMin": "0.002",
           "withdrawMax": "10000000000",
-          "depositDust": "0.00000002",
+          "withdrawInternalMin": "0.00000001",
+          "depositDust": "0.000006",
           "minConfirm": "1",
           "unLockConfirm": "2",
           "sameAddress": false,
@@ -350,7 +291,8 @@
             "max": 10000000000
           },
           "deposit": {
-            "min": 2e-8
+            "min": 0.000006,
+            "max": null
           }
         }
       },
@@ -364,20 +306,21 @@
           "withdrawEnable": true,
           "depositDesc": "",
           "withdrawDesc": "",
-          "specialTips": "",
+          "specialTips": "You are depositing Binance Wrapped BTC (BBTC). Please ensure the token contract address ends with 22541.",
           "specialWithdrawTips": "You are withdrawing Binance Wrapped BTC (BBTC). Please ensure that the receiving platform supports this token or you will be at risk of losing your assets.",
           "name": "Ethereum (ERC20)",
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "0.000076",
-          "withdrawMin": "0.00015",
+          "withdrawFee": "0.000019",
+          "withdrawMin": "0.000038",
           "withdrawMax": "10000000000",
+          "withdrawInternalMin": "0.00000001",
           "depositDust": "0.00000002",
           "minConfirm": "6",
           "unLockConfirm": "64",
           "sameAddress": false,
-          "estimatedArrivalTime": "4",
+          "estimatedArrivalTime": "3",
           "busy": false,
           "contractAddressUrl": "https://etherscan.io/address/",
           "contractAddress": "0x9be89d2a4cd102d8fecc6bf9da793be995c22541"
@@ -387,15 +330,16 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.000076,
+        "fee": 0.000019,
         "precision": 1e-8,
         "limits": {
           "withdraw": {
-            "min": 0.00015,
+            "min": 0.000038,
             "max": 10000000000
           },
           "deposit": {
-            "min": 2e-8
+            "min": 2e-8,
+            "max": null
           }
         }
       },
@@ -417,7 +361,8 @@
           "withdrawFee": "0.000001",
           "withdrawMin": "0.00002",
           "withdrawMax": "0.01",
-          "depositDust": "0",
+          "withdrawInternalMin": "0.00000001",
+          "depositDust": "0.00001999",
           "minConfirm": "1",
           "unLockConfirm": "0",
           "sameAddress": false,
@@ -437,39 +382,52 @@
             "max": 0.01
           },
           "deposit": {
-            "min": 0
+            "min": 0.00001999,
+            "max": null
           }
         }
       }
     },
-    "fee": 0.0001,
+    "fee": 0.00003,
     "fees": {
-      "BSC": 0.0000088,
-      "BTC": 0.0001,
-      "BNB": 0.0000044,
+      "BSC": 0.0000069,
+      "BTC": 0.00003,
       "SEGWITBTC": 0.001,
-      "ETH": 0.000076,
+      "ETH": 0.000019,
       "LIGHTNING": 0.000001
     },
     "limits": {
-      "leverage": {},
-      "amount": {},
-      "price": {},
-      "cost": {}
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
     },
-    "margin": true
+    "margin": null
   },
   "USDT": {
     "id": "USDT",
     "name": "TetherUS",
     "code": "USDT",
+    "type": "crypto",
     "precision": 1e-8,
     "info": {
       "coin": "USDT",
       "depositAllEnable": true,
       "withdrawAllEnable": true,
       "name": "TetherUS",
-      "free": "0.00000076",
+      "free": "1.28648069",
       "locked": "0",
       "freeze": "0",
       "withdrawing": "0",
@@ -494,16 +452,17 @@
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "0.1",
+          "withdrawFee": "0",
           "withdrawMin": "10",
           "withdrawMax": "10000000000",
+          "withdrawInternalMin": "0.01",
           "depositDust": "0.01",
           "minConfirm": "15",
           "unLockConfirm": "0",
           "sameAddress": false,
-          "estimatedArrivalTime": "5",
+          "estimatedArrivalTime": "2",
           "busy": false,
-          "contractAddressUrl": "https://bscscan.com/token/",
+          "contractAddressUrl": "https://bsctrace.com/token/",
           "contractAddress": "0x55d398326f99059ff775485246999027b3197955"
         },
         {
@@ -523,13 +482,14 @@
           "withdrawFee": "1",
           "withdrawMin": "10",
           "withdrawMax": "10000000000",
+          "withdrawInternalMin": "0.0001",
           "depositDust": "0.001",
           "minConfirm": "1",
           "unLockConfirm": "0",
           "sameAddress": true,
           "estimatedArrivalTime": "2",
           "busy": false,
-          "contractAddressUrl": "https://bloks.io/tokens/",
+          "contractAddressUrl": "https://eosauthority.com/tokens/",
           "contractAddress": "tethertether"
         },
         {
@@ -542,7 +502,7 @@
           "depositDesc": "",
           "withdrawDesc": "",
           "specialTips": "Please make sure that the token contract address is usdt.tether-token.near, depositing a token with different contract address may result in loss of funds. Thank you for your understanding",
-          "specialWithdrawTips": "Please make sure that the recipient NEAR address is activated and authorized to receive the token contract address usdt.tether-token.near; otherwise, your withdrawal will be unsuccessful.",
+          "specialWithdrawTips": "CAUTION: Ensure the recipient address is activated and authorized to receive the token contract address; otherwise, your withdrawal will fail.",
           "name": "NEAR Protocol",
           "resetAddressStatus": false,
           "addressRegex": "^(?!0x)(?!bc1)(?!bnb1)[a-z0-9_-]{1}[a-z0-9_.-]{0,62}[a-z0-9_-]{1}$",
@@ -550,6 +510,7 @@
           "withdrawFee": "0.2",
           "withdrawMin": "10",
           "withdrawMax": "10000000000",
+          "withdrawInternalMin": "0.00000001",
           "depositDust": "0.001",
           "minConfirm": "1",
           "unLockConfirm": "5",
@@ -574,9 +535,10 @@
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "0.087",
-          "withdrawMin": "0.17",
-          "withdrawMax": "9999999",
+          "withdrawFee": "0.16",
+          "withdrawMin": "0.32",
+          "withdrawMax": "450000000",
+          "withdrawInternalMin": "0.000001",
           "depositDust": "0.001",
           "minConfirm": "12",
           "unLockConfirm": "0",
@@ -585,6 +547,34 @@
           "busy": false,
           "contractAddressUrl": "https://avascan.info/blockchain/c/token/",
           "contractAddress": "0x9702230a8ea53601f5cd2dc00fdbc13d4df4a8c7"
+        },
+        {
+          "network": "APT",
+          "coin": "USDT",
+          "withdrawIntegerMultiple": "0.000001",
+          "isDefault": false,
+          "depositEnable": true,
+          "withdrawEnable": true,
+          "depositDesc": "",
+          "withdrawDesc": "",
+          "specialTips": "",
+          "specialWithdrawTips": "",
+          "name": "Aptos",
+          "resetAddressStatus": false,
+          "addressRegex": "^(0x)[0-9A-Za-z]{64}$",
+          "memoRegex": "",
+          "withdrawFee": "0.05",
+          "withdrawMin": "10",
+          "withdrawMax": "9999999",
+          "withdrawInternalMin": "0",
+          "depositDust": "0.000001",
+          "minConfirm": "1",
+          "unLockConfirm": "0",
+          "sameAddress": false,
+          "estimatedArrivalTime": "0",
+          "busy": false,
+          "contractAddressUrl": "https://explorer.aptoslabs.com/fungible_asset/",
+          "contractAddress": "0x357b0b74bc833e95a115ad22604854d6b0fca151cecd94111770e5d6ffc9dc2b"
         },
         {
           "network": "ARBITRUM",
@@ -601,16 +591,17 @@
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "0.1",
-          "withdrawMin": "5",
-          "withdrawMax": "9999999",
+          "withdrawFee": "0.13",
+          "withdrawMin": "0.26",
+          "withdrawMax": "20000000",
+          "withdrawInternalMin": "0.00000001",
           "depositDust": "0.001",
           "minConfirm": "120",
           "unLockConfirm": "120",
           "sameAddress": false,
           "estimatedArrivalTime": "3",
           "busy": false,
-          "contractAddressUrl": "https://www.arbiscan.io/token/",
+          "contractAddressUrl": "https://arbiscan.io/token/",
           "contractAddress": "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9"
         },
         {
@@ -628,43 +619,17 @@
           "resetAddressStatus": false,
           "addressRegex": "^(1)[0-9a-z-A-Z]{44,50}$",
           "memoRegex": "",
-          "withdrawFee": "1",
+          "withdrawFee": "0.7",
           "withdrawMin": "10",
-          "withdrawMax": "9999999",
+          "withdrawMax": "20000000",
+          "withdrawInternalMin": "0.000001",
           "depositDust": "0.71",
           "minConfirm": "3",
           "unLockConfirm": "0",
           "sameAddress": false,
           "estimatedArrivalTime": "2",
           "busy": false,
-          "contractAddressUrl": ""
-        },
-        {
-          "network": "BNB",
-          "coin": "USDT",
-          "withdrawIntegerMultiple": "0.000001",
-          "isDefault": false,
-          "depositEnable": true,
-          "withdrawEnable": false,
-          "depositDesc": "",
-          "withdrawDesc": "Withdrawal for this token is not supported, please try other networks.",
-          "specialTips": "Both a memo/tag and an address are required to successfully deposit your assets to Binance.",
-          "specialWithdrawTips": "",
-          "name": "BNB Beacon Chain (BEP2)",
-          "resetAddressStatus": false,
-          "addressRegex": "^(bnb1)[0-9a-z]{38}$",
-          "memoRegex": "^[0-9A-Za-z\\-_]{1,120}$",
-          "withdrawFee": "0.3",
-          "withdrawMin": "10",
-          "withdrawMax": "10000000000",
-          "depositDust": "0.01",
-          "minConfirm": "1",
-          "unLockConfirm": "0",
-          "sameAddress": true,
-          "estimatedArrivalTime": "2",
-          "busy": false,
-          "contractAddressUrl": "https://explorer.bnbchain.org/asset/",
-          "contractAddress": "USDT-6D8"
+          "contractAddressUrl": "https://assethub-polkadot.subscan.io/assets/"
         },
         {
           "network": "CELO",
@@ -683,7 +648,8 @@
           "memoRegex": "",
           "withdrawFee": "0.03",
           "withdrawMin": "10",
-          "withdrawMax": "9999999",
+          "withdrawMax": "20000000",
+          "withdrawInternalMin": "0",
           "depositDust": "0.001",
           "minConfirm": "1",
           "unLockConfirm": "0",
@@ -708,14 +674,15 @@
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "4",
-          "withdrawMin": "16",
+          "withdrawFee": "1.5",
+          "withdrawMin": "18",
           "withdrawMax": "10000000000",
+          "withdrawInternalMin": "0.000001",
           "depositDust": "0.001",
           "minConfirm": "6",
           "unLockConfirm": "64",
           "sameAddress": false,
-          "estimatedArrivalTime": "4",
+          "estimatedArrivalTime": "3",
           "busy": false,
           "contractAddressUrl": "https://etherscan.io/address/",
           "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7"
@@ -726,9 +693,9 @@
           "withdrawIntegerMultiple": "0.000001",
           "isDefault": false,
           "depositEnable": true,
-          "withdrawEnable": false,
+          "withdrawEnable": true,
           "depositDesc": "",
-          "withdrawDesc": "Withdrawals are temporarily halted while Binance replenishes the hot wallet. Withdrawals for this asset will be resumed shortly.",
+          "withdrawDesc": "",
           "specialTips": "",
           "specialWithdrawTips": "",
           "name": "KAVAEVM",
@@ -737,7 +704,8 @@
           "memoRegex": "",
           "withdrawFee": "0.2",
           "withdrawMin": "10",
-          "withdrawMax": "9999999",
+          "withdrawMax": "20000000",
+          "withdrawInternalMin": "0",
           "depositDust": "0.001",
           "minConfirm": "1",
           "unLockConfirm": "0",
@@ -756,15 +724,16 @@
           "withdrawEnable": true,
           "depositDesc": "",
           "withdrawDesc": "",
-          "specialTips": "Please note that L2 networks require its corresponding L1 transaction to reach finality (64 blocks) before deposits can be unlocked. ETA ~25 min",
+          "specialTips": "",
           "specialWithdrawTips": "",
           "name": "Optimism",
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "0.025",
-          "withdrawMin": "0.05",
-          "withdrawMax": "9999999",
+          "withdrawFee": "0.016",
+          "withdrawMin": "0.032",
+          "withdrawMax": "20000000",
+          "withdrawInternalMin": "0.00000001",
           "depositDust": "0.001",
           "minConfirm": "25",
           "unLockConfirm": "100",
@@ -785,21 +754,50 @@
           "withdrawDesc": "",
           "specialTips": "",
           "specialWithdrawTips": "",
-          "name": "Polygon",
+          "name": "Polygon POS",
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "0.1",
-          "withdrawMin": "10",
+          "withdrawFee": "0.02",
+          "withdrawMin": "4",
           "withdrawMax": "1000000000",
+          "withdrawInternalMin": "0.000001",
           "depositDust": "0.001",
           "minConfirm": "200",
           "unLockConfirm": "300",
           "sameAddress": false,
           "estimatedArrivalTime": "8",
-          "busy": false,
+          "busy": true,
           "contractAddressUrl": "https://polygonscan.com/token/",
           "contractAddress": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f"
+        },
+        {
+          "network": "SCROLL",
+          "coin": "USDT",
+          "withdrawIntegerMultiple": "0.000001",
+          "isDefault": false,
+          "depositEnable": true,
+          "withdrawEnable": true,
+          "depositDesc": "",
+          "withdrawDesc": "",
+          "specialTips": "SCROLL is a L2 network. After crediting, its corresponding L1 transaction needs to be confirmed before unlocking, which takes approximately 1-2 hours.",
+          "specialWithdrawTips": "",
+          "name": "Scroll",
+          "resetAddressStatus": false,
+          "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
+          "memoRegex": "",
+          "withdrawFee": "0.1",
+          "withdrawMin": "10",
+          "withdrawMax": "20000000",
+          "withdrawInternalMin": "0",
+          "depositDust": "0.000001",
+          "minConfirm": "1",
+          "unLockConfirm": "0",
+          "sameAddress": false,
+          "estimatedArrivalTime": "0",
+          "busy": false,
+          "contractAddressUrl": "https://scrollscan.com/token/",
+          "contractAddress": "0xf55bec9cafdbe8730f096aa55dad6d22d44099df"
         },
         {
           "network": "SOL",
@@ -810,15 +808,16 @@
           "withdrawEnable": true,
           "depositDesc": "",
           "withdrawDesc": "",
-          "specialTips": "",
-          "specialWithdrawTips": "",
+          "specialTips": "Please note that SOL addresses are case sensitive.",
+          "specialWithdrawTips": "Please note that SOL addresses are case sensitive.",
           "name": "Solana",
           "resetAddressStatus": false,
           "addressRegex": "^[1-9A-HJ-NP-Za-km-z]{32,44}$",
           "memoRegex": "",
-          "withdrawFee": "1.5",
+          "withdrawFee": "1",
           "withdrawMin": "30",
-          "withdrawMax": "9999999",
+          "withdrawMax": "20000000",
+          "withdrawInternalMin": "0.000001",
           "depositDust": "0.001",
           "minConfirm": "1",
           "unLockConfirm": "0",
@@ -846,6 +845,7 @@
           "withdrawFee": "0.1",
           "withdrawMin": "10",
           "withdrawMax": "10000000000",
+          "withdrawInternalMin": "0.000001",
           "depositDust": "0.001",
           "minConfirm": "4",
           "unLockConfirm": "0",
@@ -864,15 +864,16 @@
           "withdrawEnable": true,
           "depositDesc": "",
           "withdrawDesc": "",
-          "specialTips": "Both MEMO and an Address are required to successfully deposit your USDT to Binance",
+          "specialTips": "Both a memo/tag and an address are required to successfully deposit your assets to Binance.",
           "specialWithdrawTips": "",
-          "name": "Toncoin",
+          "name": "The Open Network",
           "resetAddressStatus": false,
           "addressRegex": "^[UE][Qf][0-9a-z-A-Z\\-\\_]{46}$",
           "memoRegex": "^[0-9A-Za-z\\-_]{1,120}$",
           "withdrawFee": "0.3",
           "withdrawMin": "5",
-          "withdrawMax": "9999999",
+          "withdrawMax": "20000000",
+          "withdrawInternalMin": "0",
           "depositDust": "0.001",
           "minConfirm": "1",
           "unLockConfirm": "0",
@@ -892,6 +893,7 @@
           "depositDesc": "",
           "withdrawDesc": "",
           "specialTips": "",
+          "specialWithdrawTips": "CAUTION: Ensure the recipient address has been activated; otherwise, your withdrawal will fail.",
           "name": "Tron (TRC20)",
           "resetAddressStatus": false,
           "addressRegex": "^T[1-9A-HJ-NP-Za-km-z]{33}$",
@@ -899,6 +901,7 @@
           "withdrawFee": "1",
           "withdrawMin": "10",
           "withdrawMax": "10000000000",
+          "withdrawInternalMin": "0.000001",
           "depositDust": "0.01",
           "minConfirm": "1",
           "unLockConfirm": "0",
@@ -913,19 +916,20 @@
           "coin": "USDT",
           "withdrawIntegerMultiple": "0.00000001",
           "isDefault": false,
-          "depositEnable": false,
-          "withdrawEnable": false,
-          "depositDesc": "The wallet is currently undergoing maintenance. Your funds in transit are safe once confirmed on the blockchain and will be credited shortly after deposits have resumed.",
-          "withdrawDesc": "The wallet is currently undergoing maintenance. Withdrawals for this asset will be resumed shortly.",
+          "depositEnable": true,
+          "withdrawEnable": true,
+          "depositDesc": "",
+          "withdrawDesc": "",
           "specialTips": "",
-          "specialWithdrawTips": "",
+          "specialWithdrawTips": "The network you have selected is OPBNB. Please ensure that the withdrawal address supports the OPBNB network. You will potentially lose your assets if the chosen platform does not support refund of wrongfully deposited assets.",
           "name": "opBNB",
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "0.01",
-          "withdrawMin": "10",
-          "withdrawMax": "9999999",
+          "withdrawFee": "0",
+          "withdrawMin": "20",
+          "withdrawMax": "20000000",
+          "withdrawInternalMin": "0",
           "depositDust": "0.001",
           "minConfirm": "1",
           "unLockConfirm": "100",
@@ -957,16 +961,17 @@
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "0.1",
+          "withdrawFee": "0",
           "withdrawMin": "10",
           "withdrawMax": "10000000000",
+          "withdrawInternalMin": "0.01",
           "depositDust": "0.01",
           "minConfirm": "15",
           "unLockConfirm": "0",
           "sameAddress": false,
-          "estimatedArrivalTime": "5",
+          "estimatedArrivalTime": "2",
           "busy": false,
-          "contractAddressUrl": "https://bscscan.com/token/",
+          "contractAddressUrl": "https://bsctrace.com/token/",
           "contractAddress": "0x55d398326f99059ff775485246999027b3197955"
         },
         "id": "BSC",
@@ -974,7 +979,7 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.1,
+        "fee": 0,
         "precision": 1e-8,
         "limits": {
           "withdraw": {
@@ -982,7 +987,8 @@
             "max": 10000000000
           },
           "deposit": {
-            "min": 0.01
+            "min": 0.01,
+            "max": null
           }
         }
       },
@@ -1004,13 +1010,14 @@
           "withdrawFee": "1",
           "withdrawMin": "10",
           "withdrawMax": "10000000000",
+          "withdrawInternalMin": "0.0001",
           "depositDust": "0.001",
           "minConfirm": "1",
           "unLockConfirm": "0",
           "sameAddress": true,
           "estimatedArrivalTime": "2",
           "busy": false,
-          "contractAddressUrl": "https://bloks.io/tokens/",
+          "contractAddressUrl": "https://eosauthority.com/tokens/",
           "contractAddress": "tethertether"
         },
         "id": "EOS",
@@ -1026,7 +1033,8 @@
             "max": 10000000000
           },
           "deposit": {
-            "min": 0.001
+            "min": 0.001,
+            "max": null
           }
         }
       },
@@ -1041,7 +1049,7 @@
           "depositDesc": "",
           "withdrawDesc": "",
           "specialTips": "Please make sure that the token contract address is usdt.tether-token.near, depositing a token with different contract address may result in loss of funds. Thank you for your understanding",
-          "specialWithdrawTips": "Please make sure that the recipient NEAR address is activated and authorized to receive the token contract address usdt.tether-token.near; otherwise, your withdrawal will be unsuccessful.",
+          "specialWithdrawTips": "CAUTION: Ensure the recipient address is activated and authorized to receive the token contract address; otherwise, your withdrawal will fail.",
           "name": "NEAR Protocol",
           "resetAddressStatus": false,
           "addressRegex": "^(?!0x)(?!bc1)(?!bnb1)[a-z0-9_-]{1}[a-z0-9_.-]{0,62}[a-z0-9_-]{1}$",
@@ -1049,6 +1057,7 @@
           "withdrawFee": "0.2",
           "withdrawMin": "10",
           "withdrawMax": "10000000000",
+          "withdrawInternalMin": "0.00000001",
           "depositDust": "0.001",
           "minConfirm": "1",
           "unLockConfirm": "5",
@@ -1071,7 +1080,8 @@
             "max": 10000000000
           },
           "deposit": {
-            "min": 0.001
+            "min": 0.001,
+            "max": null
           }
         }
       },
@@ -1091,9 +1101,10 @@
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "0.087",
-          "withdrawMin": "0.17",
-          "withdrawMax": "9999999",
+          "withdrawFee": "0.16",
+          "withdrawMin": "0.32",
+          "withdrawMax": "450000000",
+          "withdrawInternalMin": "0.000001",
           "depositDust": "0.001",
           "minConfirm": "12",
           "unLockConfirm": "0",
@@ -1108,15 +1119,63 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.087,
+        "fee": 0.16,
         "precision": 0.000001,
         "limits": {
           "withdraw": {
-            "min": 0.17,
+            "min": 0.32,
+            "max": 450000000
+          },
+          "deposit": {
+            "min": 0.001,
+            "max": null
+          }
+        }
+      },
+      "APT": {
+        "info": {
+          "network": "APT",
+          "coin": "USDT",
+          "withdrawIntegerMultiple": "0.000001",
+          "isDefault": false,
+          "depositEnable": true,
+          "withdrawEnable": true,
+          "depositDesc": "",
+          "withdrawDesc": "",
+          "specialTips": "",
+          "specialWithdrawTips": "",
+          "name": "Aptos",
+          "resetAddressStatus": false,
+          "addressRegex": "^(0x)[0-9A-Za-z]{64}$",
+          "memoRegex": "",
+          "withdrawFee": "0.05",
+          "withdrawMin": "10",
+          "withdrawMax": "9999999",
+          "withdrawInternalMin": "0",
+          "depositDust": "0.000001",
+          "minConfirm": "1",
+          "unLockConfirm": "0",
+          "sameAddress": false,
+          "estimatedArrivalTime": "0",
+          "busy": false,
+          "contractAddressUrl": "https://explorer.aptoslabs.com/fungible_asset/",
+          "contractAddress": "0x357b0b74bc833e95a115ad22604854d6b0fca151cecd94111770e5d6ffc9dc2b"
+        },
+        "id": "APT",
+        "network": "APT",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.05,
+        "precision": 0.000001,
+        "limits": {
+          "withdraw": {
+            "min": 10,
             "max": 9999999
           },
           "deposit": {
-            "min": 0.001
+            "min": 0.000001,
+            "max": null
           }
         }
       },
@@ -1136,16 +1195,17 @@
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "0.1",
-          "withdrawMin": "5",
-          "withdrawMax": "9999999",
+          "withdrawFee": "0.13",
+          "withdrawMin": "0.26",
+          "withdrawMax": "20000000",
+          "withdrawInternalMin": "0.00000001",
           "depositDust": "0.001",
           "minConfirm": "120",
           "unLockConfirm": "120",
           "sameAddress": false,
           "estimatedArrivalTime": "3",
           "busy": false,
-          "contractAddressUrl": "https://www.arbiscan.io/token/",
+          "contractAddressUrl": "https://arbiscan.io/token/",
           "contractAddress": "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9"
         },
         "id": "ARBITRUM",
@@ -1153,15 +1213,16 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.1,
+        "fee": 0.13,
         "precision": 0.000001,
         "limits": {
           "withdraw": {
-            "min": 5,
-            "max": 9999999
+            "min": 0.26,
+            "max": 20000000
           },
           "deposit": {
-            "min": 0.001
+            "min": 0.001,
+            "max": null
           }
         }
       },
@@ -1181,76 +1242,33 @@
           "resetAddressStatus": false,
           "addressRegex": "^(1)[0-9a-z-A-Z]{44,50}$",
           "memoRegex": "",
-          "withdrawFee": "1",
+          "withdrawFee": "0.7",
           "withdrawMin": "10",
-          "withdrawMax": "9999999",
+          "withdrawMax": "20000000",
+          "withdrawInternalMin": "0.000001",
           "depositDust": "0.71",
           "minConfirm": "3",
           "unLockConfirm": "0",
           "sameAddress": false,
           "estimatedArrivalTime": "2",
           "busy": false,
-          "contractAddressUrl": ""
+          "contractAddressUrl": "https://assethub-polkadot.subscan.io/assets/"
         },
         "id": "STATEMINT",
         "network": "STATEMINT",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 1,
+        "fee": 0.7,
         "precision": 0.000001,
         "limits": {
           "withdraw": {
             "min": 10,
-            "max": 9999999
+            "max": 20000000
           },
           "deposit": {
-            "min": 0.71
-          }
-        }
-      },
-      "BEP2": {
-        "info": {
-          "network": "BNB",
-          "coin": "USDT",
-          "withdrawIntegerMultiple": "0.000001",
-          "isDefault": false,
-          "depositEnable": true,
-          "withdrawEnable": false,
-          "depositDesc": "",
-          "withdrawDesc": "Withdrawal for this token is not supported, please try other networks.",
-          "specialTips": "Both a memo/tag and an address are required to successfully deposit your assets to Binance.",
-          "specialWithdrawTips": "",
-          "name": "BNB Beacon Chain (BEP2)",
-          "resetAddressStatus": false,
-          "addressRegex": "^(bnb1)[0-9a-z]{38}$",
-          "memoRegex": "^[0-9A-Za-z\\-_]{1,120}$",
-          "withdrawFee": "0.3",
-          "withdrawMin": "10",
-          "withdrawMax": "10000000000",
-          "depositDust": "0.01",
-          "minConfirm": "1",
-          "unLockConfirm": "0",
-          "sameAddress": true,
-          "estimatedArrivalTime": "2",
-          "busy": false,
-          "contractAddressUrl": "https://explorer.bnbchain.org/asset/",
-          "contractAddress": "USDT-6D8"
-        },
-        "id": "BNB",
-        "network": "BEP2",
-        "active": false,
-        "deposit": true,
-        "withdraw": false,
-        "fee": 0.3,
-        "precision": 0.000001,
-        "limits": {
-          "withdraw": {
-            "min": 10,
-            "max": 10000000000
-          },
-          "deposit": {
-            "min": 0.01
+            "min": 0.71,
+            "max": null
           }
         }
       },
@@ -1272,7 +1290,8 @@
           "memoRegex": "",
           "withdrawFee": "0.03",
           "withdrawMin": "10",
-          "withdrawMax": "9999999",
+          "withdrawMax": "20000000",
+          "withdrawInternalMin": "0",
           "depositDust": "0.001",
           "minConfirm": "1",
           "unLockConfirm": "0",
@@ -1292,10 +1311,11 @@
         "limits": {
           "withdraw": {
             "min": 10,
-            "max": 9999999
+            "max": 20000000
           },
           "deposit": {
-            "min": 0.001
+            "min": 0.001,
+            "max": null
           }
         }
       },
@@ -1315,14 +1335,15 @@
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "4",
-          "withdrawMin": "16",
+          "withdrawFee": "1.5",
+          "withdrawMin": "18",
           "withdrawMax": "10000000000",
+          "withdrawInternalMin": "0.000001",
           "depositDust": "0.001",
           "minConfirm": "6",
           "unLockConfirm": "64",
           "sameAddress": false,
-          "estimatedArrivalTime": "4",
+          "estimatedArrivalTime": "3",
           "busy": false,
           "contractAddressUrl": "https://etherscan.io/address/",
           "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7"
@@ -1332,15 +1353,16 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 4,
+        "fee": 1.5,
         "precision": 0.000001,
         "limits": {
           "withdraw": {
-            "min": 16,
+            "min": 18,
             "max": 10000000000
           },
           "deposit": {
-            "min": 0.001
+            "min": 0.001,
+            "max": null
           }
         }
       },
@@ -1351,9 +1373,9 @@
           "withdrawIntegerMultiple": "0.000001",
           "isDefault": false,
           "depositEnable": true,
-          "withdrawEnable": false,
+          "withdrawEnable": true,
           "depositDesc": "",
-          "withdrawDesc": "Withdrawals are temporarily halted while Binance replenishes the hot wallet. Withdrawals for this asset will be resumed shortly.",
+          "withdrawDesc": "",
           "specialTips": "",
           "specialWithdrawTips": "",
           "name": "KAVAEVM",
@@ -1362,7 +1384,8 @@
           "memoRegex": "",
           "withdrawFee": "0.2",
           "withdrawMin": "10",
-          "withdrawMax": "9999999",
+          "withdrawMax": "20000000",
+          "withdrawInternalMin": "0",
           "depositDust": "0.001",
           "minConfirm": "1",
           "unLockConfirm": "0",
@@ -1374,18 +1397,19 @@
         },
         "id": "KAVAEVM",
         "network": "KAVAEVM",
-        "active": false,
+        "active": true,
         "deposit": true,
-        "withdraw": false,
+        "withdraw": true,
         "fee": 0.2,
         "precision": 0.000001,
         "limits": {
           "withdraw": {
             "min": 10,
-            "max": 9999999
+            "max": 20000000
           },
           "deposit": {
-            "min": 0.001
+            "min": 0.001,
+            "max": null
           }
         }
       },
@@ -1399,15 +1423,16 @@
           "withdrawEnable": true,
           "depositDesc": "",
           "withdrawDesc": "",
-          "specialTips": "Please note that L2 networks require its corresponding L1 transaction to reach finality (64 blocks) before deposits can be unlocked. ETA ~25 min",
+          "specialTips": "",
           "specialWithdrawTips": "",
           "name": "Optimism",
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "0.025",
-          "withdrawMin": "0.05",
-          "withdrawMax": "9999999",
+          "withdrawFee": "0.016",
+          "withdrawMin": "0.032",
+          "withdrawMax": "20000000",
+          "withdrawInternalMin": "0.00000001",
           "depositDust": "0.001",
           "minConfirm": "25",
           "unLockConfirm": "100",
@@ -1422,15 +1447,16 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.025,
+        "fee": 0.016,
         "precision": 0.000001,
         "limits": {
           "withdraw": {
-            "min": 0.05,
-            "max": 9999999
+            "min": 0.032,
+            "max": 20000000
           },
           "deposit": {
-            "min": 0.001
+            "min": 0.001,
+            "max": null
           }
         }
       },
@@ -1446,19 +1472,20 @@
           "withdrawDesc": "",
           "specialTips": "",
           "specialWithdrawTips": "",
-          "name": "Polygon",
+          "name": "Polygon POS",
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "0.1",
-          "withdrawMin": "10",
+          "withdrawFee": "0.02",
+          "withdrawMin": "4",
           "withdrawMax": "1000000000",
+          "withdrawInternalMin": "0.000001",
           "depositDust": "0.001",
           "minConfirm": "200",
           "unLockConfirm": "300",
           "sameAddress": false,
           "estimatedArrivalTime": "8",
-          "busy": false,
+          "busy": true,
           "contractAddressUrl": "https://polygonscan.com/token/",
           "contractAddress": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f"
         },
@@ -1467,19 +1494,67 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
+        "fee": 0.02,
+        "precision": 0.000001,
+        "limits": {
+          "withdraw": {
+            "min": 4,
+            "max": 1000000000
+          },
+          "deposit": {
+            "min": 0.001,
+            "max": null
+          }
+        }
+      },
+      "SCROLL": {
+        "info": {
+          "network": "SCROLL",
+          "coin": "USDT",
+          "withdrawIntegerMultiple": "0.000001",
+          "isDefault": false,
+          "depositEnable": true,
+          "withdrawEnable": true,
+          "depositDesc": "",
+          "withdrawDesc": "",
+          "specialTips": "SCROLL is a L2 network. After crediting, its corresponding L1 transaction needs to be confirmed before unlocking, which takes approximately 1-2 hours.",
+          "specialWithdrawTips": "",
+          "name": "Scroll",
+          "resetAddressStatus": false,
+          "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
+          "memoRegex": "",
+          "withdrawFee": "0.1",
+          "withdrawMin": "10",
+          "withdrawMax": "20000000",
+          "withdrawInternalMin": "0",
+          "depositDust": "0.000001",
+          "minConfirm": "1",
+          "unLockConfirm": "0",
+          "sameAddress": false,
+          "estimatedArrivalTime": "0",
+          "busy": false,
+          "contractAddressUrl": "https://scrollscan.com/token/",
+          "contractAddress": "0xf55bec9cafdbe8730f096aa55dad6d22d44099df"
+        },
+        "id": "SCROLL",
+        "network": "SCROLL",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
         "fee": 0.1,
         "precision": 0.000001,
         "limits": {
           "withdraw": {
             "min": 10,
-            "max": 1000000000
+            "max": 20000000
           },
           "deposit": {
-            "min": 0.001
+            "min": 0.000001,
+            "max": null
           }
         }
       },
-      "SPL": {
+      "SOL": {
         "info": {
           "network": "SOL",
           "coin": "USDT",
@@ -1489,15 +1564,16 @@
           "withdrawEnable": true,
           "depositDesc": "",
           "withdrawDesc": "",
-          "specialTips": "",
-          "specialWithdrawTips": "",
+          "specialTips": "Please note that SOL addresses are case sensitive.",
+          "specialWithdrawTips": "Please note that SOL addresses are case sensitive.",
           "name": "Solana",
           "resetAddressStatus": false,
           "addressRegex": "^[1-9A-HJ-NP-Za-km-z]{32,44}$",
           "memoRegex": "",
-          "withdrawFee": "1.5",
+          "withdrawFee": "1",
           "withdrawMin": "30",
-          "withdrawMax": "9999999",
+          "withdrawMax": "20000000",
+          "withdrawInternalMin": "0.000001",
           "depositDust": "0.001",
           "minConfirm": "1",
           "unLockConfirm": "0",
@@ -1508,19 +1584,20 @@
           "contractAddress": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
         },
         "id": "SOL",
-        "network": "SPL",
+        "network": "SOL",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 1.5,
+        "fee": 1,
         "precision": 0.000001,
         "limits": {
           "withdraw": {
             "min": 30,
-            "max": 9999999
+            "max": 20000000
           },
           "deposit": {
-            "min": 0.001
+            "min": 0.001,
+            "max": null
           }
         }
       },
@@ -1543,6 +1620,7 @@
           "withdrawFee": "0.1",
           "withdrawMin": "10",
           "withdrawMax": "10000000000",
+          "withdrawInternalMin": "0.000001",
           "depositDust": "0.001",
           "minConfirm": "4",
           "unLockConfirm": "0",
@@ -1565,7 +1643,8 @@
             "max": 10000000000
           },
           "deposit": {
-            "min": 0.001
+            "min": 0.001,
+            "max": null
           }
         }
       },
@@ -1579,15 +1658,16 @@
           "withdrawEnable": true,
           "depositDesc": "",
           "withdrawDesc": "",
-          "specialTips": "Both MEMO and an Address are required to successfully deposit your USDT to Binance",
+          "specialTips": "Both a memo/tag and an address are required to successfully deposit your assets to Binance.",
           "specialWithdrawTips": "",
-          "name": "Toncoin",
+          "name": "The Open Network",
           "resetAddressStatus": false,
           "addressRegex": "^[UE][Qf][0-9a-z-A-Z\\-\\_]{46}$",
           "memoRegex": "^[0-9A-Za-z\\-_]{1,120}$",
           "withdrawFee": "0.3",
           "withdrawMin": "5",
-          "withdrawMax": "9999999",
+          "withdrawMax": "20000000",
+          "withdrawInternalMin": "0",
           "depositDust": "0.001",
           "minConfirm": "1",
           "unLockConfirm": "0",
@@ -1607,10 +1687,11 @@
         "limits": {
           "withdraw": {
             "min": 5,
-            "max": 9999999
+            "max": 20000000
           },
           "deposit": {
-            "min": 0.001
+            "min": 0.001,
+            "max": null
           }
         }
       },
@@ -1625,6 +1706,7 @@
           "depositDesc": "",
           "withdrawDesc": "",
           "specialTips": "",
+          "specialWithdrawTips": "CAUTION: Ensure the recipient address has been activated; otherwise, your withdrawal will fail.",
           "name": "Tron (TRC20)",
           "resetAddressStatus": false,
           "addressRegex": "^T[1-9A-HJ-NP-Za-km-z]{33}$",
@@ -1632,6 +1714,7 @@
           "withdrawFee": "1",
           "withdrawMin": "10",
           "withdrawMax": "10000000000",
+          "withdrawInternalMin": "0.000001",
           "depositDust": "0.01",
           "minConfirm": "1",
           "unLockConfirm": "0",
@@ -1654,7 +1737,8 @@
             "max": 10000000000
           },
           "deposit": {
-            "min": 0.01
+            "min": 0.01,
+            "max": null
           }
         }
       },
@@ -1664,19 +1748,20 @@
           "coin": "USDT",
           "withdrawIntegerMultiple": "0.00000001",
           "isDefault": false,
-          "depositEnable": false,
-          "withdrawEnable": false,
-          "depositDesc": "The wallet is currently undergoing maintenance. Your funds in transit are safe once confirmed on the blockchain and will be credited shortly after deposits have resumed.",
-          "withdrawDesc": "The wallet is currently undergoing maintenance. Withdrawals for this asset will be resumed shortly.",
+          "depositEnable": true,
+          "withdrawEnable": true,
+          "depositDesc": "",
+          "withdrawDesc": "",
           "specialTips": "",
-          "specialWithdrawTips": "",
+          "specialWithdrawTips": "The network you have selected is OPBNB. Please ensure that the withdrawal address supports the OPBNB network. You will potentially lose your assets if the chosen platform does not support refund of wrongfully deposited assets.",
           "name": "opBNB",
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "0.01",
-          "withdrawMin": "10",
-          "withdrawMax": "9999999",
+          "withdrawFee": "0",
+          "withdrawMin": "20",
+          "withdrawMax": "20000000",
+          "withdrawInternalMin": "0",
           "depositDust": "0.001",
           "minConfirm": "1",
           "unLockConfirm": "100",
@@ -1688,54 +1773,69 @@
         },
         "id": "OPBNB",
         "network": "OPBNB",
-        "active": false,
-        "deposit": false,
-        "withdraw": false,
-        "fee": 0.01,
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0,
         "precision": 1e-8,
         "limits": {
           "withdraw": {
-            "min": 10,
-            "max": 9999999
+            "min": 20,
+            "max": 20000000
           },
           "deposit": {
-            "min": 0.001
+            "min": 0.001,
+            "max": null
           }
         }
       }
     },
-    "fee": 4,
+    "fee": 1.5,
     "fees": {
-      "BSC": 0.1,
+      "BSC": 0,
       "EOS": 1,
       "NEAR": 0.2,
-      "AVAXC": 0.087,
-      "ARBITRUM": 0.1,
-      "STATEMINT": 1,
-      "BNB": 0.3,
+      "AVAXC": 0.16,
+      "APT": 0.05,
+      "ARBITRUM": 0.13,
+      "STATEMINT": 0.7,
       "CELO": 0.03,
-      "ETH": 4,
+      "ETH": 1.5,
       "KAVAEVM": 0.2,
-      "OPTIMISM": 0.025,
-      "MATIC": 0.1,
-      "SOL": 1.5,
+      "OPTIMISM": 0.016,
+      "MATIC": 0.02,
+      "SCROLL": 0.1,
+      "SOL": 1,
       "XTZ": 0.1,
       "TON": 0.3,
       "TRX": 1,
-      "OPBNB": 0.01
+      "OPBNB": 0
     },
     "limits": {
-      "leverage": {},
-      "amount": {},
-      "price": {},
-      "cost": {}
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
     },
-    "margin": true
+    "margin": null
   },
   "EUR": {
     "id": "EUR",
     "name": "Euro",
     "code": "EUR",
+    "type": "fiat",
     "precision": 1e-8,
     "info": {
       "coin": "EUR",
@@ -1769,6 +1869,7 @@
           "withdrawFee": "0",
           "withdrawMin": "0",
           "withdrawMax": "9999999999.99999999",
+          "withdrawInternalMin": "0.00000001",
           "minConfirm": "0",
           "unLockConfirm": "0",
           "sameAddress": false,
@@ -1799,6 +1900,7 @@
           "withdrawFee": "0",
           "withdrawMin": "0",
           "withdrawMax": "9999999999.99999999",
+          "withdrawInternalMin": "0.00000001",
           "minConfirm": "0",
           "unLockConfirm": "0",
           "sameAddress": false,
@@ -1817,7 +1919,10 @@
             "min": 0,
             "max": 10000000000
           },
-          "deposit": {}
+          "deposit": {
+            "min": null,
+            "max": null
+          }
         }
       }
     },
@@ -1826,16 +1931,30 @@
       "FIAT_MONEY": 0
     },
     "limits": {
-      "leverage": {},
-      "amount": {},
-      "price": {},
-      "cost": {}
-    }
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
+    },
+    "margin": null
   },
   "LTC": {
     "id": "LTC",
     "name": "Litecoin",
     "code": "LTC",
+    "type": "crypto",
     "precision": 1e-8,
     "info": {
       "coin": "LTC",
@@ -1867,16 +1986,17 @@
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "0.0077",
+          "withdrawFee": "0.0075",
           "withdrawMin": "0.015",
           "withdrawMax": "10000000000",
+          "withdrawInternalMin": "0.00000001",
           "depositDust": "0.000015",
           "minConfirm": "15",
           "unLockConfirm": "0",
           "sameAddress": false,
-          "estimatedArrivalTime": "5",
+          "estimatedArrivalTime": "2",
           "busy": false,
-          "contractAddressUrl": "https://bscscan.com/token/",
+          "contractAddressUrl": "https://bsctrace.com/token/",
           "contractAddress": "0x4338665cbb7b2485a8855a139b75d5e34ab0db94"
         },
         {
@@ -1897,38 +2017,13 @@
           "withdrawFee": "0.0001",
           "withdrawMin": "0.002",
           "withdrawMax": "10000000000",
+          "withdrawInternalMin": "0.00000001",
           "depositDust": "0.001",
           "minConfirm": "3",
           "unLockConfirm": "4",
           "sameAddress": false,
           "estimatedArrivalTime": "20",
           "busy": false
-        },
-        {
-          "network": "BNB",
-          "coin": "LTC",
-          "withdrawIntegerMultiple": "0.00000001",
-          "isDefault": false,
-          "depositEnable": true,
-          "withdrawEnable": false,
-          "depositDesc": "",
-          "withdrawDesc": "Withdrawal for this token is not supported, please try other networks.",
-          "specialTips": "Both a memo/tag and an address are required to successfully deposit your assets to Binance.",
-          "name": "BNB Beacon Chain (BEP2)",
-          "resetAddressStatus": false,
-          "addressRegex": "^(bnb1)[0-9a-z]{38}$",
-          "memoRegex": "^[0-9A-Za-z\\-_]{1,120}$",
-          "withdrawFee": "0.0039",
-          "withdrawMin": "0.0078",
-          "withdrawMax": "10000000000",
-          "depositDust": "0.000015",
-          "minConfirm": "1",
-          "unLockConfirm": "0",
-          "sameAddress": true,
-          "estimatedArrivalTime": "2",
-          "busy": false,
-          "contractAddressUrl": "https://explorer.bnbchain.org/asset/",
-          "contractAddress": "LTC-F07"
         }
       ]
     },
@@ -1952,16 +2047,17 @@
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "0.0077",
+          "withdrawFee": "0.0075",
           "withdrawMin": "0.015",
           "withdrawMax": "10000000000",
+          "withdrawInternalMin": "0.00000001",
           "depositDust": "0.000015",
           "minConfirm": "15",
           "unLockConfirm": "0",
           "sameAddress": false,
-          "estimatedArrivalTime": "5",
+          "estimatedArrivalTime": "2",
           "busy": false,
-          "contractAddressUrl": "https://bscscan.com/token/",
+          "contractAddressUrl": "https://bsctrace.com/token/",
           "contractAddress": "0x4338665cbb7b2485a8855a139b75d5e34ab0db94"
         },
         "id": "BSC",
@@ -1969,7 +2065,7 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.0077,
+        "fee": 0.0075,
         "precision": 1e-8,
         "limits": {
           "withdraw": {
@@ -1977,7 +2073,8 @@
             "max": 10000000000
           },
           "deposit": {
-            "min": 0.000015
+            "min": 0.000015,
+            "max": null
           }
         }
       },
@@ -2000,6 +2097,7 @@
           "withdrawFee": "0.0001",
           "withdrawMin": "0.002",
           "withdrawMax": "10000000000",
+          "withdrawInternalMin": "0.00000001",
           "depositDust": "0.001",
           "minConfirm": "3",
           "unLockConfirm": "4",
@@ -2020,73 +2118,42 @@
             "max": 10000000000
           },
           "deposit": {
-            "min": 0.001
-          }
-        }
-      },
-      "BEP2": {
-        "info": {
-          "network": "BNB",
-          "coin": "LTC",
-          "withdrawIntegerMultiple": "0.00000001",
-          "isDefault": false,
-          "depositEnable": true,
-          "withdrawEnable": false,
-          "depositDesc": "",
-          "withdrawDesc": "Withdrawal for this token is not supported, please try other networks.",
-          "specialTips": "Both a memo/tag and an address are required to successfully deposit your assets to Binance.",
-          "name": "BNB Beacon Chain (BEP2)",
-          "resetAddressStatus": false,
-          "addressRegex": "^(bnb1)[0-9a-z]{38}$",
-          "memoRegex": "^[0-9A-Za-z\\-_]{1,120}$",
-          "withdrawFee": "0.0039",
-          "withdrawMin": "0.0078",
-          "withdrawMax": "10000000000",
-          "depositDust": "0.000015",
-          "minConfirm": "1",
-          "unLockConfirm": "0",
-          "sameAddress": true,
-          "estimatedArrivalTime": "2",
-          "busy": false,
-          "contractAddressUrl": "https://explorer.bnbchain.org/asset/",
-          "contractAddress": "LTC-F07"
-        },
-        "id": "BNB",
-        "network": "BEP2",
-        "active": false,
-        "deposit": true,
-        "withdraw": false,
-        "fee": 0.0039,
-        "precision": 1e-8,
-        "limits": {
-          "withdraw": {
-            "min": 0.0078,
-            "max": 10000000000
-          },
-          "deposit": {
-            "min": 0.000015
+            "min": 0.001,
+            "max": null
           }
         }
       }
     },
     "fee": 0.0001,
     "fees": {
-      "BSC": 0.0077,
-      "LTC": 0.0001,
-      "BNB": 0.0039
+      "BSC": 0.0075,
+      "LTC": 0.0001
     },
     "limits": {
-      "leverage": {},
-      "amount": {},
-      "price": {},
-      "cost": {}
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
     },
-    "margin": true
+    "margin": null
   },
   "ETH": {
     "id": "ETH",
     "name": "Ethereum",
     "code": "ETH",
+    "type": "crypto",
     "precision": 1e-8,
     "info": {
       "coin": "ETH",
@@ -2118,16 +2185,17 @@
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "0.00021",
-          "withdrawMin": "0.00042",
+          "withdrawFee": "0.00036",
+          "withdrawMin": "0.00072",
           "withdrawMax": "10000000000",
+          "withdrawInternalMin": "0.00000001",
           "depositDust": "0.0000003",
           "minConfirm": "15",
           "unLockConfirm": "0",
           "sameAddress": false,
-          "estimatedArrivalTime": "5",
+          "estimatedArrivalTime": "2",
           "busy": false,
-          "contractAddressUrl": "https://bscscan.com/token/",
+          "contractAddressUrl": "https://bsctrace.com/token/",
           "contractAddress": "0x2170ed0880ac9a755fd29b2688956bd959f933f8"
         },
         {
@@ -2145,14 +2213,15 @@
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "0.0013",
-          "withdrawMin": "0.0026",
+          "withdrawFee": "0.0006",
+          "withdrawMin": "0.0029",
           "withdrawMax": "10000000000",
+          "withdrawInternalMin": "0.00000001",
           "depositDust": "0.0000003",
           "minConfirm": "6",
           "unLockConfirm": "64",
           "sameAddress": false,
-          "estimatedArrivalTime": "4",
+          "estimatedArrivalTime": "3",
           "busy": false,
           "contractAddressUrl": "https://etherscan.io/address/"
         },
@@ -2165,48 +2234,23 @@
           "withdrawEnable": true,
           "depositDesc": "",
           "withdrawDesc": "",
-          "specialTips": "Please note that L2 networks require its corresponding L1 transaction to reach finality (64 blocks) before deposits can be unlocked. ETA ~25 min",
+          "specialTips": "",
           "specialWithdrawTips": "",
           "name": "Arbitrum One",
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
           "withdrawFee": "0.00004",
-          "withdrawMin": "0.0008",
+          "withdrawMin": "0.0003",
           "withdrawMax": "9999999",
+          "withdrawInternalMin": "0.00000001",
           "depositDust": "0.0000003",
           "minConfirm": "120",
           "unLockConfirm": "120",
           "sameAddress": false,
           "estimatedArrivalTime": "3",
           "busy": false,
-          "contractAddressUrl": "https://www.arbiscan.io/token/"
-        },
-        {
-          "network": "BNB",
-          "coin": "ETH",
-          "withdrawIntegerMultiple": "0.00000001",
-          "isDefault": false,
-          "depositEnable": true,
-          "withdrawEnable": false,
-          "depositDesc": "",
-          "withdrawDesc": "Withdrawal for this token is not supported, please try other networks.",
-          "specialTips": "Both a memo/tag and an address are required to successfully deposit your assets to Binance.",
-          "name": "BNB Beacon Chain (BEP2)",
-          "resetAddressStatus": false,
-          "addressRegex": "^(bnb1)[0-9a-z]{38}$",
-          "memoRegex": "^[0-9A-Za-z\\-_]{1,120}$",
-          "withdrawFee": "0.0001",
-          "withdrawMin": "0.0002",
-          "withdrawMax": "10000000000",
-          "depositDust": "0.000001",
-          "minConfirm": "1",
-          "unLockConfirm": "0",
-          "sameAddress": true,
-          "estimatedArrivalTime": "2",
-          "busy": false,
-          "contractAddressUrl": "https://explorer.bnbchain.org/asset/",
-          "contractAddress": "ETH-1C9"
+          "contractAddressUrl": "https://arbiscan.io/token/"
         },
         {
           "network": "BASE",
@@ -2217,21 +2261,22 @@
           "withdrawEnable": true,
           "depositDesc": "",
           "withdrawDesc": "",
-          "specialTips": "Please note that L2 networks require its corresponding L1 transaction to reach finality (64 blocks) before deposits can be unlocked. ETA ~25 min",
+          "specialTips": "",
           "specialWithdrawTips": "",
           "name": "Base",
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "0.00001",
+          "withdrawFee": "0.00004",
           "withdrawMin": "0.001",
           "withdrawMax": "9999999",
+          "withdrawInternalMin": "0",
           "depositDust": "0.0000003",
           "minConfirm": "1",
           "unLockConfirm": "100",
           "sameAddress": false,
           "estimatedArrivalTime": "0",
-          "busy": false,
+          "busy": true,
           "contractAddressUrl": "https://basescan.org/token/"
         },
         {
@@ -2252,6 +2297,7 @@
           "withdrawFee": "0.00003",
           "withdrawMin": "0.0003",
           "withdrawMax": "9999999",
+          "withdrawInternalMin": "0",
           "depositDust": "0.0000003",
           "minConfirm": "1",
           "unLockConfirm": "0",
@@ -2269,15 +2315,16 @@
           "withdrawEnable": true,
           "depositDesc": "",
           "withdrawDesc": "",
-          "specialTips": "Please note that L2 networks require its corresponding L1 transaction to reach finality (64 blocks) before deposits can be unlocked. ETA ~25 min",
+          "specialTips": "",
           "specialWithdrawTips": "",
           "name": "Optimism",
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
           "withdrawFee": "0.00001",
-          "withdrawMin": "0.002",
+          "withdrawMin": "0.005",
           "withdrawMax": "1000000000",
+          "withdrawInternalMin": "0.00000001",
           "depositDust": "0.0000003",
           "minConfirm": "25",
           "unLockConfirm": "100",
@@ -2285,6 +2332,33 @@
           "estimatedArrivalTime": "2",
           "busy": false,
           "contractAddressUrl": "https://optimistic.etherscan.io/token/"
+        },
+        {
+          "network": "SCROLL",
+          "coin": "ETH",
+          "withdrawIntegerMultiple": "0.00000001",
+          "isDefault": false,
+          "depositEnable": true,
+          "withdrawEnable": true,
+          "depositDesc": "",
+          "withdrawDesc": "",
+          "specialTips": "SCROLL is a L2 network. After crediting, its corresponding L1 transaction needs to be confirmed before unlocking, which takes approximately 1-2 hours.",
+          "specialWithdrawTips": "",
+          "name": "Scroll",
+          "resetAddressStatus": false,
+          "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
+          "memoRegex": "",
+          "withdrawFee": "0.0001",
+          "withdrawMin": "0.001",
+          "withdrawMax": "9999999",
+          "withdrawInternalMin": "0",
+          "depositDust": "0.00000001",
+          "minConfirm": "1",
+          "unLockConfirm": "0",
+          "sameAddress": false,
+          "estimatedArrivalTime": "0",
+          "busy": false,
+          "contractAddressUrl": "https://scrollscan.com/token/"
         },
         {
           "network": "STARKNET",
@@ -2304,6 +2378,7 @@
           "withdrawFee": "0.0001",
           "withdrawMin": "0.002",
           "withdrawMax": "9999999",
+          "withdrawInternalMin": "0",
           "depositDust": "0.0000003",
           "minConfirm": "1",
           "unLockConfirm": "0",
@@ -2331,6 +2406,7 @@
           "withdrawFee": "0.00004",
           "withdrawMin": "0.01",
           "withdrawMax": "9999999",
+          "withdrawInternalMin": "0",
           "depositDust": "0.0000003",
           "minConfirm": "1",
           "unLockConfirm": "0",
@@ -2362,16 +2438,17 @@
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "0.00021",
-          "withdrawMin": "0.00042",
+          "withdrawFee": "0.00036",
+          "withdrawMin": "0.00072",
           "withdrawMax": "10000000000",
+          "withdrawInternalMin": "0.00000001",
           "depositDust": "0.0000003",
           "minConfirm": "15",
           "unLockConfirm": "0",
           "sameAddress": false,
-          "estimatedArrivalTime": "5",
+          "estimatedArrivalTime": "2",
           "busy": false,
-          "contractAddressUrl": "https://bscscan.com/token/",
+          "contractAddressUrl": "https://bsctrace.com/token/",
           "contractAddress": "0x2170ed0880ac9a755fd29b2688956bd959f933f8"
         },
         "id": "BSC",
@@ -2379,15 +2456,16 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.00021,
+        "fee": 0.00036,
         "precision": 1e-8,
         "limits": {
           "withdraw": {
-            "min": 0.00042,
+            "min": 0.00072,
             "max": 10000000000
           },
           "deposit": {
-            "min": 3e-7
+            "min": 3e-7,
+            "max": null
           }
         }
       },
@@ -2407,14 +2485,15 @@
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "0.0013",
-          "withdrawMin": "0.0026",
+          "withdrawFee": "0.0006",
+          "withdrawMin": "0.0029",
           "withdrawMax": "10000000000",
+          "withdrawInternalMin": "0.00000001",
           "depositDust": "0.0000003",
           "minConfirm": "6",
           "unLockConfirm": "64",
           "sameAddress": false,
-          "estimatedArrivalTime": "4",
+          "estimatedArrivalTime": "3",
           "busy": false,
           "contractAddressUrl": "https://etherscan.io/address/"
         },
@@ -2423,15 +2502,16 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.0013,
+        "fee": 0.0006,
         "precision": 1e-8,
         "limits": {
           "withdraw": {
-            "min": 0.0026,
+            "min": 0.0029,
             "max": 10000000000
           },
           "deposit": {
-            "min": 3e-7
+            "min": 3e-7,
+            "max": null
           }
         }
       },
@@ -2445,22 +2525,23 @@
           "withdrawEnable": true,
           "depositDesc": "",
           "withdrawDesc": "",
-          "specialTips": "Please note that L2 networks require its corresponding L1 transaction to reach finality (64 blocks) before deposits can be unlocked. ETA ~25 min",
+          "specialTips": "",
           "specialWithdrawTips": "",
           "name": "Arbitrum One",
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
           "withdrawFee": "0.00004",
-          "withdrawMin": "0.0008",
+          "withdrawMin": "0.0003",
           "withdrawMax": "9999999",
+          "withdrawInternalMin": "0.00000001",
           "depositDust": "0.0000003",
           "minConfirm": "120",
           "unLockConfirm": "120",
           "sameAddress": false,
           "estimatedArrivalTime": "3",
           "busy": false,
-          "contractAddressUrl": "https://www.arbiscan.io/token/"
+          "contractAddressUrl": "https://arbiscan.io/token/"
         },
         "id": "ARBITRUM",
         "network": "ARBITRUM",
@@ -2471,55 +2552,12 @@
         "precision": 1e-8,
         "limits": {
           "withdraw": {
-            "min": 0.0008,
+            "min": 0.0003,
             "max": 9999999
           },
           "deposit": {
-            "min": 3e-7
-          }
-        }
-      },
-      "BEP2": {
-        "info": {
-          "network": "BNB",
-          "coin": "ETH",
-          "withdrawIntegerMultiple": "0.00000001",
-          "isDefault": false,
-          "depositEnable": true,
-          "withdrawEnable": false,
-          "depositDesc": "",
-          "withdrawDesc": "Withdrawal for this token is not supported, please try other networks.",
-          "specialTips": "Both a memo/tag and an address are required to successfully deposit your assets to Binance.",
-          "name": "BNB Beacon Chain (BEP2)",
-          "resetAddressStatus": false,
-          "addressRegex": "^(bnb1)[0-9a-z]{38}$",
-          "memoRegex": "^[0-9A-Za-z\\-_]{1,120}$",
-          "withdrawFee": "0.0001",
-          "withdrawMin": "0.0002",
-          "withdrawMax": "10000000000",
-          "depositDust": "0.000001",
-          "minConfirm": "1",
-          "unLockConfirm": "0",
-          "sameAddress": true,
-          "estimatedArrivalTime": "2",
-          "busy": false,
-          "contractAddressUrl": "https://explorer.bnbchain.org/asset/",
-          "contractAddress": "ETH-1C9"
-        },
-        "id": "BNB",
-        "network": "BEP2",
-        "active": false,
-        "deposit": true,
-        "withdraw": false,
-        "fee": 0.0001,
-        "precision": 1e-8,
-        "limits": {
-          "withdraw": {
-            "min": 0.0002,
-            "max": 10000000000
-          },
-          "deposit": {
-            "min": 0.000001
+            "min": 3e-7,
+            "max": null
           }
         }
       },
@@ -2533,21 +2571,22 @@
           "withdrawEnable": true,
           "depositDesc": "",
           "withdrawDesc": "",
-          "specialTips": "Please note that L2 networks require its corresponding L1 transaction to reach finality (64 blocks) before deposits can be unlocked. ETA ~25 min",
+          "specialTips": "",
           "specialWithdrawTips": "",
           "name": "Base",
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "0.00001",
+          "withdrawFee": "0.00004",
           "withdrawMin": "0.001",
           "withdrawMax": "9999999",
+          "withdrawInternalMin": "0",
           "depositDust": "0.0000003",
           "minConfirm": "1",
           "unLockConfirm": "100",
           "sameAddress": false,
           "estimatedArrivalTime": "0",
-          "busy": false,
+          "busy": true,
           "contractAddressUrl": "https://basescan.org/token/"
         },
         "id": "BASE",
@@ -2555,7 +2594,7 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.00001,
+        "fee": 0.00004,
         "precision": 0.000001,
         "limits": {
           "withdraw": {
@@ -2563,7 +2602,8 @@
             "max": 9999999
           },
           "deposit": {
-            "min": 3e-7
+            "min": 3e-7,
+            "max": null
           }
         }
       },
@@ -2586,6 +2626,7 @@
           "withdrawFee": "0.00003",
           "withdrawMin": "0.0003",
           "withdrawMax": "9999999",
+          "withdrawInternalMin": "0",
           "depositDust": "0.0000003",
           "minConfirm": "1",
           "unLockConfirm": "0",
@@ -2607,7 +2648,8 @@
             "max": 9999999
           },
           "deposit": {
-            "min": 3e-7
+            "min": 3e-7,
+            "max": null
           }
         }
       },
@@ -2621,15 +2663,16 @@
           "withdrawEnable": true,
           "depositDesc": "",
           "withdrawDesc": "",
-          "specialTips": "Please note that L2 networks require its corresponding L1 transaction to reach finality (64 blocks) before deposits can be unlocked. ETA ~25 min",
+          "specialTips": "",
           "specialWithdrawTips": "",
           "name": "Optimism",
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
           "withdrawFee": "0.00001",
-          "withdrawMin": "0.002",
+          "withdrawMin": "0.005",
           "withdrawMax": "1000000000",
+          "withdrawInternalMin": "0.00000001",
           "depositDust": "0.0000003",
           "minConfirm": "25",
           "unLockConfirm": "100",
@@ -2647,11 +2690,58 @@
         "precision": 1e-8,
         "limits": {
           "withdraw": {
-            "min": 0.002,
+            "min": 0.005,
             "max": 1000000000
           },
           "deposit": {
-            "min": 3e-7
+            "min": 3e-7,
+            "max": null
+          }
+        }
+      },
+      "SCROLL": {
+        "info": {
+          "network": "SCROLL",
+          "coin": "ETH",
+          "withdrawIntegerMultiple": "0.00000001",
+          "isDefault": false,
+          "depositEnable": true,
+          "withdrawEnable": true,
+          "depositDesc": "",
+          "withdrawDesc": "",
+          "specialTips": "SCROLL is a L2 network. After crediting, its corresponding L1 transaction needs to be confirmed before unlocking, which takes approximately 1-2 hours.",
+          "specialWithdrawTips": "",
+          "name": "Scroll",
+          "resetAddressStatus": false,
+          "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
+          "memoRegex": "",
+          "withdrawFee": "0.0001",
+          "withdrawMin": "0.001",
+          "withdrawMax": "9999999",
+          "withdrawInternalMin": "0",
+          "depositDust": "0.00000001",
+          "minConfirm": "1",
+          "unLockConfirm": "0",
+          "sameAddress": false,
+          "estimatedArrivalTime": "0",
+          "busy": false,
+          "contractAddressUrl": "https://scrollscan.com/token/"
+        },
+        "id": "SCROLL",
+        "network": "SCROLL",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.0001,
+        "precision": 1e-8,
+        "limits": {
+          "withdraw": {
+            "min": 0.001,
+            "max": 9999999
+          },
+          "deposit": {
+            "min": 1e-8,
+            "max": null
           }
         }
       },
@@ -2674,6 +2764,7 @@
           "withdrawFee": "0.0001",
           "withdrawMin": "0.002",
           "withdrawMax": "9999999",
+          "withdrawInternalMin": "0",
           "depositDust": "0.0000003",
           "minConfirm": "1",
           "unLockConfirm": "0",
@@ -2696,7 +2787,8 @@
             "max": 9999999
           },
           "deposit": {
-            "min": 3e-7
+            "min": 3e-7,
+            "max": null
           }
         }
       },
@@ -2719,6 +2811,7 @@
           "withdrawFee": "0.00004",
           "withdrawMin": "0.01",
           "withdrawMax": "9999999",
+          "withdrawInternalMin": "0",
           "depositDust": "0.0000003",
           "minConfirm": "1",
           "unLockConfirm": "0",
@@ -2741,42 +2834,56 @@
             "max": 9999999
           },
           "deposit": {
-            "min": 3e-7
+            "min": 3e-7,
+            "max": null
           }
         }
       }
     },
-    "fee": 0.0013,
+    "fee": 0.0006,
     "fees": {
-      "BSC": 0.00021,
-      "ETH": 0.0013,
+      "BSC": 0.00036,
+      "ETH": 0.0006,
       "ARBITRUM": 0.00004,
-      "BNB": 0.0001,
-      "BASE": 0.00001,
+      "BASE": 0.00004,
       "MANTA": 0.00003,
       "OPTIMISM": 0.00001,
+      "SCROLL": 0.0001,
       "STARKNET": 0.0001,
       "ZKSYNCERA": 0.00004
     },
     "limits": {
-      "leverage": {},
-      "amount": {},
-      "price": {},
-      "cost": {}
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
     },
-    "margin": true
+    "margin": null
   },
   "ADA": {
     "id": "ADA",
     "name": "Cardano",
     "code": "ADA",
+    "type": "crypto",
     "precision": 1e-8,
     "info": {
       "coin": "ADA",
       "depositAllEnable": true,
       "withdrawAllEnable": true,
       "name": "Cardano",
-      "free": "0.065",
+      "free": "0",
       "locked": "0",
       "freeze": "0",
       "withdrawing": "0",
@@ -2801,16 +2908,17 @@
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "1.58",
-          "withdrawMin": "3.16",
+          "withdrawFee": "0.91",
+          "withdrawMin": "1.82",
           "withdrawMax": "10000000000",
+          "withdrawInternalMin": "0.00000001",
           "depositDust": "0.0022",
           "minConfirm": "15",
           "unLockConfirm": "0",
           "sameAddress": false,
-          "estimatedArrivalTime": "5",
+          "estimatedArrivalTime": "2",
           "busy": false,
-          "contractAddressUrl": "https://bscscan.com/token/",
+          "contractAddressUrl": "https://bsctrace.com/token/",
           "contractAddress": "0x3ee2200efb3400fabb9aacf31297cbdd1d435d47"
         },
         {
@@ -2830,38 +2938,13 @@
           "withdrawFee": "0.8",
           "withdrawMin": "2",
           "withdrawMax": "50000000",
+          "withdrawInternalMin": "0.000001",
           "depositDust": "0.0022",
           "minConfirm": "30",
           "unLockConfirm": "0",
           "sameAddress": false,
           "estimatedArrivalTime": "0",
           "busy": false
-        },
-        {
-          "network": "BNB",
-          "coin": "ADA",
-          "withdrawIntegerMultiple": "0.00000001",
-          "isDefault": false,
-          "depositEnable": true,
-          "withdrawEnable": false,
-          "depositDesc": "",
-          "withdrawDesc": "Withdrawal for this token is not supported, please try other networks.",
-          "specialTips": "Both a memo/tag and an address are required to successfully deposit your assets to Binance.",
-          "name": "BNB Beacon Chain (BEP2)",
-          "resetAddressStatus": false,
-          "addressRegex": "^(bnb1)[0-9a-z]{38}$",
-          "memoRegex": "^[0-9A-Za-z\\-_]{1,120}$",
-          "withdrawFee": "0.79",
-          "withdrawMin": "1.58",
-          "withdrawMax": "10000000000",
-          "depositDust": "0.0022",
-          "minConfirm": "1",
-          "unLockConfirm": "0",
-          "sameAddress": true,
-          "estimatedArrivalTime": "2",
-          "busy": false,
-          "contractAddressUrl": "https://explorer.bnbchain.org/asset/",
-          "contractAddress": "ADA-9F4"
         }
       ]
     },
@@ -2885,16 +2968,17 @@
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "1.58",
-          "withdrawMin": "3.16",
+          "withdrawFee": "0.91",
+          "withdrawMin": "1.82",
           "withdrawMax": "10000000000",
+          "withdrawInternalMin": "0.00000001",
           "depositDust": "0.0022",
           "minConfirm": "15",
           "unLockConfirm": "0",
           "sameAddress": false,
-          "estimatedArrivalTime": "5",
+          "estimatedArrivalTime": "2",
           "busy": false,
-          "contractAddressUrl": "https://bscscan.com/token/",
+          "contractAddressUrl": "https://bsctrace.com/token/",
           "contractAddress": "0x3ee2200efb3400fabb9aacf31297cbdd1d435d47"
         },
         "id": "BSC",
@@ -2902,15 +2986,16 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 1.58,
+        "fee": 0.91,
         "precision": 1e-8,
         "limits": {
           "withdraw": {
-            "min": 3.16,
+            "min": 1.82,
             "max": 10000000000
           },
           "deposit": {
-            "min": 0.0022
+            "min": 0.0022,
+            "max": null
           }
         }
       },
@@ -2932,6 +3017,7 @@
           "withdrawFee": "0.8",
           "withdrawMin": "2",
           "withdrawMax": "50000000",
+          "withdrawInternalMin": "0.000001",
           "depositDust": "0.0022",
           "minConfirm": "30",
           "unLockConfirm": "0",
@@ -2952,79 +3038,48 @@
             "max": 50000000
           },
           "deposit": {
-            "min": 0.0022
-          }
-        }
-      },
-      "BEP2": {
-        "info": {
-          "network": "BNB",
-          "coin": "ADA",
-          "withdrawIntegerMultiple": "0.00000001",
-          "isDefault": false,
-          "depositEnable": true,
-          "withdrawEnable": false,
-          "depositDesc": "",
-          "withdrawDesc": "Withdrawal for this token is not supported, please try other networks.",
-          "specialTips": "Both a memo/tag and an address are required to successfully deposit your assets to Binance.",
-          "name": "BNB Beacon Chain (BEP2)",
-          "resetAddressStatus": false,
-          "addressRegex": "^(bnb1)[0-9a-z]{38}$",
-          "memoRegex": "^[0-9A-Za-z\\-_]{1,120}$",
-          "withdrawFee": "0.79",
-          "withdrawMin": "1.58",
-          "withdrawMax": "10000000000",
-          "depositDust": "0.0022",
-          "minConfirm": "1",
-          "unLockConfirm": "0",
-          "sameAddress": true,
-          "estimatedArrivalTime": "2",
-          "busy": false,
-          "contractAddressUrl": "https://explorer.bnbchain.org/asset/",
-          "contractAddress": "ADA-9F4"
-        },
-        "id": "BNB",
-        "network": "BEP2",
-        "active": false,
-        "deposit": true,
-        "withdraw": false,
-        "fee": 0.79,
-        "precision": 1e-8,
-        "limits": {
-          "withdraw": {
-            "min": 1.58,
-            "max": 10000000000
-          },
-          "deposit": {
-            "min": 0.0022
+            "min": 0.0022,
+            "max": null
           }
         }
       }
     },
     "fee": 0.8,
     "fees": {
-      "BSC": 1.58,
-      "ADA": 0.8,
-      "BNB": 0.79
+      "BSC": 0.91,
+      "ADA": 0.8
     },
     "limits": {
-      "leverage": {},
-      "amount": {},
-      "price": {},
-      "cost": {}
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
     },
-    "margin": true
+    "margin": null
   },
   "XRP": {
     "id": "XRP",
-    "name": "Ripple",
+    "name": "XRP",
     "code": "XRP",
+    "type": "crypto",
     "precision": 1e-8,
     "info": {
       "coin": "XRP",
       "depositAllEnable": true,
       "withdrawAllEnable": true,
-      "name": "Ripple",
+      "name": "XRP",
       "free": "0",
       "locked": "0",
       "freeze": "0",
@@ -3050,16 +3105,17 @@
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "0.91",
-          "withdrawMin": "1.82",
-          "withdrawMax": "9999999999.99999999",
+          "withdrawFee": "0.27",
+          "withdrawMin": "0.54",
+          "withdrawMax": "10000000000",
+          "withdrawInternalMin": "0.00000001",
           "depositDust": "0.002",
           "minConfirm": "15",
           "unLockConfirm": "0",
           "sameAddress": false,
-          "estimatedArrivalTime": "5",
+          "estimatedArrivalTime": "2",
           "busy": false,
-          "contractAddressUrl": "https://bscscan.com/token/",
+          "contractAddressUrl": "https://bsctrace.com/token/",
           "contractAddress": "0x1d2f0da169ceb9fc7b3144628db156f3f6c60dbe"
         },
         {
@@ -3072,46 +3128,22 @@
           "depositDesc": "",
           "withdrawDesc": "",
           "specialTips": "Both a memo/tag and an address are required to successfully deposit your assets to Binance.",
-          "specialWithdrawTips": "",
-          "name": "Ripple",
+          "specialWithdrawTips": "CAUTION: Tag must be filled in when withdrawing to other exchanges; otherwise, your withdrawal will fail.",
+          "name": "XRP Ledger",
           "resetAddressStatus": false,
           "addressRegex": "^r[1-9A-HJ-NP-Za-km-z]{25,34}$",
           "memoRegex": "^((?!0)[0-9]{1,10})$",
           "withdrawFee": "0.2",
-          "withdrawMin": "10.3",
+          "withdrawMin": "2",
           "withdrawMax": "10000000000",
+          "withdrawInternalMin": "0.000001",
           "depositDust": "0.001",
           "minConfirm": "1",
           "unLockConfirm": "0",
           "sameAddress": true,
           "estimatedArrivalTime": "5",
-          "busy": false
-        },
-        {
-          "network": "BNB",
-          "coin": "XRP",
-          "withdrawIntegerMultiple": "0.00000001",
-          "isDefault": false,
-          "depositEnable": true,
-          "withdrawEnable": false,
-          "depositDesc": "",
-          "withdrawDesc": "Withdrawal for this token is not supported, please try other networks.",
-          "specialTips": "Both a memo/tag and an address are required to successfully deposit your assets to Binance.",
-          "name": "BNB Beacon Chain (BEP2)",
-          "resetAddressStatus": false,
-          "addressRegex": "^(bnb1)[0-9a-z]{38}$",
-          "memoRegex": "^[0-9A-Za-z\\-_]{1,120}$",
-          "withdrawFee": "0.46",
-          "withdrawMin": "0.92",
-          "withdrawMax": "10000000000",
-          "depositDust": "0.002",
-          "minConfirm": "1",
-          "unLockConfirm": "0",
-          "sameAddress": true,
-          "estimatedArrivalTime": "2",
           "busy": false,
-          "contractAddressUrl": "https://explorer.bnbchain.org/asset/",
-          "contractAddress": "XRP-BF2"
+          "contractAddressUrl": "https://bithomp.com/explorer/"
         },
         {
           "network": "ETH",
@@ -3128,14 +3160,15 @@
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "7.93",
-          "withdrawMin": "15",
+          "withdrawFee": "0.76",
+          "withdrawMin": "1.52",
           "withdrawMax": "9999999",
+          "withdrawInternalMin": "0",
           "depositDust": "0.002",
           "minConfirm": "6",
           "unLockConfirm": "64",
           "sameAddress": false,
-          "estimatedArrivalTime": "4",
+          "estimatedArrivalTime": "3",
           "busy": false,
           "contractAddressUrl": "https://etherscan.io/address/",
           "contractAddress": "0x39fbbabf11738317a448031930706cd3e612e1b9"
@@ -3162,16 +3195,17 @@
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "0.91",
-          "withdrawMin": "1.82",
-          "withdrawMax": "9999999999.99999999",
+          "withdrawFee": "0.27",
+          "withdrawMin": "0.54",
+          "withdrawMax": "10000000000",
+          "withdrawInternalMin": "0.00000001",
           "depositDust": "0.002",
           "minConfirm": "15",
           "unLockConfirm": "0",
           "sameAddress": false,
-          "estimatedArrivalTime": "5",
+          "estimatedArrivalTime": "2",
           "busy": false,
-          "contractAddressUrl": "https://bscscan.com/token/",
+          "contractAddressUrl": "https://bsctrace.com/token/",
           "contractAddress": "0x1d2f0da169ceb9fc7b3144628db156f3f6c60dbe"
         },
         "id": "BSC",
@@ -3179,15 +3213,16 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.91,
+        "fee": 0.27,
         "precision": 1e-8,
         "limits": {
           "withdraw": {
-            "min": 1.82,
+            "min": 0.54,
             "max": 10000000000
           },
           "deposit": {
-            "min": 0.002
+            "min": 0.002,
+            "max": null
           }
         }
       },
@@ -3202,20 +3237,22 @@
           "depositDesc": "",
           "withdrawDesc": "",
           "specialTips": "Both a memo/tag and an address are required to successfully deposit your assets to Binance.",
-          "specialWithdrawTips": "",
-          "name": "Ripple",
+          "specialWithdrawTips": "CAUTION: Tag must be filled in when withdrawing to other exchanges; otherwise, your withdrawal will fail.",
+          "name": "XRP Ledger",
           "resetAddressStatus": false,
           "addressRegex": "^r[1-9A-HJ-NP-Za-km-z]{25,34}$",
           "memoRegex": "^((?!0)[0-9]{1,10})$",
           "withdrawFee": "0.2",
-          "withdrawMin": "10.3",
+          "withdrawMin": "2",
           "withdrawMax": "10000000000",
+          "withdrawInternalMin": "0.000001",
           "depositDust": "0.001",
           "minConfirm": "1",
           "unLockConfirm": "0",
           "sameAddress": true,
           "estimatedArrivalTime": "5",
-          "busy": false
+          "busy": false,
+          "contractAddressUrl": "https://bithomp.com/explorer/"
         },
         "id": "XRP",
         "network": "XRP",
@@ -3226,55 +3263,12 @@
         "precision": 0.000001,
         "limits": {
           "withdraw": {
-            "min": 10.3,
+            "min": 2,
             "max": 10000000000
           },
           "deposit": {
-            "min": 0.001
-          }
-        }
-      },
-      "BEP2": {
-        "info": {
-          "network": "BNB",
-          "coin": "XRP",
-          "withdrawIntegerMultiple": "0.00000001",
-          "isDefault": false,
-          "depositEnable": true,
-          "withdrawEnable": false,
-          "depositDesc": "",
-          "withdrawDesc": "Withdrawal for this token is not supported, please try other networks.",
-          "specialTips": "Both a memo/tag and an address are required to successfully deposit your assets to Binance.",
-          "name": "BNB Beacon Chain (BEP2)",
-          "resetAddressStatus": false,
-          "addressRegex": "^(bnb1)[0-9a-z]{38}$",
-          "memoRegex": "^[0-9A-Za-z\\-_]{1,120}$",
-          "withdrawFee": "0.46",
-          "withdrawMin": "0.92",
-          "withdrawMax": "10000000000",
-          "depositDust": "0.002",
-          "minConfirm": "1",
-          "unLockConfirm": "0",
-          "sameAddress": true,
-          "estimatedArrivalTime": "2",
-          "busy": false,
-          "contractAddressUrl": "https://explorer.bnbchain.org/asset/",
-          "contractAddress": "XRP-BF2"
-        },
-        "id": "BNB",
-        "network": "BEP2",
-        "active": false,
-        "deposit": true,
-        "withdraw": false,
-        "fee": 0.46,
-        "precision": 1e-8,
-        "limits": {
-          "withdraw": {
-            "min": 0.92,
-            "max": 10000000000
-          },
-          "deposit": {
-            "min": 0.002
+            "min": 0.001,
+            "max": null
           }
         }
       },
@@ -3294,14 +3288,15 @@
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "7.93",
-          "withdrawMin": "15",
+          "withdrawFee": "0.76",
+          "withdrawMin": "1.52",
           "withdrawMax": "9999999",
+          "withdrawInternalMin": "0",
           "depositDust": "0.002",
           "minConfirm": "6",
           "unLockConfirm": "64",
           "sameAddress": false,
-          "estimatedArrivalTime": "4",
+          "estimatedArrivalTime": "3",
           "busy": false,
           "contractAddressUrl": "https://etherscan.io/address/",
           "contractAddress": "0x39fbbabf11738317a448031930706cd3e612e1b9"
@@ -3311,45 +3306,58 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 7.93,
+        "fee": 0.76,
         "precision": 1e-8,
         "limits": {
           "withdraw": {
-            "min": 15,
+            "min": 1.52,
             "max": 9999999
           },
           "deposit": {
-            "min": 0.002
+            "min": 0.002,
+            "max": null
           }
         }
       }
     },
     "fee": 0.2,
     "fees": {
-      "BSC": 0.91,
+      "BSC": 0.27,
       "XRP": 0.2,
-      "BNB": 0.46,
-      "ETH": 7.93
+      "ETH": 0.76
     },
     "limits": {
-      "leverage": {},
-      "amount": {},
-      "price": {},
-      "cost": {}
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
     },
-    "margin": true
+    "margin": null
   },
   "USDC": {
     "id": "USDC",
-    "name": "USD Coin",
+    "name": "USDC",
     "code": "USDC",
+    "type": "crypto",
     "precision": 1e-8,
     "info": {
       "coin": "USDC",
       "depositAllEnable": true,
       "withdrawAllEnable": true,
-      "name": "USD Coin",
-      "free": "0",
+      "name": "USDC",
+      "free": "51.12",
       "locked": "0",
       "freeze": "0",
       "withdrawing": "0",
@@ -3374,16 +3382,17 @@
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "0.2",
+          "withdrawFee": "0",
           "withdrawMin": "10",
           "withdrawMax": "10000000000",
+          "withdrawInternalMin": "0.00000001",
           "depositDust": "0.01",
           "minConfirm": "15",
           "unLockConfirm": "0",
           "sameAddress": false,
-          "estimatedArrivalTime": "5",
+          "estimatedArrivalTime": "2",
           "busy": false,
-          "contractAddressUrl": "https://bscscan.com/token/",
+          "contractAddressUrl": "https://bsctrace.com/token/",
           "contractAddress": "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d"
         },
         {
@@ -3395,15 +3404,16 @@
           "withdrawEnable": true,
           "depositDesc": "",
           "withdrawDesc": "",
-          "specialTips": "Binance has suspended auto-conversion of USDC to BUSD. Please refer to: https://www.binance.com/en/support/announcement/binance-adds-stablecoin-spot-trading-pairs-launches-fee-promotion-discontinues-auto-conversion-for-stablecoins-dd331bed50bb44f485e47aed132bfc02",
-          "specialWithdrawTips": "Binance has suspended auto-conversion of USDC to BUSD. Please refer to: https://www.binance.com/en/support/announcement/binance-adds-stablecoin-spot-trading-pairs-launches-fee-promotion-discontinues-auto-conversion-for-stablecoins-dd331bed50bb44f485e47aed132bfc02",
+          "specialTips": "",
+          "specialWithdrawTips": "",
           "name": "AVAX C-Chain",
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "0.087",
-          "withdrawMin": "0.17",
+          "withdrawFee": "0.16",
+          "withdrawMin": "0.32",
           "withdrawMax": "20000000",
+          "withdrawInternalMin": "0.000001",
           "depositDust": "0.001",
           "minConfirm": "12",
           "unLockConfirm": "0",
@@ -3422,8 +3432,8 @@
           "withdrawEnable": true,
           "depositDesc": "",
           "withdrawDesc": "",
-          "specialTips": "Binance has suspended auto-conversion of USDC to BUSD. Please refer to: https://www.binance.com/en/support/announcement/binance-adds-stablecoin-spot-trading-pairs-launches-fee-promotion-discontinues-auto-conversion-for-stablecoins-dd331bed50bb44f485e47aed132bfc02",
-          "specialWithdrawTips": "Binance has suspended auto-conversion of USDC to BUSD. Please refer to: https://www.binance.com/en/support/announcement/binance-adds-stablecoin-spot-trading-pairs-launches-fee-promotion-discontinues-auto-conversion-for-stablecoins-dd331bed50bb44f485e47aed132bfc02",
+          "specialTips": "",
+          "specialWithdrawTips": "",
           "name": "Algorand",
           "resetAddressStatus": false,
           "addressRegex": "^[A-Z0-9]{58,58}$",
@@ -3431,12 +3441,43 @@
           "withdrawFee": "1",
           "withdrawMin": "10",
           "withdrawMax": "9999999",
+          "withdrawInternalMin": "0.00000001",
           "depositDust": "0.001",
           "minConfirm": "1",
           "unLockConfirm": "0",
           "sameAddress": false,
           "estimatedArrivalTime": "0",
-          "busy": false
+          "busy": false,
+          "contractAddressUrl": "https://allo.info/asset/",
+          "contractAddress": "31566704"
+        },
+        {
+          "network": "APT",
+          "coin": "USDC",
+          "withdrawIntegerMultiple": "0.000001",
+          "isDefault": false,
+          "depositEnable": true,
+          "withdrawEnable": true,
+          "depositDesc": "",
+          "withdrawDesc": "",
+          "specialTips": "",
+          "specialWithdrawTips": "",
+          "name": "Aptos",
+          "resetAddressStatus": false,
+          "addressRegex": "^(0x)[0-9A-Za-z]{64}$",
+          "memoRegex": "",
+          "withdrawFee": "0.1",
+          "withdrawMin": "10",
+          "withdrawMax": "99999999",
+          "withdrawInternalMin": "0",
+          "depositDust": "0.000001",
+          "minConfirm": "1",
+          "unLockConfirm": "0",
+          "sameAddress": false,
+          "estimatedArrivalTime": "0",
+          "busy": false,
+          "contractAddressUrl": "https://explorer.aptoslabs.com/fungible_asset/",
+          "contractAddress": "0xbae207659db88bea0cbead6da0ed00aac12edcdda169e591cd41c94180b46f3b"
         },
         {
           "network": "ARBITRUM",
@@ -3451,16 +3492,17 @@
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "0.098",
-          "withdrawMin": "0.2",
+          "withdrawFee": "0.13",
+          "withdrawMin": "0.26",
           "withdrawMax": "20000000",
+          "withdrawInternalMin": "0",
           "depositDust": "0.001",
           "minConfirm": "120",
           "unLockConfirm": "120",
           "sameAddress": false,
           "estimatedArrivalTime": "3",
           "busy": false,
-          "contractAddressUrl": "https://www.arbiscan.io/token/",
+          "contractAddressUrl": "https://arbiscan.io/token/",
           "contractAddress": "0xaf88d065e77c8cc2239327c5edb3a432268e5831"
         },
         {
@@ -3478,43 +3520,17 @@
           "resetAddressStatus": false,
           "addressRegex": "^(1)[0-9a-z-A-Z]{44,50}$",
           "memoRegex": "",
-          "withdrawFee": "1",
+          "withdrawFee": "0.7",
           "withdrawMin": "10",
           "withdrawMax": "9999999",
+          "withdrawInternalMin": "0.000001",
           "depositDust": "0.71",
           "minConfirm": "3",
           "unLockConfirm": "0",
           "sameAddress": false,
           "estimatedArrivalTime": "2",
           "busy": false,
-          "contractAddressUrl": ""
-        },
-        {
-          "network": "BNB",
-          "coin": "USDC",
-          "withdrawIntegerMultiple": "0.00000001",
-          "isDefault": false,
-          "depositEnable": true,
-          "withdrawEnable": false,
-          "depositDesc": "",
-          "withdrawDesc": "The wallet is currently undergoing maintenance. Withdrawals for this asset will be resumed shortly.",
-          "specialTips": "Binance has suspended auto-conversion of USDC to BUSD. Please refer to: https://www.binance.com/en/support/announcement/binance-adds-stablecoin-spot-trading-pairs-launches-fee-promotion-discontinues-auto-conversion-for-stablecoins-dd331bed50bb44f485e47aed132bfc02",
-          "specialWithdrawTips": "",
-          "name": "BNB Beacon Chain (BEP2)",
-          "resetAddressStatus": false,
-          "addressRegex": "^(bnb1)[0-9a-z]{38}$",
-          "memoRegex": "^[0-9A-Za-z\\-_]{1,120}$",
-          "withdrawFee": "0.8",
-          "withdrawMin": "10",
-          "withdrawMax": "10000000000",
-          "depositDust": "0.001",
-          "minConfirm": "1",
-          "unLockConfirm": "0",
-          "sameAddress": true,
-          "estimatedArrivalTime": "2",
-          "busy": false,
-          "contractAddressUrl": "https://explorer.bnbchain.org/asset/",
-          "contractAddress": "USDC-CD2"
+          "contractAddressUrl": "https://assethub-polkadot.subscan.io/assets/"
         },
         {
           "network": "BASE",
@@ -3531,15 +3547,16 @@
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "0.03",
+          "withdrawFee": "0.22",
           "withdrawMin": "10",
           "withdrawMax": "50000000",
+          "withdrawInternalMin": "0",
           "depositDust": "0.001",
           "minConfirm": "1",
           "unLockConfirm": "100",
           "sameAddress": false,
           "estimatedArrivalTime": "0",
-          "busy": false,
+          "busy": true,
           "contractAddressUrl": "https://basescan.org/token/",
           "contractAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
         },
@@ -3561,6 +3578,7 @@
           "withdrawFee": "0.05",
           "withdrawMin": "10",
           "withdrawMax": "9999999",
+          "withdrawInternalMin": "0",
           "depositDust": "0.001",
           "minConfirm": "1",
           "unLockConfirm": "0",
@@ -3579,23 +3597,50 @@
           "withdrawEnable": true,
           "depositDesc": "",
           "withdrawDesc": "",
-          "specialTips": "Binance has suspended auto-conversion of USDC to BUSD. Please refer to: https://www.binance.com/en/support/announcement/binance-adds-stablecoin-spot-trading-pairs-launches-fee-promotion-discontinues-auto-conversion-for-stablecoins-dd331bed50bb44f485e47aed132bfc02",
-          "specialWithdrawTips": "Binance has suspended auto-conversion of USDC to BUSD. Please refer to: https://www.binance.com/en/support/announcement/binance-adds-stablecoin-spot-trading-pairs-launches-fee-promotion-discontinues-auto-conversion-for-stablecoins-dd331bed50bb44f485e47aed132bfc02",
+          "specialTips": "",
+          "specialWithdrawTips": "",
           "name": "Ethereum (ERC20)",
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "4",
-          "withdrawMin": "50",
+          "withdrawFee": "1.5",
+          "withdrawMin": "20",
           "withdrawMax": "10000000000",
+          "withdrawInternalMin": "0.000001",
           "depositDust": "0.001",
           "minConfirm": "6",
           "unLockConfirm": "64",
           "sameAddress": false,
-          "estimatedArrivalTime": "4",
+          "estimatedArrivalTime": "3",
           "busy": false,
           "contractAddressUrl": "https://etherscan.io/address/",
           "contractAddress": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
+        },
+        {
+          "network": "HBAR",
+          "coin": "USDC",
+          "withdrawIntegerMultiple": "0.000001",
+          "isDefault": false,
+          "depositEnable": true,
+          "withdrawEnable": true,
+          "depositDesc": "",
+          "withdrawDesc": "",
+          "specialTips": "",
+          "specialWithdrawTips": "",
+          "name": "Hedera Hashgraph",
+          "resetAddressStatus": false,
+          "addressRegex": "^0[.]0[.][1-9]\\d{0,6}$",
+          "memoRegex": "",
+          "withdrawFee": "0.1",
+          "withdrawMin": "10",
+          "withdrawMax": "9999999",
+          "withdrawInternalMin": "0",
+          "depositDust": "0.0001",
+          "minConfirm": "1",
+          "unLockConfirm": "0",
+          "sameAddress": true,
+          "estimatedArrivalTime": "0",
+          "busy": false
         },
         {
           "network": "NEAR",
@@ -3607,7 +3652,7 @@
           "depositDesc": "",
           "withdrawDesc": "",
           "specialTips": "",
-          "specialWithdrawTips": "",
+          "specialWithdrawTips": "CAUTION: Ensure the recipient address is activated and authorized to receive the token contract address; otherwise, your withdrawal will fail.",
           "name": "NEAR Protocol",
           "resetAddressStatus": false,
           "addressRegex": "^(?!0x)(?!bc1)(?!bnb1)[a-z0-9_-]{1}[a-z0-9_.-]{0,62}[a-z0-9_-]{1}$",
@@ -3615,6 +3660,7 @@
           "withdrawFee": "0.2",
           "withdrawMin": "10",
           "withdrawMax": "21000000",
+          "withdrawInternalMin": "0",
           "depositDust": "0.001",
           "minConfirm": "1",
           "unLockConfirm": "5",
@@ -3639,9 +3685,10 @@
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "0.025",
-          "withdrawMin": "0.05",
+          "withdrawFee": "0.016",
+          "withdrawMin": "0.032",
           "withdrawMax": "9999999",
+          "withdrawInternalMin": "0",
           "depositDust": "0.001",
           "minConfirm": "25",
           "unLockConfirm": "100",
@@ -3662,19 +3709,20 @@
           "withdrawDesc": "",
           "specialTips": "Please note that this is the native USDC in Polygon network. Please verify the contract address before depositing.",
           "specialWithdrawTips": "Please note that this is the native USDC in Polygon network. Please verify the contract address before withdrawing.",
-          "name": "Polygon",
+          "name": "Polygon POS",
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "0.1",
+          "withdrawFee": "0.02",
           "withdrawMin": "10",
           "withdrawMax": "50000000",
+          "withdrawInternalMin": "0",
           "depositDust": "0.001",
           "minConfirm": "200",
           "unLockConfirm": "300",
           "sameAddress": false,
           "estimatedArrivalTime": "8",
-          "busy": false,
+          "busy": true,
           "contractAddressUrl": "https://polygonscan.com/token/",
           "contractAddress": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359"
         },
@@ -3696,6 +3744,7 @@
           "withdrawFee": "0.2",
           "withdrawMin": "50",
           "withdrawMax": "1000000000",
+          "withdrawInternalMin": "0.000001",
           "depositDust": "0.001",
           "minConfirm": "12",
           "unLockConfirm": "0",
@@ -3714,15 +3763,16 @@
           "withdrawEnable": true,
           "depositDesc": "",
           "withdrawDesc": "",
-          "specialTips": "Binance has suspended auto-conversion of USDC to BUSD. Please refer to: https://www.binance.com/en/support/announcement/binance-adds-stablecoin-spot-trading-pairs-launches-fee-promotion-discontinues-auto-conversion-for-stablecoins-dd331bed50bb44f485e47aed132bfc02",
-          "specialWithdrawTips": "Binance has suspended auto-conversion of USDC to BUSD. Please refer to: https://www.binance.com/en/support/announcement/binance-adds-stablecoin-spot-trading-pairs-launches-fee-promotion-discontinues-auto-conversion-for-stablecoins-dd331bed50bb44f485e47aed132bfc02",
+          "specialTips": "Please note that SOL addresses are case sensitive.",
+          "specialWithdrawTips": "Please note that SOL addresses are case sensitive.",
           "name": "Solana",
           "resetAddressStatus": false,
           "addressRegex": "^[1-9A-HJ-NP-Za-km-z]{32,44}$",
           "memoRegex": "",
           "withdrawFee": "1",
-          "withdrawMin": "30",
+          "withdrawMin": "50",
           "withdrawMax": "250000000",
+          "withdrawInternalMin": "0.000001",
           "depositDust": "0.001",
           "minConfirm": "1",
           "unLockConfirm": "0",
@@ -3735,14 +3785,14 @@
         {
           "network": "XLM",
           "coin": "USDC",
-          "withdrawIntegerMultiple": "0.000001",
+          "withdrawIntegerMultiple": "0.0000001",
           "isDefault": false,
           "depositEnable": true,
           "withdrawEnable": true,
           "depositDesc": "",
           "withdrawDesc": "",
-          "specialTips": "Binance has suspended auto-conversion of USDC to BUSD. Please refer to: https://www.binance.com/en/support/announcement/binance-adds-stablecoin-spot-trading-pairs-launches-fee-promotion-discontinues-auto-conversion-for-stablecoins-dd331bed50bb44f485e47aed132bfc02",
-          "specialWithdrawTips": "Binance has suspended auto-conversion of USDC to BUSD. Please refer to: https://www.binance.com/en/support/announcement/binance-adds-stablecoin-spot-trading-pairs-launches-fee-promotion-discontinues-auto-conversion-for-stablecoins-dd331bed50bb44f485e47aed132bfc02",
+          "specialTips": "",
+          "specialWithdrawTips": "",
           "name": "Stellar Network",
           "resetAddressStatus": false,
           "addressRegex": "^G[A-D]{1}[A-Z2-7]{54}$",
@@ -3750,14 +3800,43 @@
           "withdrawFee": "1",
           "withdrawMin": "2",
           "withdrawMax": "20000000",
+          "withdrawInternalMin": "0.0000001",
           "depositDust": "0.001",
           "minConfirm": "1",
           "unLockConfirm": "0",
           "sameAddress": true,
           "estimatedArrivalTime": "0",
           "busy": false,
-          "contractAddressUrl": "https://stellarchain.io/accounts/",
+          "contractAddressUrl": "https://stellar.expert/explorer/public/account/",
           "contractAddress": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+        },
+        {
+          "network": "SUI",
+          "coin": "USDC",
+          "withdrawIntegerMultiple": "0.000001",
+          "isDefault": false,
+          "depositEnable": true,
+          "withdrawEnable": true,
+          "depositDesc": "",
+          "withdrawDesc": "",
+          "specialTips": "",
+          "specialWithdrawTips": "",
+          "name": "Sui",
+          "resetAddressStatus": false,
+          "addressRegex": "^(0x)[0-9A-Za-z]{64}$",
+          "memoRegex": "",
+          "withdrawFee": "0.1",
+          "withdrawMin": "10",
+          "withdrawMax": "9999999",
+          "withdrawInternalMin": "0.00000001",
+          "depositDust": "0.0001",
+          "minConfirm": "1",
+          "unLockConfirm": "0",
+          "sameAddress": false,
+          "estimatedArrivalTime": "0",
+          "busy": false,
+          "contractAddressUrl": "https://suivision.xyz/coin/",
+          "contractAddress": "0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC"
         },
         {
           "network": "TRX",
@@ -3768,8 +3847,8 @@
           "withdrawEnable": false,
           "depositDesc": "Deposit for this token is not supported, please try other networks.",
           "withdrawDesc": "Withdrawal for this token is not supported, please try other networks.",
-          "specialTips": "Binance has suspended auto-conversion of USDC to BUSD. Please refer to: https://www.binance.com/en/support/announcement/binance-adds-stablecoin-spot-trading-pairs-launches-fee-promotion-discontinues-auto-conversion-for-stablecoins-dd331bed50bb44f485e47aed132bfc02",
-          "specialWithdrawTips": "Binance has suspended auto-conversion of USDC to BUSD. Please refer to: https://www.binance.com/en/support/announcement/binance-adds-stablecoin-spot-trading-pairs-launches-fee-promotion-discontinues-auto-conversion-for-stablecoins-dd331bed50bb44f485e47aed132bfc02",
+          "specialTips": "",
+          "specialWithdrawTips": "",
           "name": "Tron (TRC20)",
           "resetAddressStatus": false,
           "addressRegex": "^T[1-9A-HJ-NP-Za-km-z]{33}$",
@@ -3777,6 +3856,7 @@
           "withdrawFee": "1",
           "withdrawMin": "10",
           "withdrawMax": "10000000000",
+          "withdrawInternalMin": "0.000001",
           "depositDust": "0.001",
           "minConfirm": "1",
           "unLockConfirm": "0",
@@ -3785,6 +3865,34 @@
           "busy": false,
           "contractAddressUrl": "https://tronscan.org/#/token20/",
           "contractAddress": "TEkxiTehnzSmSe2XqrBj4w32RUN966rdz8"
+        },
+        {
+          "network": "ZKSYNCERA",
+          "coin": "USDC",
+          "withdrawIntegerMultiple": "0.000001",
+          "isDefault": false,
+          "depositEnable": true,
+          "withdrawEnable": true,
+          "depositDesc": "",
+          "withdrawDesc": "",
+          "specialTips": "",
+          "specialWithdrawTips": "",
+          "name": "zkSync Era",
+          "resetAddressStatus": false,
+          "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
+          "memoRegex": "",
+          "withdrawFee": "0.065",
+          "withdrawMin": "0.13",
+          "withdrawMax": "9999999",
+          "withdrawInternalMin": "0.00000001",
+          "depositDust": "0.001",
+          "minConfirm": "1",
+          "unLockConfirm": "0",
+          "sameAddress": false,
+          "estimatedArrivalTime": "0",
+          "busy": false,
+          "contractAddressUrl": "https://explorer.zksync.io/address/",
+          "contractAddress": "0x1d17cbcf0d6d143135ae902365d2e5e2a16538d4"
         }
       ]
     },
@@ -3808,16 +3916,17 @@
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "0.2",
+          "withdrawFee": "0",
           "withdrawMin": "10",
           "withdrawMax": "10000000000",
+          "withdrawInternalMin": "0.00000001",
           "depositDust": "0.01",
           "minConfirm": "15",
           "unLockConfirm": "0",
           "sameAddress": false,
-          "estimatedArrivalTime": "5",
+          "estimatedArrivalTime": "2",
           "busy": false,
-          "contractAddressUrl": "https://bscscan.com/token/",
+          "contractAddressUrl": "https://bsctrace.com/token/",
           "contractAddress": "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d"
         },
         "id": "BSC",
@@ -3825,7 +3934,7 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.2,
+        "fee": 0,
         "precision": 1e-8,
         "limits": {
           "withdraw": {
@@ -3833,7 +3942,8 @@
             "max": 10000000000
           },
           "deposit": {
-            "min": 0.01
+            "min": 0.01,
+            "max": null
           }
         }
       },
@@ -3847,15 +3957,16 @@
           "withdrawEnable": true,
           "depositDesc": "",
           "withdrawDesc": "",
-          "specialTips": "Binance has suspended auto-conversion of USDC to BUSD. Please refer to: https://www.binance.com/en/support/announcement/binance-adds-stablecoin-spot-trading-pairs-launches-fee-promotion-discontinues-auto-conversion-for-stablecoins-dd331bed50bb44f485e47aed132bfc02",
-          "specialWithdrawTips": "Binance has suspended auto-conversion of USDC to BUSD. Please refer to: https://www.binance.com/en/support/announcement/binance-adds-stablecoin-spot-trading-pairs-launches-fee-promotion-discontinues-auto-conversion-for-stablecoins-dd331bed50bb44f485e47aed132bfc02",
+          "specialTips": "",
+          "specialWithdrawTips": "",
           "name": "AVAX C-Chain",
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "0.087",
-          "withdrawMin": "0.17",
+          "withdrawFee": "0.16",
+          "withdrawMin": "0.32",
           "withdrawMax": "20000000",
+          "withdrawInternalMin": "0.000001",
           "depositDust": "0.001",
           "minConfirm": "12",
           "unLockConfirm": "0",
@@ -3870,15 +3981,16 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.087,
+        "fee": 0.16,
         "precision": 0.000001,
         "limits": {
           "withdraw": {
-            "min": 0.17,
+            "min": 0.32,
             "max": 20000000
           },
           "deposit": {
-            "min": 0.001
+            "min": 0.001,
+            "max": null
           }
         }
       },
@@ -3892,8 +4004,8 @@
           "withdrawEnable": true,
           "depositDesc": "",
           "withdrawDesc": "",
-          "specialTips": "Binance has suspended auto-conversion of USDC to BUSD. Please refer to: https://www.binance.com/en/support/announcement/binance-adds-stablecoin-spot-trading-pairs-launches-fee-promotion-discontinues-auto-conversion-for-stablecoins-dd331bed50bb44f485e47aed132bfc02",
-          "specialWithdrawTips": "Binance has suspended auto-conversion of USDC to BUSD. Please refer to: https://www.binance.com/en/support/announcement/binance-adds-stablecoin-spot-trading-pairs-launches-fee-promotion-discontinues-auto-conversion-for-stablecoins-dd331bed50bb44f485e47aed132bfc02",
+          "specialTips": "",
+          "specialWithdrawTips": "",
           "name": "Algorand",
           "resetAddressStatus": false,
           "addressRegex": "^[A-Z0-9]{58,58}$",
@@ -3901,12 +4013,15 @@
           "withdrawFee": "1",
           "withdrawMin": "10",
           "withdrawMax": "9999999",
+          "withdrawInternalMin": "0.00000001",
           "depositDust": "0.001",
           "minConfirm": "1",
           "unLockConfirm": "0",
           "sameAddress": false,
           "estimatedArrivalTime": "0",
-          "busy": false
+          "busy": false,
+          "contractAddressUrl": "https://allo.info/asset/",
+          "contractAddress": "31566704"
         },
         "id": "ALGO",
         "network": "ALGO",
@@ -3921,7 +4036,55 @@
             "max": 9999999
           },
           "deposit": {
-            "min": 0.001
+            "min": 0.001,
+            "max": null
+          }
+        }
+      },
+      "APT": {
+        "info": {
+          "network": "APT",
+          "coin": "USDC",
+          "withdrawIntegerMultiple": "0.000001",
+          "isDefault": false,
+          "depositEnable": true,
+          "withdrawEnable": true,
+          "depositDesc": "",
+          "withdrawDesc": "",
+          "specialTips": "",
+          "specialWithdrawTips": "",
+          "name": "Aptos",
+          "resetAddressStatus": false,
+          "addressRegex": "^(0x)[0-9A-Za-z]{64}$",
+          "memoRegex": "",
+          "withdrawFee": "0.1",
+          "withdrawMin": "10",
+          "withdrawMax": "99999999",
+          "withdrawInternalMin": "0",
+          "depositDust": "0.000001",
+          "minConfirm": "1",
+          "unLockConfirm": "0",
+          "sameAddress": false,
+          "estimatedArrivalTime": "0",
+          "busy": false,
+          "contractAddressUrl": "https://explorer.aptoslabs.com/fungible_asset/",
+          "contractAddress": "0xbae207659db88bea0cbead6da0ed00aac12edcdda169e591cd41c94180b46f3b"
+        },
+        "id": "APT",
+        "network": "APT",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.1,
+        "precision": 0.000001,
+        "limits": {
+          "withdraw": {
+            "min": 10,
+            "max": 99999999
+          },
+          "deposit": {
+            "min": 0.000001,
+            "max": null
           }
         }
       },
@@ -3939,16 +4102,17 @@
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "0.098",
-          "withdrawMin": "0.2",
+          "withdrawFee": "0.13",
+          "withdrawMin": "0.26",
           "withdrawMax": "20000000",
+          "withdrawInternalMin": "0",
           "depositDust": "0.001",
           "minConfirm": "120",
           "unLockConfirm": "120",
           "sameAddress": false,
           "estimatedArrivalTime": "3",
           "busy": false,
-          "contractAddressUrl": "https://www.arbiscan.io/token/",
+          "contractAddressUrl": "https://arbiscan.io/token/",
           "contractAddress": "0xaf88d065e77c8cc2239327c5edb3a432268e5831"
         },
         "id": "ARBITRUM",
@@ -3956,15 +4120,16 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.098,
+        "fee": 0.13,
         "precision": 0.000001,
         "limits": {
           "withdraw": {
-            "min": 0.2,
+            "min": 0.26,
             "max": 20000000
           },
           "deposit": {
-            "min": 0.001
+            "min": 0.001,
+            "max": null
           }
         }
       },
@@ -3984,23 +4149,24 @@
           "resetAddressStatus": false,
           "addressRegex": "^(1)[0-9a-z-A-Z]{44,50}$",
           "memoRegex": "",
-          "withdrawFee": "1",
+          "withdrawFee": "0.7",
           "withdrawMin": "10",
           "withdrawMax": "9999999",
+          "withdrawInternalMin": "0.000001",
           "depositDust": "0.71",
           "minConfirm": "3",
           "unLockConfirm": "0",
           "sameAddress": false,
           "estimatedArrivalTime": "2",
           "busy": false,
-          "contractAddressUrl": ""
+          "contractAddressUrl": "https://assethub-polkadot.subscan.io/assets/"
         },
         "id": "STATEMINT",
         "network": "STATEMINT",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 1,
+        "fee": 0.7,
         "precision": 0.000001,
         "limits": {
           "withdraw": {
@@ -4008,52 +4174,8 @@
             "max": 9999999
           },
           "deposit": {
-            "min": 0.71
-          }
-        }
-      },
-      "BEP2": {
-        "info": {
-          "network": "BNB",
-          "coin": "USDC",
-          "withdrawIntegerMultiple": "0.00000001",
-          "isDefault": false,
-          "depositEnable": true,
-          "withdrawEnable": false,
-          "depositDesc": "",
-          "withdrawDesc": "The wallet is currently undergoing maintenance. Withdrawals for this asset will be resumed shortly.",
-          "specialTips": "Binance has suspended auto-conversion of USDC to BUSD. Please refer to: https://www.binance.com/en/support/announcement/binance-adds-stablecoin-spot-trading-pairs-launches-fee-promotion-discontinues-auto-conversion-for-stablecoins-dd331bed50bb44f485e47aed132bfc02",
-          "specialWithdrawTips": "",
-          "name": "BNB Beacon Chain (BEP2)",
-          "resetAddressStatus": false,
-          "addressRegex": "^(bnb1)[0-9a-z]{38}$",
-          "memoRegex": "^[0-9A-Za-z\\-_]{1,120}$",
-          "withdrawFee": "0.8",
-          "withdrawMin": "10",
-          "withdrawMax": "10000000000",
-          "depositDust": "0.001",
-          "minConfirm": "1",
-          "unLockConfirm": "0",
-          "sameAddress": true,
-          "estimatedArrivalTime": "2",
-          "busy": false,
-          "contractAddressUrl": "https://explorer.bnbchain.org/asset/",
-          "contractAddress": "USDC-CD2"
-        },
-        "id": "BNB",
-        "network": "BEP2",
-        "active": false,
-        "deposit": true,
-        "withdraw": false,
-        "fee": 0.8,
-        "precision": 1e-8,
-        "limits": {
-          "withdraw": {
-            "min": 10,
-            "max": 10000000000
-          },
-          "deposit": {
-            "min": 0.001
+            "min": 0.71,
+            "max": null
           }
         }
       },
@@ -4073,15 +4195,16 @@
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "0.03",
+          "withdrawFee": "0.22",
           "withdrawMin": "10",
           "withdrawMax": "50000000",
+          "withdrawInternalMin": "0",
           "depositDust": "0.001",
           "minConfirm": "1",
           "unLockConfirm": "100",
           "sameAddress": false,
           "estimatedArrivalTime": "0",
-          "busy": false,
+          "busy": true,
           "contractAddressUrl": "https://basescan.org/token/",
           "contractAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
         },
@@ -4090,7 +4213,7 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.03,
+        "fee": 0.22,
         "precision": 0.000001,
         "limits": {
           "withdraw": {
@@ -4098,7 +4221,8 @@
             "max": 50000000
           },
           "deposit": {
-            "min": 0.001
+            "min": 0.001,
+            "max": null
           }
         }
       },
@@ -4121,6 +4245,7 @@
           "withdrawFee": "0.05",
           "withdrawMin": "10",
           "withdrawMax": "9999999",
+          "withdrawInternalMin": "0",
           "depositDust": "0.001",
           "minConfirm": "1",
           "unLockConfirm": "0",
@@ -4143,7 +4268,8 @@
             "max": 9999999
           },
           "deposit": {
-            "min": 0.001
+            "min": 0.001,
+            "max": null
           }
         }
       },
@@ -4157,20 +4283,21 @@
           "withdrawEnable": true,
           "depositDesc": "",
           "withdrawDesc": "",
-          "specialTips": "Binance has suspended auto-conversion of USDC to BUSD. Please refer to: https://www.binance.com/en/support/announcement/binance-adds-stablecoin-spot-trading-pairs-launches-fee-promotion-discontinues-auto-conversion-for-stablecoins-dd331bed50bb44f485e47aed132bfc02",
-          "specialWithdrawTips": "Binance has suspended auto-conversion of USDC to BUSD. Please refer to: https://www.binance.com/en/support/announcement/binance-adds-stablecoin-spot-trading-pairs-launches-fee-promotion-discontinues-auto-conversion-for-stablecoins-dd331bed50bb44f485e47aed132bfc02",
+          "specialTips": "",
+          "specialWithdrawTips": "",
           "name": "Ethereum (ERC20)",
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "4",
-          "withdrawMin": "50",
+          "withdrawFee": "1.5",
+          "withdrawMin": "20",
           "withdrawMax": "10000000000",
+          "withdrawInternalMin": "0.000001",
           "depositDust": "0.001",
           "minConfirm": "6",
           "unLockConfirm": "64",
           "sameAddress": false,
-          "estimatedArrivalTime": "4",
+          "estimatedArrivalTime": "3",
           "busy": false,
           "contractAddressUrl": "https://etherscan.io/address/",
           "contractAddress": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
@@ -4180,15 +4307,61 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 4,
+        "fee": 1.5,
         "precision": 0.000001,
         "limits": {
           "withdraw": {
-            "min": 50,
+            "min": 20,
             "max": 10000000000
           },
           "deposit": {
-            "min": 0.001
+            "min": 0.001,
+            "max": null
+          }
+        }
+      },
+      "HBAR": {
+        "info": {
+          "network": "HBAR",
+          "coin": "USDC",
+          "withdrawIntegerMultiple": "0.000001",
+          "isDefault": false,
+          "depositEnable": true,
+          "withdrawEnable": true,
+          "depositDesc": "",
+          "withdrawDesc": "",
+          "specialTips": "",
+          "specialWithdrawTips": "",
+          "name": "Hedera Hashgraph",
+          "resetAddressStatus": false,
+          "addressRegex": "^0[.]0[.][1-9]\\d{0,6}$",
+          "memoRegex": "",
+          "withdrawFee": "0.1",
+          "withdrawMin": "10",
+          "withdrawMax": "9999999",
+          "withdrawInternalMin": "0",
+          "depositDust": "0.0001",
+          "minConfirm": "1",
+          "unLockConfirm": "0",
+          "sameAddress": true,
+          "estimatedArrivalTime": "0",
+          "busy": false
+        },
+        "id": "HBAR",
+        "network": "HBAR",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.1,
+        "precision": 0.000001,
+        "limits": {
+          "withdraw": {
+            "min": 10,
+            "max": 9999999
+          },
+          "deposit": {
+            "min": 0.0001,
+            "max": null
           }
         }
       },
@@ -4203,7 +4376,7 @@
           "depositDesc": "",
           "withdrawDesc": "",
           "specialTips": "",
-          "specialWithdrawTips": "",
+          "specialWithdrawTips": "CAUTION: Ensure the recipient address is activated and authorized to receive the token contract address; otherwise, your withdrawal will fail.",
           "name": "NEAR Protocol",
           "resetAddressStatus": false,
           "addressRegex": "^(?!0x)(?!bc1)(?!bnb1)[a-z0-9_-]{1}[a-z0-9_.-]{0,62}[a-z0-9_-]{1}$",
@@ -4211,6 +4384,7 @@
           "withdrawFee": "0.2",
           "withdrawMin": "10",
           "withdrawMax": "21000000",
+          "withdrawInternalMin": "0",
           "depositDust": "0.001",
           "minConfirm": "1",
           "unLockConfirm": "5",
@@ -4233,7 +4407,8 @@
             "max": 21000000
           },
           "deposit": {
-            "min": 0.001
+            "min": 0.001,
+            "max": null
           }
         }
       },
@@ -4253,9 +4428,10 @@
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "0.025",
-          "withdrawMin": "0.05",
+          "withdrawFee": "0.016",
+          "withdrawMin": "0.032",
           "withdrawMax": "9999999",
+          "withdrawInternalMin": "0",
           "depositDust": "0.001",
           "minConfirm": "25",
           "unLockConfirm": "100",
@@ -4270,15 +4446,16 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.025,
+        "fee": 0.016,
         "precision": 0.000001,
         "limits": {
           "withdraw": {
-            "min": 0.05,
+            "min": 0.032,
             "max": 9999999
           },
           "deposit": {
-            "min": 0.001
+            "min": 0.001,
+            "max": null
           }
         }
       },
@@ -4294,19 +4471,20 @@
           "withdrawDesc": "",
           "specialTips": "Please note that this is the native USDC in Polygon network. Please verify the contract address before depositing.",
           "specialWithdrawTips": "Please note that this is the native USDC in Polygon network. Please verify the contract address before withdrawing.",
-          "name": "Polygon",
+          "name": "Polygon POS",
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "0.1",
+          "withdrawFee": "0.02",
           "withdrawMin": "10",
           "withdrawMax": "50000000",
+          "withdrawInternalMin": "0",
           "depositDust": "0.001",
           "minConfirm": "200",
           "unLockConfirm": "300",
           "sameAddress": false,
           "estimatedArrivalTime": "8",
-          "busy": false,
+          "busy": true,
           "contractAddressUrl": "https://polygonscan.com/token/",
           "contractAddress": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359"
         },
@@ -4315,7 +4493,7 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.1,
+        "fee": 0.02,
         "precision": 0.000001,
         "limits": {
           "withdraw": {
@@ -4323,7 +4501,8 @@
             "max": 50000000
           },
           "deposit": {
-            "min": 0.001
+            "min": 0.001,
+            "max": null
           }
         }
       },
@@ -4346,6 +4525,7 @@
           "withdrawFee": "0.2",
           "withdrawMin": "50",
           "withdrawMax": "1000000000",
+          "withdrawInternalMin": "0.000001",
           "depositDust": "0.001",
           "minConfirm": "12",
           "unLockConfirm": "0",
@@ -4368,11 +4548,12 @@
             "max": 1000000000
           },
           "deposit": {
-            "min": 0.001
+            "min": 0.001,
+            "max": null
           }
         }
       },
-      "SPL": {
+      "SOL": {
         "info": {
           "network": "SOL",
           "coin": "USDC",
@@ -4382,15 +4563,16 @@
           "withdrawEnable": true,
           "depositDesc": "",
           "withdrawDesc": "",
-          "specialTips": "Binance has suspended auto-conversion of USDC to BUSD. Please refer to: https://www.binance.com/en/support/announcement/binance-adds-stablecoin-spot-trading-pairs-launches-fee-promotion-discontinues-auto-conversion-for-stablecoins-dd331bed50bb44f485e47aed132bfc02",
-          "specialWithdrawTips": "Binance has suspended auto-conversion of USDC to BUSD. Please refer to: https://www.binance.com/en/support/announcement/binance-adds-stablecoin-spot-trading-pairs-launches-fee-promotion-discontinues-auto-conversion-for-stablecoins-dd331bed50bb44f485e47aed132bfc02",
+          "specialTips": "Please note that SOL addresses are case sensitive.",
+          "specialWithdrawTips": "Please note that SOL addresses are case sensitive.",
           "name": "Solana",
           "resetAddressStatus": false,
           "addressRegex": "^[1-9A-HJ-NP-Za-km-z]{32,44}$",
           "memoRegex": "",
           "withdrawFee": "1",
-          "withdrawMin": "30",
+          "withdrawMin": "50",
           "withdrawMax": "250000000",
+          "withdrawInternalMin": "0.000001",
           "depositDust": "0.001",
           "minConfirm": "1",
           "unLockConfirm": "0",
@@ -4401,7 +4583,7 @@
           "contractAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
         },
         "id": "SOL",
-        "network": "SPL",
+        "network": "SOL",
         "active": true,
         "deposit": true,
         "withdraw": true,
@@ -4409,11 +4591,12 @@
         "precision": 0.000001,
         "limits": {
           "withdraw": {
-            "min": 30,
+            "min": 50,
             "max": 250000000
           },
           "deposit": {
-            "min": 0.001
+            "min": 0.001,
+            "max": null
           }
         }
       },
@@ -4421,14 +4604,14 @@
         "info": {
           "network": "XLM",
           "coin": "USDC",
-          "withdrawIntegerMultiple": "0.000001",
+          "withdrawIntegerMultiple": "0.0000001",
           "isDefault": false,
           "depositEnable": true,
           "withdrawEnable": true,
           "depositDesc": "",
           "withdrawDesc": "",
-          "specialTips": "Binance has suspended auto-conversion of USDC to BUSD. Please refer to: https://www.binance.com/en/support/announcement/binance-adds-stablecoin-spot-trading-pairs-launches-fee-promotion-discontinues-auto-conversion-for-stablecoins-dd331bed50bb44f485e47aed132bfc02",
-          "specialWithdrawTips": "Binance has suspended auto-conversion of USDC to BUSD. Please refer to: https://www.binance.com/en/support/announcement/binance-adds-stablecoin-spot-trading-pairs-launches-fee-promotion-discontinues-auto-conversion-for-stablecoins-dd331bed50bb44f485e47aed132bfc02",
+          "specialTips": "",
+          "specialWithdrawTips": "",
           "name": "Stellar Network",
           "resetAddressStatus": false,
           "addressRegex": "^G[A-D]{1}[A-Z2-7]{54}$",
@@ -4436,13 +4619,14 @@
           "withdrawFee": "1",
           "withdrawMin": "2",
           "withdrawMax": "20000000",
+          "withdrawInternalMin": "0.0000001",
           "depositDust": "0.001",
           "minConfirm": "1",
           "unLockConfirm": "0",
           "sameAddress": true,
           "estimatedArrivalTime": "0",
           "busy": false,
-          "contractAddressUrl": "https://stellarchain.io/accounts/",
+          "contractAddressUrl": "https://stellar.expert/explorer/public/account/",
           "contractAddress": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
         },
         "id": "XLM",
@@ -4451,14 +4635,62 @@
         "deposit": true,
         "withdraw": true,
         "fee": 1,
-        "precision": 0.000001,
+        "precision": 1e-7,
         "limits": {
           "withdraw": {
             "min": 2,
             "max": 20000000
           },
           "deposit": {
-            "min": 0.001
+            "min": 0.001,
+            "max": null
+          }
+        }
+      },
+      "SUI": {
+        "info": {
+          "network": "SUI",
+          "coin": "USDC",
+          "withdrawIntegerMultiple": "0.000001",
+          "isDefault": false,
+          "depositEnable": true,
+          "withdrawEnable": true,
+          "depositDesc": "",
+          "withdrawDesc": "",
+          "specialTips": "",
+          "specialWithdrawTips": "",
+          "name": "Sui",
+          "resetAddressStatus": false,
+          "addressRegex": "^(0x)[0-9A-Za-z]{64}$",
+          "memoRegex": "",
+          "withdrawFee": "0.1",
+          "withdrawMin": "10",
+          "withdrawMax": "9999999",
+          "withdrawInternalMin": "0.00000001",
+          "depositDust": "0.0001",
+          "minConfirm": "1",
+          "unLockConfirm": "0",
+          "sameAddress": false,
+          "estimatedArrivalTime": "0",
+          "busy": false,
+          "contractAddressUrl": "https://suivision.xyz/coin/",
+          "contractAddress": "0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC"
+        },
+        "id": "SUI",
+        "network": "SUI",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.1,
+        "precision": 0.000001,
+        "limits": {
+          "withdraw": {
+            "min": 10,
+            "max": 9999999
+          },
+          "deposit": {
+            "min": 0.0001,
+            "max": null
           }
         }
       },
@@ -4472,8 +4704,8 @@
           "withdrawEnable": false,
           "depositDesc": "Deposit for this token is not supported, please try other networks.",
           "withdrawDesc": "Withdrawal for this token is not supported, please try other networks.",
-          "specialTips": "Binance has suspended auto-conversion of USDC to BUSD. Please refer to: https://www.binance.com/en/support/announcement/binance-adds-stablecoin-spot-trading-pairs-launches-fee-promotion-discontinues-auto-conversion-for-stablecoins-dd331bed50bb44f485e47aed132bfc02",
-          "specialWithdrawTips": "Binance has suspended auto-conversion of USDC to BUSD. Please refer to: https://www.binance.com/en/support/announcement/binance-adds-stablecoin-spot-trading-pairs-launches-fee-promotion-discontinues-auto-conversion-for-stablecoins-dd331bed50bb44f485e47aed132bfc02",
+          "specialTips": "",
+          "specialWithdrawTips": "",
           "name": "Tron (TRC20)",
           "resetAddressStatus": false,
           "addressRegex": "^T[1-9A-HJ-NP-Za-km-z]{33}$",
@@ -4481,6 +4713,7 @@
           "withdrawFee": "1",
           "withdrawMin": "10",
           "withdrawMax": "10000000000",
+          "withdrawInternalMin": "0.000001",
           "depositDust": "0.001",
           "minConfirm": "1",
           "unLockConfirm": "0",
@@ -4503,47 +4736,111 @@
             "max": 10000000000
           },
           "deposit": {
-            "min": 0.001
+            "min": 0.001,
+            "max": null
+          }
+        }
+      },
+      "ZKSYNCERA": {
+        "info": {
+          "network": "ZKSYNCERA",
+          "coin": "USDC",
+          "withdrawIntegerMultiple": "0.000001",
+          "isDefault": false,
+          "depositEnable": true,
+          "withdrawEnable": true,
+          "depositDesc": "",
+          "withdrawDesc": "",
+          "specialTips": "",
+          "specialWithdrawTips": "",
+          "name": "zkSync Era",
+          "resetAddressStatus": false,
+          "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
+          "memoRegex": "",
+          "withdrawFee": "0.065",
+          "withdrawMin": "0.13",
+          "withdrawMax": "9999999",
+          "withdrawInternalMin": "0.00000001",
+          "depositDust": "0.001",
+          "minConfirm": "1",
+          "unLockConfirm": "0",
+          "sameAddress": false,
+          "estimatedArrivalTime": "0",
+          "busy": false,
+          "contractAddressUrl": "https://explorer.zksync.io/address/",
+          "contractAddress": "0x1d17cbcf0d6d143135ae902365d2e5e2a16538d4"
+        },
+        "id": "ZKSYNCERA",
+        "network": "ZKSYNCERA",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.065,
+        "precision": 0.000001,
+        "limits": {
+          "withdraw": {
+            "min": 0.13,
+            "max": 9999999
+          },
+          "deposit": {
+            "min": 0.001,
+            "max": null
           }
         }
       }
     },
-    "fee": 4,
+    "fee": 1.5,
     "fees": {
-      "BSC": 0.2,
-      "AVAXC": 0.087,
+      "BSC": 0,
+      "AVAXC": 0.16,
       "ALGO": 1,
-      "ARBITRUM": 0.098,
-      "STATEMINT": 1,
-      "BNB": 0.8,
-      "BASE": 0.03,
+      "APT": 0.1,
+      "ARBITRUM": 0.13,
+      "STATEMINT": 0.7,
+      "BASE": 0.22,
       "CELO": 0.05,
-      "ETH": 4,
+      "ETH": 1.5,
+      "HBAR": 0.1,
       "NEAR": 0.2,
-      "OPTIMISM": 0.025,
-      "MATIC": 0.1,
+      "OPTIMISM": 0.016,
+      "MATIC": 0.02,
       "RON": 0.2,
       "SOL": 1,
       "XLM": 1,
-      "TRX": 1
+      "SUI": 0.1,
+      "TRX": 1,
+      "ZKSYNCERA": 0.065
     },
     "limits": {
-      "leverage": {},
-      "amount": {},
-      "price": {},
-      "cost": {}
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
     },
-    "margin": true
+    "margin": null
   },
   "BUSD": {
     "id": "BUSD",
     "name": "BUSD",
     "code": "BUSD",
+    "type": "crypto",
     "precision": 1e-8,
     "info": {
       "coin": "BUSD",
       "depositAllEnable": true,
-      "withdrawAllEnable": false,
+      "withdrawAllEnable": true,
       "name": "BUSD",
       "free": "0",
       "locked": "0",
@@ -4570,16 +4867,17 @@
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "0.51",
-          "withdrawMin": "1.02",
+          "withdrawFee": "0.59",
+          "withdrawMin": "1.18",
           "withdrawMax": "10000000000",
+          "withdrawInternalMin": "0.00000001",
           "depositDust": "0.001",
           "minConfirm": "15",
           "unLockConfirm": "0",
           "sameAddress": false,
-          "estimatedArrivalTime": "5",
+          "estimatedArrivalTime": "2",
           "busy": false,
-          "contractAddressUrl": "https://bscscan.com/token/",
+          "contractAddressUrl": "https://bsctrace.com/token/",
           "contractAddress": "0xe9e7cea3dedca5984780bafc599bd69add087d56"
         },
         {
@@ -4597,9 +4895,10 @@
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "0.087",
-          "withdrawMin": "0.17",
+          "withdrawFee": "0.16",
+          "withdrawMin": "0.32",
           "withdrawMax": "9999999",
+          "withdrawInternalMin": "0.00000001",
           "depositDust": "0.001",
           "minConfirm": "12",
           "unLockConfirm": "0",
@@ -4610,40 +4909,14 @@
           "contractAddress": "0x9c9e5fd8bbc25984b178fdce6117defa39d2db39"
         },
         {
-          "network": "BNB",
-          "coin": "BUSD",
-          "withdrawIntegerMultiple": "0.00000001",
-          "isDefault": false,
-          "depositEnable": true,
-          "withdrawEnable": false,
-          "depositDesc": "",
-          "withdrawDesc": "Withdrawal for this token is not supported, please try other networks.",
-          "specialTips": "Both a memo/tag and an address are required to successfully deposit your assets to Binance.",
-          "name": "BNB Beacon Chain (BEP2)",
-          "resetAddressStatus": false,
-          "addressRegex": "^(bnb1)[0-9a-z]{38}$",
-          "memoRegex": "^[0-9A-Za-z\\-_]{1,120}$",
-          "withdrawFee": "0.7",
-          "withdrawMin": "10",
-          "withdrawMax": "10000000000",
-          "depositDust": "0.001",
-          "minConfirm": "1",
-          "unLockConfirm": "0",
-          "sameAddress": true,
-          "estimatedArrivalTime": "2",
-          "busy": false,
-          "contractAddressUrl": "https://explorer.bnbchain.org/asset/",
-          "contractAddress": "BUSD-BD1"
-        },
-        {
           "network": "ETH",
           "coin": "BUSD",
           "withdrawIntegerMultiple": "0.00000001",
           "isDefault": true,
           "depositEnable": true,
-          "withdrawEnable": false,
+          "withdrawEnable": true,
           "depositDesc": "",
-          "withdrawDesc": "Withdrawal for this token is not supported, please try other networks.",
+          "withdrawDesc": "",
           "specialTips": "",
           "name": "Ethereum (ERC20)",
           "resetAddressStatus": false,
@@ -4652,11 +4925,12 @@
           "withdrawFee": "5",
           "withdrawMin": "10",
           "withdrawMax": "10000000000",
+          "withdrawInternalMin": "0.00000001",
           "depositDust": "0.001",
           "minConfirm": "6",
           "unLockConfirm": "64",
           "sameAddress": false,
-          "estimatedArrivalTime": "4",
+          "estimatedArrivalTime": "3",
           "busy": false,
           "contractAddressUrl": "https://etherscan.io/address/",
           "contractAddress": "0x4fabb145d64652a948d72533023f6e7a623c7c53"
@@ -4670,15 +4944,16 @@
           "withdrawEnable": false,
           "depositDesc": "",
           "withdrawDesc": "The wallet is currently undergoing maintenance. Withdrawals for this asset will be resumed shortly.",
-          "specialTips": "Please note that L2 networks require its corresponding L1 transaction to reach finality (64 blocks) before deposits can be unlocked. ETA ~25 min",
+          "specialTips": "",
           "specialWithdrawTips": "",
           "name": "Optimism",
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "0.025",
-          "withdrawMin": "0.05",
+          "withdrawFee": "0.016",
+          "withdrawMin": "0.032",
           "withdrawMax": "9999999",
+          "withdrawInternalMin": "0.00000001",
           "depositDust": "0.001",
           "minConfirm": "25",
           "unLockConfirm": "100",
@@ -4699,19 +4974,20 @@
           "withdrawDesc": "The wallet is currently undergoing maintenance. Withdrawals for this asset will be resumed shortly.",
           "specialTips": "",
           "specialWithdrawTips": "",
-          "name": "Polygon",
+          "name": "Polygon POS",
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "0.057",
-          "withdrawMin": "0.11",
+          "withdrawFee": "0.026",
+          "withdrawMin": "0.052",
           "withdrawMax": "9999999",
+          "withdrawInternalMin": "0.00000001",
           "depositDust": "0.001",
           "minConfirm": "200",
           "unLockConfirm": "300",
           "sameAddress": false,
           "estimatedArrivalTime": "8",
-          "busy": false,
+          "busy": true,
           "contractAddressUrl": "https://polygonscan.com/token/",
           "contractAddress": "0x9c9e5fd8bbc25984b178fdce6117defa39d2db39"
         },
@@ -4732,6 +5008,7 @@
           "withdrawFee": "1",
           "withdrawMin": "10",
           "withdrawMax": "10000000000",
+          "withdrawInternalMin": "0.00000001",
           "depositDust": "0.001",
           "minConfirm": "1",
           "unLockConfirm": "0",
@@ -4763,16 +5040,17 @@
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "0.51",
-          "withdrawMin": "1.02",
+          "withdrawFee": "0.59",
+          "withdrawMin": "1.18",
           "withdrawMax": "10000000000",
+          "withdrawInternalMin": "0.00000001",
           "depositDust": "0.001",
           "minConfirm": "15",
           "unLockConfirm": "0",
           "sameAddress": false,
-          "estimatedArrivalTime": "5",
+          "estimatedArrivalTime": "2",
           "busy": false,
-          "contractAddressUrl": "https://bscscan.com/token/",
+          "contractAddressUrl": "https://bsctrace.com/token/",
           "contractAddress": "0xe9e7cea3dedca5984780bafc599bd69add087d56"
         },
         "id": "BSC",
@@ -4780,15 +5058,16 @@
         "active": false,
         "deposit": true,
         "withdraw": false,
-        "fee": 0.51,
+        "fee": 0.59,
         "precision": 1e-8,
         "limits": {
           "withdraw": {
-            "min": 1.02,
+            "min": 1.18,
             "max": 10000000000
           },
           "deposit": {
-            "min": 0.001
+            "min": 0.001,
+            "max": null
           }
         }
       },
@@ -4808,9 +5087,10 @@
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "0.087",
-          "withdrawMin": "0.17",
+          "withdrawFee": "0.16",
+          "withdrawMin": "0.32",
           "withdrawMax": "9999999",
+          "withdrawInternalMin": "0.00000001",
           "depositDust": "0.001",
           "minConfirm": "12",
           "unLockConfirm": "0",
@@ -4825,59 +5105,16 @@
         "active": false,
         "deposit": true,
         "withdraw": false,
-        "fee": 0.087,
+        "fee": 0.16,
         "precision": 1e-8,
         "limits": {
           "withdraw": {
-            "min": 0.17,
+            "min": 0.32,
             "max": 9999999
           },
           "deposit": {
-            "min": 0.001
-          }
-        }
-      },
-      "BEP2": {
-        "info": {
-          "network": "BNB",
-          "coin": "BUSD",
-          "withdrawIntegerMultiple": "0.00000001",
-          "isDefault": false,
-          "depositEnable": true,
-          "withdrawEnable": false,
-          "depositDesc": "",
-          "withdrawDesc": "Withdrawal for this token is not supported, please try other networks.",
-          "specialTips": "Both a memo/tag and an address are required to successfully deposit your assets to Binance.",
-          "name": "BNB Beacon Chain (BEP2)",
-          "resetAddressStatus": false,
-          "addressRegex": "^(bnb1)[0-9a-z]{38}$",
-          "memoRegex": "^[0-9A-Za-z\\-_]{1,120}$",
-          "withdrawFee": "0.7",
-          "withdrawMin": "10",
-          "withdrawMax": "10000000000",
-          "depositDust": "0.001",
-          "minConfirm": "1",
-          "unLockConfirm": "0",
-          "sameAddress": true,
-          "estimatedArrivalTime": "2",
-          "busy": false,
-          "contractAddressUrl": "https://explorer.bnbchain.org/asset/",
-          "contractAddress": "BUSD-BD1"
-        },
-        "id": "BNB",
-        "network": "BEP2",
-        "active": false,
-        "deposit": true,
-        "withdraw": false,
-        "fee": 0.7,
-        "precision": 1e-8,
-        "limits": {
-          "withdraw": {
-            "min": 10,
-            "max": 10000000000
-          },
-          "deposit": {
-            "min": 0.001
+            "min": 0.001,
+            "max": null
           }
         }
       },
@@ -4888,9 +5125,9 @@
           "withdrawIntegerMultiple": "0.00000001",
           "isDefault": true,
           "depositEnable": true,
-          "withdrawEnable": false,
+          "withdrawEnable": true,
           "depositDesc": "",
-          "withdrawDesc": "Withdrawal for this token is not supported, please try other networks.",
+          "withdrawDesc": "",
           "specialTips": "",
           "name": "Ethereum (ERC20)",
           "resetAddressStatus": false,
@@ -4899,20 +5136,21 @@
           "withdrawFee": "5",
           "withdrawMin": "10",
           "withdrawMax": "10000000000",
+          "withdrawInternalMin": "0.00000001",
           "depositDust": "0.001",
           "minConfirm": "6",
           "unLockConfirm": "64",
           "sameAddress": false,
-          "estimatedArrivalTime": "4",
+          "estimatedArrivalTime": "3",
           "busy": false,
           "contractAddressUrl": "https://etherscan.io/address/",
           "contractAddress": "0x4fabb145d64652a948d72533023f6e7a623c7c53"
         },
         "id": "ETH",
         "network": "ERC20",
-        "active": false,
+        "active": true,
         "deposit": true,
-        "withdraw": false,
+        "withdraw": true,
         "fee": 5,
         "precision": 1e-8,
         "limits": {
@@ -4921,7 +5159,8 @@
             "max": 10000000000
           },
           "deposit": {
-            "min": 0.001
+            "min": 0.001,
+            "max": null
           }
         }
       },
@@ -4935,15 +5174,16 @@
           "withdrawEnable": false,
           "depositDesc": "",
           "withdrawDesc": "The wallet is currently undergoing maintenance. Withdrawals for this asset will be resumed shortly.",
-          "specialTips": "Please note that L2 networks require its corresponding L1 transaction to reach finality (64 blocks) before deposits can be unlocked. ETA ~25 min",
+          "specialTips": "",
           "specialWithdrawTips": "",
           "name": "Optimism",
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "0.025",
-          "withdrawMin": "0.05",
+          "withdrawFee": "0.016",
+          "withdrawMin": "0.032",
           "withdrawMax": "9999999",
+          "withdrawInternalMin": "0.00000001",
           "depositDust": "0.001",
           "minConfirm": "25",
           "unLockConfirm": "100",
@@ -4958,15 +5198,16 @@
         "active": false,
         "deposit": true,
         "withdraw": false,
-        "fee": 0.025,
+        "fee": 0.016,
         "precision": 1e-8,
         "limits": {
           "withdraw": {
-            "min": 0.05,
+            "min": 0.032,
             "max": 9999999
           },
           "deposit": {
-            "min": 0.001
+            "min": 0.001,
+            "max": null
           }
         }
       },
@@ -4982,19 +5223,20 @@
           "withdrawDesc": "The wallet is currently undergoing maintenance. Withdrawals for this asset will be resumed shortly.",
           "specialTips": "",
           "specialWithdrawTips": "",
-          "name": "Polygon",
+          "name": "Polygon POS",
           "resetAddressStatus": false,
           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
           "memoRegex": "",
-          "withdrawFee": "0.057",
-          "withdrawMin": "0.11",
+          "withdrawFee": "0.026",
+          "withdrawMin": "0.052",
           "withdrawMax": "9999999",
+          "withdrawInternalMin": "0.00000001",
           "depositDust": "0.001",
           "minConfirm": "200",
           "unLockConfirm": "300",
           "sameAddress": false,
           "estimatedArrivalTime": "8",
-          "busy": false,
+          "busy": true,
           "contractAddressUrl": "https://polygonscan.com/token/",
           "contractAddress": "0x9c9e5fd8bbc25984b178fdce6117defa39d2db39"
         },
@@ -5003,15 +5245,16 @@
         "active": false,
         "deposit": true,
         "withdraw": false,
-        "fee": 0.057,
+        "fee": 0.026,
         "precision": 1e-8,
         "limits": {
           "withdraw": {
-            "min": 0.11,
+            "min": 0.052,
             "max": 9999999
           },
           "deposit": {
-            "min": 0.001
+            "min": 0.001,
+            "max": null
           }
         }
       },
@@ -5033,6 +5276,7 @@
           "withdrawFee": "1",
           "withdrawMin": "10",
           "withdrawMax": "10000000000",
+          "withdrawInternalMin": "0.00000001",
           "depositDust": "0.001",
           "minConfirm": "1",
           "unLockConfirm": "0",
@@ -5055,26 +5299,39 @@
             "max": 10000000000
           },
           "deposit": {
-            "min": 0.001
+            "min": 0.001,
+            "max": null
           }
         }
       }
     },
     "fee": 5,
     "fees": {
-      "BSC": 0.51,
-      "AVAXC": 0.087,
-      "BNB": 0.7,
+      "BSC": 0.59,
+      "AVAXC": 0.16,
       "ETH": 5,
-      "OPTIMISM": 0.025,
-      "MATIC": 0.057,
+      "OPTIMISM": 0.016,
+      "MATIC": 0.026,
       "TRX": 1
     },
     "limits": {
-      "leverage": {},
-      "amount": {},
-      "price": {},
-      "cost": {}
-    }
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
+    },
+    "margin": null
   }
 }

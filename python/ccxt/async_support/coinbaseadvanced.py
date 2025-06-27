@@ -5,11 +5,12 @@
 
 from ccxt.async_support.coinbase import coinbase
 from ccxt.abstract.coinbaseadvanced import ImplicitAPI
+from ccxt.base.types import Any
 
 
 class coinbaseadvanced(coinbase, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(coinbaseadvanced, self).describe(), {
             'id': 'coinbaseadvanced',
             'name': 'Coinbase Advanced',

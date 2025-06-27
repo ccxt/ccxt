@@ -154,6 +154,26 @@ public partial class oxfun
         return new FundingRates(res);
     }
     /// <summary>
+    /// fetch the current funding rates for a symbol
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.ox.fun/?json#get-v3-funding-estimates"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>Order[]</term> an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
+    public async Task<FundingRate> FetchFundingRate(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchFundingRate(symbol, parameters);
+        return new FundingRate(res);
+    }
+    /// <summary>
     /// Fetches the history of funding rates
     /// </summary>
     /// <remarks>
@@ -558,6 +578,12 @@ public partial class oxfun
     /// See <see href="https://docs.ox.fun/?json#post-v3-withdrawal"/>  <br/>
     /// <list type="table">
     /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.network</term>
     /// <description>
     /// string : network for withdraw
@@ -567,12 +593,6 @@ public partial class oxfun
     /// <term>params.externalFee</term>
     /// <description>
     /// bool : if false, then the fee is taken from the quantity, also with the burn fee for asset SOLO
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// <item>
@@ -610,7 +630,7 @@ public partial class oxfun
     /// <item>
     /// <term>params.subAcc</term>
     /// <description>
-    /// boolean :          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+    /// boolean :      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
     /// </description>
     /// </item>
     /// </list>

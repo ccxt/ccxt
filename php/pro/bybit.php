@@ -10,13 +10,13 @@ use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
-use React\Async;
-use React\Promise;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise;
+use \React\Promise\PromiseInterface;
 
 class bybit extends \ccxt\async\bybit {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -113,6 +113,12 @@ class bybit extends \ccxt\async\bybit {
                 'watchPositions' => array(
                     'fetchPositionsSnapshot' => true, // or false
                     'awaitPositionsSnapshot' => true, // whether to wait for the positions snapshot before providing updates
+                ),
+                'watchMyTrades' => array(
+                    // filter execType => https://bybit-exchange.github.io/docs/api-explorer/v5/position/execution
+                    'filterExecTypes' => array(
+                        'Trade', 'AdlTrade', 'BustTrade', 'Settle',
+                    ),
                 ),
                 'spot' => array(
                     'timeframes' => array(
@@ -216,8 +222,10 @@ class bybit extends \ccxt\async\bybit {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             *
              * @see https://bybit-exchange.github.io/docs/v5/order/create-order
              * @see https://bybit-exchange.github.io/docs/v5/websocket/trade/guideline#createamendcancel-order
+             *
              * @param {string} $symbol unified $symbol of the market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
@@ -267,8 +275,10 @@ class bybit extends \ccxt\async\bybit {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order
+             *
              * @see https://bybit-exchange.github.io/docs/v5/order/amend-order
              * @see https://bybit-exchange.github.io/docs/v5/websocket/trade/guideline#createamendcancel-order
+             *
              * @param {string} $id cancel order $id
              * @param {string} $symbol unified $symbol of the market to create an order in
              * @param {string} $type 'market' or 'limit'
@@ -312,12 +322,14 @@ class bybit extends \ccxt\async\bybit {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
+             *
              * @see https://bybit-exchange.github.io/docs/v5/order/cancel-order
              * @see https://bybit-exchange.github.io/docs/v5/websocket/trade/guideline#createamendcancel-order
+             *
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {boolean} [$params->stop] *spot only* whether the order is a stop order
+             * @param {boolean} [$params->trigger] *spot only* whether the order is a trigger order
              * @param {string} [$params->orderFilter] *spot only* 'Order' or 'StopOrder' or 'tpslOrder'
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
@@ -348,8 +360,10 @@ class bybit extends \ccxt\async\bybit {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             *
              * @see https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
              * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -375,8 +389,10 @@ class bybit extends \ccxt\async\bybit {
         return Async\async(function () use ($symbols, $params) {
             /**
              * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             *
              * @see https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
              * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-$ticker
+             *
              * @param {string[]} $symbols unified symbol of the market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
@@ -409,8 +425,10 @@ class bybit extends \ccxt\async\bybit {
         return Async\async(function () use ($symbols, $params) {
             /**
              * unWatches a price ticker
+             *
              * @see https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
              * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
+             *
              * @param {string[]} $symbols unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -439,9 +457,11 @@ class bybit extends \ccxt\async\bybit {
         return Async\async(function () use ($symbols, $params) {
             /**
              * unWatches a price ticker
+             *
              * @see https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
              * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
-             * @param {string} symbol unified symbol of the market to fetch the ticker for
+             *
+             * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
@@ -599,7 +619,9 @@ class bybit extends \ccxt\async\bybit {
         return Async\async(function () use ($symbols, $params) {
             /**
              * watches best bid & ask for $symbols
+             *
              * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
+             *
              * @param {string[]} $symbols unified symbol of the market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
@@ -647,8 +669,10 @@ class bybit extends \ccxt\async\bybit {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+             *
              * @see https://bybit-exchange.github.io/docs/v5/websocket/public/kline
              * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
+             *
              * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -666,8 +690,10 @@ class bybit extends \ccxt\async\bybit {
         return Async\async(function () use ($symbolsAndTimeframes, $since, $limit, $params) {
             /**
              * watches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+             *
              * @see https://bybit-exchange.github.io/docs/v5/websocket/public/kline
              * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
+             *
              * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified $symbols and timeframes to fetch OHLCV $data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
@@ -700,12 +726,14 @@ class bybit extends \ccxt\async\bybit {
         }) ();
     }
 
-    public function un_watch_ohlcv_for_symbols(array $symbolsAndTimeframes, $params = array ()) {
+    public function un_watch_ohlcv_for_symbols(array $symbolsAndTimeframes, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbolsAndTimeframes, $params) {
             /**
              * unWatches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+             *
              * @see https://bybit-exchange.github.io/docs/v5/websocket/public/kline
              * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
+             *
              * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified $symbols and timeframes to fetch OHLCV $data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A list of candles ordered, open, high, low, close, volume
@@ -740,12 +768,12 @@ class bybit extends \ccxt\async\bybit {
         return Async\async(function () use ($symbol, $timeframe, $params) {
             /**
              * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+             *
              * @see https://bybit-exchange.github.io/docs/v5/websocket/public/kline
              * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
+             *
              * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
-             * @param {int} [since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [limit] the maximum amount of candles to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
@@ -798,7 +826,7 @@ class bybit extends \ccxt\async\bybit {
         }
         $stored = $this->ohlcvs[$symbol][$timeframe];
         for ($i = 0; $i < count($data); $i++) {
-            $parsed = $this->parse_ws_ohlcv($data[$i]);
+            $parsed = $this->parse_ws_ohlcv($data[$i], $market);
             $stored->append ($parsed);
         }
         $messageHash = 'ohlcv::' . $symbol . '::' . $timeframe;
@@ -822,13 +850,14 @@ class bybit extends \ccxt\async\bybit {
         //         "timestamp" => 1670363219614
         //     }
         //
+        $volumeIndex = ($market['inverse']) ? 'turnover' : 'volume';
         return array(
             $this->safe_integer($ohlcv, 'start'),
             $this->safe_number($ohlcv, 'open'),
             $this->safe_number($ohlcv, 'high'),
             $this->safe_number($ohlcv, 'low'),
             $this->safe_number($ohlcv, 'close'),
-            $this->safe_number_2($ohlcv, 'volume', 'turnover'),
+            $this->safe_number($ohlcv, $volumeIndex),
         );
     }
 
@@ -836,7 +865,9 @@ class bybit extends \ccxt\async\bybit {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
              * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
+             *
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return.
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -850,7 +881,9 @@ class bybit extends \ccxt\async\bybit {
         return Async\async(function () use ($symbols, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
              * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
+             *
              * @param {string[]} $symbols unified array of $symbols
              * @param {int} [$limit] the maximum amount of order book entries to return.
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -867,11 +900,22 @@ class bybit extends \ccxt\async\bybit {
             $market = $this->market($symbols[0]);
             if ($limit === null) {
                 $limit = ($market['spot']) ? 50 : 500;
+                if ($market['option']) {
+                    $limit = 100;
+                }
             } else {
                 if (!$market['spot']) {
-                    // bybit only support $limit 1, 50, 200, 500 for contract
-                    if (($limit !== 1) && ($limit !== 50) && ($limit !== 200) && ($limit !== 500)) {
-                        throw new BadRequest($this->id . ' watchOrderBookForSymbols() can only use $limit 1, 50, 200 and 500.');
+                    if ($market['option']) {
+                        if (($limit !== 25) && ($limit !== 100)) {
+                            throw new BadRequest($this->id . ' watchOrderBookForSymbols() can only use $limit 25 and 100 for option markets.');
+                        }
+                    } elseif (($limit !== 1) && ($limit !== 50) && ($limit !== 200) && ($limit !== 500)) {
+                        // bybit only support $limit 1, 50, 200, 500 for contract
+                        throw new BadRequest($this->id . ' watchOrderBookForSymbols() can only use $limit 1, 50, 200 and 500 for swap and future markets.');
+                    }
+                } else {
+                    if (($limit !== 1) && ($limit !== 50) && ($limit !== 200)) {
+                        throw new BadRequest($this->id . ' watchOrderBookForSymbols() can only use $limit 1,50, and 200 for spot markets.');
                     }
                 }
             }
@@ -894,8 +938,11 @@ class bybit extends \ccxt\async\bybit {
         return Async\async(function () use ($symbols, $params) {
             /**
              * unsubscribe from the orderbook $channel
+             *
              * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
+             *
              * @param {string[]} $symbols unified $symbol of the $market to unwatch the trades for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->limit] orderbook $limit, default is null
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market $symbols
              */
@@ -931,8 +978,11 @@ class bybit extends \ccxt\async\bybit {
         return Async\async(function () use ($symbol, $params) {
             /**
              * unsubscribe from the orderbook channel
+             *
              * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
-             * @param {string[]} symbols unified $symbol of the market to unwatch the trades for
+             *
+             * @param {string} $symbol symbol of the market to unwatch the trades for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->limit] orderbook limit, default is null
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
              */
@@ -1028,7 +1078,9 @@ class bybit extends \ccxt\async\bybit {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple trades made in a market
+             *
              * @see https://bybit-exchange.github.io/docs/v5/websocket/public/trade
+             *
              * @param {string} $symbol unified market $symbol of the market trades were made in
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
@@ -1043,7 +1095,9 @@ class bybit extends \ccxt\async\bybit {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a list of $symbols
+             *
              * @see https://bybit-exchange.github.io/docs/v5/websocket/public/trade
+             *
              * @param {string[]} $symbols unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
@@ -1082,8 +1136,11 @@ class bybit extends \ccxt\async\bybit {
         return Async\async(function () use ($symbols, $params) {
             /**
              * unsubscribe from the trades channel
+             *
              * @see https://bybit-exchange.github.io/docs/v5/websocket/public/trade
+             *
              * @param {string[]} $symbols unified $symbol of the $market to unwatch the trades for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {any} status of the unwatch request
              */
             Async\await($this->load_markets());
@@ -1109,8 +1166,11 @@ class bybit extends \ccxt\async\bybit {
         return Async\async(function () use ($symbol, $params) {
             /**
              * unsubscribe from the trades channel
+             *
              * @see https://bybit-exchange.github.io/docs/v5/websocket/public/trade
+             *
              * @param {string} $symbol unified $symbol of the market to unwatch the trades for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {any} status of the unwatch request
              */
             Async\await($this->load_markets());
@@ -1246,7 +1306,9 @@ class bybit extends \ccxt\async\bybit {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made by the user
+             *
              * @see https://bybit-exchange.github.io/docs/v5/websocket/private/execution
+             *
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -1281,7 +1343,9 @@ class bybit extends \ccxt\async\bybit {
         return Async\async(function () use ($symbol, $params) {
             /**
              * unWatches information on multiple trades made by the user
+             *
              * @see https://bybit-exchange.github.io/docs/v5/websocket/private/execution
+             *
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->unifiedMargin] use unified margin account
@@ -1382,12 +1446,18 @@ class bybit extends \ccxt\async\bybit {
         }
         $trades = $this->myTrades;
         $symbols = array();
+        $filterExecTypes = $this->handle_option('watchMyTrades', 'filterExecTypes', array());
         for ($i = 0; $i < count($data); $i++) {
             $rawTrade = $data[$i];
             $parsed = null;
             if ($spot) {
                 $parsed = $this->parse_ws_trade($rawTrade);
             } else {
+                // filter unified $trades
+                $execType = $this->safe_string($rawTrade, 'execType', '');
+                if (!$this->in_array($execType, $filterExecTypes)) {
+                    continue;
+                }
                 $parsed = $this->parse_trade($rawTrade);
             }
             $symbol = $parsed['symbol'];
@@ -1407,9 +1477,13 @@ class bybit extends \ccxt\async\bybit {
     public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
+             *
              * @see https://bybit-exchange.github.io/docs/v5/websocket/private/position
+             *
              * watch all open positions
              * @param {string[]} [$symbols] list of unified market $symbols
+             * @param {int} [$since] the earliest time in ms to fetch positions for
+             * @param {int} [$limit] the maximum number of positions to retrieve
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
@@ -1566,11 +1640,14 @@ class bybit extends \ccxt\async\bybit {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watch the public liquidations of a trading pair
+             *
              * @see https://bybit-exchange.github.io/docs/v5/websocket/public/liquidation
+             *
              * @param {string} $symbol unified CCXT $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch liquidations for
              * @param {int} [$limit] the maximum number of liquidation structures to retrieve
              * @param {array} [$params] exchange specific parameters for the bitmex api endpoint
+             * @param {string} [$params->method] exchange specific $method, supported => liquidation, allLiquidation
              * @return {array} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure liquidation structures}
              */
             Async\await($this->load_markets());
@@ -1578,8 +1655,10 @@ class bybit extends \ccxt\async\bybit {
             $symbol = $market['symbol'];
             $url = Async\await($this->get_url_by_market_type($symbol, false, 'watchLiquidations', $params));
             $params = $this->clean_params($params);
+            $method = null;
+            list($method, $params) = $this->handle_option_and_params($params, 'watchLiquidations', 'method', 'liquidation');
             $messageHash = 'liquidations::' . $symbol;
-            $topic = 'liquidation.' . $market['id'];
+            $topic = $method . '.' . $market['id'];
             $newLiquidation = Async\await($this->watch_topics($url, array( $messageHash ), array( $topic ), $params));
             if ($this->newUpdates) {
                 return $newLiquidation;
@@ -1590,54 +1669,97 @@ class bybit extends \ccxt\async\bybit {
 
     public function handle_liquidation(Client $client, $message) {
         //
-        //   {
-        //       "data" => array(
-        //           "price" => "0.03803",
-        //           "side" => "Buy",
-        //           "size" => "1637",
-        //           "symbol" => "GALAUSDT",
-        //           "updatedTime" => 1673251091822
-        //       ),
-        //       "topic" => "liquidation.GALAUSDT",
-        //       "ts" => 1673251091822,
-        //       "type" => "snapshot"
-        //   }
+        //     {
+        //         "data" => array(
+        //             "price" => "0.03803",
+        //             "side" => "Buy",
+        //             "size" => "1637",
+        //             "symbol" => "GALAUSDT",
+        //             "updatedTime" => 1673251091822
+        //         ),
+        //         "topic" => "liquidation.GALAUSDT",
+        //         "ts" => 1673251091822,
+        //         "type" => "snapshot"
+        //     }
         //
-        $rawLiquidation = $this->safe_dict($message, 'data', array());
-        $marketId = $this->safe_string($rawLiquidation, 'symbol');
-        $market = $this->safe_market($marketId, null, '', 'contract');
-        $symbol = $market['symbol'];
-        $liquidation = $this->parse_ws_liquidation($rawLiquidation, $market);
-        $liquidations = $this->safe_value($this->liquidations, $symbol);
-        if ($liquidations === null) {
-            $limit = $this->safe_integer($this->options, 'liquidationsLimit', 1000);
-            $liquidations = new ArrayCache ($limit);
+        //     {
+        //         "topic" => "allLiquidation.ROSEUSDT",
+        //         "type" => "snapshot",
+        //         "ts" => 1739502303204,
+        //         "data" => array(
+        //             {
+        //                 "T" => 1739502302929,
+        //                 "s" => "ROSEUSDT",
+        //                 "S" => "Sell",
+        //                 "v" => "20000",
+        //                 "p" => "0.04499"
+        //             }
+        //         )
+        //     }
+        //
+        if (gettype($message['data']) === 'array' && array_keys($message['data']) === array_keys(array_keys($message['data']))) {
+            $rawLiquidations = $this->safe_list($message, 'data', array());
+            for ($i = 0; $i < count($rawLiquidations); $i++) {
+                $rawLiquidation = $rawLiquidations[$i];
+                $marketId = $this->safe_string($rawLiquidation, 's');
+                $market = $this->safe_market($marketId, null, '', 'contract');
+                $symbol = $market['symbol'];
+                $liquidation = $this->parse_ws_liquidation($rawLiquidation, $market);
+                $liquidations = $this->safe_value($this->liquidations, $symbol);
+                if ($liquidations === null) {
+                    $limit = $this->safe_integer($this->options, 'liquidationsLimit', 1000);
+                    $liquidations = new ArrayCache ($limit);
+                }
+                $liquidations->append ($liquidation);
+                $this->liquidations[$symbol] = $liquidations;
+                $client->resolve (array( $liquidation ), 'liquidations');
+                $client->resolve (array( $liquidation ), 'liquidations::' . $symbol);
+            }
+        } else {
+            $rawLiquidation = $this->safe_dict($message, 'data', array());
+            $marketId = $this->safe_string($rawLiquidation, 'symbol');
+            $market = $this->safe_market($marketId, null, '', 'contract');
+            $symbol = $market['symbol'];
+            $liquidation = $this->parse_ws_liquidation($rawLiquidation, $market);
+            $liquidations = $this->safe_value($this->liquidations, $symbol);
+            if ($liquidations === null) {
+                $limit = $this->safe_integer($this->options, 'liquidationsLimit', 1000);
+                $liquidations = new ArrayCache ($limit);
+            }
+            $liquidations->append ($liquidation);
+            $this->liquidations[$symbol] = $liquidations;
+            $client->resolve (array( $liquidation ), 'liquidations');
+            $client->resolve (array( $liquidation ), 'liquidations::' . $symbol);
         }
-        $liquidations->append ($liquidation);
-        $this->liquidations[$symbol] = $liquidations;
-        $client->resolve (array( $liquidation ), 'liquidations');
-        $client->resolve (array( $liquidation ), 'liquidations::' . $symbol);
     }
 
     public function parse_ws_liquidation($liquidation, $market = null) {
         //
-        //    {
-        //        "price" => "0.03803",
-        //        "side" => "Buy",
-        //        "size" => "1637",
-        //        "symbol" => "GALAUSDT",
-        //        "updatedTime" => 1673251091822
-        //    }
+        //     {
+        //         "price" => "0.03803",
+        //         "side" => "Buy",
+        //         "size" => "1637",
+        //         "symbol" => "GALAUSDT",
+        //         "updatedTime" => 1673251091822
+        //     }
         //
-        $marketId = $this->safe_string($liquidation, 'symbol');
+        //     {
+        //         "T" => 1739502302929,
+        //         "s" => "ROSEUSDT",
+        //         "S" => "Sell",
+        //         "v" => "20000",
+        //         "p" => "0.04499"
+        //     }
+        //
+        $marketId = $this->safe_string_2($liquidation, 'symbol', 's');
         $market = $this->safe_market($marketId, $market, '', 'contract');
-        $timestamp = $this->safe_integer($liquidation, 'updatedTime');
+        $timestamp = $this->safe_integer_2($liquidation, 'updatedTime', 'T');
         return $this->safe_liquidation(array(
             'info' => $liquidation,
             'symbol' => $market['symbol'],
-            'contracts' => $this->safe_number($liquidation, 'size'),
+            'contracts' => $this->safe_number_2($liquidation, 'size', 'v'),
             'contractSize' => $this->safe_number($market, 'contractSize'),
-            'price' => $this->safe_number($liquidation, 'price'),
+            'price' => $this->safe_number_2($liquidation, 'price', 'p'),
             'baseValue' => null,
             'quoteValue' => null,
             'timestamp' => $timestamp,
@@ -1649,7 +1771,9 @@ class bybit extends \ccxt\async\bybit {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
+             *
              * @see https://bybit-exchange.github.io/docs/v5/websocket/private/order
+             *
              * @param {string} $symbol unified market $symbol of the market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -1683,7 +1807,9 @@ class bybit extends \ccxt\async\bybit {
         return Async\async(function () use ($symbol, $params) {
             /**
              * unWatches information on multiple orders made by the user
+             *
              * @see https://bybit-exchange.github.io/docs/v5/websocket/private/order
+             *
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->unifiedMargin] use unified margin account
@@ -1834,12 +1960,12 @@ class bybit extends \ccxt\async\bybit {
         }
         $symbols = array();
         for ($i = 0; $i < count($rawOrders); $i++) {
-            $parsed = null;
-            if ($isSpot) {
-                $parsed = $this->parse_ws_spot_order($rawOrders[$i]);
-            } else {
-                $parsed = $this->parse_order($rawOrders[$i]);
-            }
+            $parsed = $this->parse_order($rawOrders[$i]);
+            // if ($isSpot) {
+            //     $parsed = $this->parseWsSpotOrder ($rawOrders[$i]);
+            // } else {
+            //     $parsed = $this->parse_order($rawOrders[$i]);
+            // }
             $symbol = $parsed['symbol'];
             $symbols[$symbol] = true;
             $orders->append ($parsed);
@@ -1853,147 +1979,13 @@ class bybit extends \ccxt\async\bybit {
         $client->resolve ($orders, $messageHash);
     }
 
-    public function parse_ws_spot_order($order, $market = null) {
-        //
-        //    {
-        //        "e" => "executionReport",
-        //        "E" => "1653297251061", // $timestamp
-        //        "s" => "LTCUSDT", // $symbol
-        //        "c" => "1653297250740", // user $id
-        //        "S" => "SELL", // $side
-        //        "o" => "MARKET_OF_BASE", // $order $type
-        //        "f" => "GTC", // time in force
-        //        "q" => "0.16233", // quantity
-        //        "p" => "0", // $price
-        //        "X" => "NEW", // $status
-        //        "i" => "1162336018974750208", // $order $id
-        //        "M" => "0",
-        //        "l" => "0", // last $filled
-        //        "z" => "0", // total $filled
-        //        "L" => "0", // last traded $price
-        //        "n" => "0", // trading $fee
-        //        "N" => '', // $fee asset
-        //        "u" => true,
-        //        "w" => true,
-        //        "m" => false, // is limit_maker
-        //        "O" => "1653297251042", // $order creation
-        //        "Z" => "0", // total $filled
-        //        "A" => "0", // account $id
-        //        "C" => false, // is close
-        //        "v" => "0", // leverage
-        //        "d" => "NO_LIQ"
-        //    }
-        // v5
-        //    {
-        //        "category":"spot",
-        //        "symbol":"LTCUSDT",
-        //        "orderId":"1474764674982492160",
-        //        "orderLinkId":"1690541649154749",
-        //        "blockTradeId":"",
-        //        "side":"Buy",
-        //        "positionIdx":0,
-        //        "orderStatus":"Cancelled",
-        //        "cancelType":"UNKNOWN",
-        //        "rejectReason":"EC_NoError",
-        //        "timeInForce":"GTC",
-        //        "isLeverage":"0",
-        //        "price":"0",
-        //        "qty":"5.00000",
-        //        "avgPrice":"0",
-        //        "leavesQty":"0.00000",
-        //        "leavesValue":"5.0000000",
-        //        "cumExecQty":"0.00000",
-        //        "cumExecValue":"0.0000000",
-        //        "cumExecFee":"",
-        //        "orderType":"Market",
-        //        "stopOrderType":"",
-        //        "orderIv":"",
-        //        "triggerPrice":"0.000",
-        //        "takeProfit":"",
-        //        "stopLoss":"",
-        //        "triggerBy":"",
-        //        "tpTriggerBy":"",
-        //        "slTriggerBy":"",
-        //        "triggerDirection":0,
-        //        "placeType":"",
-        //        "lastPriceOnCreated":"0.000",
-        //        "closeOnTrigger":false,
-        //        "reduceOnly":false,
-        //        "smpGroup":0,
-        //        "smpType":"None",
-        //        "smpOrderId":"",
-        //        "createdTime":"1690541649160",
-        //        "updatedTime":"1690541649168"
-        //     }
-        //
-        $id = $this->safe_string_2($order, 'i', 'orderId');
-        $marketId = $this->safe_string_2($order, 's', 'symbol');
-        $symbol = $this->safe_symbol($marketId, $market, null, 'spot');
-        $timestamp = $this->safe_integer_2($order, 'O', 'createdTime');
-        $price = $this->safe_string_2($order, 'p', 'price');
-        if ($price === '0') {
-            $price = null; // $market orders
-        }
-        $filled = $this->safe_string_2($order, 'z', 'cumExecQty');
-        $status = $this->parse_order_status($this->safe_string_2($order, 'X', 'orderStatus'));
-        $side = $this->safe_string_lower_2($order, 'S', 'side');
-        $lastTradeTimestamp = $this->safe_string_2($order, 'E', 'updatedTime');
-        $timeInForce = $this->safe_string_2($order, 'f', 'timeInForce');
-        $amount = null;
-        $cost = $this->safe_string_2($order, 'Z', 'cumExecValue');
-        $type = $this->safe_string_lower_2($order, 'o', 'orderType');
-        if (($type !== null) && (mb_strpos($type, 'market') !== false)) {
-            $type = 'market';
-        }
-        if ($type === 'market' && $side === 'buy') {
-            $amount = $filled;
-        } else {
-            $amount = $this->safe_string_2($order, 'orderQty', 'qty');
-        }
-        $fee = null;
-        $feeCost = $this->safe_string_2($order, 'n', 'cumExecFee');
-        if ($feeCost !== null && $feeCost !== '0') {
-            $feeCurrencyId = $this->safe_string($order, 'N');
-            $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
-            $fee = array(
-                'cost' => $feeCost,
-                'currency' => $feeCurrencyCode,
-            );
-        }
-        $triggerPrice = $this->omit_zero($this->safe_string($order, 'triggerPrice'));
-        return $this->safe_order(array(
-            'info' => $order,
-            'id' => $id,
-            'clientOrderId' => $this->safe_string_2($order, 'c', 'orderLinkId'),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'lastTradeTimestamp' => $lastTradeTimestamp,
-            'symbol' => $symbol,
-            'type' => $type,
-            'timeInForce' => $timeInForce,
-            'postOnly' => null,
-            'side' => $side,
-            'price' => $price,
-            'stopPrice' => $triggerPrice,
-            'triggerPrice' => $triggerPrice,
-            'takeProfitPrice' => $this->safe_string($order, 'takeProfit'),
-            'stopLossPrice' => $this->safe_string($order, 'stopLoss'),
-            'reduceOnly' => $this->safe_value($order, 'reduceOnly'),
-            'amount' => $amount,
-            'cost' => $cost,
-            'average' => $this->safe_string($order, 'avgPrice'),
-            'filled' => $filled,
-            'remaining' => null,
-            'status' => $status,
-            'fee' => $fee,
-        ), $market);
-    }
-
     public function watch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
+             *
              * @see https://bybit-exchange.github.io/docs/v5/websocket/private/wallet
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
@@ -2459,6 +2451,7 @@ class bybit extends \ccxt\async\bybit {
             'user.openapi.perp.trade' => array($this, 'handle_my_trades'),
             'position' => array($this, 'handle_positions'),
             'liquidation' => array($this, 'handle_liquidation'),
+            'allLiquidation' => array($this, 'handle_liquidation'),
             'pong' => array($this, 'handle_pong'),
             'order.create' => array($this, 'handle_order_ws'),
             'order.amend' => array($this, 'handle_order_ws'),

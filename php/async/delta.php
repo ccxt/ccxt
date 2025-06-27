@@ -12,12 +12,12 @@ use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\BadSymbol;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class delta extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'delta',
             'name' => 'Delta Exchange',
@@ -223,6 +223,91 @@ class delta extends Exchange {
                     'BEP20' => 'BEP20(BSC)',
                 ),
             ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true, // todo implement
+                        // todo implement
+                        'triggerPriceType' => array(
+                            'last' => true,
+                            'mark' => true,
+                            'index' => true,
+                        ),
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'attachedStopLossTakeProfit' => array(
+                            'triggerPriceType' => null,
+                            'price' => true,
+                        ),
+                        // todo implementation
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'selfTradePrevention' => false,
+                        'trailing' => false, // todo => implement
+                        'iceberg' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => false,
+                        'marketBuyRequiresPrice' => false,
+                    ),
+                    'createOrders' => null, // todo => implement
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 100, // todo => revise
+                        'daysBack' => 100000,
+                        'untilDays' => 100000,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrder' => null,
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100, // todo => revise
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'daysBack' => 100000,
+                        'daysBackCanceled' => 1,
+                        'untilDays' => 100000,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 2000, // todo => recheck
+                    ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'default',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'default',
+                    ),
+                ),
+                'future' => array(
+                    'linear' => array(
+                        'extends' => 'default',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'default',
+                    ),
+                ),
+            ),
             'precisionMode' => TICK_SIZE,
             'requiredCredentials' => array(
                 'apiKey' => true,
@@ -267,6 +352,9 @@ class delta extends Exchange {
             $base = $this->safe_string($optionParts, 1);
             $expiry = $this->safe_string($optionParts, 3);
             $optionType = $this->safe_string($optionParts, 0);
+        }
+        if ($expiry !== null) {
+            $expiry = mb_substr($expiry, 4) . mb_substr($expiry, 2, 4 - 2) . mb_substr($expiry, 0, 2 - 0);
         }
         $settle = $quote;
         $strike = $this->safe_string($optionParts, 2);
@@ -327,7 +415,7 @@ class delta extends Exchange {
         return parent::safe_market($marketId, $market, $delimiter, $marketType);
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
@@ -420,37 +508,57 @@ class delta extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetches all available $currencies on an exchange
+             *
              * @see https://docs.delta.exchange/#get-list-of-all-assets
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of $currencies
              */
             $response = Async\await($this->publicGetAssets ($params));
             //
-            //     {
-            //         "result":array(
-            //             array(
-            //                 "base_withdrawal_fee":"0.0005",
-            //                 "deposit_status":"enabled",
-            //                 "id":2,
-            //                 "interest_credit":true,
-            //                 "interest_slabs":array(
-            //                     array("limit":"0.1","rate":"0"),
-            //                     array("limit":"1","rate":"0.05"),
-            //                     array("limit":"5","rate":"0.075"),
-            //                     array("limit":"10","rate":"0.1"),
-            //                     array("limit":"9999999999999999","rate":"0")
-            //                 ),
-            //                 "kyc_deposit_limit":"10",
-            //                 "kyc_withdrawal_limit":"2",
-            //                 "min_withdrawal_amount":"0.001",
-            //                 "minimum_precision":4,
-            //                 "name":"Bitcoin",
-            //                 "precision":8,
-            //                 "sort_priority":1,
-            //                 "symbol":"BTC",
-            //                 "variable_withdrawal_fee":"0",
-            //                 "withdrawal_status":"enabled"
-            //             ),
+            //    {
+            //        "result" => array(
+            //            {
+            //                "base_withdrawal_fee" => "0.005000000000000000",
+            //                "id" => "1",
+            //                "interest_credit" => false,
+            //                "interest_slabs" => null,
+            //                "kyc_deposit_limit" => "0.000000000000000000",
+            //                "kyc_withdrawal_limit" => "0.000000000000000000",
+            //                "min_withdrawal_amount" => "0.010000000000000000",
+            //                "minimum_precision" => "4",
+            //                "name" => "Ethereum",
+            //                "networks" => array(
+            //                    array(
+            //                        "allowed_deposit_groups" => null,
+            //                        "base_withdrawal_fee" => "0.0025",
+            //                        "deposit_status" => "enabled",
+            //                        "memo_required" => false,
+            //                        "min_deposit_amount" => "0.000050000000000000",
+            //                        "min_withdrawal_amount" => "0.010000000000000000",
+            //                        "minimum_deposit_confirmations" => "12",
+            //                        "network" => "ERC20",
+            //                        "variable_withdrawal_fee" => "0",
+            //                        "withdrawal_status" => "enabled"
+            //                    ),
+            //                    array(
+            //                        "allowed_deposit_groups" => null,
+            //                        "base_withdrawal_fee" => "0.0001",
+            //                        "deposit_status" => "enabled",
+            //                        "memo_required" => false,
+            //                        "min_deposit_amount" => "0.000050000000000000",
+            //                        "min_withdrawal_amount" => "0.000300000000000000",
+            //                        "minimum_deposit_confirmations" => "15",
+            //                        "network" => "BEP20(BSC)",
+            //                        "variable_withdrawal_fee" => "0",
+            //                        "withdrawal_status" => "enabled"
+            //                    }
+            //                ),
+            //                "precision" => "18",
+            //                "sort_priority" => "3",
+            //                "symbol" => "ETH",
+            //                "variable_withdrawal_fee" => "0.000000000000000000"
+            //            ),
             //         ),
             //         "success":true
             //     }
@@ -462,20 +570,42 @@ class delta extends Exchange {
                 $id = $this->safe_string($currency, 'symbol');
                 $numericId = $this->safe_integer($currency, 'id');
                 $code = $this->safe_currency_code($id);
-                $depositStatus = $this->safe_string($currency, 'deposit_status');
-                $withdrawalStatus = $this->safe_string($currency, 'withdrawal_status');
-                $depositsEnabled = ($depositStatus === 'enabled');
-                $withdrawalsEnabled = ($withdrawalStatus === 'enabled');
-                $active = $depositsEnabled && $withdrawalsEnabled;
-                $result[$code] = array(
+                $chains = $this->safe_list($currency, 'networks', array());
+                $networks = array();
+                for ($j = 0; $j < count($chains); $j++) {
+                    $chain = $chains[$j];
+                    $networkId = $this->safe_string($chain, 'network');
+                    $networkCode = $this->network_id_to_code($networkId);
+                    $networks[$networkCode] = array(
+                        'id' => $networkId,
+                        'network' => $networkCode,
+                        'name' => $this->safe_string($chain, 'name'),
+                        'info' => $chain,
+                        'active' => $this->safe_string($chain, 'status') === 'enabled',
+                        'deposit' => $this->safe_string($chain, 'deposit_status') === 'enabled',
+                        'withdraw' => $this->safe_string($chain, 'withdrawal_status') === 'enabled',
+                        'fee' => $this->safe_number($chain, 'base_withdrawal_fee'),
+                        'limits' => array(
+                            'deposit' => array(
+                                'min' => $this->safe_number($chain, 'min_deposit_amount'),
+                                'max' => null,
+                            ),
+                            'withdraw' => array(
+                                'min' => $this->safe_number($chain, 'min_withdrawal_amount'),
+                                'max' => null,
+                            ),
+                        ),
+                    );
+                }
+                $result[$code] = $this->safe_currency_structure(array(
                     'id' => $id,
                     'numericId' => $numericId,
                     'code' => $code,
                     'name' => $this->safe_string($currency, 'name'),
                     'info' => $currency, // the original payload
-                    'active' => $active,
-                    'deposit' => $depositsEnabled,
-                    'withdraw' => $withdrawalsEnabled,
+                    'active' => null,
+                    'deposit' => $this->safe_string($currency, 'deposit_status') === 'enabled',
+                    'withdraw' => $this->safe_string($currency, 'withdrawal_status') === 'enabled',
                     'fee' => $this->safe_number($currency, 'base_withdrawal_fee'),
                     'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'precision'))),
                     'limits' => array(
@@ -485,8 +615,9 @@ class delta extends Exchange {
                             'max' => null,
                         ),
                     ),
-                    'networks' => array(),
-                );
+                    'networks' => $networks,
+                    'type' => 'crypto',
+                ));
             }
             return $result;
         }) ();
@@ -529,7 +660,9 @@ class delta extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for delta
+             *
              * @see https://docs.delta.exchange/#get-list-of-products
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing $market data
              */
@@ -751,7 +884,7 @@ class delta extends Exchange {
                     // other $markets ($swap, futures, move, spread, irs) seem to use the step of '1' contract
                     $amountPrecision = $this->parse_number('1');
                 }
-                $linear = ($settle === $base);
+                $linear = ($settle === $quote);
                 $optionType = null;
                 $symbol = $base . '/' . $quote;
                 if ($swap || $future || $option) {
@@ -800,9 +933,9 @@ class delta extends Exchange {
                     'inverse' => $spot ? null : !$linear,
                     'taker' => $this->safe_number($market, 'taker_commission_rate'),
                     'maker' => $this->safe_number($market, 'maker_commission_rate'),
-                    'contractSize' => $contractSize,
+                    'contractSize' => $spot ? null : $contractSize,
                     'expiry' => $expiry,
-                    'expiryDatetime' => $expiryDatetime,
+                    'expiryDatetime' => $this->iso8601($expiry), // do not use raw $expiry string
                     'strike' => $this->parse_number($strike),
                     'optionType' => $optionType,
                     'precision' => array(
@@ -986,7 +1119,9 @@ class delta extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             *
              * @see https://docs.delta.exchange/#get-ticker-for-a-product-by-$symbol
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -1130,7 +1265,9 @@ class delta extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+             *
              * @see https://docs.delta.exchange/#get-$tickers-for-products
+             *
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
@@ -1283,7 +1420,9 @@ class delta extends Exchange {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
              * @see https://docs.delta.exchange/#get-l2-orderbook
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1425,7 +1564,9 @@ class delta extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
+             *
              * @see https://docs.delta.exchange/#get-public-trades
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
@@ -1483,12 +1624,15 @@ class delta extends Exchange {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
-             * @see https://docs.delta.exchange/#get-ohlc-candles
+             *
+             * @see https://docs.delta.exchange/#delta-exchange-api-v2-historical-ohlc-candles-sparklines
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->until] timestamp in ms of the latest candle to fetch
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
@@ -1498,14 +1642,19 @@ class delta extends Exchange {
             );
             $duration = $this->parse_timeframe($timeframe);
             $limit = $limit ? $limit : 2000; // max 2000
+            $until = $this->safe_integer_product($params, 'until', 0.001);
+            $untilIsDefined = ($until !== null);
+            if ($untilIsDefined) {
+                $until = $this->parse_to_int($until);
+            }
             if ($since === null) {
-                $end = $this->seconds();
+                $end = $untilIsDefined ? $until : $this->seconds();
                 $request['end'] = $end;
                 $request['start'] = $end - $limit * $duration;
             } else {
                 $start = $this->parse_to_int($since / 1000);
                 $request['start'] = $start;
-                $request['end'] = $this->sum($start, $limit * $duration);
+                $request['end'] = $untilIsDefined ? $until : $this->sum($start, $limit * $duration);
             }
             $price = $this->safe_string($params, 'price');
             if ($price === 'mark') {
@@ -1515,7 +1664,7 @@ class delta extends Exchange {
             } else {
                 $request['symbol'] = $market['id'];
             }
-            $params = $this->omit($params, 'price');
+            $params = $this->omit($params, array( 'price', 'until' ));
             $response = Async\await($this->publicGetHistoryCandles ($this->extend($request, $params)));
             //
             //     {
@@ -1553,7 +1702,9 @@ class delta extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
+             *
              * @see https://docs.delta.exchange/#get-wallet-balances
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
@@ -1588,7 +1739,9 @@ class delta extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch data on a single open contract trade position
+             *
              * @see https://docs.delta.exchange/#get-position
+             *
              * @param {string} $symbol unified $market $symbol of the $market the position is held in, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
@@ -1614,11 +1767,13 @@ class delta extends Exchange {
         }) ();
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions
+             *
              * @see https://docs.delta.exchange/#get-margined-positions
+             *
              * @param {string[]|null} $symbols list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
@@ -1822,7 +1977,9 @@ class delta extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             *
              * @see https://docs.delta.exchange/#place-order
+             *
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
@@ -1905,7 +2062,9 @@ class delta extends Exchange {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order
+             *
              * @see https://docs.delta.exchange/#edit-order
+             *
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
@@ -1956,7 +2115,9 @@ class delta extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
+             *
              * @see https://docs.delta.exchange/#cancel-order
+             *
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2017,7 +2178,9 @@ class delta extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders in a $market
+             *
              * @see https://docs.delta.exchange/#cancel-all-open-orders
+             *
              * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
@@ -2051,7 +2214,9 @@ class delta extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
+             *
              * @see https://docs.delta.exchange/#get-active-orders
+             *
              * @param {string} $symbol unified market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of open order structures to retrieve
@@ -2066,7 +2231,9 @@ class delta extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
+             *
              * @see https://docs.delta.exchange/#get-order-history-cancelled-and-closed
+             *
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -2139,7 +2306,9 @@ class delta extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all trades made by the user
+             *
              * @see https://docs.delta.exchange/#get-user-fills-by-filters
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trades structures to retrieve
@@ -2222,12 +2391,14 @@ class delta extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch the history of changes, actions done by the user or operations that altered the balance of the user
+             *
              * @see https://docs.delta.exchange/#get-wallet-transactions
+             *
              * @param {string} [$code] unified $currency $code, default is null
              * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
              * @param {int} [$limit] max number of ledger entries to return, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -2419,7 +2590,9 @@ class delta extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the current funding rate
+             *
              * @see https://docs.delta.exchange/#get-ticker-for-a-product-by-$symbol
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
@@ -2487,7 +2660,9 @@ class delta extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch the funding rate for multiple markets
+             *
              * @see https://docs.delta.exchange/#get-tickers-for-products
+             *
              * @param {string[]|null} $symbols list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-$rates-structure funding rate structures~, indexed by market $symbols
@@ -2546,8 +2721,7 @@ class delta extends Exchange {
             //     }
             //
             $rates = $this->safe_list($response, 'result', array());
-            $result = $this->parse_funding_rates($rates);
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->parse_funding_rates($rates, $symbols);
         }) ();
     }
 
@@ -2624,7 +2798,9 @@ class delta extends Exchange {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * add margin
+             *
              * @see https://docs.delta.exchange/#add-remove-position-margin
+             *
              * @param {string} $symbol unified market $symbol
              * @param {float} $amount amount of margin to add
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2638,7 +2814,9 @@ class delta extends Exchange {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * remove margin from a position
+             *
              * @see https://docs.delta.exchange/#add-remove-position-margin
+             *
              * @param {string} $symbol unified market $symbol
              * @param {float} $amount the $amount of margin to remove
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2730,7 +2908,9 @@ class delta extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * retrieves the open interest of a derivative $market
+             *
              * @see https://docs.delta.exchange/#get-ticker-for-a-product-by-$symbol
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] exchange specific parameters
              * @return {array} an open interest structurearray(@link https://docs.ccxt.com/#/?id=open-interest-structure)
@@ -2869,7 +3049,9 @@ class delta extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the set leverage for a $market
+             *
              * @see https://docs.delta.exchange/#get-order-leverage
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structure~
@@ -2914,7 +3096,9 @@ class delta extends Exchange {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market
+             *
              * @see https://docs.delta.exchange/#change-order-$leverage
+             *
              * @param {float} $leverage the rate of $leverage
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2948,7 +3132,9 @@ class delta extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches historical settlement records
+             *
              * @see https://docs.delta.exchange/#get-product-settlement-prices
+             *
              * @param {string} $symbol unified $market $symbol of the settlement history
              * @param {int} [$since] timestamp in ms
              * @param {int} [$limit] number of records
@@ -3109,7 +3295,9 @@ class delta extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+             *
              * @see https://docs.delta.exchange/#get-ticker-for-a-product-by-$symbol
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch greeks for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=greeks-structure greeks structure~
@@ -3259,7 +3447,9 @@ class delta extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * closes all open positions for a market type
+             *
              * @see https://docs.delta.exchange/#close-all-positions
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->user_id] the users id
              * @return {array[]} A list of ~@link https://docs.ccxt.com/#/?id=$position-structure $position structures~
@@ -3283,7 +3473,9 @@ class delta extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches the margin mode of a trading pair
+             *
              * @see https://docs.delta.exchange/#get-user
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the margin mode for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-mode-structure margin mode structure~
@@ -3378,7 +3570,9 @@ class delta extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches option data that is commonly found in an option chain
+             *
              * @see https://docs.delta.exchange/#get-ticker-for-a-product-by-$symbol
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=option-chain-structure option chain structure~
@@ -3537,7 +3731,7 @@ class delta extends Exchange {
                 'timestamp' => $timestamp,
             );
             $auth = $method . $timestamp . $requestPath;
-            if (($method === 'GET') || ($method === 'DELETE')) {
+            if ($method === 'GET') {
                 if ($query) {
                     $queryString = '?' . $this->urlencode($query);
                     $auth .= $queryString;

@@ -10,7 +10,7 @@ use ccxt\abstract\independentreserve as Exchange;
 
 class independentreserve extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'independentreserve',
             'name' => 'Independent Reserve',
@@ -102,7 +102,10 @@ class independentreserve extends Exchange {
                         'GetRecentTrades',
                         'GetFxRates',
                         'GetOrderMinimumVolumes',
-                        'GetCryptoWithdrawalFees',
+                        'GetCryptoWithdrawalFees', // deprecated - replaced by GetCryptoWithdrawalFees2 (docs removed)
+                        'GetCryptoWithdrawalFees2',
+                        'GetNetworks',
+                        'GetPrimaryCurrencyConfig2',
                     ),
                 ),
                 'private' => array(
@@ -114,8 +117,10 @@ class independentreserve extends Exchange {
                         'GetAccounts',
                         'GetTransactions',
                         'GetFiatBankAccounts',
-                        'GetDigitalCurrencyDepositAddress',
-                        'GetDigitalCurrencyDepositAddresses',
+                        'GetDigitalCurrencyDepositAddress', // deprecated - replaced by GetDigitalCurrencyDepositAddress2 (docs removed)
+                        'GetDigitalCurrencyDepositAddress2',
+                        'GetDigitalCurrencyDepositAddresses', // deprecated - replaced by GetDigitalCurrencyDepositAddresses2 (docs removed)
+                        'GetDigitalCurrencyDepositAddresses2',
                         'GetTrades',
                         'GetBrokerageFees',
                         'GetDigitalCurrencyWithdrawal',
@@ -125,7 +130,8 @@ class independentreserve extends Exchange {
                         'SynchDigitalCurrencyDepositAddressWithBlockchain',
                         'RequestFiatWithdrawal',
                         'WithdrawFiatCurrency',
-                        'WithdrawDigitalCurrency',
+                        'WithdrawDigitalCurrency', // deprecated - replaced by WithdrawCrypto (docs removed)
+                        'WithdrawCrypto',
                     ),
                 ),
             ),
@@ -137,10 +143,132 @@ class independentreserve extends Exchange {
                     'tierBased' => false,
                 ),
             ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => false,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false,
+                        'takeProfitPrice' => false,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => false,
+                            'FOK' => false,
+                            'PO' => false,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'selfTradePrevention' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 100, // todo
+                        'daysBack' => null,
+                        'untilDays' => null,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100, // todo
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100, // todo
+                        'daysBack' => null,
+                        'daysBackCanceled' => null,
+                        'untilDays' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOHLCV' => null,
+                ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
             'commonCurrencies' => array(
                 'PLA' => 'PlayChip',
             ),
             'precisionMode' => TICK_SIZE,
+            'options' => array(
+                'defaultNetworks' => array(
+                    'USDT' => 'Ethereum',
+                    'USDC' => 'Ethereum',
+                    'BTC' => 'Bitcoin',
+                    'BCH' => 'BitcoinCash',
+                    'ETH' => 'Ethereum',
+                    'LTC' => 'Litecoin',
+                    'XRP' => 'XrpLedger',
+                    'ZRX' => 'Ethereum',
+                    'EOS' => 'EosIo',
+                    'XLM' => 'Stellar',
+                    'BAT' => 'Ethereum',
+                    'ETC' => 'EthereumClassic',
+                    'LINK' => 'Ethereum',
+                    'MKR' => 'Ethereum',
+                    'DAI' => 'Ethereum',
+                    'COMP' => 'Ethereum',
+                    'SNX' => 'Ethereum',
+                    'YFI' => 'Ethereum',
+                    'AAVE' => 'Ethereum',
+                    'GRT' => 'Ethereum',
+                    'DOT' => 'Polkadot',
+                    'UNI' => 'Ethereum',
+                    'ADA' => 'Cardano',
+                    'MATIC' => 'Ethereum',
+                    'DOGE' => 'Dogecoin',
+                    'SOL' => 'Solana',
+                    'MANA' => 'Ethereum',
+                    'SAND' => 'Ethereum',
+                    'SHIB' => 'Ethereum',
+                    'TRX' => 'Tron',
+                    'RENDER' => 'Solana',
+                    'WIF' => 'Solana',
+                    'RLUSD' => 'Ethereum',
+                    'PEPE' => 'Ethereum',
+                ),
+                'networks' => array(
+                    'BTC' => 'Bitcoin',
+                    'ETH' => 'Ethereum',
+                    'BCH' => 'BitcoinCash',
+                    'LTC' => 'Litecoin',
+                    'XRP' => 'XrpLedger',
+                    'EOS' => 'EosIo',
+                    'XLM' => 'Stellar',
+                    'ETC' => 'EthereumClassic',
+                    'BSV' => 'BitcoinSV',
+                    'DOGE' => 'Dogecoin',
+                    'DOT' => 'Polkadot',
+                    'ADA' => 'Cardano',
+                    'SOL' => 'Solana',
+                    'TRX' => 'Tron',
+                ),
+            ),
         ));
     }
 
@@ -447,7 +575,6 @@ class independentreserve extends Exchange {
             'postOnly' => null,
             'side' => $side,
             'price' => $this->safe_string($order, 'Price'),
-            'stopPrice' => null,
             'triggerPrice' => null,
             'cost' => $this->safe_string($order, 'Value'),
             'average' => $this->safe_string($order, 'AvgPrice'),
@@ -480,6 +607,7 @@ class independentreserve extends Exchange {
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
+         * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -718,7 +846,9 @@ class independentreserve extends Exchange {
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
+         *
          * @see https://www.independentreserve.com/features/api#CancelOrder
+         *
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -750,7 +880,9 @@ class independentreserve extends Exchange {
     public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          * fetch the deposit address for a $currency associated with this account
+         *
          * @see https://www.independentreserve.com/features/api#GetDigitalCurrencyDepositAddress
+         *
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
@@ -792,10 +924,12 @@ class independentreserve extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
+         *
          * @see https://www.independentreserve.com/features/api#WithdrawDigitalCurrency
+         *
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to

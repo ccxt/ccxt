@@ -31,6 +31,12 @@ def test_safe_methods():
         },
         'str': 'heLlo',
         'strNumber': '3',
+        'zeroNumeric': 0,
+        'zeroString': '0',
+        'undefined': None,
+        'emptyString': '',
+        'floatNumeric': 0.123,
+        'floatString': '0.123',
     }
     input_list = ['Hi', 2]
     compare_dict = {
@@ -237,6 +243,10 @@ def test_safe_methods():
     assert exchange.safe_number(input_dict, 'f') == exchange.parse_number(0.123)
     assert exchange.safe_number(input_dict, 'strNumber') == exchange.parse_number(3)
     assert exchange.safe_number(input_list, 1) == exchange.parse_number(2)
+    assert exchange.safe_number(input_list, 'bool') is None
+    assert exchange.safe_number(input_list, 'list') is None
+    assert exchange.safe_number(input_list, 'dict') is None
+    assert exchange.safe_number(input_list, 'str') is None
     # safeNumber2
     assert exchange.safe_number_2(input_dict, 'a', 'i') == exchange.parse_number(1)
     assert exchange.safe_number_2(input_dict, 'a', 'f') == exchange.parse_number(0.123)
@@ -256,3 +266,10 @@ def test_safe_methods():
     # safeBoolN
     assert exchange.safe_bool_n(input_dict, ['a', 'b', 'bool'])
     assert exchange.safe_bool_n(input_list, [3, 2, 1]) is None
+    # safeNumberOmitZero
+    assert exchange.safe_number_omit_zero(input_dict, 'zeroNumeric') is None
+    assert exchange.safe_number_omit_zero(input_dict, 'zeroString') is None
+    assert exchange.safe_number_omit_zero(input_dict, 'undefined') is None
+    assert exchange.safe_number_omit_zero(input_dict, 'emptyString') is None
+    assert exchange.safe_number_omit_zero(input_dict, 'floatNumeric') is not None
+    assert exchange.safe_number_omit_zero(input_dict, 'floatString') is not None

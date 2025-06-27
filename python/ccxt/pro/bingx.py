@@ -5,19 +5,18 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import NetworkError
-from ccxt.base.precise import Precise
 
 
 class bingx(ccxt.async_support.bingx):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(bingx, self).describe(), {
             'has': {
                 'ws': True,
@@ -43,7 +42,7 @@ class bingx(ccxt.async_support.bingx):
                 },
             },
             'options': {
-                'listenKeyRefreshRate': 3540000,  # 1 hour(59 mins so we have 1min to renew the token)
+                'listenKeyRefreshRate': 3540000,  # 1 hour(59 mins so we have 1 min to renew the token)
                 'ws': {
                     'gunzip': True,
                 },
@@ -87,6 +86,9 @@ class bingx(ccxt.async_support.bingx):
                     'depth': 100,  # 5, 10, 20, 50, 100
                     'interval': 500,  # 100, 200, 500, 1000
                 },
+                'watchTrades': {
+                    'ignoreDuplicates': True,
+                },
             },
             'streaming': {
                 'keepAlive': 1800000,  # 30 minutes
@@ -96,9 +98,11 @@ class bingx(ccxt.async_support.bingx):
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://bingx-api.github.io/docs/#/en-us/spot/socket/market.html#Subscribe%20to%2024-hour%20Price%20Change
-        :see: https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20to%2024-hour%20price%20changes
-        :see: https://bingx-api.github.io/docs/#/en-us/cswap/socket/market.html#Subscribe%20to%2024-Hour%20Price%20Change
+
+        https://bingx-api.github.io/docs/#/en-us/spot/socket/market.html#Subscribe%20to%2024-hour%20Price%20Change
+        https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20to%2024-hour%20price%20changes
+        https://bingx-api.github.io/docs/#/en-us/cswap/socket/market.html#Subscribe%20to%2024-Hour%20Price%20Change
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -246,7 +250,9 @@ class bingx(ccxt.async_support.bingx):
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-        :see: https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20to%2024-hour%20price%20changes%20of%20all%20trading%20pairs
+
+        https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20to%2024-hour%20price%20changes%20of%20all%20trading%20pairs
+
         :param str[] symbols: unified symbol of the market to watch the tickers for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -292,7 +298,9 @@ class bingx(ccxt.async_support.bingx):
     async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20Market%20Depth%20Data%20of%20all%20trading%20pairs
+
+        https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20Market%20Depth%20Data%20of%20all%20trading%20pairs
+
         :param str[] symbols: unified array of symbols
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -345,7 +353,9 @@ class bingx(ccxt.async_support.bingx):
     async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], since: Int = None, limit: Int = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :see: https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20K-Line%20Data%20of%20all%20trading%20pairs
+
+        https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20K-Line%20Data%20of%20all%20trading%20pairs
+
         :param str[][] symbolsAndTimeframes: array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
@@ -426,9 +436,11 @@ class bingx(ccxt.async_support.bingx):
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         watches information on multiple trades made in a market
-        :see: https://bingx-api.github.io/docs/#/spot/socket/market.html#Subscribe%20to%20tick-by-tick
-        :see: https://bingx-api.github.io/docs/#/swapV2/socket/market.html#Subscribe%20the%20Latest%20Trade%20Detail
-        :see: https://bingx-api.github.io/docs/#/en-us/cswap/socket/market.html#Subscription%20transaction%20by%20transaction
+
+        https://bingx-api.github.io/docs/#/spot/socket/market.html#Subscribe%20to%20tick-by-tick
+        https://bingx-api.github.io/docs/#/swapV2/socket/market.html#Subscribe%20the%20Latest%20Trade%20Detail
+        https://bingx-api.github.io/docs/#/en-us/cswap/socket/market.html#Subscription%20transaction%20by%20transaction
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -459,7 +471,12 @@ class bingx(ccxt.async_support.bingx):
         trades = await self.watch(url, messageHash, self.extend(request, params), messageHash)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        result = self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        if self.handle_option('watchTrades', 'ignoreDuplicates', True):
+            filtered = self.remove_repeated_trades_from_array(result)
+            filtered = self.sort_by(filtered, 'timestamp')
+            return filtered
+        return result
 
     def handle_trades(self, client: Client, message):
         #
@@ -568,9 +585,11 @@ class bingx(ccxt.async_support.bingx):
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://bingx-api.github.io/docs/#/en-us/spot/socket/market.html#Subscribe%20Market%20Depth%20Data
-        :see: https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20Market%20Depth%20Data
-        :see: https://bingx-api.github.io/docs/#/en-us/cswap/socket/market.html#Subscribe%20to%20Limited%20Depth
+
+        https://bingx-api.github.io/docs/#/en-us/spot/socket/market.html#Subscribe%20Market%20Depth%20Data
+        https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20Market%20Depth%20Data
+        https://bingx-api.github.io/docs/#/en-us/cswap/socket/market.html#Subscribe%20to%20Limited%20Depth
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -628,60 +647,67 @@ class bingx(ccxt.async_support.bingx):
         #
         # spot
         #
-        #    {
-        #        "code": 0,
-        #        "dataType": "BTC-USDT@depth20",
-        #        "data": {
-        #          "bids": [
-        #            ['28852.9', "34.2621"],
-        #            ...
-        #          ],
-        #          "asks": [
-        #            ['28864.9', "23.4079"],
-        #            ...
-        #          ]
-        #        },
-        #        "dataType": "BTC-USDT@depth20",
-        #        "success": True
-        #    }
+        #     {
+        #         "code":0,
+        #         "data":
+        #         {
+        #             "asks":[
+        #                 ["84119.73","0.000011"],
+        #                 ["84116.52","0.000014"],
+        #                 ["84116.40","0.000039"]
+        #             ],
+        #             "bids":[
+        #                 ["83656.98","2.570805"],
+        #                 ["83655.51","0.000347"],
+        #                 ["83654.59","0.000082"]
+        #             ],
+        #             "lastUpdateId":13565694850
+        #         },
+        #         "dataType":"BTC-USDT@depth100",
+        #         "success":true,
+        #         "timestamp":1743241379958
+        #     }
         #
         # linear swap
         #
-        #    {
-        #        "code": 0,
-        #        "dataType": "BTC-USDT@depth20@100ms",  #or "all@depth20@100ms"
-        #        "data": {
-        #          "bids": [
-        #            ['28852.9', "34.2621"],
-        #            ...
-        #          ],
-        #          "asks": [
-        #            ['28864.9', "23.4079"],
-        #            ...
-        #          ],
-        #          "symbol": "BTC-USDT",  # self key exists only in "all" subscription
-        #        }
-        #    }
+        #     {
+        #         "code":0,
+        #         "dataType":"BTC-USDT@depth100@500ms",
+        #         "ts":1743241563651,
+        #         "data":
+        #         {
+        #             "bids":[
+        #                 ["83363.2","0.1908"],
+        #                 ["83360.0","0.0003"],
+        #                 ["83356.5","0.0245"],
+        #             ],
+        #             "asks":[
+        #                 ["83495.0","0.0024"],
+        #                 ["83490.0","0.0001"],
+        #                 ["83488.0","0.0004"],
+        #             ]
+        #         }
+        #     }
         #
         # inverse swap
         #
         #     {
-        #         "code": 0,
-        #         "dataType": "BTC-USD@depth100",
-        #         "data": {
-        #             {
-        #                 "symbol": "BTC-USD",
-        #                 "bids": [
-        #                     {"p": "58074.2", "a": "1.422318", "v": "826.0"},
-        #                     ...
-        #                 ],
-        #                 "asks": [
-        #                     {"p": "62878.0", "a": "0.001590", "v": "1.0"},
-        #                     ...
-        #                 ],
-        #                 "aggPrecision": "0.1",
-        #                 "timestamp": 1723705093529
-        #             }
+        #         "code":0,
+        #         "dataType":"BTC-USD@depth100",
+        #         "data":{
+        #             "symbol":"BTC-USD",
+        #             "bids":[
+        #                 {"p":"83411.2","a":"2.979216","v":"2485.0"},
+        #                 {"p":"83411.1","a":"1.592114","v":"1328.0"},
+        #                 {"p":"83410.8","a":"2.656730","v":"2216.0"},
+        #             ],
+        #             "asks":[
+        #                 {"p":"88200.0","a":"0.344671","v":"304.0"},
+        #                 {"p":"88023.8","a":"0.045442","v":"40.0"},
+        #                 {"p":"88001.0","a":"0.003409","v":"3.0"},
+        #             ],
+        #             "aggPrecision":"0.1",
+        #             "timestamp":1743242290710
         #         }
         #     }
         #
@@ -695,7 +721,8 @@ class bingx(ccxt.async_support.bingx):
         marketType = 'swap' if isSwap else 'spot'
         market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
-        if self.safe_value(self.orderbooks, symbol) is None:
+        orderbook = self.safe_value(self.orderbooks, symbol)
+        if orderbook is None:
             # limit = [5, 10, 20, 50, 100]
             subscriptionHash = dataType
             subscription = client.subscriptions[subscriptionHash]
@@ -703,12 +730,15 @@ class bingx(ccxt.async_support.bingx):
             self.orderbooks[symbol] = self.order_book({}, limit)
         orderbook = self.orderbooks[symbol]
         snapshot = None
+        timestamp = self.safe_integer_2(message, 'timestamp', 'ts')
+        timestamp = self.safe_integer_2(data, 'timestamp', 'ts', timestamp)
         if market['inverse']:
-            snapshot = self.parse_order_book(data, symbol, None, 'bids', 'asks', 'p', 'a')
+            snapshot = self.parse_order_book(data, symbol, timestamp, 'bids', 'asks', 'p', 'a')
         else:
-            snapshot = self.parse_order_book(data, symbol, None, 'bids', 'asks', 0, 1)
+            snapshot = self.parse_order_book(data, symbol, timestamp, 'bids', 'asks', 0, 1)
+        nonce = self.safe_integer(data, 'lastUpdateId')
+        snapshot['nonce'] = nonce
         orderbook.reset(snapshot)
-        self.orderbooks[symbol] = orderbook
         messageHash = self.get_message_hash('orderbook', symbol)
         client.resolve(orderbook, messageHash)
         # resolve for "all"
@@ -851,9 +881,11 @@ class bingx(ccxt.async_support.bingx):
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :see: https://bingx-api.github.io/docs/#/en-us/spot/socket/market.html#K-line%20Streams
-        :see: https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20K-Line%20Data
-        :see: https://bingx-api.github.io/docs/#/en-us/cswap/socket/market.html#Subscribe%20to%20Latest%20Trading%20Pair%20K-Line
+
+        https://bingx-api.github.io/docs/#/en-us/spot/socket/market.html#K-line%20Streams
+        https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20K-Line%20Data
+        https://bingx-api.github.io/docs/#/en-us/cswap/socket/market.html#Subscribe%20to%20Latest%20Trading%20Pair%20K-Line
+
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -899,9 +931,11 @@ class bingx(ccxt.async_support.bingx):
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         watches information on multiple orders made by the user
-        :see: https://bingx-api.github.io/docs/#/en-us/spot/socket/account.html#Subscription%20order%20update%20data
-        :see: https://bingx-api.github.io/docs/#/en-us/swapV2/socket/account.html#Order%20update%20push
-        :see: https://bingx-api.github.io/docs/#/en-us/cswap/socket/account.html#Order%20update%20push
+
+        https://bingx-api.github.io/docs/#/en-us/spot/socket/account.html#Subscription%20order%20update%20data
+        https://bingx-api.github.io/docs/#/en-us/swapV2/socket/account.html#Order%20update%20push
+        https://bingx-api.github.io/docs/#/en-us/cswap/socket/account.html#Order%20update%20push
+
         :param str [symbol]: unified market symbol of the market orders are made in
         :param int [since]: the earliest time in ms to watch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -950,9 +984,11 @@ class bingx(ccxt.async_support.bingx):
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         watches information on multiple trades made by the user
-        :see: https://bingx-api.github.io/docs/#/en-us/spot/socket/account.html#Subscription%20order%20update%20data
-        :see: https://bingx-api.github.io/docs/#/en-us/swapV2/socket/account.html#Order%20update%20push
-        :see: https://bingx-api.github.io/docs/#/en-us/cswap/socket/account.html#Order%20update%20push
+
+        https://bingx-api.github.io/docs/#/en-us/spot/socket/account.html#Subscription%20order%20update%20data
+        https://bingx-api.github.io/docs/#/en-us/swapV2/socket/account.html#Order%20update%20push
+        https://bingx-api.github.io/docs/#/en-us/cswap/socket/account.html#Order%20update%20push
+
         :param str [symbol]: unified market symbol of the market the trades are made in
         :param int [since]: the earliest time in ms to watch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
@@ -1001,9 +1037,11 @@ class bingx(ccxt.async_support.bingx):
     async def watch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://bingx-api.github.io/docs/#/en-us/spot/socket/account.html#Subscription%20account%20balance%20push
-        :see: https://bingx-api.github.io/docs/#/en-us/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push
-        :see: https://bingx-api.github.io/docs/#/en-us/cswap/socket/account.html#Account%20balance%20and%20position%20update%20push
+
+        https://bingx-api.github.io/docs/#/en-us/spot/socket/account.html#Subscription%20account%20balance%20push
+        https://bingx-api.github.io/docs/#/en-us/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push
+        https://bingx-api.github.io/docs/#/en-us/cswap/socket/account.html#Account%20balance%20and%20position%20update%20push
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
@@ -1366,11 +1404,10 @@ class bingx(ccxt.async_support.bingx):
             balance = data[i]
             currencyId = self.safe_string(balance, 'a')
             code = self.safe_currency_code(currencyId)
-            account = self.balance[type][code] if (code in self.balance[type]) else self.account()
+            account = self.account()
+            account['info'] = balance
+            account['used'] = self.safe_string(balance, 'lk')
             account['free'] = self.safe_string(balance, 'wb')
-            balanceChange = self.safe_string(balance, 'bc')
-            if account['used'] is not None:
-                account['used'] = Precise.string_sub(self.safe_string(account, 'used'), balanceChange)
             self.balance[type][code] = account
         self.balance[type] = self.safe_balance(self.balance[type])
         client.resolve(self.balance[type], type + ':balance')

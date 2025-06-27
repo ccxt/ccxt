@@ -8,7 +8,7 @@ from ccxt.abstract.coincatch import ImplicitAPI
 import hashlib
 import math
 import json
-from ccxt.base.types import Balances, Bool, Currencies, Currency, DepositAddress, Int, LedgerEntry, Leverage, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Bool, Currencies, Currency, DepositAddress, Int, LedgerEntry, Leverage, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -30,7 +30,7 @@ from ccxt.base.precise import Precise
 
 class coincatch(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(coincatch, self).describe(), {
             'id': 'coincatch',
             'name': 'CoinCatch',
@@ -90,6 +90,7 @@ class coincatch(Exchange, ImplicitAPI):
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchDepositsWithdrawals': False,
+                'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
@@ -374,57 +375,107 @@ class coincatch(Exchange, ImplicitAPI):
                     'CRO': 'CronosChain',
                 },
                 'networksById': {
-                    'BITCOIN': 'BTC',
-                    'ERC20': 'ERC20',
                     'TRC20': 'TRC20',
                     'TRX(TRC20)': 'TRC20',
-                    'BEP20': 'BEP20',
                     'ArbitrumOne': 'ARB',  # todo check
-                    'Optimism': 'OPTIMISM',
-                    'LTC': 'LTC',
-                    'BCH': 'BCH',
-                    'ETC': 'ETC',
-                    'SOL': 'SOL',
-                    'NEO3': 'NEO3',
-                    'stacks': 'STX',
-                    'Elrond': 'EGLD',
-                    'NEARProtocol': 'NEAR',
-                    'AcalaToken': 'ACA',
-                    'Klaytn': 'KLAY',
-                    'Fantom': 'FTM',
-                    'Terra': 'TERRA',
-                    'WAVES': 'WAVES',
-                    'TAO': 'TAO',
-                    'SUI': 'SUI',
-                    'SEI': 'SEI',
                     'THORChain': 'RUNE',  # todo check
-                    'ZIL': 'ZIL',
                     'Solar': 'SXP',  # todo check
-                    'FET': 'FET',
                     'C-Chain': 'AVAX',  # todo check
-                    'XRP': 'XRP',
-                    'EOS': 'EOS',
-                    'DOGECOIN': 'DOGE',
                     'CAP20': 'CAP20',  # todo check
-                    'Polygon': 'MATIC',
-                    'CSPR': 'CSPR',
-                    'Moonbeam': 'GLMR',
-                    'MINA': 'MINA',
                     'CFXeSpace': 'CFX',  # todo check
                     'CFX': 'CFX',
                     'StratisEVM': 'STRAT',  # todo check
-                    'Celestia': 'TIA',
                     'ChilizChain': 'ChilizChain',  # todo check
-                    'Aptos': 'APT',
-                    'Ontology': 'ONT',
-                    'ICP': 'ICP',
-                    'Cardano': 'ADA',
-                    'FIL': 'FIL',
-                    'CELO': 'CELO',
-                    'DOT': 'DOT',
                     'StellarLumens': 'XLM',  # todo check
-                    'ATOM': 'ATOM',
                     'CronosChain': 'CRO',  # todo check
+                },
+            },
+            'features': {
+                'default': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,
+                        'triggerPriceType': {
+                            'last': True,
+                            'mark': True,
+                            'index': False,
+                        },
+                        'triggerDirection': False,
+                        'stopLossPrice': False,  # todo
+                        'takeProfitPrice': False,  # todo
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': {
+                        'max': 50,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 500,
+                        'daysBack': 100000,  # todo implement
+                        'untilDays': 100000,  # todo implement
+                        'symbolRequired': True,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'trigger': True,
+                        'trailing': False,
+                        'marketType': True,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': None,  # todo implement
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'forDerivatives': {
+                    'extends': 'default',
+                    'createOrder': {
+                        # todo check
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': None,
+                            'price': False,
+                        },
+                    },
+                    'fetchMyTrades': {
+                        'limit': 100,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
                 },
             },
             'commonCurrencies': {},
@@ -498,10 +549,12 @@ class coincatch(Exchange, ImplicitAPI):
         else:
             return cost
 
-    def fetch_time(self, params={}):
+    def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
-        :see: https://coincatch.github.io/github.io/en/spot/#get-server-time
+
+        https://coincatch.github.io/github.io/en/spot/#get-server-time
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
@@ -519,7 +572,9 @@ class coincatch(Exchange, ImplicitAPI):
     def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
-        :see: https://coincatch.github.io/github.io/en/spot/#get-coin-list
+
+        https://coincatch.github.io/github.io/en/spot/#get-coin-list
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -563,80 +618,132 @@ class coincatch(Exchange, ImplicitAPI):
             currencyId = self.safe_string(currecy, 'coinName')
             currenciesIds.append(currencyId)
             code = self.safe_currency_code(currencyId)
-            allowDeposit = False
-            allowWithdraw = False
-            minDeposit: Str = None
-            minWithdraw: Str = None
             networks = self.safe_list(currecy, 'chains')
-            networksById = self.safe_dict(self.options, 'networksById')
             parsedNetworks: dict = {}
             for j in range(0, len(networks)):
                 network = networks[j]
                 networkId = self.safe_string(network, 'chain')
-                networkName = self.safe_string(networksById, networkId, networkId)
-                networkDepositString = self.safe_string(network, 'rechargeable')
-                networkDeposit = networkDepositString == 'true'
-                networkWithdrawString = self.safe_string(network, 'withdrawable')
-                networkWithdraw = networkWithdrawString == 'true'
-                networkMinDeposit = self.safe_string(network, 'minDepositAmount')
-                networkMinWithdraw = self.safe_string(network, 'minWithdrawAmount')
+                networkCode = self.network_code_to_id(networkId)
                 parsedNetworks[networkId] = {
                     'id': networkId,
-                    'network': networkName,
+                    'network': networkCode,
                     'limits': {
                         'deposit': {
-                            'min': self.parse_number(networkMinDeposit),
+                            'min': self.safe_number(network, 'minDepositAmount'),
                             'max': None,
                         },
                         'withdraw': {
-                            'min': self.parse_number(networkMinWithdraw),
+                            'min': self.safe_number(network, 'minWithdrawAmount'),
                             'max': None,
                         },
                     },
-                    'active': networkDeposit and networkWithdraw,
-                    'deposit': networkDeposit,
-                    'withdraw': networkWithdraw,
+                    'active': None,
+                    'deposit': self.safe_string(network, 'rechargeable') == 'true',
+                    'withdraw': self.safe_string(network, 'withdrawable') == 'true',
                     'fee': self.safe_number(network, 'withdrawFee'),
                     'precision': None,
                     'info': network,
                 }
-                allowDeposit = allowDeposit if allowDeposit else networkDeposit
-                allowWithdraw = allowWithdraw if allowWithdraw else networkWithdraw
-                minDeposit = Precise.string_min(networkMinDeposit, minDeposit) if minDeposit else networkMinDeposit
-                minWithdraw = Precise.string_min(networkMinWithdraw, minWithdraw) if minWithdraw else networkMinWithdraw
-            result[code] = {
+            result[code] = self.safe_currency_structure({
                 'id': currencyId,
                 'numericId': self.safe_integer(currecy, 'coinId'),
                 'code': code,
                 'precision': None,
                 'type': None,
                 'name': None,
-                'active': allowWithdraw and allowDeposit,
-                'deposit': allowDeposit,
-                'withdraw': allowWithdraw,
+                'active': None,
+                'deposit': None,
+                'withdraw': None,
                 'fee': None,
                 'limits': {
                     'deposit': {
-                        'min': self.parse_number(minDeposit),
+                        'min': None,
                         'max': None,
                     },
                     'withdraw': {
-                        'min': self.parse_number(minWithdraw),
+                        'min': None,
                         'max': None,
                     },
                 },
                 'networks': parsedNetworks,
                 'info': currecy,
-            }
+            })
         if self.safe_list(self.options, 'currencyIdsListForParseMarket') is None:
             self.options['currencyIdsListForParseMarket'] = currenciesIds
+        return result
+
+    def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
+        """
+        fetch deposit and withdraw fees
+
+        https://coincatch.github.io/github.io/en/spot/#get-coin-list
+
+        :param str[] [codes]: list of unified currency codes
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
+        """
+        self.load_markets()
+        response = self.publicGetApiSpotV1PublicCurrencies(params)
+        data = self.safe_list(response, 'data', [])
+        return self.parse_deposit_withdraw_fees(data, codes, 'coinName')
+
+    def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
+        #
+        # {
+        #     "coinId":"1",
+        #     "coinName":"BTC",
+        #     "transfer":"true",
+        #     "chains":[
+        #         {
+        #             "chain":null,
+        #             "needTag":"false",
+        #             "withdrawable":"true",
+        #             "rechargeAble":"true",
+        #             "withdrawFee":"0.005",
+        #             "depositConfirm":"1",
+        #             "withdrawConfirm":"1",
+        #             "minDepositAmount":"0.001",
+        #             "minWithdrawAmount":"0.001",
+        #             "browserUrl":"https://blockchair.com/bitcoin/testnet/transaction/"
+        #         }
+        #     ]
+        # }
+        #
+        chains = self.safe_list(fee, 'chains', [])
+        chainsLength = len(chains)
+        result: dict = {
+            'info': fee,
+            'withdraw': {
+                'fee': None,
+                'percentage': None,
+            },
+            'deposit': {
+                'fee': None,
+                'percentage': None,
+            },
+            'networks': {},
+        }
+        for i in range(0, chainsLength):
+            chain = chains[i]
+            networkId = self.safe_string(chain, 'chain')
+            currencyCode = self.safe_string(currency, 'code')
+            networkCode = self.network_id_to_code(networkId, currencyCode)
+            result['networks'][networkCode] = {
+                'deposit': {'fee': None, 'percentage': None},
+                'withdraw': {'fee': self.safe_number(chain, 'withdrawFee'), 'percentage': False},
+            }
+            if chainsLength == 1:
+                result['withdraw']['fee'] = self.safe_number(chain, 'withdrawFee')
+                result['withdraw']['percentage'] = False
         return result
 
     def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for the exchange
-        :see: https://coincatch.github.io/github.io/en/spot/#get-all-tickers
-        :see: https://coincatch.github.io/github.io/en/mix/#get-all-symbols
+
+        https://coincatch.github.io/github.io/en/spot/#get-all-tickers
+        https://coincatch.github.io/github.io/en/mix/#get-all-symbols
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -842,8 +949,8 @@ class coincatch(Exchange, ImplicitAPI):
             settleId = self.safe_string(supportMarginCoins, 0)
             settle = self.safe_currency_code(settleId)
             suffix = ':' + settle
-            isLinear = baseId == settleId  # todo check
-            isInverse = quoteId == settleId  # todo check
+            isLinear = quoteId == settleId  # todo check
+            isInverse = baseId == settleId  # todo check
             if isLinear:
                 subType = 'linear'
             elif isInverse:
@@ -939,8 +1046,10 @@ class coincatch(Exchange, ImplicitAPI):
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://coincatch.github.io/github.io/en/spot/#get-single-ticker
-        :see: https://coincatch.github.io/github.io/en/mix/#get-single-symbol-ticker
+
+        https://coincatch.github.io/github.io/en/spot/#get-single-ticker
+        https://coincatch.github.io/github.io/en/mix/#get-single-symbol-ticker
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -1017,8 +1126,10 @@ class coincatch(Exchange, ImplicitAPI):
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :see: https://coincatch.github.io/github.io/en/spot/#get-all-tickers
-        :see: https://coincatch.github.io/github.io/en/mix/#get-all-symbol-ticker
+
+        https://coincatch.github.io/github.io/en/spot/#get-all-tickers
+        https://coincatch.github.io/github.io/en/mix/#get-all-symbol-ticker
+
         :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: 'spot' or 'swap'(default 'spot')
@@ -1186,8 +1297,10 @@ class coincatch(Exchange, ImplicitAPI):
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://coincatch.github.io/github.io/en/spot/#get-merged-depth-data
-        :see: https://coincatch.github.io/github.io/en/mix/#get-merged-depth-data
+
+        https://coincatch.github.io/github.io/en/spot/#get-merged-depth-data
+        https://coincatch.github.io/github.io/en/mix/#get-merged-depth-data
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return(maximum and default value is 100)
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1234,8 +1347,10 @@ class coincatch(Exchange, ImplicitAPI):
 
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
-        :see: https://coincatch.github.io/github.io/en/spot/#get-candle-data
-        :see: https://coincatch.github.io/github.io/en/mix/#get-candle-data
+
+        https://coincatch.github.io/github.io/en/spot/#get-candle-data
+        https://coincatch.github.io/github.io/en/mix/#get-candle-data
+
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -1338,8 +1453,10 @@ class coincatch(Exchange, ImplicitAPI):
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://coincatch.github.io/github.io/en/spot/#get-recent-trades
-        :see: https://coincatch.github.io/github.io/en/mix/#get-fills
+
+        https://coincatch.github.io/github.io/en/spot/#get-recent-trades
+        https://coincatch.github.io/github.io/en/mix/#get-fills
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -1500,7 +1617,9 @@ class coincatch(Exchange, ImplicitAPI):
     def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
         """
         fetch the current funding rate
-        :see: https://coincatch.github.io/github.io/en/mix/#get-current-funding-rate
+
+        https://coincatch.github.io/github.io/en/mix/#get-current-funding-rate
+
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
@@ -1561,7 +1680,9 @@ class coincatch(Exchange, ImplicitAPI):
     def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches historical funding rate prices
-        :see: https://coincatch.github.io/github.io/en/mix/#get-history-funding-rate
+
+        https://coincatch.github.io/github.io/en/mix/#get-history-funding-rate
+
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
         :param int [limit]: the maximum amount of entries to fetch
@@ -1616,7 +1737,9 @@ class coincatch(Exchange, ImplicitAPI):
     def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://coincatch.github.io/github.io/en/spot/#get-account-assets
+
+        https://coincatch.github.io/github.io/en/spot/#get-account-assets
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: 'spot' or 'swap' - the type of the market to fetch balance for(default 'spot')
         :param str [params.productType]: *swap only* 'umcbl' or 'dmcbl'(default 'umcbl')
@@ -1624,8 +1747,8 @@ class coincatch(Exchange, ImplicitAPI):
         """
         self.load_markets()
         methodName = 'fetchBalance'
-        marketType = 'spot'
-        marketType, params = self.handle_market_type_and_params(methodName, None, params, marketType)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params(methodName, None, params)
         response = None
         if marketType == 'spot':
             #
@@ -1736,7 +1859,9 @@ class coincatch(Exchange, ImplicitAPI):
     def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
-        :see: https://coincatch.github.io/github.io/en/spot/#transfer
+
+        https://coincatch.github.io/github.io/en/spot/#transfer
+
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: 'spot' or 'swap' or 'mix_usdt' or 'mix_usd' - account to transfer from
@@ -1802,10 +1927,12 @@ class coincatch(Exchange, ImplicitAPI):
     def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
-        :see: https://coincatch.github.io/github.io/en/spot/#get-coin-address
+
+        https://coincatch.github.io/github.io/en/spot/#get-coin-address
+
         :param str code: unified currency code
-        :param str [params.network]: network for fetch deposit address
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.network]: network for fetch deposit address
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         self.load_markets()
@@ -1865,7 +1992,9 @@ class coincatch(Exchange, ImplicitAPI):
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
-        :see: https://coincatch.github.io/github.io/en/spot/#get-deposit-list
+
+        https://coincatch.github.io/github.io/en/spot/#get-deposit-list
+
         :param str code: unified currency code of the currency transferred
         :param int [since]: the earliest time in ms to fetch transfers for(default 24 hours ago)
         :param int [limit]: the maximum number of transfer structures to retrieve(not used by exchange)
@@ -1922,7 +2051,9 @@ class coincatch(Exchange, ImplicitAPI):
     def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
-        :see: https://coincatch.github.io/github.io/en/spot/#get-withdraw-list-v2
+
+        https://coincatch.github.io/github.io/en/spot/#get-withdraw-list-v2
+
         :param str code: unified currency code of the currency transferred
         :param int [since]: the earliest time in ms to fetch transfers for(default 24 hours ago)
         :param int [limit]: the maximum number of transfer structures to retrieve(default 50, max 200)
@@ -1954,10 +2085,12 @@ class coincatch(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
-        :see: https://coincatch.github.io/github.io/en/spot/#withdraw
+
+        https://coincatch.github.io/github.io/en/spot/#withdraw
+
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
@@ -1983,13 +2116,23 @@ class coincatch(Exchange, ImplicitAPI):
         if networkCode is not None:
             request['chain'] = self.network_code_to_id(networkCode)
         response = self.privatePostApiSpotV1WalletWithdrawalV2(self.extend(request, params))
-        # todo add after withdrawal
         #
-        return response
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "data": {
+        #             "orderId":888291686266343424",
+        #             "clientOrderId":"123"
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        return self.parse_transaction(data, currency)
 
     def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
         # fetchDeposits
+        #
         #     {
         #         "id": "1213046466852196352",
         #         "txId": "824246b030cd84d56400661303547f43a1d9fef66cf968628dd5112f362053ff",
@@ -2009,7 +2152,17 @@ class coincatch(Exchange, ImplicitAPI):
         #         "uTime": "1724938746015"
         #     }
         #
-        id = self.safe_string(transaction, 'id')
+        # withdraw
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "data": {
+        #             "orderId":888291686266343424",
+        #             "clientOrderId":"123"
+        #         }
+        #     }
+        #
         status = self.safe_string(transaction, 'status')
         if status == 'success':
             status = 'ok'
@@ -2033,7 +2186,7 @@ class coincatch(Exchange, ImplicitAPI):
             }
         return {
             'info': transaction,
-            'id': id,
+            'id': self.safe_string_2(transaction, 'id', 'orderId'),
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -2057,7 +2210,9 @@ class coincatch(Exchange, ImplicitAPI):
     def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
         create a market buy order by providing the symbol and cost
-        :see: https://coincatch.github.io/github.io/en/spot/#place-order
+
+        https://coincatch.github.io/github.io/en/spot/#place-order
+
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2075,10 +2230,12 @@ class coincatch(Exchange, ImplicitAPI):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """
         create a trade order
-        :see: https://coincatch.github.io/github.io/en/spot/#place-order
-        :see: https://coincatch.github.io/github.io/en/spot/#place-plan-order
-        :see: https://coincatch.github.io/github.io/en/mix/#place-order
-        :see: https://coincatch.github.io/github.io/en/mix/#place-plan-order
+
+        https://coincatch.github.io/github.io/en/spot/#place-order
+        https://coincatch.github.io/github.io/en/spot/#place-plan-order
+        https://coincatch.github.io/github.io/en/mix/#place-order
+        https://coincatch.github.io/github.io/en/mix/#place-plan-order
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit' or 'LIMIT_MAKER' for spot, 'market' or 'limit' or 'STOP' for swap
         :param str side: 'buy' or 'sell'
@@ -2105,8 +2262,10 @@ class coincatch(Exchange, ImplicitAPI):
     def create_spot_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """
         create a trade order on spot market
-        :see: https://coincatch.github.io/github.io/en/spot/#place-order
-        :see: https://coincatch.github.io/github.io/en/spot/#place-plan-order
+
+        https://coincatch.github.io/github.io/en/spot/#place-order
+        https://coincatch.github.io/github.io/en/spot/#place-plan-order
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -2146,7 +2305,7 @@ class coincatch(Exchange, ImplicitAPI):
 
     def create_spot_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> dict:
         """
-         * @ignore
+ @ignore
         helper function to build request
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -2250,9 +2409,11 @@ class coincatch(Exchange, ImplicitAPI):
     def create_swap_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """
         create a trade order on swap market
-        :see: https://coincatch.github.io/github.io/en/mix/#place-order
-        :see: https://coincatch.github.io/github.io/en/mix/#place-plan-order
-        :see: https://coincatch.github.io/github.io/en/mix/#place-stop-order
+
+        https://coincatch.github.io/github.io/en/mix/#place-order
+        https://coincatch.github.io/github.io/en/mix/#place-plan-order
+        https://coincatch.github.io/github.io/en/mix/#place-stop-order
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -2302,7 +2463,7 @@ class coincatch(Exchange, ImplicitAPI):
 
     def create_swap_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> dict:
         """
-         * @ignore
+ @ignore
         helper function to build request
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -2467,8 +2628,9 @@ class coincatch(Exchange, ImplicitAPI):
     def create_orders(self, orders: List[OrderRequest], params={}):
         """
         create a list of trade orders(all orders should be of the same symbol)
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/create-multiple-orders
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/batch-create-new-futures-order
+
+        https://coincatch.github.io/github.io/en/spot/#batch-order
+
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params(max 50 entries)
         :param dict [params]: extra parameters specific to the api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -2591,7 +2753,9 @@ class coincatch(Exchange, ImplicitAPI):
     def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         """
         edit a trade trigger, stop-looss or take-profit order
-        :see: https://coincatch.github.io/github.io/en/spot/#modify-plan-order
+
+        https://coincatch.github.io/github.io/en/spot/#modify-plan-order
+
         :param str id: order id
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -2614,9 +2778,11 @@ class coincatch(Exchange, ImplicitAPI):
 
     def edit_spot_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
-         * @ignore
+ @ignore
         edit a trade order
-        :see: https://coincatch.github.io/github.io/en/spot/#modify-plan-order
+
+        https://coincatch.github.io/github.io/en/spot/#modify-plan-order
+
         :param str id: order id
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -2679,8 +2845,10 @@ class coincatch(Exchange, ImplicitAPI):
     def fetch_order(self, id: str, symbol: Str = None, params={}) -> Order:
         """
         fetches information on an order made by the user(non-trigger orders only)
-        :see: https://coincatch.github.io/github.io/en/spot/#get-order-details
-        :see: https://coincatch.github.io/github.io/en/mix/#get-order-details
+
+        https://coincatch.github.io/github.io/en/spot/#get-order-details
+        https://coincatch.github.io/github.io/en/mix/#get-order-details
+
         :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in(is mandatory for swap)
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2801,11 +2969,13 @@ class coincatch(Exchange, ImplicitAPI):
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
-        :see: https://coincatch.github.io/github.io/en/spot/#get-order-list
-        :see: https://coincatch.github.io/github.io/en/spot/#get-current-plan-orders
-        :see: https://coincatch.github.io/github.io/en/mix/#get-open-order
-        :see: https://coincatch.github.io/github.io/en/mix/#get-all-open-order
-        :see: https://coincatch.github.io/github.io/en/mix/#get-plan-order-tpsl-list
+
+        https://coincatch.github.io/github.io/en/spot/#get-order-list
+        https://coincatch.github.io/github.io/en/spot/#get-current-plan-orders
+        https://coincatch.github.io/github.io/en/mix/#get-open-order
+        https://coincatch.github.io/github.io/en/mix/#get-all-open-order
+        https://coincatch.github.io/github.io/en/mix/#get-plan-order-tpsl-list
+
         :param str [symbol]: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -2834,10 +3004,12 @@ class coincatch(Exchange, ImplicitAPI):
 
     def fetch_open_spot_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
-         * @ignore
+ @ignore
         fetch all unfilled currently open orders for spot markets
-        :see: https://coincatch.github.io/github.io/en/spot/#get-order-list
-        :see: https://coincatch.github.io/github.io/en/spot/#get-current-plan-orders
+
+        https://coincatch.github.io/github.io/en/spot/#get-order-list
+        https://coincatch.github.io/github.io/en/spot/#get-current-plan-orders
+
         :param str [symbol]: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -2929,11 +3101,13 @@ class coincatch(Exchange, ImplicitAPI):
 
     def fetch_open_swap_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
-         * @ignore
+ @ignore
         fetch all unfilled currently open orders for swap markets
-        :see: https://coincatch.github.io/github.io/en/mix/#get-open-order
-        :see: https://coincatch.github.io/github.io/en/mix/#get-all-open-order
-        :see: https://coincatch.github.io/github.io/en/mix/#get-plan-order-tpsl-list
+
+        https://coincatch.github.io/github.io/en/mix/#get-open-order
+        https://coincatch.github.io/github.io/en/mix/#get-all-open-order
+        https://coincatch.github.io/github.io/en/mix/#get-plan-order-tpsl-list
+
         :param str [symbol]: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -3053,11 +3227,13 @@ class coincatch(Exchange, ImplicitAPI):
     def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple canceled and closed orders made by the user
-        :see: https://coincatch.github.io/github.io/en/spot/#get-order-list
-        :see: https://coincatch.github.io/github.io/en/spot/#get-history-plan-orders
-        :see: https://coincatch.github.io/github.io/en/mix/#get-history-orders
-        :see: https://coincatch.github.io/github.io/en/mix/#get-producttype-history-orders
-        :see: https://coincatch.github.io/github.io/en/mix/#get-history-plan-orders-tpsl
+
+        https://coincatch.github.io/github.io/en/spot/#get-order-list
+        https://coincatch.github.io/github.io/en/spot/#get-history-plan-orders
+        https://coincatch.github.io/github.io/en/mix/#get-history-orders
+        https://coincatch.github.io/github.io/en/mix/#get-producttype-history-orders
+        https://coincatch.github.io/github.io/en/mix/#get-history-plan-orders-tpsl
+
         :param str symbol: *is mandatory* unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -3086,10 +3262,12 @@ class coincatch(Exchange, ImplicitAPI):
 
     def fetch_canceled_and_closed_spot_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
-         * @ignore
+ @ignore
         fetches information on multiple canceled and closed orders made by the user on spot markets
-        :see: https://coincatch.github.io/github.io/en/spot/#get-order-history
-        :see: https://coincatch.github.io/github.io/en/spot/#get-history-plan-orders
+
+        https://coincatch.github.io/github.io/en/spot/#get-order-history
+        https://coincatch.github.io/github.io/en/spot/#get-history-plan-orders
+
         :param str symbol: *is mandatory* unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -3221,11 +3399,13 @@ class coincatch(Exchange, ImplicitAPI):
 
     def fetch_canceled_and_closed_swap_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
-         * @ignore
+ @ignore
         fetches information on multiple canceled and closed orders made by the user on swap markets
-        :see: https://coincatch.github.io/github.io/en/mix/#get-history-orders
-        :see: https://coincatch.github.io/github.io/en/mix/#get-producttype-history-orders
-        :see: https://coincatch.github.io/github.io/en/mix/#get-history-plan-orders-tpsl
+
+        https://coincatch.github.io/github.io/en/mix/#get-history-orders
+        https://coincatch.github.io/github.io/en/mix/#get-producttype-history-orders
+        https://coincatch.github.io/github.io/en/mix/#get-history-plan-orders-tpsl
+
         :param str [symbol]: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -3368,10 +3548,12 @@ class coincatch(Exchange, ImplicitAPI):
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
-        :see: https://coincatch.github.io/github.io/en/spot/#cancel-order-v2
-        :see: https://coincatch.github.io/github.io/en/spot/#cancel-plan-order
-        :see: https://coincatch.github.io/github.io/en/mix/#cancel-order
-        :see: https://coincatch.github.io/github.io/en/mix/#cancel-plan-order-tpsl
+
+        https://coincatch.github.io/github.io/en/spot/#cancel-order-v2
+        https://coincatch.github.io/github.io/en/spot/#cancel-plan-order
+        https://coincatch.github.io/github.io/en/mix/#cancel-order
+        https://coincatch.github.io/github.io/en/mix/#cancel-plan-order-tpsl
+
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -3425,12 +3607,14 @@ class coincatch(Exchange, ImplicitAPI):
     def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancels all open orders
-        :see: https://coincatch.github.io/github.io/en/spot/#cancel-all-orders
-        :see: https://coincatch.github.io/github.io/en/spot/#batch-cancel-plan-orders
-        :see: https://coincatch.github.io/github.io/en/mix/#batch-cancel-order
-        :see: https://coincatch.github.io/github.io/en/mix/#cancel-order-by-symbol
-        :see: https://coincatch.github.io/github.io/en/mix/#cancel-plan-order-tpsl-by-symbol
-        :see: https://coincatch.github.io/github.io/en/mix/#cancel-all-trigger-order-tpsl
+
+        https://coincatch.github.io/github.io/en/spot/#cancel-all-orders
+        https://coincatch.github.io/github.io/en/spot/#batch-cancel-plan-orders
+        https://coincatch.github.io/github.io/en/mix/#batch-cancel-order
+        https://coincatch.github.io/github.io/en/mix/#cancel-order-by-symbol
+        https://coincatch.github.io/github.io/en/mix/#cancel-plan-order-tpsl-by-symbol
+        https://coincatch.github.io/github.io/en/mix/#cancel-all-trigger-order-tpsl
+
         :param str [symbol]: unified symbol of the market the orders were made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: 'spot' or 'swap' - the type of the market to cancel orders for(default 'spot')
@@ -3539,7 +3723,9 @@ class coincatch(Exchange, ImplicitAPI):
     def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancel multiple non-trigger orders
-        :see: https://coincatch.github.io/github.io/en/spot/#cancel-order-in-batch-v2-single-instruments
+
+        https://coincatch.github.io/github.io/en/spot/#cancel-order-in-batch-v2-single-instruments
+
         :param str[] ids: order ids
         :param str symbol: *is mandatory* unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -3821,7 +4007,6 @@ class coincatch(Exchange, ImplicitAPI):
             'amount': amount,
             'filled': self.safe_string_2(order, 'fillQuantity', 'filledQty'),
             'remaining': None,
-            'stopPrice': None,
             'triggerPrice': triggerPrice,
             'takeProfitPrice': takeProfitPrice,
             'stopLossPrice': stopLossPrice,
@@ -3901,9 +4086,11 @@ class coincatch(Exchange, ImplicitAPI):
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         fetch all trades made by the user
-        :see: https://coincatch.github.io/github.io/en/spot/#get-transaction-details
-        :see: https://coincatch.github.io/github.io/en/mix/#get-order-fill-detail
-        :see: https://coincatch.github.io/github.io/en/mix/#get-producttype-order-fill-detail
+
+        https://coincatch.github.io/github.io/en/spot/#get-transaction-details
+        https://coincatch.github.io/github.io/en/mix/#get-order-fill-detail
+        https://coincatch.github.io/github.io/en/mix/#get-producttype-order-fill-detail
+
         :param str symbol: *is mandatory* unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum amount of trades to fetch
@@ -4037,7 +4224,9 @@ class coincatch(Exchange, ImplicitAPI):
     def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         fetch all the trades made from a single order
-        :see: https://coincatch.github.io/github.io/en/spot/#get-transaction-details
+
+        https://coincatch.github.io/github.io/en/spot/#get-transaction-details
+
         :param str id: order id
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
@@ -4057,7 +4246,9 @@ class coincatch(Exchange, ImplicitAPI):
     def fetch_margin_mode(self, symbol: str, params={}) -> MarginMode:
         """
         fetches the margin mode of the trading pair
-        :see: https://coincatch.github.io/github.io/en/mix/#get-single-account
+
+        https://coincatch.github.io/github.io/en/mix/#get-single-account
+
         :param str symbol: unified symbol of the market to fetch the margin mode for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `margin mode structure <https://docs.ccxt.com/#/?id=margin-mode-structure>`
@@ -4118,7 +4309,9 @@ class coincatch(Exchange, ImplicitAPI):
     def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
         """
         set margin mode to 'cross' or 'isolated'
-        :see: https://coincatch.github.io/github.io/en/mix/#change-margin-mode
+
+        https://coincatch.github.io/github.io/en/mix/#change-margin-mode
+
         :param str marginMode: 'cross' or 'isolated'
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -4164,7 +4357,9 @@ class coincatch(Exchange, ImplicitAPI):
     def fetch_position_mode(self, symbol: Str = None, params={}):
         """
         fetchs the position mode, hedged or one way
-        :see: https://coincatch.github.io/github.io/en/mix/#get-single-account
+
+        https://coincatch.github.io/github.io/en/mix/#get-single-account
+
         :param str symbol: unified symbol of the market to fetch entry for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an object detailing whether the market is in hedged or one-way mode
@@ -4190,7 +4385,9 @@ class coincatch(Exchange, ImplicitAPI):
     def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
         """
         set hedged to True or False for a market
-        :see: https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Set%20Position%20Mode
+
+        https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Set%20Position%20Mode
+
         :param bool hedged: set to True to use dualSidePosition
         :param str symbol: unified symbol of the market to fetch entry for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -4231,7 +4428,9 @@ class coincatch(Exchange, ImplicitAPI):
     def fetch_leverage(self, symbol: str, params={}) -> Leverage:
         """
         fetch the set leverage for a market
-        :see: https://coincatch.github.io/github.io/en/mix/#get-single-account
+
+        https://coincatch.github.io/github.io/en/mix/#get-single-account
+
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `leverage structure <https://docs.ccxt.com/#/?id=leverage-structure>`
@@ -4251,7 +4450,9 @@ class coincatch(Exchange, ImplicitAPI):
     def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/change-futures-leverage-trade
+
+        https://hashkeyglobal-apidoc.readme.io/reference/change-futures-leverage-trade
+
         :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -4395,7 +4596,9 @@ class coincatch(Exchange, ImplicitAPI):
     def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         remove margin from a position
-        :see: https://coincatch.github.io/github.io/en/mix/#change-margin
+
+        https://coincatch.github.io/github.io/en/mix/#change-margin
+
         :param str symbol: unified market symbol
         :param float amount: the amount of margin to remove
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -4408,7 +4611,9 @@ class coincatch(Exchange, ImplicitAPI):
     def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         add margin
-        :see: https://coincatch.github.io/github.io/en/mix/#change-margin
+
+        https://coincatch.github.io/github.io/en/mix/#change-margin
+
         :param str symbol: unified market symbol
         :param float amount: amount of margin to add
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -4421,10 +4626,12 @@ class coincatch(Exchange, ImplicitAPI):
     def fetch_position(self, symbol: str, params={}):
         """
         fetch data on a single open contract trade position
-        :see: https://coincatch.github.io/github.io/en/mix/#get-symbol-position
+
+        https://coincatch.github.io/github.io/en/mix/#get-symbol-position
+
         :param str symbol: unified market symbol of the market the position is held in, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-         * @param {str}  [parmas.side] 'long' or 'short' *for non-hedged position mode only* (default 'long')
+ @param {str}  [params.side] 'long' or 'short' *for non-hedged position mode only* (default 'long')
         :returns dict: a `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         methodName = 'fetchPosition'
@@ -4442,7 +4649,9 @@ class coincatch(Exchange, ImplicitAPI):
     def fetch_positions_for_symbol(self, symbol: str, params={}) -> List[Position]:
         """
         fetch open positions for a single market
-        :see: https://coincatch.github.io/github.io/en/mix/#get-symbol-position
+
+        https://coincatch.github.io/github.io/en/mix/#get-symbol-position
+
         fetch all open positions for specific symbol
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -4492,7 +4701,9 @@ class coincatch(Exchange, ImplicitAPI):
     def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open positions
-        :see: https://coincatch.github.io/github.io/en/mix/#get-all-position
+
+        https://coincatch.github.io/github.io/en/mix/#get-all-position
+
         :param str[] [symbols]: list of unified market symbols(all symbols must belong to the same product type)
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.productType]: 'umcbl' or 'dmcbl'(default 'umcbl' if symbols are not provided)
@@ -4653,8 +4864,10 @@ class coincatch(Exchange, ImplicitAPI):
     def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
-        :see: https://coincatch.github.io/github.io/en/spot/#get-bills
-        :see: https://coincatch.github.io/github.io/en/mix/#get-business-account-bill
+
+        https://coincatch.github.io/github.io/en/spot/#get-bills
+        https://coincatch.github.io/github.io/en/mix/#get-business-account-bill
+
         :param str [code]: unified currency code
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entrys to return, default is None
@@ -4669,7 +4882,7 @@ class coincatch(Exchange, ImplicitAPI):
         :param str [params.business]: *swap only*
         :param str [params.lastEndId]: *swap only*
         :param bool [params.next]: *swap only*
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
         """
         methodName = 'fetchLedger'
         self.load_markets()

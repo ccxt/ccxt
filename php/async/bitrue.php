@@ -14,18 +14,18 @@ use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\DDoSProtection;
 use ccxt\Precise;
-use React\Async;
-use React\Promise;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise;
+use \React\Promise\PromiseInterface;
 
 class bitrue extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitrue',
             'name' => 'Bitrue',
             'countries' => array( 'SG' ), // Singapore, Malta
-            'rateLimit' => 1000,
+            'rateLimit' => 10,
             'certified' => false,
             'version' => 'v1',
             'pro' => true,
@@ -37,19 +37,32 @@ class bitrue extends Exchange {
                 'swap' => true,
                 'future' => false,
                 'option' => false,
+                'addMargin' => false,
+                'borrowCrossMargin' => false,
+                'borrowIsolatedMargin' => false,
+                'borrowMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'closeAllPositions' => false,
+                'closePosition' => false,
                 'createMarketBuyOrderWithCost' => true,
                 'createMarketOrderWithCost' => false,
                 'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
+                'createOrderWithTakeProfitAndStopLoss' => false,
+                'createOrderWithTakeProfitAndStopLossWs' => false,
+                'createReduceOnlyOrder' => true,
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
                 'createStopOrder' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => true,
+                'fetchBorrowInterest' => false,
+                'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
@@ -60,20 +73,50 @@ class bitrue extends Exchange {
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => false,
+                'fetchFundingInterval' => false,
+                'fetchFundingIntervals' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
+                'fetchGreeks' => false,
+                'fetchIndexOHLCV' => false,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
+                'fetchIsolatedPositions' => false,
+                'fetchLeverage' => false,
+                'fetchLeverages' => false,
+                'fetchLeverageTiers' => false,
+                'fetchLiquidations' => false,
+                'fetchLongShortRatio' => false,
+                'fetchLongShortRatioHistory' => false,
+                'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => false,
+                'fetchMarginModes' => false,
+                'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
+                'fetchMarkPrices' => false,
+                'fetchMyLiquidations' => false,
+                'fetchMySettlementHistory' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => false,
+                'fetchOpenInterestHistory' => false,
+                'fetchOpenInterests' => false,
                 'fetchOpenOrders' => true,
+                'fetchOption' => false,
+                'fetchOptionChain' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => false,
+                'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
+                'fetchPositions' => false,
+                'fetchPositionsHistory' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
+                'fetchSettlementHistory' => false,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -84,9 +127,15 @@ class bitrue extends Exchange {
                 'fetchTransactionFees' => false,
                 'fetchTransactions' => false,
                 'fetchTransfers' => true,
+                'fetchVolatilityHistory' => false,
                 'fetchWithdrawals' => true,
+                'reduceMargin' => false,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => false,
                 'setLeverage' => true,
                 'setMargin' => true,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
                 'transfer' => true,
                 'withdraw' => true,
             ),
@@ -117,56 +166,62 @@ class bitrue extends Exchange {
                 ),
                 'fees' => 'https://bitrue.zendesk.com/hc/en-001/articles/4405479952537',
             ),
+            // from spotV1PublicGetExchangeInfo:
+            // general 25000 weight in 1 minute per IP. = 416.66 per second a weight of 0.24 for 1
+            // orders 750 weight in 6 seconds per IP. = 125 per second a weight of 0.8 for 1
+            // orders 200 weight in 10 seconds per User. = 20 per second a weight of 5 for 1
+            // withdraw 3000 weight in 1 hour per User. = 0.833 per second a weight of 120 for 1
+            // withdraw 1000 weight in 1 day per User. = 0.011574 per second a weight of 8640 for 1
             'api' => array(
                 'spot' => array(
                     'kline' => array(
                         'public' => array(
                             'get' => array(
-                                'public.json' => 1,
-                                'public{currency}.json' => 1,
+                                'public.json' => 0.24,
+                                'public{currency}.json' => 0.24,
                             ),
                         ),
                     ),
                     'v1' => array(
                         'public' => array(
                             'get' => array(
-                                'ping' => 1,
-                                'time' => 1,
-                                'exchangeInfo' => 1,
-                                'depth' => array( 'cost' => 1, 'byLimit' => array( array( 100, 1 ), array( 500, 5 ), array( 1000, 10 ) ) ),
-                                'trades' => 1,
-                                'historicalTrades' => 5,
-                                'aggTrades' => 1,
-                                'ticker/24hr' => array( 'cost' => 1, 'noSymbol' => 40 ),
-                                'ticker/price' => array( 'cost' => 1, 'noSymbol' => 2 ),
-                                'ticker/bookTicker' => array( 'cost' => 1, 'noSymbol' => 2 ),
-                                'market/kline' => 1,
+                                'ping' => 0.24,
+                                'time' => 0.24,
+                                'exchangeInfo' => 0.24,
+                                'depth' => array( 'cost' => 1, 'byLimit' => array( array( 100, 0.24 ), array( 500, 1.2 ), array( 1000, 2.4 ) ) ),
+                                'trades' => 0.24,
+                                'historicalTrades' => 1.2,
+                                'aggTrades' => 0.24,
+                                'ticker/24hr' => array( 'cost' => 0.24, 'noSymbol' => 9.6 ),
+                                'ticker/price' => 0.24,
+                                'ticker/bookTicker' => 0.24,
+                                'market/kline' => 0.24,
                             ),
                         ),
                         'private' => array(
                             'get' => array(
-                                'order' => 1,
-                                'openOrders' => 1,
-                                'allOrders' => 5,
-                                'account' => 5,
-                                'myTrades' => array( 'cost' => 5, 'noSymbol' => 40 ),
-                                'etf/net-value/{symbol}' => 1,
-                                'withdraw/history' => 1,
-                                'deposit/history' => 1,
+                                'order' => 5,
+                                'openOrders' => 5,
+                                'allOrders' => 25,
+                                'account' => 25,
+                                'myTrades' => 25,
+                                'etf/net-value/{symbol}' => 0.24,
+                                'withdraw/history' => 120,
+                                'deposit/history' => 120,
                             ),
                             'post' => array(
-                                'order' => 4,
-                                'withdraw/commit' => 1,
+                                'order' => 5,
+                                'withdraw/commit' => 120,
                             ),
                             'delete' => array(
-                                'order' => 1,
+                                'order' => 5,
                             ),
                         ),
                     ),
                     'v2' => array(
                         'private' => array(
                             'get' => array(
-                                'myTrades' => 5,
+                                'myTrades' => 1.2,
                             ),
                         ),
                     ),
@@ -175,34 +230,34 @@ class bitrue extends Exchange {
                     'v1' => array(
                         'public' => array(
                             'get' => array(
-                                'ping' => 1,
-                                'time' => 1,
-                                'contracts' => 1,
-                                'depth' => 1,
-                                'ticker' => 1,
-                                'klines' => 1,
+                                'ping' => 0.24,
+                                'time' => 0.24,
+                                'contracts' => 0.24,
+                                'depth' => 0.24,
+                                'ticker' => 0.24,
+                                'klines' => 0.24,
                             ),
                         ),
                     ),
                     'v2' => array(
                         'private' => array(
                             'get' => array(
-                                'myTrades' => 1,
-                                'openOrders' => 1,
-                                'order' => 1,
-                                'account' => 1,
-                                'leverageBracket' => 1,
-                                'commissionRate' => 1,
-                                'futures_transfer_history' => 1,
-                                'forceOrdersHistory' => 1,
+                                'myTrades' => 5,
+                                'openOrders' => 5,
+                                'order' => 5,
+                                'account' => 5,
+                                'leverageBracket' => 5,
+                                'commissionRate' => 5,
+                                'futures_transfer_history' => 5,
+                                'forceOrdersHistory' => 5,
                             ),
                             'post' => array(
-                                'positionMargin' => 1,
-                                'level_edit' => 1,
-                                'cancel' => 1,
-                                'order' => 1,
-                                'allOpenOrders' => 1,
-                                'futures_transfer' => 1,
+                                'positionMargin' => 5,
+                                'level_edit' => 5,
+                                'cancel' => 5,
+                                'order' => 25,
+                                'allOpenOrders' => 5,
+                                'futures_transfer' => 5,
                             ),
                         ),
                     ),
@@ -211,34 +266,34 @@ class bitrue extends Exchange {
                     'v1' => array(
                         'public' => array(
                             'get' => array(
-                                'ping' => 1,
-                                'time' => 1,
-                                'contracts' => 1,
-                                'depth' => 1,
-                                'ticker' => 1,
-                                'klines' => 1,
+                                'ping' => 0.24,
+                                'time' => 0.24,
+                                'contracts' => 0.24,
+                                'depth' => 0.24,
+                                'ticker' => 0.24,
+                                'klines' => 0.24,
                             ),
                         ),
                     ),
                     'v2' => array(
                         'private' => array(
                             'get' => array(
-                                'myTrades' => 1,
-                                'openOrders' => 1,
-                                'order' => 1,
-                                'account' => 1,
-                                'leverageBracket' => 1,
-                                'commissionRate' => 1,
-                                'futures_transfer_history' => 1,
-                                'forceOrdersHistory' => 1,
+                                'myTrades' => 5,
+                                'openOrders' => 5,
+                                'order' => 5,
+                                'account' => 5,
+                                'leverageBracket' => 5,
+                                'commissionRate' => 5,
+                                'futures_transfer_history' => 5,
+                                'forceOrdersHistory' => 5,
                             ),
                             'post' => array(
-                                'positionMargin' => 1,
-                                'level_edit' => 1,
-                                'cancel' => 1,
-                                'order' => 1,
-                                'allOpenOrders' => 1,
-                                'futures_transfer' => 1,
+                                'positionMargin' => 5,
+                                'level_edit' => 5,
+                                'cancel' => 5,
+                                'order' => 5,
+                                'allOpenOrders' => 5,
+                                'futures_transfer' => 5,
                             ),
                         ),
                     ),
@@ -446,7 +501,96 @@ class bitrue extends Exchange {
                 'MIM' => 'MIM Swarm',
             ),
             'precisionMode' => TICK_SIZE,
-            // https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
+            'features' => array(
+                'default' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => null,
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyRequiresPrice' => true, // todo revise
+                        'marketBuyByCost' => true,
+                        'selfTradePrevention' => false,
+                        'iceberg' => true, // todo implement
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => 100000,
+                        'untilDays' => 100000,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => 90,
+                        'daysBackCanceled' => 1,
+                        'untilDays' => 90,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 1440,
+                    ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
+                'forDerivatives' => array(
+                    'extends' => 'default',
+                    'createOrder' => array(
+                        'marginMode' => true,
+                        'leverage' => true,
+                        'marketBuyRequiresPrice' => false,
+                        'marketBuyByCost' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 300,
+                    ),
+                    'fetchClosedOrders' => null,
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'forDerivatives',
+                    ),
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
             'exceptions' => array(
                 'exact' => array(
                     'System is under maintenance.' => '\\ccxt\\OnMaintenance', // array("code":1,"msg":"System is under maintenance.")
@@ -518,6 +662,7 @@ class bitrue extends Exchange {
                     '-4051' => '\\ccxt\\InsufficientFunds', // array("code":-4051,"msg":"Isolated balance insufficient.")
                 ),
                 'broad' => array(
+                    'Insufficient account balance' => '\\ccxt\\InsufficientFunds', // array("code":-2010,"msg":"Insufficient account balance.","data":null)
                     'has no operation privilege' => '\\ccxt\\PermissionDenied',
                     'MAX_POSITION' => '\\ccxt\\InvalidOrder', // array("code":-2010,"msg":"Filter failure => MAX_POSITION")
                 ),
@@ -533,7 +678,9 @@ class bitrue extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * the latest known information on the availability of the exchange API
+             *
              * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#test-connectivity
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-status-structure status structure~
              */
@@ -556,11 +703,13 @@ class bitrue extends Exchange {
         }) ();
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
+             *
              * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#check-server-time
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int} the current integer timestamp in milliseconds from the exchange server
              */
@@ -629,75 +778,55 @@ class bitrue extends Exchange {
             //     }
             //
             $result = array();
-            $coins = $this->safe_value($response, 'coins', array());
+            $coins = $this->safe_list($response, 'coins', array());
             for ($i = 0; $i < count($coins); $i++) {
                 $currency = $coins[$i];
                 $id = $this->safe_string($currency, 'coin');
                 $name = $this->safe_string($currency, 'coinFulName');
                 $code = $this->safe_currency_code($id);
-                $deposit = null;
-                $withdraw = null;
-                $minWithdrawString = null;
-                $maxWithdrawString = null;
-                $minWithdrawFeeString = null;
-                $networkDetails = $this->safe_value($currency, 'chainDetail', array());
+                $networkDetails = $this->safe_list($currency, 'chainDetail', array());
                 $networks = array();
                 for ($j = 0; $j < count($networkDetails); $j++) {
                     $entry = $networkDetails[$j];
                     $networkId = $this->safe_string($entry, 'chain');
                     $network = $this->network_id_to_code($networkId, $code);
-                    $enableDeposit = $this->safe_value($entry, 'enableDeposit');
-                    $deposit = ($enableDeposit) ? $enableDeposit : $deposit;
-                    $enableWithdraw = $this->safe_value($entry, 'enableWithdraw');
-                    $withdraw = ($enableWithdraw) ? $enableWithdraw : $withdraw;
-                    $networkWithdrawFeeString = $this->safe_string($entry, 'withdrawFee');
-                    if ($networkWithdrawFeeString !== null) {
-                        $minWithdrawFeeString = ($minWithdrawFeeString === null) ? $networkWithdrawFeeString : Precise::string_min($networkWithdrawFeeString, $minWithdrawFeeString);
-                    }
-                    $networkMinWithdrawString = $this->safe_string($entry, 'minWithdraw');
-                    if ($networkMinWithdrawString !== null) {
-                        $minWithdrawString = ($minWithdrawString === null) ? $networkMinWithdrawString : Precise::string_min($networkMinWithdrawString, $minWithdrawString);
-                    }
-                    $networkMaxWithdrawString = $this->safe_string($entry, 'maxWithdraw');
-                    if ($networkMaxWithdrawString !== null) {
-                        $maxWithdrawString = ($maxWithdrawString === null) ? $networkMaxWithdrawString : Precise::string_max($networkMaxWithdrawString, $maxWithdrawString);
-                    }
                     $networks[$network] = array(
                         'info' => $entry,
                         'id' => $networkId,
                         'network' => $network,
-                        'deposit' => $enableDeposit,
-                        'withdraw' => $enableWithdraw,
-                        'active' => $enableDeposit && $enableWithdraw,
-                        'fee' => $this->parse_number($networkWithdrawFeeString),
+                        'deposit' => $this->safe_bool($entry, 'enableDeposit'),
+                        'withdraw' => $this->safe_bool($entry, 'enableWithdraw'),
+                        'active' => null,
+                        'fee' => $this->safe_number($entry, 'withdrawFee'),
                         'precision' => null,
                         'limits' => array(
                             'withdraw' => array(
-                                'min' => $this->parse_number($networkMinWithdrawString),
-                                'max' => $this->parse_number($networkMaxWithdrawString),
+                                'min' => $this->safe_number($entry, 'minWithdraw'),
+                                'max' => $this->safe_number($entry, 'maxWithdraw'),
                             ),
                         ),
                     );
                 }
-                $result[$code] = array(
+                $result[$code] = $this->safe_currency_structure(array(
                     'id' => $id,
                     'name' => $name,
                     'code' => $code,
                     'precision' => null,
                     'info' => $currency,
-                    'active' => $deposit && $withdraw,
-                    'deposit' => $deposit,
-                    'withdraw' => $withdraw,
+                    'active' => null,
+                    'deposit' => null,
+                    'withdraw' => null,
                     'networks' => $networks,
-                    'fee' => $this->parse_number($minWithdrawFeeString),
-                    // 'fees' => fees,
+                    'fee' => null,
+                    'fees' => null,
+                    'type' => 'crypto',
                     'limits' => array(
                         'withdraw' => array(
-                            'min' => $this->parse_number($minWithdrawString),
-                            'max' => $this->parse_number($maxWithdrawString),
+                            'min' => null,
+                            'max' => null,
                         ),
                     ),
-                );
+                ));
             }
             return $result;
         }) ();
@@ -707,9 +836,11 @@ class bitrue extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for bitrue
+             *
              * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
              * @see https://www.bitrue.com/api-docs#current-open-contract
              * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#current-open-contract
+             *
              * @param {array} [$params] extra parameters specific to the exchange api endpoint
              * @return {array[]} an array of objects representing market data
              */
@@ -841,11 +972,11 @@ class bitrue extends Exchange {
         if ($settle !== null) {
             $symbol .= ':' . $settle;
         }
-        $filters = $this->safe_value($market, 'filters', array());
+        $filters = $this->safe_list($market, 'filters', array());
         $filtersByType = $this->index_by($filters, 'filterType');
         $status = $this->safe_string($market, 'status');
-        $priceFilter = $this->safe_value($filtersByType, 'PRICE_FILTER', array());
-        $amountFilter = $this->safe_value($filtersByType, 'LOT_SIZE', array());
+        $priceFilter = $this->safe_dict($filtersByType, 'PRICE_FILTER', array());
+        $amountFilter = $this->safe_dict($filtersByType, 'LOT_SIZE', array());
         $defaultPricePrecision = $this->safe_string($market, 'pricePrecision');
         $defaultAmountPrecision = $this->safe_string($market, 'quantityPrecision');
         $pricePrecision = $this->safe_string($priceFilter, 'priceScale', $defaultPricePrecision);
@@ -981,9 +1112,11 @@ class bitrue extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
+             *
              * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#account-information-user_data
              * @see https://www.bitrue.com/api-docs#account-information-v2-user_data-hmac-sha256
              * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#account-information-v2-user_data-hmac-sha256
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->type] 'future', 'delivery', 'spot', 'swap'
              * @param {string} [$params->subType] 'linear', 'inverse'
@@ -999,7 +1132,7 @@ class bitrue extends Exchange {
             if ($type === 'swap') {
                 if ($subType !== null && $subType === 'inverse') {
                     $response = Async\await($this->dapiV2PrivateGetAccount ($params));
-                    $result = $this->safe_value($response, 'data', array());
+                    $result = $this->safe_dict($response, 'data', array());
                     //
                     // {
                     //         "code":"0",
@@ -1032,7 +1165,7 @@ class bitrue extends Exchange {
                     //
                 } else {
                     $response = Async\await($this->fapiV2PrivateGetAccount ($params));
-                    $result = $this->safe_value($response, 'data', array());
+                    $result = $this->safe_dict($response, 'data', array());
                     //
                     //     {
                     //         "code":"0",
@@ -1093,9 +1226,11 @@ class bitrue extends Exchange {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
              * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#order-book
              * @see https://www.bitrue.com/api-docs#order-book
              * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#order-book
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1158,7 +1293,7 @@ class bitrue extends Exchange {
             //         "time" => 1699338305000
             //     }
             //
-            $timestamp = $this->safe_integer($response, 'time');
+            $timestamp = $this->safe_integer_2($response, 'time', 'lastUpdateId');
             $orderbook = $this->parse_order_book($response, $symbol, $timestamp);
             $orderbook['nonce'] = $this->safe_integer($response, 'lastUpdateId');
             return $orderbook;
@@ -1238,9 +1373,11 @@ class bitrue extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             *
              * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#24hr-ticker-price-change-statistics
              * @see https://www.bitrue.com/api-docs#ticker
              * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#ticker
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -1264,7 +1401,7 @@ class bitrue extends Exchange {
                     'symbol' => $market['id'],
                 );
                 $response = Async\await($this->spotV1PublicGetTicker24hr ($this->extend($request, $params)));
-                $data = $this->safe_value($response, 0, array());
+                $data = $this->safe_dict($response, 0, array());
             } else {
                 throw new NotSupported($this->id . ' fetchTicker only support spot & swap markets');
             }
@@ -1314,23 +1451,25 @@ class bitrue extends Exchange {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
-             * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#kline-$data
-             * @see https://www.bitrue.com/api-docs#kline-candlestick-$data
-             * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#kline-candlestick-$data
+             *
+             * @see https://www.bitrue.com/api_docs_includes_file/spot/index.html#kline-$data
+             * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#kline-candlestick-$data
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {int} [$params->until] the latest time in ms to fetch transfers for
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $timeframes = $this->safe_value($this->options, 'timeframes', array());
+            $timeframes = $this->safe_dict($this->options, 'timeframes', array());
             $response = null;
             $data = null;
             if ($market['swap']) {
-                $timeframesFuture = $this->safe_value($timeframes, 'future', array());
+                $timeframesFuture = $this->safe_dict($timeframes, 'future', array());
                 $request = array(
                     'contractName' => $market['id'],
                     // 1min / 5min / 15min / 30min / 1h / 1day / 1week / 1month
@@ -1346,7 +1485,7 @@ class bitrue extends Exchange {
                 }
                 $data = $response;
             } elseif ($market['spot']) {
-                $timeframesSpot = $this->safe_value($timeframes, 'spot', array());
+                $timeframesSpot = $this->safe_dict($timeframes, 'spot', array());
                 $request = array(
                     'symbol' => $market['id'],
                     // 1m / 5m / 15m / 30m / 1H / 2H / 4H / 12H / 1D / 1W
@@ -1355,11 +1494,13 @@ class bitrue extends Exchange {
                 if ($limit !== null) {
                     $request['limit'] = $limit;
                 }
-                if ($since !== null) {
-                    $request['fromIdx'] = $since;
+                $until = $this->safe_integer($params, 'until');
+                if ($until !== null) {
+                    $params = $this->omit($params, 'until');
+                    $request['fromIdx'] = $until;
                 }
                 $response = Async\await($this->spotV1PublicGetMarketKline ($this->extend($request, $params)));
-                $data = $this->safe_value($response, 'data', array());
+                $data = $this->safe_list($response, 'data', array());
             } else {
                 throw new NotSupported($this->id . ' fetchOHLCV only support spot & swap markets');
             }
@@ -1442,9 +1583,11 @@ class bitrue extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches the bid and ask price and volume for multiple markets
+             *
              * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#symbol-order-book-ticker
              * @see https://www.bitrue.com/api-docs#ticker
              * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#ticker
+             *
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
@@ -1505,9 +1648,11 @@ class bitrue extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
+             *
              * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#24hr-$ticker-price-change-statistics
              * @see https://www.bitrue.com/api-docs#$ticker
              * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#$ticker
+             *
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
@@ -1580,8 +1725,8 @@ class bitrue extends Exchange {
             // https://github.com/ccxt/ccxt/issues/13856
             $tickers = array();
             for ($i = 0; $i < count($data); $i++) {
-                $ticker = $this->safe_value($data, $i, array());
-                $market = $this->market($this->safe_value($ticker, 'symbol'));
+                $ticker = $this->safe_dict($data, $i, array());
+                $market = $this->safe_market($this->safe_string($ticker, 'symbol'));
                 $tickers[$market['id']] = $ticker;
             }
             return $this->parse_tickers($tickers, $symbols);
@@ -1645,8 +1790,8 @@ class bitrue extends Exchange {
         $orderId = $this->safe_string($trade, 'orderId');
         $id = $this->safe_string_2($trade, 'id', 'tradeId');
         $side = null;
-        $buyerMaker = $this->safe_value($trade, 'isBuyerMaker');  // ignore "m" until Bitrue fixes api
-        $isBuyer = $this->safe_value($trade, 'isBuyer');
+        $buyerMaker = $this->safe_bool($trade, 'isBuyerMaker');  // ignore "m" until Bitrue fixes api
+        $isBuyer = $this->safe_bool($trade, 'isBuyer');
         if ($buyerMaker !== null) {
             $side = $buyerMaker ? 'sell' : 'buy';
         }
@@ -1661,7 +1806,7 @@ class bitrue extends Exchange {
             );
         }
         $takerOrMaker = null;
-        $isMaker = $this->safe_value($trade, 'isMaker');
+        $isMaker = $this->safe_bool($trade, 'isMaker');
         if ($isMaker !== null) {
             $takerOrMaker = $isMaker ? 'maker' : 'taker';
         }
@@ -1686,7 +1831,9 @@ class bitrue extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
+             *
              * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#recent-trades-list
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
@@ -1825,15 +1972,14 @@ class bitrue extends Exchange {
         $id = $this->safe_string($order, 'orderId');
         $type = $this->safe_string_lower($order, 'type');
         $side = $this->safe_string_lower($order, 'side');
-        $fills = $this->safe_value($order, 'fills', array());
+        $fills = $this->safe_list($order, 'fills', array());
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
         $timeInForce = $this->safe_string($order, 'timeInForce');
         $postOnly = ($type === 'limit_maker') || ($timeInForce === 'GTX') || ($type === 'post_only');
         if ($type === 'limit_maker') {
             $type = 'limit';
         }
-        $stopPriceString = $this->safe_string($order, 'stopPrice');
-        $stopPrice = $this->parse_number($this->omit_zero($stopPriceString));
+        $triggerPrice = $this->parse_number($this->omit_zero($this->safe_string($order, 'stopPrice')));
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -1847,8 +1993,7 @@ class bitrue extends Exchange {
             'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'triggerPrice' => $triggerPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,
@@ -1864,8 +2009,10 @@ class bitrue extends Exchange {
         return Async\async(function () use ($symbol, $cost, $params) {
             /**
              * create a $market buy order by providing the $symbol and $cost
+             *
              * @see https://www.bitrue.com/api-docs#new-order-trade-hmac-sha256
              * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#new-order-trade-hmac-sha256
+             *
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {float} $cost how much you want to trade in units of the quote currency
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1885,9 +2032,10 @@ class bitrue extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
-             * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#recent-trades-list
-             * @see https://www.bitrue.com/api-docs#new-order-trade-hmac-sha256
-             * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#new-order-trade-hmac-sha256
+             *
+             * @see https://www.bitrue.com/api_docs_includes_file/spot/index.html#new-order-trade
+             * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#new-order-trade-hmac-sha256
+             *
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
@@ -1968,7 +2116,7 @@ class bitrue extends Exchange {
                 } elseif ($market['inverse']) {
                     $response = Async\await($this->dapiV2PrivatePostOrder ($this->extend($request, $params)));
                 }
-                $data = $this->safe_value($response, 'data', array());
+                $data = $this->safe_dict($response, 'data', array());
             } elseif ($market['spot']) {
                 $request['symbol'] = $market['id'];
                 $request['quantity'] = $this->amount_to_precision($symbol, $amount);
@@ -1981,10 +2129,10 @@ class bitrue extends Exchange {
                     $params = $this->omit($params, array( 'newClientOrderId', 'clientOrderId' ));
                     $request['newClientOrderId'] = $clientOrderId;
                 }
-                $stopPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
-                if ($stopPrice !== null) {
+                $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
+                if ($triggerPrice !== null) {
                     $params = $this->omit($params, array( 'triggerPrice', 'stopPrice' ));
-                    $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
+                    $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
                 }
                 $response = Async\await($this->spotV1PrivatePostOrder ($this->extend($request, $params)));
                 $data = $response;
@@ -2020,9 +2168,10 @@ class bitrue extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
-             * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#query-order-user_data
-             * @see https://www.bitrue.com/api-docs#query-order-user_data-hmac-sha256
-             * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#query-order-user_data-hmac-sha256
+             *
+             * @see https://www.bitrue.com/api_docs_includes_file/spot/index.html#query-order-user_data
+             * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#query-order-user_data-hmac-sha256
+             *
              * @param {string} $id the order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2054,7 +2203,7 @@ class bitrue extends Exchange {
                 } elseif ($market['inverse']) {
                     $response = Async\await($this->dapiV2PrivateGetOrder ($this->extend($request, $params)));
                 }
-                $data = $this->safe_value($response, 'data', array());
+                $data = $this->safe_dict($response, 'data', array());
             } elseif ($market['spot']) {
                 $request['orderId'] = $id; // spot $market $id is mandatory
                 $request['symbol'] = $market['id'];
@@ -2114,7 +2263,9 @@ class bitrue extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
-             * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#all-orders-user_data
+             *
+             * @see https://www.bitrue.com/api_docs_includes_file/spot/index.html#all-orders-user_data
+             *
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -2173,9 +2324,10 @@ class bitrue extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
-             * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#current-open-orders-user_data
-             * @see https://www.bitrue.com/api-docs#current-all-open-orders-user_data-hmac-sha256
-             * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#current-all-open-orders-user_data-hmac-sha256
+             *
+             * @see https://www.bitrue.com/api_docs_includes_file/spot/index.html#current-open-orders-user_data
+             * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#cancel-all-open-orders-trade-hmac-sha256
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of open order structures to retrieve
@@ -2197,7 +2349,7 @@ class bitrue extends Exchange {
                 } elseif ($market['inverse']) {
                     $response = Async\await($this->dapiV2PrivateGetOpenOrders ($this->extend($request, $params)));
                 }
-                $data = $this->safe_value($response, 'data', array());
+                $data = $this->safe_list($response, 'data', array());
             } elseif ($market['spot']) {
                 $request['symbol'] = $market['id'];
                 $response = Async\await($this->spotV1PrivateGetOpenOrders ($this->extend($request, $params)));
@@ -2259,9 +2411,11 @@ class bitrue extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
+             *
              * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#cancel-order-trade
              * @see https://www.bitrue.com/api-docs#cancel-order-trade-hmac-sha256
              * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#cancel-order-trade-hmac-sha256
+             *
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2293,7 +2447,7 @@ class bitrue extends Exchange {
                 } elseif ($market['inverse']) {
                     $response = Async\await($this->dapiV2PrivatePostCancel ($this->extend($request, $params)));
                 }
-                $data = $this->safe_value($response, 'data', array());
+                $data = $this->safe_dict($response, 'data', array());
             } elseif ($market['spot']) {
                 $request['symbol'] = $market['id'];
                 $response = Async\await($this->spotV1PrivateDeleteOrder ($this->extend($request, $params)));
@@ -2329,8 +2483,10 @@ class bitrue extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders in a $market
+             *
              * @see https://www.bitrue.com/api-docs#cancel-all-open-orders-trade-hmac-sha256
              * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#cancel-all-open-orders-trade-hmac-sha256
+             *
              * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated', for spot margin trading
@@ -2349,7 +2505,7 @@ class bitrue extends Exchange {
                 } elseif ($market['inverse']) {
                     $response = Async\await($this->dapiV2PrivatePostAllOpenOrders ($this->extend($request, $params)));
                 }
-                $data = $this->safe_value($response, 'data', array());
+                $data = $this->safe_list($response, 'data', array());
             } else {
                 throw new NotSupported($this->id . ' cancelAllOrders only support future markets');
             }
@@ -2370,9 +2526,10 @@ class bitrue extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all trades made by the user
-             * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#account-trade-list-user_data
-             * @see https://www.bitrue.com/api-docs#account-trade-list-user_data-hmac-sha256
-             * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#account-trade-list-user_data-hmac-sha256
+             *
+             * @see https://www.bitrue.com/api_docs_includes_file/spot/index.html#account-trade-list-user_data
+             * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#account-trade-list-user_data-hmac-sha256
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trades structures to retrieve
@@ -2403,7 +2560,7 @@ class bitrue extends Exchange {
                 } elseif ($market['inverse']) {
                     $response = Async\await($this->dapiV2PrivateGetMyTrades ($this->extend($request, $params)));
                 }
-                $data = $this->safe_value($response, 'data', array());
+                $data = $this->safe_list($response, 'data', array());
             } elseif ($market['spot']) {
                 $request['symbol'] = $market['id'];
                 $response = Async\await($this->spotV2PrivateGetMyTrades ($this->extend($request, $params)));
@@ -2464,7 +2621,9 @@ class bitrue extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
+             *
              * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#deposit-history--withdraw_data
+             *
              * @param {string} $code unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch deposits for
              * @param {int} [$limit] the maximum number of deposits structures to retrieve
@@ -2537,7 +2696,9 @@ class bitrue extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
+             *
              * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#withdraw-history--withdraw_data
+             *
              * @param {string} $code unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch withdrawals for
              * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
@@ -2605,7 +2766,7 @@ class bitrue extends Exchange {
                 '6' => 'canceled',
             ),
         );
-        $statuses = $this->safe_value($statusesByType, $type, array());
+        $statuses = $this->safe_dict($statusesByType, $type, array());
         return $this->safe_string($statuses, $status, $status);
     }
 
@@ -2736,11 +2897,13 @@ class bitrue extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
+             *
              * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#withdraw-commit--withdraw_data
+             *
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to
@@ -2799,7 +2962,7 @@ class bitrue extends Exchange {
         //       "chainDetail" => [ [Object] ]
         //   }
         //
-        $chainDetails = $this->safe_value($fee, 'chainDetail', array());
+        $chainDetails = $this->safe_list($fee, 'chainDetail', array());
         $chainDetailLength = count($chainDetails);
         $result = array(
             'info' => $fee,
@@ -2836,7 +2999,9 @@ class bitrue extends Exchange {
         return Async\async(function () use ($codes, $params) {
             /**
              * fetch deposit and withdraw fees
+             *
              * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
+             *
              * @param {string[]|null} $codes list of unified currency $codes
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
@@ -2890,8 +3055,10 @@ class bitrue extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch a history of internal transfers made on an account
+             *
              * @see https://www.bitrue.com/api-docs#get-future-account-transfer-history-list-user_data-hmac-sha256
              * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#get-future-account-transfer-history-list-user_data-hmac-sha256
+             *
              * @param {string} $code unified $currency $code of the $currency transferred
              * @param {int} [$since] the earliest time in ms to fetch transfers for
              * @param {int} [$limit] the maximum number of transfers structures to retrieve
@@ -2947,8 +3114,10 @@ class bitrue extends Exchange {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account
+             *
              * @see https://www.bitrue.com/api-docs#new-future-account-transfer-user_data-hmac-sha256
              * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#user-commission-rate-user_data-hmac-sha256
+             *
              * @param {string} $code unified $currency $code
              * @param {float} $amount amount to transfer
              * @param {string} $fromAccount account to transfer from
@@ -2958,7 +3127,7 @@ class bitrue extends Exchange {
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
-            $accountTypes = $this->safe_value($this->options, 'accountsByType', array());
+            $accountTypes = $this->safe_dict($this->options, 'accountsByType', array());
             $fromId = $this->safe_string($accountTypes, $fromAccount, $fromAccount);
             $toId = $this->safe_string($accountTypes, $toAccount, $toAccount);
             $request = array(
@@ -2983,8 +3152,10 @@ class bitrue extends Exchange {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market
+             *
              * @see https://www.bitrue.com/api-docs#change-initial-$leverage-trade-hmac-sha256
              * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#change-initial-$leverage-trade-hmac-sha256
+             *
              * @param {float} $leverage the rate of $leverage
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3043,8 +3214,10 @@ class bitrue extends Exchange {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * Either adds or reduces margin in an isolated position in order to set the margin to a specific value
+             *
              * @see https://www.bitrue.com/api-docs#modify-isolated-position-margin-trade-hmac-sha256
              * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#modify-isolated-position-margin-trade-hmac-sha256
+             *
              * @param {string} $symbol unified $market $symbol of the $market to set margin in
              * @param {float} $amount the $amount to set the margin to
              * @param {array} [$params] parameters specific to the exchange API endpoint
@@ -3081,7 +3254,7 @@ class bitrue extends Exchange {
         $version = $this->safe_string($api, 1);
         $access = $this->safe_string($api, 2);
         $url = null;
-        if ($type === 'api' && $version === 'kline') {
+        if (($type === 'api' && $version === 'kline') || ($type === 'open' && mb_strpos($path, 'listenKey') !== false)) {
             $url = $this->urls['api'][$type];
         } else {
             $url = $this->urls['api'][$type] . '/' . $version;
@@ -3091,7 +3264,7 @@ class bitrue extends Exchange {
         if ($access === 'private') {
             $this->check_required_credentials();
             $recvWindow = $this->safe_integer($this->options, 'recvWindow', 5000);
-            if ($type === 'spot') {
+            if ($type === 'spot' || $type === 'open') {
                 $query = $this->urlencode($this->extend(array(
                     'timestamp' => $this->nonce(),
                     'recvWindow' => $recvWindow,

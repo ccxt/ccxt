@@ -6,10 +6,9 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Balances, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
-from typing import Any
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -22,7 +21,7 @@ from ccxt.base.precise import Precise
 
 class bitget(ccxt.async_support.bitget):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(bitget, self).describe(), {
             'has': {
                 'ws': True,
@@ -53,6 +52,10 @@ class bitget(ccxt.async_support.bitget):
                         'public': 'wss://ws.bitget.com/v2/ws/public',
                         'private': 'wss://ws.bitget.com/v2/ws/private',
                     },
+                    'demo': {
+                        'public': 'wss://wspap.bitget.com/v2/ws/public',
+                        'private': 'wss://wspap.bitget.com/v2/ws/private',
+                    },
                 },
             },
             'options': {
@@ -73,6 +76,9 @@ class bitget(ccxt.async_support.bitget):
                 },
                 'watchOrderBook': {
                     'checksum': True,
+                },
+                'watchTrades': {
+                    'ignoreDuplicates': True,
                 },
             },
             'streaming': {
@@ -116,8 +122,10 @@ class bitget(ccxt.async_support.bitget):
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://www.bitget.com/api-doc/spot/websocket/public/Tickers-Channel
-        :see: https://www.bitget.com/api-doc/contract/websocket/public/Tickers-Channel
+
+        https://www.bitget.com/api-doc/spot/websocket/public/Tickers-Channel
+        https://www.bitget.com/api-doc/contract/websocket/public/Tickers-Channel
+
         :param str symbol: unified symbol of the market to watch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -138,9 +146,12 @@ class bitget(ccxt.async_support.bitget):
     async def un_watch_ticker(self, symbol: str, params={}) -> Any:
         """
         unsubscribe from the ticker channel
-        :see: https://www.bitget.com/api-doc/spot/websocket/public/Tickers-Channel
-        :see: https://www.bitget.com/api-doc/contract/websocket/public/Tickers-Channel
+
+        https://www.bitget.com/api-doc/spot/websocket/public/Tickers-Channel
+        https://www.bitget.com/api-doc/contract/websocket/public/Tickers-Channel
+
         :param str symbol: unified symbol of the market to unwatch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns any: status of the unwatch request
         """
         await self.load_markets()
@@ -149,8 +160,10 @@ class bitget(ccxt.async_support.bitget):
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-        :see: https://www.bitget.com/api-doc/spot/websocket/public/Tickers-Channel
-        :see: https://www.bitget.com/api-doc/contract/websocket/public/Tickers-Channel
+
+        https://www.bitget.com/api-doc/spot/websocket/public/Tickers-Channel
+        https://www.bitget.com/api-doc/contract/websocket/public/Tickers-Channel
+
         :param str[] symbols: unified symbol of the market to watch the tickers for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -324,8 +337,10 @@ class bitget(ccxt.async_support.bitget):
 
     async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
         """
-        :see: https://www.bitget.com/api-doc/spot/websocket/public/Tickers-Channel
-        :see: https://www.bitget.com/api-doc/contract/websocket/public/Tickers-Channel
+
+        https://www.bitget.com/api-doc/spot/websocket/public/Tickers-Channel
+        https://www.bitget.com/api-doc/contract/websocket/public/Tickers-Channel
+
         watches best bid & ask for symbols
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -385,8 +400,10 @@ class bitget(ccxt.async_support.bitget):
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, close price, and the volume of a market
-        :see: https://www.bitget.com/api-doc/spot/websocket/public/Candlesticks-Channel
-        :see: https://www.bitget.com/api-doc/contract/websocket/public/Candlesticks-Channel
+
+        https://www.bitget.com/api-doc/spot/websocket/public/Candlesticks-Channel
+        https://www.bitget.com/api-doc/contract/websocket/public/Candlesticks-Channel
+
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -415,9 +432,13 @@ class bitget(ccxt.async_support.bitget):
     async def un_watch_ohlcv(self, symbol: str, timeframe='1m', params={}) -> Any:
         """
         unsubscribe from the ohlcv channel
-        :see: https://www.bitget.com/api-doc/spot/websocket/public/Candlesticks-Channel
-        :see: https://www.bitget.com/api-doc/contract/websocket/public/Candlesticks-Channel
+
+        https://www.bitget.com/api-doc/spot/websocket/public/Candlesticks-Channel
+        https://www.bitget.com/api-doc/contract/websocket/public/Candlesticks-Channel
+
         :param str symbol: unified symbol of the market to unwatch the ohlcv for
+        :param str [timeframe]: the period for the ratio, default is 1 minute
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
@@ -509,8 +530,10 @@ class bitget(ccxt.async_support.bitget):
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
-        :see: https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
+
+        https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
+        https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -521,9 +544,12 @@ class bitget(ccxt.async_support.bitget):
     async def un_watch_order_book(self, symbol: str, params={}) -> Any:
         """
         unsubscribe from the orderbook channel
-        :see: https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
-        :see: https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
+
+        https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
+        https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
+
         :param str symbol: unified symbol of the market to fetch the order book for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.limit]: orderbook limit, default is None
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
@@ -551,8 +577,10 @@ class bitget(ccxt.async_support.bitget):
     async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
-        :see: https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
+
+        https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
+        https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
+
         :param str[] symbols: unified array of symbols
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -642,7 +670,7 @@ class bitget(ccxt.async_support.bitget):
             self.handle_deltas(storedOrderBook['bids'], bids)
             storedOrderBook['timestamp'] = timestamp
             storedOrderBook['datetime'] = self.iso8601(timestamp)
-            checksum = self.safe_bool(self.options, 'checksum', True)
+            checksum = self.handle_option('watchOrderBook', 'checksum', True)
             isSnapshot = self.safe_string(message, 'action') == 'snapshot'  # snapshot does not have a checksum
             if not isSnapshot and checksum:
                 storedAsks = storedOrderBook['asks']
@@ -693,8 +721,10 @@ class bitget(ccxt.async_support.bitget):
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://www.bitget.com/api-doc/spot/websocket/public/Trades-Channel
-        :see: https://www.bitget.com/api-doc/contract/websocket/public/New-Trades-Channel
+
+        https://www.bitget.com/api-doc/spot/websocket/public/Trades-Channel
+        https://www.bitget.com/api-doc/contract/websocket/public/New-Trades-Channel
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -706,9 +736,11 @@ class bitget(ccxt.async_support.bitget):
     async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://www.bitget.com/api-doc/spot/websocket/public/Trades-Channel
-        :see: https://www.bitget.com/api-doc/contract/websocket/public/New-Trades-Channel
-        :param str symbol: unified symbol of the market to fetch trades for
+
+        https://www.bitget.com/api-doc/spot/websocket/public/Trades-Channel
+        https://www.bitget.com/api-doc/contract/websocket/public/New-Trades-Channel
+
+        :param str[] symbols: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -738,14 +770,22 @@ class bitget(ccxt.async_support.bitget):
             first = self.safe_value(trades, 0)
             tradeSymbol = self.safe_string(first, 'symbol')
             limit = trades.getLimit(tradeSymbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        result = self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        if self.handle_option('watchTrades', 'ignoreDuplicates', True):
+            filtered = self.remove_repeated_trades_from_array(result)
+            filtered = self.sort_by(filtered, 'timestamp')
+            return filtered
+        return result
 
     async def un_watch_trades(self, symbol: str, params={}) -> Any:
         """
         unsubscribe from the trades channel
-        :see: https://www.bitget.com/api-doc/spot/websocket/public/Trades-Channel
-        :see: https://www.bitget.com/api-doc/contract/websocket/public/New-Trades-Channel
+
+        https://www.bitget.com/api-doc/spot/websocket/public/Trades-Channel
+        https://www.bitget.com/api-doc/contract/websocket/public/New-Trades-Channel
+
         :param str symbol: unified symbol of the market to unwatch the trades for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns any: status of the unwatch request
         """
         await self.load_markets()
@@ -883,8 +923,12 @@ class bitget(ccxt.async_support.bitget):
     async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
         """
         watch all open positions
-        :see: https://www.bitget.com/api-doc/contract/websocket/private/Positions-Channel
+
+        https://www.bitget.com/api-doc/contract/websocket/private/Positions-Channel
+
         :param str[]|None symbols: list of unified market symbols
+        :param int [since]: the earliest time in ms to fetch positions for
+        :param int [limit]: the maximum number of positions to retrieve
         :param dict params: extra parameters specific to the exchange API endpoint
         :param str [params.instType]: one of 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES', default is 'USDT-FUTURES'
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
@@ -951,13 +995,11 @@ class bitget(ccxt.async_support.bitget):
         instType = self.safe_string(arg, 'instType', '')
         if self.positions is None:
             self.positions = {}
-        if not (instType in self.positions):
+        action = self.safe_string(message, 'action')
+        if not (instType in self.positions) or (action == 'snapshot'):
             self.positions[instType] = ArrayCacheBySymbolBySide()
         cache = self.positions[instType]
         rawPositions = self.safe_value(message, 'data', [])
-        dataLength = len(rawPositions)
-        if dataLength == 0:
-            return
         newPositions = []
         for i in range(0, len(rawPositions)):
             rawPosition = rawPositions[i]
@@ -1046,16 +1088,18 @@ class bitget(ccxt.async_support.bitget):
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         watches information on multiple orders made by the user
-        :see: https://www.bitget.com/api-doc/spot/websocket/private/Order-Channel
-        :see: https://www.bitget.com/api-doc/contract/websocket/private/Order-Channel
-        :see: https://www.bitget.com/api-doc/contract/websocket/private/Plan-Order-Channel
-        :see: https://www.bitget.com/api-doc/margin/cross/websocket/private/Cross-Orders
-        :see: https://www.bitget.com/api-doc/margin/isolated/websocket/private/Isolate-Orders
+
+        https://www.bitget.com/api-doc/spot/websocket/private/Order-Channel
+        https://www.bitget.com/api-doc/contract/websocket/private/Order-Channel
+        https://www.bitget.com/api-doc/contract/websocket/private/Plan-Order-Channel
+        https://www.bitget.com/api-doc/margin/cross/websocket/private/Cross-Orders
+        https://www.bitget.com/api-doc/margin/isolated/websocket/private/Isolate-Orders
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.stop]: *contract only* set to True for watching trigger orders
+        :param boolean [params.trigger]: *contract only* set to True for watching trigger orders
         :param str [params.marginMode]: 'isolated' or 'cross' for watching spot margin orders]
         :param str [params.type]: 'spot', 'swap'
         :param str [params.subType]: 'linear', 'inverse'
@@ -1093,7 +1137,7 @@ class bitget(ccxt.async_support.bitget):
             instType = 'SPOT'
         else:
             instType, params = self.get_inst_type(market, params)
-        if type == 'spot':
+        if type == 'spot' and (symbol is not None):
             subscriptionHash = subscriptionHash + ':' + symbol
         if isTrigger:
             subscriptionHash = subscriptionHash + ':stop'  # we don't want to re-use the same subscription hash for stop orders
@@ -1421,7 +1465,9 @@ class bitget(ccxt.async_support.bitget):
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         watches trades made by the user
-        :see: https://www.bitget.com/api-doc/contract/websocket/private/Order-Channel
+
+        https://www.bitget.com/api-doc/contract/websocket/private/Order-Channel
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
@@ -1544,10 +1590,12 @@ class bitget(ccxt.async_support.bitget):
     async def watch_balance(self, params={}) -> Balances:
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://www.bitget.com/api-doc/spot/websocket/private/Account-Channel
-        :see: https://www.bitget.com/api-doc/contract/websocket/private/Account-Channel
-        :see: https://www.bitget.com/api-doc/margin/cross/websocket/private/Margin-Cross-Account-Assets
-        :see: https://www.bitget.com/api-doc/margin/isolated/websocket/private/Margin-isolated-account-assets
+
+        https://www.bitget.com/api-doc/spot/websocket/private/Account-Channel
+        https://www.bitget.com/api-doc/contract/websocket/private/Account-Channel
+        https://www.bitget.com/api-doc/margin/cross/websocket/private/Margin-Cross-Account-Assets
+        https://www.bitget.com/api-doc/margin/isolated/websocket/private/Margin-isolated-account-assets
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: spot or contract if not provided self.options['defaultType'] is used
         :param str [params.instType]: one of 'SPOT', 'MARGIN', 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
@@ -1661,6 +1709,11 @@ class bitget(ccxt.async_support.bitget):
 
     async def watch_public(self, messageHash, args, params={}):
         url = self.urls['api']['ws']['public']
+        sandboxMode = self.safe_bool_2(self.options, 'sandboxMode', 'sandbox', False)
+        if sandboxMode:
+            instType = self.safe_string(args, 'instType')
+            if (instType != 'SCOIN-FUTURES') and (instType != 'SUSDT-FUTURES') and (instType != 'SUSDC-FUTURES'):
+                url = self.urls['api']['demo']['public']
         request: dict = {
             'op': 'subscribe',
             'args': [args],
@@ -1670,6 +1723,11 @@ class bitget(ccxt.async_support.bitget):
 
     async def un_watch_public(self, messageHash, args, params={}):
         url = self.urls['api']['ws']['public']
+        sandboxMode = self.safe_bool_2(self.options, 'sandboxMode', 'sandbox', False)
+        if sandboxMode:
+            instType = self.safe_string(args, 'instType')
+            if (instType != 'SCOIN-FUTURES') and (instType != 'SUSDT-FUTURES') and (instType != 'SUSDC-FUTURES'):
+                url = self.urls['api']['demo']['public']
         request: dict = {
             'op': 'unsubscribe',
             'args': [args],
@@ -1679,6 +1737,12 @@ class bitget(ccxt.async_support.bitget):
 
     async def watch_public_multiple(self, messageHashes, argsArray, params={}):
         url = self.urls['api']['ws']['public']
+        sandboxMode = self.safe_bool_2(self.options, 'sandboxMode', 'sandbox', False)
+        if sandboxMode:
+            argsArrayFirst = self.safe_dict(argsArray, 0, {})
+            instType = self.safe_string(argsArrayFirst, 'instType')
+            if (instType != 'SCOIN-FUTURES') and (instType != 'SUSDT-FUTURES') and (instType != 'SUSDC-FUTURES'):
+                url = self.urls['api']['demo']['public']
         request: dict = {
             'op': 'subscribe',
             'args': argsArray,
@@ -1688,7 +1752,7 @@ class bitget(ccxt.async_support.bitget):
 
     async def authenticate(self, params={}):
         self.check_required_credentials()
-        url = self.urls['api']['ws']['private']
+        url = self.safe_string(params, 'url')
         client = self.client(url)
         messageHash = 'authenticated'
         future = client.future(messageHash)
@@ -1714,8 +1778,13 @@ class bitget(ccxt.async_support.bitget):
         return await future
 
     async def watch_private(self, messageHash, subscriptionHash, args, params={}):
-        await self.authenticate()
         url = self.urls['api']['ws']['private']
+        sandboxMode = self.safe_bool_2(self.options, 'sandboxMode', 'sandbox', False)
+        if sandboxMode:
+            instType = self.safe_string(args, 'instType')
+            if (instType != 'SCOIN-FUTURES') and (instType != 'SUSDT-FUTURES') and (instType != 'SUSDC-FUTURES'):
+                url = self.urls['api']['demo']['private']
+        await self.authenticate({'url': url})
         request: dict = {
             'op': 'subscribe',
             'args': [args],
@@ -1879,7 +1948,7 @@ class bitget(ccxt.async_support.bitget):
             del client.subscriptions[subMessageHash]
         if messageHash in client.subscriptions:
             del client.subscriptions[messageHash]
-        error = UnsubscribeError(self.id + 'orderbook ' + symbol)
+        error = UnsubscribeError(self.id + ' orderbook ' + symbol)
         client.reject(error, subMessageHash)
         client.resolve(True, messageHash)
 
@@ -1901,7 +1970,7 @@ class bitget(ccxt.async_support.bitget):
             del client.subscriptions[subMessageHash]
         if messageHash in client.subscriptions:
             del client.subscriptions[messageHash]
-        error = UnsubscribeError(self.id + 'trades ' + symbol)
+        error = UnsubscribeError(self.id + ' trades ' + symbol)
         client.reject(error, subMessageHash)
         client.resolve(True, messageHash)
 
@@ -1923,7 +1992,7 @@ class bitget(ccxt.async_support.bitget):
             del client.subscriptions[subMessageHash]
         if messageHash in client.subscriptions:
             del client.subscriptions[messageHash]
-        error = UnsubscribeError(self.id + 'ticker ' + symbol)
+        error = UnsubscribeError(self.id + ' ticker ' + symbol)
         client.reject(error, subMessageHash)
         client.resolve(True, messageHash)
 

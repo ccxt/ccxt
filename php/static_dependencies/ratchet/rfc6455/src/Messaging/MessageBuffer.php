@@ -93,13 +93,13 @@ class MessageBuffer {
     function __construct(
         CloseFrameChecker $frameChecker,
         callable $onMessage,
-        callable $onControl = null,
+        ?callable $onControl = null,
         $expectMask = true,
         $exceptionFactory = null,
         $maxMessagePayloadSize = null, // null for default - zero for no limit
         $maxFramePayloadSize = null,   // null for default - zero for no limit
-        callable $sender = null,
-        PermessageDeflateOptions $permessageDeflateOptions = null
+        ?callable $sender = null,
+        ?PermessageDeflateOptions $permessageDeflateOptions = null
     ) {
         $this->closeFrameChecker = $frameChecker;
         $this->checkForMask = (bool)$expectMask;

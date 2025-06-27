@@ -950,6 +950,132 @@
                   }
                 }
               }
+        ],
+        "fetchBorrowInterest": [
+          {
+            "description": "fetch borrow interest",
+            "method": "fetchBorrowInterest",
+            "input": [
+              "USDT",
+              "BTC/USDT",
+              null,
+              3
+            ],
+            "httpResponse": {
+              "data": [
+                {
+                  "borrow_id": 13784021,
+                  "created_at": 1716435948000,
+                  "market": "BTCUSDT",
+                  "ccy": "USDT",
+                  "daily_interest_rate": "0.001",
+                  "expired_at": 1717299948000,
+                  "borrow_amount": "60",
+                  "to_repaied_amount": "0",
+                  "is_auto_renew": false,
+                  "status": "finish"
+                },
+                {
+                  "borrow_id": 2642934,
+                  "created_at": 1654761016000,
+                  "market": "BTCUSDT",
+                  "ccy": "USDT",
+                  "daily_interest_rate": "0.001",
+                  "expired_at": 1655625016000,
+                  "borrow_amount": "100",
+                  "to_repaied_amount": "0",
+                  "is_auto_renew": false,
+                  "status": "finish"
+                },
+                {
+                  "borrow_id": 2642914,
+                  "created_at": 1654760611000,
+                  "market": "BTCUSDT",
+                  "ccy": "USDT",
+                  "daily_interest_rate": "0.001",
+                  "expired_at": 1655624611000,
+                  "borrow_amount": "100",
+                  "to_repaied_amount": "0",
+                  "is_auto_renew": false,
+                  "status": "finish"
+                }
+              ],
+              "pagination": {
+                "total": 5,
+                "has_next": true
+              },
+              "code": 0,
+              "message": "OK"
+            },
+            "parsedResponse": [
+              {
+                "info": {
+                  "borrow_id": 13784021,
+                  "created_at": 1716435948000,
+                  "market": "BTCUSDT",
+                  "ccy": "USDT",
+                  "daily_interest_rate": "0.001",
+                  "expired_at": 1717299948000,
+                  "borrow_amount": "60",
+                  "to_repaied_amount": "0",
+                  "is_auto_renew": false,
+                  "status": "finish"
+                },
+                "symbol": "BTC/USDT",
+                "currency": "USDT",
+                "interest": 0,
+                "interestRate": 0.001,
+                "amountBorrowed": 60,
+                "marginMode": "isolated",
+                "timestamp": 1717299948000,
+                "datetime": "2024-06-02T03:45:48.000Z"
+              },
+              {
+                "info": {
+                  "borrow_id": 2642934,
+                  "created_at": 1654761016000,
+                  "market": "BTCUSDT",
+                  "ccy": "USDT",
+                  "daily_interest_rate": "0.001",
+                  "expired_at": 1655625016000,
+                  "borrow_amount": "100",
+                  "to_repaied_amount": "0",
+                  "is_auto_renew": false,
+                  "status": "finish"
+                },
+                "symbol": "BTC/USDT",
+                "currency": "USDT",
+                "interest": 0,
+                "interestRate": 0.001,
+                "amountBorrowed": 100,
+                "marginMode": "isolated",
+                "timestamp": 1655625016000,
+                "datetime": "2022-06-19T07:50:16.000Z"
+              },
+              {
+                "info": {
+                  "borrow_id": 2642914,
+                  "created_at": 1654760611000,
+                  "market": "BTCUSDT",
+                  "ccy": "USDT",
+                  "daily_interest_rate": "0.001",
+                  "expired_at": 1655624611000,
+                  "borrow_amount": "100",
+                  "to_repaied_amount": "0",
+                  "is_auto_renew": false,
+                  "status": "finish"
+                },
+                "symbol": "BTC/USDT",
+                "currency": "USDT",
+                "interest": 0,
+                "interestRate": 0.001,
+                "amountBorrowed": 100,
+                "marginMode": "isolated",
+                "timestamp": 1655624611000,
+                "datetime": "2022-06-19T07:43:31.000Z"
+              }
+            ]
+          }
         ]
     }
 }
