@@ -268,9 +268,6 @@ export default class bitmex extends Exchange {
                     'useOpenTimestamp': true,
                     'autocorrectOpenPrice': true,
                 },
-                'watchOHLCV': {
-                    'autocorrectOpenPrice': true,
-                },
                 'oldPrecision': false,
                 'networks': {
                     'BTC': 'btc',
