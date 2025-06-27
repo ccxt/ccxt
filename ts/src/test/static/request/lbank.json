@@ -9,6 +9,7 @@
     "methods": {
         "fetchCurrencies": [
             {
+                "disabled": true,
                 "description": "fetchCurrencies",
                 "method": "fetchCurrencies",
                 "url": "https://api.lbank.info/v2/withdrawConfigs.do",
