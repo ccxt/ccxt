@@ -1395,14 +1395,14 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
     }
 
     // ---------------------------------------------------------------------------------------------
-    transpileWsOrderbookTestsTogo (outDir: string) {
+    transpileWsOrderbookTestsToGo (outDir: string) {
 
         const jsFile = './ts/src/pro/test/base/test.OrderBook.ts';
         const goFile = `${outDir}/Orderbook.go`;
 
         log.magenta ('Transpiling from', (jsFile as any).yellow)
 
-        const go = this.transpiler.transpilegoByPath(jsFile);
+        const go = this.transpiler.transpileGoByPath(jsFile);
         let content = go.content;
         const splitParts = content.split('// --------------------------------------------------------------------------------------------------------------------');
         splitParts.shift();
@@ -1435,14 +1435,14 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
     }
 
     // ---------------------------------------------------------------------------------------------
-    transpileWsCacheTestsTogo (outDir: string) {
+    transpileWsCacheTestsToGo (outDir: string) {
 
         const jsFile = './ts/src/pro/test/base/test.Cache.ts';
         const goFile = `${outDir}/Cache.go`;
 
         log.magenta ('Transpiling from', (jsFile as any).yellow)
 
-        const go = this.transpiler.transpilegoByPath(jsFile);
+        const go = this.transpiler.transpileGoByPath(jsFile);
         let content = go.content;
         const splitParts = content.split('// ----------------------------------------------------------------------------');
         splitParts.shift();
@@ -1505,7 +1505,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
     }
 
     transpileExchangeTest(name: string, path: string): [string, string] {
-        const go = this.transpiler.transpilegoByPath(path);
+        const go = this.transpiler.transpileGoByPath(path);
         let content = go.content;
 
         const parsedName = name.replace('.ts', '');
@@ -1536,7 +1536,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
         return [finalName, file];
     }
 
-    async transpileExchangeTestsTogo() {
+    async transpileExchangeTestsToGo() {
         const inputDir = './ts/src/test/exchange/';
         // @ts-expect-error
         const outDir = GENERATED_TESTS_FOLDER;
@@ -1557,8 +1557,8 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
         const outDir = BASE_TESTS_FOLDER;
         this.transpileBaseTests(outDir);
         this.transpileCryptoTestsToGo(outDir);
-        // this.transpileWsCacheTestsTogo(outDir);
-        // this.transpileWsOrderbookTestsTogo(outDir);
+        // this.transpileWsCacheTestsToGo(outDir);
+        // this.transpileWsOrderbookTestsToGo(outDir);
     }
 
     transpileBaseTests (outDir: string) {
