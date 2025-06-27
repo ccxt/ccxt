@@ -948,7 +948,9 @@
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "messed codes",
-                "limits": "max should be above min"
+                "limits": "max should be above min",
+                "taker": "undefined",
+                "maker": "undefined"
             },
             "fetchCurrencies": {
                 "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/268371892#L2559"
