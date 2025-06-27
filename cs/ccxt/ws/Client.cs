@@ -408,6 +408,7 @@ public partial class Exchange
 
         public async Task Close()
         {
+            // [WS cleanup]
             if (this.webSocket.State == WebSocketState.Open)
             {
                 try
@@ -428,6 +429,8 @@ public partial class Exchange
 
                 }
             }
+            // [REST cleanup]
+            // todo
         }
     }
 
