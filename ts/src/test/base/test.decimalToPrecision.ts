@@ -361,20 +361,21 @@ function testDecimalToPrecision () {
 
     // Very high precision values
     assert (exchange.decimalToPrecision ('1.123456789012345', TRUNCATE, 15, DECIMAL_PLACES) === '1.123456789012345');
-    assert (exchange.decimalToPrecision ('1.123456789012345', TRUNCATE, 10, DECIMAL_PLACES) === '1.1234567890');
+    assert (exchange.decimalToPrecision ('1.123456789012345', TRUNCATE, 10, DECIMAL_PLACES) === '1.123456789');
+    assert (exchange.decimalToPrecision ('1.123456789012345', TRUNCATE, 10, DECIMAL_PLACES, PAD_WITH_ZERO) === '1.1234567890');
     assert (exchange.decimalToPrecision ('0.123456789012345', TRUNCATE, 15, SIGNIFICANT_DIGITS) === '0.123456789012345');
 
     // Mixed large and small components
     assert (exchange.decimalToPrecision ('1000000.000001', TRUNCATE, 6, DECIMAL_PLACES) === '1000000.000001');
-    assert (exchange.decimalToPrecision ('1000000.000001', TRUNCATE, 5, DECIMAL_PLACES) === '1000000.00000');
-    assert (exchange.decimalToPrecision ('1000000.000001', ROUND, 5, DECIMAL_PLACES) === '1000000.00000');
+    assert (exchange.decimalToPrecision ('1000000.000001', TRUNCATE, 5, DECIMAL_PLACES, PAD_WITH_ZERO) === '1000000.00000');
+    assert (exchange.decimalToPrecision ('1000000.000001', ROUND, 5, DECIMAL_PLACES, PAD_WITH_ZERO) === '1000000.00000');
 
     // Edge cases around 1.0 boundary for significant digits
     assert (exchange.decimalToPrecision ('0.999999', ROUND, 1, SIGNIFICANT_DIGITS) === '1');
-    assert (exchange.decimalToPrecision ('0.999999', ROUND, 2, SIGNIFICANT_DIGITS) === '1.0');
-    assert (exchange.decimalToPrecision ('0.999999', ROUND, 3, SIGNIFICANT_DIGITS) === '1.00');
+    assert (exchange.decimalToPrecision ('0.999999', ROUND, 2, SIGNIFICANT_DIGITS, PAD_WITH_ZERO) === '1.0');
+    assert (exchange.decimalToPrecision ('0.999999', ROUND, 3, SIGNIFICANT_DIGITS, PAD_WITH_ZERO) === '1.00');
     assert (exchange.decimalToPrecision ('0.999949', ROUND, 4, SIGNIFICANT_DIGITS) === '0.9999');
-    assert (exchange.decimalToPrecision ('0.999951', ROUND, 4, SIGNIFICANT_DIGITS) === '1.000');
+    assert (exchange.decimalToPrecision ('0.999951', ROUND, 4, SIGNIFICANT_DIGITS, PAD_WITH_ZERO) === '1.000');
 
     // ----------------------------------------------------------------------------
 
