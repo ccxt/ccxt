@@ -49,16 +49,23 @@ function test_ticker($exchange, $skipped_properties, $method, $entry, $symbol) {
     if ($symbol_for_market !== null && (is_array($exchange->markets) && array_key_exists($symbol_for_market, $exchange->markets))) {
         $market = $exchange->market($symbol_for_market);
     }
-    assert_greater($exchange, $skipped_properties, $method, $entry, 'open', '0');
-    assert_greater($exchange, $skipped_properties, $method, $entry, 'high', '0');
-    assert_greater($exchange, $skipped_properties, $method, $entry, 'low', '0');
-    assert_greater($exchange, $skipped_properties, $method, $entry, 'close', '0');
-    assert_greater($exchange, $skipped_properties, $method, $entry, 'ask', '0');
+    $exchange_has_index_markets = $exchange->safe_bool($exchange->has, 'index', false);
+    $is_standard_market = ($market !== null && $exchange->in_array($market['type'], ['spot', 'swap', 'future', 'option']));
+    // only check "above zero" values if exchange is not supposed to have exotic index markets
+    $values_should_be_positive = $is_standard_market || ($market === null && !$exchange_has_index_markets);
+    if ($values_should_be_positive) {
+        assert_greater($exchange, $skipped_properties, $method, $entry, 'open', '0');
+        assert_greater($exchange, $skipped_properties, $method, $entry, 'high', '0');
+        assert_greater($exchange, $skipped_properties, $method, $entry, 'low', '0');
+        assert_greater($exchange, $skipped_properties, $method, $entry, 'close', '0');
+        assert_greater($exchange, $skipped_properties, $method, $entry, 'ask', '0');
+        assert_greater($exchange, $skipped_properties, $method, $entry, 'bid', '0');
+        assert_greater($exchange, $skipped_properties, $method, $entry, 'average', '0');
+        assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'vwap', '0');
+    }
+    // volume can not be negative
     assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'askVolume', '0');
-    assert_greater($exchange, $skipped_properties, $method, $entry, 'bid', '0');
     assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'bidVolume', '0');
-    assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'vwap', '0');
-    assert_greater($exchange, $skipped_properties, $method, $entry, 'average', '0');
     assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'baseVolume', '0');
     assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'quoteVolume', '0');
     $last_string = $exchange->safe_string($entry, 'last');
@@ -98,7 +105,7 @@ function test_ticker($exchange, $skipped_properties, $method, $entry, $symbol) {
         // assert (low !== undefined, 'vwap is defined, but low is not' + logText);
         // assert (vwap >= low && vwap <= high)
         // todo: calc compare
-        assert(Precise::string_ge($vwap, '0'), 'vwap is not greater than zero' . $log_text);
+        assert(!$values_should_be_positive || Precise::string_ge($vwap, '0'), 'vwap is not greater than zero' . $log_text);
         if ($base_volume !== null) {
             assert($quote_volume !== null, 'baseVolume & vwap is defined, but quoteVolume is not' . $log_text);
         }

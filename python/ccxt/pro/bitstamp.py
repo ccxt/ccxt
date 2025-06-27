@@ -502,7 +502,7 @@ class bitstamp(ccxt.async_support.bitstamp):
             #
             sessionToken = self.safe_string(response, 'token')
             if sessionToken is not None:
-                userId = self.safe_number(response, 'user_id')
+                userId = self.safe_string(response, 'user_id')
                 validity = self.safe_integer_product(response, 'valid_sec', 1000)
                 self.options['expiresIn'] = self.sum(time, validity)
                 self.options['userId'] = userId

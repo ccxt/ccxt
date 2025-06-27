@@ -682,8 +682,9 @@ export default class exmo extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies (params = {}): Promise<Currencies> {
+        const promises = [];
         //
-        const currencyList = await this.publicGetCurrencyListExtended (params);
+        promises.push (this.publicGetCurrencyListExtended (params));
         //
         //     [
         //         {"name":"VLX","description":"Velas"},
@@ -692,7 +693,7 @@ export default class exmo extends Exchange {
         //         {"name":"USD","description":"US Dollar"}
         //     ]
         //
-        const cryptoList = await this.publicGetPaymentsProvidersCryptoList (params);
+        promises.push (this.publicGetPaymentsProvidersCryptoList (params));
         //
         //     {
         //         "BTC":[
@@ -717,6 +718,9 @@ export default class exmo extends Exchange {
         //         ],
         //     }
         //
+        const responses = await Promise.all (promises);
+        const currencyList = responses[0];
+        const cryptoList = responses[1];
         const result: Dict = {};
         for (let i = 0; i < currencyList.length; i++) {
             const currency = currencyList[i];
@@ -779,6 +783,10 @@ export default class exmo extends Exchange {
                 }
             }
             const code = this.safeCurrencyCode (currencyId);
+            const info = {
+                'currency': currency,
+                'providers': providers,
+            };
             result[code] = {
                 'id': currencyId,
                 'code': code,
@@ -790,7 +798,7 @@ export default class exmo extends Exchange {
                 'fee': fee,
                 'precision': this.parseNumber ('1e-8'),
                 'limits': limits,
-                'info': providers,
+                'info': info,
                 'networks': {},
             };
         }

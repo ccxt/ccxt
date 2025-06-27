@@ -360,7 +360,6 @@ export default class bybit extends bybitRest {
     unWatchOrders(symbol?: Str, params?: {}): Promise<any>;
     handleOrderWs(client: Client, message: any): void;
     handleOrder(client: Client, message: any): void;
-    parseWsSpotOrder(order: any, market?: any): Order;
     /**
      * @method
      * @name bybit#watchBalance

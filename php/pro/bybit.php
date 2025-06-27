@@ -1960,12 +1960,12 @@ class bybit extends \ccxt\async\bybit {
         }
         $symbols = array();
         for ($i = 0; $i < count($rawOrders); $i++) {
-            $parsed = null;
-            if ($isSpot) {
-                $parsed = $this->parse_ws_spot_order($rawOrders[$i]);
-            } else {
-                $parsed = $this->parse_order($rawOrders[$i]);
-            }
+            $parsed = $this->parse_order($rawOrders[$i]);
+            // if ($isSpot) {
+            //     $parsed = $this->parseWsSpotOrder ($rawOrders[$i]);
+            // } else {
+            //     $parsed = $this->parse_order($rawOrders[$i]);
+            // }
             $symbol = $parsed['symbol'];
             $symbols[$symbol] = true;
             $orders->append ($parsed);
@@ -1977,142 +1977,6 @@ class bybit extends \ccxt\async\bybit {
         }
         $messageHash = 'orders';
         $client->resolve ($orders, $messageHash);
-    }
-
-    public function parse_ws_spot_order($order, $market = null) {
-        //
-        //    {
-        //        "e" => "executionReport",
-        //        "E" => "1653297251061", // $timestamp
-        //        "s" => "LTCUSDT", // $symbol
-        //        "c" => "1653297250740", // user $id
-        //        "S" => "SELL", // $side
-        //        "o" => "MARKET_OF_BASE", // $order $type
-        //        "f" => "GTC", // time in force
-        //        "q" => "0.16233", // quantity
-        //        "p" => "0", // $price
-        //        "X" => "NEW", // $status
-        //        "i" => "1162336018974750208", // $order $id
-        //        "M" => "0",
-        //        "l" => "0", // last $filled
-        //        "z" => "0", // total $filled
-        //        "L" => "0", // last traded $price
-        //        "n" => "0", // trading $fee
-        //        "N" => '', // $fee asset
-        //        "u" => true,
-        //        "w" => true,
-        //        "m" => false, // is limit_maker
-        //        "O" => "1653297251042", // $order creation
-        //        "Z" => "0", // total $filled
-        //        "A" => "0", // account $id
-        //        "C" => false, // is close
-        //        "v" => "0", // leverage
-        //        "d" => "NO_LIQ"
-        //    }
-        // v5
-        //    {
-        //        "category":"spot",
-        //        "symbol":"LTCUSDT",
-        //        "orderId":"1474764674982492160",
-        //        "orderLinkId":"1690541649154749",
-        //        "blockTradeId":"",
-        //        "side":"Buy",
-        //        "positionIdx":0,
-        //        "orderStatus":"Cancelled",
-        //        "cancelType":"UNKNOWN",
-        //        "rejectReason":"EC_NoError",
-        //        "timeInForce":"GTC",
-        //        "isLeverage":"0",
-        //        "price":"0",
-        //        "qty":"5.00000",
-        //        "avgPrice":"0",
-        //        "leavesQty":"0.00000",
-        //        "leavesValue":"5.0000000",
-        //        "cumExecQty":"0.00000",
-        //        "cumExecValue":"0.0000000",
-        //        "cumExecFee":"",
-        //        "orderType":"Market",
-        //        "stopOrderType":"",
-        //        "orderIv":"",
-        //        "triggerPrice":"0.000",
-        //        "takeProfit":"",
-        //        "stopLoss":"",
-        //        "triggerBy":"",
-        //        "tpTriggerBy":"",
-        //        "slTriggerBy":"",
-        //        "triggerDirection":0,
-        //        "placeType":"",
-        //        "lastPriceOnCreated":"0.000",
-        //        "closeOnTrigger":false,
-        //        "reduceOnly":false,
-        //        "smpGroup":0,
-        //        "smpType":"None",
-        //        "smpOrderId":"",
-        //        "createdTime":"1690541649160",
-        //        "updatedTime":"1690541649168"
-        //     }
-        //
-        $id = $this->safe_string_2($order, 'i', 'orderId');
-        $marketId = $this->safe_string_2($order, 's', 'symbol');
-        $symbol = $this->safe_symbol($marketId, $market, null, 'spot');
-        $timestamp = $this->safe_integer_2($order, 'O', 'createdTime');
-        $price = $this->safe_string_2($order, 'p', 'price');
-        if ($price === '0') {
-            $price = null; // $market orders
-        }
-        $filled = $this->safe_string_2($order, 'z', 'cumExecQty');
-        $status = $this->parse_order_status($this->safe_string_2($order, 'X', 'orderStatus'));
-        $side = $this->safe_string_lower_2($order, 'S', 'side');
-        $lastTradeTimestamp = $this->safe_string_2($order, 'E', 'updatedTime');
-        $timeInForce = $this->safe_string_2($order, 'f', 'timeInForce');
-        $amount = null;
-        $cost = $this->safe_string_2($order, 'Z', 'cumExecValue');
-        $type = $this->safe_string_lower_2($order, 'o', 'orderType');
-        if (($type !== null) && (mb_strpos($type, 'market') !== false)) {
-            $type = 'market';
-        }
-        if ($type === 'market' && $side === 'buy') {
-            $amount = $filled;
-        } else {
-            $amount = $this->safe_string_2($order, 'orderQty', 'qty');
-        }
-        $fee = null;
-        $feeCost = $this->safe_string_2($order, 'n', 'cumExecFee');
-        if ($feeCost !== null && $feeCost !== '0') {
-            $feeCurrencyId = $this->safe_string($order, 'N');
-            $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
-            $fee = array(
-                'cost' => $feeCost,
-                'currency' => $feeCurrencyCode,
-            );
-        }
-        $triggerPrice = $this->omit_zero($this->safe_string($order, 'triggerPrice'));
-        return $this->safe_order(array(
-            'info' => $order,
-            'id' => $id,
-            'clientOrderId' => $this->safe_string_2($order, 'c', 'orderLinkId'),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'lastTradeTimestamp' => $lastTradeTimestamp,
-            'symbol' => $symbol,
-            'type' => $type,
-            'timeInForce' => $timeInForce,
-            'postOnly' => null,
-            'side' => $side,
-            'price' => $price,
-            'stopPrice' => $triggerPrice,
-            'triggerPrice' => $triggerPrice,
-            'takeProfitPrice' => $this->safe_string($order, 'takeProfit'),
-            'stopLossPrice' => $this->safe_string($order, 'stopLoss'),
-            'reduceOnly' => $this->safe_value($order, 'reduceOnly'),
-            'amount' => $amount,
-            'cost' => $cost,
-            'average' => $this->safe_string($order, 'avgPrice'),
-            'filled' => $filled,
-            'remaining' => null,
-            'status' => $status,
-            'fee' => $fee,
-        ), $market);
     }
 
     public function watch_balance($params = array ()): PromiseInterface {

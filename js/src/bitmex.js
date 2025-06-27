@@ -93,6 +93,7 @@ export default class bitmex extends Exchange {
                 'fetchTransactions': 'emulated',
                 'fetchTransfer': false,
                 'fetchTransfers': false,
+                'index': true,
                 'reduceMargin': undefined,
                 'sandbox': true,
                 'setLeverage': true,
