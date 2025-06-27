@@ -138,26 +138,21 @@ const _decimalToPrecision = (
         const newNumPrecisionDigits = precisionFromString (precisionDigitsString);
         
         if (roundingMode === TRUNCATE) {
-            const remainder = Number(x) % numPrecisionDigits;
-            const tolerance = numPrecisionDigits * 1e-10; // More appropriate tolerance
-            // we skip below manipulations if value is already a valid multiple of tick size
-            if (Math.abs(remainder) > tolerance && Math.abs(remainder - numPrecisionDigits) >= tolerance) {
-                // For truncate mode, avoid floating-point errors by using integer arithmetic
-                // Convert to appropriate scale to work with integers
-                const scale = Math.pow(10, Math.max(newNumPrecisionDigits, 10));
-                const xScaled = Math.round(Number(x) * scale);
-                const tickScaled = Math.round(numPrecisionDigits * scale);
-                // Perform truncation in integer space
-                const ticks = Math.trunc(xScaled / tickScaled);
-                const resultScaled = ticks * tickScaled;
-                // Convert back to decimal
-                x = resultScaled / scale;
+            const scale = Math.pow (10, Math.max (newNumPrecisionDigits, 10));
+            const xScaled = Math.round (Number(x) * scale);
+            const tickScaled = Math.round (numPrecisionDigits * scale);
+
+            // Simpler remainder check
+            const remainder = xScaled % tickScaled;
+            if (remainder !== 0) {
+                const ticks = Math.trunc (xScaled / tickScaled);
+                x = (ticks * tickScaled) / scale;
+            } else {
+                x = xScaled / scale;
             }
+
             if (paddingMode === NO_PADDING) {
-                if (typeof x !== 'string') {
-                    x = x.toFixed(newNumPrecisionDigits);
-                }
-                return String(Number(x)); // or parseFloat
+                return String (Number (x.toFixed (newNumPrecisionDigits)));
             }
             return _decimalToPrecision (x, ROUND, newNumPrecisionDigits, DECIMAL_PLACES, paddingMode)
         }
