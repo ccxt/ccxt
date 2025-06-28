@@ -513,7 +513,7 @@
                         "numericId": null,
                         "code": "USDT",
                         "precision": 0.000001,
-                        "type": null,
+                        "type": "crypto",
                         "name": "Tether USD",
                         "active": true,
                         "deposit": true,
