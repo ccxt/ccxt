@@ -9320,7 +9320,7 @@ func  (this *Exchange) ConvertExpireDateToMarketIdDate(date interface{}) interfa
     return reconstructedDate
 }
 func  (this *Exchange) ConvertMarketIdExpireDate(date interface{}) interface{}  {
-    // parse 03JAN24 to 240103
+    // parse 03JAN24 to 240103.
     var monthMappping interface{} = map[string]interface{} {
         "JAN": "01",
         "FEB": "02",

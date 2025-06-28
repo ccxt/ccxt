@@ -6798,7 +6798,7 @@ class Exchange(object):
         return reconstructedDate
 
     def convert_market_id_expire_date(self, date: str):
-        # parse 03JAN24 to 240103
+        # parse 03JAN24 to 240103.
         monthMappping = {
             'JAN': '01',
             'FEB': '02',

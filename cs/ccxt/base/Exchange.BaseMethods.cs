@@ -7546,7 +7546,7 @@ public partial class Exchange
 
     public virtual object convertMarketIdExpireDate(object date)
     {
-        // parse 03JAN24 to 240103
+        // parse 03JAN24 to 240103.
         object monthMappping = new Dictionary<string, object>() {
             { "JAN", "01" },
             { "FEB", "02" },

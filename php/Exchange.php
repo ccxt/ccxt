@@ -8242,7 +8242,7 @@ class Exchange {
     }
 
     public function convert_market_id_expire_date(string $date) {
-        // parse 03JAN24 to 240103
+        // parse 03JAN24 to 240103.
         $monthMappping = array(
             'JAN' => '01',
             'FEB' => '02',
