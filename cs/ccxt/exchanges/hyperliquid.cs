@@ -38,6 +38,7 @@ public partial class hyperliquid : Exchange
                 { "createMarketSellOrderWithCost", false },
                 { "createOrder", true },
                 { "createOrders", true },
+                { "createOrderWithTakeProfitAndStopLoss", true },
                 { "createReduceOnlyOrder", true },
                 { "createStopOrder", true },
                 { "createTriggerOrder", true },
@@ -219,7 +220,16 @@ public partial class hyperliquid : Exchange
                         { "triggerDirection", false },
                         { "stopLossPrice", false },
                         { "takeProfitPrice", false },
-                        { "attachedStopLossTakeProfit", null },
+                        { "attachedStopLossTakeProfit", new Dictionary<string, object>() {
+                            { "triggerPriceType", new Dictionary<string, object>() {
+                                { "last", false },
+                                { "mark", false },
+                                { "index", false },
+                            } },
+                            { "triggerPrice", true },
+                            { "type", true },
+                            { "price", true },
+                        } },
                         { "timeInForce", new Dictionary<string, object>() {
                             { "IOC", true },
                             { "FOK", false },
@@ -1532,6 +1542,82 @@ public partial class hyperliquid : Exchange
         return this.parseOrders(statuses, null);
     }
 
+    public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object market = this.market(symbol);
+        type = ((string)type).ToUpper();
+        side = ((string)side).ToUpper();
+        object isMarket = (isEqual(type, "MARKET"));
+        object isBuy = (isEqual(side, "BUY"));
+        object clientOrderId = this.safeString2(parameters, "clientOrderId", "client_id");
+        object slippage = this.safeString(parameters, "slippage");
+        object defaultTimeInForce = ((bool) isTrue((isMarket))) ? "ioc" : "gtc";
+        object postOnly = this.safeBool(parameters, "postOnly", false);
+        if (isTrue(postOnly))
+        {
+            defaultTimeInForce = "alo";
+        }
+        object timeInForce = this.safeStringLower(parameters, "timeInForce", defaultTimeInForce);
+        timeInForce = this.capitalize(timeInForce);
+        object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
+        object stopLossPrice = this.safeString(parameters, "stopLossPrice", triggerPrice);
+        object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
+        object isTrigger = (isTrue(stopLossPrice) || isTrue(takeProfitPrice));
+        object px = null;
+        if (isTrue(isMarket))
+        {
+            if (isTrue(isEqual(price, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, "  market orders require price to calculate the max slippage price. Default slippage can be set in options (default is 5%).")) ;
+            }
+            px = ((bool) isTrue((isBuy))) ? Precise.stringMul(price, Precise.stringAdd("1", slippage)) : Precise.stringMul(price, Precise.stringSub("1", slippage));
+            px = this.priceToPrecision(symbol, px); // round after adding slippage
+        } else
+        {
+            px = this.priceToPrecision(symbol, price);
+        }
+        object sz = this.amountToPrecision(symbol, amount);
+        object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
+        object orderType = new Dictionary<string, object>() {};
+        if (isTrue(isTrigger))
+        {
+            object isTp = false;
+            if (isTrue(!isEqual(takeProfitPrice, null)))
+            {
+                triggerPrice = this.priceToPrecision(symbol, takeProfitPrice);
+                isTp = true;
+            } else
+            {
+                triggerPrice = this.priceToPrecision(symbol, stopLossPrice);
+            }
+            ((IDictionary<string,object>)orderType)["trigger"] = new Dictionary<string, object>() {
+                { "isMarket", isMarket },
+                { "triggerPx", triggerPrice },
+                { "tpsl", ((bool) isTrue((isTp))) ? "tp" : "sl" },
+            };
+        } else
+        {
+            ((IDictionary<string,object>)orderType)["limit"] = new Dictionary<string, object>() {
+                { "tif", timeInForce },
+            };
+        }
+        parameters = this.omit(parameters, new List<object>() {"clientOrderId", "slippage", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "timeInForce", "client_id", "reduceOnly", "postOnly"});
+        object orderObj = new Dictionary<string, object>() {
+            { "a", this.parseToInt(getValue(market, "baseId")) },
+            { "b", isBuy },
+            { "p", px },
+            { "s", sz },
+            { "r", reduceOnly },
+            { "t", orderType },
+        };
+        if (isTrue(!isEqual(clientOrderId, null)))
+        {
+            ((IDictionary<string,object>)orderObj)["c"] = clientOrderId;
+        }
+        return orderObj;
+    }
+
     public virtual object createOrdersRequest(object orders, object parameters = null)
     {
         /**
@@ -1573,6 +1659,7 @@ public partial class hyperliquid : Exchange
         parameters = this.omit(parameters, new List<object>() {"slippage", "clientOrderId", "client_id", "slippage", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "timeInForce"});
         object nonce = this.milliseconds();
         object orderReq = new List<object>() {};
+        object grouping = "na";
         for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object rawOrder = getValue(orders, i);
@@ -1580,78 +1667,54 @@ public partial class hyperliquid : Exchange
             object market = this.market(marketId);
             object symbol = getValue(market, "symbol");
             object type = this.safeStringUpper(rawOrder, "type");
-            object isMarket = (isEqual(type, "MARKET"));
             object side = this.safeStringUpper(rawOrder, "side");
-            object isBuy = (isEqual(side, "BUY"));
             object amount = this.safeString(rawOrder, "amount");
             object price = this.safeString(rawOrder, "price");
             object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
-            object clientOrderId = this.safeString2(orderParams, "clientOrderId", "client_id");
             object slippage = this.safeString(orderParams, "slippage", defaultSlippage);
-            object defaultTimeInForce = ((bool) isTrue((isMarket))) ? "ioc" : "gtc";
-            object postOnly = this.safeBool(orderParams, "postOnly", false);
-            if (isTrue(postOnly))
-            {
-                defaultTimeInForce = "alo";
-            }
-            object timeInForce = this.safeStringLower(orderParams, "timeInForce", defaultTimeInForce);
-            timeInForce = this.capitalize(timeInForce);
-            object triggerPrice = this.safeString2(orderParams, "triggerPrice", "stopPrice");
-            object stopLossPrice = this.safeString(orderParams, "stopLossPrice", triggerPrice);
-            object takeProfitPrice = this.safeString(orderParams, "takeProfitPrice");
-            object isTrigger = (isTrue(stopLossPrice) || isTrue(takeProfitPrice));
-            object px = null;
-            if (isTrue(isMarket))
-            {
-                if (isTrue(isEqual(price, null)))
-                {
-                    throw new ArgumentsRequired ((string)add(this.id, "  market orders require price to calculate the max slippage price. Default slippage can be set in options (default is 5%).")) ;
-                }
-                px = ((bool) isTrue((isBuy))) ? Precise.stringMul(price, Precise.stringAdd("1", slippage)) : Precise.stringMul(price, Precise.stringSub("1", slippage));
-                px = this.priceToPrecision(symbol, px); // round after adding slippage
-            } else
-            {
-                px = this.priceToPrecision(symbol, price);
-            }
-            object sz = this.amountToPrecision(symbol, amount);
-            object reduceOnly = this.safeBool(orderParams, "reduceOnly", false);
-            object orderType = new Dictionary<string, object>() {};
+            ((IDictionary<string,object>)orderParams)["slippage"] = slippage;
+            object stopLoss = this.safeValue(orderParams, "stopLoss");
+            object takeProfit = this.safeValue(orderParams, "takeProfit");
+            object isTrigger = (isTrue(stopLoss) || isTrue(takeProfit));
+            orderParams = this.omit(orderParams, new List<object>() {"stopLoss", "takeProfit"});
+            object mainOrderObj = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
+            ((IList<object>)orderReq).Add(mainOrderObj);
             if (isTrue(isTrigger))
             {
-                object isTp = false;
-                if (isTrue(!isEqual(takeProfitPrice, null)))
+                // grouping opposed orders for sl/tp
+                object stopLossOrderTriggerPrice = this.safeStringN(stopLoss, new List<object>() {"triggerPrice", "stopPrice"});
+                object stopLossOrderType = this.safeString(stopLoss, "type");
+                object stopLossOrderLimitPrice = this.safeStringN(stopLoss, new List<object>() {"price", "stopLossPrice"}, stopLossOrderTriggerPrice);
+                object takeProfitOrderTriggerPrice = this.safeStringN(takeProfit, new List<object>() {"triggerPrice", "stopPrice"});
+                object takeProfitOrderType = this.safeString(takeProfit, "type");
+                object takeProfitOrderLimitPrice = this.safeStringN(takeProfit, new List<object>() {"price", "takeProfitPrice"}, takeProfitOrderTriggerPrice);
+                grouping = "normalTpsl";
+                orderParams = this.omit(orderParams, new List<object>() {"stopLoss", "takeProfit"});
+                object triggerOrderSide = "";
+                if (isTrue(isEqual(side, "BUY")))
                 {
-                    triggerPrice = this.priceToPrecision(symbol, takeProfitPrice);
-                    isTp = true;
+                    triggerOrderSide = "sell";
                 } else
                 {
-                    triggerPrice = this.priceToPrecision(symbol, stopLossPrice);
+                    triggerOrderSide = "buy";
                 }
-                ((IDictionary<string,object>)orderType)["trigger"] = new Dictionary<string, object>() {
-                    { "isMarket", isMarket },
-                    { "triggerPx", triggerPrice },
-                    { "tpsl", ((bool) isTrue((isTp))) ? "tp" : "sl" },
-                };
-            } else
-            {
-                ((IDictionary<string,object>)orderType)["limit"] = new Dictionary<string, object>() {
-                    { "tif", timeInForce },
-                };
+                if (isTrue(!isEqual(takeProfit, null)))
+                {
+                    object orderObj = this.createOrderRequest(symbol, takeProfitOrderType, triggerOrderSide, amount, takeProfitOrderLimitPrice, this.extend(orderParams, new Dictionary<string, object>() {
+                        { "takeProfitPrice", takeProfitOrderTriggerPrice },
+                        { "reduceOnly", true },
+                    }));
+                    ((IList<object>)orderReq).Add(orderObj);
+                }
+                if (isTrue(!isEqual(stopLoss, null)))
+                {
+                    object orderObj = this.createOrderRequest(symbol, stopLossOrderType, triggerOrderSide, amount, stopLossOrderLimitPrice, this.extend(orderParams, new Dictionary<string, object>() {
+                        { "stopLossPrice", stopLossOrderTriggerPrice },
+                        { "reduceOnly", true },
+                    }));
+                    ((IList<object>)orderReq).Add(orderObj);
+                }
             }
-            orderParams = this.omit(orderParams, new List<object>() {"clientOrderId", "slippage", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "timeInForce", "client_id", "reduceOnly", "postOnly"});
-            object orderObj = new Dictionary<string, object>() {
-                { "a", this.parseToInt(getValue(market, "baseId")) },
-                { "b", isBuy },
-                { "p", px },
-                { "s", sz },
-                { "r", reduceOnly },
-                { "t", orderType },
-            };
-            if (isTrue(!isEqual(clientOrderId, null)))
-            {
-                ((IDictionary<string,object>)orderObj)["c"] = clientOrderId;
-            }
-            ((IList<object>)orderReq).Add(orderObj);
         }
         object vaultAddress = null;
         var vaultAddressparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "vaultAddress");
@@ -1661,7 +1724,7 @@ public partial class hyperliquid : Exchange
         object orderAction = new Dictionary<string, object>() {
             { "type", "order" },
             { "orders", orderReq },
-            { "grouping", "na" },
+            { "grouping", grouping },
         };
         if (isTrue(isEqual(vaultAddress, null)))
         {

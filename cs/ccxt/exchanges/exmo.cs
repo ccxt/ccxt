@@ -653,9 +653,10 @@ public partial class exmo : Exchange
      */
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
-        //
         parameters ??= new Dictionary<string, object>();
-        object currencyList = await this.publicGetCurrencyListExtended(parameters);
+        object promises = new List<object>() {};
+        //
+        ((IList<object>)promises).Add(this.publicGetCurrencyListExtended(parameters));
         //
         //     [
         //         {"name":"VLX","description":"Velas"},
@@ -664,7 +665,7 @@ public partial class exmo : Exchange
         //         {"name":"USD","description":"US Dollar"}
         //     ]
         //
-        object cryptoList = await this.publicGetPaymentsProvidersCryptoList(parameters);
+        ((IList<object>)promises).Add(this.publicGetPaymentsProvidersCryptoList(parameters));
         //
         //     {
         //         "BTC":[
@@ -689,6 +690,9 @@ public partial class exmo : Exchange
         //         ],
         //     }
         //
+        object responses = await promiseAll(promises);
+        object currencyList = getValue(responses, 0);
+        object cryptoList = getValue(responses, 1);
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(currencyList)); postFixIncrement(ref i))
         {
@@ -765,6 +769,10 @@ public partial class exmo : Exchange
                 }
             }
             object code = this.safeCurrencyCode(currencyId);
+            object info = new Dictionary<string, object>() {
+                { "currency", currency },
+                { "providers", providers },
+            };
             ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
                 { "id", currencyId },
                 { "code", code },
@@ -776,7 +784,7 @@ public partial class exmo : Exchange
                 { "fee", fee },
                 { "precision", this.parseNumber("1e-8") },
                 { "limits", limits },
-                { "info", providers },
+                { "info", info },
                 { "networks", new Dictionary<string, object>() {} },
             };
         }

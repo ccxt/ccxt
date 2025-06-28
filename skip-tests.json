@@ -908,7 +908,6 @@
                 "active":"is undefined"
             },
             "fetchCurrencies":{
-                "info":"null",
                 "withdraw":"not provided",
                 "deposit":"not provided",
                 "activeMajorCurrencies": "todo"
@@ -1262,7 +1261,9 @@
         "skipMethods": {
             "loadMarkets": "settle must be defined when contract is true",
             "fetchCurrencies":{
-                "activeMajorCurrencies": "todo"
+                "activeMajorCurrencies": "todo",
+                "deposit":"not provider",
+                "type":"not provided"
             },
             "ticker": {
                 "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing"
@@ -1271,7 +1272,8 @@
                 "timestamp": "ts several hours ahead in in future :)"
             },
             "orderBook": {
-                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269364330#L3612"
+                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269364330#L3612",
+                "compareToNextItem": "frequently failing: https://github.com/ccxt/ccxt/actions/runs/15869807959/job/44743669371?pr=26044#step:10:29"
             },
             "ohlcv": {
                 "1":"https://app.travis-ci.com/github/ccxt/ccxt/builds/272644155#L4669"
