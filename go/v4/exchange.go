@@ -176,6 +176,9 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 	if this.Options == nil {
 		this.Options = &sync.Map{} // by default sync.map is nil
 	}
+	if this.MarketsMutex == nil {
+		this.MarketsMutex = &sync.Mutex{}
+	}
 	describeValues := this.Describe()
 	if userConfig == nil {
 		userConfig = map[string]interface{}{}
