@@ -35,8 +35,8 @@ type IExchange interface {
 	GetUrls() interface{}
 	GetApi() map[string]interface{}
 	GetOptions() *sync.Map
-	GetCurrencies() map[string]interface{}
-	GetMarkets() map[string]interface{}
+	GetCurrencies() *sync.Map
+	GetMarkets() *sync.Map
 	CheckRequiredCredentials(optionalArgs ...interface{}) interface{}
 	Sleep(milliseconds interface{}) <-chan bool
 	Json(object interface{}) interface{}

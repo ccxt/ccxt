@@ -1138,6 +1138,14 @@ export default class Exchange {
         }
     }
 
+    mapToSafeMap(dict) {
+        return dict; // wrapper for go
+    }
+
+    safeMapToMap(dict) {
+        return dict; // wrapper for go
+    }
+
     spawn(method, ...args) {
         const future = Future();
         // using setTimeout 0 to force the execution to run after the future is returned
