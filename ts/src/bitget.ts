@@ -8464,8 +8464,10 @@ export default class bitget extends Exchange {
      * @name bitget#fetchOpenInterest
      * @description retrieves the open interest of a contract trading pair
      * @see https://www.bitget.com/api-doc/contract/market/Get-Open-Interest
+     * @see https://www.bitget.bike/api-doc/uta/public/Get-Open-Interest
      * @param {string} symbol unified CCXT market symbol
      * @param {object} [params] exchange specific parameters
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
      */
     async fetchOpenInterest (symbol: string, params = {}) {
@@ -8478,30 +8480,56 @@ export default class bitget extends Exchange {
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
         const request: Dict = {
             'symbol': market['id'],
-            'productType': productType,
         };
-        const response = await this.publicMixGetV2MixMarketOpenInterest (this.extend (request, params));
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1700866041022,
-        //         "data": {
-        //             "openInterestList": [
-        //                 {
-        //                     "symbol": "BTCUSDT",
-        //                     "size": "52234.134"
-        //                 }
-        //             ],
-        //             "ts": "1700866041023"
-        //         }
-        //     }
-        //
+        let uta = undefined;
+        let response = undefined;
+        [ uta, params ] = this.handleOptionAndParams (params, 'fetchOpenInterest', 'uta', false);
+        if (uta) {
+            request['category'] = productType;
+            response = await this.publicUtaGetV3MarketOpenInterest (this.extend (request, params));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1751101221545,
+            //         "data": {
+            //             "list": [
+            //                 {
+            //                     "symbol": "BTCUSDT",
+            //                     "openInterest": "18166.3583"
+            //                 }
+            //             ],
+            //             "ts": "1751101220993"
+            //         }
+            //     }
+            //
+        } else {
+            request['productType'] = productType;
+            response = await this.publicMixGetV2MixMarketOpenInterest (this.extend (request, params));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1700866041022,
+            //         "data": {
+            //             "openInterestList": [
+            //                 {
+            //                     "symbol": "BTCUSDT",
+            //                     "size": "52234.134"
+            //                 }
+            //             ],
+            //             "ts": "1700866041023"
+            //         }
+            //     }
+            //
+        }
         const data = this.safeDict (response, 'data', {});
         return this.parseOpenInterest (data, market);
     }
 
     parseOpenInterest (interest, market: Market = undefined) {
+        //
+        // default
         //
         //     {
         //         "openInterestList": [
@@ -8513,12 +8541,24 @@ export default class bitget extends Exchange {
         //         "ts": "1700866041023"
         //     }
         //
-        const data = this.safeValue (interest, 'openInterestList', []);
+        // uta
+        //
+        //     {
+        //         "list": [
+        //             {
+        //                 "symbol": "BTCUSDT",
+        //                 "openInterest": "18166.3583"
+        //             }
+        //         ],
+        //         "ts": "1751101220993"
+        //     }
+        //
+        const data = this.safeList2 (interest, 'openInterestList', 'list', []);
         const timestamp = this.safeInteger (interest, 'ts');
         const marketId = this.safeString (data[0], 'symbol');
         return this.safeOpenInterest ({
             'symbol': this.safeSymbol (marketId, market, undefined, 'contract'),
-            'openInterestAmount': this.safeNumber (data[0], 'size'),
+            'openInterestAmount': this.safeNumber2 (data[0], 'size', 'openInterest'),
             'openInterestValue': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),

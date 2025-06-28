@@ -5347,6 +5347,50 @@
                     }
                 ]
             }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "uta fetchOpenInterest",
+                "method": "fetchOpenInterest",
+                "input": [
+                    "BTC/USDT:USDT",
+                    {
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1751101221545",
+                    "data": {
+                        "list": [
+                            {
+                                "symbol": "BTCUSDT",
+                                "openInterest": "18166.3583"
+                            }
+                        ],
+                        "ts": "1751101220993"
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT:USDT",
+                    "openInterestAmount": 18166.3583,
+                    "openInterestValue": null,
+                    "timestamp": 1751101220993,
+                    "datetime": "2025-06-28T09:00:20.993Z",
+                    "info": {
+                        "list": [
+                            {
+                                "symbol": "BTCUSDT",
+                                "openInterest": "18166.3583"
+                            }
+                        ],
+                        "ts": "1751101220993"
+                    },
+                    "baseVolume": null,
+                    "quoteVolume": null
+                }
+            }
         ]
     }
 }

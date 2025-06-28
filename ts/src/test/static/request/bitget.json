@@ -1905,6 +1905,17 @@
                 "input": [
                     "BTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "uta fetchOpenInterest",
+                "method": "fetchOpenInterest",
+                "url": "https://api.bitget.com/api/v3/market/open-interest?symbol=BTCUSDT&category=USDT-FUTURES",
+                "input": [
+                    "BTC/USDT:USDT",
+                    {
+                        "uta": true
+                    }
+                ]
             }
         ],
         "fetchDepositAddress": [
