@@ -1515,6 +1515,12 @@ class Exchange(object):
         parts = re.sub(r'0+$', '', str).split('.')
         return len(parts[1]) if len(parts) > 1 else 0
 
+    def map_to_safe_map(self, dictionary):
+        return dictionary  # wrapper for go
+
+    def safe_map_to_map(self, dictionary):
+        return dictionary  # wrapper for go
+
     def load_markets(self, reload=False, params={}):
         """
         Loads and prepares the markets for trading.

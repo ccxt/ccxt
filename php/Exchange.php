@@ -612,6 +612,14 @@ class Exchange {
         return null;
     }
 
+     public static function map_to_safe_map($dictionary) {
+        return $dictionary;  // wrapper for go
+     }
+
+    public static function safe_map_to_map($dictionary) {
+        return $dictionary;  // wrapper for go
+    }
+
     public static function truncate($number, $precision = 0) {
         $decimal_precision = pow(10, $precision);
         return floor(floatval($number * $decimal_precision)) / $decimal_precision;

@@ -678,7 +678,7 @@ func  (this *bitvavo) ParseCurrenciesCustom(currencies interface{}) interface{} 
 }))
     }
     // set currencies here to avoid calling publicGetAssets twice
-    this.Currencies = this.DeepExtend(this.Currencies, result)
+    this.Currencies = this.MapToSafeMap(this.DeepExtend(this.Currencies, result))
     return result
 }
 /**

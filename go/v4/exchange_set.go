@@ -70,11 +70,11 @@ func (this *Exchange) GetApi() map[string]interface{} {
 	return this.Api
 }
 
-func (this *Exchange) GetCurrencies() map[string]interface{} {
+func (this *Exchange) GetCurrencies() *sync.Map {
 	return this.Currencies
 }
 
-func (this *Exchange) GetMarkets() map[string]interface{} {
+func (this *Exchange) GetMarkets() *sync.Map {
 	return this.Markets
 }
 
@@ -87,7 +87,7 @@ func (this *Exchange) SetWalletAddress(publicKey interface{}) {
 }
 
 func (this *Exchange) SetCurrencies(currencies interface{}) {
-	this.Currencies = currencies.(map[string]interface{})
+	this.Currencies = this.MapToSafeMap(currencies.(map[string]interface{}))
 }
 
 func (this *Exchange) SetPassword(password interface{}) {
@@ -129,7 +129,7 @@ func (this *Exchange) SetAccounts(accounts interface{}) {
 }
 
 func (this *Exchange) SetOptions(options interface{}) {
-	this.Options = this.MapToSyncMap(options.(map[string]interface{}))
+	this.Options = this.MapToSafeMap(options.(map[string]interface{}))
 }
 
 func (this *Exchange) SetWssProxy(wssProxy interface{}) {
