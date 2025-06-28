@@ -1,0 +1,141 @@
+{
+    "BTC/USDT:USDT": {
+        "active": true,
+        "base": "BTC",
+        "baseId": "BTC",
+        "contract": true,
+        "contractSize": 1,
+        "created": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "future": false,
+        "id": "BTCUSDT",
+        "index": null,
+        "info": {
+            "baseAsset": "BTC",
+            "baseAssetPrecision": "8",
+            "contractType": "PERPETUAL",
+            "deliveryDate": "4133404800000",
+            "filters": [
+                {
+                    "filterType": "PRICE_FILTER",
+                    "maxPrice": "1000000",
+                    "minPrice": "1",
+                    "tickSize": "0.1"
+                },
+                {
+                    "filterType": "LOT_SIZE",
+                    "maxQty": "100",
+                    "minQty": "0.001",
+                    "stepSize": "0.001"
+                },
+                {
+                    "filterType": "MARKET_LOT_SIZE",
+                    "maxQty": "10",
+                    "minQty": "0.001",
+                    "stepSize": "0.001"
+                },
+                {
+                    "filterType": "MAX_NUM_ORDERS",
+                    "limit": "200"
+                },
+                {
+                    "filterType": "MAX_NUM_ALGO_ORDERS",
+                    "limit": "10"
+                },
+                {
+                    "filterType": "MIN_NOTIONAL",
+                    "notional": "5"
+                },
+                {
+                    "filterType": "PERCENT_PRICE",
+                    "multiplierDecimal": "4",
+                    "multiplierDown": "0.9800",
+                    "multiplierUp": "1.0200"
+                }
+            ],
+            "liquidationFee": "0.025000",
+            "maintMarginPercent": "2.5000",
+            "marginAsset": "USDT",
+            "marketTakeBound": "0.02",
+            "onboardDate": "1627628400000",
+            "orderTypes": [
+                "LIMIT",
+                "MARKET",
+                "STOP",
+                "STOP_MARKET",
+                "TAKE_PROFIT",
+                "TAKE_PROFIT_MARKET",
+                "TRAILING_STOP_MARKET"
+            ],
+            "pair": "BTCUSDT",
+            "pricePrecision": "1",
+            "quantityPrecision": "3",
+            "quoteAsset": "USDT",
+            "quotePrecision": "8",
+            "requiredMarginPercent": "5.0000",
+            "settlePlan": "0",
+            "status": "TRADING",
+            "symbol": "BTCUSDT",
+            "timeInForce": [
+                "GTC",
+                "IOC",
+                "FOK",
+                "GTX",
+                "RPI"
+            ],
+            "triggerProtect": "0.0200",
+            "underlyingSubType": [],
+            "underlyingType": "COIN"
+        },
+        "inverse": false,
+        "limits": {
+            "amount": {
+                "max": null,
+                "min": null
+            },
+            "cost": {
+                "max": null,
+                "min": null
+            },
+            "leverage": {
+                "max": null,
+                "min": null
+            },
+            "price": {
+                "max": null,
+                "min": null
+            }
+        },
+        "linear": true,
+        "lowercaseId": null,
+        "maker": 0.0001,
+        "margin": false,
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "option": false,
+        "optionType": null,
+        "percentage": null,
+        "precision": {
+            "amount": 3.0,
+            "base": null,
+            "cost": null,
+            "price": 1.0,
+            "quote": null
+        },
+        "quote": "USDT",
+        "quoteId": "USDT",
+        "settle": "USDT",
+        "settleId": "USDT",
+        "spot": false,
+        "strike": null,
+        "subType": "linear",
+        "swap": true,
+        "symbol": "BTC/USDT:USDT",
+        "taker": 0.00035,
+        "tierBased": null,
+        "type": "swap"
+    }
+}
