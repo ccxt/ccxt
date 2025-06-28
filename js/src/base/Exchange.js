@@ -7033,7 +7033,7 @@ export default class Exchange {
         return reconstructedDate;
     }
     convertMarketIdExpireDate(date) {
-        // parse 03JAN24 to 240103
+        // parse 03JAN24 to 240103.
         const monthMappping = {
             'JAN': '01',
             'FEB': '02',
