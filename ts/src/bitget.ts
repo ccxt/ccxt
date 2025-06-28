@@ -3657,19 +3657,43 @@ export default class bitget extends Exchange {
         //         "ts": "1750413820344"
         //     }
         //
+        // uta fetchMyTrades
+        //
+        //     {
+        //         "execId": "1322441401010528257",
+        //         "orderId": "1322441400976261120",
+        //         "category": "USDT-FUTURES",
+        //         "symbol": "BTCUSDT",
+        //         "orderType": "market",
+        //         "side": "sell",
+        //         "execPrice": "107005.4",
+        //         "execQty": "0.0001",
+        //         "execValue": "10.7005",
+        //         "tradeScope": "taker",
+        //         "feeDetail": [{
+        //             "feeCoin": "USDT",
+        //             "fee":"0.00642032"
+        //         }],
+        //         "createdTime": "1751020520451",
+        //         "updatedTime": "1751020520458",
+        //         "execPnl": "0.00017"
+        //     }
+        //
         const marketId = this.safeString (trade, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const timestamp = this.safeInteger2 (trade, 'cTime', 'ts');
+        const timestamp = this.safeIntegerN (trade, [ 'cTime', 'ts', 'createdTime' ]);
         let fee = undefined;
         const feeDetail = this.safeValue (trade, 'feeDetail');
         const posMode = this.safeString (trade, 'posMode');
-        const feeStructure = (posMode !== undefined) ? feeDetail[0] : feeDetail;
+        const category = this.safeString (trade, 'category');
+        const isFeeStructure = (posMode !== undefined) || (category !== undefined);
+        const feeStructure = isFeeStructure ? feeDetail[0] : feeDetail;
         if (feeStructure !== undefined) {
             const currencyCode = this.safeCurrencyCode (this.safeString (feeStructure, 'feeCoin'));
             fee = {
                 'currency': currencyCode,
             };
-            const feeCostString = this.safeString (feeStructure, 'totalFee');
+            const feeCostString = this.safeString2 (feeStructure, 'totalFee', 'fee');
             const deduction = this.safeString (feeStructure, 'deduction') === 'yes' ? true : false;
             if (deduction) {
                 fee['cost'] = feeCostString;
@@ -3685,9 +3709,9 @@ export default class bitget extends Exchange {
             'side': this.safeStringLower (trade, 'side'),
             'type': this.safeString (trade, 'orderType'),
             'takerOrMaker': this.safeString (trade, 'tradeScope'),
-            'price': this.safeString2 (trade, 'priceAvg', 'price'),
-            'amount': this.safeString2 (trade, 'baseVolume', 'size'),
-            'cost': this.safeString2 (trade, 'quoteVolume', 'amount'),
+            'price': this.safeStringN (trade, [ 'priceAvg', 'price', 'execPrice' ]),
+            'amount': this.safeStringN (trade, [ 'baseVolume', 'size', 'execQty' ]),
+            'cost': this.safeStringN (trade, [ 'quoteVolume', 'amount', 'execValue' ]),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'fee': fee,
@@ -6998,39 +7022,25 @@ export default class bitget extends Exchange {
      * @see https://www.bitget.com/api-doc/contract/trade/Get-Order-Fills
      * @see https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Order-Fills
      * @see https://www.bitget.com/api-doc/margin/isolated/trade/Get-Isolated-Transaction-Details
+     * @see https://www.bitget.bike/api-doc/uta/trade/Get-Order-Fills
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch trades for
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        if (symbol === undefined) {
+        let uta = undefined;
+        [ uta, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'uta', false);
+        if (!uta && (symbol === undefined)) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let marginMode = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
-        if (paginate) {
-            let cursorReceived = undefined;
-            if (market['spot']) {
-                if (marginMode !== undefined) {
-                    cursorReceived = 'minId';
-                }
-            } else {
-                cursorReceived = 'endId';
-            }
-            return await this.fetchPaginatedCallCursor ('fetchMyTrades', symbol, since, limit, params, cursorReceived, 'idLessThan') as Trade[];
-        }
-        let response = undefined;
-        let request: Dict = {
-            'symbol': market['id'],
-        };
+        let request: Dict = {};
         [ request, params ] = this.handleUntilOption ('endTime', request, params);
         if (since !== undefined) {
             request['startTime'] = since;
@@ -7038,24 +7048,51 @@ export default class bitget extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        if (market['spot']) {
-            if (marginMode !== undefined) {
-                if (since === undefined) {
-                    request['startTime'] = this.milliseconds () - 7776000000;
-                }
-                if (marginMode === 'isolated') {
-                    response = await this.privateMarginGetV2MarginIsolatedFills (this.extend (request, params));
-                } else if (marginMode === 'cross') {
-                    response = await this.privateMarginGetV2MarginCrossedFills (this.extend (request, params));
+        let paginate = false;
+        let marginMode = undefined;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
+        if (paginate) {
+            let cursorReceived = undefined;
+            let cursorSent = undefined;
+            if (uta) {
+                cursorReceived = 'cursor';
+                cursorSent = 'cursor';
+            } else if (market['spot']) {
+                if (marginMode !== undefined) {
+                    cursorReceived = 'minId';
+                    cursorSent = 'idLessThan';
                 }
             } else {
-                response = await this.privateSpotGetV2SpotTradeFills (this.extend (request, params));
+                cursorReceived = 'endId';
+                cursorSent = 'idLessThan';
             }
+            return await this.fetchPaginatedCallCursor ('fetchMyTrades', symbol, since, limit, params, cursorReceived, cursorSent) as Trade[];
+        }
+        let response = undefined;
+        if (uta) {
+            response = await this.privateUtaGetV3TradeFills (this.extend (request, params));
         } else {
-            let productType = undefined;
-            [ productType, params ] = this.handleProductTypeAndParams (market, params);
-            request['productType'] = productType;
-            response = await this.privateMixGetV2MixOrderFills (this.extend (request, params));
+            request['symbol'] = market['id'];
+            if (market['spot']) {
+                if (marginMode !== undefined) {
+                    if (since === undefined) {
+                        request['startTime'] = this.milliseconds () - 7776000000;
+                    }
+                    if (marginMode === 'isolated') {
+                        response = await this.privateMarginGetV2MarginIsolatedFills (this.extend (request, params));
+                    } else if (marginMode === 'cross') {
+                        response = await this.privateMarginGetV2MarginCrossedFills (this.extend (request, params));
+                    }
+                } else {
+                    response = await this.privateSpotGetV2SpotTradeFills (this.extend (request, params));
+                }
+            } else {
+                let productType = undefined;
+                [ productType, params ] = this.handleProductTypeAndParams (market, params);
+                request['productType'] = productType;
+                response = await this.privateMixGetV2MixOrderFills (this.extend (request, params));
+            }
         }
         //
         // spot
@@ -7156,10 +7193,45 @@ export default class bitget extends Exchange {
         //         }
         //     }
         //
+        // uta
+        //
+        //      {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1751099666579,
+        //         "data": {
+        //             "list": [
+        //                 {
+        //                     "execId": "1322441401010528257",
+        //                     "orderId": "1322441400976261120",
+        //                     "category": "USDT-FUTURES",
+        //                     "symbol": "BTCUSDT",
+        //                     "orderType": "market",
+        //                     "side": "sell",
+        //                     "execPrice": "107005.4",
+        //                     "execQty": "0.0001",
+        //                     "execValue": "10.7005",
+        //                     "tradeScope": "taker",
+        //                     "feeDetail": [{
+        //                         "feeCoin": "USDT",
+        //                         "fee":"0.00642032"
+        //                     }],
+        //                     "createdTime": "1751020520451",
+        //                     "updatedTime": "1751020520458",
+        //                     "execPnl": "0.00017"
+        //                 },
+        //             ],
+        //             "cursor": "1322061241878880257"
+        //         }
+        //     }
+        //
         const data = this.safeValue (response, 'data');
-        if ((market['swap']) || (market['future'])) {
-            const fillList = this.safeList (data, 'fillList', []);
-            return this.parseTrades (fillList, market, since, limit);
+        if (uta) {
+            const fills = this.safeList (data, 'list', []);
+            return this.parseTrades (fills, market, since, limit);
+        } else if ((market['swap'] || (market['future']))) {
+            const fills = this.safeList (data, 'fillList', []);
+            return this.parseTrades (fills, market, since, limit);
         } else if (marginMode !== undefined) {
             const fills = this.safeList (data, 'fills', []);
             return this.parseTrades (fills, market, since, limit);

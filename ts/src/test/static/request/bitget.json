@@ -682,6 +682,19 @@
                         "marginMode": "isolated"
                     }
                 ]
+            },
+            {
+                "description": "uta swap fetchMyTrades",
+                "method": "fetchMyTrades",
+                "url": "https://api.bitget.com/api/v3/trade/fills",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "uta": true
+                    }
+                ]
             }
         ],
         "fetchOrder": [

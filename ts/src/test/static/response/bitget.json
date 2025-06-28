@@ -1473,6 +1473,160 @@
                         ]
                     }
                 ]
+            },
+            {
+                "description": "uta swap fetchMyTrades",
+                "method": "fetchMyTrades",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1751099666579",
+                    "data": {
+                        "list": [
+                            {
+                                "execId": "1322441401010528257",
+                                "orderId": "1322441400976261120",
+                                "category": "USDT-FUTURES",
+                                "symbol": "BTCUSDT",
+                                "orderType": "market",
+                                "side": "sell",
+                                "execPrice": "107005.4",
+                                "execQty": "0.0001",
+                                "execValue": "10.7005",
+                                "tradeScope": "taker",
+                                "feeDetail": [
+                                    {
+                                        "feeCoin": "USDT",
+                                        "fee": "0.00642032"
+                                    }
+                                ],
+                                "createdTime": "1751020520451",
+                                "updatedTime": "1751020520458",
+                                "execPnl": "0.00017"
+                            },
+                            {
+                                "execId": "1322441328600064001",
+                                "orderId": "1322441328569991168",
+                                "category": "USDT-FUTURES",
+                                "symbol": "BTCUSDT",
+                                "orderType": "market",
+                                "side": "buy",
+                                "execPrice": "107003.7",
+                                "execQty": "0.0001",
+                                "execValue": "10.7003",
+                                "tradeScope": "taker",
+                                "feeDetail": [
+                                    {
+                                        "feeCoin": "USDT",
+                                        "fee": "0.00642022"
+                                    }
+                                ],
+                                "createdTime": "1751020503187",
+                                "updatedTime": "1751020503195",
+                                "execPnl": "0"
+                            }
+                        ],
+                        "cursor": "1322061241878880257"
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "execId": "1322441328600064001",
+                            "orderId": "1322441328569991168",
+                            "category": "USDT-FUTURES",
+                            "symbol": "BTCUSDT",
+                            "orderType": "market",
+                            "side": "buy",
+                            "execPrice": "107003.7",
+                            "execQty": "0.0001",
+                            "execValue": "10.7003",
+                            "tradeScope": "taker",
+                            "feeDetail": [
+                                {
+                                    "feeCoin": "USDT",
+                                    "fee": "0.00642022"
+                                }
+                            ],
+                            "createdTime": "1751020503187",
+                            "updatedTime": "1751020503195",
+                            "execPnl": "0"
+                        },
+                        "id": "1322441328600064001",
+                        "order": "1322441328569991168",
+                        "symbol": "BTC/USDT:USDT",
+                        "side": "buy",
+                        "type": "market",
+                        "takerOrMaker": "taker",
+                        "price": 107003.7,
+                        "amount": 0.0001,
+                        "cost": 10.7003,
+                        "timestamp": 1751020503187,
+                        "datetime": "2025-06-27T10:35:03.187Z",
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": -0.00642022
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": -0.00642022
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "execId": "1322441401010528257",
+                            "orderId": "1322441400976261120",
+                            "category": "USDT-FUTURES",
+                            "symbol": "BTCUSDT",
+                            "orderType": "market",
+                            "side": "sell",
+                            "execPrice": "107005.4",
+                            "execQty": "0.0001",
+                            "execValue": "10.7005",
+                            "tradeScope": "taker",
+                            "feeDetail": [
+                                {
+                                    "feeCoin": "USDT",
+                                    "fee": "0.00642032"
+                                }
+                            ],
+                            "createdTime": "1751020520451",
+                            "updatedTime": "1751020520458",
+                            "execPnl": "0.00017"
+                        },
+                        "id": "1322441401010528257",
+                        "order": "1322441400976261120",
+                        "symbol": "BTC/USDT:USDT",
+                        "side": "sell",
+                        "type": "market",
+                        "takerOrMaker": "taker",
+                        "price": 107005.4,
+                        "amount": 0.0001,
+                        "cost": 10.7005,
+                        "timestamp": 1751020520451,
+                        "datetime": "2025-06-27T10:35:20.451Z",
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": -0.00642032
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": -0.00642032
+                            }
+                        ]
+                    }
+                ]
             }
         ],
         "fetchClosedOrders": [
