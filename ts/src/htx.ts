@@ -6692,7 +6692,7 @@ export default class htx extends Exchange {
         }
         amount = parseFloat (this.currencyToPrecision (code, amount, networkCode));
         const withdrawOptions = this.safeValue (this.options, 'withdraw', {});
-    if (this.safeBool (withdrawOptions, 'includeFee', false)) {
+        if (this.safeBool (withdrawOptions, 'includeFee', false)) {
             let fee = this.safeNumber (params, 'fee');
             if (fee === undefined) {
                 const currencies = await this.fetchCurrencies ();
