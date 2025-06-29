@@ -327,9 +327,9 @@ export default class derive extends deriveRest {
         if (topic in client.subscriptions) {
             delete client.subscriptions[topic];
         }
-        const error = new UnsubscribeError (this.id + ' orderbook ' + symbol);
-        client.reject (error, topic);
-        client.resolve (error, 'unwatch' + topic);
+        const err = new UnsubscribeError (this.id + ' orderbook ' + symbol);
+        client.reject (err, topic);
+        client.resolve (err, 'unwatch' + topic);
     }
 
     handleTradesUnSubscription (client: Client, topic) {
@@ -343,9 +343,9 @@ export default class derive extends deriveRest {
         if (topic in client.subscriptions) {
             delete client.subscriptions[topic];
         }
-        const error = new UnsubscribeError (this.id + ' trades ' + symbol);
-        client.reject (error, topic);
-        client.resolve (error, 'unwatch' + topic);
+        const err = new UnsubscribeError (this.id + ' trades ' + symbol);
+        client.reject (err, topic);
+        client.resolve (err, 'unwatch' + topic);
     }
 
     handleUnSubscribe (client: Client, message) {
@@ -682,15 +682,15 @@ export default class derive extends deriveRest {
                 throw new ExchangeError (feedback);
             }
             return false;
-        } catch (error) {
-            if (error instanceof AuthenticationError) {
+        } catch (e) {
+            if (e instanceof AuthenticationError) {
                 const messageHash = 'authenticated';
-                client.reject (error, messageHash);
+                client.reject (e, messageHash);
                 if (messageHash in client.subscriptions) {
                     delete client.subscriptions[messageHash];
                 }
             } else {
-                client.reject (error);
+                client.reject (e);
             }
             return true;
         }
@@ -758,8 +758,8 @@ export default class derive extends deriveRest {
             const future = this.safeValue (client.futures, 'authenticated');
             future.resolve (true);
         } else {
-            const error = new AuthenticationError (this.json (message));
-            client.reject (error, messageHash);
+            const err = new AuthenticationError (this.json (message));
+            client.reject (err, messageHash);
             // allows further authentication attempts
             if (messageHash in client.subscriptions) {
                 delete client.subscriptions['authenticated'];

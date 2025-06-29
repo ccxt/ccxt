@@ -3714,8 +3714,8 @@ export default class ascendex extends Exchange {
         //
         const code = this.safeString (response, 'code');
         const message = this.safeString (response, 'message');
-        const error = (code !== undefined) && (code !== '0');
-        if (error || (message !== undefined)) {
+        const err = (code !== undefined) && (code !== '0');
+        if (err || (message !== undefined)) {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);

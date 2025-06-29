@@ -3810,9 +3810,9 @@ export default class deribit extends Exchange {
         //         "usDiff": 36
         //     }
         //
-        const error = this.safeValue (response, 'error');
-        if (error !== undefined) {
-            const errorCode = this.safeString (error, 'code');
+        const err = this.safeValue (response, 'error');
+        if (err !== undefined) {
+            const errorCode = this.safeString (err, 'code');
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions, errorCode, feedback);
             throw new ExchangeError (feedback); // unknown message

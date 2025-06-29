@@ -964,9 +964,9 @@ export default class coincheck extends Exchange {
         //
         const success = this.safeBool (response, 'success', true);
         if (!success) {
-            const error = this.safeString (response, 'error');
+            const err = this.safeString (response, 'error');
             const feedback = this.id + ' ' + this.json (response);
-            this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], err, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
             throw new ExchangeError (this.id + ' ' + this.json (response));
         }

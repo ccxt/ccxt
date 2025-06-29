@@ -1370,8 +1370,8 @@ export default class hitbtc extends hitbtcRest {
             const future = this.safeValue (client.futures, messageHash);
             future.resolve (true);
         } else {
-            const error = new AuthenticationError (this.id + ' ' + this.json (message));
-            client.reject (error, messageHash);
+            const err = new AuthenticationError (this.id + ' ' + this.json (message));
+            client.reject (err, messageHash);
             if (messageHash in client.subscriptions) {
                 delete client.subscriptions[messageHash];
             }
@@ -1391,12 +1391,12 @@ export default class hitbtc extends hitbtcRest {
         //        id: 1700228604325
         //    }
         //
-        const error = this.safeValue (message, 'error');
-        if (error !== undefined) {
+        const err = this.safeValue (message, 'error');
+        if (err !== undefined) {
             try {
-                const code = this.safeValue (error, 'code');
-                const errorMessage = this.safeString (error, 'message');
-                const description = this.safeString (error, 'description');
+                const code = this.safeValue (err, 'code');
+                const errorMessage = this.safeString (err, 'message');
+                const description = this.safeString (err, 'description');
                 const feedback = this.id + ' ' + description;
                 this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
                 this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);

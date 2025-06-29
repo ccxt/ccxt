@@ -1909,9 +1909,9 @@ export default class bitopro extends Exchange {
             return undefined;
         }
         const feedback = this.id + ' ' + body;
-        const error = this.safeString (response, 'error');
-        this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
-        this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
+        const err = this.safeString (response, 'error');
+        this.throwExactlyMatchedException (this.exceptions['exact'], err, feedback);
+        this.throwBroadlyMatchedException (this.exceptions['broad'], err, feedback);
         throw new ExchangeError (feedback); // unknown message
     }
 }

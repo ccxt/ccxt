@@ -1482,19 +1482,19 @@ export default class cex extends cexRest {
         //
         try {
             const data = this.safeValue (message, 'data', {});
-            const error = this.safeString (data, 'error');
+            const err = this.safeString (data, 'error');
             const event = this.safeString (message, 'e', '');
-            const feedback = this.id + ' ' + event + ' ' + error;
-            this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
+            const feedback = this.id + ' ' + event + ' ' + err;
+            this.throwExactlyMatchedException (this.exceptions['exact'], err, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], err, feedback);
             throw new ExchangeError (feedback);
-        } catch (error) {
+        } catch (e) {
             const messageHash = this.safeString (message, 'oid');
             const future = this.safeValue (client['futures'], messageHash);
             if (future !== undefined) {
-                client.reject (error, messageHash);
+                client.reject (e, messageHash);
             } else {
-                throw error;
+                throw e;
             }
         }
     }
