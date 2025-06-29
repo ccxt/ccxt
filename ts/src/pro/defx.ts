@@ -671,13 +671,13 @@ export default class defx extends defxRest {
     }
 
     async authenticate (params = {}) {
-        const time = this.milliseconds ();
+        const now = this.milliseconds ();
         const lastAuthenticatedTime = this.safeInteger (this.options, 'lastAuthenticatedTime', 0);
         const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 3540000); // 1 hour
-        if (time - lastAuthenticatedTime > listenKeyRefreshRate) {
+        if (now - lastAuthenticatedTime > listenKeyRefreshRate) {
             const response = await this.v1PrivatePostApiUsersSocketListenKeys ();
             this.options['listenKey'] = this.safeString (response, 'listenKey');
-            this.options['lastAuthenticatedTime'] = time;
+            this.options['lastAuthenticatedTime'] = now;
             this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
         }
     }

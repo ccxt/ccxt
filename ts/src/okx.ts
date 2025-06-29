@@ -7679,8 +7679,8 @@ export default class okx extends Exchange {
         //
         const id = this.safeString (interest, 'instId');
         market = this.safeMarket (id, market);
-        const time = this.safeInteger (interest, 'ts');
-        const timestamp = this.safeInteger (interest, 0, time);
+        const ts = this.safeInteger (interest, 'ts');
+        const timestamp = this.safeInteger (interest, 0, ts);
         let baseVolume = undefined;
         let quoteVolume = undefined;
         let openInterestAmount = undefined;

@@ -7363,8 +7363,8 @@ export default class Exchange {
         [ maxEntriesPerRequest, params ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, params);
         const current = this.milliseconds ();
         const tasks = [];
-        const time = this.parseTimeframe (timeframe) * 1000;
-        const step = time * maxEntriesPerRequest;
+        const timestamp = this.parseTimeframe (timeframe) * 1000;
+        const step = timestamp * maxEntriesPerRequest;
         let currentSince = current - (maxCalls * step) - 1;
         if (since !== undefined) {
             currentSince = Math.max (currentSince, since);

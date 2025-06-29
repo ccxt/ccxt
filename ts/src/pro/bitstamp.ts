@@ -559,9 +559,9 @@ export default class bitstamp extends bitstampRest {
 
     async authenticate (params = {}) {
         this.checkRequiredCredentials ();
-        const time = this.milliseconds ();
+        const now = this.milliseconds ();
         const expiresIn = this.safeInteger (this.options, 'expiresIn');
-        if ((expiresIn === undefined) || (time > expiresIn)) {
+        if ((expiresIn === undefined) || (now > expiresIn)) {
             const response = await this.privatePostWebsocketsToken (params);
             //
             // {
@@ -574,7 +574,7 @@ export default class bitstamp extends bitstampRest {
             if (sessionToken !== undefined) {
                 const userId = this.safeString (response, 'user_id');
                 const validity = this.safeIntegerProduct (response, 'valid_sec', 1000);
-                this.options['expiresIn'] = this.sum (time, validity);
+                this.options['expiresIn'] = this.sum (now, validity);
                 this.options['userId'] = userId;
                 this.options['wsSessionToken'] = sessionToken;
             }
