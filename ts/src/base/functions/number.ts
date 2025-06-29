@@ -136,6 +136,18 @@ const _decimalToPrecision = (
     if (countingMode === TICK_SIZE) {
         const precisionDigitsString = _decimalToPrecision (numPrecisionDigits, ROUND, 22, DECIMAL_PLACES, NO_PADDING);
         const newNumPrecisionDigits = precisionFromString (precisionDigitsString);
+        
+        if (roundingMode === TRUNCATE) {
+            const scale = Math.pow (10, Math.max (newNumPrecisionDigits, 10));
+            const xScaled = Math.round (Number(x) * scale);
+            const tickScaled = Math.round (numPrecisionDigits * scale);
+            const ticks = Math.trunc (xScaled / tickScaled);
+            x = (ticks * tickScaled) / scale;
+            if (paddingMode === NO_PADDING) {
+                return String (Number (x.toFixed (newNumPrecisionDigits)));
+            }
+            return _decimalToPrecision (x, ROUND, newNumPrecisionDigits, DECIMAL_PLACES, paddingMode)
+        }
         let missing = x % numPrecisionDigits;
         // See: https://github.com/ccxt/ccxt/pull/6486
         missing = Number (_decimalToPrecision (missing, ROUND, 8, DECIMAL_PLACES, NO_PADDING));
@@ -155,8 +167,6 @@ const _decimalToPrecision = (
                         x = Number (x) - missing - numPrecisionDigits;
                     }
                 }
-            } else if (roundingMode === TRUNCATE) {
-                x = x - missing;
             }
         }
         return _decimalToPrecision (x, ROUND, newNumPrecisionDigits, DECIMAL_PLACES, paddingMode);
