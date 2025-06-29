@@ -1020,14 +1020,14 @@ export default class bit2c extends Exchange {
         //     { "error": "Please provide valid nonce in Request Nonce (1598218490) is not bigger than last nonce (1598218490)."}
         //     { "Error" : "No order found." }
         //
-        let error = this.safeString (response, 'error');
-        if (error === undefined) {
-            error = this.safeString (response, 'Error');
+        let err = this.safeString (response, 'error');
+        if (err === undefined) {
+            err = this.safeString (response, 'Error');
         }
-        if (error !== undefined) {
+        if (err !== undefined) {
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], err, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], err, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
         return undefined;

@@ -597,8 +597,8 @@ export default class woofipro extends woofiproRest {
             const future = this.safeValue (client.futures, 'authenticated');
             future.resolve (true);
         } else {
-            const error = new AuthenticationError (this.json (message));
-            client.reject (error, messageHash);
+            const err = new AuthenticationError (this.json (message));
+            client.reject (err, messageHash);
             // allows further authentication attempts
             if (messageHash in client.subscriptions) {
                 delete client.subscriptions['authenticated'];

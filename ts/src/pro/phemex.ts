@@ -1528,8 +1528,8 @@ export default class phemex extends phemexRest {
         if (status === 'success') {
             client.resolve (message, messageHash);
         } else {
-            const error = new AuthenticationError (this.id + ' ' + this.json (message));
-            client.reject (error, messageHash);
+            const err = new AuthenticationError (this.id + ' ' + this.json (message));
+            client.reject (err, messageHash);
             if (messageHash in client.subscriptions) {
                 delete client.subscriptions[messageHash];
             }

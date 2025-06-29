@@ -826,11 +826,11 @@ export default class hashkey extends hashkeyRest {
             await this.privatePutApiV1UserDataStream (this.extend (request, params));
             const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 1200000);
             this.delay (listenKeyRefreshRate, this.keepAliveListenKey, listenKey, params);
-        } catch (error) {
+        } catch (e) {
             const url = this.getPrivateUrl (listenKey);
             const client = this.client (url);
             this.options['listenKey'] = undefined;
-            client.reject (error);
+            client.reject (e);
             delete this.clients[url];
         }
     }

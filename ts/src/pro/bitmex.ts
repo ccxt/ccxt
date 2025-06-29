@@ -728,8 +728,8 @@ export default class bitmex extends bitmexRest {
             const future = this.safeValue (client.futures, messageHash);
             future.resolve (true);
         } else {
-            const error = new AuthenticationError (this.json (message));
-            client.reject (error, messageHash);
+            const err = new AuthenticationError (this.json (message));
+            client.reject (err, messageHash);
             if (messageHash in client.subscriptions) {
                 delete client.subscriptions[messageHash];
             }
@@ -1689,20 +1689,20 @@ export default class bitmex extends bitmexRest {
         //
         //     { "error": "Rate limit exceeded, retry in 29 seconds." }
         //
-        const error = this.safeString (message, 'error');
-        if (error !== undefined) {
+        const err = this.safeString (message, 'error');
+        if (err !== undefined) {
             const request = this.safeValue (message, 'request', {});
             const args = this.safeValue (request, 'args', []);
             const numArgs = args.length;
             if (numArgs > 0) {
                 const messageHash = args[0];
                 const broad = this.exceptions['ws']['broad'];
-                const broadKey = this.findBroadlyMatchedKey (broad, error);
+                const broadKey = this.findBroadlyMatchedKey (broad, err);
                 let exception = undefined;
                 if (broadKey === undefined) {
-                    exception = new ExchangeError ((error as string)); // c# requirement for now
+                    exception = new ExchangeError ((err as string)); // c# requirement for now
                 } else {
-                    exception = new broad[broadKey] (error);
+                    exception = new broad[broadKey] (err);
                 }
                 client.reject (exception, messageHash);
                 return false;

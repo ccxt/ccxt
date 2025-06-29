@@ -1290,8 +1290,8 @@ export default class bitbns extends Exchange {
         //
         const code = this.safeString (response, 'code');
         const message = this.safeString (response, 'msg');
-        const error = (code !== undefined) && (code !== '200') && (code !== '204');
-        if (error || (message !== undefined)) {
+        const err = (code !== undefined) && (code !== '200') && (code !== '204');
+        if (err || (message !== undefined)) {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);

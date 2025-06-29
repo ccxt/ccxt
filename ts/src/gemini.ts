@@ -495,16 +495,16 @@ export default class gemini extends Exchange {
 
     async fetchMarketsFromWeb (params = {}) {
         const data = await this.fetchWebEndpoint ('fetchMarkets', 'webGetRestApi', false, '<h1 id="symbols-and-minimums">Symbols and minimums</h1>');
-        const error = this.id + ' fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets.';
+        const err = this.id + ' fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets.';
         const tables = data.split ('tbody>');
         const numTables = tables.length;
         if (numTables < 2) {
-            throw new NotSupported (error);
+            throw new NotSupported (err);
         }
         const rows = tables[1].split ("\n<tr>\n"); // eslint-disable-line quotes
         const numRows = rows.length;
         if (numRows < 2) {
-            throw new NotSupported (error);
+            throw new NotSupported (err);
         }
         const result = [];
         // skip the first element (empty string)
@@ -513,7 +513,7 @@ export default class gemini extends Exchange {
             const cells = row.split ("</td>\n"); // eslint-disable-line quotes
             const numCells = cells.length;
             if (numCells < 5) {
-                throw new NotSupported (error);
+                throw new NotSupported (err);
             }
             //     [
             //         '<td>btcusd', // currency

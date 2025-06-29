@@ -475,11 +475,11 @@ export default class hollaex extends hollaexRest {
         //     { error: "Bearer or HMAC authentication required" }
         //     { error: "Error: wrong input" }
         //
-        const error = this.safeInteger (message, 'error');
+        const err = this.safeInteger (message, 'error');
         try {
-            if (error !== undefined) {
+            if (err !== undefined) {
                 const feedback = this.id + ' ' + this.json (message);
-                this.throwExactlyMatchedException (this.exceptions['ws']['exact'], error, feedback);
+                this.throwExactlyMatchedException (this.exceptions['ws']['exact'], err, feedback);
             }
         } catch (e) {
             if (e instanceof AuthenticationError) {

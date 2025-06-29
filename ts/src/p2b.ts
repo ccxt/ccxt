@@ -1323,8 +1323,8 @@ export default class p2b extends Exchange {
             return undefined;
         }
         if (code === 400) {
-            const error = this.safeValue (response, 'error');
-            const errorCode = this.safeString (error, 'code');
+            const err = this.safeValue (response, 'error');
+            const errorCode = this.safeString (err, 'code');
             const feedback = this.id + ' ' + this.json (response);
             this.throwExactlyMatchedException (this.exceptions, errorCode, feedback);
             // fallback to default error handler
