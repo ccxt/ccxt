@@ -1624,6 +1624,58 @@ export default class aster extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name aster#fetchOpenOrders
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#current-all-open-orders-user_data
+     * @description fetch all unfilled currently open orders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        const request: Dict = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        const response = await this.privateGetFapiV1OpenOrders (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "avgPrice": "0.00000",
+        //             "clientOrderId": "abc",
+        //             "cumQuote": "0",
+        //             "executedQty": "0",
+        //             "orderId": 1917641,
+        //             "origQty": "0.40",
+        //             "origType": "TRAILING_STOP_MARKET",
+        //             "price": "0",
+        //             "reduceOnly": false,
+        //             "side": "BUY",
+        //             "positionSide": "SHORT",
+        //             "status": "NEW",
+        //             "stopPrice": "9300",
+        //             "closePosition": false,
+        //             "symbol": "BTCUSDT",
+        //             "time": 1579276756075,
+        //             "timeInForce": "GTC",
+        //             "type": "TRAILING_STOP_MARKET",
+        //             "activatePrice": "9020",
+        //             "priceRate": "0.3",
+        //             "updateTime": 1579276756075,
+        //             "workingType": "CONTRACT_PRICE",
+        //             "priceProtect": false
+        //         }
+        //     ]
+        //
+        return this.parseOrders (response, market, since, limit);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.implodeHostname (this.urls['api']['rest']) + '/' + path;
         if (api === 'public') {
