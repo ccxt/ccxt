@@ -134,7 +134,7 @@ class Client(object):
                     error = NetworkError(str(exception))
                     if self.verbose:
                         self.log(iso8601(milliseconds()), 'receive_loop', 'Exception', error)
-                    self.reset(error)
+                    self.rejet(error)
 
             task.add_done_callback(after_interrupt)
 

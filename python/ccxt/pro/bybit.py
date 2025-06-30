@@ -14,6 +14,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import NotSupported
 
 
 class bybit(ccxt.async_support.bybit):
@@ -1235,8 +1236,7 @@ class bybit(ccxt.async_support.bybit):
         subHash = 'myTrades'
         await self.load_markets()
         if symbol is not None:
-            symbol = self.symbol(symbol)
-            subHash += ':' + symbol
+            raise NotSupported(self.id + ' unWatchMyTrades() does not support a symbol parameter, you must unwatch all my trades')
         url = await self.get_url_by_market_type(symbol, True, method, params)
         await self.authenticate(url)
         topicByMarket: dict = {
@@ -1652,8 +1652,7 @@ class bybit(ccxt.async_support.bybit):
         messageHash = 'unsubscribe:orders'
         subHash = 'orders'
         if symbol is not None:
-            symbol = self.symbol(symbol)
-            subHash += ':' + symbol
+            raise NotSupported(self.id + ' unWatchOrders() does not support a symbol parameter, you must unwatch all orders')
         url = await self.get_url_by_market_type(symbol, True, method, params)
         await self.authenticate(url)
         topicsByMarket: dict = {

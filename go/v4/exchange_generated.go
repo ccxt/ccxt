@@ -9320,7 +9320,7 @@ func  (this *Exchange) ConvertExpireDateToMarketIdDate(date interface{}) interfa
     return reconstructedDate
 }
 func  (this *Exchange) ConvertMarketIdExpireDate(date interface{}) interface{}  {
-    // parse 03JAN24 to 240103
+    // parse 03JAN24 to 240103.
     var monthMappping interface{} = map[string]interface{} {
         "JAN": "01",
         "FEB": "02",
@@ -9504,23 +9504,9 @@ func  (this *Exchange) CleanCache(subscription interface{})  {
         }
     } else {
         if IsTrue(IsTrue(IsEqual(topic, "myTrades")) && IsTrue((!IsEqual(this.MyTrades, nil)))) {
-            // don't reset this.myTrades directly here
-            // because in c# we need to use a different object (thread-safe dict)
-            var keys interface{} = ObjectKeys(this.MyTrades)
-            for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
-                var key interface{} = GetValue(keys, i)
-                if IsTrue(InOp(this.MyTrades, key)) {
-                    Remove(this.MyTrades, key)
-                }
-            }
+            this.MyTrades = nil
         } else if IsTrue(IsTrue(IsEqual(topic, "orders")) && IsTrue((!IsEqual(this.Orders, nil)))) {
-            var orderSymbols interface{} = ObjectKeys(this.Orders)
-            for i := 0; IsLessThan(i, GetArrayLength(orderSymbols)); i++ {
-                var orderSymbol interface{} = GetValue(orderSymbols, i)
-                if IsTrue(InOp(this.Orders, orderSymbol)) {
-                    Remove(this.Orders, orderSymbol)
-                }
-            }
+            this.Orders = nil
         } else if IsTrue(IsTrue(IsEqual(topic, "ticker")) && IsTrue((!IsEqual(this.Tickers, nil)))) {
             var tickerSymbols interface{} = ObjectKeys(this.Tickers)
             for i := 0; IsLessThan(i, GetArrayLength(tickerSymbols)); i++ {

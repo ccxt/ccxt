@@ -7049,7 +7049,7 @@ class Exchange {
         return reconstructedDate;
     }
     convertMarketIdExpireDate(date) {
-        // parse 03JAN24 to 240103
+        // parse 03JAN24 to 240103.
         const monthMappping = {
             'JAN': '01',
             'FEB': '02',
@@ -7199,24 +7199,10 @@ class Exchange {
         }
         else {
             if (topic === 'myTrades' && (this.myTrades !== undefined)) {
-                // don't reset this.myTrades directly here
-                // because in c# we need to use a different object (thread-safe dict)
-                const keys = Object.keys(this.myTrades);
-                for (let i = 0; i < keys.length; i++) {
-                    const key = keys[i];
-                    if (key in this.myTrades) {
-                        delete this.myTrades[key];
-                    }
-                }
+                this.myTrades = undefined;
             }
             else if (topic === 'orders' && (this.orders !== undefined)) {
-                const orderSymbols = Object.keys(this.orders);
-                for (let i = 0; i < orderSymbols.length; i++) {
-                    const orderSymbol = orderSymbols[i];
-                    if (orderSymbol in this.orders) {
-                        delete this.orders[orderSymbol];
-                    }
-                }
+                this.orders = undefined;
             }
             else if (topic === 'ticker' && (this.tickers !== undefined)) {
                 const tickerSymbols = Object.keys(this.tickers);
