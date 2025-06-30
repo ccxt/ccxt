@@ -1560,6 +1560,70 @@ export default class aster extends Exchange {
         return this.parseOrder (response, market);
     }
 
+    /**
+     * @method
+     * @name aster#fetchOrders
+     * @description fetches information on multiple orders made by the user
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#all-orders-user_data
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch orders for
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
+        }
+        const market = this.market (symbol);
+        let request: Dict = {
+            'symbol': market['id'],
+        };
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            if (limit > 1000) {
+                limit = 1000; // Default 500; max 1000
+            }
+            request['limit'] = limit;
+        }
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        const response = await this.privateGetFapiV1AllOrders (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "avgPrice": "0.00000",
+        //             "clientOrderId": "abc",
+        //             "cumQuote": "0",
+        //             "executedQty": "0",
+        //             "orderId": 1917641,
+        //             "origQty": "0.40",
+        //             "origType": "TRAILING_STOP_MARKET",
+        //             "price": "0",
+        //             "reduceOnly": false,
+        //             "side": "BUY",
+        //             "positionSide": "SHORT",
+        //             "status": "NEW",
+        //             "stopPrice": "9300",
+        //             "closePosition": false,
+        //             "symbol": "BTCUSDT",
+        //             "time": 1579276756075,
+        //             "timeInForce": "GTC",
+        //             "type": "TRAILING_STOP_MARKET",
+        //             "activatePrice": "9020",
+        //             "priceRate": "0.3",
+        //             "updateTime": 1579276756075,
+        //             "workingType": "CONTRACT_PRICE",
+        //             "priceProtect": false
+        //         }
+        //     ]
+        //
+        return this.parseOrders (response, market, since, limit);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.implodeHostname (this.urls['api']['rest']) + '/' + path;
         if (api === 'public') {

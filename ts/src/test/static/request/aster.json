@@ -210,6 +210,16 @@
                     "BTC/USDT:USDT"
                 ]
             }
+        ],
+        "fetchOrders": [
+            {
+                "description": "fetchOrders",
+                "method": "fetchOrders",
+                "url": "https://fapi.asterdex.com/fapi/v1/allOrders?symbol=BTCUSDT&timestamp=1750295324471&recvWindow=10000&signature=ed714bbd1342e73542ad616ce8179e80e7cff8611a8e653e341eadc92d51f0c0",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
         ]
     }
 }
