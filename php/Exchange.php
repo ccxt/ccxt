@@ -8379,23 +8379,9 @@ class Exchange {
             }
         } else {
             if ($topic === 'myTrades' && ($this->myTrades !== null)) {
-                // don't reset $this->myTrades directly here
-                // because in c# we need to use a different object (thread-safe dict)
-                $keys = is_array($this->myTrades) ? array_keys($this->myTrades) : array();
-                for ($i = 0; $i < count($keys); $i++) {
-                    $key = $keys[$i];
-                    if (is_array($this->myTrades) && array_key_exists($key, $this->myTrades)) {
-                        unset($this->myTrades[$key]);
-                    }
-                }
+                $this->myTrades = null;
             } elseif ($topic === 'orders' && ($this->orders !== null)) {
-                $orderSymbols = is_array($this->orders) ? array_keys($this->orders) : array();
-                for ($i = 0; $i < count($orderSymbols); $i++) {
-                    $orderSymbol = $orderSymbols[$i];
-                    if (is_array($this->orders) && array_key_exists($orderSymbol, $this->orders)) {
-                        unset($this->orders[$orderSymbol]);
-                    }
-                }
+                $this->orders = null;
             } elseif ($topic === 'ticker' && ($this->tickers !== null)) {
                 $tickerSymbols = is_array($this->tickers) ? array_keys($this->tickers) : array();
                 for ($i = 0; $i < count($tickerSymbols); $i++) {
