@@ -130,8 +130,8 @@ export default class aster extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
-                'fetchOpenOrder': false,
-                'fetchOpenOrders': false,
+                'fetchOpenOrder': true,
+                'fetchOpenOrders': true,
                 'fetchOption': false,
                 'fetchOptionChain': false,
                 'fetchOrder': true,
@@ -1530,6 +1530,63 @@ export default class aster extends Exchange {
             request['orderId'] = id;
         }
         const response = await this.privateGetFapiV1Order (this.extend (request, params));
+        //
+        //     {
+        //         "avgPrice": "0.00000",
+        //         "clientOrderId": "abc",
+        //         "cumQuote": "0",
+        //         "executedQty": "0",
+        //         "orderId": 1917641,
+        //         "origQty": "0.40",
+        //         "origType": "TRAILING_STOP_MARKET",
+        //         "price": "0",
+        //         "reduceOnly": false,
+        //         "side": "BUY",
+        //         "positionSide": "SHORT",
+        //         "status": "NEW",
+        //         "stopPrice": "9300",
+        //         "closePosition": false,
+        //         "symbol": "BTCUSDT",
+        //         "time": 1579276756075,
+        //         "timeInForce": "GTC",
+        //         "type": "TRAILING_STOP_MARKET",
+        //         "activatePrice": "9020",
+        //         "priceRate": "0.3",
+        //         "updateTime": 1579276756075,
+        //         "workingType": "CONTRACT_PRICE",
+        //         "priceProtect": false
+        //     }
+        //
+        return this.parseOrder (response, market);
+    }
+
+    /**
+     * @method
+     * @name aster#fetchOpenOrder
+     * @description fetch an open order by the id
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#query-current-open-order-user_data
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchOpenOrder (id: string, symbol: Str = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrder() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clientOid');
+        params = this.omit (params, [ 'clientOrderId', 'clientOid' ]);
+        if (clientOrderId !== undefined) {
+            request['origClientOrderId'] = clientOrderId;
+        } else {
+            request['orderId'] = id;
+        }
+        const response = await this.privateGetFapiV1OpenOrder (this.extend (request, params));
         //
         //     {
         //         "avgPrice": "0.00000",
