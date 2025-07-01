@@ -134,9 +134,11 @@ class Client(object):
                     error = NetworkError(str(exception))
                     if self.verbose:
                         self.log(iso8601(milliseconds()), 'receive_loop', 'Exception', error)
-                    self.rejet(error)
+                    self.reject(error)
 
             task.add_done_callback(after_interrupt)
+        else:
+            self.on_close(1000)
 
     async def open(self, session, backoff_delay=0):
         # exponential backoff for consequent connections if necessary
