@@ -666,7 +666,7 @@ class bitvavo(Exchange, ImplicitAPI):
                 },
             })
         # set currencies here to avoid calling publicGetAssets twice
-        self.currencies = self.deep_extend(self.currencies, result)
+        self.currencies = self.map_to_safe_map(self.deep_extend(self.currencies, result))
         return result
 
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
@@ -1207,6 +1207,8 @@ class bitvavo(Exchange, ImplicitAPI):
         operatorId, params = self.handle_option_and_params(params, 'createOrder', 'operatorId')
         if operatorId is not None:
             request['operatorId'] = self.parse_to_int(operatorId)
+        else:
+            raise ArgumentsRequired(self.id + ' createOrder() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890')
         return self.extend(request, params)
 
     def create_order(self, symbol: Str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
@@ -1304,6 +1306,8 @@ class bitvavo(Exchange, ImplicitAPI):
         operatorId, params = self.handle_option_and_params(params, 'editOrder', 'operatorId')
         if operatorId is not None:
             request['operatorId'] = self.parse_to_int(operatorId)
+        else:
+            raise ArgumentsRequired(self.id + ' editOrder() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890')
         request['market'] = market['id']
         return request
 
@@ -1342,6 +1346,8 @@ class bitvavo(Exchange, ImplicitAPI):
         operatorId, params = self.handle_option_and_params(params, 'cancelOrder', 'operatorId')
         if operatorId is not None:
             request['operatorId'] = self.parse_to_int(operatorId)
+        else:
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890')
         return self.extend(request, params)
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):

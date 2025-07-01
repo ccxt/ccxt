@@ -4893,7 +4893,7 @@ class okx(Exchange, ImplicitAPI):
         fee = self.safe_string(params, 'fee')
         if fee is None:
             currencies = self.fetch_currencies()
-            self.currencies = self.deep_extend(self.currencies, currencies)
+            self.currencies = self.map_to_safe_map(self.deep_extend(self.currencies, currencies))
             targetNetwork = self.safe_dict(currency['networks'], self.network_id_to_code(network), {})
             fee = self.safe_string(targetNetwork, 'fee')
             if fee is None:
@@ -6843,7 +6843,7 @@ class okx(Exchange, ImplicitAPI):
 
     def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[BorrowInterest]:
         """
-        fetch the interest owed by the user for borrowing currency for margin trading
+        fetch the interest owed b the user for borrowing currency for margin trading
 
         https://www.okx.com/docs-v5/en/#rest-api-account-get-interest-accrued-data
 
