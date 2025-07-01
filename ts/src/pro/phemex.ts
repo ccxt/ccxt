@@ -576,7 +576,7 @@ export default class phemex extends phemexRest {
             'params': [],
         };
         const request = this.deepExtend (subscribe, params);
-        const ticker = await this.watchMultiple (url, messageHashes, request, messageHashes);
+        const ticker = await this.watchMultiple (url, messageHashes, request, messageHashes, undefined);
         if (this.newUpdates) {
             const result: Dict = {};
             result[ticker['symbol']] = ticker;

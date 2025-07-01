@@ -417,7 +417,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
 
     async loadPositionSnapshot (client, messageHash, symbol) {
         const position = await this.fetchPosition (symbol);
-        this.positions = new ArrayCacheBySymbolById ();
+        this.positions = new ArrayCacheBySymbolById (undefined);
         const cache = this.positions;
         cache.append (position);
         // don't remove the future from the .futures cache

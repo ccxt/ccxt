@@ -69,7 +69,7 @@ export default class oxfun extends oxfunRest {
             'op': 'subscribe',
             'args': argsArray,
         };
-        return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, undefined);
     }
 
     /**

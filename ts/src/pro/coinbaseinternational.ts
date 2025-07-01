@@ -123,7 +123,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             subscribe['product_ids'] = productIds;
         }
         if (symbolsLength > 1) {
-            return await this.watchMultiple (url, messageHashes, this.extend (subscribe, params), messageHashes);
+            return await this.watchMultiple (url, messageHashes, this.extend (subscribe, params), messageHashes, undefined);
         }
         return await this.watch (url, messageHash, this.extend (subscribe, params), messageHash);
     }
@@ -170,7 +170,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             'passphrase': this.password,
             'signature': signature,
         };
-        return await this.watchMultiple (url, messageHashes, this.extend (subscribe, params), messageHashes);
+        return await this.watchMultiple (url, messageHashes, this.extend (subscribe, params), messageHashes, undefined);
     }
 
     /**

@@ -153,7 +153,7 @@ export default class hitbtc extends hitbtcRest {
             'ch': name,
         };
         const request = this.extend (subscribe, params);
-        return await this.watchMultiple (url, messageHashes, request, messageHashes);
+        return await this.watchMultiple (url, messageHashes, request, messageHashes, undefined);
     }
 
     /**

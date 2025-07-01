@@ -104,7 +104,7 @@ export default class bitvavo extends bitvavoRest {
             ],
         };
         const message = this.extend (request, params);
-        return await this.watchMultiple (url, messageHashes, message, messageHashes);
+        return await this.watchMultiple (url, messageHashes, message, messageHashes, undefined);
     }
 
     /**

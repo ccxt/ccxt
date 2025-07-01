@@ -443,7 +443,7 @@ export default class poloniex extends poloniexRest {
                 messageHashes.push (name + '::' + symbols[i]);
             }
         }
-        const trades = await this.watchMultiple (url, messageHashes, request, messageHashes);
+        const trades = await this.watchMultiple (url, messageHashes, request, messageHashes, undefined);
         if (this.newUpdates) {
             const first = this.safeValue (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');

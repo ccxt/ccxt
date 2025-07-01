@@ -523,7 +523,7 @@ export default class cryptocom extends cryptocomRest {
             },
             'nonce': id,
         };
-        const ticker = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        const ticker = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, undefined);
         if (this.newUpdates) {
             const result: Dict = {};
             result[ticker['symbol']] = ticker;
@@ -671,7 +671,7 @@ export default class cryptocom extends cryptocomRest {
             },
             'nonce': id,
         };
-        const newTickers = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        const newTickers = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, undefined);
         if (this.newUpdates) {
             const tickers: Dict = {};
             tickers[newTickers['symbol']] = newTickers;
@@ -1225,7 +1225,7 @@ export default class cryptocom extends cryptocomRest {
             'nonce': id,
         };
         const message = this.deepExtend (request, params);
-        return await this.watchMultiple (url, messageHashes, message, messageHashes);
+        return await this.watchMultiple (url, messageHashes, message, messageHashes, undefined);
     }
 
     async unWatchPublicMultiple (topic: string, symbols: string[], messageHashes: string[], subMessageHashes: string[], topics: string[], params = {}, subExtend = {}) {
