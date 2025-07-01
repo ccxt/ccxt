@@ -147,7 +147,7 @@ export default class okx extends okxRest {
             'op': 'subscribe',
             'args': args,
         };
-        return await this.watchMultiple (url, messageHashes, request, messageHashes);
+        return await this.watchMultiple (url, messageHashes, request, messageHashes, undefined);
     }
 
     async subscribe (access, messageHash, channel, symbol, params = {}) {
@@ -219,7 +219,7 @@ export default class okx extends okxRest {
             'args': topics,
         };
         const url = this.getUrl (channel, 'public');
-        const trades = await this.watchMultiple (url, messageHashes, request, messageHashes);
+        const trades = await this.watchMultiple (url, messageHashes, request, messageHashes, undefined);
         if (this.newUpdates) {
             const first = this.safeValue (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
@@ -257,7 +257,7 @@ export default class okx extends okxRest {
             'args': topics,
         };
         const url = this.getUrl (channel, 'public');
-        return await this.watchMultiple (url, messageHashes, request, messageHashes);
+        return await this.watchMultiple (url, messageHashes, request, messageHashes, undefined);
     }
 
     /**
@@ -352,7 +352,7 @@ export default class okx extends okxRest {
             'args': topics,
         };
         const url = this.getUrl (channel, 'public');
-        const fundingRate = await this.watchMultiple (url, messageHashes, request, messageHashes);
+        const fundingRate = await this.watchMultiple (url, messageHashes, request, messageHashes, undefined);
         if (this.newUpdates) {
             const symbol = this.safeString (fundingRate, 'symbol');
             const result: Dict = {};
@@ -522,7 +522,7 @@ export default class okx extends okxRest {
             'args': topics,
         };
         const url = this.getUrl (channel, 'public');
-        return await this.watchMultiple (url, messageHashes, request, messageHashes);
+        return await this.watchMultiple (url, messageHashes, request, messageHashes, undefined);
     }
 
     handleTicker (client: Client, message) {
@@ -598,7 +598,7 @@ export default class okx extends okxRest {
             'op': 'subscribe',
             'args': args,
         };
-        const newTickers = await this.watchMultiple (url, messageHashes, request, messageHashes);
+        const newTickers = await this.watchMultiple (url, messageHashes, request, messageHashes, undefined);
         if (this.newUpdates) {
             const tickers: Dict = {};
             tickers[newTickers['symbol']] = newTickers;
@@ -703,7 +703,7 @@ export default class okx extends okxRest {
             ],
         };
         const url = this.getUrl (channel, 'public');
-        const newLiquidations = await this.watchMultiple (url, messageHashes, request, messageHashes);
+        const newLiquidations = await this.watchMultiple (url, messageHashes, request, messageHashes, undefined);
         if (this.newUpdates) {
             return newLiquidations;
         }
@@ -792,7 +792,7 @@ export default class okx extends okxRest {
             ],
         };
         const url = this.getUrl (channel, 'private');
-        const newLiquidations = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes);
+        const newLiquidations = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes, undefined);
         if (this.newUpdates) {
             return newLiquidations;
         }
@@ -1015,7 +1015,7 @@ export default class okx extends okxRest {
             'args': topics,
         };
         const url = this.getUrl ('candle', 'public');
-        const [ symbol, timeframe, candles ] = await this.watchMultiple (url, messageHashes, request, messageHashes);
+        const [ symbol, timeframe, candles ] = await this.watchMultiple (url, messageHashes, request, messageHashes, undefined);
         if (this.newUpdates) {
             limit = candles.getLimit (symbol, limit);
         }
@@ -1058,7 +1058,7 @@ export default class okx extends okxRest {
             'args': topics,
         };
         const url = this.getUrl ('candle', 'public');
-        return await this.watchMultiple (url, messageHashes, request, messageHashes);
+        return await this.watchMultiple (url, messageHashes, request, messageHashes, undefined);
     }
 
     handleOHLCV (client: Client, message) {
@@ -1195,7 +1195,7 @@ export default class okx extends okxRest {
             'args': topics,
         };
         const url = this.getUrl (depth, 'public');
-        const orderbook = await this.watchMultiple (url, messageHashes, request, messageHashes);
+        const orderbook = await this.watchMultiple (url, messageHashes, request, messageHashes, undefined);
         return orderbook.limit ();
     }
 
@@ -1246,7 +1246,7 @@ export default class okx extends okxRest {
             'args': topics,
         };
         const url = this.getUrl (depth, 'public');
-        return await this.watchMultiple (url, messageHashes, request, messageHashes);
+        return await this.watchMultiple (url, messageHashes, request, messageHashes, undefined);
     }
 
     /**

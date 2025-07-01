@@ -295,7 +295,7 @@ export default class bingx extends bingxRest {
         if (marketType === 'swap') {
             request['reqType'] = 'sub';
         }
-        const result = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), subscriptionHashes);
+        const result = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), subscriptionHashes, undefined);
         if (this.newUpdates) {
             const newDict: Dict = {};
             newDict[result['symbol']] = result;

@@ -74,7 +74,7 @@ export default class defx extends defxRest {
             'topics': topics,
         };
         const message = this.extend (request, params);
-        return await this.watchMultiple (url, messageHashes, message, messageHashes);
+        return await this.watchMultiple (url, messageHashes, message, messageHashes, undefined);
     }
 
     async unWatchPublic (topics, messageHashes, params = {}) {
@@ -85,7 +85,7 @@ export default class defx extends defxRest {
             'topics': topics,
         };
         const message = this.extend (request, params);
-        return await this.watchMultiple (url, messageHashes, message, messageHashes);
+        return await this.watchMultiple (url, messageHashes, message, messageHashes, undefined);
     }
 
     /**
@@ -827,7 +827,7 @@ export default class defx extends defxRest {
                 const symbol = symbols[i];
                 messageHashes.push (channel + ':' + symbol);
             }
-            newPosition = await this.watchMultiple (url, messageHashes, undefined, messageHashes);
+            newPosition = await this.watchMultiple (url, messageHashes, undefined, messageHashes, undefined);
         } else {
             newPosition = await this.watch (url, channel, undefined, channel);
         }

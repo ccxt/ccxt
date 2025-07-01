@@ -123,7 +123,7 @@ export default class coinbase extends coinbaseRest {
         if (isPrivate) {
             subscribe = this.extend (subscribe, this.createWSAuth (name, productIds));
         }
-        return await this.watchMultiple (url, messageHashes, subscribe, messageHashes);
+        return await this.watchMultiple (url, messageHashes, subscribe, messageHashes, undefined);
     }
 
     createWSAuth (name: string, productIds: string[]) {

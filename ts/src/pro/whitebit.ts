@@ -294,7 +294,7 @@ export default class whitebit extends whitebitRest {
             'method': method,
             'params': args,
         };
-        await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, undefined);
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
