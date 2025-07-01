@@ -1915,7 +1915,7 @@ public partial class Exchange
             }
             ((IList<object>)values).Add(market);
         }
-        this.markets = ((object)this.indexBy(values, "symbol"));
+        this.markets = this.mapToSafeMap(((object)this.indexBy(values, "symbol")));
         object marketsSortedBySymbol = this.keysort(this.markets);
         object marketsSortedById = this.keysort(this.markets_by_id);
         this.symbols = new List<object>(((IDictionary<string,object>)marketsSortedBySymbol).Keys);
@@ -1923,7 +1923,7 @@ public partial class Exchange
         if (isTrue(!isEqual(currencies, null)))
         {
             // currencies is always undefined when called in constructor but not when called from loadMarkets
-            this.currencies = this.deepExtend(this.currencies, currencies);
+            this.currencies = this.mapToSafeMap(this.deepExtend(this.currencies, currencies));
         } else
         {
             object baseCurrencies = new List<object>() {};
@@ -1956,8 +1956,8 @@ public partial class Exchange
             }
             baseCurrencies = this.sortBy(baseCurrencies, "code", false, "");
             quoteCurrencies = this.sortBy(quoteCurrencies, "code", false, "");
-            this.baseCurrencies = this.indexBy(baseCurrencies, "code");
-            this.quoteCurrencies = this.indexBy(quoteCurrencies, "code");
+            this.baseCurrencies = this.mapToSafeMap(this.indexBy(baseCurrencies, "code"));
+            this.quoteCurrencies = this.mapToSafeMap(this.indexBy(quoteCurrencies, "code"));
             object allCurrencies = this.arrayConcat(baseCurrencies, quoteCurrencies);
             object groupedCurrencies = this.groupBy(allCurrencies, "code");
             object codes = new List<object>(((IDictionary<string,object>)groupedCurrencies).Keys);
@@ -1981,7 +1981,7 @@ public partial class Exchange
                 ((IList<object>)resultingCurrencies).Add(highestPrecisionCurrency);
             }
             object sortedCurrencies = this.sortBy(resultingCurrencies, "code");
-            this.currencies = this.deepExtend(this.currencies, this.indexBy(sortedCurrencies, "code"));
+            this.currencies = this.mapToSafeMap(this.deepExtend(this.currencies, this.indexBy(sortedCurrencies, "code")));
         }
         this.currencies_by_id = this.indexBySafe(this.currencies, "id");
         object currenciesSortedByCode = this.keysort(this.currencies);

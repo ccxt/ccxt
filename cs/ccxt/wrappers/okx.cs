@@ -1832,7 +1832,7 @@ public partial class okx
         return ((IList<object>)res).Select(item => new LeverageTier(item)).ToList<LeverageTier>();
     }
     /// <summary>
-    /// fetch the interest owed by the user for borrowing currency for margin trading
+    /// fetch the interest owed b the user for borrowing currency for margin trading
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.okx.com/docs-v5/en/#rest-api-account-get-interest-accrued-data"/>  <br/>
