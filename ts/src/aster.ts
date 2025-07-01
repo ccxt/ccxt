@@ -4,7 +4,7 @@ import Exchange from './abstract/aster.js';
 import { AccountNotEnabled, AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSymbol, DuplicateOrderId, ExchangeClosedByUser, ExchangeError, InsufficientFunds, InvalidNonce, InvalidOrder, MarketClosed, NetworkError, NoChange, NotSupported, OperationFailed, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { Balances, Currencies, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, Market, OHLCV, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface } from './base/types.js';
+import type { Balances, Currencies, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface } from './base/types.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------xs
@@ -57,7 +57,7 @@ export default class aster extends Exchange {
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrder': false,
                 'createMarketSellOrderWithCost': false,
-                'createOrder': false,
+                'createOrder': true,
                 'createOrders': false,
                 'createOrderWithTakeProfitAndStopLoss': false,
                 'createPostOnlyOrder': false,
@@ -272,6 +272,7 @@ export default class aster extends Exchange {
             },
             'options': {
                 'recvWindow': 10 * 1000, // 10 sec
+                'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
             },
             'exceptions': {
                 'exact': {
@@ -633,8 +634,8 @@ export default class aster extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeNumber (market, 'quantityPrecision'),
-                    'price': this.safeNumber (market, 'pricePrecision'),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'quantityPrecision'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'pricePrecision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -1731,6 +1732,124 @@ export default class aster extends Exchange {
         //     ]
         //
         return this.parseOrders (response, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name aster#createOrder
+     * @description create a trade order
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#new-order--trade
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit' or 'STOP' or 'STOP_MARKET' or 'TAKE_PROFIT' or 'TAKE_PROFIT_MARKET' or 'TRAILING_STOP_MARKET'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of you want to trade in units of the base currency
+     * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.reduceOnly] for swap and future reduceOnly is a string 'true' or 'false' that cant be sent with close position set to true or in hedge mode. For spot margin and option reduceOnly is a boolean.
+     * @param {boolean} [params.test] whether to use the test endpoint or not, default is false
+     * @param {float} [params.triggerPrice] the price that a trigger order is triggered at
+     * @param {string} [params.positionSide] "BOTH" for one-way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const test = this.safeBool (params, 'test', false);
+        params = this.omit (params, 'test');
+        const request = this.createOrderRequest (symbol, type, side, amount, price, params);
+        let response = undefined;
+        if (test) {
+            response = await this.privatePostFapiV1OrderTest (request);
+        } else {
+            response = await this.privatePostFapiV1Order (request);
+        }
+        return this.parseOrder (response, market);
+    }
+
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        /**
+         * @method
+         * @ignore
+         * @name binance#createOrderRequest
+         * @description helper function to build the request
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency
+         * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} request to be sent to the exchange
+         */
+        const market = this.market (symbol);
+        const uppercaseType = type.toUpperCase ();
+        const request: Dict = {
+            'symbol': market['id'],
+            'side': side.toUpperCase (),
+            'type': uppercaseType,
+        };
+        const clientOrderId = this.safeString2 (params, 'newClientOrderId', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['newClientOrderId'] = clientOrderId;
+        }
+        let timeInForceIsRequired = false;
+        let priceIsRequired = false;
+        let triggerPriceIsRequired = false;
+        let quantityIsRequired = false;
+        if (uppercaseType === 'MARKET') {
+            quantityIsRequired = true;
+        } else if (uppercaseType === 'LIMIT') {
+            timeInForceIsRequired = true;
+            quantityIsRequired = true;
+            priceIsRequired = true;
+        } else if ((uppercaseType === 'STOP') || (uppercaseType === 'TAKE_PROFIT')) {
+            quantityIsRequired = true;
+            priceIsRequired = true;
+            triggerPriceIsRequired = true;
+        } else if ((uppercaseType === 'STOP_MARKET') || (uppercaseType === 'TAKE_PROFIT_MARKET')) {
+            triggerPriceIsRequired = true;
+        } else if (uppercaseType === 'TRAILING_STOP_MARKET') {
+            const trailingPercent = this.safeStringN (params, [ 'trailingPercent', 'callbackRate', 'trailingDelta' ]);
+            const trailingTriggerPrice = this.safeString2 (params, 'trailingTriggerPrice', 'activationPrice');
+            request['callbackRate'] = trailingPercent;
+            if (trailingTriggerPrice !== undefined) {
+                request['activationPrice'] = this.priceToPrecision (symbol, trailingTriggerPrice);
+            }
+        }
+        if (quantityIsRequired) {
+            const marketAmountPrecision = this.safeString (market['precision'], 'amount');
+            const isPrecisionAvailable = (marketAmountPrecision !== undefined);
+            if (isPrecisionAvailable) {
+                request['quantity'] = this.amountToPrecision (symbol, amount);
+            } else {
+                request['quantity'] = this.parseToNumeric (amount);
+            }
+        }
+        if (priceIsRequired) {
+            if (price === undefined) {
+                throw new InvalidOrder (this.id + ' createOrder() requires a price argument for a ' + type + ' order');
+            }
+            const pricePrecision = this.safeString (market['precision'], 'price');
+            const isPricePrecisionAvailable = (pricePrecision !== undefined);
+            if (isPricePrecisionAvailable) {
+                request['price'] = this.priceToPrecision (symbol, price);
+            } else {
+                request['price'] = this.parseToNumeric (price);
+            }
+        }
+        if (triggerPriceIsRequired) {
+            const stopPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+            if (stopPrice === undefined) {
+                throw new InvalidOrder (this.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order');
+            }
+            if (stopPrice !== undefined) {
+                request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
+            }
+        }
+        if (timeInForceIsRequired && (this.safeString (params, 'timeInForce') === undefined) && (this.safeString (request, 'timeInForce') === undefined)) {
+            request['timeInForce'] = this.safeString (this.options, 'defaultTimeInForce'); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+        }
+        const requestParams = this.omit (params, [ 'newClientOrderId', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'trailingDelta' ]);
+        return this.extend (request, requestParams);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

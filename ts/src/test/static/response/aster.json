@@ -348,8 +348,8 @@
                         "strike": null,
                         "optionType": null,
                         "precision": {
-                            "amount": 3,
-                            "price": 1
+                            "amount": 0.001,
+                            "price": 0.1
                         },
                         "limits": {
                             "leverage": {
@@ -805,7 +805,7 @@
                     "previousClose": null,
                     "change": 1969.7,
                     "percentage": 187.3,
-                    "average": 106136,
+                    "average": 106136.4,
                     "baseVolume": 8707.774,
                     "quoteVolume": 918896966.74,
                     "markPrice": null,
@@ -878,7 +878,7 @@
                         "previousClose": null,
                         "change": 1969.7,
                         "percentage": 187.3,
-                        "average": 106136,
+                        "average": 106136.4,
                         "baseVolume": 8707.774,
                         "quoteVolume": 918896966.74,
                         "markPrice": null,
