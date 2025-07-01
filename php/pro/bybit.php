@@ -10,6 +10,7 @@ use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
+use ccxt\NotSupported;
 use \React\Async;
 use \React\Promise;
 use \React\Promise\PromiseInterface;
@@ -1356,8 +1357,7 @@ class bybit extends \ccxt\async\bybit {
             $subHash = 'myTrades';
             Async\await($this->load_markets());
             if ($symbol !== null) {
-                $symbol = $this->symbol($symbol);
-                $subHash .= ':' . $symbol;
+                throw new NotSupported($this->id . ' unWatchMyTrades() does not support a $symbol parameter, you must unwatch all my trades');
             }
             $url = Async\await($this->get_url_by_market_type($symbol, true, $method, $params));
             Async\await($this->authenticate($url));
@@ -1820,8 +1820,7 @@ class bybit extends \ccxt\async\bybit {
             $messageHash = 'unsubscribe:orders';
             $subHash = 'orders';
             if ($symbol !== null) {
-                $symbol = $this->symbol($symbol);
-                $subHash .= ':' . $symbol;
+                throw new NotSupported($this->id . ' unWatchOrders() does not support a $symbol parameter, you must unwatch all orders');
             }
             $url = Async\await($this->get_url_by_market_type($symbol, true, $method, $params));
             Async\await($this->authenticate($url));

@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import bybitRest from '../bybit.js';
-import { ArgumentsRequired, AuthenticationError, ExchangeError, BadRequest } from '../base/errors.js';
+import { ArgumentsRequired, AuthenticationError, ExchangeError, BadRequest, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import type { Int, OHLCV, Str, Strings, Ticker, OrderBook, Order, Trade, Tickers, Position, Balances, OrderType, OrderSide, Num, Dict, Liquidation } from '../base/types.js';
@@ -1303,11 +1303,10 @@ export default class bybit extends bybitRest {
     async unWatchMyTrades (symbol: Str = undefined, params = {}): Promise<any> {
         const method = 'watchMyTrades';
         const messageHash = 'unsubscribe:myTrades';
-        let subHash = 'myTrades';
+        const subHash = 'myTrades';
         await this.loadMarkets ();
         if (symbol !== undefined) {
-            symbol = this.symbol (symbol);
-            subHash += ':' + symbol;
+            throw new NotSupported (this.id + ' unWatchMyTrades() does not support a symbol parameter, you must unwatch all my trades');
         }
         const url = await this.getUrlByMarketType (symbol, true, method, params);
         await this.authenticate (url);
@@ -1758,10 +1757,9 @@ export default class bybit extends bybitRest {
         await this.loadMarkets ();
         const method = 'watchOrders';
         const messageHash = 'unsubscribe:orders';
-        let subHash = 'orders';
+        const subHash = 'orders';
         if (symbol !== undefined) {
-            symbol = this.symbol (symbol);
-            subHash += ':' + symbol;
+            throw new NotSupported (this.id + ' unWatchOrders() does not support a symbol parameter, you must unwatch all orders');
         }
         const url = await this.getUrlByMarketType (symbol, true, method, params);
         await this.authenticate (url);

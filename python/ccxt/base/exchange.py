@@ -6920,19 +6920,9 @@ class Exchange(object):
                         del self.tickers[symbol]
         else:
             if topic == 'myTrades' and (self.myTrades is not None):
-                # don't reset self.myTrades directly here
-                # because in c# we need to use a different object(thread-safe dict)
-                keys = list(self.myTrades.keys())
-                for i in range(0, len(keys)):
-                    key = keys[i]
-                    if key in self.myTrades:
-                        del self.myTrades[key]
+                self.myTrades = None
             elif topic == 'orders' and (self.orders is not None):
-                orderSymbols = list(self.orders.keys())
-                for i in range(0, len(orderSymbols)):
-                    orderSymbol = orderSymbols[i]
-                    if orderSymbol in self.orders:
-                        del self.orders[orderSymbol]
+                self.orders = None
             elif topic == 'ticker' and (self.tickers is not None):
                 tickerSymbols = list(self.tickers.keys())
                 for i in range(0, len(tickerSymbols)):
