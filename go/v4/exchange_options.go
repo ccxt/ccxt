@@ -359,7 +359,7 @@ func (this *Exchange) initializeProperties(extendedProperties map[string]interfa
 	this.Hostname = SafeString(extendedProperties, "hostname", "").(string)
 	this.Urls = SafeValue(extendedProperties, "urls", map[string]interface{}{}).(map[string]interface{})
 
-	this.Options = this.MapToSyncMap(this.GetDefaultOptions().(map[string]interface{}))
+	this.Options = this.MapToSafeMap(this.GetDefaultOptions().(map[string]interface{}))
 	extendedOptions := SafeValue(extendedProperties, "options", map[string]interface{}{}).(map[string]interface{})
 	for k, v := range extendedOptions {
 		// this.Options[k] = v
@@ -373,10 +373,10 @@ func (this *Exchange) initializeProperties(extendedProperties map[string]interfa
 	this.Has = SafeValue(extendedProperties, "has", map[string]interface{}{}).(map[string]interface{})
 	// this.httpExceptions = SafeValue(extendedProperties, "httpExceptions",map[string]interface{}{}).(map[string]interface{})
 	this.Exceptions = SafeValue(extendedProperties, "exceptions", map[string]interface{}{}).(map[string]interface{})
-	this.Markets = SafeValue(extendedProperties, "markets", map[string]interface{}{}).(map[string]interface{})
+	this.Markets = this.MapToSafeMap(SafeValue(extendedProperties, "markets", map[string]interface{}{}).(map[string]interface{}))
 	propCurrencies := SafeValue(extendedProperties, "currencies", map[string]interface{}{}).(map[string]interface{})
 	if len(propCurrencies) > 0 {
-		this.Currencies = propCurrencies
+		this.Currencies = this.MapToSafeMap(propCurrencies)
 	}
 	this.EnableRateLimit = SafeValue(extendedProperties, "enableRateLimit", true).(bool)
 	this.RateLimit = SafeFloat(extendedProperties, "rateLimit", -1).(float64)
@@ -397,7 +397,7 @@ func (this *Exchange) initializeProperties(extendedProperties map[string]interfa
 	this.ReduceFees = SafeValue(extendedProperties, "reduceFees", true).(bool)
 }
 
-func (this *Exchange) MapToSyncMap(input map[string]interface{}) *sync.Map {
+func (this *Exchange) MapToSafeMap(input map[string]interface{}) *sync.Map {
 	var sm sync.Map
 	for k, v := range input {
 		sm.Store(k, v)
@@ -405,7 +405,7 @@ func (this *Exchange) MapToSyncMap(input map[string]interface{}) *sync.Map {
 	return &sm
 }
 
-func (this *Exchange) SyncMapToMap(sm *sync.Map) map[string]interface{} {
+func (this *Exchange) SafeMapToMap(sm *sync.Map) map[string]interface{} {
 	result := make(map[string]interface{})
 	sm.Range(func(key, value interface{}) bool {
 		if strKey, ok := key.(string); ok {

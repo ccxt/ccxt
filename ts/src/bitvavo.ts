@@ -662,7 +662,7 @@ export default class bitvavo extends Exchange {
             });
         }
         // set currencies here to avoid calling publicGetAssets twice
-        this.currencies = this.deepExtend (this.currencies, result);
+        this.currencies = this.mapToSafeMap (this.deepExtend (this.currencies, result));
         return result;
     }
 
