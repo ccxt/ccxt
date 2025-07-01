@@ -245,6 +245,9 @@ func (this *Exchange) DeepExtend(objs ...interface{}) map[string]interface{} {
 	// Helper function to convert *sync.Map to map[string]interface{}
 	convertSyncMap := func(sm *sync.Map) map[string]interface{} {
 		m := make(map[string]interface{})
+		if sm == nil {
+			return m
+		}
 		sm.Range(func(key, value interface{}) bool {
 			if ks, ok := key.(string); ok {
 				m[ks] = value
