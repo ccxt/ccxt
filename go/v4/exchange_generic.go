@@ -509,6 +509,11 @@ func (this *Exchange) IndexBy(a interface{}, key interface{}) map[string]interfa
 		for _, v := range aMap {
 			targetX = append(targetX, v)
 		}
+	} else if syncMap, ok := a.(*sync.Map); ok {
+		syncMap.Range(func(_, v interface{}) bool {
+			targetX = append(targetX, v)
+			return true
+		})
 	} else {
 		return outDict // Unsupported type
 	}
