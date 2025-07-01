@@ -46,11 +46,6 @@ public partial class latoken
         var res = await this.fetchMarkets(parameters);
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
-    public async Task<Dictionary<string, object>> FetchCurrenciesFromCache(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchCurrenciesFromCache(parameters);
-        return ((Dictionary<string, object>)res);
-    }
     /// <summary>
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
