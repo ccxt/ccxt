@@ -16,6 +16,9 @@ abstract class lbank extends \ccxt\async\Exchange {
     public function spot_public_get_usdtocny($params = array()) {
         return $this->request('usdToCny', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 2.5));
     }
+    public function spot_public_get_assetconfigs($params = array()) {
+        return $this->request('assetConfigs', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 2.5));
+    }
     public function spot_public_get_withdrawconfigs($params = array()) {
         return $this->request('withdrawConfigs', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 2.5));
     }
@@ -186,6 +189,9 @@ abstract class lbank extends \ccxt\async\Exchange {
     }
     public function spotPublicGetUsdToCny($params = array()) {
         return $this->request('usdToCny', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 2.5));
+    }
+    public function spotPublicGetAssetConfigs($params = array()) {
+        return $this->request('assetConfigs', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 2.5));
     }
     public function spotPublicGetWithdrawConfigs($params = array()) {
         return $this->request('withdrawConfigs', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 2.5));

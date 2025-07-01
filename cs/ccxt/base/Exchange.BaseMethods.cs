@@ -7546,7 +7546,7 @@ public partial class Exchange
 
     public virtual object convertMarketIdExpireDate(object date)
     {
-        // parse 03JAN24 to 240103
+        // parse 03JAN24 to 240103.
         object monthMappping = new Dictionary<string, object>() {
             { "JAN", "01" },
             { "FEB", "02" },
@@ -7704,28 +7704,10 @@ public partial class Exchange
         {
             if (isTrue(isTrue(isEqual(topic, "myTrades")) && isTrue((!isEqual(this.myTrades, null)))))
             {
-                // don't reset this.myTrades directly here
-                // because in c# we need to use a different object (thread-safe dict)
-                object keys = new List<object>(((IDictionary<string,object>)this.myTrades).Keys);
-                for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
-                {
-                    object key = getValue(keys, i);
-                    if (isTrue(inOp(this.myTrades, key)))
-                    {
-                        ((IDictionary<string,object>)this.myTrades).Remove((string)key);
-                    }
-                }
+                this.myTrades = null;
             } else if (isTrue(isTrue(isEqual(topic, "orders")) && isTrue((!isEqual(this.orders, null)))))
             {
-                object orderSymbols = new List<object>(((IDictionary<string,object>)this.orders).Keys);
-                for (object i = 0; isLessThan(i, getArrayLength(orderSymbols)); postFixIncrement(ref i))
-                {
-                    object orderSymbol = getValue(orderSymbols, i);
-                    if (isTrue(inOp(this.orders, orderSymbol)))
-                    {
-                        ((IDictionary<string,object>)this.orders).Remove((string)orderSymbol);
-                    }
-                }
+                this.orders = null;
             } else if (isTrue(isTrue(isEqual(topic, "ticker")) && isTrue((!isEqual(this.tickers, null)))))
             {
                 object tickerSymbols = new List<object>(((IDictionary<string,object>)this.tickers).Keys);

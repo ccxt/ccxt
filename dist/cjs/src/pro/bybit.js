@@ -1279,11 +1279,10 @@ class bybit extends bybit$1 {
     async unWatchMyTrades(symbol = undefined, params = {}) {
         const method = 'watchMyTrades';
         const messageHash = 'unsubscribe:myTrades';
-        let subHash = 'myTrades';
+        const subHash = 'myTrades';
         await this.loadMarkets();
         if (symbol !== undefined) {
-            symbol = this.symbol(symbol);
-            subHash += ':' + symbol;
+            throw new errors.NotSupported(this.id + ' unWatchMyTrades() does not support a symbol parameter, you must unwatch all my trades');
         }
         const url = await this.getUrlByMarketType(symbol, true, method, params);
         await this.authenticate(url);
@@ -1728,10 +1727,9 @@ class bybit extends bybit$1 {
         await this.loadMarkets();
         const method = 'watchOrders';
         const messageHash = 'unsubscribe:orders';
-        let subHash = 'orders';
+        const subHash = 'orders';
         if (symbol !== undefined) {
-            symbol = this.symbol(symbol);
-            subHash += ':' + symbol;
+            throw new errors.NotSupported(this.id + ' unWatchOrders() does not support a symbol parameter, you must unwatch all orders');
         }
         const url = await this.getUrlByMarketType(symbol, true, method, params);
         await this.authenticate(url);

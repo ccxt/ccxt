@@ -52,6 +52,7 @@ export default class lbank extends Exchange {
                 'fetchClosedOrders': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
+                'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
@@ -126,6 +127,7 @@ export default class lbank extends Exchange {
                             'currencyPairs': 2.5,
                             'accuracy': 2.5,
                             'usdToCny': 2.5,
+                            'assetConfigs': 2.5,
                             'withdrawConfigs': 2.5,
                             'timestamp': 2.5,
                             'ticker/24hr': 2.5,
@@ -212,6 +214,7 @@ export default class lbank extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'XBT': 'XBT',
                 'HIT': 'Hiver',
                 'VET_ERC20': 'VEN',
                 'PNT': 'Penta',
@@ -279,21 +282,12 @@ export default class lbank extends Exchange {
                     //     ptx: 1
                     // }
                 },
-                'inverse-networks': {
+                'networksById': {
                     'erc20': 'ERC20',
                     'trc20': 'TRC20',
-                    'omni': 'OMNI',
-                    'asa': 'ASA',
-                    'bep20(bsc)': 'BSC',
-                    'bep20': 'BSC',
-                    'heco': 'HT',
-                    'bep2': 'BNB',
-                    'btc': 'BTC',
-                    'dogecoin': 'DOGE',
-                    'matic': 'MATIC',
-                    'oec': 'OEC',
-                    'btctron': 'BTCTRON',
-                    'xrp': 'XRP',
+                    'TRX': 'TRC20',
+                    'bep20(bsc)': 'BEP20',
+                    'bep20': 'BEP20',
                 },
                 'defaultNetworks': {
                     'USDT': 'TRC20',
@@ -415,6 +409,108 @@ export default class lbank extends Exchange {
         //     }
         //
         return this.safeInteger(response, 'data');
+    }
+    /**
+     * @method
+     * @name lbank#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @param {dict} [params] extra parameters specific to the exchange API endpoint
+     * @returns {dict} an associative dictionary of currencies
+     */
+    async fetchCurrencies(params = {}) {
+        const response = await this.spotPublicGetWithdrawConfigs(params);
+        //
+        //    {
+        //        "msg": "Success",
+        //        "result": "true",
+        //        "data": [
+        //            {
+        //                "amountScale": "4",
+        //                "chain": "bep20(bsc)",
+        //                "assetCode": "usdt",
+        //                "min": "10",
+        //                "transferAmtScale": "4",
+        //                "canWithDraw": true,
+        //                "fee": "0.0000",
+        //                "minTransfer": "0.0001",
+        //                "type": "1"
+        //            },
+        //            {
+        //                "amountScale": "4",
+        //                "chain": "trc20",
+        //                "assetCode": "usdt",
+        //                "min": "1",
+        //                "transferAmtScale": "4",
+        //                "canWithDraw": true,
+        //                "fee": "1.0000",
+        //                "minTransfer": "0.0001",
+        //                "type": "1"
+        //            },
+        //            ...
+        //        ],
+        //        "error_code": "0",
+        //        "ts": "1747973911431"
+        //    }
+        //
+        const currenciesData = this.safeList(response, 'data', []);
+        const grouped = this.groupBy(currenciesData, 'assetCode');
+        const groupedKeys = Object.keys(grouped);
+        const result = {};
+        for (let i = 0; i < groupedKeys.length; i++) {
+            const id = (groupedKeys[i]).toString(); // some currencies are numeric
+            const code = this.safeCurrencyCode(id);
+            const networksRaw = grouped[id];
+            const networks = {};
+            for (let j = 0; j < networksRaw.length; j++) {
+                const networkEntry = networksRaw[j];
+                const networkId = this.safeString(networkEntry, 'chain');
+                const networkCode = this.networkIdToCode(networkId);
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber(networkEntry, 'min'),
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': this.safeNumber(networkEntry, 'minTransfer'),
+                            'max': undefined,
+                        },
+                    },
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': this.safeBool(networkEntry, 'canWithDraw'),
+                    'fee': this.safeNumber(networkEntry, 'fee'),
+                    'precision': this.parseNumber(this.parsePrecision(this.safeString(networkEntry, 'transferAmtScale'))),
+                    'info': networkEntry,
+                };
+            }
+            result[code] = this.safeCurrencyStructure({
+                'id': id,
+                'code': code,
+                'precision': undefined,
+                'type': undefined,
+                'name': undefined,
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
+                'fee': undefined,
+                'limits': {
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'networks': networks,
+                'info': networksRaw,
+            });
+        }
+        return result;
     }
     /**
      * @method
@@ -2171,13 +2267,10 @@ export default class lbank extends Exchange {
         const result = this.safeValue(response, 'data');
         const address = this.safeString(result, 'address');
         const tag = this.safeString(result, 'memo');
-        const networkId = this.safeString(result, 'netWork');
-        const inverseNetworks = this.safeValue(this.options, 'inverse-networks', {});
-        const networkCode = this.safeStringUpper(inverseNetworks, networkId, networkId);
         return {
             'info': response,
             'currency': code,
-            'network': networkCode,
+            'network': this.networkIdToCode(this.safeString(result, 'netWork')),
             'address': address,
             'tag': tag,
         };
@@ -2212,12 +2305,10 @@ export default class lbank extends Exchange {
         const result = this.safeValue(response, 'data');
         const address = this.safeString(result, 'address');
         const tag = this.safeString(result, 'memo');
-        const inverseNetworks = this.safeValue(this.options, 'inverse-networks', {});
-        const networkCode = this.safeStringUpper(inverseNetworks, network, network);
         return {
             'info': response,
             'currency': code,
-            'network': networkCode,
+            'network': undefined,
             'address': address,
             'tag': tag,
         };
@@ -2341,9 +2432,6 @@ export default class lbank extends Exchange {
         }
         const txid = this.safeString(transaction, 'txId');
         const timestamp = this.safeInteger2(transaction, 'insertTime', 'applyTime');
-        const networks = this.safeValue(this.options, 'inverse-networks', {});
-        const networkId = this.safeString(transaction, 'networkName');
-        const network = this.safeString(networks, networkId, networkId);
         const address = this.safeString(transaction, 'address');
         let addressFrom = undefined;
         let addressTo = undefined;
@@ -2371,7 +2459,7 @@ export default class lbank extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'network': network,
+            'network': this.networkIdToCode(this.safeString(transaction, 'networkName')),
             'address': address,
             'addressTo': addressTo,
             'addressFrom': addressFrom,
@@ -2574,10 +2662,9 @@ export default class lbank extends Exchange {
             withdrawFees[code] = {};
             for (let j = 0; j < networkList.length; j++) {
                 const networkEntry = networkList[j];
-                const networkId = this.safeString(networkEntry, 'name');
-                const networkCode = this.safeString(this.options['inverse-networks'], networkId, networkId);
                 const fee = this.safeNumber(networkEntry, 'withdrawFee');
                 if (fee !== undefined) {
+                    const networkCode = this.networkIdToCode(this.safeString(networkEntry, 'name'));
                     withdrawFees[code][networkCode] = fee;
                 }
             }
@@ -2629,8 +2716,7 @@ export default class lbank extends Exchange {
             if (canWithdraw === 'true') {
                 const currencyId = this.safeString(item, 'assetCode');
                 const codeInner = this.safeCurrencyCode(currencyId);
-                const chain = this.safeString(item, 'chain');
-                let network = this.safeString(this.options['inverse-networks'], chain, chain);
+                let network = this.networkIdToCode(this.safeString(item, 'chain'));
                 if (network === undefined) {
                     network = codeInner;
                 }
@@ -2781,8 +2867,7 @@ export default class lbank extends Exchange {
                             const resultCodeInfo = result[code]['info'];
                             resultCodeInfo.push(fee);
                         }
-                        const chain = this.safeString(fee, 'chain');
-                        const networkCode = this.safeString(this.options['inverse-networks'], chain, chain);
+                        const networkCode = this.networkIdToCode(this.safeString(fee, 'chain'));
                         if (networkCode !== undefined) {
                             result[code]['networks'][networkCode] = {
                                 'withdraw': {
@@ -2838,8 +2923,7 @@ export default class lbank extends Exchange {
         const networkList = this.safeValue(fee, 'networkList', []);
         for (let j = 0; j < networkList.length; j++) {
             const networkEntry = networkList[j];
-            const networkId = this.safeString(networkEntry, 'name');
-            const networkCode = this.safeStringUpper(this.options['inverse-networks'], networkId, networkId);
+            const networkCode = this.networkIdToCode(this.safeString(networkEntry, 'name'));
             const withdrawFee = this.safeNumber(networkEntry, 'withdrawFee');
             const isDefault = this.safeValue(networkEntry, 'isDefault');
             if (withdrawFee !== undefined) {
