@@ -1451,6 +1451,8 @@ export default class ascendex extends Exchange {
         //         "timestamp": 1573576916201
         //     }
         //
+        //  & linear (fetchClosedOrders)
+        //
         //     {
         //         "ac": "FUTURES",
         //         "accountId": "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
@@ -1458,7 +1460,7 @@ export default class ascendex extends Exchange {
         //         "orderId": "a17e0874ecbdU0711043490bbtcpDU5X",
         //         "seqNum": -1,
         //         "orderType": "Limit",
-        //         "execInst": "NULL_VAL",
+        //         "execInst": "NULL_VAL", // NULL_VAL, ReduceOnly , ...
         //         "side": "Buy",
         //         "symbol": "BTC-PERP",
         //         "price": "30000",
@@ -1547,14 +1549,14 @@ export default class ascendex extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market, '/');
-        let timestamp = this.safeInteger2 (order, 'timestamp', 'sendingTime');
+        let timestamp = this.safeIntegerN (order, [ 'timestamp', 'sendingTime', 'time' ]);
         const lastTradeTimestamp = this.safeInteger (order, 'lastExecTime');
         if (timestamp === undefined) {
             timestamp = lastTradeTimestamp;
         }
         const price = this.safeString (order, 'price');
         const amount = this.safeString (order, 'orderQty');
-        const average = this.safeString (order, 'avgPx');
+        const average = this.safeString2 (order, 'avgPx', 'avgFilledPx');
         const filled = this.safeStringN (order, [ 'cumFilledQty', 'cumQty', 'fillQty' ]);
         const id = this.safeString (order, 'orderId');
         let clientOrderId = this.safeString (order, 'id');
@@ -1586,12 +1588,12 @@ export default class ascendex extends Exchange {
         }
         const triggerPrice = this.omitZero (this.safeString (order, 'stopPrice'));
         let reduceOnly = undefined;
-        const execInst = this.safeString (order, 'execInst');
-        if (execInst === 'reduceOnly') {
+        const execInst = this.safeStringLower (order, 'execInst');
+        if (execInst === 'reduceonly') {
             reduceOnly = true;
         }
         let postOnly = undefined;
-        if (execInst === 'Post') {
+        if (execInst === 'post') {
             postOnly = true;
         }
         return this.safeOrder ({
@@ -2349,8 +2351,7 @@ export default class ascendex extends Exchange {
         //     }
         //
         let data = this.safeList (response, 'data', []);
-        const isArray = Array.isArray (data);
-        if (!isArray) {
+        if (!Array.isArray (data)) {
             data = this.safeList (data, 'data', []);
         }
         return this.parseOrders (data, market, since, limit);
