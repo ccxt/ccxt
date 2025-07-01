@@ -109,7 +109,7 @@ const decimalToPrecision = (
     return _decimalToPrecision (x, roundingMode, numPrecisionDigits, countingMode, paddingMode);
 }
 
-const _decimalToPrecision = ( x: any, roundingMode: number, numPrecisionDigits: any, countingMode: number = DECIMAL_PLACES, paddingMode: number = NO_PADDING ) => {
+const _decimalToPrecision = (x: any, roundingMode: number, numPrecisionDigits: any, countingMode: number = DECIMAL_PLACES, paddingMode: number = NO_PADDING) => {
     assert (numPrecisionDigits !== undefined, 'numPrecisionDigits should not be undefined');
 
     if (typeof numPrecisionDigits === 'string') {
