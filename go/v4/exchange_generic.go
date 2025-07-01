@@ -521,6 +521,18 @@ func (this *Exchange) IndexBy(a interface{}, key interface{}) map[string]interfa
 			if val, ok := v[ToString(key)]; ok {
 				outDict[ToString(val)] = v
 			}
+		case *sync.Map:
+			// Handle *sync.Map entries
+			v.Range(func(k, val interface{}) bool {
+				if _, ok := k.(string); ok {
+					if valMap, ok := val.(map[string]interface{}); ok {
+						if keyStr, ok := valMap[ToString(key)].(string); ok {
+							outDict[keyStr] = valMap
+						}
+					}
+				}
+				return true
+			})
 		case []interface{}:
 			// Handle slices of []interface{}
 			if idx, ok := key.(int); ok && idx >= 0 && idx < len(v) {
