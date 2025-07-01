@@ -3,10 +3,12 @@ import ts from "typescript";
 import path from 'path'
 import errors from "../js/src/base/errors.js"
 import { basename, join, resolve } from 'path'
+// @ts-expect-error
 import { createFolderRecursively, replaceInFile, overwriteFile, writeFile, checkCreateFolder } from './fsLocal.js'
 import { platform } from 'process'
 import fs from 'fs'
 import log from 'ololog'
+// @ts-expect-error
 import ansi from 'ansicolor'
 import {Transpiler as OldTranspiler, parallelizeTranspiling } from "./transpile.js";
 import { promisify } from 'util';
@@ -15,17 +17,20 @@ import Piscina from 'piscina';
 import { isMainEntry } from "./transpile.js";
 import { unCamelCase } from "../js/src/base/functions.js";
 
+type dict = { [key: string]: string }
+
 ansi.nice
 const promisedWriteFile = promisify (fs.writeFile);
 
 let exchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
 const exchangeIds = exchanges.ids
 
+        // @ts-expect-error
 let __dirname = new URL('.', import.meta.url).pathname;
 
 let shouldTranspileTests = true;
 
-function overwriteFileAndFolder (path, content) {
+function overwriteFileAndFolder (path: string, content: string) {
     if (!(fs.existsSync(path))) {
         checkCreateFolder (path);
     }
@@ -58,14 +63,14 @@ const BASE_TESTS_FILE =  './go/tests/base/tests.go';
 // const EXCHANGE_GENERATED_FOLDER = './go/tests/Generated/Exchange/';
 // const EXAMPLES_INPUT_FOLDER = './examples/ts/';
 // const EXAMPLES_OUTPUT_FOLDER = './examples/cs/examples/';
-const goComments = {};
+const goComments: any = {};
 
-const goTypeOptions = {};
+const goTypeOptions: any = {};
 const goWithMethods = {};
 
 let goTests: string[] = [];
 
-const VIRTUAL_BASE_METHODS = {
+const VIRTUAL_BASE_METHODS: any = {
     "cancelOrder": true, // true if the method returns a channel (async in JS)
     "createExpiredOptionMarket": false,
     "createOrder": true,
@@ -135,17 +140,19 @@ const VIRTUAL_BASE_METHODS = {
     "parseTransaction": false,
     "parseTransfer": false,
     "parseWithdrawal": false,
+    "parseLeverage": false,
     "parseWithdrawalStatus": false,
     "safeMarket": false, // try to remove custom implementations
     "market": false,
     "setSandboxMode": false,
+    "safeCurrencyCode": false,
     "parseConversion": false,
     "sign": false
 }
 
 class NewTranspiler {
 
-    transpiler: Transpiler;
+    transpiler!: Transpiler;
     pythonStandardLibraries;
     oldTranspiler = new OldTranspiler();
 
@@ -206,7 +213,7 @@ class NewTranspiler {
 
 
     // c# custom method
-    customCSharpPropAssignment(node, identation) {
+    customgoPropAssignment(node: any, identation: any) {
         const stringValue = node.getFullText().trim();
         if (Object.keys(errors).includes(stringValue)) {
             return `typeof(${stringValue})`;
@@ -217,7 +224,7 @@ class NewTranspiler {
     // a helper to apply an array of regexes and substitutions to text
     // accepts an array like [ [ regex, substitution ], ... ]
 
-    regexAll (text, array) {
+    regexAll (text: string, array: any[]) {
         for (const i in array) {
             let regex = array[i][0]
             const flags = (typeof regex === 'string') ? 'g' : undefined
@@ -251,7 +258,7 @@ class NewTranspiler {
         return `/// See <see href="${link}"/>  <br/>`
     }
 
-    createParam(param) {
+    createParam(param: any) {
         return`/// <item>
     /// <term>${param.name}</term>
     /// <description>
@@ -291,7 +298,7 @@ class NewTranspiler {
         return this.createGOCommentTemplate(name, desc, sees, params, returnType, returnDesc);
     }
 
-    transformLeadingComment(comment) {
+    transformLeadingComment(comment: any) {
         // parse comment
         // /**
         //  * @method
@@ -343,7 +350,7 @@ class NewTranspiler {
         if (!exchangeMethods) {
             exchangeMethods = {}
         }
-        // const transformedComment = this.transformTSCommentIntoCSharp(methodName, description, sees,params, returnType, returnDescription);
+        // const transformedComment = this.transformTSCommentIntogo(methodName, description, sees,params, returnType, returnDescription);
         exchangeMethods[methodName] = comment;
         goComments[exchangeName] = exchangeMethods
         return comment;
@@ -363,7 +370,7 @@ class NewTranspiler {
         ]
     }
 
-    getGoImports(file, ws = false) {
+    getGoImports(file: any, ws = false) {
         const namespace = ws ? 'package ccxt' : 'package ccxt';
         const values = [
             // "using ccxt;",
@@ -376,7 +383,7 @@ class NewTranspiler {
         return values;
     }
 
-    getCsharpImports(file, ws = false) {
+    getgoImports(file: any, ws = false) {
         const namespace = ws ? 'namespace ccxt.pro;' : 'namespace ccxt;';
         const values = [
             // "using ccxt;",
@@ -427,7 +434,7 @@ class NewTranspiler {
         let wrappedType = isPromise ? type.substring(8, type.length - 1) : type;
         let isList = false;
 
-        function addTaskIfNeeded(type) {
+        function addTaskIfNeeded(type: string) {
             if (type == 'void') {
                 return isPromise ? `<- chan` : '<- chan';
             } else if (isList) {
@@ -436,7 +443,7 @@ class NewTranspiler {
             return isPromise ? `<- chan ${type}` : type;
         }
 
-        const csharpReplacements = {
+        const goReplacements: dict = {
             'OrderType': 'string',
             'OrderSide': 'string', // tmp
         }
@@ -480,8 +487,8 @@ class NewTranspiler {
         if (wrappedType === 'Strings') {
             return addTaskIfNeeded('[]string')
         }
-        if (csharpReplacements[wrappedType] !== undefined) {
-            return addTaskIfNeeded(csharpReplacements[wrappedType]);
+        if (goReplacements[wrappedType] !== undefined) {
+            return addTaskIfNeeded(goReplacements[wrappedType]);
         }
 
         if (wrappedType.startsWith('Dictionary<')) {
@@ -496,7 +503,7 @@ class NewTranspiler {
     }
 
     safeGoName(name: string): string {
-        const goReservedWordsReplacement = {
+        const goReservedWordsReplacement: dict = {
             'type': 'typeVar',
         }
         return goReservedWordsReplacement[name] || name;
@@ -520,7 +527,7 @@ class NewTranspiler {
         return allParams.join(', ');
     }
 
-    convertJavascriptParamToGoParam(param): string | undefined {
+    convertJavascriptParamToGoParam(param: any): string | undefined {
         const name = param.name;
         const safeName = this.safeGoName(name);
         const isOptional =  param.optional || param.initializer !== undefined;
@@ -586,7 +593,7 @@ class NewTranspiler {
             'fetch',
             'setSandBoxMode',
             'loadOrderBook',
-            'fetchCurrencies',
+            // 'fetchCurrencies',
             'loadMarketsHelper',
             'createNetworksByIdObject',
             'setProperty',
@@ -600,7 +607,9 @@ class NewTranspiler {
             'setPositionCache',
             'createSpotOrder',
             'createContractOrder',
-            'createSwapOrder'
+            'createSwapOrder',
+            'fetchPortfolioDetails',
+            'createVault'
         ] // improve this later
         if (isWs) {
             if (methodName.indexOf('Snapshot') !== -1 || methodName.indexOf('Subscription') !== -1 || methodName.indexOf('Cache') !== -1) {
@@ -651,7 +660,7 @@ class NewTranspiler {
         return returnStatement;
     }
 
-    getDefaultParamsWrappers(name: string, rawParameters) {
+    getDefaultParamsWrappers(name: string, rawParameters: any[]) {
         let res: string[] = [];
 
         const hasOptionalParams = rawParameters.some(param => param.optional || param.initializer !== undefined || param.initializer === 'undefined');
@@ -695,7 +704,7 @@ class NewTranspiler {
         return '    '.repeat(level);
     }
 
-    createOptionsStruct(methodName: string, params) {
+    createOptionsStruct(methodName: string, params: any[]) {
         const capName = this.capitalize(methodName);
         const optionalParams = params.filter(param => param.optional || param.initializer !== undefined || param.initializer === 'undefined' || param.initializer === '{}');
         if (optionalParams.length === 0) {
@@ -750,7 +759,7 @@ class NewTranspiler {
         goTypeOptions[capName] = res.concat(withMethod).join("\n");
     }
 
-    createWrapper (exchangeName, methodWrapper, isWs = false) {
+    createWrapper (exchangeName: string, methodWrapper: any, isWs = false) {
         const isAsync = methodWrapper.async;
         const methodName = methodWrapper.name;
         if (!this.shouldCreateWrapper(methodName, isWs) || !isAsync) {
@@ -762,7 +771,15 @@ class NewTranspiler {
         const stringArgs = this.convertParamsToGo(methodName, methodWrapper.parameters);
         this.createOptionsStruct(methodName, methodWrapper.parameters);
         // const stringArgs = args.filter(arg => arg !== undefined).join(', ');
-        let params = methodWrapper.parameters.map(param => this.safeGoName(param.name)).join(', ');
+        let params = methodWrapper.parameters.map((param: any) => {
+            let parsedParam = this.safeGoName(param.name)
+
+            if (methodName === 'createOrders' && param.name === 'orders') {
+                parsedParam = 'ConvertOrderRequestListToArray(orders)' // quick fix, check this later
+            }
+
+            return parsedParam
+        }).join(', ');
 
         const one = this.inden(0);
         const two = this.inden(1);
@@ -814,9 +831,9 @@ class NewTranspiler {
     }
 
     createExchangesWrappers(): string[] {
-        // in csharp classes should be Capitalized, so I'm creating a wrapper class for each exchange
+        // in go classes should be Capitalized, so I'm creating a wrapper class for each exchange
         const res: string[] = ['// class wrappers'];
-        exchangeIds.forEach(exchange => {
+        exchangeIds.forEach((exchange: string) => {
             const capitalizedExchange = exchange.charAt(0).toUpperCase() + exchange.slice(1);
             const capitalName = capitalizedExchange.replace('.ts','');
             const constructor = `public ${capitalName}(object args = null) : base(args) { }`
@@ -825,7 +842,7 @@ class NewTranspiler {
         return res;
     }
 
-    createGoWrappers(exchange:string, path: string, wrappers, ws = false) {
+    createGoWrappers(exchange:string, path: string, wrappers: any[], ws = false) {
         const wrappersIndented = wrappers.map(wrapper => this.createWrapper(exchange, wrapper, ws)).filter(wrapper => wrapper !== '').join('\n');
         const shouldCreateClassWrappers = exchange === 'Exchange';
         const classes = shouldCreateClassWrappers ? this.createExchangesWrappers().filter(e=> !!e).join('\n') : '';
@@ -887,8 +904,8 @@ class NewTranspiler {
         // properly derived from corresponding parent classes according
         // to the error hierarchy
 
-        function intellisense (map, parent, generate, classes) {
-            function* generator(map, parent, generate, classes) {
+        function intellisense (map: any, parent: any, generate: any, classes: any) {
+            function* generator(map: any, parent: any, generate: any, classes: any): any {
                 for (const key in map) {
                     yield generate (key, parent, classes)
                     yield* generator (map[key], key, generate, classes)
@@ -898,7 +915,7 @@ class NewTranspiler {
         }
 
         const errorNames: string[] = [];
-        function GoMakeErrorFile (name, parent) {
+        function GoMakeErrorFile (name: string, parent: any) {
             errorNames.push(name);
             const exception =
 `func ${name}(v ...interface{}) error {
@@ -942,7 +959,8 @@ ${constStatements.join('\n')}
 
     }
 
-    transpileBaseMethods(baseExchangeFile) {
+    transpileBaseMethods(baseExchangeFile: string) {
+        // @ts-expect-error
         log.bright.cyan ('Transpiling base methods →', baseExchangeFile.yellow, BASE_METHODS_FILE.yellow)
         const goExchangeBase = BASE_METHODS_FILE;
         const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP'
@@ -962,7 +980,7 @@ ${constStatements.join('\n')}
         const syncRegex = new RegExp(`<-this\\.callInternal\\("(${syncMethods.join('|')})", (.+)\\)`, 'gm');
         // console.log(syncRegex)
         // baseClass = baseClass.replace(syncRegex, 'this.DerivedExchange.$1($2)');
-        baseClass = baseClass.replace(syncRegex, (_match, p1, p2) => {
+        baseClass = baseClass.replace(syncRegex, (_match: any, p1: string, p2: string) => {
             const capitalizedMethod = this.capitalize(p1);
             return `this.DerivedExchange.${capitalizedMethod}(${p2})`;
         });
@@ -970,12 +988,12 @@ ${constStatements.join('\n')}
         const asyncRegex = new RegExp(`<-this\\.callInternal\\("(${asyncMethods.join('|')})", (.+)\\)`, 'gm');
         // console.log(asyncRegex)
         // baseClass = baseClass.replace(asyncRegex, '<-this.DerivedExchange.$1($2)');
-        baseClass = baseClass.replace(asyncRegex, (_match, p1, p2) => {
+        baseClass = baseClass.replace(asyncRegex, (_match: any, p1: string, p2: string) => {
             const capitalizedMethod = this.capitalize(p1);
             return `<-this.DerivedExchange.${capitalizedMethod}(${p2})`;
         });
         // create wrappers with specific types
-        // this.createCSharpWrappers('Exchange', GLOBAL_WRAPPER_FILE, baseFile.methodsTypes)
+        // this.creategoWrappers('Exchange', GLOBAL_WRAPPER_FILE, baseFile.methodsTypes)
 
 
         // custom transformations needed for go
@@ -986,7 +1004,8 @@ ${constStatements.join('\n')}
         baseClass = baseClass.replaceAll (/parentRestInstance interface\{\},/g, "parentRestInstance Exchange,");
         baseClass = baseClass.replaceAll (/client interface\{\},/g, "client Client,");
         baseClass = baseClass.replaceAll (/this.Number = String/g, 'this.Number = "string"');
-        baseClass = baseClass.replaceAll(/(\w+)(\.StoreArray\(.+\))/gm, '($1.(*OrderBookSide))$2'); // tmp fix for c#
+        baseClass = baseClass.replaceAll (/(\w+)(\.StoreArray\(.+\))/gm, '($1.(*OrderBookSide))$2'); // tmp fix for c#
+        baseClass = baseClass.replaceAll (/ch <- nil\s+\/\/.+/g, '');
 
         // baseClass = baseClass.replaceAll("client.futures", "getValue(client, \"futures\")"); // tmp fix for c# not needed after ws-merge
         // baseClass = baseClass.replace("((object)this).number = String;", "this.number = typeof(String);"); // tmp fix for c#
@@ -1049,7 +1068,7 @@ ${caseStatements.join('\n')}
         fs.writeFileSync (dynamicInstanceFile, file);
     }
 
-    camelize(str) {
+    camelize(str: string) {
         var res =  str.replace(/(?:^\w|[A-Z]|\b\w|\s+)/g, function(match, index) {
           if (+match === 0) return ""; // or if (/\s+/.test(match)) for white spaces
           return index === 0 ? match.toLowerCase() : match.toUpperCase();
@@ -1058,7 +1077,7 @@ ${caseStatements.join('\n')}
       }
 
 
-    getCsharpExamplesWarning() {
+    getgoExamplesWarning() {
         return [
             '',
             '    // !!Warning!! This example was automatically transpiled',
@@ -1076,17 +1095,19 @@ ${caseStatements.join('\n')}
         // currently disabled!, the generated code is too complex and illegible
         const transpileFlagPhrase = '// AUTO-TRANSPILE //'
 
+        // @ts-expect-error
         const allTsExamplesFiles = fs.readdirSync (EXAMPLES_INPUT_FOLDER).filter((f) => f.endsWith('.ts'));
         for (const filenameWithExtenstion of allTsExamplesFiles) {
+            // @ts-expect-error
             const tsFile = path.join (EXAMPLES_INPUT_FOLDER, filenameWithExtenstion)
             let tsContent = fs.readFileSync (tsFile).toString ()
             if (tsContent.indexOf (transpileFlagPhrase) > -1) {
                 const fileName = filenameWithExtenstion.replace ('.ts', '')
                 log.magenta ('[C#] Transpiling example from', (tsFile as any).yellow)
-                const csharp = this.transpiler.transpileCSharp(tsContent);
+                const go = this.transpiler.transpileGo(tsContent);
 
                 const transpiledFixed = this.regexAll(
-                    csharp.content,
+                    go.content,
                     [
                         [/object exchange/, 'Exchange exchange'],
                         [/async public Task example/gm, 'async public Task ' + this.camelize(fileName)],
@@ -1099,13 +1120,13 @@ ${caseStatements.join('\n')}
                     'using ccxt;',
                     'using ccxt.pro;',
                     'namespace examples;',
-                    // this.getCsharpExamplesWarning(),
+                    // this.getgoExamplesWarning(),
                     'partial class Examples',
                     '{',
                     transpiledFixed,
                     '}'
                 ].join('\n');
-
+                // @ts-expect-error
                 overwriteFileAndFolder (EXAMPLES_OUTPUT_FOLDER + fileName + '.go', finalFile);
             }
         }
@@ -1118,26 +1139,27 @@ ${caseStatements.join('\n')}
         if (inputExchanges === undefined) {
             inputExchanges = exchanges.ws;
         }
-        const options = { csharpFolder: EXCHANGES_WS_FOLDER, exchanges:inputExchanges }
-        // const options = { csharpFolder: EXCHANGES_WS_FOLDER, exchanges:['bitget'] }
+        // @ts-expect-error
+        const options = { goFolder: EXCHANGES_WS_FOLDER, exchanges:inputExchanges }
+        // const options = { goFolder: EXCHANGES_WS_FOLDER, exchanges:['bitget'] }
         await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(inputExchanges), true )
     }
 
     async transpileEverything (force = false, child = false, baseOnly = false, examplesOnly = false) {
 
         const exchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))
-            , csharpFolder = EXCHANGES_FOLDER
+            , goFolder = EXCHANGES_FOLDER
             , tsFolder = './ts/src/'
             , exchangeBase = './ts/src/base/Exchange.ts'
 
         if (!child) {
-            createFolderRecursively (csharpFolder)
+            createFolderRecursively (goFolder)
         }
         const transpilingSingleExchange = (exchanges.length === 1); // when transpiling single exchange, we can skip some steps because this is only used for testing/debugging
         if (transpilingSingleExchange) {
             force = true; // when transpiling single exchange, we always force
         }
-        const options = { csharpFolder, exchanges }
+        const options = { goFolder, exchanges }
 
         if (!baseOnly && !examplesOnly) {
             await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
@@ -1172,7 +1194,7 @@ ${caseStatements.join('\n')}
         log.bright.green ('Transpiled successfully.')
     }
 
-    async webworkerTranspile (allFiles , parserConfig) {
+    async webworkerTranspile (allFiles: any[], parserConfig: any) {
 
         // create worker
         const piscina = new Piscina({
@@ -1216,7 +1238,7 @@ ${caseStatements.join('\n')}
         fs.writeFileSync (EXCHANGE_OPTIONS_FILE, file.join('\n'));
     }
 
-    async transpileDerivedExchangeFiles (jsFolder, options, pattern = '.ts', force = false, child = false, ws = false) {
+    async transpileDerivedExchangeFiles (jsFolder: string, options: any, pattern = '.ts', force = false, child = false, ws = false) {
 
         // todo normalize jsFolder and other arguments
 
@@ -1231,17 +1253,17 @@ ${caseStatements.join('\n')}
 
         // let exchanges
         if (options.exchanges && options.exchanges.length) {
-            exchanges = options.exchanges.map (x => x + pattern)
+            exchanges = options.exchanges.map ((x:string) => x + pattern)
         } else {
             exchanges = fs.readdirSync (jsFolder).filter (file => file.match (regex) && (!ids || ids.includes (basename (file, '.ts'))))
         }
 
         // exchanges = ['bitmart.ts']
         // transpile using webworker
-        const allFilesPath = exchanges.map (file => jsFolder + file );
+        const allFilesPath = exchanges.map ((file: string) => jsFolder + file );
         // const transpiledFiles =  await this.webworkerTranspile(allFilesPath, this.getTranspilerConfig());
         log.blue('[go] Transpiling [', exchanges.join(', '), ']');
-        const transpiledFiles =  allFilesPath.map(file => this.transpiler.transpileGoByPath(file));
+        const transpiledFiles =  allFilesPath.map((file: string) => this.transpiler.transpileGoByPath(file));
 
         if (!ws) {
             for (let i = 0; i < transpiledFiles.length; i++) {
@@ -1256,10 +1278,10 @@ ${caseStatements.join('\n')}
                 // const transpiled = transpiledFiles[i];
                 // const exchangeName = exchanges[i].replace('.ts','');
                 // const path = EXCHANGE_WS_WRAPPER_FOLDER + exchangeName + '.go';
-                // this.createCSharpWrappers(exchangeName, path, transpiled.methodsTypes, true)
+                // this.creategoWrappers(exchangeName, path, transpiled.methodsTypes, true)
             }
         }
-        exchanges.map ((file, idx) => this.transpileDerivedExchangeFile (jsFolder, file, options, transpiledFiles[idx], force, ws))
+        exchanges.map ((file: string, idx: number) => this.transpileDerivedExchangeFile (jsFolder, file, options, transpiledFiles[idx], force, ws))
         if (exchanges.length > 1) {
             this.safeOptionsStructFile();
         }
@@ -1268,7 +1290,7 @@ ${caseStatements.join('\n')}
         return classes
     }
 
-    createGoExchange(className, goVersion, ws = false) {
+    createGoExchange(className: string, goVersion: any, ws = false) {
         const goImports = this.getGoImports(goVersion, ws).join("\n") + "\n\n";
         let content = goVersion.content;
 
@@ -1307,7 +1329,7 @@ ${caseStatements.join('\n')}
         if (ws) {
             // const wsRegexes = this.getWsRegexes();
             // content = this.regexAll (content, wsRegexes);
-            // content = this.replaceImportedRestClasses (content, csharpVersion.imports);
+            // content = this.replaceImportedRestClasses (content, goVersion.imports);
             // const classNameRegex = /public\spartial\sclass\s(\w+)\s:\s(\w+)/gm;
             // const classNameExec = classNameRegex.exec(content);
             // const className = classNameExec ? classNameExec[1] : '';
@@ -1341,7 +1363,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
         return goImports + content;
     }
 
-    replaceImportedRestClasses (content, imports) {
+    replaceImportedRestClasses (content: string, imports: any[]) {
         for (const imp of imports) {
             // { name: "hitbtc", path: "./hitbtc.js", isDefault: true, }
             // { name: "bequantRest", path: "../bequant.js", isDefault: true, }
@@ -1353,35 +1375,35 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
         return content;
     }
 
-    transpileDerivedExchangeFile (tsFolder, filename, options, csharpResult, force = false, ws = false) {
+    transpileDerivedExchangeFile (tsFolder: string, filename: string, options: any, goResult: any, force = false, ws = false) {
 
         const tsPath = tsFolder + filename
 
-        const { csharpFolder } = options
+        const { goFolder } = options
 
         const extensionlessName = filename.replace ('.ts', '')
         const goFilename = filename.replace ('.ts', '.go')
 
         const tsMtime = fs.statSync (tsPath).mtime.getTime ()
 
-        const csharp  = this.createGoExchange (extensionlessName, csharpResult, ws)
+        const go  = this.createGoExchange (extensionlessName, goResult, ws)
 
-        if (csharpFolder) {
-            overwriteFileAndFolder (csharpFolder + goFilename, csharp)
-            // fs.utimesSync (csharpFolder + csharpFilename, new Date (), new Date (tsMtime))
+        if (goFolder) {
+            overwriteFileAndFolder (goFolder + goFilename, go)
+            // fs.utimesSync (goFolder + goFilename, new Date (), new Date (tsMtime))
         }
     }
 
     // ---------------------------------------------------------------------------------------------
-    transpileWsOrderbookTestsToCSharp (outDir: string) {
+    transpileWsOrderbookTestsToGo (outDir: string) {
 
         const jsFile = './ts/src/pro/test/base/test.OrderBook.ts';
-        const csharpFile = `${outDir}/Orderbook.go`;
+        const goFile = `${outDir}/Orderbook.go`;
 
         log.magenta ('Transpiling from', (jsFile as any).yellow)
 
-        const csharp = this.transpiler.transpileCSharpByPath(jsFile);
-        let content = csharp.content;
+        const go = this.transpiler.transpileGoByPath(jsFile);
+        let content = go.content;
         const splitParts = content.split('// --------------------------------------------------------------------------------------------------------------------');
         splitParts.shift();
         content = splitParts.join('\n// --------------------------------------------------------------------------------------------------------------------\n');
@@ -1407,21 +1429,21 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             '}',
         ].join('\n')
 
-        log.magenta ('→', (csharpFile as any).yellow)
+        log.magenta ('→', (goFile as any).yellow)
 
-        overwriteFileAndFolder (csharpFile, file);
+        overwriteFileAndFolder (goFile, file);
     }
 
     // ---------------------------------------------------------------------------------------------
-    transpileWsCacheTestsToCSharp (outDir: string) {
+    transpileWsCacheTestsToGo (outDir: string) {
 
         const jsFile = './ts/src/pro/test/base/test.Cache.ts';
-        const csharpFile = `${outDir}/Cache.go`;
+        const goFile = `${outDir}/Cache.go`;
 
         log.magenta ('Transpiling from', (jsFile as any).yellow)
 
-        const csharp = this.transpiler.transpileCSharpByPath(jsFile);
-        let content = csharp.content;
+        const go = this.transpiler.transpileGoByPath(jsFile);
+        let content = go.content;
         const splitParts = content.split('// ----------------------------------------------------------------------------');
         splitParts.shift();
         content = splitParts.join('\n// ----------------------------------------------------------------------------\n');
@@ -1447,9 +1469,9 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             '}',
         ].join('\n')
 
-        log.magenta ('→', (csharpFile as any).yellow)
+        log.magenta ('→', (goFile as any).yellow)
 
-        overwriteFileAndFolder (csharpFile, file);
+        overwriteFileAndFolder (goFile, file);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -1461,8 +1483,8 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
 
         log.magenta ('[go] Transpiling from', (jsFile as any).yellow)
 
-        const csharp = this.transpiler.transpileGoByPath(jsFile);
-        let content = csharp.content;
+        const go = this.transpiler.transpileGoByPath(jsFile);
+        let content = go.content;
         content = this.regexAll (content, [
             [/new ccxt.Exchange.+\n.+\n.+/gm, 'ccxt.Exchange{}' ],
             [ /func Equals\(.+\n.*\n.*\n.*}/gm, '' ], // remove equals
@@ -1483,8 +1505,8 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
     }
 
     transpileExchangeTest(name: string, path: string): [string, string] {
-        const csharp = this.transpiler.transpileCSharpByPath(path);
-        let content = csharp.content;
+        const go = this.transpiler.transpileGoByPath(path);
+        let content = go.content;
 
         const parsedName = name.replace('.ts', '');
         const parsedParts = parsedName.split('.');
@@ -1514,8 +1536,9 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
         return [finalName, file];
     }
 
-    async transpileExchangeTestsToCsharp() {
+    async transpileExchangeTestsToGo() {
         const inputDir = './ts/src/test/exchange/';
+        // @ts-expect-error
         const outDir = GENERATED_TESTS_FOLDER;
         const ignore = [
             // 'exportTests.ts',
@@ -1534,11 +1557,11 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
         const outDir = BASE_TESTS_FOLDER;
         this.transpileBaseTests(outDir);
         this.transpileCryptoTestsToGo(outDir);
-        // this.transpileWsCacheTestsToCSharp(outDir);
-        // this.transpileWsOrderbookTestsToCSharp(outDir);
+        // this.transpileWsCacheTestsToGo(outDir);
+        // this.transpileWsOrderbookTestsToGo(outDir);
     }
 
-    transpileBaseTests (outDir) {
+    transpileBaseTests (outDir: string) {
 
         const baseFolders = {
             ts: './ts/src/test/base/',
@@ -1591,7 +1614,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
         return s.charAt(0).toUpperCase() + s.slice(1);
     }
 
-    transpileMainTest(files) {
+    transpileMainTest(files: any) {
         log.magenta ('[go] Transpiling from', files.tsFile.yellow)
         let ts = fs.readFileSync (files.tsFile).toString ();
 
@@ -1651,7 +1674,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
         baseTests = baseTests.filter (filename => filename !== 'test.throttle');
         exchangeTests = exchangeTests.filter (filename => filename !== 'test.proxies' &&  filename !== 'test.fetchLastPrices' && filename !== 'test.createOrder');
 
-        const tests = [] as any;
+        const tests: any[] = [] as any;
         baseTests.forEach (baseTest => {
             tests.push({
                 base: true,
@@ -1678,7 +1701,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
 
         // const baseFolders = {
         //     ts: './ts/src/pro/test/Exchange/',
-        //     csharp: EXCHANGE_GENERATED_FOLDER + 'Ws/',
+        //     go: EXCHANGE_GENERATED_FOLDER + 'Ws/',
         // };
 
         // const wsTests = fs.readdirSync (baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
@@ -1689,19 +1712,19 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
         //     tests.push({
         //         name: test,
         //         tsFile: baseFolders.ts + test + '.ts',
-        //         csharpFile: baseFolders.goharp + test + '.go',
+        //         goFile: baseFolders.goharp + test + '.go',
         //     });
         // });
 
         // this.transpileAndSaveGoExchangeTests (tests, true);
     }
 
-    async transpileAndSaveGoExchangeTests(tests, isWs = false) {
+    async transpileAndSaveGoExchangeTests(tests: any[], isWs = false) {
         let paths = tests.map(test => test.tsFile);
         // paths = [paths[30]];
         const flatResult = await this.webworkerTranspile (paths,  this.getTranspilerConfig());
         flatResult.forEach((file, idx) => {
-            let contentIndentend = file.content.split('\n').map(line => line ? '    ' + line : line).join('\n');
+            let contentIndentend = file.content.split('\n').map((line: string) => line ? '    ' + line : line).join('\n');
 
             let regexes = [
                 [/exchange \:\= &ccxt\.Exchange\{\}/g, 'exchange := ccxt.NewExchange()'],
@@ -1808,6 +1831,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
 
 }
 
+// @ts-expect-error
 if (isMainEntry(import.meta.url)) {
     const ws = process.argv.includes ('--ws')
     const baseOnly = process.argv.includes ('--baseTests')
@@ -1822,12 +1846,14 @@ if (isMainEntry(import.meta.url)) {
     }
     const transpiler = new NewTranspiler ();
     if (ws) {
+        // @ts-expect-error
         await transpiler.transpileWS (force)
     } else if (test) {
         transpiler.transpileTests ()
     } else if (multiprocess) {
         parallelizeTranspiling (exchangeIds)
     } else {
+        // @ts-expect-error
         await transpiler.transpileEverything (force, child, baseOnly, examples)
     }
 }

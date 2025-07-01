@@ -24,7 +24,7 @@ class tradeogre(Exchange, ImplicitAPI):
             'countries': [],
             'rateLimit': 100,
             'version': 'v2',
-            'pro': False,
+            'pro': True,
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -135,11 +135,11 @@ class tradeogre(Exchange, ImplicitAPI):
                         'ticker/{market}': 1,
                         'history/{market}': 1,
                         'chart/{interval}/{market}/{timestamp}': 1,
+                        'chart/{interval}/{market}': 1,
                     },
                 },
                 'private': {
                     'get': {
-                        'account/balance': 1,
                         'account/balances': 1,
                         'account/order/{uuid}': 1,
                     },
@@ -149,6 +149,7 @@ class tradeogre(Exchange, ImplicitAPI):
                         'order/cancel': 1,
                         'orders': 1,
                         'account/orders': 1,
+                        'account/balance': 1,
                     },
                 },
             },
@@ -422,9 +423,9 @@ class tradeogre(Exchange, ImplicitAPI):
             'ask': self.safe_string(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
-            'open': self.safe_string(ticker, 'open'),
-            'close': None,
-            'last': None,
+            'open': self.safe_string(ticker, 'initialprice'),
+            'close': self.safe_string(ticker, 'price'),
+            'last': self.safe_string(ticker, 'price'),
             'previousClose': None,
             'change': None,
             'percentage': None,
@@ -442,6 +443,7 @@ class tradeogre(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp of the latest candle in ms
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
@@ -450,11 +452,14 @@ class tradeogre(Exchange, ImplicitAPI):
             'market': market['id'],
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),
         }
-        if since is None:
-            raise BadRequest(self.id + ' fetchOHLCV requires a since argument')
+        response = None
+        until = self.safe_integer(params, 'until')
+        if until is not None:
+            params = self.omit(params, 'until')
+            request['timestamp'] = self.parse_to_int(until / 1000)
+            response = await self.publicGetChartIntervalMarketTimestamp(self.extend(request, params))
         else:
-            request['timestamp'] = since
-        response = await self.publicGetChartIntervalMarketTimestamp(self.extend(request, params))
+            response = await self.publicGetChartIntervalMarket(self.extend(request, params))
         #
         #     [
         #         [
@@ -483,9 +488,9 @@ class tradeogre(Exchange, ImplicitAPI):
         return [
             self.safe_timestamp(ohlcv, 0),
             self.safe_number(ohlcv, 1),
+            self.safe_number(ohlcv, 2),
             self.safe_number(ohlcv, 3),
             self.safe_number(ohlcv, 4),
-            self.safe_number(ohlcv, 2),
             self.safe_number(ohlcv, 5),
         ]
 
@@ -520,6 +525,7 @@ class tradeogre(Exchange, ImplicitAPI):
             'asks': rawAsks,
         }
         orderbook = self.parse_order_book(rawOrderbook, symbol)
+        orderbook['nonce'] = self.safe_integer(response, 's')
         return orderbook
 
     def parse_bids_asks(self, bidasks, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
@@ -583,10 +589,26 @@ class tradeogre(Exchange, ImplicitAPI):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.currency]: currency to fetch the balance for
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
-        response = await self.privateGetAccountBalances(params)
+        response = None
+        currency = self.safe_string(params, 'currency')
+        if currency is not None:
+            response = await self.privatePostAccountBalance(params)
+            singleCurrencyresult: dict = {
+                'info': response,
+            }
+            code = self.safe_currency_code(currency)
+            account = {
+                'total': self.safe_number(response, 'balance'),
+                'free': self.safe_number(response, 'available'),
+            }
+            singleCurrencyresult[code] = account
+            return self.safe_balance(singleCurrencyresult)
+        else:
+            response = await self.privateGetAccountBalances(params)
         result = self.safe_dict(response, 'balances', {})
         return self.parse_balance(result)
 
@@ -739,11 +761,11 @@ class tradeogre(Exchange, ImplicitAPI):
             'side': self.safe_string(order, 'type'),
             'price': self.safe_string(order, 'price'),
             'triggerPrice': None,
-            'amount': self.safe_string(order, 'quantity'),
+            'amount': None,
             'cost': None,
             'average': None,
             'filled': self.safe_string(order, 'fulfilled'),
-            'remaining': None,
+            'remaining': self.safe_string(order, 'quantity'),
             'status': None,
             'fee': {
                 'currency': None,

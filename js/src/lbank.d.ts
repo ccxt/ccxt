@@ -1,5 +1,5 @@
 import Exchange from './abstract/lbank.js';
-import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress, FundingRates, FundingRate } from './base/types.js';
+import type { Balances, Currency, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress, FundingRates, FundingRate } from './base/types.js';
 /**
  * @class lbank
  * @augments Exchange
@@ -16,6 +16,14 @@ export default class lbank extends Exchange {
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
     fetchTime(params?: {}): Promise<Int>;
+    /**
+     * @method
+     * @name lbank#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @param {dict} [params] extra parameters specific to the exchange API endpoint
+     * @returns {dict} an associative dictionary of currencies
+     */
+    fetchCurrencies(params?: {}): Promise<Currencies>;
     /**
      * @method
      * @name lbank#fetchMarkets

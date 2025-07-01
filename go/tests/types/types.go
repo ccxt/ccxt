@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+	"sync"
 
 	ccxt "github.com/ccxt/ccxt/go/v4"
 )
@@ -125,7 +126,7 @@ func testTrade(exchange ccxt.Binance) {
 	Blue("Testing Trade type")
 	file := GetRootDir() + BASE_DIR + "trades.json"
 	content := IoFileRead(file, true)
-	market := exchange.Markets["BTC/USDT"]
+	market, _ := exchange.Markets.Load("BTC/USDT")
 	parsed := exchange.ParseTrades(content, market)
 	typed := ccxt.NewTradeArray(parsed)
 	Assert(len(typed) > 0)
@@ -210,7 +211,7 @@ func initExchangeOffline() ccxt.Binance {
 	exchange := ccxt.NewBinance(nil)
 	marketsFile := GetRootDir() + "ts/src/test/static/markets/binance.json"
 	marketsContent := IoFileRead(marketsFile, true)
-	exchange.Markets = marketsContent.(map[string]interface{})
+	exchange.Markets = MapToSafeMap(marketsContent.(map[string]interface{}))
 	<-exchange.LoadMarkets()
 	return exchange
 }
@@ -227,4 +228,23 @@ func main() {
 	testBalance(exchange)
 
 	Green("All tests passed")
+}
+
+func MapToSafeMap(input map[string]interface{}) *sync.Map {
+	var sm sync.Map
+	for k, v := range input {
+		sm.Store(k, v)
+	}
+	return &sm
+}
+
+func SafeMapToMap(sm *sync.Map) map[string]interface{} {
+	result := make(map[string]interface{})
+	sm.Range(func(key, value interface{}) bool {
+		if strKey, ok := key.(string); ok {
+			result[strKey] = value
+		}
+		return true
+	})
+	return result
 }

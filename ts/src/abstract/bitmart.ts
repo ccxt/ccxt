@@ -68,6 +68,7 @@ interface Exchange {
     privateGetContractPrivateOrder (params?: {}): Promise<implicitReturnType>;
     privateGetContractPrivateOrderHistory (params?: {}): Promise<implicitReturnType>;
     privateGetContractPrivatePosition (params?: {}): Promise<implicitReturnType>;
+    privateGetContractPrivatePositionV2 (params?: {}): Promise<implicitReturnType>;
     privateGetContractPrivateGetOpenOrders (params?: {}): Promise<implicitReturnType>;
     privateGetContractPrivateCurrentPlanOrder (params?: {}): Promise<implicitReturnType>;
     privateGetContractPrivateTrades (params?: {}): Promise<implicitReturnType>;
@@ -75,6 +76,7 @@ interface Exchange {
     privateGetContractPrivateAffilateRebateList (params?: {}): Promise<implicitReturnType>;
     privateGetContractPrivateAffilateTradeList (params?: {}): Promise<implicitReturnType>;
     privateGetContractPrivateTransactionHistory (params?: {}): Promise<implicitReturnType>;
+    privateGetContractPrivateGetPositionMode (params?: {}): Promise<implicitReturnType>;
     privatePostAccountSubAccountMainV1SubToMain (params?: {}): Promise<implicitReturnType>;
     privatePostAccountSubAccountSubV1SubToMain (params?: {}): Promise<implicitReturnType>;
     privatePostAccountSubAccountMainV1MainToSub (params?: {}): Promise<implicitReturnType>;
@@ -115,9 +117,11 @@ interface Exchange {
     privatePostContractPrivateSubmitTpSlOrder (params?: {}): Promise<implicitReturnType>;
     privatePostContractPrivateModifyPlanOrder (params?: {}): Promise<implicitReturnType>;
     privatePostContractPrivateModifyPresetPlanOrder (params?: {}): Promise<implicitReturnType>;
+    privatePostContractPrivateModifyLimitOrder (params?: {}): Promise<implicitReturnType>;
     privatePostContractPrivateModifyTpSlOrder (params?: {}): Promise<implicitReturnType>;
     privatePostContractPrivateSubmitTrailOrder (params?: {}): Promise<implicitReturnType>;
     privatePostContractPrivateCancelTrailOrder (params?: {}): Promise<implicitReturnType>;
+    privatePostContractPrivateSetPositionMode (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 

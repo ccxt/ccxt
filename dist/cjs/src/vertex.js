@@ -451,11 +451,10 @@ class vertex extends vertex$1 {
             if ((tickerId !== undefined) && (tickerId.indexOf('PERP') > 0)) {
                 continue;
             }
-            const id = this.safeString(data, 'product_id');
             const name = this.safeString(data, 'symbol');
             const code = this.safeCurrencyCode(name);
-            result[code] = {
-                'id': id,
+            result[code] = this.safeCurrencyStructure({
+                'id': this.safeString(data, 'product_id'),
                 'name': name,
                 'code': code,
                 'precision': undefined,
@@ -475,7 +474,7 @@ class vertex extends vertex$1 {
                         'max': undefined,
                     },
                 },
-            };
+            });
         }
         return result;
     }

@@ -98,6 +98,21 @@ func (this *Okx) FetchMarketsByType(typeVar interface{}, options ...FetchMarkets
 }
 /**
  * @method
+ * @name okx#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-currencies
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Okx) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name okx#fetchOrderBook
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
  * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-order-book
@@ -515,6 +530,7 @@ func (this *Okx) CreateMarketSellOrderWithCost(symbol string, cost float64, opti
  * @param {string} [params.trailingPercent] the percent to trail away from the current market price
  * @param {string} [params.tpOrdKind] 'condition' or 'limit', the default is 'condition'
  * @param {bool} [params.hedged] *swap and future only* true for hedged mode, false for one way mode
+ * @param {string} [params.marginMode] 'cross' or 'isolated', the default is 'cross'
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
 func (this *Okx) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
@@ -561,7 +577,7 @@ func (this *Okx) CreateOrders(orders []OrderRequest, options ...CreateOrdersOpti
     if opts.Params != nil {
         params = *opts.Params
     }
-    res := <- this.Core.CreateOrders(orders, params)
+    res := <- this.Core.CreateOrders(ConvertOrderRequestListToArray(orders), params)
     if IsError(res) {
         return nil, CreateReturnError(res)
     }
@@ -1602,6 +1618,38 @@ func (this *Okx) FetchFundingRate(symbol string, options ...FetchFundingRateOpti
 }
 /**
  * @method
+ * @name okx#fetchFundingRates
+ * @description fetches the current funding rates for multiple symbols
+ * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate
+ * @param {string[]} symbols unified market symbols
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a dictionary of [funding rates structure]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}
+ */
+func (this *Okx) FetchFundingRates(options ...FetchFundingRatesOptions) (FundingRates, error) {
+
+    opts := FetchFundingRatesOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var symbols interface{} = nil
+    if opts.Symbols != nil {
+        symbols = *opts.Symbols
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.FetchFundingRates(symbols, params)
+    if IsError(res) {
+        return FundingRates{}, CreateReturnError(res)
+    }
+    return NewFundingRates(res), nil
+}
+/**
+ * @method
  * @name okx#fetchFundingHistory
  * @description fetch the history of funding payments paid and received on this account
  * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-3-months
@@ -1935,7 +1983,7 @@ func (this *Okx) FetchMarketLeverageTiers(symbol string, options ...FetchMarketL
 /**
  * @method
  * @name okx#fetchBorrowInterest
- * @description fetch the interest owed by the user for borrowing currency for margin trading
+ * @description fetch the interest owed b the user for borrowing currency for margin trading
  * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-interest-accrued-data
  * @param {string} code the unified currency code for the currency of the interest
  * @param {string} symbol the market symbol of an isolated margin market, if undefined, the interest for cross margin markets is returned
@@ -2010,6 +2058,41 @@ func (this *Okx) FetchOpenInterest(symbol string, options ...FetchOpenInterestOp
         return OpenInterest{}, CreateReturnError(res)
     }
     return NewOpenInterest(res), nil
+}
+/**
+ * @method
+ * @name okx#fetchOpenInterests
+ * @description Retrieves the open interests of some currencies
+ * @see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-open-interest
+ * @param {string[]} symbols Unified CCXT market symbols
+ * @param {object} [params] exchange specific parameters
+ * @param {string} params.instType Instrument type, options: 'SWAP', 'FUTURES', 'OPTION', default to 'SWAP'
+ * @param {string} params.uly Underlying, Applicable to FUTURES/SWAP/OPTION, if instType is 'OPTION', either uly or instFamily is required
+ * @param {string} params.instFamily Instrument family, Applicable to FUTURES/SWAP/OPTION, if instType is 'OPTION', either uly or instFamily is required
+ * @returns {object} an dictionary of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+ */
+func (this *Okx) FetchOpenInterests(options ...FetchOpenInterestsOptions) (OpenInterests, error) {
+
+    opts := FetchOpenInterestsOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var symbols interface{} = nil
+    if opts.Symbols != nil {
+        symbols = *opts.Symbols
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.FetchOpenInterests(symbols, params)
+    if IsError(res) {
+        return OpenInterests{}, CreateReturnError(res)
+    }
+    return NewOpenInterests(res), nil
 }
 /**
  * @method

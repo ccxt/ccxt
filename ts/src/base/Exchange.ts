@@ -74,6 +74,7 @@ const {
     , safeTimestamp2
     , rawencode
     , keysort
+    , sort
     , inArray
     , isEmpty
     , ordered
@@ -135,10 +136,10 @@ import {
     , InvalidProxySettings
     , ExchangeNotAvailable
     , ArgumentsRequired
-    , RateLimitExceeded,
-    BadRequest,
-    ExchangeClosedByUser,
-    UnsubscribeError} from "./errors.js"
+    , RateLimitExceeded
+    , BadRequest
+    , UnsubscribeError
+} from "./errors.js"
 
 import { Precise } from './Precise.js'
 
@@ -152,10 +153,10 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './
 //
 import { axolotl } from './functions/crypto.js';
 // import types
-import type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFeeNetwork, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests }  from './types.js';
-// export {Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation, FundingHistory} from './types.js'
-// import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, FundingHistory, MarginMode, Tickers, Greeks, Str, Num, MarketInterface, CurrencyInterface, Account } from './types.js';
-export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, Bool, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, CrossBorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion, DepositAddress, LongShortRatio } from './types.js'
+import type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFeeNetwork, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs }  from './types.js';
+// export {Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation, FundingHistory} from './types.js'
+// import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, FundingHistory, MarginMode, Tickers, Greeks, Str, Num, MarketInterface, CurrencyInterface, Account } from './types.js';
+export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, Bool, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, CrossBorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion, DepositAddress, LongShortRatio } from './types.js'
 
 // ----------------------------------------------------------------------------
 // move this elsewhere.
@@ -167,8 +168,10 @@ import ethers from '../static_dependencies/ethers/index.js';
 import { TypedDataEncoder } from '../static_dependencies/ethers/hash/index.js';
 import {SecureRandom} from "../static_dependencies/jsencrypt/lib/jsbn/rng.js";
 import {getStarkKey, ethSigToPrivate, sign as starknetCurveSign} from '../static_dependencies/scure-starknet/index.js';
+import init, * as zklink from '../static_dependencies/zklink/zklink-sdk-web.js';
 import * as Starknet from '../static_dependencies/starknet/index.js';
 import Client from './ws/Client.js'
+import { sha256 } from '../static_dependencies/noble-hashes/sha256.js'
 // ----------------------------------------------------------------------------
 /**
  * @class Exchange
@@ -246,7 +249,7 @@ export default class Exchange {
 
     timeout: Int      = 10000 // milliseconds
     verbose: boolean  = false
-    twofa             = undefined // two-factor authentication (2FA)
+    twofa             = undefined // two-factor authentication (2-FA)
 
     apiKey: string;
     secret: string;
@@ -402,6 +405,7 @@ export default class Exchange {
     alias: boolean = false;
 
     deepExtend = deepExtend
+    deepExtendSafe = deepExtend
     isNode = isNode
     keys = keysFunc
     values = valuesFunc
@@ -410,6 +414,7 @@ export default class Exchange {
     flatten = flatten
     unique = unique
     indexBy = indexBy
+    indexBySafe = indexBy
     roundTimeframe = roundTimeframe
     sortBy = sortBy
     sortBy2 = sortBy2
@@ -473,6 +478,7 @@ export default class Exchange {
     safeTimestamp2 = safeTimestamp2
     rawencode = rawencode
     keysort = keysort
+    sort = sort
     inArray = inArray
     safeStringLower2 = safeStringLower2
     safeStringUpper2 = safeStringUpper2
@@ -501,7 +507,7 @@ export default class Exchange {
     packb = packb
     urlencodeBase64 = urlencodeBase64
 
-    constructor (userConfig = {}) {
+    constructor (userConfig: ConstructorArgs = {}) {
         Object.assign (this, functions)
         //
         //     if (isNode) {
@@ -613,6 +619,10 @@ export default class Exchange {
         this.newUpdates = ((this.options as any).newUpdates !== undefined) ? (this.options as any).newUpdates : true;
 
         this.afterConstruct ();
+
+        if (this.safeBool(userConfig, 'sandbox') || this.safeBool(userConfig, 'testnet')) {
+            this.setSandboxMode(true);
+        }
     }
 
     encodeURIComponent (...args) {
@@ -760,7 +770,7 @@ export default class Exchange {
         }
         if (httpProxy) {
             if (this.httpProxyAgentModule === undefined) {
-                throw new NotSupported (this.id + ' you need to load JS proxy modules with `.loadProxyModules()` method at first to use proxies');
+                throw new NotSupported (this.id + ' you need to load JS proxy modules with `await instance.loadProxyModules()` method at first to use proxies');
             }
             if (!(httpProxy in this.proxyDictionaries)) {
                 this.proxyDictionaries[httpProxy] = new this.httpProxyAgentModule.HttpProxyAgent(httpProxy);
@@ -768,7 +778,7 @@ export default class Exchange {
             chosenAgent = this.proxyDictionaries[httpProxy];
         } else if (httpsProxy) {
             if (this.httpsProxyAgentModule === undefined) {
-                throw new NotSupported (this.id + ' you need to load JS proxy modules with `.loadProxyModules()` method at first to use proxies');
+                throw new NotSupported (this.id + ' you need to load JS proxy modules with `await instance.loadProxyModules()` method at first to use proxies');
             }
             if (!(httpsProxy in this.proxyDictionaries)) {
                 this.proxyDictionaries[httpsProxy] = new this.httpsProxyAgentModule.HttpsProxyAgent(httpsProxy);
@@ -777,7 +787,7 @@ export default class Exchange {
             chosenAgent.keepAlive = true;
         } else if (socksProxy) {
             if (this.socksProxyAgentModule === undefined) {
-                throw new NotSupported (this.id + ' - to use SOCKS proxy with ccxt, at first you need install module "npm i socks-proxy-agent" and then initialize proxies with `.loadProxyModules()` method');
+                throw new NotSupported (this.id + ' - to use SOCKS proxy with ccxt, at first you need install module "npm i socks-proxy-agent" and then initialize proxies with `await instance.loadProxyModules()` method');
             }
             if (!(socksProxy in this.proxyDictionaries)) {
                 this.proxyDictionaries[socksProxy] = new this.socksProxyAgentModule.SocksProxyAgent(socksProxy);
@@ -829,7 +839,7 @@ export default class Exchange {
         if (proxyUrl !== undefined) {
             // part only for node-js
             if (isNode) {
-                // in node we need to set header to *
+                // in node-js we need to set header to *
                 headers = this.extend ({ 'Origin': this.origin }, headers);
                 // only for http proxy
                 if (proxyUrl.substring(0, 5) === 'http:') {
@@ -837,7 +847,7 @@ export default class Exchange {
                     httpProxyAgent = this.httpAgent;
                 }
             }
-            url = proxyUrl + url;
+            url = proxyUrl + this.urlEncoderForProxyUrl (url);
         }
         // proxy agents
         const [ httpProxy, httpsProxy, socksProxy ] = this.checkProxySettings (url, method, headers, body);
@@ -1007,13 +1017,30 @@ export default class Exchange {
         // only call if exchange API provides endpoint (true), thus avoid emulated versions ('emulated')
         if (this.has['fetchCurrencies'] === true) {
             currencies = await this.fetchCurrencies ()
+            this.options['cachedCurrencies'] = currencies;
         }
-        const markets = await this.fetchMarkets (params)
+        const markets = await this.fetchMarkets (params);
+        if ('cachedCurrencies' in this.options) {
+            delete this.options['cachedCurrencies'];
+        }
         return this.setMarkets (markets, currencies)
     }
 
-    async loadMarkets (reload = false, params = {}): Promise<Dictionary<Market>> {
-        // this method is async, it returns a promise
+    /**
+     * @method
+     * @name Exchange#loadMarkets
+     * @description Loads and prepares the markets for trading.
+     * @param {boolean} reload - If true, the markets will be reloaded from the exchange.
+     * @param {object} params - Additional exchange-specific parameters for the request.
+     * @returns A promise that resolves to a dictionary of markets.
+     * @throws An error if the markets cannot be loaded or prepared.
+     * @remarks This method is asynchronous and returns a promise.
+     *          It ensures that the markets are only loaded once, even if the method is called multiple times.
+     *          If the markets are already loaded and not reloading, the method returns the existing markets.
+     *          If the markets are being reloaded, the method waits for the reload to complete before returning the markets.
+     *          If an error occurs during the loading or preparation of the markets, the promise is rejected with the error.
+     */
+    async loadMarkets (reload: boolean = false, params: object = {}): Promise<Dictionary<Market>> {
         if ((reload && !this.reloadingMarkets) || !this.marketsLoading) {
             this.reloadingMarkets = true
             this.marketsLoading = this.loadMarketsHelper (reload, params).then ((resolved) => {
@@ -1109,6 +1136,14 @@ export default class Exchange {
         } else {
             return hexData;
         }
+    }
+
+    mapToSafeMap(dict) {
+        return dict; // wrapper for go
+    }
+
+    safeMapToMap(dict) {
+        return dict; // wrapper for go
     }
 
     spawn(method, ...args) {
@@ -1380,15 +1415,10 @@ export default class Exchange {
         const closedClients = [];
         for (let i = 0; i < clients.length; i++) {
             const client = clients[i] as WsClient;
-            client.error = new ExchangeClosedByUser (this.id + ' closedByUser');
+            delete this.clients[client.url];
             closedClients.push(client.close ());
         }
-        await Promise.all (closedClients);
-        for (let i = 0; i < clients.length; i++) {
-            const client = clients[i] as WsClient;
-            delete this.clients[client.url];
-        }
-        return;
+        return Promise.all (closedClients);
     }
 
     async loadOrderBook (client, messageHash: string, symbol: string, limit: Int = undefined, params = {}) {
@@ -1483,7 +1513,7 @@ export default class Exchange {
               guardian: '0',
             }),
         });
-        
+
         const address = Starknet.hash.calculateContractAddressFromHash(
             publicKey,
             accountProxyClassHash,
@@ -1522,6 +1552,61 @@ export default class Exchange {
         // TODO: unify to ecdsa
         const signature = starknetCurveSign (hash.replace ('0x', ''), pri.slice (-64));
         return this.json ([ signature.r.toString (), signature.s.toString () ]);
+    }
+
+    async getZKContractSignatureObj (seed, params = {}) {
+        const formattedSlotId = BigInt ('0x' + this.remove0xPrefix (this.hash (this.encode(this.safeString (params, 'slotId')), sha256, 'hex'))).toString ();
+        const formattedNonce = BigInt ('0x' + this.remove0xPrefix (this.hash (this.encode(this.safeString (params, 'nonce')), sha256, 'hex'))).toString ();
+        const formattedUint64 = '18446744073709551615';
+        const formattedUint32 = '4294967295';
+        const accountId = parseInt (Precise.stringMod (this.safeString (params, 'accountId'), formattedUint32), 10);
+        const slotId = parseInt (Precise.stringDiv (Precise.stringMod (formattedSlotId, formattedUint64), formattedUint32), 10);
+        const nonce = parseInt (Precise.stringMod (formattedNonce, formattedUint32), 10);
+        await init ();
+        const _signer = zklink.newRpcSignerWithProvider ({});
+        await _signer.initZklinkSigner (seed);
+        let tx_builder = new zklink.ContractBuilder (accountId, 0, slotId, nonce,
+            this.safeInteger (params, 'pairId'),
+            Precise.stringMul (this.safeString(params, 'size'), '1e18'),
+            Precise.stringMul (this.safeString(params, 'price'), '1e18'),
+            this.safeString (params, 'direction') === 'BUY',
+            parseInt (Precise.stringMul(this.safeString(params, 'makerFeeRate'), '10000')),
+            parseInt (Precise.stringMul(this.safeString (params, 'takerFeeRate'), '10000')), false);
+        let contractor = zklink.newContract (tx_builder);
+        //const signer = ZkLinkSigner.ethSig(seed);
+        //const signer = new Signer(seed);
+        contractor?.sign (_signer?.getZkLinkSigner ());
+        const tx = contractor.jsValue ();
+        const zkSign = tx?.signature?.signature;
+        return zkSign;
+    }
+
+    async getZKTransferSignatureObj (seed, params = {}) {
+        await init ();
+        const _signer = zklink.newRpcSignerWithProvider ({});
+        await _signer.initZklinkSigner (seed);
+        let nonce = this.safeString (params, 'nonce', '0')
+        if (this.safeBool(params, 'isContract') === true){
+            const formattedUint32 = '4294967295';
+            const formattedNonce = BigInt ('0x' + this.remove0xPrefix (this.hash (this.encode (nonce), sha256, 'hex'))).toString ();
+            nonce = Precise.stringMod (formattedNonce, formattedUint32);
+        }
+        let tx_builder = new zklink.TransferBuilder (this.safeNumber (params, 'zkAccountId', 0),
+            this.safeString (params, 'receiverAddress'),
+            this.safeNumber (params, 'subAccountId', 0),
+            this.safeNumber (params, 'receiverSubAccountId', 0),
+            this.safeNumber (params, 'tokenId', 0),
+            this.safeString (params, 'fee','0'),
+            this.safeString (params, 'amount','0'),
+            this.parseToInt(nonce),
+            this.safeNumber (params, 'timestampSeconds', 0));
+        let contractor = zklink.newTransfer (tx_builder);
+        //const signer = ZkLinkSigner.ethSig(seed);
+        //const signer = new Signer(seed);
+        contractor?.sign (_signer?.getZkLinkSigner ());
+        const tx = contractor.jsValue ();
+        const zkSign = tx?.signature?.signature;
+        return zkSign;
     }
 
     intToBase16(elem): string {
@@ -1912,7 +1997,6 @@ export default class Exchange {
             },
             'commonCurrencies': {
                 'XBT': 'BTC',
-                'BCC': 'BCH',
                 'BCHSV': 'BSV',
             },
             'precisionMode': TICK_SIZE,
@@ -2106,6 +2190,13 @@ export default class Exchange {
             throw new InvalidProxySettings (this.id + ' you have multiple conflicting proxy settings (' + joinedProxyNames + '), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback');
         }
         return proxyUrl;
+    }
+
+    urlEncoderForProxyUrl (targetUrl: string) {
+        // to be overriden
+        const includesQuery = targetUrl.indexOf ('?') >= 0;
+        const finalUrl = includesQuery ? this.encodeURIComponent (targetUrl) : targetUrl;
+        return finalUrl;
     }
 
     checkProxySettings (url: Str = undefined, method: Str = undefined, headers = undefined, body = undefined) {
@@ -2387,6 +2478,10 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchTrades() is not supported yet');
     }
 
+    async unWatchOrders (symbol: Str = undefined, params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' unWatchOrders() is not supported yet');
+    }
+
     async unWatchTrades (symbol: string, params = {}): Promise<any> {
         throw new NotSupported (this.id + ' unWatchTrades() is not supported yet');
     }
@@ -2614,7 +2709,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' withdraw() is not supported yet');
     }
 
-    async createDepositAddress (code: string, params = {}): Promise<DepositAddressResponse> {
+    async createDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         throw new NotSupported (this.id + ' createDepositAddress() is not supported yet');
     }
 
@@ -2942,24 +3037,34 @@ export default class Exchange {
 
     safeCurrencyStructure (currency: object): CurrencyInterface {
         // derive data from networks: deposit, withdraw, active, fee, limits, precision
-        const currencyDeposit = this.safeBool (currency, 'deposit');
-        const currencyWithdraw = this.safeBool (currency, 'withdraw');
-        const currencyActive = this.safeBool (currency, 'active');
         const networks = this.safeDict (currency, 'networks', {});
         const keys = Object.keys (networks);
         const length = keys.length;
         if (length !== 0) {
             for (let i = 0; i < length; i++) {
-                const network = networks[keys[i]];
+                const key = keys[i];
+                const network = networks[key];
                 const deposit = this.safeBool (network, 'deposit');
+                const currencyDeposit = this.safeBool (currency, 'deposit');
                 if (currencyDeposit === undefined || deposit) {
                     currency['deposit'] = deposit;
                 }
                 const withdraw = this.safeBool (network, 'withdraw');
+                const currencyWithdraw = this.safeBool (currency, 'withdraw');
                 if (currencyWithdraw === undefined || withdraw) {
                     currency['withdraw'] = withdraw;
                 }
-                const active = this.safeBool (network, 'active');
+                // set network 'active' to false if D or W is disabled
+                let active = this.safeBool (network, 'active');
+                if (active === undefined) {
+                    if (deposit && withdraw) {
+                        currency['networks'][key]['active'] = true;
+                    } else if (deposit !== undefined && withdraw !== undefined) {
+                        currency['networks'][key]['active'] = false;
+                    }
+                }
+                active = this.safeBool (currency['networks'][key], 'active'); // dict might have been updated on above lines, so access directly instead of `network` variable
+                const currencyActive = this.safeBool (currency, 'active');
                 if (currencyActive === undefined || active) {
                     currency['active'] = active;
                 }
@@ -2972,7 +3077,7 @@ export default class Exchange {
                 // find lowest precision (which is more desired)
                 const precision = this.safeString (network, 'precision');
                 const precisionMain = this.safeString (currency, 'precision');
-                if (precisionMain === undefined || Precise.stringLt (precision, precisionMain)) {
+                if (precisionMain === undefined || Precise.stringGt (precision, precisionMain)) {
                     currency['precision'] = this.parseNumber (precision);
                 }
                 // limits
@@ -3135,7 +3240,7 @@ export default class Exchange {
 
     setMarkets (markets, currencies = undefined) {
         const values = [];
-        this.markets_by_id = {};
+        this.markets_by_id = this.createSafeDictionary ();
         // handle marketId conflicts
         // we insert spot markets first
         const marketValues = this.sortBy (this.toArray (markets), 'spot', true, true);
@@ -3161,14 +3266,14 @@ export default class Exchange {
             }
             values.push (market);
         }
-        this.markets = this.indexBy (values, 'symbol') as any;
+        this.markets = this.mapToSafeMap (this.indexBy (values, 'symbol') as any);
         const marketsSortedBySymbol = this.keysort (this.markets);
         const marketsSortedById = this.keysort (this.markets_by_id);
         this.symbols = Object.keys (marketsSortedBySymbol);
         this.ids = Object.keys (marketsSortedById);
         if (currencies !== undefined) {
             // currencies is always undefined when called in constructor but not when called from loadMarkets
-            this.currencies = this.deepExtend (this.currencies, currencies);
+            this.currencies = this.mapToSafeMap (this.deepExtend (this.currencies, currencies));
         } else {
             let baseCurrencies = [];
             let quoteCurrencies = [];
@@ -3197,8 +3302,8 @@ export default class Exchange {
             }
             baseCurrencies = this.sortBy (baseCurrencies, 'code', false, '');
             quoteCurrencies = this.sortBy (quoteCurrencies, 'code', false, '');
-            this.baseCurrencies = this.indexBy (baseCurrencies, 'code');
-            this.quoteCurrencies = this.indexBy (quoteCurrencies, 'code');
+            this.baseCurrencies = this.mapToSafeMap (this.indexBy (baseCurrencies, 'code'));
+            this.quoteCurrencies = this.mapToSafeMap (this.indexBy (quoteCurrencies, 'code'));
             const allCurrencies = this.arrayConcat (baseCurrencies, quoteCurrencies);
             const groupedCurrencies = this.groupBy (allCurrencies, 'code');
             const codes = Object.keys (groupedCurrencies);
@@ -3218,9 +3323,9 @@ export default class Exchange {
                 resultingCurrencies.push (highestPrecisionCurrency);
             }
             const sortedCurrencies = this.sortBy (resultingCurrencies, 'code');
-            this.currencies = this.deepExtend (this.currencies, this.indexBy (sortedCurrencies, 'code'));
+            this.currencies = this.mapToSafeMap (this.deepExtend (this.currencies, this.indexBy (sortedCurrencies, 'code')));
         }
-        this.currencies_by_id = this.indexBy (this.currencies, 'id');
+        this.currencies_by_id = this.indexBySafe (this.currencies, 'id');
         const currenciesSortedByCode = this.keysort (this.currencies);
         this.codes = Object.keys (currenciesSortedByCode);
         return this.markets;
@@ -4324,11 +4429,11 @@ export default class Exchange {
                 throw new NotSupported (this.id + ' - ' + networkCode + ' network did not return any result for ' + currencyCode);
             } else {
                 // if networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
-                const networkId = isIndexedByUnifiedNetworkCode ? networkCode : this.networkCodeToId (networkCode, currencyCode);
-                if (networkId in indexedNetworkEntries) {
-                    chosenNetworkId = networkId;
+                const networkIdOrCode = isIndexedByUnifiedNetworkCode ? networkCode : this.networkCodeToId (networkCode, currencyCode);
+                if (networkIdOrCode in indexedNetworkEntries) {
+                    chosenNetworkId = networkIdOrCode;
                 } else {
-                    throw new NotSupported (this.id + ' - ' + networkId + ' network was not found for ' + currencyCode + ', use one of ' + availableNetworkIds.join (', '));
+                    throw new NotSupported (this.id + ' - ' + networkIdOrCode + ' network was not found for ' + currencyCode + ', use one of ' + availableNetworkIds.join (', '));
                 }
             }
         } else {
@@ -4606,6 +4711,25 @@ export default class Exchange {
         return [ value, params ];
     }
 
+    /**
+     * @param {object} params - extra parameters
+     * @param {object} request - existing dictionary of request
+     * @param {string} exchangeSpecificKey - the key for chain id to be set in request
+     * @param {object} currencyCode - (optional) existing dictionary of request
+     * @param {boolean} isRequired - (optional) whether that param is required to be present
+     * @returns {object[]} - returns [request, params] where request is the modified request object and params is the modified params object
+     */
+    handleRequestNetwork (params: Dict, request: Dict, exchangeSpecificKey: string, currencyCode:Str = undefined, isRequired: boolean = false) {
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode !== undefined) {
+            request[exchangeSpecificKey] = this.networkCodeToId (networkCode, currencyCode);
+        } else if (isRequired) {
+            throw new ArgumentsRequired (this.id + ' - "network" param is required for this request');
+        }
+        return [ request, params ];
+    }
+
     resolvePath (path, params) {
         return [
             this.implodeParams (path, params),
@@ -4674,20 +4798,20 @@ export default class Exchange {
             const cost = this.calculateRateLimiterCost (api, method, path, params, config);
             await this.throttle (cost);
         }
+        let retries = undefined;
+        [ retries, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailure', 0);
+        let retryDelay = undefined;
+        [ retryDelay, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailureDelay', 0);
         this.lastRestRequestTimestamp = this.milliseconds ();
         const request = this.sign (path, api, method, params, headers, body);
         this.last_request_headers = request['headers'];
         this.last_request_body = request['body'];
         this.last_request_url = request['url'];
-        let retries = undefined;
-        [ retries, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailure', 0);
-        let retryDelay = undefined;
-        [ retryDelay, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailureDelay', 0);
         for (let i = 0; i < retries + 1; i++) {
             try {
                 return await this.fetch (request['url'], request['method'], request['headers'], request['body']);
             } catch (e) {
-                if (e instanceof NetworkError) {
+                if (e instanceof OperationFailed) {
                     if (i < retries) {
                         if (this.verbose) {
                             this.log ('Request failed with the error: ' + e.toString () + ', retrying ' + (i + 1).toString () + ' of ' + retries.toString () + '...');
@@ -4695,10 +4819,10 @@ export default class Exchange {
                         if ((retryDelay !== undefined) && (retryDelay !== 0)) {
                             await this.sleep (retryDelay);
                         }
-                        // continue; //check this
+                    } else {
+                        throw e;
                     }
-                }
-                if (i >= retries) {
+                } else {
                     throw e;
                 }
             }
@@ -6057,6 +6181,29 @@ export default class Exchange {
         throw new NotSupported (this.id + ' createExpiredOptionMarket () is not supported yet');
     }
 
+    isLeveragedCurrency (currencyCode, checkBaseCoin: Bool = false, existingCurrencies: Dict = undefined): boolean {
+        const leverageSuffixes = [
+            '2L', '2S', '3L', '3S', '4L', '4S', '5L', '5S', // Leveraged Tokens (LT)
+            'UP', 'DOWN', // exchange-specific (e.g. BLVT)
+            'BULL', 'BEAR', // similar
+        ];
+        for (let i = 0; i < leverageSuffixes.length; i++) {
+            const leverageSuffix = leverageSuffixes[i];
+            if (currencyCode.endsWith (leverageSuffix)) {
+                if (!checkBaseCoin) {
+                    return true;
+                } else {
+                    // check if base currency is inside dict
+                    const baseCurrencyCode = currencyCode.replace (leverageSuffix, '');
+                    if (baseCurrencyCode in existingCurrencies) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
     handleWithdrawTagAndParams (tag, params): any {
         if ((tag !== undefined) && (typeof tag === 'object')) {
             params = this.extend (tag, params);
@@ -6359,7 +6506,7 @@ export default class Exchange {
         return await this.createOrderWs (symbol, 'market', side, amount, undefined, query);
     }
 
-    safeCurrencyCode (currencyId: Str, currency: Currency = undefined): string {
+    safeCurrencyCode (currencyId: Str, currency: Currency = undefined): Str {
         currency = this.safeCurrency (currencyId, currency);
         return currency['code'];
     }
@@ -7333,30 +7480,43 @@ export default class Exchange {
         return result;
     }
 
-    removeRepeatedElementsFromArray (input) {
+    removeRepeatedElementsFromArray (input, fallbackToTimestamp: boolean = true) {
+        const uniqueDic = {};
+        const uniqueResult = [];
+        for (let i = 0; i < input.length; i++) {
+            const entry = input[i];
+            const uniqValue = fallbackToTimestamp ? this.safeStringN (entry, [ 'id', 'timestamp', 0 ]) : this.safeString (entry, 'id');
+            if (uniqValue !== undefined && !(uniqValue in uniqueDic)) {
+                uniqueDic[uniqValue] = 1;
+                uniqueResult.push (entry);
+            }
+        }
+        const valuesLength = uniqueResult.length;
+        if (valuesLength > 0) {
+            return uniqueResult as any;
+        }
+        return input;
+    }
+
+    removeRepeatedTradesFromArray (input) {
         const uniqueResult = {};
         for (let i = 0; i < input.length; i++) {
             const entry = input[i];
-            const id = this.safeString (entry, 'id');
-            if (id !== undefined) {
-                if (this.safeString (uniqueResult, id) === undefined) {
-                    uniqueResult[id] = entry;
-                }
-            } else {
-                const timestamp = this.safeInteger2 (entry, 'timestamp', 0);
-                if (timestamp !== undefined) {
-                    if (this.safeString (uniqueResult, timestamp) === undefined) {
-                        uniqueResult[timestamp] = entry;
-                    }
-                }
+            let id = this.safeString (entry, 'id');
+            if (id === undefined) {
+                const price = this.safeString (entry, 'price');
+                const amount = this.safeString (entry, 'amount');
+                const timestamp = this.safeString (entry, 'timestamp');
+                const side = this.safeString (entry, 'side');
+                // unique trade identifier
+                id = 't_' + timestamp.toString () + '_' + side + '_' + price + '_' + amount;
+            }
+            if (id !== undefined && !(id in uniqueResult)) {
+                uniqueResult[id] = entry;
             }
         }
         const values = Object.values (uniqueResult);
-        const valuesLength = values.length;
-        if (valuesLength > 0) {
-            return values as any;
-        }
-        return input;
+        return values as any;
     }
 
     handleUntilOption (key: string, request, params, multiplier = 1) {
@@ -7554,7 +7714,7 @@ export default class Exchange {
     }
 
     convertMarketIdExpireDate (date: string): string {
-        // parse 03JAN24 to 240103
+        // parse 03JAN24 to 240103.
         const monthMappping = {
             'JAN': '01',
             'FEB': '02',
@@ -7682,7 +7842,7 @@ export default class Exchange {
                 const symbolAndTimeFrame = symbolsAndTimeFrames[i];
                 const symbol = this.safeString (symbolAndTimeFrame, 0);
                 const timeframe = this.safeString (symbolAndTimeFrame, 1);
-                if (symbol in this.ohlcvs) {
+                if ((this.ohlcvs !== undefined) && (symbol in this.ohlcvs)) {
                     if (timeframe in this.ohlcvs[symbol]) {
                         delete this.ohlcvs[symbol][timeframe];
                     }
@@ -7706,25 +7866,11 @@ export default class Exchange {
                 }
             }
         } else {
-            if (topic === 'myTrades') {
-                // don't reset this.myTrades directly here
-                // because in c# we need to use a different object (thread-safe dict)
-                const keys = Object.keys (this.myTrades);
-                for (let i = 0; i < keys.length; i++) {
-                    const key = keys[i];
-                    if (key in this.myTrades) {
-                        delete this.myTrades[key];
-                    }
-                }
-            } else if (topic === 'orders') {
-                const orderSymbols = Object.keys (this.orders);
-                for (let i = 0; i < orderSymbols.length; i++) {
-                    const orderSymbol = orderSymbols[i];
-                    if (orderSymbol in this.orders) {
-                        delete this.orders[orderSymbol];
-                    }
-                }
-            } else if (topic === 'ticker') {
+            if (topic === 'myTrades' && (this.myTrades !== undefined)) {
+                this.myTrades = undefined;
+            } else if (topic === 'orders' && (this.orders !== undefined)) {
+                this.orders = undefined;
+            } else if (topic === 'ticker' && (this.tickers !== undefined)) {
                 const tickerSymbols = Object.keys (this.tickers);
                 for (let i = 0; i < tickerSymbols.length; i++) {
                     const tickerSymbol = tickerSymbols[i];

@@ -78,6 +78,7 @@ public partial class bitmex : Exchange
                 { "fetchTransactions", "emulated" },
                 { "fetchTransfer", false },
                 { "fetchTransfers", false },
+                { "index", true },
                 { "reduceMargin", null },
                 { "sandbox", true },
                 { "setLeverage", true },
@@ -397,8 +398,8 @@ public partial class bitmex : Exchange
         //            // "mediumPrecision": "8",
         //            // "shorterPrecision": "4",
         //            // "symbol": "₿",
-        //            // "weight": "1",
         //            // "tickLog": "0",
+        //            // "weight": "1",
         //            "enabled": true,
         //            "isMarginCurrency": true,
         //            "minDepositAmount": "10000",
@@ -480,6 +481,7 @@ public partial class bitmex : Exchange
             object maxWithdrawal = this.parseNumber(Precise.stringMul(maxWithdrawalString, precisionString));
             object minDepositString = this.safeString(currency, "minDepositAmount");
             object minDeposit = this.parseNumber(Precise.stringMul(minDepositString, precisionString));
+            object isCrypto = isEqual(this.safeString(currency, "currencyType"), "Crypto");
             ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
                 { "id", id },
                 { "code", code },
@@ -505,6 +507,7 @@ public partial class bitmex : Exchange
                     } },
                 } },
                 { "networks", networks },
+                { "type", ((bool) isTrue(isCrypto)) ? "crypto" : "other" },
             };
         }
         return result;
@@ -739,7 +742,7 @@ public partial class bitmex : Exchange
         object isQuanto = this.safeValue(market, "isQuanto"); // this is true when BASE and SETTLE are different, i.e. AXS/XXX:BTC
         object linear = ((bool) isTrue(contract)) ? (!isTrue(isInverse) && !isTrue(isQuanto)) : null;
         object status = this.safeString(market, "state");
-        object active = !isEqual(status, "Unlisted");
+        object active = isEqual(status, "Open"); // Open, Settled, Unlisted
         object expiry = null;
         object expiryDatetime = null;
         object symbol = null;
@@ -758,10 +761,10 @@ public partial class bitmex : Exchange
                 object multiplierString = Precise.stringAbs(this.safeString(market, "multiplier"));
                 contractSize = this.parseNumber(multiplierString);
             }
-            if (isTrue(future))
+            expiryDatetime = this.safeString(market, "expiry");
+            expiry = this.parse8601(expiryDatetime);
+            if (isTrue(!isEqual(expiry, null)))
             {
-                expiryDatetime = this.safeString(market, "expiry");
-                expiry = this.parse8601(expiryDatetime);
                 symbol = add(add(symbol, "-"), this.yymmdd(expiry));
             }
         } else
@@ -775,6 +778,13 @@ public partial class bitmex : Exchange
         object maxOrderQty = this.safeNumber(market, "maxOrderQty");
         object initMargin = this.safeString(market, "initMargin", "1");
         object maxLeverage = this.parseNumber(Precise.stringDiv("1", initMargin));
+        // subtype should be undefined for spot markets
+        if (isTrue(spot))
+        {
+            isInverse = null;
+            isQuanto = null;
+            linear = null;
+        }
         return new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
@@ -824,7 +834,7 @@ public partial class bitmex : Exchange
                     { "max", ((bool) isTrue(positionIsQuote)) ? maxOrderQty : null },
                 } },
             } },
-            { "created", this.parse8601(this.safeString(market, "listing")) },
+            { "created", null },
             { "info", market },
         };
     }

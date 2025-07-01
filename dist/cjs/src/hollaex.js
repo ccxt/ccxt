@@ -254,6 +254,7 @@ class hollaex extends hollaex$1 {
             },
             'exceptions': {
                 'broad': {
+                    'API request is expired': errors.InvalidNonce,
                     'Invalid token': errors.AuthenticationError,
                     'Order not found': errors.OrderNotFound,
                     'Insufficient balance': errors.InsufficientFunds,
@@ -283,6 +284,14 @@ class hollaex extends hollaex$1 {
                     'XLM': 'xlm',
                     'BNB': 'bnb',
                     'MATIC': 'matic',
+                },
+                'networksById': {
+                    'eth': 'ERC20',
+                    'ETH': 'ERC20',
+                    'ERC20': 'ERC20',
+                    'trx': 'TRC20',
+                    'TRX': 'TRC20',
+                    'TRC20': 'TRC20',
                 },
             },
         });
@@ -414,66 +423,116 @@ class hollaex extends hollaex$1 {
     async fetchCurrencies(params = {}) {
         const response = await this.publicGetConstants(params);
         //
-        //     {
-        //         "coins":{
-        //             "bch":{
-        //                 "id":4,
-        //                 "fullname":"Bitcoin Cash",
-        //                 "symbol":"bch",
-        //                 "active":true,
-        //                 "verified":true,
-        //                 "allow_deposit":true,
-        //                 "allow_withdrawal":true,
-        //                 "withdrawal_fee":0.0002,
-        //                 "min":0.001,
-        //                 "max":100000,
-        //                 "increment_unit":0.001,
-        //                 "logo":"https://bitholla.s3.ap-northeast-2.amazonaws.com/icon/BCH-hollaex-asset-01.svg",
-        //                 "code":"bch",
-        //                 "is_public":true,
-        //                 "meta":{},
-        //                 "estimated_price":null,
-        //                 "description":null,
-        //                 "type":"blockchain",
-        //                 "network":null,
-        //                 "standard":null,
-        //                 "issuer":"HollaEx",
-        //                 "withdrawal_fees":null,
-        //                 "created_at":"2019-08-09T10:45:43.367Z",
-        //                 "updated_at":"2021-12-13T03:08:32.372Z",
-        //                 "created_by":1,
-        //                 "owner_id":1
-        //             },
+        //    {
+        //        "coins": {
+        //            "usdt": {
+        //                "id": "6",
+        //                "fullname": "USD Tether",
+        //                "symbol": "usdt",
+        //                "active": true,
+        //                "verified": true,
+        //                "allow_deposit": true,
+        //                "allow_withdrawal": true,
+        //                "withdrawal_fee": "20",
+        //                "min": "1",
+        //                "max": "10000000",
+        //                "increment_unit": "0.0001",
+        //                "logo": "https://hollaex-resources.s3.ap-southeast-1.amazonaws.com/icons/usdt.svg",
+        //                "code": "usdt",
+        //                "is_public": true,
+        //                "meta": {
+        //                    "color": "#27a17a",
+        //                    "website": "https://tether.to",
+        //                    "explorer": "https://blockchair.com/tether",
+        //                    "decimal_points": "6"
+        //                },
+        //                "estimated_price": "1",
+        //                "description": "<p>Tether (USDT) is a stablecoin pegged 1:1 to the US dollar. It is a digital currency that aims to maintain its value while allowing for fast and secure transfer of funds. It was the first stablecoin, and is the most widely used due stablecoin due to its stability and low volatility compared to other cryptocurrencies. It was launched in 2014 by Tether Limited.</p>",
+        //                "type": "blockchain",
+        //                "network": "eth,trx,bnb,matic",
+        //                "standard": "",
+        //                "issuer": "HollaEx",
+        //                "withdrawal_fees": {
+        //                    "bnb": {
+        //                        "value": "0.8",
+        //                        "active": true,
+        //                        "symbol": "usdt"
+        //                    },
+        //                    "eth": {
+        //                        "value": "1.5",
+        //                        "active": true,
+        //                        "symbol": "usdt"
+        //                    },
+        //                    "trx": {
+        //                        "value": "4",
+        //                        "active": true,
+        //                        "symbol": "usdt"
+        //                    },
+        //                    "matic": {
+        //                        "value": "0.3",
+        //                        "active": true,
+        //                        "symbol": "usdt"
+        //                    }
+        //                },
+        //                "display_name": null,
+        //                "deposit_fees": null,
+        //                "is_risky": false,
+        //                "market_cap": "144568098696.29",
+        //                "category": "stable",
+        //                "created_at": "2019-08-09T10:45:43.367Z",
+        //                "updated_at": "2025-03-25T17:12:37.970Z",
+        //                "created_by": "168",
+        //                "owner_id": "1"
+        //            },
         //         },
         //         "network":"https://api.hollaex.network"
         //     }
         //
-        const coins = this.safeValue(response, 'coins', {});
+        const coins = this.safeDict(response, 'coins', {});
         const keys = Object.keys(coins);
         const result = {};
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             const currency = coins[key];
             const id = this.safeString(currency, 'symbol');
-            const numericId = this.safeInteger(currency, 'id');
             const code = this.safeCurrencyCode(id);
-            const name = this.safeString(currency, 'fullname');
-            const depositEnabled = this.safeValue(currency, 'allow_deposit');
-            const withdrawEnabled = this.safeValue(currency, 'allow_withdrawal');
-            const isActive = this.safeValue(currency, 'active');
-            const active = isActive && depositEnabled && withdrawEnabled;
-            const fee = this.safeNumber(currency, 'withdrawal_fee');
-            const withdrawalLimits = this.safeValue(currency, 'withdrawal_limits', []);
-            result[code] = {
+            const withdrawalLimits = this.safeList(currency, 'withdrawal_limits', []);
+            const rawType = this.safeString(currency, 'type');
+            const type = (rawType === 'blockchain') ? 'crypto' : 'other';
+            const rawNetworks = this.safeDict(currency, 'withdrawal_fees', {});
+            const networks = {};
+            const networkIds = Object.keys(rawNetworks);
+            for (let j = 0; j < networkIds.length; j++) {
+                const networkId = networkIds[j];
+                const networkEntry = this.safeDict(rawNetworks, networkId);
+                const networkCode = this.networkIdToCode(networkId);
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': this.safeBool(networkEntry, 'active'),
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': this.safeNumber(networkEntry, 'value'),
+                    'precision': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                    },
+                    'info': networkEntry,
+                };
+            }
+            result[code] = this.safeCurrencyStructure({
                 'id': id,
-                'numericId': numericId,
+                'numericId': this.safeInteger(currency, 'id'),
                 'code': code,
                 'info': currency,
-                'name': name,
-                'active': active,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
-                'fee': fee,
+                'name': this.safeString(currency, 'fullname'),
+                'active': this.safeBool(currency, 'active'),
+                'deposit': this.safeBool(currency, 'allow_deposit'),
+                'withdraw': this.safeBool(currency, 'allow_withdrawal'),
+                'fee': this.safeNumber(currency, 'withdrawal_fee'),
                 'precision': this.safeNumber(currency, 'increment_unit'),
                 'limits': {
                     'amount': {
@@ -485,8 +544,9 @@ class hollaex extends hollaex$1 {
                         'max': this.safeValue(withdrawalLimits, 0),
                     },
                 },
-                'networks': {},
-            };
+                'networks': networks,
+                'type': type,
+            });
         }
         return result;
     }
@@ -734,7 +794,8 @@ class hollaex extends hollaex$1 {
         //      "price":0.147411,
         //      "timestamp":"2022-01-26T17:53:34.650Z",
         //      "order_id":"cba78ecb-4187-4da2-9d2f-c259aa693b5a",
-        //      "fee":0.01031877,"fee_coin":"usdt"
+        //      "fee":0.01031877,
+        //      "fee_coin":"usdt"
         //  }
         //
         const marketId = this.safeString(trade, 'symbol');
@@ -747,11 +808,12 @@ class hollaex extends hollaex$1 {
         const priceString = this.safeString(trade, 'price');
         const amountString = this.safeString(trade, 'size');
         const feeCostString = this.safeString(trade, 'fee');
+        const feeCoin = this.safeString(trade, 'fee_coin');
         let fee = undefined;
         if (feeCostString !== undefined) {
             fee = {
                 'cost': feeCostString,
-                'currency': market['quote'],
+                'currency': this.safeCurrencyCode(feeCoin),
             };
         }
         return this.safeTrade({
@@ -838,7 +900,7 @@ class hollaex extends hollaex$1 {
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
-     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch (max 500)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -850,19 +912,28 @@ class hollaex extends hollaex$1 {
             'symbol': market['id'],
             'resolution': this.safeString(this.timeframes, timeframe, timeframe),
         };
-        const until = this.safeInteger(params, 'until');
-        let end = this.seconds();
-        if (until !== undefined) {
-            end = this.parseToInt(until / 1000);
+        let paginate = false;
+        const maxLimit = 500;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate', paginate);
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit);
         }
-        const defaultSpan = 2592000; // 30 days
-        if (since !== undefined) {
-            request['from'] = this.parseToInt(since / 1000);
+        let until = this.safeInteger(params, 'until');
+        const timeDelta = this.parseTimeframe(timeframe) * maxLimit * 1000;
+        let start = since;
+        const now = this.milliseconds();
+        if (until === undefined && start === undefined) {
+            until = now;
+            start = until - timeDelta;
         }
-        else {
-            request['from'] = end - defaultSpan;
+        else if (until === undefined) {
+            until = now; // the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
         }
-        request['to'] = end;
+        else if (start === undefined) {
+            start = until - timeDelta;
+        }
+        request['from'] = this.parseToInt(start / 1000); // convert to seconds
+        request['to'] = this.parseToInt(until / 1000); // convert to seconds
         params = this.omit(params, 'until');
         const response = await this.publicGetChart(this.extend(request, params));
         //
@@ -1225,11 +1296,10 @@ class hollaex extends hollaex$1 {
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        const convertedAmount = parseFloat(this.amountToPrecision(symbol, amount));
         const request = {
             'symbol': market['id'],
             'side': side,
-            'size': this.normalizeNumberIfNeeded(convertedAmount),
+            'size': this.amountToPrecision(symbol, amount),
             'type': type,
             // 'stop': parseFloat (this.priceToPrecision (symbol, stopPrice)),
             // 'meta': {}, // other options such as post_only
@@ -1240,11 +1310,10 @@ class hollaex extends hollaex$1 {
         const isMarketOrder = type === 'market';
         const postOnly = this.isPostOnly(isMarketOrder, exchangeSpecificParam, params);
         if (!isMarketOrder) {
-            const convertedPrice = parseFloat(this.priceToPrecision(symbol, price));
-            request['price'] = this.normalizeNumberIfNeeded(convertedPrice);
+            request['price'] = this.priceToPrecision(symbol, price);
         }
         if (triggerPrice !== undefined) {
-            request['stop'] = this.normalizeNumberIfNeeded(parseFloat(this.priceToPrecision(symbol, triggerPrice)));
+            request['stop'] = this.priceToPrecision(symbol, triggerPrice);
         }
         if (postOnly) {
             request['meta'] = { 'post_only': true };
@@ -1916,12 +1985,6 @@ class hollaex extends hollaex$1 {
         //
         const coins = this.safeDict(response, 'coins', {});
         return this.parseDepositWithdrawFees(coins, codes, 'symbol');
-    }
-    normalizeNumberIfNeeded(number) {
-        if (this.isRoundNumber(number)) {
-            number = parseInt(number);
-        }
-        return number;
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit(params, this.extractParams(path));

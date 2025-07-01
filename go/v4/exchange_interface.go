@@ -34,9 +34,9 @@ type IExchange interface {
 	GetHostname() string
 	GetUrls() interface{}
 	GetApi() map[string]interface{}
-	GetOptions() map[string]interface{}
-	GetCurrencies() map[string]interface{}
-	GetMarkets() map[string]interface{}
+	GetOptions() *sync.Map
+	GetCurrencies() *sync.Map
+	GetMarkets() *sync.Map
 	CheckRequiredCredentials(optionalArgs ...interface{}) interface{}
 	Sleep(milliseconds interface{}) <-chan bool
 	Json(object interface{}) interface{}
@@ -172,11 +172,13 @@ type IExchange interface {
 	WarmUpCache()
 	GetItf() interface{}
 	ConvertToSafeDictionary(data interface{}) interface{}
-	CreateSafeDictionary() interface{}
+	CreateSafeDictionary() *sync.Map
 	SetOptions(options interface{})
+	CreateOrders(orders interface{}, optionalArgs ...interface{}) <-chan interface{}
 }
 
 type IDerivedExchange interface {
+	ParseLeverage(leverage interface{}, optionalArgs ...interface{}) interface{}
 	ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{}) interface{}
 	ParseTrade(trade interface{}, optionalArgs ...interface{}) interface{}
 	ParseMarket(market interface{}) interface{}
@@ -232,4 +234,6 @@ type IDerivedExchange interface {
 	SetSandboxMode(enabled interface{})
 	Market(symbol interface{}) interface{}
 	ParseConversion(conversion interface{}, optionalArgs ...interface{}) interface{}
+	SafeCurrencyCode(currencyId interface{}, optionalArgs ...interface{}) interface{}
+	HandleErrors(statusCode interface{}, statusText interface{}, url interface{}, method interface{}, responseHeaders interface{}, responseBody interface{}, response interface{}, requestHeaders interface{}, requestBody interface{}) interface{}
 }

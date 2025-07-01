@@ -578,6 +578,7 @@ class phemex extends Exchange {
                 ),
                 'defaultNetworks' => array(
                     'USDT' => 'ETH',
+                    'MKR' => 'ETH',
                 ),
                 'defaultSubType' => 'linear',
                 'accountsByType' => array(
@@ -1122,9 +1123,7 @@ class phemex extends Exchange {
         for ($i = 0; $i < count($currencies); $i++) {
             $currency = $currencies[$i];
             $id = $this->safe_string($currency, 'currency');
-            $name = $this->safe_string($currency, 'name');
             $code = $this->safe_currency_code($id);
-            $status = $this->safe_string($currency, 'status');
             $valueScaleString = $this->safe_string($currency, 'valueScale');
             $valueScale = intval($valueScaleString);
             $minValueEv = $this->safe_string($currency, 'minValueEv');
@@ -1138,12 +1137,12 @@ class phemex extends Exchange {
                 $minAmount = $this->parse_number(Precise::string_mul($minValueEv, $precisionString));
                 $maxAmount = $this->parse_number(Precise::string_mul($maxValueEv, $precisionString));
             }
-            $result[$code] = array(
+            $result[$code] = $this->safe_currency_structure(array(
                 'id' => $id,
                 'info' => $currency,
                 'code' => $code,
-                'name' => $name,
-                'active' => $status === 'Listed',
+                'name' => $this->safe_string($currency, 'name'),
+                'active' => $this->safe_string($currency, 'status') === 'Listed',
                 'deposit' => null,
                 'withdraw' => null,
                 'fee' => null,
@@ -1159,8 +1158,9 @@ class phemex extends Exchange {
                     ),
                 ),
                 'valueScale' => $valueScale,
-                'networks' => array(),
-            );
+                'networks' => null,
+                'type' => 'crypto',
+            ));
         }
         return $result;
     }
@@ -3490,6 +3490,7 @@ class phemex extends Exchange {
          * fetch the deposit $address for a $currency associated with this account
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->network] the chain name to fetch the deposit $address e.g. ETH, TRX, EOS, SOL, etc.
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
          */
         $this->load_markets();
@@ -3500,21 +3501,27 @@ class phemex extends Exchange {
         $defaultNetworks = $this->safe_dict($this->options, 'defaultNetworks');
         $defaultNetwork = $this->safe_string_upper($defaultNetworks, $code);
         $networks = $this->safe_dict($this->options, 'networks', array());
-        $network = $this->safe_string_upper($params, 'network', $defaultNetwork);
+        $network = $this->safe_string_upper_2($params, 'network', 'chainName', $defaultNetwork);
         $network = $this->safe_string($networks, $network, $network);
         if ($network === null) {
-            $request['chainName'] = $currency['id'];
+            throw new ArgumentsRequired($this->id . ' fetchDepositAddress() requires a $network parameter');
         } else {
             $request['chainName'] = $network;
             $params = $this->omit($params, 'network');
         }
-        $response = $this->privateGetPhemexUserWalletsV2DepositAddress ($this->extend($request, $params));
+        $response = $this->privateGetExchangeWalletsV2DepositAddress ($this->extend($request, $params));
+        //
         //     {
-        //         "code":0,
-        //         "msg":"OK",
-        //         "data":{
-        //             "address":"0x5bfbf60e0fa7f63598e6cfd8a7fd3ffac4ccc6ad",
-        //             "tag":null
+        //         "code" => 0,
+        //         "msg" => "OK",
+        //         "data" => {
+        //             "address" => "tb1qxel5wq5gumt",
+        //             "tag" => "",
+        //             "notice" => false,
+        //             "accountType" => 1,
+        //             "contractName" => null,
+        //             "chainTokenUrl" => null,
+        //             "sign" => null
         //         }
         //     }
         //
@@ -3749,7 +3756,7 @@ class phemex extends Exchange {
         );
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): array {
         /**
          * fetch all open $positions
          *
@@ -3759,14 +3766,14 @@ class phemex extends Exchange {
          *
          * @param {string[]} [$symbols] list of unified $market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->code] the $currency $code to fetch $positions for, USD, BTC or USDT, USD is the default
+         * @param {string} [$params->code] the $currency $code to fetch $positions for, USD, BTC or USDT, USDT is the default
          * @param {string} [$params->method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetAccountsPositions' default is 'privateGetGAccountsAccountPositions'
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=$position-structure $position structure~
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
         $subType = null;
-        $code = $this->safe_string_2($params, 'currency', 'code', 'USD');
+        $code = $this->safe_string_2($params, 'currency', 'code', 'USDT');
         $params = $this->omit($params, array( 'currency', 'code' ));
         $settle = null;
         $market = null;

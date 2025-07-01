@@ -18,7 +18,7 @@ class bitrue extends bitrue$1 {
             'id': 'bitrue',
             'name': 'Bitrue',
             'countries': ['SG'],
-            'rateLimit': 1000,
+            'rateLimit': 10,
             'certified': false,
             'version': 'v1',
             'pro': true,
@@ -30,19 +30,32 @@ class bitrue extends bitrue$1 {
                 'swap': true,
                 'future': false,
                 'option': false,
+                'addMargin': false,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': false,
+                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
+                'createOrderWithTakeProfitAndStopLoss': false,
+                'createOrderWithTakeProfitAndStopLossWs': false,
+                'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
@@ -53,20 +66,50 @@ class bitrue extends bitrue$1 {
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
+                'fetchFundingInterval': false,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
+                'fetchGreeks': false,
+                'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
+                'fetchIsolatedPositions': false,
+                'fetchLeverage': false,
+                'fetchLeverages': false,
+                'fetchLeverageTiers': false,
+                'fetchLiquidations': false,
+                'fetchLongShortRatio': false,
+                'fetchLongShortRatioHistory': false,
+                'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
+                'fetchMarginModes': false,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
+                'fetchMarkPrices': false,
+                'fetchMyLiquidations': false,
+                'fetchMySettlementHistory': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': false,
+                'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': false,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
+                'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
+                'fetchPositions': false,
+                'fetchPositionsHistory': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': false,
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -77,9 +120,15 @@ class bitrue extends bitrue$1 {
                 'fetchTransactionFees': false,
                 'fetchTransactions': false,
                 'fetchTransfers': true,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
+                'reduceMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
                 'setLeverage': true,
                 'setMargin': true,
+                'setMarginMode': false,
+                'setPositionMode': false,
                 'transfer': true,
                 'withdraw': true,
             },
@@ -110,56 +159,62 @@ class bitrue extends bitrue$1 {
                 ],
                 'fees': 'https://bitrue.zendesk.com/hc/en-001/articles/4405479952537',
             },
+            // from spotV1PublicGetExchangeInfo:
+            // general 25000 weight in 1 minute per IP. = 416.66 per second a weight of 0.24 for 1
+            // orders 750 weight in 6 seconds per IP. = 125 per second a weight of 0.8 for 1
+            // orders 200 weight in 10 seconds per User. = 20 per second a weight of 5 for 1
+            // withdraw 3000 weight in 1 hour per User. = 0.833 per second a weight of 120 for 1
+            // withdraw 1000 weight in 1 day per User. = 0.011574 per second a weight of 8640 for 1
             'api': {
                 'spot': {
                     'kline': {
                         'public': {
                             'get': {
-                                'public.json': 1,
-                                'public{currency}.json': 1,
+                                'public.json': 0.24,
+                                'public{currency}.json': 0.24,
                             },
                         },
                     },
                     'v1': {
                         'public': {
                             'get': {
-                                'ping': 1,
-                                'time': 1,
-                                'exchangeInfo': 1,
-                                'depth': { 'cost': 1, 'byLimit': [[100, 1], [500, 5], [1000, 10]] },
-                                'trades': 1,
-                                'historicalTrades': 5,
-                                'aggTrades': 1,
-                                'ticker/24hr': { 'cost': 1, 'noSymbol': 40 },
-                                'ticker/price': { 'cost': 1, 'noSymbol': 2 },
-                                'ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 },
-                                'market/kline': 1,
+                                'ping': 0.24,
+                                'time': 0.24,
+                                'exchangeInfo': 0.24,
+                                'depth': { 'cost': 1, 'byLimit': [[100, 0.24], [500, 1.2], [1000, 2.4]] },
+                                'trades': 0.24,
+                                'historicalTrades': 1.2,
+                                'aggTrades': 0.24,
+                                'ticker/24hr': { 'cost': 0.24, 'noSymbol': 9.6 },
+                                'ticker/price': 0.24,
+                                'ticker/bookTicker': 0.24,
+                                'market/kline': 0.24,
                             },
                         },
                         'private': {
                             'get': {
-                                'order': 1,
-                                'openOrders': 1,
-                                'allOrders': 5,
-                                'account': 5,
-                                'myTrades': { 'cost': 5, 'noSymbol': 40 },
-                                'etf/net-value/{symbol}': 1,
-                                'withdraw/history': 1,
-                                'deposit/history': 1,
+                                'order': 5,
+                                'openOrders': 5,
+                                'allOrders': 25,
+                                'account': 25,
+                                'myTrades': 25,
+                                'etf/net-value/{symbol}': 0.24,
+                                'withdraw/history': 120,
+                                'deposit/history': 120,
                             },
                             'post': {
-                                'order': 4,
-                                'withdraw/commit': 1,
+                                'order': 5,
+                                'withdraw/commit': 120,
                             },
                             'delete': {
-                                'order': 1,
+                                'order': 5,
                             },
                         },
                     },
                     'v2': {
                         'private': {
                             'get': {
-                                'myTrades': 5,
+                                'myTrades': 1.2,
                             },
                         },
                     },
@@ -168,34 +223,34 @@ class bitrue extends bitrue$1 {
                     'v1': {
                         'public': {
                             'get': {
-                                'ping': 1,
-                                'time': 1,
-                                'contracts': 1,
-                                'depth': 1,
-                                'ticker': 1,
-                                'klines': 1,
+                                'ping': 0.24,
+                                'time': 0.24,
+                                'contracts': 0.24,
+                                'depth': 0.24,
+                                'ticker': 0.24,
+                                'klines': 0.24,
                             },
                         },
                     },
                     'v2': {
                         'private': {
                             'get': {
-                                'myTrades': 1,
-                                'openOrders': 1,
-                                'order': 1,
-                                'account': 1,
-                                'leverageBracket': 1,
-                                'commissionRate': 1,
-                                'futures_transfer_history': 1,
-                                'forceOrdersHistory': 1,
+                                'myTrades': 5,
+                                'openOrders': 5,
+                                'order': 5,
+                                'account': 5,
+                                'leverageBracket': 5,
+                                'commissionRate': 5,
+                                'futures_transfer_history': 5,
+                                'forceOrdersHistory': 5,
                             },
                             'post': {
-                                'positionMargin': 1,
-                                'level_edit': 1,
-                                'cancel': 1,
-                                'order': 1,
-                                'allOpenOrders': 1,
-                                'futures_transfer': 1,
+                                'positionMargin': 5,
+                                'level_edit': 5,
+                                'cancel': 5,
+                                'order': 25,
+                                'allOpenOrders': 5,
+                                'futures_transfer': 5,
                             },
                         },
                     },
@@ -204,34 +259,34 @@ class bitrue extends bitrue$1 {
                     'v1': {
                         'public': {
                             'get': {
-                                'ping': 1,
-                                'time': 1,
-                                'contracts': 1,
-                                'depth': 1,
-                                'ticker': 1,
-                                'klines': 1,
+                                'ping': 0.24,
+                                'time': 0.24,
+                                'contracts': 0.24,
+                                'depth': 0.24,
+                                'ticker': 0.24,
+                                'klines': 0.24,
                             },
                         },
                     },
                     'v2': {
                         'private': {
                             'get': {
-                                'myTrades': 1,
-                                'openOrders': 1,
-                                'order': 1,
-                                'account': 1,
-                                'leverageBracket': 1,
-                                'commissionRate': 1,
-                                'futures_transfer_history': 1,
-                                'forceOrdersHistory': 1,
+                                'myTrades': 5,
+                                'openOrders': 5,
+                                'order': 5,
+                                'account': 5,
+                                'leverageBracket': 5,
+                                'commissionRate': 5,
+                                'futures_transfer_history': 5,
+                                'forceOrdersHistory': 5,
                             },
                             'post': {
-                                'positionMargin': 1,
-                                'level_edit': 1,
-                                'cancel': 1,
-                                'order': 1,
-                                'allOpenOrders': 1,
-                                'futures_transfer': 1,
+                                'positionMargin': 5,
+                                'level_edit': 5,
+                                'cancel': 5,
+                                'order': 5,
+                                'allOpenOrders': 5,
+                                'futures_transfer': 5,
                             },
                         },
                     },
@@ -715,69 +770,49 @@ class bitrue extends bitrue$1 {
             const id = this.safeString(currency, 'coin');
             const name = this.safeString(currency, 'coinFulName');
             const code = this.safeCurrencyCode(id);
-            let deposit = undefined;
-            let withdraw = undefined;
-            let minWithdrawString = undefined;
-            let maxWithdrawString = undefined;
-            let minWithdrawFeeString = undefined;
             const networkDetails = this.safeList(currency, 'chainDetail', []);
             const networks = {};
             for (let j = 0; j < networkDetails.length; j++) {
                 const entry = networkDetails[j];
                 const networkId = this.safeString(entry, 'chain');
                 const network = this.networkIdToCode(networkId, code);
-                const enableDeposit = this.safeBool(entry, 'enableDeposit');
-                deposit = (enableDeposit) ? enableDeposit : deposit;
-                const enableWithdraw = this.safeBool(entry, 'enableWithdraw');
-                withdraw = (enableWithdraw) ? enableWithdraw : withdraw;
-                const networkWithdrawFeeString = this.safeString(entry, 'withdrawFee');
-                if (networkWithdrawFeeString !== undefined) {
-                    minWithdrawFeeString = (minWithdrawFeeString === undefined) ? networkWithdrawFeeString : Precise["default"].stringMin(networkWithdrawFeeString, minWithdrawFeeString);
-                }
-                const networkMinWithdrawString = this.safeString(entry, 'minWithdraw');
-                if (networkMinWithdrawString !== undefined) {
-                    minWithdrawString = (minWithdrawString === undefined) ? networkMinWithdrawString : Precise["default"].stringMin(networkMinWithdrawString, minWithdrawString);
-                }
-                const networkMaxWithdrawString = this.safeString(entry, 'maxWithdraw');
-                if (networkMaxWithdrawString !== undefined) {
-                    maxWithdrawString = (maxWithdrawString === undefined) ? networkMaxWithdrawString : Precise["default"].stringMax(networkMaxWithdrawString, maxWithdrawString);
-                }
                 networks[network] = {
                     'info': entry,
                     'id': networkId,
                     'network': network,
-                    'deposit': enableDeposit,
-                    'withdraw': enableWithdraw,
-                    'active': enableDeposit && enableWithdraw,
-                    'fee': this.parseNumber(networkWithdrawFeeString),
+                    'deposit': this.safeBool(entry, 'enableDeposit'),
+                    'withdraw': this.safeBool(entry, 'enableWithdraw'),
+                    'active': undefined,
+                    'fee': this.safeNumber(entry, 'withdrawFee'),
                     'precision': undefined,
                     'limits': {
                         'withdraw': {
-                            'min': this.parseNumber(networkMinWithdrawString),
-                            'max': this.parseNumber(networkMaxWithdrawString),
+                            'min': this.safeNumber(entry, 'minWithdraw'),
+                            'max': this.safeNumber(entry, 'maxWithdraw'),
                         },
                     },
                 };
             }
-            result[code] = {
+            result[code] = this.safeCurrencyStructure({
                 'id': id,
                 'name': name,
                 'code': code,
                 'precision': undefined,
                 'info': currency,
-                'active': deposit && withdraw,
-                'deposit': deposit,
-                'withdraw': withdraw,
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'networks': networks,
-                'fee': this.parseNumber(minWithdrawFeeString),
-                // 'fees': fees,
+                'fee': undefined,
+                'fees': undefined,
+                'type': 'crypto',
                 'limits': {
                     'withdraw': {
-                        'min': this.parseNumber(minWithdrawString),
-                        'max': this.parseNumber(maxWithdrawString),
+                        'min': undefined,
+                        'max': undefined,
                     },
                 },
-            };
+            });
         }
         return result;
     }
@@ -1243,7 +1278,7 @@ class bitrue extends bitrue$1 {
         //         "time": 1699338305000
         //     }
         //
-        const timestamp = this.safeInteger(response, 'time');
+        const timestamp = this.safeInteger2(response, 'time', 'lastUpdateId');
         const orderbook = this.parseOrderBook(response, symbol, timestamp);
         orderbook['nonce'] = this.safeInteger(response, 'lastUpdateId');
         return orderbook;
@@ -1675,7 +1710,7 @@ class bitrue extends bitrue$1 {
         const tickers = {};
         for (let i = 0; i < data.length; i++) {
             const ticker = this.safeDict(data, i, {});
-            const market = this.market(this.safeValue(ticker, 'symbol'));
+            const market = this.safeMarket(this.safeString(ticker, 'symbol'));
             tickers[market['id']] = ticker;
         }
         return this.parseTickers(tickers, symbols);

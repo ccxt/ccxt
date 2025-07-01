@@ -291,7 +291,7 @@ func  (this *bitbns) FetchMarkets(optionalArgs ...interface{}) <- chan interface
                     "swap": false,
                     "future": false,
                     "option": false,
-                    "active": nil,
+                    "active": this.SafeBool(market, "active"),
                     "contract": false,
                     "linear": nil,
                     "inverse": nil,

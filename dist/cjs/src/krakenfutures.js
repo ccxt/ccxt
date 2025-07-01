@@ -36,6 +36,10 @@ class krakenfutures extends krakenfutures$1 {
                 'cancelOrders': true,
                 'createMarketOrder': false,
                 'createOrder': true,
+                'createPostOnlyOrder': true,
+                'createReduceOnlyOrder': true,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
                 'createStopOrder': true,
                 'createTriggerOrder': true,
                 'editOrder': true,
@@ -527,7 +531,7 @@ class krakenfutures extends krakenfutures$1 {
                 'precision': undefined,
             });
         }
-        this.currencies = this.deepExtend(currencies, this.currencies);
+        this.currencies = this.mapToSafeMap(this.deepExtend(currencies, this.currencies));
         return result;
     }
     /**

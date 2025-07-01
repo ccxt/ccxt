@@ -468,12 +468,12 @@ public partial class derive : ccxt.derive
             object requestId = this.requestId(url);
             object now = ((object)this.milliseconds()).ToString();
             object signature = this.signMessage(now, this.privateKey);
-            object contractWalletAddress = this.safeString(this.options, "contractWalletAddress");
+            object deriveWalletAddress = this.safeString(this.options, "deriveWalletAddress");
             object request = new Dictionary<string, object>() {
                 { "id", requestId },
                 { "method", "public/login" },
                 { "params", new Dictionary<string, object>() {
-                    { "wallet", contractWalletAddress },
+                    { "wallet", deriveWalletAddress },
                     { "timestamp", now },
                     { "signature", signature },
                 } },

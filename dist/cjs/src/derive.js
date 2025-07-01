@@ -1,13 +1,12 @@
 'use strict';
 
-require('../ccxt.js');
 var derive$1 = require('./abstract/derive.js');
-var number = require('./base/functions/number.js');
+var Precise = require('./base/Precise.js');
+var errors = require('./base/errors.js');
+var crypto = require('./base/functions/crypto.js');
 var sha3 = require('./static_dependencies/noble-hashes/sha3.js');
 var secp256k1 = require('./static_dependencies/noble-curves/secp256k1.js');
-var crypto = require('./base/functions/crypto.js');
-var errors = require('./base/errors.js');
-var Precise = require('./base/Precise.js');
+var number = require('./base/functions/number.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -452,14 +451,50 @@ class derive extends derive$1 {
         const result = {};
         const tokenResponse = await this.publicGetGetAllCurrencies(params);
         //
-        // {
-        //     "result": [
-        //         {
-        //             "currency": "USDC",
-        //             "spot_price": "1.000066413299999872",
-        //             "spot_price_24h": "1.000327785299999872"
-        //         }
-        //     ],
+        //    {
+        //        "result": [
+        //            {
+        //                "currency": "SEI",
+        //                "instrument_types": [
+        //                    "perp"
+        //                ],
+        //                "protocol_asset_addresses": {
+        //                    "perp": "0x7225889B75fd34C68eA3098dAE04D50553C09840",
+        //                    "option": null,
+        //                    "spot": null,
+        //                    "underlying_erc20": null
+        //                },
+        //                "managers": [
+        //                    {
+        //                        "address": "0x28c9ddF9A3B29c2E6a561c1BC520954e5A33de5D",
+        //                        "margin_type": "SM",
+        //                        "currency": null
+        //                    }
+        //                ],
+        //                "srm_im_discount": "0",
+        //                "srm_mm_discount": "0",
+        //                "pm2_collateral_discounts": [],
+        //                "borrow_apy": "0",
+        //                "supply_apy": "0",
+        //                "total_borrow": "0",
+        //                "total_supply": "0",
+        //                "asset_cap_and_supply_per_manager": {
+        //                    "perp": {
+        //                        "SM": [
+        //                            {
+        //                                "current_open_interest": "0",
+        //                                "interest_cap": "2000000",
+        //                                "manager_currency": null
+        //                            }
+        //                        ]
+        //                    },
+        //                    "option": {},
+        //                    "erc20": {}
+        //                },
+        //                "market_type": "SRM_PERP_ONLY",
+        //                "spot_price": "0.2193542905042081",
+        //                "spot_price_24h": "0.238381655533635830"
+        //            },
         //     "id": "7e07fe1d-0ab4-4d2b-9e22-b65ce9e232dc"
         // }
         //
@@ -468,7 +503,7 @@ class derive extends derive$1 {
             const currency = currencies[i];
             const currencyId = this.safeString(currency, 'currency');
             const code = this.safeCurrencyCode(currencyId);
-            result[code] = {
+            result[code] = this.safeCurrencyStructure({
                 'id': currencyId,
                 'name': undefined,
                 'code': code,
@@ -489,7 +524,7 @@ class derive extends derive$1 {
                     },
                 },
                 'info': currency,
-            };
+            });
         }
         return result;
     }
@@ -593,6 +628,7 @@ class derive extends derive$1 {
         let swap = false;
         let option = false;
         let linear = undefined;
+        let inverse = undefined;
         const baseId = this.safeString(market, 'base_currency');
         const quoteId = this.safeString(market, 'quote_currency');
         const base = this.safeCurrencyCode(baseId);
@@ -616,6 +652,7 @@ class derive extends derive$1 {
             symbol = base + '/' + quote + ':' + settle;
             swap = true;
             linear = true;
+            inverse = false;
             marketType = 'swap';
         }
         else if (type === 'option') {
@@ -635,6 +672,8 @@ class derive extends derive$1 {
             else {
                 optionType = 'call';
             }
+            linear = true;
+            inverse = false;
         }
         return this.safeMarketStructure({
             'id': marketId,
@@ -654,7 +693,7 @@ class derive extends derive$1 {
             'active': this.safeBool(market, 'is_active'),
             'contract': (swap || option),
             'linear': linear,
-            'inverse': undefined,
+            'inverse': inverse,
             'contractSize': (spot) ? undefined : 1,
             'expiry': expiry,
             'expiryDatetime': this.iso8601(expiry),
@@ -1852,7 +1891,7 @@ class derive extends derive$1 {
         if (order === undefined) {
             order = rawOrder;
         }
-        const timestamp = this.safeInteger(rawOrder, 'nonce');
+        const timestamp = this.safeInteger2(rawOrder, 'creation_timestamp', 'nonce');
         const orderId = this.safeString(order, 'order_id');
         const marketId = this.safeString(order, 'instrument_name');
         if (marketId !== undefined) {
@@ -2393,17 +2432,21 @@ class derive extends derive$1 {
         const result = {
             'info': response,
         };
-        // TODO:
-        // checked multiple subaccounts
-        // checked balance after open orders / positions
         for (let i = 0; i < response.length; i++) {
             const subaccount = response[i];
             const collaterals = this.safeList(subaccount, 'collaterals', []);
             for (let j = 0; j < collaterals.length; j++) {
                 const balance = collaterals[j];
                 const code = this.safeCurrencyCode(this.safeString(balance, 'currency'));
-                const account = this.account();
-                account['total'] = this.safeString(balance, 'amount');
+                let account = this.safeDict(result, code);
+                if (account === undefined) {
+                    account = this.account();
+                    account['total'] = this.safeString(balance, 'amount');
+                }
+                else {
+                    const amount = this.safeString(balance, 'amount');
+                    account['total'] = Precise["default"].stringAdd(account['total'], amount);
+                }
                 result[code] = account;
             }
         }

@@ -14,7 +14,9 @@ public partial class BaseTest
             testDeepExtend();
             testCryptography();
             testDatetime();
-            testNumber();
+            testDecimalToPrecision();
+            testNumberToString();
+            testPrecise();
             testSafeMethods();
             // testJson ();
             testSortBy();
@@ -23,5 +25,6 @@ public partial class BaseTest
             testGroupBy();
             testFilterBy();
             testHandleMethods();
+            testRemoveRepeatedElementsFromArray();
         }
 }

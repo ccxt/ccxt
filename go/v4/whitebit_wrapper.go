@@ -35,6 +35,21 @@ func (this *Whitebit) FetchMarkets(params ...interface{}) ([]MarketInterface, er
 }
 /**
  * @method
+ * @name whitebit#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://docs.whitebit.com/public/http-v4/#asset-status-list
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Whitebit) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name whitebit#fetchTransactionFees
  * @deprecated
  * @description please use fetchDepositWithdrawFees instead
@@ -435,6 +450,10 @@ func (this *Whitebit) CreateMarketBuyOrderWithCost(symbol string, cost float64, 
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {float} [params.cost] *market orders only* the cost of the order in units of the base currency
+ * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+ * @param {bool} [params.postOnly] If true, the order will only be posted to the order book and not executed immediately
+ * @param {string} [params.clientOrderId] a unique id for the order
+ * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
 func (this *Whitebit) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
@@ -770,6 +789,35 @@ func (this *Whitebit) FetchDepositAddress(code string, options ...FetchDepositAd
         params = *opts.Params
     }
     res := <- this.Core.FetchDepositAddress(code, params)
+    if IsError(res) {
+        return DepositAddress{}, CreateReturnError(res)
+    }
+    return NewDepositAddress(res), nil
+}
+/**
+ * @method
+ * @name whitebit#createDepositAddress
+ * @description create a currency deposit address
+ * @see https://docs.whitebit.com/private/http-main-v4/#create-new-address-for-deposit
+ * @param {string} code unified currency code of the currency for the deposit address
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.network] the blockchain network to create a deposit address on
+ * @param {string} [params.type] address type, available for specific currencies
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ */
+func (this *Whitebit) CreateDepositAddress(code string, options ...CreateDepositAddressOptions) (DepositAddress, error) {
+
+    opts := CreateDepositAddressOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.CreateDepositAddress(code, params)
     if IsError(res) {
         return DepositAddress{}, CreateReturnError(res)
     }
@@ -1272,4 +1320,130 @@ func (this *Whitebit) FetchConvertTradeHistory(options ...FetchConvertTradeHisto
         return nil, CreateReturnError(res)
     }
     return NewConversionArray(res), nil
+}
+/**
+ * @method
+ * @name whitebit#fetchPositionHistory
+ * @description fetches historical positions
+ * @see https://docs.whitebit.com/private/http-trade-v4/#positions-history
+ * @param {string} symbol unified contract symbol
+ * @param {int} [since] the earliest time in ms to fetch positions for
+ * @param {int} [limit] the maximum amount of records to fetch
+ * @param {object} [params] extra parameters specific to the exchange api endpoint
+ * @param {int} [params.positionId] the id of the requested position
+ * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+ */
+func (this *Whitebit) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
+
+    opts := FetchPositionHistoryOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var since interface{} = nil
+    if opts.Since != nil {
+        since = *opts.Since
+    }
+
+    var limit interface{} = nil
+    if opts.Limit != nil {
+        limit = *opts.Limit
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.FetchPositionHistory(symbol, since, limit, params)
+    if IsError(res) {
+        return nil, CreateReturnError(res)
+    }
+    return NewPositionArray(res), nil
+}
+/**
+ * @method
+ * @name whitebit#fetchPositions
+ * @description fetch all open positions
+ * @see https://docs.whitebit.com/private/http-trade-v4/#open-positions
+ * @param {string[]} [symbols] list of unified market symbols
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+ */
+func (this *Whitebit) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
+
+    opts := FetchPositionsOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var symbols interface{} = nil
+    if opts.Symbols != nil {
+        symbols = *opts.Symbols
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.FetchPositions(symbols, params)
+    if IsError(res) {
+        return nil, CreateReturnError(res)
+    }
+    return NewPositionArray(res), nil
+}
+/**
+ * @method
+ * @name whitebit#fetchPosition
+ * @description fetch data on a single open contract trade position
+ * @see https://docs.whitebit.com/private/http-trade-v4/#open-positions
+ * @param {string} symbol unified market symbol of the market the position is held in
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ */
+func (this *Whitebit) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
+
+    opts := FetchPositionOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.FetchPosition(symbol, params)
+    if IsError(res) {
+        return Position{}, CreateReturnError(res)
+    }
+    return NewPosition(res), nil
+}
+/**
+ * @method
+ * @name whitebit#fetchCrossBorrowRate
+ * @description fetch the rate of interest to borrow a currency for margin trading
+ * @see https://docs.whitebit.com/private/http-main-v4/#get-plans
+ * @param {string} code unified currency code
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+ */
+func (this *Whitebit) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {
+
+    opts := FetchCrossBorrowRateOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.FetchCrossBorrowRate(code, params)
+    if IsError(res) {
+        return CrossBorrowRate{}, CreateReturnError(res)
+    }
+    return NewCrossBorrowRate(res), nil
 }

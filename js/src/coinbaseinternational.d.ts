@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinbaseinternational.js';
-import type { Int, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, Currency, TransferEntry, Position, FundingRateHistory, Currencies, Dict, int, OHLCV } from './base/types.js';
+import type { Int, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, Currency, TransferEntry, Position, FundingRateHistory, Currencies, Dict, int, OHLCV, DepositAddress } from './base/types.js';
 /**
  * @class coinbaseinternational
  * @augments Exchange
@@ -120,12 +120,7 @@ export default class coinbaseinternational extends Exchange {
      * @param {string} [params.network] unified network code to identify the blockchain network
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
      */
-    createDepositAddress(code: string, params?: {}): Promise<{
-        currency: string;
-        tag: string;
-        address: string;
-        info: any;
-    }>;
+    createDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
     findDefaultNetwork(networks: any): any;
     loadCurrencyNetworks(code: any, params?: {}): Promise<boolean>;
     parseNetworks(networks: any, params?: {}): Dict;

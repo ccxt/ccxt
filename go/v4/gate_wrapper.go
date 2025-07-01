@@ -82,6 +82,21 @@ func (this *Gate) FetchOptionUnderlyings() ([]map[string]interface{}, error) {
 }
 /**
  * @method
+ * @name gate#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-currencies-details
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Gate) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name gate#fetchFundingRate
  * @description fetch the current funding rate
  * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-contract
@@ -952,7 +967,7 @@ func (this *Gate) CreateOrders(orders []OrderRequest, options ...CreateOrdersOpt
     if opts.Params != nil {
         params = *opts.Params
     }
-    res := <- this.Core.CreateOrders(orders, params)
+    res := <- this.Core.CreateOrders(ConvertOrderRequestListToArray(orders), params)
     if IsError(res) {
         return nil, CreateReturnError(res)
     }

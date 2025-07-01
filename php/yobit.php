@@ -1254,7 +1254,7 @@ class yobit extends Exchange {
         return $this->filter_by_symbol_since_limit($result, $market['symbol'], $since, $limit);
     }
 
-    public function create_deposit_address(string $code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()): array {
         /**
          *
          * @see https://yobit.net/en/api
@@ -1274,6 +1274,7 @@ class yobit extends Exchange {
             'currency' => $code,
             'address' => $address,
             'tag' => null,
+            'network' => null,
             'info' => $response['info'],
         );
     }

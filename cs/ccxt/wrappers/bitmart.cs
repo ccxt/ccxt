@@ -316,6 +316,12 @@ public partial class bitmart
     /// boolean : *spot* whether to fetch trades for margin orders or spot orders, defaults to spot orders (only isolated margin orders are supported)
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.stpMode</term>
+    /// <description>
+    /// string : self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}.</returns>
@@ -348,6 +354,12 @@ public partial class bitmart
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stpMode</term>
+    /// <description>
+    /// string : self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
     /// </description>
     /// </item>
     /// </list>
@@ -530,6 +542,12 @@ public partial class bitmart
     /// int : *swap tp/sl only* 1: tp/sl, 2: position tp/sl, default is 1
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.stpMode</term>
+    /// <description>
+    /// string : self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -549,6 +567,12 @@ public partial class bitmart
     /// <term>params</term>
     /// <description>
     /// object :  extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stpMode</term>
+    /// <description>
+    /// string : self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
     /// </description>
     /// </item>
     /// </list>
@@ -865,6 +889,12 @@ public partial class bitmart
     /// boolean : *swap only* set to true if you want to fetch trigger orders
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.stpMode</term>
+    /// <description>
+    /// string : self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -910,6 +940,12 @@ public partial class bitmart
     /// <term>params.marginMode</term>
     /// <description>
     /// string : *spot only* 'cross' or 'isolated', for margin trading
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stpMode</term>
+    /// <description>
+    /// string : self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
     /// </description>
     /// </item>
     /// </list>
@@ -985,6 +1021,12 @@ public partial class bitmart
     /// <term>params.trailing</term>
     /// <description>
     /// boolean : *swap only* set to true if you want to fetch a trailing order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stpMode</term>
+    /// <description>
+    /// string : self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
     /// </description>
     /// </item>
     /// </list>
@@ -1422,6 +1464,7 @@ public partial class bitmart
     /// </summary>
     /// <remarks>
     /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-keyed"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-v2-keyed"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1484,6 +1527,7 @@ public partial class bitmart
     /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#modify-plan-order-signed"/>  <br/>
     /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#modify-tp-sl-order-signed"/>  <br/>
     /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#modify-preset-plan-order-signed"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#modify-limit-order-signed"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>amount</term>
@@ -1653,5 +1697,45 @@ public partial class bitmart
     {
         var res = await this.fetchWithdrawAddresses(code, note, networkCode, parameters);
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+    }
+    /// <summary>
+    /// set hedged to true or false for a market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#submit-leverage-signed"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> response from the exchange.</returns>
+    public async Task<Dictionary<string, object>> SetPositionMode(bool hedged, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.setPositionMode(hedged, symbol, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#get-position-mode-keyed"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an object detailing whether the market is in hedged or one-way mode.</returns>
+    public async Task<Dictionary<string, object>> FetchPositionMode(string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPositionMode(symbol, parameters);
+        return ((Dictionary<string, object>)res);
     }
 }

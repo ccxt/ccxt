@@ -15,6 +15,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import OrderImmediatelyFillable
 from ccxt.base.errors import NetworkError
+from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -262,6 +263,7 @@ class hollaex(Exchange, ImplicitAPI):
             },
             'exceptions': {
                 'broad': {
+                    'API request is expired': InvalidNonce,
                     'Invalid token': AuthenticationError,
                     'Order not found': OrderNotFound,
                     'Insufficient balance': InsufficientFunds,
@@ -291,6 +293,14 @@ class hollaex(Exchange, ImplicitAPI):
                     'XLM': 'xlm',
                     'BNB': 'bnb',
                     'MATIC': 'matic',
+                },
+                'networksById': {
+                    'eth': 'ERC20',
+                    'ETH': 'ERC20',
+                    'ERC20': 'ERC20',
+                    'trx': 'TRC20',
+                    'TRX': 'TRC20',
+                    'TRC20': 'TRC20',
                 },
             },
         })
@@ -421,66 +431,115 @@ class hollaex(Exchange, ImplicitAPI):
         """
         response = self.publicGetConstants(params)
         #
-        #     {
-        #         "coins":{
-        #             "bch":{
-        #                 "id":4,
-        #                 "fullname":"Bitcoin Cash",
-        #                 "symbol":"bch",
-        #                 "active":true,
-        #                 "verified":true,
-        #                 "allow_deposit":true,
-        #                 "allow_withdrawal":true,
-        #                 "withdrawal_fee":0.0002,
-        #                 "min":0.001,
-        #                 "max":100000,
-        #                 "increment_unit":0.001,
-        #                 "logo":"https://bitholla.s3.ap-northeast-2.amazonaws.com/icon/BCH-hollaex-asset-01.svg",
-        #                 "code":"bch",
-        #                 "is_public":true,
-        #                 "meta":{},
-        #                 "estimated_price":null,
-        #                 "description":null,
-        #                 "type":"blockchain",
-        #                 "network":null,
-        #                 "standard":null,
-        #                 "issuer":"HollaEx",
-        #                 "withdrawal_fees":null,
-        #                 "created_at":"2019-08-09T10:45:43.367Z",
-        #                 "updated_at":"2021-12-13T03:08:32.372Z",
-        #                 "created_by":1,
-        #                 "owner_id":1
-        #             },
+        #    {
+        #        "coins": {
+        #            "usdt": {
+        #                "id": "6",
+        #                "fullname": "USD Tether",
+        #                "symbol": "usdt",
+        #                "active": True,
+        #                "verified": True,
+        #                "allow_deposit": True,
+        #                "allow_withdrawal": True,
+        #                "withdrawal_fee": "20",
+        #                "min": "1",
+        #                "max": "10000000",
+        #                "increment_unit": "0.0001",
+        #                "logo": "https://hollaex-resources.s3.ap-southeast-1.amazonaws.com/icons/usdt.svg",
+        #                "code": "usdt",
+        #                "is_public": True,
+        #                "meta": {
+        #                    "color": "#27a17a",
+        #                    "website": "https://tether.to",
+        #                    "explorer": "https://blockchair.com/tether",
+        #                    "decimal_points": "6"
+        #                },
+        #                "estimated_price": "1",
+        #                "description": "<p>Tether(USDT) is a stablecoin pegged 1:1 to the US dollar. It is a digital currency that aims to maintain its value while allowing for fast and secure transfer of funds. It was the first stablecoin, and is the most widely used due stablecoin due to its stability and low volatility compared to other cryptocurrencies. It was launched in 2014 by Tether Limited.</p>",
+        #                "type": "blockchain",
+        #                "network": "eth,trx,bnb,matic",
+        #                "standard": "",
+        #                "issuer": "HollaEx",
+        #                "withdrawal_fees": {
+        #                    "bnb": {
+        #                        "value": "0.8",
+        #                        "active": True,
+        #                        "symbol": "usdt"
+        #                    },
+        #                    "eth": {
+        #                        "value": "1.5",
+        #                        "active": True,
+        #                        "symbol": "usdt"
+        #                    },
+        #                    "trx": {
+        #                        "value": "4",
+        #                        "active": True,
+        #                        "symbol": "usdt"
+        #                    },
+        #                    "matic": {
+        #                        "value": "0.3",
+        #                        "active": True,
+        #                        "symbol": "usdt"
+        #                    }
+        #                },
+        #                "display_name": null,
+        #                "deposit_fees": null,
+        #                "is_risky": False,
+        #                "market_cap": "144568098696.29",
+        #                "category": "stable",
+        #                "created_at": "2019-08-09T10:45:43.367Z",
+        #                "updated_at": "2025-03-25T17:12:37.970Z",
+        #                "created_by": "168",
+        #                "owner_id": "1"
+        #            },
         #         },
         #         "network":"https://api.hollaex.network"
         #     }
         #
-        coins = self.safe_value(response, 'coins', {})
+        coins = self.safe_dict(response, 'coins', {})
         keys = list(coins.keys())
         result: dict = {}
         for i in range(0, len(keys)):
             key = keys[i]
             currency = coins[key]
             id = self.safe_string(currency, 'symbol')
-            numericId = self.safe_integer(currency, 'id')
             code = self.safe_currency_code(id)
-            name = self.safe_string(currency, 'fullname')
-            depositEnabled = self.safe_value(currency, 'allow_deposit')
-            withdrawEnabled = self.safe_value(currency, 'allow_withdrawal')
-            isActive = self.safe_value(currency, 'active')
-            active = isActive and depositEnabled and withdrawEnabled
-            fee = self.safe_number(currency, 'withdrawal_fee')
-            withdrawalLimits = self.safe_value(currency, 'withdrawal_limits', [])
-            result[code] = {
+            withdrawalLimits = self.safe_list(currency, 'withdrawal_limits', [])
+            rawType = self.safe_string(currency, 'type')
+            type = 'crypto' if (rawType == 'blockchain') else 'other'
+            rawNetworks = self.safe_dict(currency, 'withdrawal_fees', {})
+            networks = {}
+            networkIds = list(rawNetworks.keys())
+            for j in range(0, len(networkIds)):
+                networkId = networkIds[j]
+                networkEntry = self.safe_dict(rawNetworks, networkId)
+                networkCode = self.network_id_to_code(networkId)
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': self.safe_bool(networkEntry, 'active'),
+                    'deposit': None,
+                    'withdraw': None,
+                    'fee': self.safe_number(networkEntry, 'value'),
+                    'precision': None,
+                    'limits': {
+                        'withdraw': {
+                            'min': None,
+                            'max': None,
+                        },
+                    },
+                    'info': networkEntry,
+                }
+            result[code] = self.safe_currency_structure({
                 'id': id,
-                'numericId': numericId,
+                'numericId': self.safe_integer(currency, 'id'),
                 'code': code,
                 'info': currency,
-                'name': name,
-                'active': active,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
-                'fee': fee,
+                'name': self.safe_string(currency, 'fullname'),
+                'active': self.safe_bool(currency, 'active'),
+                'deposit': self.safe_bool(currency, 'allow_deposit'),
+                'withdraw': self.safe_bool(currency, 'allow_withdrawal'),
+                'fee': self.safe_number(currency, 'withdrawal_fee'),
                 'precision': self.safe_number(currency, 'increment_unit'),
                 'limits': {
                     'amount': {
@@ -492,8 +551,9 @@ class hollaex(Exchange, ImplicitAPI):
                         'max': self.safe_value(withdrawalLimits, 0),
                     },
                 },
-                'networks': {},
-            }
+                'networks': networks,
+                'type': type,
+            })
         return result
 
     def fetch_order_books(self, symbols: Strings = None, limit: Int = None, params={}) -> OrderBooks:
@@ -738,7 +798,8 @@ class hollaex(Exchange, ImplicitAPI):
         #      "price":0.147411,
         #      "timestamp":"2022-01-26T17:53:34.650Z",
         #      "order_id":"cba78ecb-4187-4da2-9d2f-c259aa693b5a",
-        #      "fee":0.01031877,"fee_coin":"usdt"
+        #      "fee":0.01031877,
+        #      "fee_coin":"usdt"
         #  }
         #
         marketId = self.safe_string(trade, 'symbol')
@@ -751,11 +812,12 @@ class hollaex(Exchange, ImplicitAPI):
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'size')
         feeCostString = self.safe_string(trade, 'fee')
+        feeCoin = self.safe_string(trade, 'fee_coin')
         fee = None
         if feeCostString is not None:
             fee = {
                 'cost': feeCostString,
-                'currency': market['quote'],
+                'currency': self.safe_currency_code(feeCoin),
             }
         return self.safe_trade({
             'info': trade,
@@ -841,7 +903,7 @@ class hollaex(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
-        :param int [limit]: the maximum amount of candles to fetch
+        :param int [limit]: the maximum amount of candles to fetch(max 500)
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
@@ -852,16 +914,24 @@ class hollaex(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
         }
+        paginate = False
+        maxLimit = 500
+        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate', paginate)
+        if paginate:
+            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit)
         until = self.safe_integer(params, 'until')
-        end = self.seconds()
-        if until is not None:
-            end = self.parse_to_int(until / 1000)
-        defaultSpan = 2592000  # 30 days
-        if since is not None:
-            request['from'] = self.parse_to_int(since / 1000)
-        else:
-            request['from'] = end - defaultSpan
-        request['to'] = end
+        timeDelta = self.parse_timeframe(timeframe) * maxLimit * 1000
+        start = since
+        now = self.milliseconds()
+        if until is None and start is None:
+            until = now
+            start = until - timeDelta
+        elif until is None:
+            until = now  # the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
+        elif start is None:
+            start = until - timeDelta
+        request['from'] = self.parse_to_int(start / 1000)  # convert to seconds
+        request['to'] = self.parse_to_int(until / 1000)  # convert to seconds
         params = self.omit(params, 'until')
         response = self.publicGetChart(self.extend(request, params))
         #
@@ -1219,11 +1289,10 @@ class hollaex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        convertedAmount = float(self.amount_to_precision(symbol, amount))
         request: dict = {
             'symbol': market['id'],
             'side': side,
-            'size': self.normalize_number_if_needed(convertedAmount),
+            'size': self.amount_to_precision(symbol, amount),
             'type': type,
             # 'stop': float(self.price_to_precision(symbol, stopPrice)),
             # 'meta': {},  # other options such
@@ -1234,10 +1303,9 @@ class hollaex(Exchange, ImplicitAPI):
         isMarketOrder = type == 'market'
         postOnly = self.is_post_only(isMarketOrder, exchangeSpecificParam, params)
         if not isMarketOrder:
-            convertedPrice = float(self.price_to_precision(symbol, price))
-            request['price'] = self.normalize_number_if_needed(convertedPrice)
+            request['price'] = self.price_to_precision(symbol, price)
         if triggerPrice is not None:
-            request['stop'] = self.normalize_number_if_needed(float(self.price_to_precision(symbol, triggerPrice)))
+            request['stop'] = self.price_to_precision(symbol, triggerPrice)
         if postOnly:
             request['meta'] = {'post_only': True}
         params = self.omit(params, ['postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stop'])
@@ -1884,11 +1952,6 @@ class hollaex(Exchange, ImplicitAPI):
         #
         coins = self.safe_dict(response, 'coins', {})
         return self.parse_deposit_withdraw_fees(coins, codes, 'symbol')
-
-    def normalize_number_if_needed(self, number):
-        if self.is_round_number(number):
-            number = int(number)
-        return number
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = self.omit(params, self.extract_params(path))

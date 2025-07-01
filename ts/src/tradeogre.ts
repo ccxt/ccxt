@@ -1,11 +1,10 @@
 
 // ---------------------------------------------------------------------------
 
-import { Market } from '../ccxt.js';
 import Exchange from './abstract/tradeogre.js';
 import { InsufficientFunds, AuthenticationError, BadRequest, ExchangeError, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Int, Num, Order, OrderSide, OrderType, Str, Ticker, IndexType, Dict, int, Strings, Tickers, OHLCV } from './base/types.js';
+import type { Int, Num, Order, OrderSide, OrderType, Str, Ticker, IndexType, Dict, int, Strings, Tickers, OHLCV, Market } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -21,7 +20,7 @@ export default class tradeogre extends Exchange {
             'countries': [ ],
             'rateLimit': 100,
             'version': 'v2',
-            'pro': false,
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -131,12 +130,12 @@ export default class tradeogre extends Exchange {
                         'orders/{market}': 1,
                         'ticker/{market}': 1,
                         'history/{market}': 1,
+                        'chart/{interval}/{market}/{timestamp}': 1,
                         'chart/{interval}/{market}': 1,
                     },
                 },
                 'private': {
                     'get': {
-                        'account/balance': 1,
                         'account/balances': 1,
                         'account/order/{uuid}': 1,
                     },
@@ -146,6 +145,7 @@ export default class tradeogre extends Exchange {
                         'order/cancel': 1,
                         'orders': 1,
                         'account/orders': 1,
+                        'account/balance': 1,
                     },
                 },
             },
@@ -429,9 +429,9 @@ export default class tradeogre extends Exchange {
             'ask': this.safeString (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeString (ticker, 'open'),
-            'close': undefined,
-            'last': undefined,
+            'open': this.safeString (ticker, 'initialprice'),
+            'close': this.safeString (ticker, 'price'),
+            'last': this.safeString (ticker, 'price'),
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
@@ -461,12 +461,15 @@ export default class tradeogre extends Exchange {
             'market': market['id'],
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
+        let response = undefined;
         const until = this.safeInteger (params, 'until');
         if (until !== undefined) {
             params = this.omit (params, 'until');
-            request['timestamp'] = until;
+            request['timestamp'] = this.parseToInt (until / 1000);
+            response = await this.publicGetChartIntervalMarketTimestamp (this.extend (request, params));
+        } else {
+            response = await this.publicGetChartIntervalMarket (this.extend (request, params));
         }
-        const response = await this.publicGetChartIntervalMarket (this.extend (request, params));
         //
         //     [
         //         [
@@ -496,9 +499,9 @@ export default class tradeogre extends Exchange {
         return [
             this.safeTimestamp (ohlcv, 0),
             this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 2),
             this.safeNumber (ohlcv, 3),
             this.safeNumber (ohlcv, 4),
-            this.safeNumber (ohlcv, 2),
             this.safeNumber (ohlcv, 5),
         ];
     }
@@ -536,6 +539,7 @@ export default class tradeogre extends Exchange {
             'asks': rawAsks,
         };
         const orderbook = this.parseOrderBook (rawOrderbook, symbol);
+        orderbook['nonce'] = this.safeInteger (response, 's');
         return orderbook;
     }
 
@@ -607,11 +611,28 @@ export default class tradeogre extends Exchange {
      * @name tradeogre#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.currency] currency to fetch the balance for
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateGetAccountBalances (params);
+        let response = undefined;
+        const currency = this.safeString (params, 'currency');
+        if (currency !== undefined) {
+            response = await this.privatePostAccountBalance (params);
+            const singleCurrencyresult: Dict = {
+                'info': response,
+            };
+            const code = this.safeCurrencyCode (currency);
+            const account = {
+                'total': this.safeNumber (response, 'balance'),
+                'free': this.safeNumber (response, 'available'),
+            };
+            singleCurrencyresult[code] = account;
+            return this.safeBalance (singleCurrencyresult);
+        } else {
+            response = await this.privateGetAccountBalances (params);
+        }
         const result = this.safeDict (response, 'balances', {});
         return this.parseBalance (result);
     }
@@ -781,11 +802,11 @@ export default class tradeogre extends Exchange {
             'side': this.safeString (order, 'type'),
             'price': this.safeString (order, 'price'),
             'triggerPrice': undefined,
-            'amount': this.safeString (order, 'quantity'),
+            'amount': undefined,
             'cost': undefined,
             'average': undefined,
             'filled': this.safeString (order, 'fulfilled'),
-            'remaining': undefined,
+            'remaining': this.safeString (order, 'quantity'),
             'status': undefined,
             'fee': {
                 'currency': undefined,

@@ -48,12 +48,19 @@ func (this *Latoken) FetchMarkets(params ...interface{}) ([]MarketInterface, err
     }
     return NewMarketInterfaceArray(res), nil
 }
-func (this *Latoken) FetchCurrenciesFromCache(params ...interface{}) (map[string]interface{}, error) {
-    res := <- this.Core.FetchCurrenciesFromCache(params...)
+/**
+ * @method
+ * @name latoken#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Latoken) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
     if IsError(res) {
-        return map[string]interface{}{}, CreateReturnError(res)
+        return Currencies{}, CreateReturnError(res)
     }
-    return res.(map[string]interface{}), nil
+    return NewCurrencies(res), nil
 }
 /**
  * @method

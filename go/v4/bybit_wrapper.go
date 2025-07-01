@@ -35,6 +35,21 @@ func (this *Bybit) FetchTime(params ...interface{}) ( int64, error) {
 }
 /**
  * @method
+ * @name bybit#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://bybit-exchange.github.io/docs/v5/asset/coin-info
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Bybit) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name bybit#fetchMarkets
  * @description retrieves data on all markets for bybit
  * @see https://bybit-exchange.github.io/docs/v5/market/instrument
@@ -506,7 +521,7 @@ func (this *Bybit) CreateOrders(orders []OrderRequest, options ...CreateOrdersOp
     if opts.Params != nil {
         params = *opts.Params
     }
-    res := <- this.Core.CreateOrders(orders, params)
+    res := <- this.Core.CreateOrders(ConvertOrderRequestListToArray(orders), params)
     if IsError(res) {
         return nil, CreateReturnError(res)
     }
@@ -1568,6 +1583,7 @@ func (this *Bybit) FetchPosition(symbol string, options ...FetchPositionOptions)
  * @param {string} [params.subType] market subType, ['linear', 'inverse']
  * @param {string} [params.baseCoin] Base coin. Supports linear, inverse & option
  * @param {string} [params.settleCoin] Settle coin. Supports linear, inverse & option
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
  */
 func (this *Bybit) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {

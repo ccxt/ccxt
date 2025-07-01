@@ -22,7 +22,7 @@ class cryptomus extends Exchange {
             'name' => 'Cryptomus',
             'countries' => array( 'CA' ),
             'rateLimit' => 100, // todo check
-            'version' => 'v1',
+            'version' => 'v2',
             'certified' => false,
             'pro' => false,
             'has' => array(
@@ -104,7 +104,7 @@ class cryptomus extends Exchange {
                 'fetchTime' => false,
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
-                'fetchTradingFees' => false,
+                'fetchTradingFees' => true,
                 'fetchTransactions' => false,
                 'fetchTransfers' => false,
                 'fetchWithdrawals' => false,
@@ -142,9 +142,9 @@ class cryptomus extends Exchange {
                 'private' => array(
                     'get' => array(
                         'v2/user-api/exchange/orders' => 1, // done
-                        'v2/user-api/exchange/orders/history' => 1,
+                        'v2/user-api/exchange/orders/history' => 1, // done
                         'v2/user-api/exchange/account/balance' => 1, // done
-                        'v2/user-api/exchange/account/tariffs' => 1,
+                        'v2/user-api/exchange/account/tariffs' => 1, // done
                         'v2/user-api/payment/services' => 1,
                         'v2/user-api/payout/services' => 1,
                         'v2/user-api/transaction/list' => 1,
@@ -232,7 +232,9 @@ class cryptomus extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for the exchange
+             *
              * @see https://doc.cryptomus.com/personal/market-cap/tickers
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
              */
@@ -344,7 +346,9 @@ class cryptomus extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
+             *
              * @see https://doc.cryptomus.com/personal/market-cap/assets
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of currencies
              */
@@ -368,112 +372,45 @@ class cryptomus extends Exchange {
             //     }
             //
             $coins = $this->safe_list($response, 'result');
+            $groupedById = $this->group_by($coins, 'currency_code');
+            $keys = is_array($groupedById) ? array_keys($groupedById) : array();
             $result = array();
-            for ($i = 0; $i < count($coins); $i++) {
-                $currency = $coins[$i];
-                $currencyId = $this->safe_string($currency, 'currency_code');
-                $code = $this->safe_currency_code($currencyId);
-                $allowWithdraw = $this->safe_bool($currency, 'can_withdraw');
-                $allowDeposit = $this->safe_bool($currency, 'can_deposit');
-                $isActive = $allowWithdraw && $allowDeposit;
-                $networkId = $this->safe_string($currency, 'network_code');
-                $networksById = $this->safe_dict($this->options, 'networksById');
-                $networkName = $this->safe_string($networksById, $networkId, $networkId);
-                $minWithdraw = $this->safe_number($currency, 'min_withdraw');
-                $maxWithdraw = $this->safe_number($currency, 'max_withdraw');
-                $minDeposit = $this->safe_number($currency, 'min_deposit');
-                $maxDeposit = $this->safe_number($currency, 'max_deposit');
-                $network = array(
-                    'id' => $networkId,
-                    'network' => $networkName,
-                    'limits' => array(
-                        'withdraw' => array(
-                            'min' => $minWithdraw,
-                            'max' => $maxWithdraw,
-                        ),
-                        'deposit' => array(
-                            'min' => $minDeposit,
-                            'max' => $maxDeposit,
-                        ),
-                    ),
-                    'active' => $isActive,
-                    'deposit' => $allowDeposit,
-                    'withdraw' => $allowWithdraw,
-                    'fee' => null,
-                    'precision' => null,
-                    'info' => $currency,
-                );
+            for ($i = 0; $i < count($keys); $i++) {
+                $id = $keys[$i];
+                $code = $this->safe_currency_code($id);
                 $networks = array();
-                $networks[$networkName] = $network;
-                if (!(is_array($result) && array_key_exists($code, $result))) {
-                    $result[$code] = array(
-                        'id' => $currencyId,
-                        'code' => $code,
-                        'precision' => null,
-                        'type' => null,
-                        'name' => null,
-                        'active' => $isActive,
-                        'deposit' => $allowDeposit,
-                        'withdraw' => $allowWithdraw,
-                        'fee' => null,
+                $networkEntries = $groupedById[$id];
+                for ($j = 0; $j < count($networkEntries); $j++) {
+                    $networkEntry = $networkEntries[$j];
+                    $networkId = $this->safe_string($networkEntry, 'network_code');
+                    $networkCode = $this->network_id_to_code($networkId);
+                    $networks[$networkCode] = array(
+                        'id' => $networkId,
+                        'network' => $networkCode,
                         'limits' => array(
                             'withdraw' => array(
-                                'min' => $minWithdraw,
-                                'max' => $maxWithdraw,
+                                'min' => $this->safe_number($networkEntry, 'min_withdraw'),
+                                'max' => $this->safe_number($networkEntry, 'max_withdraw'),
                             ),
                             'deposit' => array(
-                                'min' => $minDeposit,
-                                'max' => $maxDeposit,
+                                'min' => $this->safe_number($networkEntry, 'min_deposit'),
+                                'max' => $this->safe_number($networkEntry, 'max_deposit'),
                             ),
                         ),
-                        'networks' => $networks,
-                        'info' => $currency,
+                        'active' => null,
+                        'deposit' => $this->safe_bool($networkEntry, 'can_withdraw'),
+                        'withdraw' => $this->safe_bool($networkEntry, 'can_deposit'),
+                        'fee' => null,
+                        'precision' => null,
+                        'info' => $networkEntry,
                     );
-                } else {
-                    $parsed = $result[$code];
-                    $parsedNetworks = $this->safe_dict($parsed, 'networks');
-                    $parsed['networks'] = $this->extend($parsedNetworks, $networks);
-                    if ($isActive) {
-                        $parsed['active'] = true;
-                        $parsed['deposit'] = true;
-                        $parsed['withdraw'] = true;
-                    } else {
-                        if ($allowWithdraw) {
-                            $parsed['withdraw'] = true;
-                        }
-                        if ($allowDeposit) {
-                            $parsed['deposit'] = true;
-                        }
-                    }
-                    $parsedLimits = $this->safe_dict($parsed, 'limits');
-                    $withdrawLimits = array(
-                        'min' => null,
-                        'max' => null,
-                    );
-                    $parsedWithdrawLimits = $this->safe_dict($parsedLimits, 'withdraw', $withdrawLimits);
-                    $depositLimits = array(
-                        'min' => null,
-                        'max' => null,
-                    );
-                    $parsedDepositLimits = $this->safe_dict($parsedLimits, 'deposit', $depositLimits);
-                    if ($minWithdraw) {
-                        $withdrawLimits['min'] = $parsedWithdrawLimits['min'] ? min ($parsedWithdrawLimits['min'], $minWithdraw) : $minWithdraw;
-                    }
-                    if ($maxWithdraw) {
-                        $withdrawLimits['max'] = $parsedWithdrawLimits['max'] ? max ($parsedWithdrawLimits['max'], $maxWithdraw) : $maxWithdraw;
-                    }
-                    if ($minDeposit) {
-                        $depositLimits['min'] = $parsedDepositLimits['min'] ? min ($parsedDepositLimits['min'], $minDeposit) : $minDeposit;
-                    }
-                    if ($maxDeposit) {
-                        $depositLimits['max'] = $parsedDepositLimits['max'] ? max ($parsedDepositLimits['max'], $maxDeposit) : $maxDeposit;
-                    }
-                    $limits = array(
-                        'withdraw' => $withdrawLimits,
-                        'deposit' => $depositLimits,
-                    );
-                    $parsed['limits'] = $limits;
                 }
+                $result[$code] = $this->safe_currency_structure(array(
+                    'id' => $id,
+                    'code' => $code,
+                    'networks' => $networks,
+                    'info' => $networkEntries,
+                ));
             }
             return $result;
         }) ();
@@ -483,7 +420,9 @@ class cryptomus extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+             *
              * @see https://doc.cryptomus.com/personal/market-cap/tickers
+             *
              * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
@@ -512,7 +451,7 @@ class cryptomus extends Exchange {
         //
         //     {
         //         "currency_pair" => "XMR_USDT",
-        //         "last_price" => "158.04829771",
+        //         "last_price" => "158.04829772",
         //         "base_volume" => "0.35185785",
         //         "quote_volume" => "55.523761128544"
         //     }
@@ -549,7 +488,9 @@ class cryptomus extends Exchange {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
+             *
              * @see https://doc.cryptomus.com/personal/market-cap/orderbook
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -594,7 +535,9 @@ class cryptomus extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
+             *
              * @see https://doc.cryptomus.com/personal/market-cap/trades
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch (maximum value is 100)
@@ -662,7 +605,9 @@ class cryptomus extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
+             *
              * @see https://doc.cryptomus.com/personal/converts/balance
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
@@ -712,8 +657,10 @@ class cryptomus extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             *
              * @see https://doc.cryptomus.com/personal/exchange/market-order-creation
              * @see https://doc.cryptomus.com/personal/exchange/limit-order-creation
+             *
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit' or for spot
              * @param {string} $side 'buy' or 'sell'
@@ -721,7 +668,6 @@ class cryptomus extends Exchange {
              * @param {float} [$price] the $price that the order is to be fulfilled, in units of the quote currency, ignored in $market orders (only for limit orders)
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {float} [$params->cost] *$market buy only* the quote quantity that can be used alternative for the $amount
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->clientOrderId] a unique identifier for the order (optional)
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
@@ -784,7 +730,9 @@ class cryptomus extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open limit order
+             *
              * @see https://doc.cryptomus.com/personal/exchange/limit-order-cancellation
+             *
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the market the order was made in (not used in cryptomus)
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -807,7 +755,9 @@ class cryptomus extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple $orders made by the user
+             *
              * @see https://doc.cryptomus.com/personal/exchange/history-of-completed-$orders
+             *
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in (not used in cryptomus)
              * @param {int} [$since] the earliest time in ms to fetch $orders for (not used in cryptomus)
              * @param {int} [$limit] the maximum number of $order structures to retrieve (not used in cryptomus)
@@ -883,7 +833,9 @@ class cryptomus extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
+             *
              * @see https://doc.cryptomus.com/personal/exchange/list-of-active-orders
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for (not used in cryptomus)
              * @param {int} [$limit] the maximum number of  open orders structures to retrieve (not used in cryptomus)
@@ -1050,6 +1002,109 @@ class cryptomus extends Exchange {
             'failed' => 'failed',
         );
         return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function fetch_trading_fees($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
+            /**
+             * fetch the trading fees for multiple markets
+             *
+             * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-fees
+             *
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by market symbols
+             */
+            $response = Async\await($this->privateGetV2UserApiExchangeAccountTariffs ($params));
+            //
+            //     {
+            //         $result => {
+            //             equivalent_currency_code => 'USD',
+            //             current_tariff_step => array(
+            //                 step => '0',
+            //                 from_turnover => '0.00000000',
+            //                 maker_percent => '0.08',
+            //                 taker_percent => '0.1'
+            //             ),
+            //             tariff_steps => array(
+            //                 array(
+            //                     step => '0',
+            //                     from_turnover => '0.00000000',
+            //                     maker_percent => '0.08',
+            //                     taker_percent => '0.1'
+            //                 ),
+            //                 array(
+            //                     step => '1',
+            //                     from_turnover => '100001.00000000',
+            //                     maker_percent => '0.06',
+            //                     taker_percent => '0.095'
+            //                 ),
+            //                 array(
+            //                     step => '2',
+            //                     from_turnover => '250001.00000000',
+            //                     maker_percent => '0.055',
+            //                     taker_percent => '0.085'
+            //                 ),
+            //                 array(
+            //                     step => '3',
+            //                     from_turnover => '500001.00000000',
+            //                     maker_percent => '0.05',
+            //                     taker_percent => '0.075'
+            //                 ),
+            //                 {
+            //                     step => '4',
+            //                     from_turnover => '2500001.00000000',
+            //                     maker_percent => '0.04',
+            //                     taker_percent => '0.07'
+            //                 }
+            //             ),
+            //             daily_turnover => '0.00000000',
+            //             monthly_turnover => '77.52062617',
+            //             circulation_funds => '25.48900443'
+            //         }
+            //     }
+            //
+            $data = $this->safe_dict($response, 'result', array());
+            $currentFeeTier = $this->safe_dict($data, 'current_tariff_step', array());
+            $makerFee = $this->safe_string($currentFeeTier, 'maker_percent');
+            $takerFee = $this->safe_string($currentFeeTier, 'taker_percent');
+            $makerFee = Precise::string_div($makerFee, '100');
+            $takerFee = Precise::string_div($takerFee, '100');
+            $feeTiers = $this->safe_list($data, 'tariff_steps', array());
+            $result = array();
+            $tiers = $this->parse_fee_tiers($feeTiers);
+            for ($i = 0; $i < count($this->symbols); $i++) {
+                $symbol = $this->symbols[$i];
+                $result[$symbol] = array(
+                    'info' => $response,
+                    'symbol' => $symbol,
+                    'maker' => $this->parse_number($makerFee),
+                    'taker' => $this->parse_number($takerFee),
+                    'percentage' => true,
+                    'tierBased' => true,
+                    'tiers' => $tiers,
+                );
+            }
+            return $result;
+        }) ();
+    }
+
+    public function parse_fee_tiers($feeTiers, ?array $market = null) {
+        $takerFees = array();
+        $makerFees = array();
+        for ($i = 0; $i < count($feeTiers); $i++) {
+            $tier = $feeTiers[$i];
+            $turnover = $this->safe_number($tier, 'from_turnover');
+            $taker = $this->safe_string($tier, 'taker_percent');
+            $maker = $this->safe_string($tier, 'maker_percent');
+            $maker = Precise::string_div($maker, '100');
+            $taker = Precise::string_div($taker, '100');
+            $makerFees[] = array( $turnover, $this->parse_number($maker) );
+            $takerFees[] = array( $turnover, $this->parse_number($taker) );
+        }
+        return array(
+            'maker' => $makerFees,
+            'taker' => $takerFees,
+        );
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

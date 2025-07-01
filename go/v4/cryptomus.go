@@ -20,7 +20,7 @@ func  (this *cryptomus) Describe() interface{}  {
         "name": "Cryptomus",
         "countries": []interface{}{"CA"},
         "rateLimit": 100,
-        "version": "v1",
+        "version": "v2",
         "certified": false,
         "pro": false,
         "has": map[string]interface{} {
@@ -102,7 +102,7 @@ func  (this *cryptomus) Describe() interface{}  {
             "fetchTime": false,
             "fetchTrades": true,
             "fetchTradingFee": false,
-            "fetchTradingFees": false,
+            "fetchTradingFees": true,
             "fetchTransactions": false,
             "fetchTransfers": false,
             "fetchWithdrawals": false,
@@ -222,20 +222,20 @@ func  (this *cryptomus) Describe() interface{}  {
         "features": map[string]interface{} {},
     })
 }
+/**
+ * @method
+ * @name cryptomus#fetchMarkets
+ * @description retrieves data on all markets for the exchange
+ * @see https://doc.cryptomus.com/personal/market-cap/tickers
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} an array of objects representing market data
+ */
 func  (this *cryptomus) FetchMarkets(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
             go func() interface{} {
                 defer close(ch)
                 defer ReturnPanicError(ch)
-                    /**
-            * @method
-            * @name cryptomus#fetchMarkets
-            * @description retrieves data on all markets for the exchange
-            * @see https://doc.cryptomus.com/personal/market-cap/tickers
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object[]} an array of objects representing market data
-            */
-            params := GetArg(optionalArgs, 0, map[string]interface{} {})
+                    params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
             response:= (<-this.PublicGetV2UserApiExchangeMarkets(params))
@@ -345,20 +345,20 @@ func  (this *cryptomus) ParseMarket(market interface{}) interface{}  {
         "info": market,
     })
 }
+/**
+ * @method
+ * @name cryptomus#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://doc.cryptomus.com/personal/market-cap/assets
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
 func  (this *cryptomus) FetchCurrencies(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
             go func() interface{} {
                 defer close(ch)
                 defer ReturnPanicError(ch)
-                    /**
-            * @method
-            * @name cryptomus#fetchCurrencies
-            * @description fetches all available currencies on an exchange
-            * @see https://doc.cryptomus.com/personal/market-cap/assets
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object} an associative dictionary of currencies
-            */
-            params := GetArg(optionalArgs, 0, map[string]interface{} {})
+                    params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
             response:= (<-this.PublicGetV1ExchangeMarketAssets(params))
@@ -382,112 +382,45 @@ func  (this *cryptomus) FetchCurrencies(optionalArgs ...interface{}) <- chan int
             //     }
             //
             var coins interface{} = this.SafeList(response, "result")
+            var groupedById interface{} = this.GroupBy(coins, "currency_code")
+            var keys interface{} = ObjectKeys(groupedById)
             var result interface{} = map[string]interface{} {}
-            for i := 0; IsLessThan(i, GetArrayLength(coins)); i++ {
-                var currency interface{} = GetValue(coins, i)
-                var currencyId interface{} = this.SafeString(currency, "currency_code")
-                var code interface{} = this.SafeCurrencyCode(currencyId)
-                var allowWithdraw interface{} = this.SafeBool(currency, "can_withdraw")
-                var allowDeposit interface{} = this.SafeBool(currency, "can_deposit")
-                var isActive interface{} = IsTrue(allowWithdraw) && IsTrue(allowDeposit)
-                var networkId interface{} = this.SafeString(currency, "network_code")
-                var networksById interface{} = this.SafeDict(this.Options, "networksById")
-                var networkName interface{} = this.SafeString(networksById, networkId, networkId)
-                var minWithdraw interface{} = this.SafeNumber(currency, "min_withdraw")
-                var maxWithdraw interface{} = this.SafeNumber(currency, "max_withdraw")
-                var minDeposit interface{} = this.SafeNumber(currency, "min_deposit")
-                var maxDeposit interface{} = this.SafeNumber(currency, "max_deposit")
-                var network interface{} = map[string]interface{} {
-                    "id": networkId,
-                    "network": networkName,
-                    "limits": map[string]interface{} {
-                        "withdraw": map[string]interface{} {
-                            "min": minWithdraw,
-                            "max": maxWithdraw,
-                        },
-                        "deposit": map[string]interface{} {
-                            "min": minDeposit,
-                            "max": maxDeposit,
-                        },
-                    },
-                    "active": isActive,
-                    "deposit": allowDeposit,
-                    "withdraw": allowWithdraw,
-                    "fee": nil,
-                    "precision": nil,
-                    "info": currency,
-                }
+            for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
+                var id interface{} = GetValue(keys, i)
+                var code interface{} = this.SafeCurrencyCode(id)
                 var networks interface{} = map[string]interface{} {}
-                AddElementToObject(networks, networkName, network)
-                if !IsTrue((InOp(result, code))) {
-                    AddElementToObject(result, code, map[string]interface{} {
-            "id": currencyId,
-            "code": code,
-            "precision": nil,
-            "type": nil,
-            "name": nil,
-            "active": isActive,
-            "deposit": allowDeposit,
-            "withdraw": allowWithdraw,
-            "fee": nil,
+                var networkEntries interface{} = GetValue(groupedById, id)
+                for j := 0; IsLessThan(j, GetArrayLength(networkEntries)); j++ {
+                    var networkEntry interface{} = GetValue(networkEntries, j)
+                    var networkId interface{} = this.SafeString(networkEntry, "network_code")
+                    var networkCode interface{} = this.NetworkIdToCode(networkId)
+                    AddElementToObject(networks, networkCode, map[string]interface{} {
+            "id": networkId,
+            "network": networkCode,
             "limits": map[string]interface{} {
                 "withdraw": map[string]interface{} {
-                    "min": minWithdraw,
-                    "max": maxWithdraw,
+                    "min": this.SafeNumber(networkEntry, "min_withdraw"),
+                    "max": this.SafeNumber(networkEntry, "max_withdraw"),
                 },
                 "deposit": map[string]interface{} {
-                    "min": minDeposit,
-                    "max": maxDeposit,
+                    "min": this.SafeNumber(networkEntry, "min_deposit"),
+                    "max": this.SafeNumber(networkEntry, "max_deposit"),
                 },
             },
-            "networks": networks,
-            "info": currency,
+            "active": nil,
+            "deposit": this.SafeBool(networkEntry, "can_withdraw"),
+            "withdraw": this.SafeBool(networkEntry, "can_deposit"),
+            "fee": nil,
+            "precision": nil,
+            "info": networkEntry,
         })
-                } else {
-                    var parsed interface{} = GetValue(result, code)
-                    var parsedNetworks interface{} = this.SafeDict(parsed, "networks")
-                    AddElementToObject(parsed, "networks", this.Extend(parsedNetworks, networks))
-                    if IsTrue(isActive) {
-                        AddElementToObject(parsed, "active", true)
-                        AddElementToObject(parsed, "deposit", true)
-                        AddElementToObject(parsed, "withdraw", true)
-                    } else {
-                        if IsTrue(allowWithdraw) {
-                            AddElementToObject(parsed, "withdraw", true)
-                        }
-                        if IsTrue(allowDeposit) {
-                            AddElementToObject(parsed, "deposit", true)
-                        }
-                    }
-                    var parsedLimits interface{} = this.SafeDict(parsed, "limits")
-                    var withdrawLimits interface{} = map[string]interface{} {
-                        "min": nil,
-                        "max": nil,
-                    }
-                    var parsedWithdrawLimits interface{} = this.SafeDict(parsedLimits, "withdraw", withdrawLimits)
-                    var depositLimits interface{} = map[string]interface{} {
-                        "min": nil,
-                        "max": nil,
-                    }
-                    var parsedDepositLimits interface{} = this.SafeDict(parsedLimits, "deposit", depositLimits)
-                    if IsTrue(minWithdraw) {
-                        AddElementToObject(withdrawLimits, "min", Ternary(IsTrue(GetValue(parsedWithdrawLimits, "min")), mathMin(GetValue(parsedWithdrawLimits, "min"), minWithdraw), minWithdraw))
-                    }
-                    if IsTrue(maxWithdraw) {
-                        AddElementToObject(withdrawLimits, "max", Ternary(IsTrue(GetValue(parsedWithdrawLimits, "max")), mathMax(GetValue(parsedWithdrawLimits, "max"), maxWithdraw), maxWithdraw))
-                    }
-                    if IsTrue(minDeposit) {
-                        AddElementToObject(depositLimits, "min", Ternary(IsTrue(GetValue(parsedDepositLimits, "min")), mathMin(GetValue(parsedDepositLimits, "min"), minDeposit), minDeposit))
-                    }
-                    if IsTrue(maxDeposit) {
-                        AddElementToObject(depositLimits, "max", Ternary(IsTrue(GetValue(parsedDepositLimits, "max")), mathMax(GetValue(parsedDepositLimits, "max"), maxDeposit), maxDeposit))
-                    }
-                    var limits interface{} = map[string]interface{} {
-                        "withdraw": withdrawLimits,
-                        "deposit": depositLimits,
-                    }
-                    AddElementToObject(parsed, "limits", limits)
                 }
+                AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]interface{} {
+            "id": id,
+            "code": code,
+            "networks": networks,
+            "info": networkEntries,
+        }))
             }
         
             ch <- result
@@ -496,27 +429,27 @@ func  (this *cryptomus) FetchCurrencies(optionalArgs ...interface{}) <- chan int
             }()
             return ch
         }
+/**
+ * @method
+ * @name cryptomus#fetchTickers
+ * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+ * @see https://doc.cryptomus.com/personal/market-cap/tickers
+ * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ */
 func  (this *cryptomus) FetchTickers(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
             go func() interface{} {
                 defer close(ch)
                 defer ReturnPanicError(ch)
-                    /**
-            * @method
-            * @name cryptomus#fetchTickers
-            * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-            * @see https://doc.cryptomus.com/personal/market-cap/tickers
-            * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-            */
-            symbols := GetArg(optionalArgs, 0, nil)
+                    symbols := GetArg(optionalArgs, 0, nil)
             _ = symbols
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes4908 := (<-this.LoadMarkets())
-            PanicOnError(retRes4908)
+            retRes4238 := (<-this.LoadMarkets())
+            PanicOnError(retRes4238)
             symbols = this.MarketSymbols(symbols)
         
             response:= (<-this.PublicGetV1ExchangeMarketTickers(params))
@@ -545,7 +478,7 @@ func  (this *cryptomus) ParseTicker(ticker interface{}, optionalArgs ...interfac
     //
     //     {
     //         "currency_pair": "XMR_USDT",
-    //         "last_price": "158.04829771",
+    //         "last_price": "158.04829772",
     //         "base_volume": "0.35185785",
     //         "quote_volume": "55.523761128544"
     //     }
@@ -579,29 +512,29 @@ func  (this *cryptomus) ParseTicker(ticker interface{}, optionalArgs ...interfac
         "info": ticker,
     }, market)
 }
+/**
+ * @method
+ * @name cryptomus#fetchOrderBook
+ * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+ * @see https://doc.cryptomus.com/personal/market-cap/orderbook
+ * @param {string} symbol unified symbol of the market to fetch the order book for
+ * @param {int} [limit] the maximum amount of order book entries to return
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.level] 0 or 1 or 2 or 3 or 4 or 5 - the level of volume
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ */
 func  (this *cryptomus) FetchOrderBook(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
             go func() interface{} {
                 defer close(ch)
                 defer ReturnPanicError(ch)
-                    /**
-            * @method
-            * @name cryptomus#fetchOrderBook
-            * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-            * @see https://doc.cryptomus.com/personal/market-cap/orderbook
-            * @param {string} symbol unified symbol of the market to fetch the order book for
-            * @param {int} [limit] the maximum amount of order book entries to return
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {int} [params.level] 0 or 1 or 2 or 3 or 4 or 5 - the level of volume
-            * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-            */
-            limit := GetArg(optionalArgs, 0, nil)
+                    limit := GetArg(optionalArgs, 0, nil)
             _ = limit
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes5588 := (<-this.LoadMarkets())
-            PanicOnError(retRes5588)
+            retRes4918 := (<-this.LoadMarkets())
+            PanicOnError(retRes4918)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "currencyPair": GetValue(market, "id"),
@@ -642,31 +575,31 @@ func  (this *cryptomus) FetchOrderBook(symbol interface{}, optionalArgs ...inter
             }()
             return ch
         }
+/**
+ * @method
+ * @name cryptomus#fetchTrades
+ * @description get the list of most recent trades for a particular symbol
+ * @see https://doc.cryptomus.com/personal/market-cap/trades
+ * @param {string} symbol unified symbol of the market to fetch trades for
+ * @param {int} [since] timestamp in ms of the earliest trade to fetch
+ * @param {int} [limit] the maximum amount of trades to fetch (maximum value is 100)
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ */
 func  (this *cryptomus) FetchTrades(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
             go func() interface{} {
                 defer close(ch)
                 defer ReturnPanicError(ch)
-                    /**
-            * @method
-            * @name cryptomus#fetchTrades
-            * @description get the list of most recent trades for a particular symbol
-            * @see https://doc.cryptomus.com/personal/market-cap/trades
-            * @param {string} symbol unified symbol of the market to fetch trades for
-            * @param {int} [since] timestamp in ms of the earliest trade to fetch
-            * @param {int} [limit] the maximum amount of trades to fetch (maximum value is 100)
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-            */
-            since := GetArg(optionalArgs, 0, nil)
+                    since := GetArg(optionalArgs, 0, nil)
             _ = since
             limit := GetArg(optionalArgs, 1, nil)
             _ = limit
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes6038 := (<-this.LoadMarkets())
-            PanicOnError(retRes6038)
+            retRes5368 := (<-this.LoadMarkets())
+            PanicOnError(retRes5368)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "currencyPair": GetValue(market, "id"),
@@ -729,24 +662,24 @@ func  (this *cryptomus) ParseTrade(trade interface{}, optionalArgs ...interface{
         "info": trade,
     }, market)
 }
+/**
+ * @method
+ * @name cryptomus#fetchBalance
+ * @description query for balance and get the amount of funds available for trading or funds locked in orders
+ * @see https://doc.cryptomus.com/personal/converts/balance
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ */
 func  (this *cryptomus) FetchBalance(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
             go func() interface{} {
                 defer close(ch)
                 defer ReturnPanicError(ch)
-                    /**
-            * @method
-            * @name cryptomus#fetchBalance
-            * @description query for balance and get the amount of funds available for trading or funds locked in orders
-            * @see https://doc.cryptomus.com/personal/converts/balance
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-            */
-            params := GetArg(optionalArgs, 0, map[string]interface{} {})
+                    params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes6688 := (<-this.LoadMarkets())
-            PanicOnError(retRes6688)
+            retRes6018 := (<-this.LoadMarkets())
+            PanicOnError(retRes6018)
             var request interface{} = map[string]interface{} {}
         
             response:= (<-this.PrivateGetV2UserApiExchangeAccountBalance(this.Extend(request, params)))
@@ -792,35 +725,34 @@ func  (this *cryptomus) ParseBalance(balance interface{}) interface{}  {
     }
     return this.SafeBalance(result)
 }
+/**
+ * @method
+ * @name cryptomus#createOrder
+ * @description create a trade order
+ * @see https://doc.cryptomus.com/personal/exchange/market-order-creation
+ * @see https://doc.cryptomus.com/personal/exchange/limit-order-creation
+ * @param {string} symbol unified symbol of the market to create an order in
+ * @param {string} type 'market' or 'limit' or for spot
+ * @param {string} side 'buy' or 'sell'
+ * @param {float} amount how much of you want to trade in units of the base currency
+ * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders (only for limit orders)
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {float} [params.cost] *market buy only* the quote quantity that can be used as an alternative for the amount
+ * @param {string} [params.clientOrderId] a unique identifier for the order (optional)
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
 func  (this *cryptomus) CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
             go func() interface{} {
                 defer close(ch)
                 defer ReturnPanicError(ch)
-                    /**
-            * @method
-            * @name cryptomus#createOrder
-            * @description create a trade order
-            * @see https://doc.cryptomus.com/personal/exchange/market-order-creation
-            * @see https://doc.cryptomus.com/personal/exchange/limit-order-creation
-            * @param {string} symbol unified symbol of the market to create an order in
-            * @param {string} type 'market' or 'limit' or for spot
-            * @param {string} side 'buy' or 'sell'
-            * @param {float} amount how much of you want to trade in units of the base currency
-            * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders (only for limit orders)
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {float} [params.cost] *market buy only* the quote quantity that can be used as an alternative for the amount
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {string} [params.clientOrderId] a unique identifier for the order (optional)
-            * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-            */
-            price := GetArg(optionalArgs, 0, nil)
+                    price := GetArg(optionalArgs, 0, nil)
             _ = price
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes7278 := (<-this.LoadMarkets())
-            PanicOnError(retRes7278)
+            retRes6598 := (<-this.LoadMarkets())
+            PanicOnError(retRes6598)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "market": GetValue(market, "id"),
@@ -886,28 +818,28 @@ func  (this *cryptomus) CreateOrder(symbol interface{}, typeVar interface{}, sid
             }()
             return ch
         }
+/**
+ * @method
+ * @name cryptomus#cancelOrder
+ * @description cancels an open limit order
+ * @see https://doc.cryptomus.com/personal/exchange/limit-order-cancellation
+ * @param {string} id order id
+ * @param {string} symbol unified symbol of the market the order was made in (not used in cryptomus)
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
 func  (this *cryptomus) CancelOrder(id interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
             go func() interface{} {
                 defer close(ch)
                 defer ReturnPanicError(ch)
-                    /**
-            * @method
-            * @name cryptomus#cancelOrder
-            * @description cancels an open limit order
-            * @see https://doc.cryptomus.com/personal/exchange/limit-order-cancellation
-            * @param {string} id order id
-            * @param {string} symbol unified symbol of the market the order was made in (not used in cryptomus)
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-            */
-            symbol := GetArg(optionalArgs, 0, nil)
+                    symbol := GetArg(optionalArgs, 0, nil)
             _ = symbol
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes7928 := (<-this.LoadMarkets())
-            PanicOnError(retRes7928)
+            retRes7248 := (<-this.LoadMarkets())
+            PanicOnError(retRes7248)
             var request interface{} = map[string]interface{} {}
             AddElementToObject(request, "orderId", id)
         
@@ -925,28 +857,28 @@ func  (this *cryptomus) CancelOrder(id interface{}, optionalArgs ...interface{})
             }()
             return ch
         }
+/**
+ * @method
+ * @name cryptomus#fetchOrders
+ * @description fetches information on multiple orders made by the user
+ * @see https://doc.cryptomus.com/personal/exchange/history-of-completed-orders
+ * @param {string} symbol unified market symbol of the market orders were made in (not used in cryptomus)
+ * @param {int} [since] the earliest time in ms to fetch orders for (not used in cryptomus)
+ * @param {int} [limit] the maximum number of order structures to retrieve (not used in cryptomus)
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.direction] order direction 'buy' or 'sell'
+ * @param {string} [params.order_id] order id
+ * @param {string} [params.client_order_id] client order id
+ * @param {string} [params.limit] A special parameter that sets the maximum number of records the request will return
+ * @param {string} [params.offset] A special parameter that sets the number of records from the beginning of the list
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
 func  (this *cryptomus) FetchCanceledAndClosedOrders(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
             go func() interface{} {
                 defer close(ch)
                 defer ReturnPanicError(ch)
-                    /**
-            * @method
-            * @name cryptomus#fetchOrders
-            * @description fetches information on multiple orders made by the user
-            * @see https://doc.cryptomus.com/personal/exchange/history-of-completed-orders
-            * @param {string} symbol unified market symbol of the market orders were made in (not used in cryptomus)
-            * @param {int} [since] the earliest time in ms to fetch orders for (not used in cryptomus)
-            * @param {int} [limit] the maximum number of order structures to retrieve (not used in cryptomus)
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {string} [params.direction] order direction 'buy' or 'sell'
-            * @param {string} [params.order_id] order id
-            * @param {string} [params.client_order_id] client order id
-            * @param {string} [params.limit] A special parameter that sets the maximum number of records the request will return
-            * @param {string} [params.offset] A special parameter that sets the number of records from the beginning of the list
-            * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-            */
-            symbol := GetArg(optionalArgs, 0, nil)
+                    symbol := GetArg(optionalArgs, 0, nil)
             _ = symbol
             since := GetArg(optionalArgs, 1, nil)
             _ = since
@@ -955,8 +887,8 @@ func  (this *cryptomus) FetchCanceledAndClosedOrders(optionalArgs ...interface{}
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes8218 := (<-this.LoadMarkets())
-            PanicOnError(retRes8218)
+            retRes7538 := (<-this.LoadMarkets())
+            PanicOnError(retRes7538)
             var request interface{} = map[string]interface{} {}
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
@@ -1021,28 +953,28 @@ func  (this *cryptomus) FetchCanceledAndClosedOrders(optionalArgs ...interface{}
             }()
             return ch
         }
+/**
+ * @method
+ * @name cryptomus#fetchOpenOrders
+ * @description fetch all unfilled currently open orders
+ * @see https://doc.cryptomus.com/personal/exchange/list-of-active-orders
+ * @param {string} symbol unified market symbol
+ * @param {int} [since] the earliest time in ms to fetch open orders for (not used in cryptomus)
+ * @param {int} [limit] the maximum number of  open orders structures to retrieve (not used in cryptomus)
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.direction] order direction 'buy' or 'sell'
+ * @param {string} [params.order_id] order id
+ * @param {string} [params.client_order_id] client order id
+ * @param {string} [params.limit] A special parameter that sets the maximum number of records the request will return
+ * @param {string} [params.offset] A special parameter that sets the number of records from the beginning of the list
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
 func  (this *cryptomus) FetchOpenOrders(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
             go func() interface{} {
                 defer close(ch)
                 defer ReturnPanicError(ch)
-                    /**
-            * @method
-            * @name cryptomus#fetchOpenOrders
-            * @description fetch all unfilled currently open orders
-            * @see https://doc.cryptomus.com/personal/exchange/list-of-active-orders
-            * @param {string} symbol unified market symbol
-            * @param {int} [since] the earliest time in ms to fetch open orders for (not used in cryptomus)
-            * @param {int} [limit] the maximum number of  open orders structures to retrieve (not used in cryptomus)
-            * @param {object} [params] extra parameters specific to the exchange API endpoint
-            * @param {string} [params.direction] order direction 'buy' or 'sell'
-            * @param {string} [params.order_id] order id
-            * @param {string} [params.client_order_id] client order id
-            * @param {string} [params.limit] A special parameter that sets the maximum number of records the request will return
-            * @param {string} [params.offset] A special parameter that sets the number of records from the beginning of the list
-            * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-            */
-            symbol := GetArg(optionalArgs, 0, nil)
+                    symbol := GetArg(optionalArgs, 0, nil)
             _ = symbol
             since := GetArg(optionalArgs, 1, nil)
             _ = since
@@ -1051,8 +983,8 @@ func  (this *cryptomus) FetchOpenOrders(optionalArgs ...interface{}) <- chan int
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes8978 := (<-this.LoadMarkets())
-            PanicOnError(retRes8978)
+            retRes8298 := (<-this.LoadMarkets())
+            PanicOnError(retRes8298)
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
@@ -1214,6 +1146,120 @@ func  (this *cryptomus) ParseOrderStatus(optionalArgs ...interface{}) interface{
         "failed": "failed",
     }
     return this.SafeString(statuses, status, status)
+}
+/**
+ * @method
+ * @name cryptomus#fetchTradingFees
+ * @description fetch the trading fees for multiple markets
+ * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-fees
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+ */
+func  (this *cryptomus) FetchTradingFees(optionalArgs ...interface{}) <- chan interface{} {
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]interface{} {})
+            _ = params
+        
+            response:= (<-this.PrivateGetV2UserApiExchangeAccountTariffs(params))
+            PanicOnError(response)
+            //
+            //     {
+            //         result: {
+            //             equivalent_currency_code: 'USD',
+            //             current_tariff_step: {
+            //                 step: '0',
+            //                 from_turnover: '0.00000000',
+            //                 maker_percent: '0.08',
+            //                 taker_percent: '0.1'
+            //             },
+            //             tariff_steps: [
+            //                 {
+            //                     step: '0',
+            //                     from_turnover: '0.00000000',
+            //                     maker_percent: '0.08',
+            //                     taker_percent: '0.1'
+            //                 },
+            //                 {
+            //                     step: '1',
+            //                     from_turnover: '100001.00000000',
+            //                     maker_percent: '0.06',
+            //                     taker_percent: '0.095'
+            //                 },
+            //                 {
+            //                     step: '2',
+            //                     from_turnover: '250001.00000000',
+            //                     maker_percent: '0.055',
+            //                     taker_percent: '0.085'
+            //                 },
+            //                 {
+            //                     step: '3',
+            //                     from_turnover: '500001.00000000',
+            //                     maker_percent: '0.05',
+            //                     taker_percent: '0.075'
+            //                 },
+            //                 {
+            //                     step: '4',
+            //                     from_turnover: '2500001.00000000',
+            //                     maker_percent: '0.04',
+            //                     taker_percent: '0.07'
+            //                 }
+            //             ],
+            //             daily_turnover: '0.00000000',
+            //             monthly_turnover: '77.52062617',
+            //             circulation_funds: '25.48900443'
+            //         }
+            //     }
+            //
+            var data interface{} = this.SafeDict(response, "result", map[string]interface{} {})
+            var currentFeeTier interface{} = this.SafeDict(data, "current_tariff_step", map[string]interface{} {})
+            var makerFee interface{} = this.SafeString(currentFeeTier, "maker_percent")
+            var takerFee interface{} = this.SafeString(currentFeeTier, "taker_percent")
+            makerFee = Precise.StringDiv(makerFee, "100")
+            takerFee = Precise.StringDiv(takerFee, "100")
+            var feeTiers interface{} = this.SafeList(data, "tariff_steps", []interface{}{})
+            var result interface{} = map[string]interface{} {}
+            var tiers interface{} = this.ParseFeeTiers(feeTiers)
+            for i := 0; IsLessThan(i, GetArrayLength(this.Symbols)); i++ {
+                var symbol interface{} = GetValue(this.Symbols, i)
+                AddElementToObject(result, symbol, map[string]interface{} {
+            "info": response,
+            "symbol": symbol,
+            "maker": this.ParseNumber(makerFee),
+            "taker": this.ParseNumber(takerFee),
+            "percentage": true,
+            "tierBased": true,
+            "tiers": tiers,
+        })
+            }
+        
+            ch <- result
+            return nil
+        
+            }()
+            return ch
+        }
+func  (this *cryptomus) ParseFeeTiers(feeTiers interface{}, optionalArgs ...interface{}) interface{}  {
+    market := GetArg(optionalArgs, 0, nil)
+    _ = market
+    var takerFees interface{} = []interface{}{}
+    var makerFees interface{} = []interface{}{}
+    for i := 0; IsLessThan(i, GetArrayLength(feeTiers)); i++ {
+        var tier interface{} = GetValue(feeTiers, i)
+        var turnover interface{} = this.SafeNumber(tier, "from_turnover")
+        var taker interface{} = this.SafeString(tier, "taker_percent")
+        var maker interface{} = this.SafeString(tier, "maker_percent")
+        maker = Precise.StringDiv(maker, "100")
+        taker = Precise.StringDiv(taker, "100")
+        AppendToArray(&makerFees,[]interface{}{turnover, this.ParseNumber(maker)})
+        AppendToArray(&takerFees,[]interface{}{turnover, this.ParseNumber(taker)})
+    }
+    return map[string]interface{} {
+        "maker": makerFees,
+        "taker": takerFees,
+    }
 }
 func  (this *cryptomus) Sign(path interface{}, optionalArgs ...interface{}) interface{}  {
     api := GetArg(optionalArgs, 0, "public")

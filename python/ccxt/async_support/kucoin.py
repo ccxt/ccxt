@@ -1397,35 +1397,31 @@ class kucoin(Exchange, ImplicitAPI):
         #    }
         #
         currenciesData = self.safe_list(response, 'data', [])
+        brokenCurrencies = self.safe_list(self.options, 'brokenCurrencies', ['00', 'OPEN_ERROR', 'HUF', 'BDT'])
+        otherFiats = self.safe_list(self.options, 'fiats', ['KWD', 'IRR', 'PKR'])
         result: dict = {}
         for i in range(0, len(currenciesData)):
             entry = currenciesData[i]
             id = self.safe_string(entry, 'currency')
-            name = self.safe_string(entry, 'fullName')
+            if self.in_array(id, brokenCurrencies):
+                continue  # skip buggy entries: https://t.me/KuCoin_API/217798
             code = self.safe_currency_code(id)
             networks: dict = {}
             chains = self.safe_list(entry, 'chains', [])
-            rawPrecision = self.safe_string(entry, 'precision')
-            precision = self.parse_number(self.parse_precision(rawPrecision))
             chainsLength = len(chains)
-            if not chainsLength:
-                # one buggy coin, which doesn't contain info https://t.me/KuCoin_API/173118
-                continue
             for j in range(0, chainsLength):
                 chain = chains[j]
                 chainId = self.safe_string(chain, 'chainId')
                 networkCode = self.network_id_to_code(chainId, code)
-                chainWithdrawEnabled = self.safe_bool(chain, 'isWithdrawEnabled', False)
-                chainDepositEnabled = self.safe_bool(chain, 'isDepositEnabled', False)
                 networks[networkCode] = {
                     'info': chain,
                     'id': chainId,
                     'name': self.safe_string(chain, 'chainName'),
                     'code': networkCode,
-                    'active': chainWithdrawEnabled and chainDepositEnabled,
+                    'active': None,
                     'fee': self.safe_number(chain, 'withdrawalMinFee'),
-                    'deposit': chainDepositEnabled,
-                    'withdraw': chainWithdrawEnabled,
+                    'deposit': self.safe_bool(chain, 'isDepositEnabled'),
+                    'withdraw': self.safe_bool(chain, 'isWithdrawEnabled'),
                     'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'withdrawPrecision'))),
                     'limits': {
                         'withdraw': {
@@ -1439,10 +1435,12 @@ class kucoin(Exchange, ImplicitAPI):
                     },
                 }
             # kucoin has determined 'fiat' currencies with below logic
-            isFiat = (rawPrecision == '2') and (chainsLength == 0)
+            rawPrecision = self.safe_string(entry, 'precision')
+            precision = self.parse_number(self.parse_precision(rawPrecision))
+            isFiat = self.in_array(id, otherFiats) or ((rawPrecision == '2') and (chainsLength == 0))
             result[code] = self.safe_currency_structure({
                 'id': id,
-                'name': name,
+                'name': self.safe_string(entry, 'fullName'),
                 'code': code,
                 'type': 'fiat' if isFiat else 'crypto',
                 'precision': precision,
@@ -1960,7 +1958,7 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    async def create_deposit_address(self, code: str, params={}):
+    async def create_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
 
         https://www.kucoin.com/docs/rest/funding/deposit/create-deposit-address-v3-
@@ -2272,8 +2270,10 @@ class kucoin(Exchange, ImplicitAPI):
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        params['cost'] = cost
-        return await self.create_order(symbol, 'market', side, cost, None, params)
+        req = {
+            'cost': cost,
+        }
+        return await self.create_order(symbol, 'market', side, cost, None, self.extend(req, params))
 
     async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """

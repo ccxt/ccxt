@@ -25,6 +25,11 @@ public partial class Exchange
         this.initHttpClient();
 
         this.afterConstruct();
+
+        if (isTrue(isTrue(this.safeBool(userConfig, "sandbox")) || isTrue(this.safeBool(userConfig, "testnet"))))
+        {
+            this.setSandboxMode(true);
+        }
     }
 
     private void initHttpClient()
@@ -158,6 +163,13 @@ public partial class Exchange
         var headers3 = headers2 as dict;
         var headers = this.extend(this.headers, headers3) as dict;
         var body = body2 as String;
+
+        var proxyUrl = this.checkProxyUrlSettings(url, method, headers, body);
+        if (proxyUrl != null)
+        {
+            proxyUrl = proxyUrl.ToString();
+            url = proxyUrl + this.urlEncoderForProxyUrl(url).ToString();
+        }
 
         if (this.verbose)
             this.log("fetch Request:\n" + this.id + " " + method + " " + url + "\nRequestHeaders:\n" + this.stringifyObject(headers) + "\nRequestBody:\n" + this.json(body) + "\n");
@@ -449,8 +461,10 @@ public partial class Exchange
         if (has["fetchCurrencies"] != null)
         {
             currencies = await this.fetchCurrencies();
+            this.options.TryAdd("cachedCurrencies", currencies);
         }
         var markets = await this.fetchMarkets();
+        this.options.TryRemove("cachedCurrencies", out _);
         return this.setMarkets(markets, currencies);
     }
 
@@ -767,7 +781,8 @@ public partial class Exchange
         return Task.Delay(Convert.ToInt32(ms));
     }
 
-    public void initThrottler() {
+    public void initThrottler()
+    {
         this.throttler = new Throttler(this.tokenBucket);
     }
 
@@ -1091,6 +1106,17 @@ public partial class Exchange
     {
         return new System.Collections.Concurrent.ConcurrentDictionary<string, object>();
     }
+
+    public IDictionary<string, object> mapToSafeMap(object obj)
+    {
+        return (IDictionary<string, object>)obj;
+    }
+
+    public IDictionary<string, object> safeMapToMap(object obj)
+    {
+        return (IDictionary<string, object>)obj;
+    }
+
     public class DynamicInvoker
     {
         public static object InvokeMethod(object action, object[] parameters)
@@ -1124,6 +1150,17 @@ public partial class Exchange
             return result;
         }
     }
+
+    public async Task<object> getZKContractSignatureObj(object seed, object parameters)
+    {
+        throw new Exception("Apex currently does not support create order in C# language");
+    }
+
+    public async Task<object> getZKTransferSignatureObj(object seed, object parameters)
+    {
+        throw new Exception("Apex currently does not support create order in C# language");
+    }
+
 
 }
 

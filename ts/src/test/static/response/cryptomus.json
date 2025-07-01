@@ -2,6 +2,1149 @@
     "exchange": "cryptomus",
     "skipKeys": [ "timestamp", "datetime" ],
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": {
+                    "state": "0",
+                    "result": [
+                        {
+                            "currency_code": "USDT",
+                            "network_code": "ton",
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "1.00000000",
+                            "max_withdraw": "10000000.00000000",
+                            "max_deposit": "10000000.00000000",
+                            "min_deposit": "1.00000000"
+                        },
+                        {
+                            "currency_code": "USDT",
+                            "network_code": "avalanche",
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "1.00000000",
+                            "max_withdraw": "1000000.00000000",
+                            "max_deposit": "1000000.00000000",
+                            "min_deposit": "1.00000000"
+                        },
+                        {
+                            "currency_code": "USDT",
+                            "network_code": "sol",
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "10.00000000",
+                            "max_withdraw": "1000000.00000000",
+                            "max_deposit": "1000000.00000000",
+                            "min_deposit": "1.00000000"
+                        },
+                        {
+                            "currency_code": "USDT",
+                            "network_code": "tron",
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "1.00000000",
+                            "max_withdraw": "1000000.00000000",
+                            "max_deposit": "1000000.00000000",
+                            "min_deposit": "1.00000000"
+                        },
+                        {
+                            "currency_code": "USDT",
+                            "network_code": "polygon",
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "0.50000000",
+                            "max_withdraw": "1000000.00000000",
+                            "max_deposit": "1000000.00000000",
+                            "min_deposit": "0.50000000"
+                        },
+                        {
+                            "currency_code": "USDT",
+                            "network_code": "bsc",
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "1.00000000",
+                            "max_withdraw": "1000000.00000000",
+                            "max_deposit": "1000000.00000000",
+                            "min_deposit": "0.50000000"
+                        },
+                        {
+                            "currency_code": "USDT",
+                            "network_code": "arbitrum",
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "1.00000000",
+                            "max_withdraw": "1000000.00000000",
+                            "max_deposit": "1000000.00000000",
+                            "min_deposit": "1.00000000"
+                        },
+                        {
+                            "currency_code": "USDT",
+                            "network_code": "eth",
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "10.00000000",
+                            "max_withdraw": "1000000.00000000",
+                            "max_deposit": "1000000.00000000",
+                            "min_deposit": "1.00000000"
+                        },
+                        {
+                            "currency_code": "USDT",
+                            "network_code": "tron",
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "1.00000000",
+                            "max_withdraw": "1000000.00000000",
+                            "max_deposit": "1000000.00000000",
+                            "min_deposit": "1.00000000"
+                        },
+                        {
+                            "currency_code": "USDT",
+                            "network_code": "eth",
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "10.00000000",
+                            "max_withdraw": "1000000.00000000",
+                            "max_deposit": "1000000.00000000",
+                            "min_deposit": "1.00000000"
+                        },
+                        {
+                            "currency_code": "USDT",
+                            "network_code": "polygon",
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "0.50000000",
+                            "max_withdraw": "1000000.00000000",
+                            "max_deposit": "1000000.00000000",
+                            "min_deposit": "0.50000000"
+                        },
+                        {
+                            "currency_code": "USDT",
+                            "network_code": "bsc",
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "1.00000000",
+                            "max_withdraw": "1000000.00000000",
+                            "max_deposit": "1000000.00000000",
+                            "min_deposit": "0.50000000"
+                        },
+                        {
+                            "currency_code": "USDT",
+                            "network_code": "sol",
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "10.00000000",
+                            "max_withdraw": "1000000.00000000",
+                            "max_deposit": "1000000.00000000",
+                            "min_deposit": "1.00000000"
+                        },
+                        {
+                            "currency_code": "USDT",
+                            "network_code": "ton",
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "1.00000000",
+                            "max_withdraw": "10000000.00000000",
+                            "max_deposit": "10000000.00000000",
+                            "min_deposit": "1.00000000"
+                        },
+                        {
+                            "currency_code": "USDT",
+                            "network_code": "avalanche",
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "1.00000000",
+                            "max_withdraw": "1000000.00000000",
+                            "max_deposit": "1000000.00000000",
+                            "min_deposit": "1.00000000"
+                        },
+                        {
+                            "currency_code": "USDT",
+                            "network_code": "arbitrum",
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "1.00000000",
+                            "max_withdraw": "1000000.00000000",
+                            "max_deposit": "1000000.00000000",
+                            "min_deposit": "1.00000000"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "USDT": {
+                        "info": [
+                            {
+                                "currency_code": "USDT",
+                                "network_code": "ton",
+                                "can_withdraw": true,
+                                "can_deposit": true,
+                                "min_withdraw": "1.00000000",
+                                "max_withdraw": "10000000.00000000",
+                                "max_deposit": "10000000.00000000",
+                                "min_deposit": "1.00000000"
+                            },
+                            {
+                                "currency_code": "USDT",
+                                "network_code": "avalanche",
+                                "can_withdraw": true,
+                                "can_deposit": true,
+                                "min_withdraw": "1.00000000",
+                                "max_withdraw": "1000000.00000000",
+                                "max_deposit": "1000000.00000000",
+                                "min_deposit": "1.00000000"
+                            },
+                            {
+                                "currency_code": "USDT",
+                                "network_code": "sol",
+                                "can_withdraw": true,
+                                "can_deposit": true,
+                                "min_withdraw": "10.00000000",
+                                "max_withdraw": "1000000.00000000",
+                                "max_deposit": "1000000.00000000",
+                                "min_deposit": "1.00000000"
+                            },
+                            {
+                                "currency_code": "USDT",
+                                "network_code": "tron",
+                                "can_withdraw": true,
+                                "can_deposit": true,
+                                "min_withdraw": "1.00000000",
+                                "max_withdraw": "1000000.00000000",
+                                "max_deposit": "1000000.00000000",
+                                "min_deposit": "1.00000000"
+                            },
+                            {
+                                "currency_code": "USDT",
+                                "network_code": "polygon",
+                                "can_withdraw": true,
+                                "can_deposit": true,
+                                "min_withdraw": "0.50000000",
+                                "max_withdraw": "1000000.00000000",
+                                "max_deposit": "1000000.00000000",
+                                "min_deposit": "0.50000000"
+                            },
+                            {
+                                "currency_code": "USDT",
+                                "network_code": "bsc",
+                                "can_withdraw": true,
+                                "can_deposit": true,
+                                "min_withdraw": "1.00000000",
+                                "max_withdraw": "1000000.00000000",
+                                "max_deposit": "1000000.00000000",
+                                "min_deposit": "0.50000000"
+                            },
+                            {
+                                "currency_code": "USDT",
+                                "network_code": "arbitrum",
+                                "can_withdraw": true,
+                                "can_deposit": true,
+                                "min_withdraw": "1.00000000",
+                                "max_withdraw": "1000000.00000000",
+                                "max_deposit": "1000000.00000000",
+                                "min_deposit": "1.00000000"
+                            },
+                            {
+                                "currency_code": "USDT",
+                                "network_code": "eth",
+                                "can_withdraw": true,
+                                "can_deposit": true,
+                                "min_withdraw": "10.00000000",
+                                "max_withdraw": "1000000.00000000",
+                                "max_deposit": "1000000.00000000",
+                                "min_deposit": "1.00000000"
+                            },
+                            {
+                                "currency_code": "USDT",
+                                "network_code": "tron",
+                                "can_withdraw": true,
+                                "can_deposit": true,
+                                "min_withdraw": "1.00000000",
+                                "max_withdraw": "1000000.00000000",
+                                "max_deposit": "1000000.00000000",
+                                "min_deposit": "1.00000000"
+                            },
+                            {
+                                "currency_code": "USDT",
+                                "network_code": "eth",
+                                "can_withdraw": true,
+                                "can_deposit": true,
+                                "min_withdraw": "10.00000000",
+                                "max_withdraw": "1000000.00000000",
+                                "max_deposit": "1000000.00000000",
+                                "min_deposit": "1.00000000"
+                            },
+                            {
+                                "currency_code": "USDT",
+                                "network_code": "polygon",
+                                "can_withdraw": true,
+                                "can_deposit": true,
+                                "min_withdraw": "0.50000000",
+                                "max_withdraw": "1000000.00000000",
+                                "max_deposit": "1000000.00000000",
+                                "min_deposit": "0.50000000"
+                            },
+                            {
+                                "currency_code": "USDT",
+                                "network_code": "bsc",
+                                "can_withdraw": true,
+                                "can_deposit": true,
+                                "min_withdraw": "1.00000000",
+                                "max_withdraw": "1000000.00000000",
+                                "max_deposit": "1000000.00000000",
+                                "min_deposit": "0.50000000"
+                            },
+                            {
+                                "currency_code": "USDT",
+                                "network_code": "sol",
+                                "can_withdraw": true,
+                                "can_deposit": true,
+                                "min_withdraw": "10.00000000",
+                                "max_withdraw": "1000000.00000000",
+                                "max_deposit": "1000000.00000000",
+                                "min_deposit": "1.00000000"
+                            },
+                            {
+                                "currency_code": "USDT",
+                                "network_code": "ton",
+                                "can_withdraw": true,
+                                "can_deposit": true,
+                                "min_withdraw": "1.00000000",
+                                "max_withdraw": "10000000.00000000",
+                                "max_deposit": "10000000.00000000",
+                                "min_deposit": "1.00000000"
+                            },
+                            {
+                                "currency_code": "USDT",
+                                "network_code": "avalanche",
+                                "can_withdraw": true,
+                                "can_deposit": true,
+                                "min_withdraw": "1.00000000",
+                                "max_withdraw": "1000000.00000000",
+                                "max_deposit": "1000000.00000000",
+                                "min_deposit": "1.00000000"
+                            },
+                            {
+                                "currency_code": "USDT",
+                                "network_code": "arbitrum",
+                                "can_withdraw": true,
+                                "can_deposit": true,
+                                "min_withdraw": "1.00000000",
+                                "max_withdraw": "1000000.00000000",
+                                "max_deposit": "1000000.00000000",
+                                "min_deposit": "1.00000000"
+                            }
+                        ],
+                        "id": "USDT",
+                        "numericId": null,
+                        "code": "USDT",
+                        "precision": null,
+                        "type": null,
+                        "name": null,
+                        "active": true,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": null,
+                        "fees": {},
+                        "networks": {
+                            "TON": {
+                                "id": "ton",
+                                "network": "TON",
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 1,
+                                        "max": 10000000
+                                    },
+                                    "deposit": {
+                                        "min": 1,
+                                        "max": 10000000
+                                    }
+                                },
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": null,
+                                "precision": null,
+                                "info": {
+                                    "currency_code": "USDT",
+                                    "network_code": "ton",
+                                    "can_withdraw": true,
+                                    "can_deposit": true,
+                                    "min_withdraw": "1.00000000",
+                                    "max_withdraw": "10000000.00000000",
+                                    "max_deposit": "10000000.00000000",
+                                    "min_deposit": "1.00000000"
+                                }
+                            },
+                            "AVAX": {
+                                "id": "avalanche",
+                                "network": "AVAX",
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 1,
+                                        "max": 1000000
+                                    },
+                                    "deposit": {
+                                        "min": 1,
+                                        "max": 1000000
+                                    }
+                                },
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": null,
+                                "precision": null,
+                                "info": {
+                                    "currency_code": "USDT",
+                                    "network_code": "avalanche",
+                                    "can_withdraw": true,
+                                    "can_deposit": true,
+                                    "min_withdraw": "1.00000000",
+                                    "max_withdraw": "1000000.00000000",
+                                    "max_deposit": "1000000.00000000",
+                                    "min_deposit": "1.00000000"
+                                }
+                            },
+                            "SOL": {
+                                "id": "sol",
+                                "network": "SOL",
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 10,
+                                        "max": 1000000
+                                    },
+                                    "deposit": {
+                                        "min": 1,
+                                        "max": 1000000
+                                    }
+                                },
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": null,
+                                "precision": null,
+                                "info": {
+                                    "currency_code": "USDT",
+                                    "network_code": "sol",
+                                    "can_withdraw": true,
+                                    "can_deposit": true,
+                                    "min_withdraw": "10.00000000",
+                                    "max_withdraw": "1000000.00000000",
+                                    "max_deposit": "1000000.00000000",
+                                    "min_deposit": "1.00000000"
+                                }
+                            },
+                            "TRC20": {
+                                "id": "tron",
+                                "network": "TRC20",
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 1,
+                                        "max": 1000000
+                                    },
+                                    "deposit": {
+                                        "min": 1,
+                                        "max": 1000000
+                                    }
+                                },
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": null,
+                                "precision": null,
+                                "info": {
+                                    "currency_code": "USDT",
+                                    "network_code": "tron",
+                                    "can_withdraw": true,
+                                    "can_deposit": true,
+                                    "min_withdraw": "1.00000000",
+                                    "max_withdraw": "1000000.00000000",
+                                    "max_deposit": "1000000.00000000",
+                                    "min_deposit": "1.00000000"
+                                }
+                            },
+                            "POLYGON": {
+                                "id": "polygon",
+                                "network": "POLYGON",
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 0.5,
+                                        "max": 1000000
+                                    },
+                                    "deposit": {
+                                        "min": 0.5,
+                                        "max": 1000000
+                                    }
+                                },
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": null,
+                                "precision": null,
+                                "info": {
+                                    "currency_code": "USDT",
+                                    "network_code": "polygon",
+                                    "can_withdraw": true,
+                                    "can_deposit": true,
+                                    "min_withdraw": "0.50000000",
+                                    "max_withdraw": "1000000.00000000",
+                                    "max_deposit": "1000000.00000000",
+                                    "min_deposit": "0.50000000"
+                                }
+                            },
+                            "BEP20": {
+                                "id": "bsc",
+                                "network": "BEP20",
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 1,
+                                        "max": 1000000
+                                    },
+                                    "deposit": {
+                                        "min": 0.5,
+                                        "max": 1000000
+                                    }
+                                },
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": null,
+                                "precision": null,
+                                "info": {
+                                    "currency_code": "USDT",
+                                    "network_code": "bsc",
+                                    "can_withdraw": true,
+                                    "can_deposit": true,
+                                    "min_withdraw": "1.00000000",
+                                    "max_withdraw": "1000000.00000000",
+                                    "max_deposit": "1000000.00000000",
+                                    "min_deposit": "0.50000000"
+                                }
+                            },
+                            "ARB": {
+                                "id": "arbitrum",
+                                "network": "ARB",
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 1,
+                                        "max": 1000000
+                                    },
+                                    "deposit": {
+                                        "min": 1,
+                                        "max": 1000000
+                                    }
+                                },
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": null,
+                                "precision": null,
+                                "info": {
+                                    "currency_code": "USDT",
+                                    "network_code": "arbitrum",
+                                    "can_withdraw": true,
+                                    "can_deposit": true,
+                                    "min_withdraw": "1.00000000",
+                                    "max_withdraw": "1000000.00000000",
+                                    "max_deposit": "1000000.00000000",
+                                    "min_deposit": "1.00000000"
+                                }
+                            },
+                            "ERC20": {
+                                "id": "eth",
+                                "network": "ERC20",
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 10,
+                                        "max": 1000000
+                                    },
+                                    "deposit": {
+                                        "min": 1,
+                                        "max": 1000000
+                                    }
+                                },
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": null,
+                                "precision": null,
+                                "info": {
+                                    "currency_code": "USDT",
+                                    "network_code": "eth",
+                                    "can_withdraw": true,
+                                    "can_deposit": true,
+                                    "min_withdraw": "10.00000000",
+                                    "max_withdraw": "1000000.00000000",
+                                    "max_deposit": "1000000.00000000",
+                                    "min_deposit": "1.00000000"
+                                }
+                            }
+                        },
+                        "limits": {
+                            "withdraw": {
+                                "min": 0.5,
+                                "max": 10000000
+                            },
+                            "deposit": {
+                                "min": 0.5,
+                                "max": 10000000
+                            }
+                        }
+                    }
+                }
+            }
+        ],
+        "fetchTradingFees": [
+            {
+                "description": "Trading fees",
+                "method": "fetchTradingFees",
+                "input": [],
+                "httpResponse": {
+                    "result": {
+                        "equivalent_currency_code": "USD",
+                        "current_tariff_step": {
+                            "step": "0",
+                            "from_turnover": "0.00000000",
+                            "maker_percent": "0.08",
+                            "taker_percent": "0.1"
+                        },
+                        "tariff_steps": [
+                            {
+                                "step": "0",
+                                "from_turnover": "0.00000000",
+                                "maker_percent": "0.08",
+                                "taker_percent": "0.1"
+                            },
+                            {
+                                "step": "1",
+                                "from_turnover": "100001.00000000",
+                                "maker_percent": "0.06",
+                                "taker_percent": "0.095"
+                            },
+                            {
+                                "step": "2",
+                                "from_turnover": "250001.00000000",
+                                "maker_percent": "0.055",
+                                "taker_percent": "0.085"
+                            },
+                            {
+                                "step": "3",
+                                "from_turnover": "500001.00000000",
+                                "maker_percent": "0.05",
+                                "taker_percent": "0.075"
+                            },
+                            {
+                                "step": "4",
+                                "from_turnover": "2500001.00000000",
+                                "maker_percent": "0.04",
+                                "taker_percent": "0.07"
+                            }
+                        ],
+                        "daily_turnover": "0.00000000",
+                        "monthly_turnover": "75.31946622",
+                        "circulation_funds": "24.11113241"
+                    }
+                },
+                "parsedResponse": {
+                    "BTC/USDT": {
+                        "info": {
+                            "result": {
+                                "equivalent_currency_code": "USD",
+                                "current_tariff_step": {
+                                    "step": "0",
+                                    "from_turnover": "0.00000000",
+                                    "maker_percent": "0.08",
+                                    "taker_percent": "0.1"
+                                },
+                                "tariff_steps": [
+                                    {
+                                        "step": "0",
+                                        "from_turnover": "0.00000000",
+                                        "maker_percent": "0.08",
+                                        "taker_percent": "0.1"
+                                    },
+                                    {
+                                        "step": "1",
+                                        "from_turnover": "100001.00000000",
+                                        "maker_percent": "0.06",
+                                        "taker_percent": "0.095"
+                                    },
+                                    {
+                                        "step": "2",
+                                        "from_turnover": "250001.00000000",
+                                        "maker_percent": "0.055",
+                                        "taker_percent": "0.085"
+                                    },
+                                    {
+                                        "step": "3",
+                                        "from_turnover": "500001.00000000",
+                                        "maker_percent": "0.05",
+                                        "taker_percent": "0.075"
+                                    },
+                                    {
+                                        "step": "4",
+                                        "from_turnover": "2500001.00000000",
+                                        "maker_percent": "0.04",
+                                        "taker_percent": "0.07"
+                                    }
+                                ],
+                                "daily_turnover": "0.00000000",
+                                "monthly_turnover": "75.31946622",
+                                "circulation_funds": "24.11113241"
+                            }
+                        },
+                        "symbol": "BTC/USDT",
+                        "maker": 0.0008,
+                        "taker": 0.001,
+                        "percentage": true,
+                        "tierBased": true,
+                        "tiers": {
+                            "maker": [
+                                [
+                                    0,
+                                    0.0008
+                                ],
+                                [
+                                    100001,
+                                    0.0006
+                                ],
+                                [
+                                    250001,
+                                    0.00055
+                                ],
+                                [
+                                    500001,
+                                    0.0005
+                                ],
+                                [
+                                    2500001,
+                                    0.0004
+                                ]
+                            ],
+                            "taker": [
+                                [
+                                    0,
+                                    0.001
+                                ],
+                                [
+                                    100001,
+                                    0.00095
+                                ],
+                                [
+                                    250001,
+                                    0.00085
+                                ],
+                                [
+                                    500001,
+                                    0.00075
+                                ],
+                                [
+                                    2500001,
+                                    0.0007
+                                ]
+                            ]
+                        }
+                    },
+                    "ETH/USDT": {
+                        "info": {
+                            "result": {
+                                "equivalent_currency_code": "USD",
+                                "current_tariff_step": {
+                                    "step": "0",
+                                    "from_turnover": "0.00000000",
+                                    "maker_percent": "0.08",
+                                    "taker_percent": "0.1"
+                                },
+                                "tariff_steps": [
+                                    {
+                                        "step": "0",
+                                        "from_turnover": "0.00000000",
+                                        "maker_percent": "0.08",
+                                        "taker_percent": "0.1"
+                                    },
+                                    {
+                                        "step": "1",
+                                        "from_turnover": "100001.00000000",
+                                        "maker_percent": "0.06",
+                                        "taker_percent": "0.095"
+                                    },
+                                    {
+                                        "step": "2",
+                                        "from_turnover": "250001.00000000",
+                                        "maker_percent": "0.055",
+                                        "taker_percent": "0.085"
+                                    },
+                                    {
+                                        "step": "3",
+                                        "from_turnover": "500001.00000000",
+                                        "maker_percent": "0.05",
+                                        "taker_percent": "0.075"
+                                    },
+                                    {
+                                        "step": "4",
+                                        "from_turnover": "2500001.00000000",
+                                        "maker_percent": "0.04",
+                                        "taker_percent": "0.07"
+                                    }
+                                ],
+                                "daily_turnover": "0.00000000",
+                                "monthly_turnover": "75.31946622",
+                                "circulation_funds": "24.11113241"
+                            }
+                        },
+                        "symbol": "ETH/USDT",
+                        "maker": 0.0008,
+                        "taker": 0.001,
+                        "percentage": true,
+                        "tierBased": true,
+                        "tiers": {
+                            "maker": [
+                                [
+                                    0,
+                                    0.0008
+                                ],
+                                [
+                                    100001,
+                                    0.0006
+                                ],
+                                [
+                                    250001,
+                                    0.00055
+                                ],
+                                [
+                                    500001,
+                                    0.0005
+                                ],
+                                [
+                                    2500001,
+                                    0.0004
+                                ]
+                            ],
+                            "taker": [
+                                [
+                                    0,
+                                    0.001
+                                ],
+                                [
+                                    100001,
+                                    0.00095
+                                ],
+                                [
+                                    250001,
+                                    0.00085
+                                ],
+                                [
+                                    500001,
+                                    0.00075
+                                ],
+                                [
+                                    2500001,
+                                    0.0007
+                                ]
+                            ]
+                        }
+                    },
+                    "LTC/USDT": {
+                        "info": {
+                            "result": {
+                                "equivalent_currency_code": "USD",
+                                "current_tariff_step": {
+                                    "step": "0",
+                                    "from_turnover": "0.00000000",
+                                    "maker_percent": "0.08",
+                                    "taker_percent": "0.1"
+                                },
+                                "tariff_steps": [
+                                    {
+                                        "step": "0",
+                                        "from_turnover": "0.00000000",
+                                        "maker_percent": "0.08",
+                                        "taker_percent": "0.1"
+                                    },
+                                    {
+                                        "step": "1",
+                                        "from_turnover": "100001.00000000",
+                                        "maker_percent": "0.06",
+                                        "taker_percent": "0.095"
+                                    },
+                                    {
+                                        "step": "2",
+                                        "from_turnover": "250001.00000000",
+                                        "maker_percent": "0.055",
+                                        "taker_percent": "0.085"
+                                    },
+                                    {
+                                        "step": "3",
+                                        "from_turnover": "500001.00000000",
+                                        "maker_percent": "0.05",
+                                        "taker_percent": "0.075"
+                                    },
+                                    {
+                                        "step": "4",
+                                        "from_turnover": "2500001.00000000",
+                                        "maker_percent": "0.04",
+                                        "taker_percent": "0.07"
+                                    }
+                                ],
+                                "daily_turnover": "0.00000000",
+                                "monthly_turnover": "75.31946622",
+                                "circulation_funds": "24.11113241"
+                            }
+                        },
+                        "symbol": "LTC/USDT",
+                        "maker": 0.0008,
+                        "taker": 0.001,
+                        "percentage": true,
+                        "tierBased": true,
+                        "tiers": {
+                            "maker": [
+                                [
+                                    0,
+                                    0.0008
+                                ],
+                                [
+                                    100001,
+                                    0.0006
+                                ],
+                                [
+                                    250001,
+                                    0.00055
+                                ],
+                                [
+                                    500001,
+                                    0.0005
+                                ],
+                                [
+                                    2500001,
+                                    0.0004
+                                ]
+                            ],
+                            "taker": [
+                                [
+                                    0,
+                                    0.001
+                                ],
+                                [
+                                    100001,
+                                    0.00095
+                                ],
+                                [
+                                    250001,
+                                    0.00085
+                                ],
+                                [
+                                    500001,
+                                    0.00075
+                                ],
+                                [
+                                    2500001,
+                                    0.0007
+                                ]
+                            ]
+                        }
+                    },
+                    "SOL/USDT": {
+                        "info": {
+                            "result": {
+                                "equivalent_currency_code": "USD",
+                                "current_tariff_step": {
+                                    "step": "0",
+                                    "from_turnover": "0.00000000",
+                                    "maker_percent": "0.08",
+                                    "taker_percent": "0.1"
+                                },
+                                "tariff_steps": [
+                                    {
+                                        "step": "0",
+                                        "from_turnover": "0.00000000",
+                                        "maker_percent": "0.08",
+                                        "taker_percent": "0.1"
+                                    },
+                                    {
+                                        "step": "1",
+                                        "from_turnover": "100001.00000000",
+                                        "maker_percent": "0.06",
+                                        "taker_percent": "0.095"
+                                    },
+                                    {
+                                        "step": "2",
+                                        "from_turnover": "250001.00000000",
+                                        "maker_percent": "0.055",
+                                        "taker_percent": "0.085"
+                                    },
+                                    {
+                                        "step": "3",
+                                        "from_turnover": "500001.00000000",
+                                        "maker_percent": "0.05",
+                                        "taker_percent": "0.075"
+                                    },
+                                    {
+                                        "step": "4",
+                                        "from_turnover": "2500001.00000000",
+                                        "maker_percent": "0.04",
+                                        "taker_percent": "0.07"
+                                    }
+                                ],
+                                "daily_turnover": "0.00000000",
+                                "monthly_turnover": "75.31946622",
+                                "circulation_funds": "24.11113241"
+                            }
+                        },
+                        "symbol": "SOL/USDT",
+                        "maker": 0.0008,
+                        "taker": 0.001,
+                        "percentage": true,
+                        "tierBased": true,
+                        "tiers": {
+                            "maker": [
+                                [
+                                    0,
+                                    0.0008
+                                ],
+                                [
+                                    100001,
+                                    0.0006
+                                ],
+                                [
+                                    250001,
+                                    0.00055
+                                ],
+                                [
+                                    500001,
+                                    0.0005
+                                ],
+                                [
+                                    2500001,
+                                    0.0004
+                                ]
+                            ],
+                            "taker": [
+                                [
+                                    0,
+                                    0.001
+                                ],
+                                [
+                                    100001,
+                                    0.00095
+                                ],
+                                [
+                                    250001,
+                                    0.00085
+                                ],
+                                [
+                                    500001,
+                                    0.00075
+                                ],
+                                [
+                                    2500001,
+                                    0.0007
+                                ]
+                            ]
+                        }
+                    },
+                    "TRX/USDT": {
+                        "info": {
+                            "result": {
+                                "equivalent_currency_code": "USD",
+                                "current_tariff_step": {
+                                    "step": "0",
+                                    "from_turnover": "0.00000000",
+                                    "maker_percent": "0.08",
+                                    "taker_percent": "0.1"
+                                },
+                                "tariff_steps": [
+                                    {
+                                        "step": "0",
+                                        "from_turnover": "0.00000000",
+                                        "maker_percent": "0.08",
+                                        "taker_percent": "0.1"
+                                    },
+                                    {
+                                        "step": "1",
+                                        "from_turnover": "100001.00000000",
+                                        "maker_percent": "0.06",
+                                        "taker_percent": "0.095"
+                                    },
+                                    {
+                                        "step": "2",
+                                        "from_turnover": "250001.00000000",
+                                        "maker_percent": "0.055",
+                                        "taker_percent": "0.085"
+                                    },
+                                    {
+                                        "step": "3",
+                                        "from_turnover": "500001.00000000",
+                                        "maker_percent": "0.05",
+                                        "taker_percent": "0.075"
+                                    },
+                                    {
+                                        "step": "4",
+                                        "from_turnover": "2500001.00000000",
+                                        "maker_percent": "0.04",
+                                        "taker_percent": "0.07"
+                                    }
+                                ],
+                                "daily_turnover": "0.00000000",
+                                "monthly_turnover": "75.31946622",
+                                "circulation_funds": "24.11113241"
+                            }
+                        },
+                        "symbol": "TRX/USDT",
+                        "maker": 0.0008,
+                        "taker": 0.001,
+                        "percentage": true,
+                        "tierBased": true,
+                        "tiers": {
+                            "maker": [
+                                [
+                                    0,
+                                    0.0008
+                                ],
+                                [
+                                    100001,
+                                    0.0006
+                                ],
+                                [
+                                    250001,
+                                    0.00055
+                                ],
+                                [
+                                    500001,
+                                    0.0005
+                                ],
+                                [
+                                    2500001,
+                                    0.0004
+                                ]
+                            ],
+                            "taker": [
+                                [
+                                    0,
+                                    0.001
+                                ],
+                                [
+                                    100001,
+                                    0.00095
+                                ],
+                                [
+                                    250001,
+                                    0.00085
+                                ],
+                                [
+                                    500001,
+                                    0.00075
+                                ],
+                                [
+                                    2500001,
+                                    0.0007
+                                ]
+                            ]
+                        }
+                    }
+                }
+            }
+        ],
         "fetchBalance": [
             {
                 "description": "balance",

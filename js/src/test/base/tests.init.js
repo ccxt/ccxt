@@ -5,7 +5,9 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 // AUTO_TRANSPILE_ENABLED
-import testNumber from './test.number.js';
+import testDecimalToPrecision from './test.decimalToPrecision.js';
+import testNumberToString from './test.numberToString.js';
+import testPrecise from './test.precise.js';
 import testDatetime from './test.datetime.js';
 import testCryptography from './test.cryptography.js';
 import testExtend from './test.extend.js';
@@ -20,6 +22,7 @@ import testGroupBy from './test.groupBy.js';
 import testFilterBy from './test.filterBy.js';
 import testAfterConstructor from './test.afterConstructor.js';
 import testHandleMethods from './test.handleMethods.js';
+import testRemoveRepeatedElementsFromArray from './test.removeRepeatedElementsFromArray.js';
 function baseTestsInit() {
     testLanguageSpecific();
     testAfterConstructor();
@@ -27,7 +30,9 @@ function baseTestsInit() {
     testDeepExtend();
     testCryptography();
     testDatetime();
-    testNumber();
+    testDecimalToPrecision();
+    testNumberToString();
+    testPrecise();
     testSafeMethods();
     // testJson ();
     testSortBy();
@@ -36,5 +41,6 @@ function baseTestsInit() {
     testGroupBy();
     testFilterBy();
     testHandleMethods();
+    testRemoveRepeatedElementsFromArray();
 }
 export default baseTestsInit;

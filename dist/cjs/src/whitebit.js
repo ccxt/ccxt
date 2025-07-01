@@ -25,7 +25,7 @@ class whitebit extends whitebit$1 {
                 'CORS': undefined,
                 'spot': true,
                 'margin': true,
-                'swap': false,
+                'swap': true,
                 'future': false,
                 'option': false,
                 'cancelAllOrders': true,
@@ -33,13 +33,16 @@ class whitebit extends whitebit$1 {
                 'cancelOrder': true,
                 'cancelOrders': false,
                 'createConvertTrade': true,
+                'createDepositAddress': true,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
+                'createPostOnlyOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
+                'createTriggerOrder': true,
                 'editOrder': false,
                 'fetchBalance': true,
                 'fetchBorrowRateHistories': false,
@@ -48,7 +51,7 @@ class whitebit extends whitebit$1 {
                 'fetchConvertQuote': true,
                 'fetchConvertTrade': false,
                 'fetchConvertTradeHistory': true,
-                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRate': true,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDeposit': true,
@@ -75,7 +78,10 @@ class whitebit extends whitebit$1 {
                 'fetchOpenOrders': true,
                 'fetchOrderBook': true,
                 'fetchOrderTrades': true,
+                'fetchPosition': true,
+                'fetchPositionHistory': true,
                 'fetchPositionMode': false,
+                'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
                 'fetchTicker': true,
@@ -538,40 +544,120 @@ class whitebit extends whitebit$1 {
     async fetchCurrencies(params = {}) {
         const response = await this.v4PublicGetAssets(params);
         //
-        //      "BTC": {
-        //          "name": "Bitcoin",
-        //          "unified_cryptoasset_id": 1,
-        //          "can_withdraw": true,
-        //          "can_deposit": true,
-        //          "min_withdraw": "0.001",
-        //          "max_withdraw": "2",
-        //          "maker_fee": "0.1",
-        //          "taker_fee": "0.1",
-        //          "min_deposit": "0.0001",
-        //           "max_deposit": "0",
-        //       },
+        // {
+        //   BTC: {
+        //     name: "Bitcoin",
+        //     unified_cryptoasset_id: "1",
+        //     can_withdraw: true,
+        //     can_deposit: true,
+        //     min_withdraw: "0.0003",
+        //     max_withdraw: "0",
+        //     maker_fee: "0.1",
+        //     taker_fee: "0.1",
+        //     min_deposit: "0.0001",
+        //     max_deposit: "0",
+        //     networks: {
+        //         deposits: [ "BTC", ],
+        //         withdraws: [ "BTC", ],
+        //         default: "BTC",
+        //     },
+        //     confirmations: {
+        //         BTC: "2",
+        //     },
+        //     limits: {
+        //         deposit: {
+        //            BTC: { min: "0.0001", },
+        //         },
+        //         withdraw: {
+        //            BTC: { min: "0.0003", },
+        //         },
+        //     },
+        //     currency_precision: "8",
+        //     is_memo: false,
+        //   },
+        //   USD: {
+        //         name: "United States Dollar",
+        //         unified_cryptoasset_id: "6955",
+        //         can_withdraw: true,
+        //         can_deposit: true,
+        //         min_withdraw: "10",
+        //         max_withdraw: "10000",
+        //         maker_fee: "0.1",
+        //         taker_fee: "0.1",
+        //         min_deposit: "10",
+        //         max_deposit: "10000",
+        //         networks: {
+        //           deposits: [ "USD", ],
+        //           withdraws: [ "USD", ],
+        //           default: "USD",
+        //         },
+        //         providers: {
+        //           deposits: [ "ADVCASH", ],
+        //           withdraws: [ "ADVCASH", ],
+        //         },
+        //         limits: {
+        //           deposit: {
+        //             USD: {  max: "10000", min: "10", },
+        //           },
+        //           withdraw: {
+        //             USD: { max: "10000",  min: "10", },
+        //           },
+        //         },
+        //         currency_precision: "2",
+        //         is_memo: false,
+        //   }
+        // }
         //
         const ids = Object.keys(response);
         const result = {};
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const currency = response[id];
-            // breaks down in Python due to utf8 encoding issues on the exchange side
-            // const name = this.safeString (currency, 'name');
-            const canDeposit = this.safeBool(currency, 'can_deposit', true);
-            const canWithdraw = this.safeBool(currency, 'can_withdraw', true);
-            const active = canDeposit && canWithdraw;
+            // const name = this.safeString (currency, 'name'); // breaks down in Python due to utf8 encoding issues on the exchange side
             const code = this.safeCurrencyCode(id);
-            result[code] = {
+            const hasProvider = ('providers' in currency);
+            const rawNetworks = this.safeDict(currency, 'networks', {});
+            const depositsNetworks = this.safeList(rawNetworks, 'deposits', []);
+            const withdrawsNetworks = this.safeList(rawNetworks, 'withdraws', []);
+            const networkLimits = this.safeDict(currency, 'limits', {});
+            const depositLimits = this.safeDict(networkLimits, 'deposit', {});
+            const withdrawLimits = this.safeDict(networkLimits, 'withdraw', {});
+            const allNetworks = this.arrayConcat(depositsNetworks, withdrawsNetworks);
+            for (let j = 0; j < allNetworks.length; j++) {
+                const networkId = allNetworks[j];
+                const networkCode = this.networkIdToCode(networkId);
+                ({
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': undefined,
+                    'deposit': this.inArray(networkId, depositsNetworks),
+                    'withdraw': this.inArray(networkId, withdrawsNetworks),
+                    'fee': undefined,
+                    'precision': undefined,
+                    'limits': {
+                        'deposit': {
+                            'min': this.safeNumber(depositLimits, 'min', undefined),
+                            'max': this.safeNumber(depositLimits, 'max', undefined),
+                        },
+                        'withdraw': {
+                            'min': this.safeNumber(withdrawLimits, 'min', undefined),
+                            'max': this.safeNumber(withdrawLimits, 'max', undefined),
+                        },
+                    },
+                });
+            }
+            result[code] = this.safeCurrencyStructure({
                 'id': id,
                 'code': code,
                 'info': currency,
                 'name': undefined,
-                'active': active,
-                'deposit': canDeposit,
-                'withdraw': canWithdraw,
+                'active': undefined,
+                'deposit': this.safeBool(currency, 'can_deposit'),
+                'withdraw': this.safeBool(currency, 'can_withdraw'),
                 'fee': undefined,
-                'precision': undefined,
+                'networks': undefined,
+                'type': hasProvider ? 'fiat' : 'crypto',
+                'precision': this.parseNumber(this.parsePrecision(this.safeString(currency, 'currency_precision'))),
                 'limits': {
                     'amount': {
                         'min': undefined,
@@ -581,8 +667,12 @@ class whitebit extends whitebit$1 {
                         'min': this.safeNumber(currency, 'min_withdraw'),
                         'max': this.safeNumber(currency, 'max_withdraw'),
                     },
+                    'deposit': {
+                        'min': this.safeNumber(currency, 'min_deposit'),
+                        'max': this.safeNumber(currency, 'max_deposit'),
+                    },
                 },
-            };
+            });
         }
         return result;
     }
@@ -1354,9 +1444,11 @@ class whitebit extends whitebit$1 {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createMarketOrderWithCost(symbol, side, cost, params = {}) {
-        params['cost'] = cost;
+        const req = {
+            'cost': cost,
+        };
         // only buy side is supported
-        return await this.createOrder(symbol, 'market', side, 0, undefined, params);
+        return await this.createOrder(symbol, 'market', side, 0, undefined, this.extend(req, params));
     }
     /**
      * @method
@@ -1386,6 +1478,10 @@ class whitebit extends whitebit$1 {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.cost] *market orders only* the cost of the order in units of the base currency
+     * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @param {bool} [params.postOnly] If true, the order will only be posted to the order book and not executed immediately
+     * @param {string} [params.clientOrderId] a unique id for the order
+     * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -2077,6 +2173,60 @@ class whitebit extends whitebit$1 {
             'network': undefined,
             'address': address,
             'tag': tag,
+        };
+    }
+    /**
+     * @method
+     * @name whitebit#createDepositAddress
+     * @description create a currency deposit address
+     * @see https://docs.whitebit.com/private/http-main-v4/#create-new-address-for-deposit
+     * @param {string} code unified currency code of the currency for the deposit address
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] the blockchain network to create a deposit address on
+     * @param {string} [params.type] address type, available for specific currencies
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
+    async createDepositAddress(code, params = {}) {
+        await this.loadMarkets();
+        const currency = this.currency(code);
+        const request = {
+            'ticker': currency['id'],
+        };
+        const response = await this.v4PrivatePostMainAccountCreateNewAddress(this.extend(request, params));
+        //
+        //     {
+        //         "account": {
+        //             "address": "GDTSOI56XNVAKJNJBLJGRNZIVOCIZJRBIDKTWSCYEYNFAZEMBLN75RMN",
+        //             "memo": "48565488244493"
+        //         },
+        //         "required": {
+        //             "maxAmount": "0",
+        //             "minAmount": "1",
+        //             "fixedFee": "0",
+        //             "flexFee": {
+        //                 "maxFee": "0",
+        //                 "minFee": "0",
+        //                 "percent": "0"
+        //             }
+        //         }
+        //     }
+        //
+        const data = this.safeDict(response, 'account', {});
+        return this.parseDepositAddress(data, currency);
+    }
+    parseDepositAddress(depositAddress, currency = undefined) {
+        //
+        //     {
+        //         "address": "GDTSOI56XNVAKJNJBLJGRNZIVOCIZJRBIDKTWSCYEYNFAZEMBLN75RMN",
+        //         "memo": "48565488244493"
+        //     },
+        //
+        return {
+            'info': depositAddress,
+            'currency': this.safeCurrencyCode(undefined, currency),
+            'network': undefined,
+            'address': this.safeString(depositAddress, 'address'),
+            'tag': this.safeString(depositAddress, 'memo'),
         };
     }
     /**
@@ -2959,6 +3109,248 @@ class whitebit extends whitebit$1 {
             'toAmount': this.safeNumber2(conversion, 'receive', 'finalReceive'),
             'price': this.safeNumber(conversion, 'rate'),
             'fee': undefined,
+        };
+    }
+    /**
+     * @method
+     * @name whitebit#fetchPositionHistory
+     * @description fetches historical positions
+     * @see https://docs.whitebit.com/private/http-trade-v4/#positions-history
+     * @param {string} symbol unified contract symbol
+     * @param {int} [since] the earliest time in ms to fetch positions for
+     * @param {int} [limit] the maximum amount of records to fetch
+     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {int} [params.positionId] the id of the requested position
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    async fetchPositionHistory(symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        let request = {
+            'market': market['id'],
+        };
+        if (since !== undefined) {
+            request['startDate'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = since;
+        }
+        [request, params] = this.handleUntilOption('endDate', request, params);
+        const response = await this.v4PrivatePostCollateralAccountPositionsHistory(this.extend(request, params));
+        //
+        //     [
+        //         {
+        //             "positionId": 479975679,
+        //             "market": "BTC_PERP",
+        //             "openDate": 1741941025.309887,
+        //             "modifyDate": 1741941025.309887,
+        //             "amount": "0.001",
+        //             "basePrice": "82498.7",
+        //             "realizedFunding": "0",
+        //             "liquidationPrice": "0",
+        //             "liquidationState": null,
+        //             "orderDetail": {
+        //                 "id": 1224727949521,
+        //                 "tradeAmount": "0.001",
+        //                 "price": "82498.7",
+        //                 "tradeFee": "0.028874545",
+        //                 "fundingFee": "0",
+        //                 "realizedPnl": "-0.028874545"
+        //             }
+        //         }
+        //     ]
+        //
+        const positions = this.parsePositions(response);
+        return this.filterBySymbolSinceLimit(positions, symbol, since, limit);
+    }
+    /**
+     * @method
+     * @name whitebit#fetchPositions
+     * @description fetch all open positions
+     * @see https://docs.whitebit.com/private/http-trade-v4/#open-positions
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    async fetchPositions(symbols = undefined, params = {}) {
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        const response = await this.v4PrivatePostCollateralAccountPositionsOpen(params);
+        //
+        //     [
+        //         {
+        //             "positionId": 479975679,
+        //             "market": "BTC_PERP",
+        //             "openDate": 1741941025.3098869,
+        //             "modifyDate": 1741941025.3098869,
+        //             "amount": "0.001",
+        //             "basePrice": "82498.7",
+        //             "liquidationPrice": "70177.2",
+        //             "pnl": "0",
+        //             "pnlPercent": "0.00",
+        //             "margin": "4.2",
+        //             "freeMargin": "9.9",
+        //             "funding": "0",
+        //             "unrealizedFunding": "0",
+        //             "liquidationState": null,
+        //             "tpsl": null
+        //         }
+        //     ]
+        //
+        return this.parsePositions(response, symbols);
+    }
+    /**
+     * @method
+     * @name whitebit#fetchPosition
+     * @description fetch data on a single open contract trade position
+     * @see https://docs.whitebit.com/private/http-trade-v4/#open-positions
+     * @param {string} symbol unified market symbol of the market the position is held in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    async fetchPosition(symbol, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.v4PrivatePostCollateralAccountPositionsOpen(this.extend(request, params));
+        //
+        //     [
+        //         {
+        //             "positionId": 479975679,
+        //             "market": "BTC_PERP",
+        //             "openDate": 1741941025.3098869,
+        //             "modifyDate": 1741941025.3098869,
+        //             "amount": "0.001",
+        //             "basePrice": "82498.7",
+        //             "liquidationPrice": "70177.2",
+        //             "pnl": "0",
+        //             "pnlPercent": "0.00",
+        //             "margin": "4.2",
+        //             "freeMargin": "9.9",
+        //             "funding": "0",
+        //             "unrealizedFunding": "0",
+        //             "liquidationState": null,
+        //             "tpsl": null
+        //         }
+        //     ]
+        //
+        const data = this.safeDict(response, 0, {});
+        return this.parsePosition(data, market);
+    }
+    parsePosition(position, market = undefined) {
+        //
+        // fetchPosition, fetchPositions
+        //
+        //     {
+        //         "positionId": 479975679,
+        //         "market": "BTC_PERP",
+        //         "openDate": 1741941025.3098869,
+        //         "modifyDate": 1741941025.3098869,
+        //         "amount": "0.001",
+        //         "basePrice": "82498.7",
+        //         "liquidationPrice": "70177.2",
+        //         "pnl": "0",
+        //         "pnlPercent": "0.00",
+        //         "margin": "4.2",
+        //         "freeMargin": "9.9",
+        //         "funding": "0",
+        //         "unrealizedFunding": "0",
+        //         "liquidationState": null,
+        //         "tpsl": null
+        //     }
+        //
+        // fetchPositionHistory
+        //
+        //     {
+        //         "positionId": 479975679,
+        //         "market": "BTC_PERP",
+        //         "openDate": 1741941025.309887,
+        //         "modifyDate": 1741941025.309887,
+        //         "amount": "0.001",
+        //         "basePrice": "82498.7",
+        //         "realizedFunding": "0",
+        //         "liquidationPrice": "0",
+        //         "liquidationState": null,
+        //         "orderDetail": {
+        //             "id": 1224727949521,
+        //             "tradeAmount": "0.001",
+        //             "price": "82498.7",
+        //             "tradeFee": "0.028874545",
+        //             "fundingFee": "0",
+        //             "realizedPnl": "-0.028874545"
+        //         }
+        //     }
+        //
+        const marketId = this.safeString(position, 'market');
+        const timestamp = this.safeTimestamp(position, 'openDate');
+        const tpsl = this.safeDict(position, 'tpsl', {});
+        const orderDetail = this.safeDict(position, 'orderDetail', {});
+        return this.safePosition({
+            'info': position,
+            'id': this.safeString(position, 'positionId'),
+            'symbol': this.safeSymbol(marketId, market),
+            'notional': undefined,
+            'marginMode': undefined,
+            'liquidationPrice': this.safeNumber(position, 'liquidationPrice'),
+            'entryPrice': this.safeNumber(position, 'basePrice'),
+            'unrealizedPnl': this.safeNumber(position, 'pnl'),
+            'realizedPnl': this.safeNumber(orderDetail, 'realizedPnl'),
+            'percentage': this.safeNumber(position, 'pnlPercent'),
+            'contracts': undefined,
+            'contractSize': undefined,
+            'markPrice': undefined,
+            'lastPrice': undefined,
+            'side': undefined,
+            'hedged': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'lastUpdateTimestamp': this.safeTimestamp(position, 'modifyDate'),
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'collateral': this.safeNumber(position, 'margin'),
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'leverage': undefined,
+            'marginRatio': undefined,
+            'stopLossPrice': this.safeNumber(tpsl, 'stopLoss'),
+            'takeProfitPrice': this.safeNumber(tpsl, 'takeProfit'),
+        });
+    }
+    /**
+     * @method
+     * @name whitebit#fetchCrossBorrowRate
+     * @description fetch the rate of interest to borrow a currency for margin trading
+     * @see https://docs.whitebit.com/private/http-main-v4/#get-plans
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+     */
+    async fetchCrossBorrowRate(code, params = {}) {
+        await this.loadMarkets();
+        const currency = this.currency(code);
+        const request = {
+            'ticker': currency['id'],
+        };
+        const response = await this.v4PrivatePostMainAccountSmartPlans(this.extend(request, params));
+        //
+        //
+        const data = this.safeList(response, 0, []);
+        return this.parseBorrowRate(data, currency);
+    }
+    parseBorrowRate(info, currency = undefined) {
+        //
+        //
+        const currencyId = this.safeString(info, 'ticker');
+        const percent = this.safeString(info, 'percent');
+        return {
+            'currency': this.safeCurrencyCode(currencyId, currency),
+            'rate': this.parseNumber(Precise["default"].stringDiv(percent, '100')),
+            'period': this.safeInteger(info, 'duration'),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'info': info,
         };
     }
     isFiat(currency) {

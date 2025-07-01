@@ -367,6 +367,30 @@ public partial class whitebit
     /// float : *market orders only* the cost of the order in units of the base currency
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.triggerPrice</term>
+    /// <description>
+    /// float : The price at which a trigger order is triggered at
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.postOnly</term>
+    /// <description>
+    /// bool : If true, the order will only be posted to the order book and not executed immediately
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.clientOrderId</term>
+    /// <description>
+    /// string : a unique id for the order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -630,6 +654,38 @@ public partial class whitebit
     public async Task<DepositAddress> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddress(code, parameters);
+        return new DepositAddress(res);
+    }
+    /// <summary>
+    /// create a currency deposit address
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.whitebit.com/private/http-main-v4/#create-new-address-for-deposit"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.network</term>
+    /// <description>
+    /// string : the blockchain network to create a deposit address on
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : address type, available for specific currencies
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
+    public async Task<DepositAddress> CreateDepositAddress(string code, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.createDepositAddress(code, parameters);
         return new DepositAddress(res);
     }
     /// <summary>
@@ -1041,5 +1097,105 @@ public partial class whitebit
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchConvertTradeHistory(code, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Conversion(item)).ToList<Conversion>();
+    }
+    /// <summary>
+    /// fetches historical positions
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.whitebit.com/private/http-trade-v4/#positions-history"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch positions for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum amount of records to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange api endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.positionId</term>
+    /// <description>
+    /// int : the id of the requested position
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}.</returns>
+    public async Task<List<Position>> FetchPositionHistory(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchPositionHistory(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
+    }
+    /// <summary>
+    /// fetch all open positions
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.whitebit.com/private/http-trade-v4/#open-positions"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}.</returns>
+    public async Task<List<Position>> FetchPositions(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPositions(symbols, parameters);
+        return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
+    }
+    /// <summary>
+    /// fetch data on a single open contract trade position
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.whitebit.com/private/http-trade-v4/#open-positions"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}.</returns>
+    public async Task<Position> FetchPosition(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPosition(symbol, parameters);
+        return new Position(res);
+    }
+    /// <summary>
+    /// fetch the rate of interest to borrow a currency for margin trading
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.whitebit.com/private/http-main-v4/#get-plans"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [borrow rate structure]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}.</returns>
+    public async Task<CrossBorrowRate> FetchCrossBorrowRate(string code, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchCrossBorrowRate(code, parameters);
+        return new CrossBorrowRate(res);
     }
 }

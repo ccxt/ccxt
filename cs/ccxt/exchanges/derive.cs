@@ -334,14 +334,50 @@ public partial class derive : Exchange
         object result = new Dictionary<string, object>() {};
         object tokenResponse = await this.publicGetGetAllCurrencies(parameters);
         //
-        // {
-        //     "result": [
-        //         {
-        //             "currency": "USDC",
-        //             "spot_price": "1.000066413299999872",
-        //             "spot_price_24h": "1.000327785299999872"
-        //         }
-        //     ],
+        //    {
+        //        "result": [
+        //            {
+        //                "currency": "SEI",
+        //                "instrument_types": [
+        //                    "perp"
+        //                ],
+        //                "protocol_asset_addresses": {
+        //                    "perp": "0x7225889B75fd34C68eA3098dAE04D50553C09840",
+        //                    "option": null,
+        //                    "spot": null,
+        //                    "underlying_erc20": null
+        //                },
+        //                "managers": [
+        //                    {
+        //                        "address": "0x28c9ddF9A3B29c2E6a561c1BC520954e5A33de5D",
+        //                        "margin_type": "SM",
+        //                        "currency": null
+        //                    }
+        //                ],
+        //                "srm_im_discount": "0",
+        //                "srm_mm_discount": "0",
+        //                "pm2_collateral_discounts": [],
+        //                "borrow_apy": "0",
+        //                "supply_apy": "0",
+        //                "total_borrow": "0",
+        //                "total_supply": "0",
+        //                "asset_cap_and_supply_per_manager": {
+        //                    "perp": {
+        //                        "SM": [
+        //                            {
+        //                                "current_open_interest": "0",
+        //                                "interest_cap": "2000000",
+        //                                "manager_currency": null
+        //                            }
+        //                        ]
+        //                    },
+        //                    "option": {},
+        //                    "erc20": {}
+        //                },
+        //                "market_type": "SRM_PERP_ONLY",
+        //                "spot_price": "0.2193542905042081",
+        //                "spot_price_24h": "0.238381655533635830"
+        //            },
         //     "id": "7e07fe1d-0ab4-4d2b-9e22-b65ce9e232dc"
         // }
         //
@@ -351,7 +387,7 @@ public partial class derive : Exchange
             object currency = getValue(currencies, i);
             object currencyId = this.safeString(currency, "currency");
             object code = this.safeCurrencyCode(currencyId);
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", currencyId },
                 { "name", null },
                 { "code", code },
@@ -372,7 +408,7 @@ public partial class derive : Exchange
                     } },
                 } },
                 { "info", currency },
-            };
+            });
         }
         return result;
     }
@@ -493,6 +529,7 @@ public partial class derive : Exchange
         object swap = false;
         object option = false;
         object linear = null;
+        object inverse = null;
         object baseId = this.safeString(market, "base_currency");
         object quoteId = this.safeString(market, "quote_currency");
         object bs = this.safeCurrencyCode(baseId);
@@ -517,6 +554,7 @@ public partial class derive : Exchange
             symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
             swap = true;
             linear = true;
+            inverse = false;
             marketType = "swap";
         } else if (isTrue(isEqual(type, "option")))
         {
@@ -537,6 +575,8 @@ public partial class derive : Exchange
             {
                 optionType = "call";
             }
+            linear = true;
+            inverse = false;
         }
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", marketId },
@@ -556,7 +596,7 @@ public partial class derive : Exchange
             { "active", this.safeBool(market, "is_active") },
             { "contract", (isTrue(swap) || isTrue(option)) },
             { "linear", linear },
-            { "inverse", null },
+            { "inverse", inverse },
             { "contractSize", ((bool) isTrue((spot))) ? null : 1 },
             { "expiry", expiry },
             { "expiryDatetime", this.iso8601(expiry) },
@@ -1836,7 +1876,7 @@ public partial class derive : Exchange
         {
             order = rawOrder;
         }
-        object timestamp = this.safeInteger(rawOrder, "nonce");
+        object timestamp = this.safeInteger2(rawOrder, "creation_timestamp", "nonce");
         object orderId = this.safeString(order, "order_id");
         object marketId = this.safeString(order, "instrument_name");
         if (isTrue(!isEqual(marketId, null)))
@@ -2433,9 +2473,6 @@ public partial class derive : Exchange
         object result = new Dictionary<string, object>() {
             { "info", response },
         };
-        // TODO:
-        // checked multiple subaccounts
-        // checked balance after open orders / positions
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object subaccount = getValue(response, i);
@@ -2444,8 +2481,16 @@ public partial class derive : Exchange
             {
                 object balance = getValue(collaterals, j);
                 object code = this.safeCurrencyCode(this.safeString(balance, "currency"));
-                object account = this.account();
-                ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "amount");
+                object account = this.safeDict(result, code);
+                if (isTrue(isEqual(account, null)))
+                {
+                    account = this.account();
+                    ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "amount");
+                } else
+                {
+                    object amount = this.safeString(balance, "amount");
+                    ((IDictionary<string,object>)account)["total"] = Precise.stringAdd(getValue(account, "total"), amount);
+                }
                 ((IDictionary<string,object>)result)[(string)code] = account;
             }
         }

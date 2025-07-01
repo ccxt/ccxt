@@ -478,8 +478,8 @@ class p2b(ccxt.async_support.p2b):
 
     def on_error(self, client: Client, error):
         self.options['tickerSubs'] = self.create_safe_dictionary()
-        self.on_error(client, error)
+        super(p2b, self).on_error(client, error)
 
     def on_close(self, client: Client, error):
         self.options['tickerSubs'] = self.create_safe_dictionary()
-        self.on_close(client, error)
+        super(p2b, self).on_close(client, error)

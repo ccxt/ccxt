@@ -9,6 +9,38 @@
     "methods": {
         "createOrder": [
             {
+                "description": "create isolated order by using the unified syntax",
+                "method": "createOrder",
+                "url": "https://api-futures.kucoin.com/api/v1/orders",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    1,
+                    null,
+                    {
+                        "marginMode": "isolated"
+                    }
+                ],
+                "output": "{\"clientOid\":\"1728bf29-96fd-487c-99b8-61cfe44f309e\",\"side\":\"sell\",\"symbol\":\"LTCUSDTM\",\"type\":\"market\",\"leverage\":1,\"marginMode\":\"ISOLATED\",\"size\":1}"
+            },
+            {
+                "description": "create cross order by using the unified syntax",
+                "method": "createOrder",
+                "url": "https://api-futures.kucoin.com/api/v1/orders",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    1,
+                    null,
+                    {
+                        "marginMode": "cross"
+                    }
+                ],
+                "output": "{\"clientOid\":\"ec64526a-cb92-4eca-9fda-1efb64d1fe09\",\"side\":\"sell\",\"symbol\":\"LTCUSDTM\",\"type\":\"market\",\"leverage\":1,\"marginMode\":\"CROSS\",\"size\":1}"
+            },
+            {
                 "description": "Swap market buy",
                 "method": "createOrder",
                 "url": "https://api-futures.kucoin.com/api/v1/orders",

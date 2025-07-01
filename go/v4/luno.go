@@ -33,6 +33,7 @@ func  (this *luno) Describe() interface{}  {
             "cancelOrder": true,
             "closeAllPositions": false,
             "closePosition": false,
+            "createDepositAddress": true,
             "createOrder": true,
             "createReduceOnlyOrder": false,
             "fetchAccounts": true,
@@ -41,6 +42,8 @@ func  (this *luno) Describe() interface{}  {
             "fetchClosedOrders": true,
             "fetchCrossBorrowRate": false,
             "fetchCrossBorrowRates": false,
+            "fetchCurrencies": true,
+            "fetchDepositAddress": true,
             "fetchFundingHistory": false,
             "fetchFundingRate": false,
             "fetchFundingRateHistory": false,
@@ -117,6 +120,7 @@ func  (this *luno) Describe() interface{}  {
                     "accounts/{id}/transactions": 1,
                     "balance": 1,
                     "beneficiaries": 1,
+                    "send/networks": 1,
                     "fee_info": 1,
                     "funding_address": 1,
                     "listorders": 1,
@@ -249,6 +253,110 @@ func  (this *luno) Describe() interface{}  {
         },
     })
 }
+/**
+ * @method
+ * @name luno#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @param {dict} [params] extra parameters specific to the exchange API endpoint
+ * @returns {dict} an associative dictionary of currencies
+ */
+func  (this *luno) FetchCurrencies(optionalArgs ...interface{}) <- chan interface{} {
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]interface{} {})
+            _ = params
+            if !IsTrue(this.CheckRequiredCredentials(false)) {
+        
+                return nil
+            }
+        
+            response:= (<-this.PrivateGetSendNetworks(params))
+            PanicOnError(response)
+            //
+            //     {
+            //         "networks": [
+            //           {
+            //             "id": 0,
+            //             "name": "Ethereum",
+            //             "native_currency": "ETH"
+            //           },
+            //           ...
+            //         ]
+            //     }
+            //
+            var currenciesData interface{} = this.SafeList(response, "data", []interface{}{})
+            var result interface{} = map[string]interface{} {}
+            for i := 0; IsLessThan(i, GetArrayLength(currenciesData)); i++ {
+                var networkEntry interface{} = GetValue(currenciesData, i)
+                var id interface{} = this.SafeString(networkEntry, "native_currency")
+                var code interface{} = this.SafeCurrencyCode(id)
+                if !IsTrue((InOp(result, code))) {
+                    AddElementToObject(result, code, map[string]interface{} {
+            "id": id,
+            "code": code,
+            "precision": nil,
+            "type": nil,
+            "name": nil,
+            "active": nil,
+            "deposit": nil,
+            "withdraw": nil,
+            "fee": nil,
+            "limits": map[string]interface{} {
+                "withdraw": map[string]interface{} {
+                    "min": nil,
+                    "max": nil,
+                },
+                "deposit": map[string]interface{} {
+                    "min": nil,
+                    "max": nil,
+                },
+            },
+            "networks": map[string]interface{} {},
+            "info": map[string]interface{} {},
+        })
+                }
+                var networkId interface{} = this.SafeString(networkEntry, "name")
+                var networkCode interface{} = this.NetworkIdToCode(networkId)
+                AddElementToObject(GetValue(GetValue(result, code), "networks"), networkCode, map[string]interface{} {
+            "id": networkId,
+            "network": networkCode,
+            "limits": map[string]interface{} {
+                "withdraw": map[string]interface{} {
+                    "min": nil,
+                    "max": nil,
+                },
+                "deposit": map[string]interface{} {
+                    "min": nil,
+                    "max": nil,
+                },
+            },
+            "active": nil,
+            "deposit": nil,
+            "withdraw": nil,
+            "fee": nil,
+            "precision": nil,
+            "info": networkEntry,
+        })
+                // add entry in info
+                var info interface{} = this.SafeList(GetValue(result, code), "info", []interface{}{})
+                AppendToArray(&info,networkEntry)
+                AddElementToObject(GetValue(result, code), "info", info)
+            }
+            // only after all entries are formed in currencies, restructure each entry
+            var allKeys interface{} = ObjectKeys(result)
+            for i := 0; IsLessThan(i, GetArrayLength(allKeys)); i++ {
+                var code interface{} = GetValue(allKeys, i)
+                AddElementToObject(result, code, this.SafeCurrencyStructure(GetValue(result, code))) // this is needed after adding network entry
+            }
+        
+            ch <- result
+            return nil
+        
+            }()
+            return ch
+        }
 /**
  * @method
  * @name luno#fetchMarkets
@@ -436,8 +544,8 @@ func  (this *luno) FetchBalance(optionalArgs ...interface{}) <- chan interface{}
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes4228 := (<-this.LoadMarkets())
-            PanicOnError(retRes4228)
+            retRes5178 := (<-this.LoadMarkets())
+            PanicOnError(retRes5178)
         
             response:= (<-this.PrivateGetBalance(params))
             PanicOnError(response)
@@ -479,8 +587,8 @@ func  (this *luno) FetchOrderBook(symbol interface{}, optionalArgs ...interface{
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes4498 := (<-this.LoadMarkets())
-            PanicOnError(retRes4498)
+            retRes5448 := (<-this.LoadMarkets())
+            PanicOnError(retRes5448)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "pair": GetValue(market, "id"),
@@ -604,8 +712,8 @@ func  (this *luno) FetchOrder(id interface{}, optionalArgs ...interface{}) <- ch
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes5578 := (<-this.LoadMarkets())
-            PanicOnError(retRes5578)
+            retRes6528 := (<-this.LoadMarkets())
+            PanicOnError(retRes6528)
             var request interface{} = map[string]interface{} {
                 "id": id,
             }
@@ -633,8 +741,8 @@ func  (this *luno) FetchOrdersByState(state interface{}, optionalArgs ...interfa
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes5668 := (<-this.LoadMarkets())
-            PanicOnError(retRes5668)
+            retRes6618 := (<-this.LoadMarkets())
+            PanicOnError(retRes6618)
             var request interface{} = map[string]interface{} {}
             var market interface{} = nil
             if IsTrue(!IsEqual(state, nil)) {
@@ -680,9 +788,9 @@ func  (this *luno) FetchOrders(optionalArgs ...interface{}) <- chan interface{} 
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-                retRes59315 :=  (<-this.FetchOrdersByState(nil, symbol, since, limit, params))
-                PanicOnError(retRes59315)
-                ch <- retRes59315
+                retRes68815 :=  (<-this.FetchOrdersByState(nil, symbol, since, limit, params))
+                PanicOnError(retRes68815)
+                ch <- retRes68815
                 return nil
         
             }()
@@ -713,9 +821,9 @@ func  (this *luno) FetchOpenOrders(optionalArgs ...interface{}) <- chan interfac
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-                retRes60815 :=  (<-this.FetchOrdersByState("PENDING", symbol, since, limit, params))
-                PanicOnError(retRes60815)
-                ch <- retRes60815
+                retRes70315 :=  (<-this.FetchOrdersByState("PENDING", symbol, since, limit, params))
+                PanicOnError(retRes70315)
+                ch <- retRes70315
                 return nil
         
             }()
@@ -746,9 +854,9 @@ func  (this *luno) FetchClosedOrders(optionalArgs ...interface{}) <- chan interf
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-                retRes62315 :=  (<-this.FetchOrdersByState("COMPLETE", symbol, since, limit, params))
-                PanicOnError(retRes62315)
-                ch <- retRes62315
+                retRes71815 :=  (<-this.FetchOrdersByState("COMPLETE", symbol, since, limit, params))
+                PanicOnError(retRes71815)
+                ch <- retRes71815
                 return nil
         
             }()
@@ -812,8 +920,8 @@ func  (this *luno) FetchTickers(optionalArgs ...interface{}) <- chan interface{}
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes6748 := (<-this.LoadMarkets())
-            PanicOnError(retRes6748)
+            retRes7698 := (<-this.LoadMarkets())
+            PanicOnError(retRes7698)
             symbols = this.MarketSymbols(symbols)
         
             response:= (<-this.PublicGetTickers(params))
@@ -852,8 +960,8 @@ func  (this *luno) FetchTicker(symbol interface{}, optionalArgs ...interface{}) 
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes7008 := (<-this.LoadMarkets())
-            PanicOnError(retRes7008)
+            retRes7958 := (<-this.LoadMarkets())
+            PanicOnError(retRes7958)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "pair": GetValue(market, "id"),
@@ -991,8 +1099,8 @@ func  (this *luno) FetchTrades(symbol interface{}, optionalArgs ...interface{}) 
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes8218 := (<-this.LoadMarkets())
-            PanicOnError(retRes8218)
+            retRes9168 := (<-this.LoadMarkets())
+            PanicOnError(retRes9168)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "pair": GetValue(market, "id"),
@@ -1050,8 +1158,8 @@ func  (this *luno) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) <
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes8608 := (<-this.LoadMarkets())
-            PanicOnError(retRes8608)
+            retRes9558 := (<-this.LoadMarkets())
+            PanicOnError(retRes9558)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "duration": this.SafeValue(this.Timeframes, timeframe, timeframe),
@@ -1131,8 +1239,8 @@ func  (this *luno) FetchMyTrades(optionalArgs ...interface{}) <- chan interface{
                 panic(ArgumentsRequired(Add(this.Id, " fetchMyTrades() requires a symbol argument")))
             }
         
-            retRes9278 := (<-this.LoadMarkets())
-            PanicOnError(retRes9278)
+            retRes10228 := (<-this.LoadMarkets())
+            PanicOnError(retRes10228)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "pair": GetValue(market, "id"),
@@ -1192,8 +1300,8 @@ func  (this *luno) FetchTradingFee(symbol interface{}, optionalArgs ...interface
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes9748 := (<-this.LoadMarkets())
-            PanicOnError(retRes9748)
+            retRes10698 := (<-this.LoadMarkets())
+            PanicOnError(retRes10698)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "pair": GetValue(market, "id"),
@@ -1246,8 +1354,8 @@ func  (this *luno) CreateOrder(symbol interface{}, typeVar interface{}, side int
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes10128 := (<-this.LoadMarkets())
-            PanicOnError(retRes10128)
+            retRes11078 := (<-this.LoadMarkets())
+            PanicOnError(retRes11078)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "pair": GetValue(market, "id"),
@@ -1302,8 +1410,8 @@ func  (this *luno) CancelOrder(id interface{}, optionalArgs ...interface{}) <- c
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes10508 := (<-this.LoadMarkets())
-            PanicOnError(retRes10508)
+            retRes11458 := (<-this.LoadMarkets())
+            PanicOnError(retRes11458)
             var request interface{} = map[string]interface{} {
                 "order_id": id,
             }
@@ -1350,9 +1458,9 @@ func  (this *luno) FetchLedgerByEntries(optionalArgs ...interface{}) <- chan int
                 "max_row": this.Sum(entry, limit),
             }
         
-                retRes107815 :=  (<-this.FetchLedger(code, since, limit, this.Extend(request, params)))
-                PanicOnError(retRes107815)
-                ch <- retRes107815
+                retRes117315 :=  (<-this.FetchLedger(code, since, limit, this.Extend(request, params)))
+                PanicOnError(retRes117315)
+                ch <- retRes117315
                 return nil
         
             }()
@@ -1383,11 +1491,11 @@ func  (this *luno) FetchLedger(optionalArgs ...interface{}) <- chan interface{} 
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes10938 := (<-this.LoadMarkets())
-            PanicOnError(retRes10938)
+            retRes11888 := (<-this.LoadMarkets())
+            PanicOnError(retRes11888)
         
-            retRes10948 := (<-this.LoadAccounts())
-            PanicOnError(retRes10948)
+            retRes11898 := (<-this.LoadAccounts())
+            PanicOnError(retRes11898)
             var currency interface{} = nil
             var id interface{} = this.SafeString(params, "id") // account id
             var min_row interface{} = this.SafeValue(params, "min_row")
@@ -1521,6 +1629,148 @@ func  (this *luno) ParseLedgerEntry(entry interface{}, optionalArgs ...interface
         "status": status,
         "fee": nil,
     }, currency)
+}
+/**
+ * @method
+ * @name luno#createDepositAddress
+ * @description create a currency deposit address
+ * @see https://www.luno.com/en/developers/api#tag/Receive/operation/createFundingAddress
+ * @param {string} code unified currency code of the currency for the deposit address
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.name] an optional name for the new address
+ * @param {int} [params.account_id] an optional account id for the new address
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ */
+func  (this *luno) CreateDepositAddress(code interface{}, optionalArgs ...interface{}) <- chan interface{} {
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]interface{} {})
+            _ = params
+        
+            retRes13308 := (<-this.LoadMarkets())
+            PanicOnError(retRes13308)
+            var currency interface{} = this.Currency(code)
+            var request interface{} = map[string]interface{} {
+                "asset": GetValue(currency, "id"),
+            }
+        
+            response:= (<-this.PrivatePostFundingAddress(this.Extend(request, params)))
+            PanicOnError(response)
+        
+                //
+            //     {
+            //         "account_id": "string",
+            //         "address": "string",
+            //         "address_meta": [
+            //             {
+            //                 "label": "string",
+            //                 "value": "string"
+            //             }
+            //         ],
+            //         "asset": "string",
+            //         "assigned_at": 0,
+            //         "name": "string",
+            //         "network": 0,
+            //         "qr_code_uri": "string",
+            //         "receive_fee": "string",
+            //         "total_received": "string",
+            //         "total_unconfirmed": "string"
+            //     }
+            //
+        ch <- this.ParseDepositAddress(response, currency)
+            return nil
+        
+            }()
+            return ch
+        }
+/**
+ * @method
+ * @name luno#fetchDepositAddress
+ * @description fetch the deposit address for a currency associated with this account
+ * @see https://www.luno.com/en/developers/api#tag/Receive/operation/getFundingAddress
+ * @param {string} code unified currency code
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.address] a specific cryptocurrency address to retrieve
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ */
+func  (this *luno) FetchDepositAddress(code interface{}, optionalArgs ...interface{}) <- chan interface{} {
+            ch := make(chan interface{})
+            go func() interface{} {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]interface{} {})
+            _ = params
+        
+            retRes13708 := (<-this.LoadMarkets())
+            PanicOnError(retRes13708)
+            var currency interface{} = this.Currency(code)
+            var request interface{} = map[string]interface{} {
+                "asset": GetValue(currency, "id"),
+            }
+        
+            response:= (<-this.PrivateGetFundingAddress(this.Extend(request, params)))
+            PanicOnError(response)
+        
+                //
+            //     {
+            //         "account_id": "string",
+            //         "address": "string",
+            //         "address_meta": [
+            //             {
+            //                 "label": "string",
+            //                 "value": "string"
+            //             }
+            //         ],
+            //         "asset": "string",
+            //         "assigned_at": 0,
+            //         "name": "string",
+            //         "network": 0,
+            //         "qr_code_uri": "string",
+            //         "receive_fee": "string",
+            //         "total_received": "string",
+            //         "total_unconfirmed": "string"
+            //     }
+            //
+        ch <- this.ParseDepositAddress(response, currency)
+            return nil
+        
+            }()
+            return ch
+        }
+func  (this *luno) ParseDepositAddress(depositAddress interface{}, optionalArgs ...interface{}) interface{}  {
+    //
+    //     {
+    //         "account_id": "string",
+    //         "address": "string",
+    //         "address_meta": [
+    //             {
+    //                 "label": "string",
+    //                 "value": "string"
+    //             }
+    //         ],
+    //         "asset": "string",
+    //         "assigned_at": 0,
+    //         "name": "string",
+    //         "network": 0,
+    //         "qr_code_uri": "string",
+    //         "receive_fee": "string",
+    //         "total_received": "string",
+    //         "total_unconfirmed": "string"
+    //     }
+    //
+    currency := GetArg(optionalArgs, 0, nil)
+    _ = currency
+    var currencyId interface{} = this.SafeStringUpper(depositAddress, "currency")
+    var code interface{} = this.SafeCurrencyCode(currencyId, currency)
+    return map[string]interface{} {
+        "info": depositAddress,
+        "currency": code,
+        "network": nil,
+        "address": this.SafeString(depositAddress, "address"),
+        "tag": this.SafeString(depositAddress, "name"),
+    }
 }
 func  (this *luno) Sign(path interface{}, optionalArgs ...interface{}) interface{}  {
     api := GetArg(optionalArgs, 0, "public")

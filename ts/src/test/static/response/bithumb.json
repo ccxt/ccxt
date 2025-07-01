@@ -5,6 +5,7 @@
         "fetchMarkets": [
             {
                 "description": "fetchMarkets",
+                "disabledGO": true,
                 "method": "fetchMarkets",
                 "input": [],
                 "httpResponse": {

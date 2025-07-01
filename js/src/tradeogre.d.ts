@@ -1,6 +1,5 @@
-import { Market } from '../ccxt.js';
 import Exchange from './abstract/tradeogre.js';
-import type { Int, Num, Order, OrderSide, OrderType, Str, Ticker, IndexType, Dict, int, Strings, Tickers, OHLCV } from './base/types.js';
+import type { Int, Num, Order, OrderSide, OrderType, Str, Ticker, IndexType, Dict, int, Strings, Tickers, OHLCV, Market } from './base/types.js';
 /**
  * @class tradeogre
  * @augments Exchange
@@ -78,6 +77,7 @@ export default class tradeogre extends Exchange {
      * @name tradeogre#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.currency] currency to fetch the balance for
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;

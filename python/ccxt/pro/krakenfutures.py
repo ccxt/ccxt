@@ -460,7 +460,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         #            {
         #                "feed": "trade",
         #                "product_id": "PI_XBTUSD",
-        #                "uid": "caa9c653-420b-4c24-a9f1-462a054d86f1",
+        #                "uid": "caa9c653-420b-4c24-a9f2-462a054d86f1",
         #                "side": "sell",
         #                "type": "fill",
         #                "seq": 655508,

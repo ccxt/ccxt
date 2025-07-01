@@ -27,6 +27,7 @@ public partial class deribit : Exchange
                 { "cancelOrders", false },
                 { "createDepositAddress", true },
                 { "createOrder", true },
+                { "createReduceOnlyOrder", true },
                 { "createStopLimitOrder", true },
                 { "createStopMarketOrder", true },
                 { "createStopOrder", true },
@@ -620,22 +621,22 @@ public partial class deribit : Exchange
         //      "testnet": true
         //    }
         //
-        object data = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object data = this.safeList(response, "result", new List<object>() {});
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object currency = getValue(data, i);
             object currencyId = this.safeString(currency, "currency");
             object code = this.safeCurrencyCode(currencyId);
-            object name = this.safeString(currency, "currency_long");
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "info", currency },
                 { "code", code },
                 { "id", currencyId },
-                { "name", name },
+                { "name", this.safeString(currency, "currency_long") },
                 { "active", null },
                 { "deposit", null },
                 { "withdraw", null },
+                { "type", "crypto" },
                 { "fee", this.safeNumber(currency, "withdrawal_fee") },
                 { "precision", this.parseNumber(this.parsePrecision(this.safeString(currency, "fee_precision"))) },
                 { "limits", new Dictionary<string, object>() {
@@ -653,7 +654,7 @@ public partial class deribit : Exchange
                     } },
                 } },
                 { "networks", null },
-            };
+            });
         }
         return result;
     }
@@ -1172,6 +1173,7 @@ public partial class deribit : Exchange
             { "currency", code },
             { "address", address },
             { "tag", null },
+            { "network", null },
             { "info", response },
         };
     }
@@ -1368,7 +1370,24 @@ public partial class deribit : Exchange
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
         object code = this.safeString2(parameters, "code", "currency");
+        object type = null;
         parameters = this.omit(parameters, new List<object>() {"code"});
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            {
+                object market = this.market(getValue(symbols, i));
+                if (isTrue(isTrue(!isEqual(code, null)) && isTrue(!isEqual(code, getValue(market, "base")))))
+                {
+                    throw new BadRequest ((string)add(this.id, " fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/#public-get_book_summary_by_currency")) ;
+                }
+                if (isTrue(isEqual(code, null)))
+                {
+                    code = getValue(market, "base");
+                    type = getValue(market, "type");
+                }
+            }
+        }
         if (isTrue(isEqual(code, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchTickers requires a currency/code (eg: BTC/ETH/USDT) parameter to fetch tickers for")) ;
@@ -1377,6 +1396,24 @@ public partial class deribit : Exchange
         object request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
         };
+        if (isTrue(!isEqual(type, null)))
+        {
+            object requestType = null;
+            if (isTrue(isEqual(type, "spot")))
+            {
+                requestType = "spot";
+            } else if (isTrue(isTrue(isEqual(type, "future")) || isTrue((isEqual(type, "contract")))))
+            {
+                requestType = "future";
+            } else if (isTrue(isEqual(type, "option")))
+            {
+                requestType = "option";
+            }
+            if (isTrue(!isEqual(requestType, null)))
+            {
+                ((IDictionary<string,object>)request)["kind"] = requestType;
+            }
+        }
         object response = await this.publicGetGetBookSummaryByCurrency(this.extend(request, parameters));
         //
         //     {

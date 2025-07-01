@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "4.4.67",
+  "version": "4.4.92",
   "description": "A JavaScript / TypeScript / Python / C# / PHP cryptocurrency trading library with support for 100+ exchanges",
   "unpkg": "dist/ccxt.browser.min.js",
   "type": "module",
@@ -10,9 +10,6 @@
       "require": "./dist/ccxt.cjs"
     }
   },
-  "bin": {
-    "ccxt": "examples/js/cli.js"
-  },
   "engines": {
     "node": ">=15.0.0"
   },
@@ -21,7 +18,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/ccxt/ccxt.git"
+    "url": "git+https://github.com/ccxt/ccxt.git"
   },
   "readme": "README.md",
   "scripts": {
@@ -65,10 +62,10 @@
     "pre-transpile": "npm run export-exchanges && npm run vss && npm run tsBuild && npm run emitAPI && npm run validate-types && npm run tsBuildExamples && npm run copy-python-files && npm run check-js-syntax && npm run bundle",
     "pre-transpile-pr": "npm run export-exchanges && npm run tsBuild && npm run emitAPI && npm run check-js-syntax",
     "post-transpile": "npm run check-python-syntax && npm run check-php-syntax",
-    "cli.js": "node ./examples/js/cli.js",
+    "cli.ts": "tsx ./cli/ts/cli.ts",
+    "cli.js": "node ./cli/js/cli.js",
     "cli.py": "python3 ./examples/py/cli.py",
     "cli.php": "php ./examples/php/cli.php",
-    "cli.ts": "tsx examples/ts/cli.ts",
     "cli.cs": "dotnet run --project \"./cs/cli/cli.csproj\"",
     "cli.go": "go run ./go/cli/main.go",
     "export-exchanges": "node build/export-exchanges",
@@ -195,11 +192,11 @@
     "@types/node": "^18.15.11",
     "@typescript-eslint/eslint-plugin": "^5.30.5",
     "@typescript-eslint/parser": "^5.30.5",
-    "ansicolor": "1.1.81",
-    "as-table": "1.0.37",
+    "ansicolor": "^2.0.0",
+    "as-table": "^1.0.55",
     "asciichart": "^1.5.25",
     "assert": "^2.0.0",
-    "ast-transpiler": "^0.0.65",
+    "ast-transpiler": "^0.0.66",
     "docsify": "^4.11.4",
     "eslint": "8.22.0",
     "eslint-config-airbnb-base": "15.0.0",
@@ -208,7 +205,7 @@
     "esmify": "^2.1.1",
     "https-proxy-agent": "^5.0.1",
     "jsdoc-to-markdown": "^8.0.0",
-    "ololog": "1.1.155",
+    "ololog": "^1.1.175",
     "piscina": "^3.2.0",
     "replace-in-file": "^6.3.5",
     "rollup": "^2.70.1",

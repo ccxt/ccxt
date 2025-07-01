@@ -417,12 +417,12 @@ class derive(ccxt.async_support.derive):
             requestId = self.request_id(url)
             now = str(self.milliseconds())
             signature = self.signMessage(now, self.privateKey)
-            contractWalletAddress = self.safe_string(self.options, 'contractWalletAddress')
+            deriveWalletAddress = self.safe_string(self.options, 'deriveWalletAddress')
             request: dict = {
                 'id': requestId,
                 'method': 'public/login',
                 'params': {
-                    'wallet': contractWalletAddress,
+                    'wallet': deriveWalletAddress,
                     'timestamp': now,
                     'signature': signature,
                 },

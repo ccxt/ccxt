@@ -20,11 +20,6 @@ import ccxt.async_support as ccxt  # noqa: E402
 
 # ------------------------------------------------------------------------------
 
-print('Python v' + platform.python_version())
-print('CCXT v' + ccxt.__version__)
-
-# ------------------------------------------------------------------------------
-
 
 class Argv(object):
 
@@ -45,6 +40,8 @@ class Argv(object):
     signIn = False
     args = []
     no_keys = False
+    raw = False
+    no_load_markets = False
 
 
 argv = Argv()
@@ -64,6 +61,8 @@ parser.add_argument('--future', action='store_true', help='enable future markets
 parser.add_argument('--option', action='store_true', help='enable option markets')
 parser.add_argument('--signIn', action='store_true', help='sign in')
 parser.add_argument('--no-keys', action='store_true', help='don t load keys')
+parser.add_argument('--raw', action='store_true', help='raw output')
+parser.add_argument('--no-load-markets', action='store_true', help='no load markets')
 parser.add_argument('exchange_id', type=str, help='exchange id in lowercase', nargs='?')
 parser.add_argument('method', type=str, help='method or property', nargs='?')
 parser.add_argument('args', type=str, help='arguments', nargs='*')
@@ -104,6 +103,10 @@ def print_usage():
 # ------------------------------------------------------------------------------
 
 async def main():
+    if not argv.raw:
+        print('Python v' + platform.python_version())
+        print('CCXT v' + ccxt.__version__)
+
     # prefer local testing keys to global keys
     keys_global = root + '/keys.json'
     keys_local = root + '/keys.local.json'
@@ -204,12 +207,13 @@ async def main():
     if argv.verbose and argv.debug:
         exchange.verbose = argv.verbose
 
-    markets_path = '.cache/' + exchange.id + '-markets.json'
-    if os.path.exists(markets_path):
-        with open(markets_path, 'r') as f:
-            exchange.markets = json.load(f)
-    else:
-        await exchange.load_markets()
+    if not argv.no_load_markets:
+        markets_path = '.cache/' + exchange.id + '-markets.json'
+        if os.path.exists(markets_path):
+            with open(markets_path, 'r') as f:
+                exchange.markets = json.load(f)
+        else:
+            await exchange.load_markets()
 
     exchange.verbose = argv.verbose  # now set verbose mode
 
@@ -224,7 +228,9 @@ async def main():
         if callable(method):
             if argv.method.startswith('watch'):
                 is_ws_method = True # handle ws methods
-            print(f"{argv.exchange_id}.{argv.method}({','.join(map(str, args))})")
+            if not argv.raw:
+                print(f"{argv.exchange_id}.{argv.method}({','.join(map(str, args))})")
+
             while True:
                 result = method(*args)
                 if asyncio.iscoroutine(result):
@@ -232,6 +238,8 @@ async def main():
                 if argv.table:
                     result = list(result.values()) if isinstance(result, dict) else result
                     print(table([exchange.omit(v, 'info') for v in result]))
+                elif argv.raw:
+                    print(exchange.json(result))
                 else:
                     pprint(result)
                 if not is_ws_method:
@@ -242,8 +250,11 @@ async def main():
         if argv.table:
             result = list(result.values()) if isinstance(result, dict) else result
             print(table([exchange.omit(v, 'info') for v in result]))
+        elif argv.raw:
+            print(exchange.json(result))
         else:
             pprint(result)
+        await exchange.close()
     else:
         pprint(dir(exchange))
 

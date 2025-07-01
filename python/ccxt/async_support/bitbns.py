@@ -315,7 +315,7 @@ class bitbns(Exchange, ImplicitAPI):
                 'swap': False,
                 'future': False,
                 'option': False,
-                'active': None,
+                'active': self.safe_bool(market, 'active'),
                 'contract': False,
                 'linear': None,
                 'inverse': None,

@@ -1,13 +1,14 @@
 
 //  ---------------------------------------------------------------------------
 
-import { BadRequest, InvalidOrder, Precise, ExchangeError, OrderNotFound, ArgumentsRequired, InsufficientFunds, RateLimitExceeded, AuthenticationError } from '../ccxt.js';
 import Exchange from './abstract/derive.js';
-import { TICK_SIZE } from './base/functions/number.js';
+import Precise from './base/Precise.js';
+import type { Dict, Currencies, Transaction, Currency, FundingHistory, Market, MarketType, Bool, Str, Strings, Ticker, Int, int, Trade, OrderType, OrderSide, Num, FundingRateHistory, FundingRate, Balances, Order, Position } from './base/types.js';
+import { BadRequest, InvalidOrder, ExchangeError, OrderNotFound, ArgumentsRequired, InsufficientFunds, RateLimitExceeded, AuthenticationError } from './base/errors.js';
+import { ecdsa } from './base/functions/crypto.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
-import { ecdsa } from './base/functions/crypto.js';
-import type { Dict, Currencies, Transaction, Currency, FundingHistory, Market, MarketType, Bool, Str, Strings, Ticker, Int, int, Trade, OrderType, OrderSide, Num, FundingRateHistory, FundingRate, Balances, Order } from './base/types.js';
+import { TICK_SIZE } from './base/functions/number.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -458,14 +459,50 @@ export default class derive extends Exchange {
         const result: Dict = {};
         const tokenResponse = await this.publicGetGetAllCurrencies (params);
         //
-        // {
-        //     "result": [
-        //         {
-        //             "currency": "USDC",
-        //             "spot_price": "1.000066413299999872",
-        //             "spot_price_24h": "1.000327785299999872"
-        //         }
-        //     ],
+        //    {
+        //        "result": [
+        //            {
+        //                "currency": "SEI",
+        //                "instrument_types": [
+        //                    "perp"
+        //                ],
+        //                "protocol_asset_addresses": {
+        //                    "perp": "0x7225889B75fd34C68eA3098dAE04D50553C09840",
+        //                    "option": null,
+        //                    "spot": null,
+        //                    "underlying_erc20": null
+        //                },
+        //                "managers": [
+        //                    {
+        //                        "address": "0x28c9ddF9A3B29c2E6a561c1BC520954e5A33de5D",
+        //                        "margin_type": "SM",
+        //                        "currency": null
+        //                    }
+        //                ],
+        //                "srm_im_discount": "0",
+        //                "srm_mm_discount": "0",
+        //                "pm2_collateral_discounts": [],
+        //                "borrow_apy": "0",
+        //                "supply_apy": "0",
+        //                "total_borrow": "0",
+        //                "total_supply": "0",
+        //                "asset_cap_and_supply_per_manager": {
+        //                    "perp": {
+        //                        "SM": [
+        //                            {
+        //                                "current_open_interest": "0",
+        //                                "interest_cap": "2000000",
+        //                                "manager_currency": null
+        //                            }
+        //                        ]
+        //                    },
+        //                    "option": {},
+        //                    "erc20": {}
+        //                },
+        //                "market_type": "SRM_PERP_ONLY",
+        //                "spot_price": "0.2193542905042081",
+        //                "spot_price_24h": "0.238381655533635830"
+        //            },
         //     "id": "7e07fe1d-0ab4-4d2b-9e22-b65ce9e232dc"
         // }
         //
@@ -474,7 +511,7 @@ export default class derive extends Exchange {
             const currency = currencies[i];
             const currencyId = this.safeString (currency, 'currency');
             const code = this.safeCurrencyCode (currencyId);
-            result[code] = {
+            result[code] = this.safeCurrencyStructure ({
                 'id': currencyId,
                 'name': undefined,
                 'code': code,
@@ -495,7 +532,7 @@ export default class derive extends Exchange {
                     },
                 },
                 'info': currency,
-            };
+            });
         }
         return result;
     }
@@ -604,6 +641,7 @@ export default class derive extends Exchange {
         let swap = false;
         let option = false;
         let linear: Bool = undefined;
+        let inverse: Bool = undefined;
         const baseId = this.safeString (market, 'base_currency');
         const quoteId = this.safeString (market, 'quote_currency');
         const base = this.safeCurrencyCode (baseId);
@@ -626,6 +664,7 @@ export default class derive extends Exchange {
             symbol = base + '/' + quote + ':' + settle;
             swap = true;
             linear = true;
+            inverse = false;
             marketType = 'swap';
         } else if (type === 'option') {
             settleId = 'USDC';
@@ -643,6 +682,8 @@ export default class derive extends Exchange {
             } else {
                 optionType = 'call';
             }
+            linear = true;
+            inverse = false;
         }
         return this.safeMarketStructure ({
             'id': marketId,
@@ -662,7 +703,7 @@ export default class derive extends Exchange {
             'active': this.safeBool (market, 'is_active'),
             'contract': (swap || option),
             'linear': linear,
-            'inverse': undefined,
+            'inverse': inverse,
             'contractSize': (spot) ? undefined : 1,
             'expiry': expiry,
             'expiryDatetime': this.iso8601 (expiry),
@@ -1876,7 +1917,7 @@ export default class derive extends Exchange {
         if (order === undefined) {
             order = rawOrder;
         }
-        const timestamp = this.safeInteger (rawOrder, 'nonce');
+        const timestamp = this.safeInteger2 (rawOrder, 'creation_timestamp', 'nonce');
         const orderId = this.safeString (order, 'order_id');
         const marketId = this.safeString (order, 'instrument_name');
         if (marketId !== undefined) {
@@ -2115,7 +2156,7 @@ export default class derive extends Exchange {
      * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    async fetchPositions (symbols: Strings = undefined, params = {}) {
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         let subaccountId = undefined;
         [ subaccountId, params ] = this.handleDeriveSubaccountId ('fetchPositions', params);
@@ -2422,17 +2463,20 @@ export default class derive extends Exchange {
         const result: Dict = {
             'info': response,
         };
-        // TODO:
-        // checked multiple subaccounts
-        // checked balance after open orders / positions
         for (let i = 0; i < response.length; i++) {
             const subaccount = response[i];
             const collaterals = this.safeList (subaccount, 'collaterals', []);
             for (let j = 0; j < collaterals.length; j++) {
                 const balance = collaterals[j];
                 const code = this.safeCurrencyCode (this.safeString (balance, 'currency'));
-                const account = this.account ();
-                account['total'] = this.safeString (balance, 'amount');
+                let account = this.safeDict (result, code);
+                if (account === undefined) {
+                    account = this.account ();
+                    account['total'] = this.safeString (balance, 'amount');
+                } else {
+                    const amount = this.safeString (balance, 'amount');
+                    account['total'] = Precise.stringAdd (account['total'], amount);
+                }
                 result[code] = account;
             }
         }

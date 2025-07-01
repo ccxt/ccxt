@@ -35,6 +35,20 @@ func (this *Phemex) FetchMarkets(params ...interface{}) ([]MarketInterface, erro
 }
 /**
  * @method
+ * @name phemex#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Phemex) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name phemex#fetchOrderBook
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
  * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryorderbook
@@ -608,6 +622,7 @@ func (this *Phemex) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, err
  * @description fetch the deposit address for a currency associated with this account
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.network] the chain name to fetch the deposit address e.g. ETH, TRX, EOS, SOL, etc.
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
  */
 func (this *Phemex) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
@@ -723,7 +738,7 @@ func (this *Phemex) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tran
  * @see https://phemex-docs.github.io/#query-account-positions-with-unrealized-pnl
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.code] the currency code to fetch positions for, USD, BTC or USDT, USD is the default
+ * @param {string} [params.code] the currency code to fetch positions for, USD, BTC or USDT, USDT is the default
  * @param {string} [params.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetAccountsPositions' default is 'privateGetGAccountsAccountPositions'
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
  */

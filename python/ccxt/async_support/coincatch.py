@@ -90,6 +90,7 @@ class coincatch(Exchange, ImplicitAPI):
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchDepositsWithdrawals': False,
+                'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
@@ -374,56 +375,18 @@ class coincatch(Exchange, ImplicitAPI):
                     'CRO': 'CronosChain',
                 },
                 'networksById': {
-                    'BITCOIN': 'BTC',
-                    'ERC20': 'ERC20',
                     'TRC20': 'TRC20',
                     'TRX(TRC20)': 'TRC20',
-                    'BEP20': 'BEP20',
                     'ArbitrumOne': 'ARB',  # todo check
-                    'Optimism': 'OPTIMISM',
-                    'LTC': 'LTC',
-                    'BCH': 'BCH',
-                    'ETC': 'ETC',
-                    'SOL': 'SOL',
-                    'NEO3': 'NEO3',
-                    'stacks': 'STX',
-                    'Elrond': 'EGLD',
-                    'NEARProtocol': 'NEAR',
-                    'AcalaToken': 'ACA',
-                    'Klaytn': 'KLAY',
-                    'Fantom': 'FTM',
-                    'Terra': 'TERRA',
-                    'WAVES': 'WAVES',
-                    'TAO': 'TAO',
-                    'SUI': 'SUI',
-                    'SEI': 'SEI',
                     'THORChain': 'RUNE',  # todo check
-                    'ZIL': 'ZIL',
                     'Solar': 'SXP',  # todo check
-                    'FET': 'FET',
                     'C-Chain': 'AVAX',  # todo check
-                    'XRP': 'XRP',
-                    'EOS': 'EOS',
-                    'DOGECOIN': 'DOGE',
                     'CAP20': 'CAP20',  # todo check
-                    'Polygon': 'MATIC',
-                    'CSPR': 'CSPR',
-                    'Moonbeam': 'GLMR',
-                    'MINA': 'MINA',
                     'CFXeSpace': 'CFX',  # todo check
                     'CFX': 'CFX',
                     'StratisEVM': 'STRAT',  # todo check
-                    'Celestia': 'TIA',
                     'ChilizChain': 'ChilizChain',  # todo check
-                    'Aptos': 'APT',
-                    'Ontology': 'ONT',
-                    'ICP': 'ICP',
-                    'Cardano': 'ADA',
-                    'FIL': 'FIL',
-                    'CELO': 'CELO',
-                    'DOT': 'DOT',
                     'StellarLumens': 'XLM',  # todo check
-                    'ATOM': 'ATOM',
                     'CronosChain': 'CRO',  # todo check
                 },
             },
@@ -655,73 +618,123 @@ class coincatch(Exchange, ImplicitAPI):
             currencyId = self.safe_string(currecy, 'coinName')
             currenciesIds.append(currencyId)
             code = self.safe_currency_code(currencyId)
-            allowDeposit = False
-            allowWithdraw = False
-            minDeposit: Str = None
-            minWithdraw: Str = None
             networks = self.safe_list(currecy, 'chains')
-            networksById = self.safe_dict(self.options, 'networksById')
             parsedNetworks: dict = {}
             for j in range(0, len(networks)):
                 network = networks[j]
                 networkId = self.safe_string(network, 'chain')
-                networkName = self.safe_string(networksById, networkId, networkId)
-                networkDepositString = self.safe_string(network, 'rechargeable')
-                networkDeposit = networkDepositString == 'true'
-                networkWithdrawString = self.safe_string(network, 'withdrawable')
-                networkWithdraw = networkWithdrawString == 'true'
-                networkMinDeposit = self.safe_string(network, 'minDepositAmount')
-                networkMinWithdraw = self.safe_string(network, 'minWithdrawAmount')
+                networkCode = self.network_code_to_id(networkId)
                 parsedNetworks[networkId] = {
                     'id': networkId,
-                    'network': networkName,
+                    'network': networkCode,
                     'limits': {
                         'deposit': {
-                            'min': self.parse_number(networkMinDeposit),
+                            'min': self.safe_number(network, 'minDepositAmount'),
                             'max': None,
                         },
                         'withdraw': {
-                            'min': self.parse_number(networkMinWithdraw),
+                            'min': self.safe_number(network, 'minWithdrawAmount'),
                             'max': None,
                         },
                     },
-                    'active': networkDeposit and networkWithdraw,
-                    'deposit': networkDeposit,
-                    'withdraw': networkWithdraw,
+                    'active': None,
+                    'deposit': self.safe_string(network, 'rechargeable') == 'true',
+                    'withdraw': self.safe_string(network, 'withdrawable') == 'true',
                     'fee': self.safe_number(network, 'withdrawFee'),
                     'precision': None,
                     'info': network,
                 }
-                allowDeposit = allowDeposit if allowDeposit else networkDeposit
-                allowWithdraw = allowWithdraw if allowWithdraw else networkWithdraw
-                minDeposit = Precise.string_min(networkMinDeposit, minDeposit) if minDeposit else networkMinDeposit
-                minWithdraw = Precise.string_min(networkMinWithdraw, minWithdraw) if minWithdraw else networkMinWithdraw
-            result[code] = {
+            result[code] = self.safe_currency_structure({
                 'id': currencyId,
                 'numericId': self.safe_integer(currecy, 'coinId'),
                 'code': code,
                 'precision': None,
                 'type': None,
                 'name': None,
-                'active': allowWithdraw and allowDeposit,
-                'deposit': allowDeposit,
-                'withdraw': allowWithdraw,
+                'active': None,
+                'deposit': None,
+                'withdraw': None,
                 'fee': None,
                 'limits': {
                     'deposit': {
-                        'min': self.parse_number(minDeposit),
+                        'min': None,
                         'max': None,
                     },
                     'withdraw': {
-                        'min': self.parse_number(minWithdraw),
+                        'min': None,
                         'max': None,
                     },
                 },
                 'networks': parsedNetworks,
                 'info': currecy,
-            }
+            })
         if self.safe_list(self.options, 'currencyIdsListForParseMarket') is None:
             self.options['currencyIdsListForParseMarket'] = currenciesIds
+        return result
+
+    async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
+        """
+        fetch deposit and withdraw fees
+
+        https://coincatch.github.io/github.io/en/spot/#get-coin-list
+
+        :param str[] [codes]: list of unified currency codes
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
+        """
+        await self.load_markets()
+        response = await self.publicGetApiSpotV1PublicCurrencies(params)
+        data = self.safe_list(response, 'data', [])
+        return self.parse_deposit_withdraw_fees(data, codes, 'coinName')
+
+    def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
+        #
+        # {
+        #     "coinId":"1",
+        #     "coinName":"BTC",
+        #     "transfer":"true",
+        #     "chains":[
+        #         {
+        #             "chain":null,
+        #             "needTag":"false",
+        #             "withdrawable":"true",
+        #             "rechargeAble":"true",
+        #             "withdrawFee":"0.005",
+        #             "depositConfirm":"1",
+        #             "withdrawConfirm":"1",
+        #             "minDepositAmount":"0.001",
+        #             "minWithdrawAmount":"0.001",
+        #             "browserUrl":"https://blockchair.com/bitcoin/testnet/transaction/"
+        #         }
+        #     ]
+        # }
+        #
+        chains = self.safe_list(fee, 'chains', [])
+        chainsLength = len(chains)
+        result: dict = {
+            'info': fee,
+            'withdraw': {
+                'fee': None,
+                'percentage': None,
+            },
+            'deposit': {
+                'fee': None,
+                'percentage': None,
+            },
+            'networks': {},
+        }
+        for i in range(0, chainsLength):
+            chain = chains[i]
+            networkId = self.safe_string(chain, 'chain')
+            currencyCode = self.safe_string(currency, 'code')
+            networkCode = self.network_id_to_code(networkId, currencyCode)
+            result['networks'][networkCode] = {
+                'deposit': {'fee': None, 'percentage': None},
+                'withdraw': {'fee': self.safe_number(chain, 'withdrawFee'), 'percentage': False},
+            }
+            if chainsLength == 1:
+                result['withdraw']['fee'] = self.safe_number(chain, 'withdrawFee')
+                result['withdraw']['percentage'] = False
         return result
 
     async def fetch_markets(self, params={}) -> List[Market]:

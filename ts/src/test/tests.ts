@@ -461,7 +461,7 @@ class testMainClass {
             'fetchOHLCV': [ symbol ],
             'fetchTrades': [ symbol ],
             'fetchOrderBook': [ symbol ],
-            'fetchL2OrderBook': [ symbol ],
+            // 'fetchL2OrderBook': [ symbol ],
             'fetchOrderBooks': [],
             'fetchBidsAsks': [],
             'fetchStatus': [],
@@ -1050,8 +1050,8 @@ class testMainClass {
             }
         } else {
             // built-in types like strings, numbers, booleans
-            const sanitizedNewOutput = (!newOutput) ? undefined : newOutput; // we store undefined as nulls in the json file so we need to convert it back
-            const sanitizedStoredOutput = (!storedOutput) ? undefined : storedOutput;
+            const sanitizedNewOutput = (isNullValue (newOutput)) ? undefined : newOutput; // we store undefined as nulls in the json file so we need to convert it back
+            const sanitizedStoredOutput = (isNullValue (storedOutput)) ? undefined : storedOutput;
             const newOutputString = sanitizedNewOutput ? sanitizedNewOutput.toString () : "undefined";
             const storedOutputString = sanitizedStoredOutput ? sanitizedStoredOutput.toString () : "undefined";
             const messageError = 'output value mismatch:' + newOutputString + ' != ' + storedOutputString;
@@ -1072,7 +1072,7 @@ class testMainClass {
                 const isString = isComputedString || isStoredString;
                 const isUndefined = isComputedUndefined || isStoredUndefined; // undefined is a perfetly valid value
                 if (isBoolean || isString || isUndefined)  {
-                    if (this.lang === 'C#') {
+                    if ((this.lang === 'C#') || (this.lang === 'GO')) {
                         // tmp c# number comparsion
                         let isNumber = false;
                         try {
@@ -1210,6 +1210,9 @@ class testMainClass {
     async testRequestStatically (exchange, method: string, data: object, type: string, skipKeys: string[]) {
         let output = undefined;
         let requestUrl = undefined;
+        if (this.info) {
+            dump ('[INFO] STATIC REQUEST TEST:', method, ':', data['description']);
+        }
         try {
             if (!isSync ()) {
                 await callExchangeMethodDynamically (exchange, method, this.sanitizeDataInput (data['input']));
@@ -1240,6 +1243,9 @@ class testMainClass {
     async testResponseStatically (exchange, method: string, skipKeys: string[], data: object) {
         const expectedResult = exchange.safeValue (data, 'parsedResponse');
         const mockedExchange = setFetchResponse (exchange, data['httpResponse']);
+        if (this.info) {
+            dump ('[INFO] STATIC RESPONSE TEST:', method, ':', data['description']);
+        }
         try {
             if (!isSync ()) {
                 const unifiedResult = await callExchangeMethodDynamically (exchange, method, this.sanitizeDataInput (data['input']));
@@ -1261,6 +1267,7 @@ class testMainClass {
     initOfflineExchange (exchangeName: string) {
         const markets = this.loadMarketsFromFile (exchangeName);
         const currencies = this.loadCurrenciesFromFile (exchangeName);
+        // we add "proxy" 2 times to intentionally trigger InvalidProxySettings
         const exchange = initExchange (exchangeName, { 'markets': markets, 'currencies': currencies, 'enableRateLimit': false, 'rateLimit': 1, 'httpProxy': 'http://fake:8080', 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'walletAddress': 'wallet', 'privateKey': '0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771', 'uid': 'uid', 'token': 'token', 'login': 'login', 'accountId':'accountId', 'accounts': [ { 'id': 'myAccount', 'code': 'USDT' }, { 'id': 'myAccount', 'code': 'USDC' } ], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false, 'accessToken': 'token', 'expires': 999999999999999, 'leverageBrackets': {}}});
         exchange.currencies = currencies;
         // not working in python if assigned  in the config dict
@@ -1431,6 +1438,31 @@ class testMainClass {
         return sum;
     }
 
+    checkIfExchangeIsDisabled (exchangeName: string, exchangeData: object) {
+        const exchange = initExchange ('Exchange', {});
+        const isDisabledPy = exchange.safeBool (exchangeData, 'disabledPy', false);
+        if (isDisabledPy && (this.lang === 'PY')) {
+            dump ('[TEST_WARNING] Exchange ' + exchangeName + ' is disabled in python');
+            return true;
+        }
+        const isDisabledPHP = exchange.safeBool (exchangeData, 'disabledPHP', false);
+        if (isDisabledPHP && (this.lang === 'PHP')) {
+            dump ('[TEST_WARNING] Exchange ' + exchangeName + ' is disabled in php');
+            return true;
+        }
+        const isDisabledCSharp = exchange.safeBool (exchangeData, 'disabledCS', false);
+        if (isDisabledCSharp && (this.lang === 'C#')) {
+            dump ('[TEST_WARNING] Exchange ' + exchangeName + ' is disabled in c#');
+            return true;
+        }
+        const isDisabledGO = exchange.safeBool (exchangeData, 'disabledGO', false);
+        if (isDisabledGO && (this.lang === 'GO')) {
+            dump ('[TEST_WARNING] Exchange ' + exchangeName + ' is disabled in go');
+            return true;
+        }
+        return false;
+    }
+
     async runStaticRequestTests (targetExchange: Str = undefined, testName: Str = undefined) {
         await this.runStaticTests ('request', targetExchange, testName);
         return true;
@@ -1455,6 +1487,10 @@ class testMainClass {
         for (let i = 0; i < exchanges.length; i++) {
             const exchangeName = exchanges[i];
             const exchangeData = staticData[exchangeName];
+            const disabled = this.checkIfExchangeIsDisabled (exchangeName, exchangeData);
+            if (disabled) {
+                continue;
+            }
             const numberOfTests = this.getNumberOfTestsFromExchange (exchange, exchangeData, testName);
             sum = exchange.sum (sum, numberOfTests);
             if (type === 'request') {
@@ -1525,6 +1561,7 @@ class testMainClass {
             this.testDefx (),
             this.testCryptomus (),
             this.testDerive (),
+            this.testModeTrade (),
         ];
         await Promise.all (promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -1535,7 +1572,9 @@ class testMainClass {
 
     async testBinance () {
         const exchange = this.initOfflineExchange ('binance');
-        const spotId = 'x-R4BD3S82';
+        const spotId = 'x-TKT5PX2F';
+        const swapId = 'x-cvBPrNm9';
+        const inverseSwapId = 'x-xcKtGhcu';
         let spotOrderRequest = undefined;
         try {
             await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
@@ -1545,7 +1584,7 @@ class testMainClass {
         const clientOrderId = spotOrderRequest['newClientOrderId'];
         const spotIdString = spotId.toString ();
         assert (clientOrderId.startsWith (spotIdString), 'binance - spot clientOrderId: ' + clientOrderId + ' does not start with spotId' + spotIdString);
-        const swapId = 'x-xcKtGhcu';
+
         let swapOrderRequest = undefined;
         try {
             await exchange.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
@@ -1558,11 +1597,40 @@ class testMainClass {
         } catch (e) {
             swapInverseOrderRequest = this.urlencodedToDict (exchange.last_request_body);
         }
+        // linear swap
         const clientOrderIdSwap = swapOrderRequest['newClientOrderId'];
         const swapIdString = swapId.toString ();
         assert (clientOrderIdSwap.startsWith (swapIdString), 'binance - swap clientOrderId: ' + clientOrderIdSwap + ' does not start with swapId' + swapIdString);
+        // inverse swap
         const clientOrderIdInverse = swapInverseOrderRequest['newClientOrderId'];
-        assert (clientOrderIdInverse.startsWith (swapIdString), 'binance - swap clientOrderIdInverse: ' + clientOrderIdInverse + ' does not start with swapId' + swapIdString);
+        assert (clientOrderIdInverse.startsWith (inverseSwapId), 'binance - swap clientOrderIdInverse: ' + clientOrderIdInverse + ' does not start with swapId' + inverseSwapId);
+        let createOrdersRequest = undefined;
+        try {
+            const orders = [
+                {
+                    'symbol': 'BTC/USDT:USDT',
+                    'type': 'limit',
+                    'side': 'sell',
+                    'amount': 1,
+                    'price': 100000
+                },
+                {
+                    'symbol': 'BTC/USDT:USDT',
+                    'type': 'market',
+                    'side': 'buy',
+                    'amount': 1,
+                },
+            ];
+            await exchange.createOrders (orders);
+        } catch (e) {
+            createOrdersRequest = this.urlencodedToDict (exchange.last_request_body);
+        }
+        const batchOrders = createOrdersRequest['batchOrders'];
+        for (let i = 0; i < batchOrders.length; i++) {
+            const current = batchOrders[i];
+            const currentClientOrderId = current['newClientOrderId'];
+            assert (currentClientOrderId.startsWith (swapIdString), 'binance createOrders - clientOrderId: ' + currentClientOrderId + ' does not start with swapId' + swapIdString);
+        }
         if (!isSync ()) {
             await close (exchange);
         }
@@ -2113,6 +2181,25 @@ class testMainClass {
             request = jsonParse (exchange.last_request_body);
         }
         assert (request['referral_code'] === id, 'derive - referral_code: ' + id + ' not in request.');
+        if (!isSync ()) {
+            await close (exchange);
+        }
+        return true;
+    }
+
+    async testModeTrade () {
+        const exchange = this.initOfflineExchange ('modetrade');
+        exchange.secret = 'secretsecretsecretsecretsecretsecretsecrets';
+        const id = 'CCXTMODE';
+        await exchange.loadMarkets ();
+        let request = undefined;
+        try {
+            await exchange.createOrder ('BTC/USDC:USDC', 'limit', 'buy', 1, 20000);
+        } catch (e) {
+            request = jsonParse (exchange.last_request_body);
+        }
+        const brokerId = request['order_tag'];
+        assert (brokerId === id, 'modetrade - id: ' + id + ' different from  broker_id: ' + brokerId);
         if (!isSync ()) {
             await close (exchange);
         }
