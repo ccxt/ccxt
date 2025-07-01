@@ -5631,7 +5631,7 @@ func  (this *okx) Withdraw(code interface{}, amount interface{}, address interfa
         
                 currencies:= (<-this.FetchCurrencies())
                 PanicOnError(currencies)
-                this.Currencies = this.DeepExtend(this.Currencies, currencies)
+                this.Currencies = this.MapToSafeMap(this.DeepExtend(this.Currencies, currencies))
                 var targetNetwork interface{} = this.SafeDict(GetValue(currency, "networks"), this.NetworkIdToCode(network), map[string]interface{} {})
                 fee = this.SafeString(targetNetwork, "fee")
                 if IsTrue(IsEqual(fee, nil)) {
@@ -8074,7 +8074,7 @@ func  (this *okx) ParseMarketLeverageTiers(info interface{}, optionalArgs ...int
 /**
  * @method
  * @name okx#fetchBorrowInterest
- * @description fetch the interest owed by the user for borrowing currency for margin trading
+ * @description fetch the interest owed b the user for borrowing currency for margin trading
  * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-interest-accrued-data
  * @param {string} code the unified currency code for the currency of the interest
  * @param {string} symbol the market symbol of an isolated margin market, if undefined, the interest for cross margin markets is returned
