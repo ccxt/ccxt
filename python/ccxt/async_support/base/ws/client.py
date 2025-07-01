@@ -137,8 +137,6 @@ class Client(object):
                     self.reject(error)
 
             task.add_done_callback(after_interrupt)
-        else:
-            self.on_close(1000)
 
     async def open(self, session, backoff_delay=0):
         # exponential backoff for consequent connections if necessary
