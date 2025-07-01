@@ -698,95 +698,95 @@ public partial class exmo : Exchange
         {
             object currency = getValue(currencyList, i);
             object currencyId = this.safeString(currency, "name");
-            object name = this.safeString(currency, "description");
-            object providers = this.safeValue(cryptoList, currencyId);
-            object active = false;
+            object code = this.safeCurrencyCode(currencyId);
             object type = "crypto";
-            object limits = new Dictionary<string, object>() {
-                { "deposit", new Dictionary<string, object>() {
-                    { "min", null },
-                    { "max", null },
-                } },
-                { "withdraw", new Dictionary<string, object>() {
-                    { "min", null },
-                    { "max", null },
-                } },
-            };
-            object fee = null;
-            object depositEnabled = null;
-            object withdrawEnabled = null;
+            object networks = new Dictionary<string, object>() {};
+            object providers = this.safeList(cryptoList, currencyId);
             if (isTrue(isEqual(providers, null)))
             {
-                active = true;
                 type = "fiat";
             } else
             {
                 for (object j = 0; isLessThan(j, getArrayLength(providers)); postFixIncrement(ref j))
                 {
                     object provider = getValue(providers, j);
+                    object name = this.safeString(provider, "name");
+                    // get network-id by removing extra things
+                    object networkId = ((string)name).Replace((string)add(currencyId, " "), (string)"");
+                    networkId = ((string)networkId).Replace((string)"(", (string)"");
+                    object replaceChar = ")"; // transpiler trick
+                    networkId = ((string)networkId).Replace((string)replaceChar, (string)"");
+                    object networkCode = this.networkIdToCode(networkId);
+                    if (!isTrue((inOp(networks, networkCode))))
+                    {
+                        ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                            { "id", networkId },
+                            { "network", networkCode },
+                            { "active", null },
+                            { "deposit", null },
+                            { "withdraw", null },
+                            { "fee", null },
+                            { "limits", new Dictionary<string, object>() {
+                                { "withdraw", new Dictionary<string, object>() {
+                                    { "min", null },
+                                    { "max", null },
+                                } },
+                                { "deposit", new Dictionary<string, object>() {
+                                    { "min", null },
+                                    { "max", null },
+                                } },
+                            } },
+                            { "info", new List<object>() {} },
+                        };
+                    }
                     object typeInner = this.safeString(provider, "type");
                     object minValue = this.safeString(provider, "min");
                     object maxValue = this.safeString(provider, "max");
-                    if (isTrue(Precise.stringEq(maxValue, "0.0")))
-                    {
-                        maxValue = null;
-                    }
-                    object activeProvider = this.safeValue(provider, "enabled");
+                    object activeProvider = this.safeBool(provider, "enabled");
+                    object networkEntry = getValue(networks, networkCode);
                     if (isTrue(isEqual(typeInner, "deposit")))
                     {
-                        if (isTrue(isTrue(activeProvider) && !isTrue(depositEnabled)))
-                        {
-                            depositEnabled = true;
-                        } else if (!isTrue(activeProvider))
-                        {
-                            depositEnabled = false;
-                        }
+                        ((IDictionary<string,object>)networkEntry)["deposit"] = activeProvider;
+                        ((IDictionary<string,object>)getValue(getValue(networkEntry, "limits"), "deposit"))["min"] = minValue;
+                        ((IDictionary<string,object>)getValue(getValue(networkEntry, "limits"), "deposit"))["max"] = maxValue;
                     } else if (isTrue(isEqual(typeInner, "withdraw")))
                     {
-                        if (isTrue(isTrue(activeProvider) && !isTrue(withdrawEnabled)))
-                        {
-                            withdrawEnabled = true;
-                        } else if (!isTrue(activeProvider))
-                        {
-                            withdrawEnabled = false;
-                        }
+                        ((IDictionary<string,object>)networkEntry)["withdraw"] = activeProvider;
+                        ((IDictionary<string,object>)getValue(getValue(networkEntry, "limits"), "withdraw"))["min"] = minValue;
+                        ((IDictionary<string,object>)getValue(getValue(networkEntry, "limits"), "withdraw"))["max"] = maxValue;
                     }
-                    if (isTrue(activeProvider))
-                    {
-                        active = true;
-                        object limitMin = this.numberToString(getValue(getValue(limits, typeInner), "min"));
-                        if (isTrue(isTrue((isEqual(getValue(getValue(limits, typeInner), "min"), null))) || isTrue((Precise.stringLt(minValue, limitMin)))))
-                        {
-                            ((IDictionary<string,object>)getValue(limits, typeInner))["min"] = minValue;
-                            ((IDictionary<string,object>)getValue(limits, typeInner))["max"] = maxValue;
-                            if (isTrue(isEqual(typeInner, "withdraw")))
-                            {
-                                object commissionDesc = this.safeString(provider, "commission_desc");
-                                fee = this.parseFixedFloatValue(commissionDesc);
-                            }
-                        }
-                    }
+                    object info = this.safeList(networkEntry, "info");
+                    ((IList<object>)info).Add(provider);
+                    ((IDictionary<string,object>)networkEntry)["info"] = info;
+                    ((IDictionary<string,object>)networks)[(string)networkCode] = networkEntry;
                 }
             }
-            object code = this.safeCurrencyCode(currencyId);
-            object info = new Dictionary<string, object>() {
-                { "currency", currency },
-                { "providers", providers },
-            };
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", currencyId },
                 { "code", code },
-                { "name", name },
+                { "name", this.safeString(currency, "description") },
                 { "type", type },
-                { "active", active },
-                { "deposit", depositEnabled },
-                { "withdraw", withdrawEnabled },
-                { "fee", fee },
+                { "active", null },
+                { "deposit", null },
+                { "withdraw", null },
+                { "fee", null },
                 { "precision", this.parseNumber("1e-8") },
-                { "limits", limits },
-                { "info", info },
-                { "networks", new Dictionary<string, object>() {} },
-            };
+                { "limits", new Dictionary<string, object>() {
+                    { "withdraw", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                    { "deposit", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                } },
+                { "info", new Dictionary<string, object>() {
+                    { "currency", currency },
+                    { "providers", providers },
+                } },
+                { "networks", networks },
+            });
         }
         return result;
     }

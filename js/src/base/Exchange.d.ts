@@ -362,6 +362,8 @@ export default class Exchange {
     checkOrderArguments(market: any, type: any, side: any, amount: any, price: any, params: any): void;
     handleHttpStatusCode(code: any, reason: any, url: any, method: any, body: any): void;
     remove0xPrefix(hexData: any): any;
+    mapToSafeMap(dict: any): any;
+    safeMapToMap(dict: any): any;
     spawn(method: any, ...args: any[]): import("./ws/Future.js").FutureInterface;
     delay(timeout: any, method: any, ...args: any[]): void;
     orderBook(snapshot?: {}, depth?: number): WsOrderBook;

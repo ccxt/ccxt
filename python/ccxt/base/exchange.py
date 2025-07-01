@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.91'
+__version__ = '4.4.92'
 
 # -----------------------------------------------------------------------------
 
@@ -1514,6 +1514,12 @@ class Exchange(object):
         # default strings like '0.0001'
         parts = re.sub(r'0+$', '', str).split('.')
         return len(parts[1]) if len(parts) > 1 else 0
+
+    def map_to_safe_map(self, dictionary):
+        return dictionary  # wrapper for go
+
+    def safe_map_to_map(self, dictionary):
+        return dictionary  # wrapper for go
 
     def load_markets(self, reload=False, params={}):
         """
@@ -3222,14 +3228,14 @@ class Exchange(object):
             else:
                 market['subType'] = None
             values.append(market)
-        self.markets = self.index_by(values, 'symbol')
+        self.markets = self.map_to_safe_map(self.index_by(values, 'symbol'))
         marketsSortedBySymbol = self.keysort(self.markets)
         marketsSortedById = self.keysort(self.markets_by_id)
         self.symbols = list(marketsSortedBySymbol.keys())
         self.ids = list(marketsSortedById.keys())
         if currencies is not None:
             # currencies is always None when called in constructor but not when called from loadMarkets
-            self.currencies = self.deep_extend(self.currencies, currencies)
+            self.currencies = self.map_to_safe_map(self.deep_extend(self.currencies, currencies))
         else:
             baseCurrencies = []
             quoteCurrencies = []
@@ -3255,8 +3261,8 @@ class Exchange(object):
                     quoteCurrencies.append(currency)
             baseCurrencies = self.sort_by(baseCurrencies, 'code', False, '')
             quoteCurrencies = self.sort_by(quoteCurrencies, 'code', False, '')
-            self.baseCurrencies = self.index_by(baseCurrencies, 'code')
-            self.quoteCurrencies = self.index_by(quoteCurrencies, 'code')
+            self.baseCurrencies = self.map_to_safe_map(self.index_by(baseCurrencies, 'code'))
+            self.quoteCurrencies = self.map_to_safe_map(self.index_by(quoteCurrencies, 'code'))
             allCurrencies = self.array_concat(baseCurrencies, quoteCurrencies)
             groupedCurrencies = self.group_by(allCurrencies, 'code')
             codes = list(groupedCurrencies.keys())
@@ -3273,7 +3279,7 @@ class Exchange(object):
                         highestPrecisionCurrency = currentCurrency if (currentCurrency['precision'] > highestPrecisionCurrency['precision']) else highestPrecisionCurrency
                 resultingCurrencies.append(highestPrecisionCurrency)
             sortedCurrencies = self.sort_by(resultingCurrencies, 'code')
-            self.currencies = self.deep_extend(self.currencies, self.index_by(sortedCurrencies, 'code'))
+            self.currencies = self.map_to_safe_map(self.deep_extend(self.currencies, self.index_by(sortedCurrencies, 'code')))
         self.currencies_by_id = self.index_by_safe(self.currencies, 'id')
         currenciesSortedByCode = self.keysort(self.currencies)
         self.codes = list(currenciesSortedByCode.keys())
