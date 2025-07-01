@@ -3864,14 +3864,14 @@ class Exchange {
             }
             $values[] = $market;
         }
-        $this->markets = $this->index_by($values, 'symbol');
+        $this->markets = $this->map_to_safe_map($this->index_by($values, 'symbol'));
         $marketsSortedBySymbol = $this->keysort($this->markets);
         $marketsSortedById = $this->keysort($this->markets_by_id);
         $this->symbols = is_array($marketsSortedBySymbol) ? array_keys($marketsSortedBySymbol) : array();
         $this->ids = is_array($marketsSortedById) ? array_keys($marketsSortedById) : array();
         if ($currencies !== null) {
             // $currencies is always null when called in constructor but not when called from loadMarkets
-            $this->currencies = $this->deep_extend($this->currencies, $currencies);
+            $this->currencies = $this->map_to_safe_map($this->deep_extend($this->currencies, $currencies));
         } else {
             $baseCurrencies = array();
             $quoteCurrencies = array();
@@ -3900,8 +3900,8 @@ class Exchange {
             }
             $baseCurrencies = $this->sort_by($baseCurrencies, 'code', false, '');
             $quoteCurrencies = $this->sort_by($quoteCurrencies, 'code', false, '');
-            $this->baseCurrencies = $this->index_by($baseCurrencies, 'code');
-            $this->quoteCurrencies = $this->index_by($quoteCurrencies, 'code');
+            $this->baseCurrencies = $this->map_to_safe_map($this->index_by($baseCurrencies, 'code'));
+            $this->quoteCurrencies = $this->map_to_safe_map($this->index_by($quoteCurrencies, 'code'));
             $allCurrencies = $this->array_concat($baseCurrencies, $quoteCurrencies);
             $groupedCurrencies = $this->group_by($allCurrencies, 'code');
             $codes = is_array($groupedCurrencies) ? array_keys($groupedCurrencies) : array();
@@ -3921,7 +3921,7 @@ class Exchange {
                 $resultingCurrencies[] = $highestPrecisionCurrency;
             }
             $sortedCurrencies = $this->sort_by($resultingCurrencies, 'code');
-            $this->currencies = $this->deep_extend($this->currencies, $this->index_by($sortedCurrencies, 'code'));
+            $this->currencies = $this->map_to_safe_map($this->deep_extend($this->currencies, $this->index_by($sortedCurrencies, 'code')));
         }
         $this->currencies_by_id = $this->index_by_safe($this->currencies, 'id');
         $currenciesSortedByCode = $this->keysort($this->currencies);
