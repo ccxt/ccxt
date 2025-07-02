@@ -4,7 +4,7 @@ import Exchange from './abstract/aster.js';
 import { AccountNotEnabled, AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSymbol, DuplicateOrderId, ExchangeClosedByUser, ExchangeError, InsufficientFunds, InvalidNonce, InvalidOrder, MarketClosed, NetworkError, NoChange, NotSupported, OperationFailed, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { Balances, Currencies, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface } from './base/types.js';
+import type { Balances, Currencies, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface } from './base/types.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------xs
@@ -1764,6 +1764,39 @@ export default class aster extends Exchange {
             response = await this.privatePostFapiV1Order (request);
         }
         return this.parseOrder (response, market);
+    }
+
+    /**
+     * @method
+     * @name aster#createOrders
+     * @description create a list of trade orders
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#place-multiple-orders--trade
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async createOrders (orders: OrderRequest[], params = {}) {
+        await this.loadMarkets ();
+        const ordersRequests = [];
+        if (orders.length > 5) {
+            throw new InvalidOrder (this.id + ' createOrders() order list max 5 orders');
+        }
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const marketId = this.safeString (rawOrder, 'symbol');
+            const type = this.safeString (rawOrder, 'type');
+            const side = this.safeString (rawOrder, 'side');
+            const amount = this.safeValue (rawOrder, 'amount');
+            const price = this.safeValue (rawOrder, 'price');
+            const orderParams = this.safeDict (rawOrder, 'params', {});
+            const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams);
+            ordersRequests.push (orderRequest);
+        }
+        const request: Dict = {
+            'batchOrders': ordersRequests,
+        };
+        const response = await this.privatePostFapiV1BatchOrders (this.extend (request, params));
+        return this.parseOrders (response);
     }
 
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
