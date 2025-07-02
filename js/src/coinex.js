@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/coinex.js';
-import { ExchangeError, ArgumentsRequired, BadSymbol, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError, PermissionDenied, ExchangeNotAvailable, RequestTimeout, BadRequest, RateLimitExceeded, NotSupported, AccountSuspended } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, BadSymbol, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError, PermissionDenied, ExchangeNotAvailable, RequestTimeout, BadRequest, RateLimitExceeded, NotSupported, AccountSuspended, OperationFailed } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -660,6 +660,7 @@ export default class coinex extends Exchange {
                 'broad': {
                     'ip not allow visit': PermissionDenied,
                     'service too busy': ExchangeNotAvailable,
+                    'Service is not available during funding fee settlement': OperationFailed,
                 },
             },
         });
