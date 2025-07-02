@@ -705,7 +705,8 @@ public partial class hyperliquid : Exchange
         //     }
         //
         object quoteId = "USDC";
-        object bs = this.safeString(market, "name");
+        object baseName = this.safeString(market, "name");
+        object bs = this.safeCurrencyCode(baseName);
         object quote = this.safeCurrencyCode(quoteId);
         object baseId = this.safeString(market, "baseId");
         object settleId = "USDC";
