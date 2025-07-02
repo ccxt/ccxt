@@ -695,7 +695,8 @@ class hyperliquid(Exchange, ImplicitAPI):
         #     }
         #
         quoteId = 'USDC'
-        base = self.safe_string(market, 'name')
+        baseName = self.safe_string(market, 'name')
+        base = self.safe_currency_code(baseName)
         quote = self.safe_currency_code(quoteId)
         baseId = self.safe_string(market, 'baseId')
         settleId = 'USDC'
