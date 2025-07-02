@@ -657,6 +657,7 @@ class coinex extends coinex$1 {
                 'broad': {
                     'ip not allow visit': errors.PermissionDenied,
                     'service too busy': errors.ExchangeNotAvailable,
+                    'Service is not available during funding fee settlement': errors.OperationFailed,
                 },
             },
         });
