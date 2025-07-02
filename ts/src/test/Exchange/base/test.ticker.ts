@@ -36,17 +36,16 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
     testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyAllowedFor);
     testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, entry);
     const logText = testSharedMethods.logTemplate (exchange, method, entry);
-    //
+    // check market
     let market = undefined;
     const symbolForMarket = (symbol !== undefined) ? symbol : exchange.safeString (entry, 'symbol');
     if (symbolForMarket !== undefined && (symbolForMarket in exchange.markets)) {
         market = exchange.market (symbolForMarket);
     }
-    const exchangeHasIndexMarkets = exchange.safeBool (exchange.has, 'index', false);
-    const isStandardMarket = (market !== undefined && exchange.inArray (market['type'], [ 'spot', 'swap', 'future', 'option' ]));
     // only check "above zero" values if exchange is not supposed to have exotic index markets
-    const valuesShouldBePositive = isStandardMarket || (market === undefined && !exchangeHasIndexMarkets);
-    if (valuesShouldBePositive) {
+    const isStandardMarket = (market !== undefined && exchange.inArray (market['type'], [ 'spot', 'swap', 'future', 'option' ]));
+    const valuesShouldBePositive = isStandardMarket || (market === undefined); //  && !exchangeHasIndexMarkets
+    if (valuesShouldBePositive && !('positiveValues' in skippedProperties)) {
         testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'open', '0');
         testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'high', '0');
         testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'low', '0');
@@ -61,14 +60,24 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
     testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'bidVolume', '0');
     testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'baseVolume', '0');
     testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'quoteVolume', '0');
+    //
+    // close price
+    //
     const lastString = exchange.safeString (entry, 'last');
     const closeString = exchange.safeString (entry, 'close');
     assert (((closeString === undefined) && (lastString === undefined)) || Precise.stringEq (lastString, closeString), '`last` != `close`' + logText);
-    const baseVolume = exchange.safeString (entry, 'baseVolume');
-    const quoteVolume = exchange.safeString (entry, 'quoteVolume');
-    const high = exchange.safeString (entry, 'high');
-    const low = exchange.safeString (entry, 'low');
+    const openPrice = exchange.safeString (entry, 'open');
+    //
+    // base & quote volumes
+    //
+    const baseVolume = exchange.omitZero (exchange.safeString (entry, 'baseVolume'));
+    const quoteVolume = exchange.omitZero (exchange.safeString (entry, 'quoteVolume'));
+    const baseVolumeDefined = (baseVolume !== undefined);
+    const quoteVolumeDefined = (quoteVolume !== undefined);
+    const high = exchange.omitZero (exchange.safeString (entry, 'high'));
+    const low = exchange.omitZero (exchange.safeString (entry, 'low'));
     if (!('compareQuoteVolumeBaseVolume' in skippedProperties)) {
+        assert (baseVolumeDefined === quoteVolumeDefined, 'baseVolume or quoteVolume should be either both defined or both undefined' + logText);
         if ((baseVolume !== undefined) && (quoteVolume !== undefined) && (high !== undefined) && (low !== undefined)) {
             let baseLow = Precise.stringMul (baseVolume, low);
             let baseHigh = Precise.stringMul (baseVolume, high);
@@ -91,6 +100,9 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
             assert (Precise.stringLe (quoteVolume, baseHigh), 'quoteVolume should be <= baseVolume * high' + logText);
         }
     }
+    //
+    // vwap
+    //
     const vwap = exchange.safeString (entry, 'vwap');
     if (vwap !== undefined) {
         // todo
@@ -111,6 +123,46 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
     if ((askString !== undefined) && (bidString !== undefined) && !('spread' in skippedProperties)) {
         testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'ask', exchange.safeString (entry, 'bid'));
     }
+    //
+    // percentage
+    //
+    const percentageString = exchange.safeString (entry, 'percentage');
+    if (percentageString !== undefined) {
+    // - should be above -100 and below 1000% (in typical days, there wont be any 1000% increase. if such days happens, tests will quickly recover in few hours once "percentage" normalizes)
+        assert (Precise.stringGe (percentageString, '-100'), 'percentage should be above -100% ' + logText);
+        assert (Precise.stringLe (percentageString, '1000'), 'percentage should be below 1000% ' + logText);
+    }
+    //
+    // change
+    //
+    const change = exchange.safeString (entry, 'change');
+    const approxValue = exchange.safeStringN (entry, [ 'open', 'close', 'average', 'bid', 'ask', 'vwap', 'previousClose' ]);
+    if (change !== undefined) {
+        // - should be between -price & +price*100
+        assert (Precise.stringGe (change, Precise.stringNeg (approxValue)), 'change should be above -price ' + logText);
+        assert (Precise.stringLe (change, Precise.stringMul (approxValue, '10')), 'change should be below 10x price ' + logText);
+    }
+    //
+    // ensure consistentcy
+    //
+    if (lastString !== undefined) {
+        if (percentageString !== undefined) {
+            // if one knows 'last' and 'percentage' values, then 'change', 'open' and 'average' values should be determinable.
+            assert (openPrice !== undefined && change !== undefined, 'open & change should be defined if last & percentage are defined' + logText); // todo : add average price too
+        } else if (change !== undefined) {
+            // if one knows 'last' and 'change' values, then 'percentage', 'open' and 'average' values should be determinable.
+            assert (openPrice !== undefined && percentageString !== undefined, 'open & percentage should be defined if last & change are defined' + logText); // todo : add average price too
+        }
+    } else if (openPrice !== undefined) {
+        if (percentageString !== undefined) {
+            // if one knows 'open' and 'percentage' values, then 'last', 'change' and 'average' values should be determinable.
+            assert (lastString !== undefined && change !== undefined, 'last & change should be defined if open & percentage are defined' + logText); // todo : add average price too
+        } else if (change !== undefined) {
+            // if one knows 'open' and 'change' values, then 'last', 'percentage' and 'average' values should be determinable.
+            assert (lastString !== undefined && percentageString !== undefined, 'last & percentage should be defined if open & change are defined' + logText); // todo : add average price too
+        }
+    }
+    //
     // todo: rethink about this
     // else {
     //    assert ((askString === undefined) && (bidString === undefined), 'ask & bid should be both defined or both undefined' + logText);
