@@ -382,10 +382,10 @@ export default class bitstamp extends bitstampRest {
         const filled = this.safeString (order, 'amount_traded');
         const event = this.safeString (order, 'event');
         let status = undefined;
-        if (event === 'order_deleted') {
-            status = 'canceled';
-        } else if (Precise.stringEq (filled, amount)) {
+        if (Precise.stringEq (filled, amount)) {
             status = 'closed';
+        } else if (event === 'order_deleted') {
+            status = 'canceled';
         }
         const timestamp = this.safeTimestamp (order, 'datetime');
         market = this.safeMarket (undefined, market);
