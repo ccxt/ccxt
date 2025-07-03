@@ -157,7 +157,7 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
         }
     }
     //
-    // ensure consistentcy
+    // ensure all expected values are defined
     //
     if (lastString !== undefined) {
         if (percentage !== undefined) {
