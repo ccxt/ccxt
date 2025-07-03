@@ -7636,20 +7636,45 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " fetchTransfers () is not supported yet")) ;
     }
 
-    public virtual void cleanUnsubscription(WebSocketClient client, object subHash, object unsubHash)
+    public virtual void cleanUnsubscription(WebSocketClient client, object subHash, object unsubHash, object subHashIsPrefix = null)
     {
+        subHashIsPrefix ??= false;
         if (isTrue(inOp(client.subscriptions, unsubHash)))
         {
             ((IDictionary<string,object>)client.subscriptions).Remove((string)unsubHash);
         }
-        if (isTrue(inOp(client.subscriptions, subHash)))
+        if (!isTrue(subHashIsPrefix))
         {
-            ((IDictionary<string,object>)client.subscriptions).Remove((string)subHash);
-        }
-        if (isTrue(inOp(client.futures, subHash)))
+            if (isTrue(inOp(client.subscriptions, subHash)))
+            {
+                ((IDictionary<string,object>)client.subscriptions).Remove((string)subHash);
+            }
+            if (isTrue(inOp(client.futures, subHash)))
+            {
+                var error = new UnsubscribeError(add(add(this.id, " "), subHash));
+                client.reject(error, subHash);
+            }
+        } else
         {
-            var error = new UnsubscribeError(add(add(this.id, " "), subHash));
-            client.reject(error, subHash);
+            object clientSubscriptions = new List<object>(((IDictionary<string,object>)client.subscriptions).Keys);
+            for (object i = 0; isLessThan(i, getArrayLength(clientSubscriptions)); postFixIncrement(ref i))
+            {
+                object sub = getValue(clientSubscriptions, i);
+                if (isTrue(((string)sub).StartsWith(((string)subHash))))
+                {
+                    ((IDictionary<string,object>)client.subscriptions).Remove((string)sub);
+                }
+            }
+            object clientFutures = new List<object>(((IDictionary<string, ccxt.Exchange.Future>)client.futures).Keys);
+            for (object i = 0; isLessThan(i, getArrayLength(clientFutures)); postFixIncrement(ref i))
+            {
+                object future = getValue(clientFutures, i);
+                if (isTrue(((string)future).StartsWith(((string)subHash))))
+                {
+                    var error = new UnsubscribeError(add(add(this.id, " "), future));
+                    client.reject(error, future);
+                }
+            }
         }
         // client.resolve(true, unsubHash);
     }
