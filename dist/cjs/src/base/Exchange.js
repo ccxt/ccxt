@@ -7153,16 +7153,35 @@ class Exchange {
          */
         throw new errors.NotSupported(this.id + ' fetchTransfers () is not supported yet');
     }
-    cleanUnsubscription(client, subHash, unsubHash) {
+    cleanUnsubscription(client, subHash, unsubHash, subHashIsPrefix = false) {
         if (unsubHash in client.subscriptions) {
             delete client.subscriptions[unsubHash];
         }
-        if (subHash in client.subscriptions) {
-            delete client.subscriptions[subHash];
+        if (!subHashIsPrefix) {
+            if (subHash in client.subscriptions) {
+                delete client.subscriptions[subHash];
+            }
+            if (subHash in client.futures) {
+                const error = new errors.UnsubscribeError(this.id + ' ' + subHash);
+                client.reject(error, subHash);
+            }
         }
-        if (subHash in client.futures) {
-            const error = new errors.UnsubscribeError(this.id + ' ' + subHash);
-            client.reject(error, subHash);
+        else {
+            const clientSubscriptions = Object.keys(client.subscriptions);
+            for (let i = 0; i < clientSubscriptions.length; i++) {
+                const sub = clientSubscriptions[i];
+                if (sub.startsWith(subHash)) {
+                    delete client.subscriptions[sub];
+                }
+            }
+            const clientFutures = Object.keys(client.futures);
+            for (let i = 0; i < clientFutures.length; i++) {
+                const future = clientFutures[i];
+                if (future.startsWith(subHash)) {
+                    const error = new errors.UnsubscribeError(this.id + ' ' + future);
+                    client.reject(error, future);
+                }
+            }
         }
         client.resolve(true, unsubHash);
     }
