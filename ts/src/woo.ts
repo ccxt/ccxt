@@ -507,20 +507,21 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchStatus
      * @description the latest known information on the availability of the exchange API
-     * @see https://docs.woox.io/#get-system-maintenance-status-public
+     * @see https://developer.woox.io/api-reference/endpoint/public_data/systemInfo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
      */
     async fetchStatus (params = {}) {
-        const response = await this.v1PublicGetSystemInfo (params);
+        const response = await this.v3PublicGetSystemInfo (params);
         //
         //     {
         //         "success": true,
         //         "data": {
-        //             "status": "0",
-        //             "msg": "System is functioning properly."
+        //             "status": 0,
+        //             "msg": "System is functioning properly.",
+        //             "estimatedEndTime": 1749963600362
         //         },
-        //         "timestamp": "1709274106602"
+        //         "timestamp": 1751442989564
         //     }
         //
         const data = this.safeDict (response, 'data', {});

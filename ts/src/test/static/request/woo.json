@@ -618,7 +618,7 @@
             {
                 "description": "fetchStatus",
                 "method": "fetchStatus",
-                "url": "https://api.woox.io/v1/public/system_info",
+                "url": "https://api.woox.io/v3/public/systemInfo",
                 "input": []
             }
         ],
