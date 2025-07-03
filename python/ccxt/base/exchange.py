@@ -6883,14 +6883,27 @@ class Exchange(object):
         """
         raise NotSupported(self.id + ' fetchTransfers() is not supported yet')
 
-    def clean_unsubscription(self, client, subHash: str, unsubHash: str):
+    def clean_unsubscription(self, client, subHash: str, unsubHash: str, subHashIsPrefix=False):
         if unsubHash in client.subscriptions:
             del client.subscriptions[unsubHash]
-        if subHash in client.subscriptions:
-            del client.subscriptions[subHash]
-        if subHash in client.futures:
-            error = UnsubscribeError(self.id + ' ' + subHash)
-            client.reject(error, subHash)
+        if not subHashIsPrefix:
+            if subHash in client.subscriptions:
+                del client.subscriptions[subHash]
+            if subHash in client.futures:
+                error = UnsubscribeError(self.id + ' ' + subHash)
+                client.reject(error, subHash)
+        else:
+            clientSubscriptions = list(client.subscriptions.keys())
+            for i in range(0, len(clientSubscriptions)):
+                sub = clientSubscriptions[i]
+                if sub.startswith(subHash):
+                    del client.subscriptions[sub]
+            clientFutures = list(client.futures.keys())
+            for i in range(0, len(clientFutures)):
+                future = clientFutures[i]
+                if future.startswith(subHash):
+                    error = UnsubscribeError(self.id + ' ' + future)
+                    client.reject(error, future)
         client.resolve(True, unsubHash)
 
     def clean_cache(self, subscription: dict):

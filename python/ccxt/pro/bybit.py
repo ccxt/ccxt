@@ -2350,6 +2350,7 @@ class bybit(ccxt.async_support.bybit):
                 for j in range(0, len(messageHashes)):
                     unsubHash = messageHashes[j]
                     subHash = subMessageHashes[j]
-                    self.clean_unsubscription(client, subHash, unsubHash)
+                    usePrefix = (subHash == 'orders') or (subHash == 'myTrades')
+                    self.clean_unsubscription(client, subHash, unsubHash, usePrefix)
                 self.clean_cache(subscription)
         return message
