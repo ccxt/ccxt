@@ -140,7 +140,7 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
         //
         // percentage
         //
-        const maxIncrease = '100'; // for testing purposes, if "increased" value is more than 100x, tests should break as implementation might be wrong. however, if something rarest event happens and some coin really had 10x increase, the test will shortly recover in few hours, after "increased" value normalizes)
+        const maxIncrease = '100'; // for testing purposes, if "increased" value is more than 100x, tests should break as implementation might be wrong. however, if something rarest event happens and some coin really had that huge increase, the tests will shortly recover in few hours, as new 24-hour cycle would stabilize tests)
         if (percentage !== undefined) {
         // - should be above -100 and below MAX
             assert (Precise.stringGe (percentage, '-100'), 'percentage should be above -100% ' + logText);
