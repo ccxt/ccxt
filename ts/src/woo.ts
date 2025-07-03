@@ -570,7 +570,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchMarkets
      * @description retrieves data on all markets for woo
-     * @see https://docs.woox.io/#exchange-information
+     * @see https://developer.woox.io/api-reference/endpoint/public_data/instruments
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -578,30 +578,42 @@ export default class woo extends Exchange {
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference ();
         }
-        const response = await this.v1PublicGetInfo (params);
+        const response = await this.v3PublicGetInstruments (params);
         //
-        // {
-        //     "rows": [
-        //         {
-        //             "symbol": "SPOT_AAVE_USDT",
-        //             "quote_min": 0,
-        //             "quote_max": 100000,
-        //             "quote_tick": 0.01,
-        //             "base_min": 0.01,
-        //             "base_max": 7284,
-        //             "base_tick": 0.0001,
-        //             "min_notional": 10,
-        //             "price_range": 0.1,
-        //             "created_time": "0",
-        //             "updated_time": "1639107647.988",
-        //             "is_stable": 0
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "rows": [
+        //                 {
+        //                     "symbol": "SPOT_AAVE_USDT",
+        //                     "status": "TRADING",
+        //                     "baseAsset": "AAVE",
+        //                     "baseAssetMultiplier": 1,
+        //                     "quoteAsset": "USDT",
+        //                     "quoteMin": "0",
+        //                     "quoteMax": "100000",
+        //                     "quoteTick": "0.01",
+        //                     "baseMin": "0.005",
+        //                     "baseMax": "5000",
+        //                     "baseTick": "0.0001",
+        //                     "minNotional": "1",
+        //                     "bidCapRatio": "1.1",
+        //                     "bidFloorRatio": null,
+        //                     "askCapRatio": null,
+        //                     "askFloorRatio": "0.9",
+        //                     "orderMode": "NORMAL",
+        //                     "impactNotional": null,
+        //                     "isAllowedRpi": false,
+        //                     "tickGranularity": null
+        //                 }
+        //             ]
         //         },
-        //         ...
-        //     "success": true
-        // }
+        //         "timestamp": 1751512951338
+        //     }
         //
-        const data = this.safeList (response, 'rows', []);
-        return this.parseMarkets (data);
+        const data = this.safeDict (response, 'data', {});
+        const rows = this.safeList (data, 'rows', []);
+        return this.parseMarkets (rows);
     }
 
     parseMarket (market: Dict): Market {
@@ -639,7 +651,7 @@ export default class woo extends Exchange {
             linear = true;
             inverse = false;
         }
-        const active = this.safeString (market, 'is_trading') === '1';
+        const active = this.safeString (market, 'status') === 'TRADING';
         return {
             'id': marketId,
             'symbol': symbol,
@@ -665,8 +677,8 @@ export default class woo extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': this.safeNumber (market, 'base_tick'),
-                'price': this.safeNumber (market, 'quote_tick'),
+                'amount': this.safeNumber (market, 'baseTick'),
+                'price': this.safeNumber (market, 'quoteTick'),
             },
             'limits': {
                 'leverage': {
@@ -674,19 +686,19 @@ export default class woo extends Exchange {
                     'max': undefined,
                 },
                 'amount': {
-                    'min': this.safeNumber (market, 'base_min'),
-                    'max': this.safeNumber (market, 'base_max'),
+                    'min': this.safeNumber (market, 'baseMin'),
+                    'max': this.safeNumber (market, 'baseMax'),
                 },
                 'price': {
-                    'min': this.safeNumber (market, 'quote_min'),
-                    'max': this.safeNumber (market, 'quote_max'),
+                    'min': this.safeNumber (market, 'quoteMin'),
+                    'max': this.safeNumber (market, 'quoteMax'),
                 },
                 'cost': {
-                    'min': this.safeNumber (market, 'min_notional'),
+                    'min': this.safeNumber (market, 'minNotional'),
                     'max': undefined,
                 },
             },
-            'created': this.safeTimestamp (market, 'created_time'),
+            'created': null,
             'info': market,
         };
     }

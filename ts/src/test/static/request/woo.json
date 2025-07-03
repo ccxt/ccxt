@@ -620,7 +620,7 @@
             {
                 "description": "fetchMarkets",
                 "method": "fetchMarkets",
-                "url": "https://api.woox.io/v1/public/info",
+                "url": "https://api.woox.io/v3/public/instruments",
                 "input": []
             }
         ],

@@ -51,6 +51,115 @@
                 "parsedResponse": 1751442989564
             }
         ],
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets",
+                "method": "fetchMarkets",
+                "input": [],
+                "httpResponse": {
+                    "success": true,
+                    "data": {
+                        "rows": [
+                            {
+                                "symbol": "SPOT_AAVE_USDT",
+                                "status": "TRADING",
+                                "baseAsset": "AAVE",
+                                "baseAssetMultiplier": 1,
+                                "quoteAsset": "USDT",
+                                "quoteMin": "0",
+                                "quoteMax": "100000",
+                                "quoteTick": "0.01",
+                                "baseMin": "0.005",
+                                "baseMax": "5000",
+                                "baseTick": "0.0001",
+                                "minNotional": "1",
+                                "bidCapRatio": "1.1",
+                                "bidFloorRatio": null,
+                                "askCapRatio": null,
+                                "askFloorRatio": "0.9",
+                                "orderMode": "NORMAL",
+                                "impactNotional": null,
+                                "isAllowedRpi": false,
+                                "tickGranularity": null
+                            }
+                        ]
+                    },
+                    "timestamp": 1751512951338
+                },
+                "parsedResponse": [
+                    {
+                        "id": "SPOT_AAVE_USDT",
+                        "symbol": "AAVE/USDT",
+                        "base": "AAVE",
+                        "quote": "USDT",
+                        "settle": null,
+                        "baseId": "AAVE",
+                        "quoteId": "USDT",
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": true,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "active": true,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 0.0001,
+                            "price": 0.01
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": 0.005,
+                                "max": 5000
+                            },
+                            "price": {
+                                "min": 0,
+                                "max": 100000
+                            },
+                            "cost": {
+                                "min": 1,
+                                "max": null
+                            }
+                        },
+                        "created": null,
+                        "info": {
+                            "symbol": "SPOT_AAVE_USDT",
+                            "status": "TRADING",
+                            "baseAsset": "AAVE",
+                            "baseAssetMultiplier": 1,
+                            "quoteAsset": "USDT",
+                            "quoteMin": "0",
+                            "quoteMax": "100000",
+                            "quoteTick": "0.01",
+                            "baseMin": "0.005",
+                            "baseMax": "5000",
+                            "baseTick": "0.0001",
+                            "minNotional": "1",
+                            "bidCapRatio": "1.1",
+                            "bidFloorRatio": null,
+                            "askCapRatio": null,
+                            "askFloorRatio": "0.9",
+                            "orderMode": "NORMAL",
+                            "impactNotional": null,
+                            "isAllowedRpi": false,
+                            "tickGranularity": null
+                        }
+                    }
+                ]
+            }
+        ],
         "withdraw": [
             {
                 "description": "withdraw USDT on ERC20",
