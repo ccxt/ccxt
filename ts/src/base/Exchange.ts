@@ -3984,14 +3984,24 @@ export default class Exchange {
                 average = Precise.stringDiv (Precise.stringAdd (last, open), '2', precision);
             }
         }
-        if ((percentage === undefined) && (change !== undefined) && (open !== undefined) && Precise.stringGt (open, '0')) {
+        if ((percentage === undefined) && (change !== undefined) && (open !== undefined)) {
             percentage = Precise.stringMul (Precise.stringDiv (change, open), '100');
         }
         if ((change === undefined) && (percentage !== undefined) && (open !== undefined)) {
             change = Precise.stringDiv (Precise.stringMul (percentage, open), '100');
         }
-        if ((open === undefined) && (last !== undefined) && (change !== undefined)) {
-            open = Precise.stringSub (last, change);
+        if ((open === undefined) && (last !== undefined)) {
+            if (change !== undefined) {
+                open = Precise.stringSub (last, change);
+                if (percentage === undefined) {
+                    percentage = Precise.stringMul (Precise.stringDiv (change, open), '100');
+                }
+            } else if (percentage !== undefined) {
+                open = Precise.stringDiv (last, Precise.stringAdd ('1', Precise.stringDiv (percentage, '100')));
+                if (change === undefined) {
+                    change = Precise.stringDiv (Precise.stringMul (percentage, open), '100');
+                }
+            }
         }
         // timestamp and symbol operations don't belong in safeTicker
         // they should be done in the derived classes
