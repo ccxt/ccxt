@@ -551,17 +551,9 @@
         ],
         "fetchTrades": [
             {
-                "description": "Fetch Trades",
-                "method": "fetchTrades",
-                "url": "https://api.woox.io/v1/public/market_trades?symbol=SPOT_BTC_USDT",
-                "input": [
-                    "BTC/USDT"
-                ]
-            },
-            {
                 "description": "spot fetchTrades",
                 "method": "fetchTrades",
-                "url": "https://api.woox.io/v1/public/market_trades?symbol=SPOT_BTC_USDT",
+                "url": "https://api.woox.io/v3/public/marketTrades?symbol=SPOT_BTC_USDT",
                 "input": [
                     "BTC/USDT"
                 ]
@@ -569,7 +561,7 @@
             {
                 "description": "swap fetchTrades",
                 "method": "fetchTrades",
-                "url": "https://api.woox.io/v1/public/market_trades?symbol=PERP_BTC_USDT",
+                "url": "https://api.woox.io/v3/public/marketTrades?symbol=PERP_BTC_USDT",
                 "input": [
                     "BTC/USDT:USDT"
                 ]

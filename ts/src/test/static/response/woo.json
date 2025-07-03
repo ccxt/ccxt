@@ -966,27 +966,30 @@
                 ],
                 "httpResponse": {
                     "success": true,
-                    "rows": [
-                        {
-                            "symbol": "SPOT_BTC_USDT",
-                            "side": "SELL",
-                            "executed_price": "73249.19",
-                            "executed_quantity": "0.010144",
-                            "executed_timestamp": "1710327659.255",
-                            "source": "1"
-                        }
-                    ]
+                    "data": {
+                        "rows": [
+                            {
+                                "symbol": "SPOT_BTC_USDT",
+                                "side": "SELL",
+                                "source": 0,
+                                "executedPrice": "108741.01",
+                                "executedQuantity": "0.02477",
+                                "executedTimestamp": 1751513940144
+                            }
+                        ]
+                    },
+                    "timestamp": 1751513988543
                 },
                 "parsedResponse": [
                     {
                         "id": null,
-                        "timestamp": 1710327659255,
-                        "datetime": "2024-03-13T11:00:59.255Z",
+                        "timestamp": 1751513940144,
+                        "datetime": "2025-07-03T03:39:00.144Z",
                         "symbol": "BTC/USDT",
                         "side": "sell",
-                        "price": 73249.19,
-                        "amount": 0.010144,
-                        "cost": 743.03978336,
+                        "price": 108741.01,
+                        "amount": 0.02477,
+                        "cost": 2693.5148177,
                         "order": null,
                         "takerOrMaker": null,
                         "type": null,
@@ -997,10 +1000,10 @@
                         "info": {
                             "symbol": "SPOT_BTC_USDT",
                             "side": "SELL",
-                            "executed_price": "73249.19",
-                            "executed_quantity": "0.010144",
-                            "executed_timestamp": "1710327659.255",
-                            "source": "1"
+                            "source": 0,
+                            "executedPrice": "108741.01",
+                            "executedQuantity": "0.02477",
+                            "executedTimestamp": 1751513940144
                         },
                         "fees": []
                     }

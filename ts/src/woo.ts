@@ -707,7 +707,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://docs.woox.io/#market-trades-public
+     * @see https://developer.woox.io/api-reference/endpoint/public_data/marketTrades
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -723,38 +723,28 @@ export default class woo extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.v1PublicGetMarketTrades (this.extend (request, params));
+        const response = await this.v3PublicGetMarketTrades (this.extend (request, params));
         //
-        // {
-        //     "success": true,
-        //     "rows": [
-        //         {
-        //             "symbol": "SPOT_BTC_USDT",
-        //             "side": "SELL",
-        //             "executed_price": 46222.35,
-        //             "executed_quantity": 0.0012,
-        //             "executed_timestamp": "1641241162.329"
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "rows": [
+        //                 {
+        //                     "symbol": "SPOT_BTC_USDT",
+        //                     "side": "SELL",
+        //                     "source": 0,
+        //                     "executedPrice": "108741.01",
+        //                     "executedQuantity": "0.02477",
+        //                     "executedTimestamp": 1751513940144
+        //                 }
+        //             ]
         //         },
-        //         {
-        //             "symbol": "SPOT_BTC_USDT",
-        //             "side": "SELL",
-        //             "executed_price": 46222.35,
-        //             "executed_quantity": 0.0012,
-        //             "executed_timestamp": "1641241162.329"
-        //         },
-        //         {
-        //             "symbol": "SPOT_BTC_USDT",
-        //             "side": "BUY",
-        //             "executed_price": 46224.32,
-        //             "executed_quantity": 0.00039,
-        //             "executed_timestamp": "1641241162.287"
-        //         },
-        //         ...
-        //      ]
-        // }
+        //         "timestamp": 1751513988543
+        //     }
         //
-        const resultResponse = this.safeList (response, 'rows', []);
-        return this.parseTrades (resultResponse, market, since, limit);
+        const data = this.safeDict (response, 'data', {});
+        const rows = this.safeList (data, 'rows', []);
+        return this.parseTrades (rows, market, since, limit);
     }
 
     parseTrade (trade: Dict, market: Market = undefined): Trade {
@@ -764,9 +754,10 @@ export default class woo extends Exchange {
         //     {
         //         "symbol": "SPOT_BTC_USDT",
         //         "side": "SELL",
-        //         "executed_price": 46222.35,
-        //         "executed_quantity": 0.0012,
-        //         "executed_timestamp": "1641241162.329"
+        //         "source": 0,
+        //         "executedPrice": "108741.01",
+        //         "executedQuantity": "0.02477",
+        //         "executedTimestamp": 1751513940144
         //     }
         //
         // fetchOrderTrades, fetchOrder
@@ -786,12 +777,15 @@ export default class woo extends Exchange {
         //     }
         //
         const isFromFetchOrder = ('id' in trade);
-        const timestamp = this.safeTimestamp (trade, 'executed_timestamp');
+        let timestamp = this.safeTimestamp (trade, 'executed_timestamp');
+        if (timestamp === undefined) {
+            timestamp = this.safeInteger (trade, 'executedTimestamp');
+        }
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const price = this.safeString (trade, 'executed_price');
-        const amount = this.safeString (trade, 'executed_quantity');
+        const price = this.safeString2 (trade, 'executed_price', 'executedPrice');
+        const amount = this.safeString2 (trade, 'executed_quantity', 'executedQuantity');
         const order_id = this.safeString (trade, 'order_id');
         const fee = this.parseTokenAndFeeTemp (trade, 'fee_asset', 'fee');
         const feeCost = this.safeString (fee, 'cost');
