@@ -34,6 +34,23 @@
                 }
             }
         ],
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "input": [],
+                "httpResponse": {
+                    "success": true,
+                    "data": {
+                        "status": 0,
+                        "msg": "System is functioning properly.",
+                        "estimatedEndTime": 1749963600362
+                    },
+                    "timestamp": 1751442989564
+                },
+                "parsedResponse": 1751442989564
+            }
+        ],
         "withdraw": [
             {
                 "description": "withdraw USDT on ERC20",

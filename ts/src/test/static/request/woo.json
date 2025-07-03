@@ -604,13 +604,7 @@
             {
                 "description": "fetchTime",
                 "method": "fetchTime",
-                "url": "https://api.woox.io/v1/public/system_info",
-                "input": []
-            },
-            {
-                "description": "fetchTime",
-                "method": "fetchTime",
-                "url": "https://api.woox.io/v1/public/system_info",
+                "url": "https://api.woox.io/v3/public/systemInfo",
                 "input": []
             }
         ],

@@ -546,20 +546,21 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
-     * @see https://docs.woox.io/#get-system-maintenance-status-public
+     * @see https://developer.woox.io/api-reference/endpoint/public_data/systemInfo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
     async fetchTime (params = {}): Promise<Int> {
-        const response = await this.v1PublicGetSystemInfo (params);
+        const response = await this.v3PublicGetSystemInfo (params);
         //
         //     {
         //         "success": true,
         //         "data": {
-        //             "status": "0",
-        //             "msg": "System is functioning properly."
+        //             "status": 0,
+        //             "msg": "System is functioning properly.",
+        //             "estimatedEndTime": 1749963600362
         //         },
-        //         "timestamp": "1709274106602"
+        //         "timestamp": 1751442989564
         //     }
         //
         return this.safeInteger (response, 'timestamp');
