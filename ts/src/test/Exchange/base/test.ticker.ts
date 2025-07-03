@@ -44,7 +44,7 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
     }
     // only check "above zero" values if exchange is not supposed to have exotic index markets
     const isStandardMarket = (market !== undefined && exchange.inArray (market['type'], [ 'spot', 'swap', 'future', 'option' ]));
-    const valuesShouldBePositive = isStandardMarket || (market === undefined); //  && !exchangeHasIndexMarkets
+    const valuesShouldBePositive = isStandardMarket || (market === undefined); // atm, no check for index markets
     if (valuesShouldBePositive && !('positiveValues' in skippedProperties)) {
         testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'open', '0');
         testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'high', '0');
