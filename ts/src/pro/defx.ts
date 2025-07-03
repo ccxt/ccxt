@@ -859,7 +859,7 @@ export default class defx extends defxRest {
         const channel = 'positions';
         const data = this.safeDict (message, 'data', {});
         if (this.positions === undefined) {
-            this.positions = new ArrayCacheBySymbolById ();
+            this.positions = new ArrayCacheBySymbolById (undefined);
         }
         const cache = this.positions;
         const parsedPosition = this.parsePosition (data);

@@ -110,7 +110,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
             ],
         };
         const request = this.extend (subscribe, params);
-        return await this.watchMultiple (url, messageHashes, request, messageHashes);
+        return await this.watchMultiple (url, messageHashes, request, messageHashes, undefined);
     }
 
     /**
@@ -261,7 +261,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async watchOrdersForSymbols (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async watchOrdersForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
         const name = 'user';
