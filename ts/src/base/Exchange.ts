@@ -3279,7 +3279,7 @@ export default class Exchange {
         return this.filterBySymbolSinceLimit (results, symbol, since, limit) as Order[];
     }
 
-    calculateFeeWithRate (symbol: string, type: string, side: string, amount: number, price: number, takerOrMaker = 'taker', customRate: Str = undefined, params = {}) {
+    calculateFeeWithRate (symbol: string, type: string, side: string, amount: number, price: number, takerOrMaker = 'taker', feeRate: Str = undefined, params = {}) {
         if (type === 'market' && takerOrMaker === 'maker') {
             throw new ArgumentsRequired (this.id + ' calculateFee() - you have provided incompatible arguments - "market" type order can not be "maker". Change either the "type" or the "takerOrMaker" argument to calculate the fee.');
         }
@@ -3313,7 +3313,7 @@ export default class Exchange {
         if (type === 'market') {
             takerOrMaker = 'taker';
         }
-        const rate = (customRate !== undefined) ? customRate : this.safeString (market, takerOrMaker);
+        const rate = (feeRate !== undefined) ? feeRate : this.safeString (market, takerOrMaker);
         cost = Precise.stringMul (cost, rate);
         return {
             'type': takerOrMaker,
