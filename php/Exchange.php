@@ -8338,16 +8338,34 @@ class Exchange {
         throw new NotSupported($this->id . ' fetchTransfers () is not supported yet');
     }
 
-    public function clean_unsubscription($client, string $subHash, string $unsubHash) {
+    public function clean_unsubscription($client, string $subHash, string $unsubHash, $subHashIsPrefix = false) {
         if (is_array($client->subscriptions) && array_key_exists($unsubHash, $client->subscriptions)) {
             unset($client->subscriptions[$unsubHash]);
         }
-        if (is_array($client->subscriptions) && array_key_exists($subHash, $client->subscriptions)) {
-            unset($client->subscriptions[$subHash]);
-        }
-        if (is_array($client->futures) && array_key_exists($subHash, $client->futures)) {
-            $error = new UnsubscribeError ($this->id . ' ' . $subHash);
-            $client->reject ($error, $subHash);
+        if (!$subHashIsPrefix) {
+            if (is_array($client->subscriptions) && array_key_exists($subHash, $client->subscriptions)) {
+                unset($client->subscriptions[$subHash]);
+            }
+            if (is_array($client->futures) && array_key_exists($subHash, $client->futures)) {
+                $error = new UnsubscribeError ($this->id . ' ' . $subHash);
+                $client->reject ($error, $subHash);
+            }
+        } else {
+            $clientSubscriptions = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
+            for ($i = 0; $i < count($clientSubscriptions); $i++) {
+                $sub = $clientSubscriptions[$i];
+                if (str_starts_with($sub, $subHash)) {
+                    unset($client->subscriptions[$sub]);
+                }
+            }
+            $clientFutures = is_array($client->futures) ? array_keys($client->futures) : array();
+            for ($i = 0; $i < count($clientFutures); $i++) {
+                $future = $clientFutures[$i];
+                if (str_starts_with($future, $subHash)) {
+                    $error = new UnsubscribeError ($this->id . ' ' . $future);
+                    $client->reject ($error, $future);
+                }
+            }
         }
         $client->resolve (true, $unsubHash);
     }
