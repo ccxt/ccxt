@@ -3,7 +3,7 @@
 import kucoinfuturesRest from '../kucoinfutures.js';
 import { ExchangeError, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, Balances, Position, Strings, Tickers, OHLCV, Dict } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, Balances, Position, Strings, Tickers, OHLCV, Dict, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -1267,7 +1267,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         return message;
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message): Bool {
         //
         //    {
         //        "id": "64d8732c856851144bded10d",
@@ -1285,6 +1285,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
             this.options['urls'][type] = undefined;
         }
         this.handleErrors (undefined, undefined, client.url, undefined, undefined, data, message, undefined, undefined);
+        return true;
     }
 
     handleSubscriptionStatus (client: Client, message) {
