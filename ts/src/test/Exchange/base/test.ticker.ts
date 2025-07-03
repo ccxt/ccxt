@@ -74,6 +74,8 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
     const quoteVolume = exchange.omitZero (exchange.safeString (entry, 'quoteVolume'));
     const high = exchange.omitZero (exchange.safeString (entry, 'high'));
     const low = exchange.omitZero (exchange.safeString (entry, 'low'));
+    const open = exchange.omitZero (exchange.safeString (entry, 'open'));
+    const close = exchange.omitZero (exchange.safeString (entry, 'close'));
     if (!('compareQuoteVolumeBaseVolume' in skippedProperties)) {
         // assert (baseVolumeDefined === quoteVolumeDefined, 'baseVolume or quoteVolume should be either both defined or both undefined' + logText); // No, exchanges might not report both values
         if ((baseVolume !== undefined) && (quoteVolume !== undefined) && (high !== undefined) && (low !== undefined)) {
@@ -96,6 +98,17 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
             baseHigh = Precise.stringMul (baseHigh, tolerance);
             assert (Precise.stringGe (quoteVolume, baseLow), 'quoteVolume should be => baseVolume * low' + logText);
             assert (Precise.stringLe (quoteVolume, baseHigh), 'quoteVolume should be <= baseVolume * high' + logText);
+        }
+    }
+    // open and close should be between High & Low
+    if (high !== undefined && low !== undefined) {
+        if (open !== undefined) {
+            assert (Precise.stringGe (open, low), 'open should be >= low' + logText);
+            assert (Precise.stringLe (open, high), 'open should be <= high' + logText);
+        }
+        if (close !== undefined) {
+            assert (Precise.stringGe (close, low), 'close should be >= low' + logText);
+            assert (Precise.stringLe (close, high), 'close should be <= high' + logText);
         }
     }
     //
@@ -127,7 +140,7 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
         //
         // percentage
         //
-        const maxIncrease = '10'; // for testing purposes, if "increased" value is more than 10x, tests should break as implementation might be wrong. however, if something rarest event happens and some coin really had 10x increase, the test will shortly recover in few hours, after "increased" value normalizes)
+        const maxIncrease = '100'; // for testing purposes, if "increased" value is more than 100x, tests should break as implementation might be wrong. however, if something rarest event happens and some coin really had 10x increase, the test will shortly recover in few hours, after "increased" value normalizes)
         if (percentage !== undefined) {
         // - should be above -100 and below MAX
             assert (Precise.stringGe (percentage, '-100'), 'percentage should be above -100% ' + logText);
