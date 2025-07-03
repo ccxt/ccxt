@@ -87,7 +87,7 @@ type IExchange interface {
 	FetchDeposits(optionalArgs ...interface{}) <-chan interface{}
 	Milliseconds() int64
 	ParseNumber(v interface{}) interface{}
-	OmitZero(v interface{}, a ...interface{}) interface{}
+	OmitZero(interface{}, ...interface{}) interface{}
 	FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
 	ParseTimeframe(timeframe interface{}) interface{}
 	FetchLeverageTiers(optionalArgs ...interface{}) <-chan interface{}
