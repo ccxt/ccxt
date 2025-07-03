@@ -9456,16 +9456,36 @@ func  (this *Exchange) FetchTransfers(optionalArgs ...interface{}) <- chan inter
             }()
             return ch
         }
-func  (this *Exchange) CleanUnsubscription(client Client, subHash interface{}, unsubHash interface{})  {
+func  (this *Exchange) CleanUnsubscription(client Client, subHash interface{}, unsubHash interface{}, optionalArgs ...interface{})  {
+    subHashIsPrefix := GetArg(optionalArgs, 0, false)
+    _ = subHashIsPrefix
     if IsTrue(InOp(client.Subscriptions, unsubHash)) {
         Remove(client.Subscriptions, unsubHash)
     }
-    if IsTrue(InOp(client.Subscriptions, subHash)) {
-        Remove(client.Subscriptions, subHash)
-    }
-    if IsTrue(InOp(client.Futures, subHash)) {
-        error := UnsubscribeError(Add(Add(this.Id, " "), subHash))
-        client.Reject(error, subHash)
+    if !IsTrue(subHashIsPrefix) {
+        if IsTrue(InOp(client.Subscriptions, subHash)) {
+            Remove(client.Subscriptions, subHash)
+        }
+        if IsTrue(InOp(client.Futures, subHash)) {
+            error := UnsubscribeError(Add(Add(this.Id, " "), subHash))
+            client.Reject(error, subHash)
+        }
+    } else {
+        var clientSubscriptions interface{} = ObjectKeys(client.Subscriptions)
+        for i := 0; IsLessThan(i, GetArrayLength(clientSubscriptions)); i++ {
+            var sub interface{} = GetValue(clientSubscriptions, i)
+            if IsTrue(StartsWith(sub, subHash)) {
+                Remove(client.Subscriptions, sub)
+            }
+        }
+        var clientFutures interface{} = ObjectKeys(client.Futures)
+        for i := 0; IsLessThan(i, GetArrayLength(clientFutures)); i++ {
+            var future interface{} = GetValue(clientFutures, i)
+            if IsTrue(StartsWith(future, subHash)) {
+                error := UnsubscribeError(Add(Add(this.Id, " "), future))
+                client.Reject(error, future)
+            }
+        }
     }
     client.Resolve(true, unsubHash)
 }
