@@ -36,7 +36,7 @@ function testFetchTickersAmounts (exchange: Exchange, skippedProperties: object,
         // ensure all "active" symbols have tickers
         //
         const nonInactiveMarkets = testSharedMethods.getNonInactiveMarkets (exchange);
-        const notInactiveSymbolsLength = Object.keys (nonInactiveMarkets).length;
+        const notInactiveSymbolsLength = nonInactiveMarkets.length;
         const obtainedTickersLength = tickersValues.length;
         const toleranceCoefficient = 0.01; // 1% tolerance, eg. when 100 active markets, we should have at least 99 tickers
         assert (obtainedTickersLength >= notInactiveSymbolsLength * (1 - toleranceCoefficient), exchange.id + ' ' + 'fetchTickers' + ' must return tickers for all active markets. but returned: ' + obtainedTickersLength + ' tickers, ' + notInactiveSymbolsLength + ' active markets');

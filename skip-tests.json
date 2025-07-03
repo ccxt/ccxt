@@ -1085,6 +1085,9 @@
             "watchOrderBook": {
                 "spread": "tmp",
                 "compareToNextItem": "tmp"
+            },
+            "watchTickers": {
+                "compareOHLC": "broken by exchange https://github.com/ccxt/ccxt/actions/runs/16057416332/job/45315454452?pr=26334#step:11:2028"
             }
         }
     },
@@ -1798,6 +1801,9 @@
             },
             "fetchTrades": {
                 "side": "not set"
+            },
+            "watchTickers": {
+                "compareOHLC": "broken by exchange https://github.com/ccxt/ccxt/actions/runs/16057416332/job/45315454452?pr=26334#step:11:2055"
             },
             "fetchTickers": {
                 "ask": "weird values",

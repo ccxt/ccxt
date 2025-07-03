@@ -101,7 +101,7 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
         }
     }
     // open and close should be between High & Low
-    if (high !== undefined && low !== undefined) {
+    if (high !== undefined && low !== undefined && !('compareOHLC' in skippedProperties)) {
         if (open !== undefined) {
             assert (Precise.stringGe (open, low), 'open should be >= low' + logText);
             assert (Precise.stringLe (open, high), 'open should be <= high' + logText);
