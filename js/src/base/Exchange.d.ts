@@ -764,6 +764,7 @@ export default class Exchange {
     fetchMyTradesWs(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchGreeks(symbol: string, params?: {}): Promise<Greeks>;
+    fetchAllGreeks(symbols?: Strings, params?: {}): Promise<Greeks[]>;
     fetchOptionChain(code: string, params?: {}): Promise<OptionChain>;
     fetchOption(symbol: string, params?: {}): Promise<Option>;
     fetchConvertQuote(fromCode: string, toCode: string, amount?: Num, params?: {}): Promise<Conversion>;
@@ -889,6 +890,7 @@ export default class Exchange {
     parseLiquidation(liquidation: any, market?: Market): Liquidation;
     parseLiquidations(liquidations: Dict[], market?: Market, since?: Int, limit?: Int): Liquidation[];
     parseGreeks(greeks: Dict, market?: Market): Greeks;
+    parseAllGreeks(greeks: any, symbols?: Strings, params?: {}): Greeks[];
     parseOption(chain: Dict, currency?: Currency, market?: Market): Option;
     parseOptionChain(response: object[], currencyKey?: Str, symbolKey?: Str): OptionChain;
     parseMarginModes(response: object[], symbols?: string[], symbolKey?: Str, marketType?: MarketType): MarginModes;
