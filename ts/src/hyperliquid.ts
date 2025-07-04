@@ -854,6 +854,75 @@ export default class hyperliquid extends Exchange {
         //            }
         //     }
         //
+        // subAccounts
+        //     [
+        //         {
+        //             "name": "ccxtsc0vu",
+        //             "subAccountUser": "0xxxxxxxxxxxxxxx",
+        //             "master": "0x754e6a9e4bc74d119263fd249fac5d876d0d10ee",
+        //             "clearinghouseState": {
+        //                 "marginSummary": {
+        //                     "accountValue": "69.876721",
+        //                     "totalNtlPos": "49.05315",
+        //                     "totalRawUsd": "118.929871",
+        //                     "totalMarginUsed": "49.05315"
+        //                 },
+        //                 "crossMarginSummary": {
+        //                     "accountValue": "69.876721",
+        //                     "totalNtlPos": "49.05315",
+        //                     "totalRawUsd": "118.929871",
+        //                     "totalMarginUsed": "49.05315"
+        //                 },
+        //                 "crossMaintenanceMarginUsed": "0.613164",
+        //                 "withdrawable": "20.823571",
+        //                 "assetPositions": [
+        //                     {
+        //                         "type": "oneWay",
+        //                         "position": {
+        //                             "coin": "BTC",
+        //                             "szi": "-0.00045",
+        //                             "leverage": {
+        //                                 "type": "cross",
+        //                                 "value": 1
+        //                             },
+        //                             "entryPx": "108748.0",
+        //                             "positionValue": "49.05315",
+        //                             "unrealizedPnl": "-0.11655",
+        //                             "returnOnEquity": "-0.002381653",
+        //                             "liquidationPx": "261025.7799725652",
+        //                             "marginUsed": "49.05315",
+        //                             "maxLeverage": 40,
+        //                             "cumFunding": {
+        //                                 "allTime": "-0.000611",
+        //                                 "sinceOpen": "-0.000611",
+        //                                 "sinceChange": "-0.000611"
+        //                             }
+        //                         }
+        //                     }
+        //                 ],
+        //                 "time": 1751622240924
+        //             },
+        //             "spotState": {
+        //                 "balances": [
+        //                     {
+        //                         "coin": "USDC",
+        //                         "token": 0,
+        //                         "total": "16.0",
+        //                         "hold": "0.0",
+        //                         "entryNtl": "0.0"
+        //                     },
+        //                     {
+        //                         "coin": "HYPE",
+        //                         "token": 1105,
+        //                         "total": "0.09993",
+        //                         "hold": "0.0",
+        //                         "entryNtl": "14.0"
+        //                     }
+        //                 ]
+        //             }
+        //         }
+        //     ]
+        //
         if (isSubAccount) {
             for (let i = 0; i < response.length; i++) {
                 const subAccount = response[i];
