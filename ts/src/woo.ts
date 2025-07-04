@@ -3091,7 +3091,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchFundingRateHistory
      * @description fetches historical funding rate prices
-     * @see https://docs.woox.io/#get-funding-rate-history-for-one-market-public
+     * @see https://developer.woox.io/api-reference/endpoint/public_data/fundingRateHistory
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
      * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
@@ -3107,46 +3107,52 @@ export default class woo extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchFundingRateHistory', symbol, since, limit, params, 'page', 25) as FundingRateHistory[];
         }
-        let request: Dict = {};
-        if (symbol !== undefined) {
-            const market = this.market (symbol);
-            symbol = market['symbol'];
-            request['symbol'] = market['id'];
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        let request: Dict = {
+            'symbol': market['id'],
+        };
         if (since !== undefined) {
-            request['start_t'] = this.parseToInt (since / 1000);
+            request['startTime'] = since;
         }
-        [ request, params ] = this.handleUntilOption ('end_t', request, params, 0.001);
-        const response = await this.v1PublicGetFundingRateHistory (this.extend (request, params));
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        const response = await this.v3PublicGetFundingRateHistory (this.extend (request, params));
         //
         //     {
-        //         "success":true,
-        //         "meta":{
-        //             "total":2464,
-        //             "records_per_page":25,
-        //             "current_page":1
-        //         },
-        //         "rows":[
-        //             {
-        //                 "symbol":"PERP_BTC_USDT",
-        //                 "funding_rate":0.00000629,
-        //                 "funding_rate_timestamp":1653638400000,
-        //                 "next_funding_time":1653642000000
+        //         "success": true,
+        //         "data": {
+        //             "rows": [
+        //                 {
+        //                     "symbol": "PERP_BTC_USDT",
+        //                     "fundingRate": "-0.00004953",
+        //                     "fundingRateTimestamp": 1751616000000,
+        //                     "nextFundingTime": 1751644800000,
+        //                     "markPrice": "108708"
+        //                 }
+        //             ],
+        //             "meta": {
+        //                 "total": 11690,
+        //                 "recordsPerPage": 25,
+        //                 "currentPage": 1
         //             }
-        //         ],
-        //         "timestamp":1653640814885
+        //         },
+        //         "timestamp": 1751632390031
         //     }
         //
-        const result = this.safeList (response, 'rows');
+        const data = this.safeDict (response, 'data', {});
+        const rows = this.safeList (data, 'rows', []);
         const rates = [];
-        for (let i = 0; i < result.length; i++) {
-            const entry = result[i];
+        for (let i = 0; i < rows.length; i++) {
+            const entry = rows[i];
             const marketId = this.safeString (entry, 'symbol');
-            const timestamp = this.safeInteger (entry, 'funding_rate_timestamp');
+            const timestamp = this.safeInteger (entry, 'fundingRateTimestamp');
             rates.push ({
                 'info': entry,
                 'symbol': this.safeSymbol (marketId),
-                'fundingRate': this.safeNumber (entry, 'funding_rate'),
+                'fundingRate': this.safeNumber (entry, 'fundingRate'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
             });

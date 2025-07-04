@@ -1927,6 +1927,50 @@
                     }
                 }
             }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "fetchFundingRateHistory",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "data": {
+                        "rows": [
+                            {
+                                "symbol": "PERP_BTC_USDT",
+                                "fundingRate": "-0.00004953",
+                                "fundingRateTimestamp": 1751616000000,
+                                "nextFundingTime": 1751644800000,
+                                "markPrice": "108708"
+                            }
+                        ],
+                        "meta": {
+                            "total": 11690,
+                            "recordsPerPage": 25,
+                            "currentPage": 1
+                        }
+                    },
+                    "timestamp": 1751632390031
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "PERP_BTC_USDT",
+                            "fundingRate": "-0.00004953",
+                            "fundingRateTimestamp": 1751616000000,
+                            "nextFundingTime": 1751644800000,
+                            "markPrice": "108708"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "fundingRate": -0.00004953,
+                        "timestamp": 1751616000000,
+                        "datetime": "2025-07-04T08:00:00.000Z"
+                    }
+                ]
+            }
         ]
     }
 }

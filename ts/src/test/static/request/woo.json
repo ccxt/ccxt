@@ -700,9 +700,9 @@
         ],
         "fetchFundingRateHistory": [
             {
-                "description": "fundingRateHistory",
+                "description": "fetchFundingRateHistory",
                 "method": "fetchFundingRateHistory",
-                "url": "https://api.woox.io/v1/public/funding_rate_history?symbol=PERP_BTC_USDT",
+                "url": "https://api.woox.io/v3/public/fundingRateHistory?symbol=PERP_BTC_USDT",
                 "input": [
                     "BTC/USDT:USDT"
                 ]
