@@ -13161,7 +13161,6 @@ export default class binance extends Exchange {
         const request: Dict = {};
         let market = undefined;
         if (symbols !== undefined) {
-            symbols = this.marketSymbols (symbols);
             if (symbols.length === 1) {
                 market = this.market (symbols[0]);
                 request['symbol'] = market['id'];
