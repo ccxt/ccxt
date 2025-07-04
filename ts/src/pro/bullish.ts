@@ -40,9 +40,8 @@ export default class bullish extends bullishRest {
             },
             'options': {
                 'ws': {
-                    'options': {
-                        'headers': {},
-                    },
+                    'cookies': {},
+                    'headers': {},
                 },
             },
             'streaming': {
@@ -73,11 +72,10 @@ export default class bullish extends bullishRest {
             throw new ArgumentsRequired (this.id + ' ' + methodName + ' requires a tradingAccountId parameter');
         }
         const token = this.token;
-        const originalHeaders = this.options['ws']['options']['headers'];
-        const newHeaders = {
+        const cookies = {
             'JWT_COOKIE': token,
         };
-        this.options['ws']['headers'] = this.deepExtend (originalHeaders, newHeaders);
+        this.options['ws']['cookies'] = cookies;
         request['topic'] = 'orders';
         const message = {
             'jsonrpc': '2.0',
@@ -87,7 +85,6 @@ export default class bullish extends bullishRest {
             'id': this.milliseconds (),
         };
         const result = await this.watch (url, messageHash, this.deepExtend (message, params), messageHash);
-        this.options['ws']['options']['headers'] = originalHeaders;
         return result;
     }
 

@@ -71,6 +71,7 @@ class Client(object):
             else:
                 setattr(self, key, settings[key])
         # connection-related Future
+        self.options = config
         self.connected = Future()
 
     def future(self, message_hash):
@@ -271,6 +272,10 @@ class Client(object):
         # otherwise aiohttp's websockets client won't trigger WSMsgType.PONG
         # call aenter here to simulate async with otherwise we get the error "await not called with future"
         # if connecting to a non-existent endpoint
+        # set cookies if defined
+        if 'cookies' in self.options:
+            for key, value in self.options['cookies'].items():
+                session.cookie_jar.update_cookies({key: value})
         if (self.proxy):
             return session.ws_connect(self.url, autoping=False, autoclose=False, headers=self.options.get('headers'), proxy=self.proxy, max_msg_size=10485760).__aenter__()
         return session.ws_connect(self.url, autoping=False, autoclose=False, headers=self.options.get('headers'), max_msg_size=10485760).__aenter__()
