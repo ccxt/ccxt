@@ -40,7 +40,7 @@ async def test_abnormal_close():
     print('test_abnormal_close')
     received_network_error = False
     ex = ccxt.binance({
-        'verbose': True
+        # 'verbose': True
     })
     ex.set_sandbox_mode(True)
     asyncio.create_task(tcp_kill_after(15))
