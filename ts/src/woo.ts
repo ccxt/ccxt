@@ -240,11 +240,51 @@ export default class woo extends Exchange {
                 'v3': {
                     'public': {
                         'get': {
-                            'insuranceFund': 3,
+                            'systemInfo': 1, // 10/1s
+                            'instruments': 1, // 10/1s
+                            'token': 1, // 10/1s
+                            'tokenNetwork': 1, // 10/1s
+                            'tokenInfo': 1, // 10/1s
+                            'marketTrades': 1, // 10/1s
+                            'marketTradesHistory': 1, // 10/1s
+                            'orderbook': 1, // 10/1s
+                            'kline': 1, // 10/1s
+                            'klineHistory': 1, // 10/1s
+                            'futures': 1, // 10/1s
+                            'fundingRate': 1, // 10/1s
+                            'fundingRateHistory': 1, // 10/1s
+                            'insuranceFund': 1, // 10/1s
                         },
                     },
                     'private': {
                         'get': {
+                            'trade/order': 2, // 5/1s
+                            'trade/orders': 1, // 10/1s
+                            'trade/algoOrder': 1, // 10/1s
+                            'trade/algoOrders': 1, // 10/1s
+                            'trade/transaction': 1, // 10/1s
+                            'trade/transactionHistory': 5, // 2/1s
+                            'trade/tradingFee': 5, // 2/1s
+                            'account/info': 60, // 10/60s
+                            'account/tokenConfig': 1, // 10/1s
+                            'account/symbolConfig': 1, // 10/1s
+                            'account/subAccounts/all': 60, // 10/60s
+                            'account/referral/summary': 60, // 10/60s
+                            'account/referral/rewardHistory': 60, // 10/60s
+                            'account/credentials': 60, // 10/60s
+                            'asset/balances': 1, // 10/1s
+                            'asset/token/history': 60, // 10/60s
+                            'asset/transfer/history': 30, // 20/60s
+                            'asset/wallet/history': 60, // 10/60s
+                            'asset/wallet/deposit': 60, // 10/60s
+                            'asset/staking/yieldHistory': 60, // 10/60s
+                            'futures/positions': 3.33, // 30/10s
+                            'futures/leverage': 60, // 10/60s
+                            'futures/defaultMarginMode': 60, // 10/60s
+                            'futures/fundingFee/history': 30, // 20/60s
+                            'spotMargin/interestRate': 60, // 10/60s
+                            'spotMargin/interestHistory': 60, // 10/60s
+                            'spotMargin/maxMargin': 60, // 10/60s
                             'algo/order/{oid}': 1,
                             'algo/orders': 1,
                             'balances': 1,
@@ -260,16 +300,34 @@ export default class woo extends Exchange {
                             'convert/trades': 1,
                         },
                         'post': {
+                            'trade/order': 2, // 5/1s
+                            'trade/algoOrder': 5, // 2/1s
+                            'trade/cancelAllAfter': 1, // 10/1s
+                            'account/tradingMode': 120, // 5/60s
+                            'account/listenKey': 20, // 5/10s
+                            'asset/transfer': 30, // 20/60s
+                            'asset/wallet/withdraw': 60, // 10/60s
+                            'spotMargin/leverage': 120, // 5/60s
+                            'spotMargin/interestRepay': 60, // 10/60s
                             'algo/order': 5,
                             'convert/rft': 60,
                         },
                         'put': {
+                            'trade/order': 2, // 5/1s
+                            'trade/algoOrder': 2, // 5/1s
+                            'futures/leverage': 60, // 10/60s
+                            'futures/positionMode': 120, // 5/60s
                             'order/{oid}': 2,
                             'order/client/{client_order_id}': 2,
                             'algo/order/{oid}': 2,
                             'algo/order/client/{client_order_id}': 2,
                         },
                         'delete': {
+                            'trade/order': 1, // 10/1s
+                            'trade/orders': 1, // 10/1s
+                            'trade/algoOrder': 1, // 10/1s
+                            'trade/algoOrders': 1, // 10/1s
+                            'trade/allOrders': 1, // 10/1s
                             'algo/order/{order_id}': 1,
                             'algo/orders/pending': 1,
                             'algo/orders/pending/{symbol}': 1,
@@ -449,20 +507,21 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchStatus
      * @description the latest known information on the availability of the exchange API
-     * @see https://docs.woox.io/#get-system-maintenance-status-public
+     * @see https://developer.woox.io/api-reference/endpoint/public_data/systemInfo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
      */
     async fetchStatus (params = {}) {
-        const response = await this.v1PublicGetSystemInfo (params);
+        const response = await this.v3PublicGetSystemInfo (params);
         //
         //     {
         //         "success": true,
         //         "data": {
-        //             "status": "0",
-        //             "msg": "System is functioning properly."
+        //             "status": 0,
+        //             "msg": "System is functioning properly.",
+        //             "estimatedEndTime": 1749963600362
         //         },
-        //         "timestamp": "1709274106602"
+        //         "timestamp": 1751442989564
         //     }
         //
         const data = this.safeDict (response, 'data', {});
@@ -487,20 +546,21 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
-     * @see https://docs.woox.io/#get-system-maintenance-status-public
+     * @see https://developer.woox.io/api-reference/endpoint/public_data/systemInfo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
     async fetchTime (params = {}): Promise<Int> {
-        const response = await this.v1PublicGetSystemInfo (params);
+        const response = await this.v3PublicGetSystemInfo (params);
         //
         //     {
         //         "success": true,
         //         "data": {
-        //             "status": "0",
-        //             "msg": "System is functioning properly."
+        //             "status": 0,
+        //             "msg": "System is functioning properly.",
+        //             "estimatedEndTime": 1749963600362
         //         },
-        //         "timestamp": "1709274106602"
+        //         "timestamp": 1751442989564
         //     }
         //
         return this.safeInteger (response, 'timestamp');
@@ -510,7 +570,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchMarkets
      * @description retrieves data on all markets for woo
-     * @see https://docs.woox.io/#exchange-information
+     * @see https://developer.woox.io/api-reference/endpoint/public_data/instruments
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -518,30 +578,42 @@ export default class woo extends Exchange {
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference ();
         }
-        const response = await this.v1PublicGetInfo (params);
+        const response = await this.v3PublicGetInstruments (params);
         //
-        // {
-        //     "rows": [
-        //         {
-        //             "symbol": "SPOT_AAVE_USDT",
-        //             "quote_min": 0,
-        //             "quote_max": 100000,
-        //             "quote_tick": 0.01,
-        //             "base_min": 0.01,
-        //             "base_max": 7284,
-        //             "base_tick": 0.0001,
-        //             "min_notional": 10,
-        //             "price_range": 0.1,
-        //             "created_time": "0",
-        //             "updated_time": "1639107647.988",
-        //             "is_stable": 0
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "rows": [
+        //                 {
+        //                     "symbol": "SPOT_AAVE_USDT",
+        //                     "status": "TRADING",
+        //                     "baseAsset": "AAVE",
+        //                     "baseAssetMultiplier": 1,
+        //                     "quoteAsset": "USDT",
+        //                     "quoteMin": "0",
+        //                     "quoteMax": "100000",
+        //                     "quoteTick": "0.01",
+        //                     "baseMin": "0.005",
+        //                     "baseMax": "5000",
+        //                     "baseTick": "0.0001",
+        //                     "minNotional": "1",
+        //                     "bidCapRatio": "1.1",
+        //                     "bidFloorRatio": null,
+        //                     "askCapRatio": null,
+        //                     "askFloorRatio": "0.9",
+        //                     "orderMode": "NORMAL",
+        //                     "impactNotional": null,
+        //                     "isAllowedRpi": false,
+        //                     "tickGranularity": null
+        //                 }
+        //             ]
         //         },
-        //         ...
-        //     "success": true
-        // }
+        //         "timestamp": 1751512951338
+        //     }
         //
-        const data = this.safeList (response, 'rows', []);
-        return this.parseMarkets (data);
+        const data = this.safeDict (response, 'data', {});
+        const rows = this.safeList (data, 'rows', []);
+        return this.parseMarkets (rows);
     }
 
     parseMarket (market: Dict): Market {
@@ -579,7 +651,7 @@ export default class woo extends Exchange {
             linear = true;
             inverse = false;
         }
-        const active = this.safeString (market, 'is_trading') === '1';
+        const active = this.safeString (market, 'status') === 'TRADING';
         return {
             'id': marketId,
             'symbol': symbol,
@@ -605,8 +677,8 @@ export default class woo extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': this.safeNumber (market, 'base_tick'),
-                'price': this.safeNumber (market, 'quote_tick'),
+                'amount': this.safeNumber (market, 'baseTick'),
+                'price': this.safeNumber (market, 'quoteTick'),
             },
             'limits': {
                 'leverage': {
@@ -614,19 +686,19 @@ export default class woo extends Exchange {
                     'max': undefined,
                 },
                 'amount': {
-                    'min': this.safeNumber (market, 'base_min'),
-                    'max': this.safeNumber (market, 'base_max'),
+                    'min': this.safeNumber (market, 'baseMin'),
+                    'max': this.safeNumber (market, 'baseMax'),
                 },
                 'price': {
-                    'min': this.safeNumber (market, 'quote_min'),
-                    'max': this.safeNumber (market, 'quote_max'),
+                    'min': this.safeNumber (market, 'quoteMin'),
+                    'max': this.safeNumber (market, 'quoteMax'),
                 },
                 'cost': {
-                    'min': this.safeNumber (market, 'min_notional'),
+                    'min': this.safeNumber (market, 'minNotional'),
                     'max': undefined,
                 },
             },
-            'created': this.safeTimestamp (market, 'created_time'),
+            'created': null,
             'info': market,
         };
     }
@@ -635,7 +707,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://docs.woox.io/#market-trades-public
+     * @see https://developer.woox.io/api-reference/endpoint/public_data/marketTrades
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -651,38 +723,28 @@ export default class woo extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.v1PublicGetMarketTrades (this.extend (request, params));
+        const response = await this.v3PublicGetMarketTrades (this.extend (request, params));
         //
-        // {
-        //     "success": true,
-        //     "rows": [
-        //         {
-        //             "symbol": "SPOT_BTC_USDT",
-        //             "side": "SELL",
-        //             "executed_price": 46222.35,
-        //             "executed_quantity": 0.0012,
-        //             "executed_timestamp": "1641241162.329"
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "rows": [
+        //                 {
+        //                     "symbol": "SPOT_BTC_USDT",
+        //                     "side": "SELL",
+        //                     "source": 0,
+        //                     "executedPrice": "108741.01",
+        //                     "executedQuantity": "0.02477",
+        //                     "executedTimestamp": 1751513940144
+        //                 }
+        //             ]
         //         },
-        //         {
-        //             "symbol": "SPOT_BTC_USDT",
-        //             "side": "SELL",
-        //             "executed_price": 46222.35,
-        //             "executed_quantity": 0.0012,
-        //             "executed_timestamp": "1641241162.329"
-        //         },
-        //         {
-        //             "symbol": "SPOT_BTC_USDT",
-        //             "side": "BUY",
-        //             "executed_price": 46224.32,
-        //             "executed_quantity": 0.00039,
-        //             "executed_timestamp": "1641241162.287"
-        //         },
-        //         ...
-        //      ]
-        // }
+        //         "timestamp": 1751513988543
+        //     }
         //
-        const resultResponse = this.safeList (response, 'rows', []);
-        return this.parseTrades (resultResponse, market, since, limit);
+        const data = this.safeDict (response, 'data', {});
+        const rows = this.safeList (data, 'rows', []);
+        return this.parseTrades (rows, market, since, limit);
     }
 
     parseTrade (trade: Dict, market: Market = undefined): Trade {
@@ -692,9 +754,10 @@ export default class woo extends Exchange {
         //     {
         //         "symbol": "SPOT_BTC_USDT",
         //         "side": "SELL",
-        //         "executed_price": 46222.35,
-        //         "executed_quantity": 0.0012,
-        //         "executed_timestamp": "1641241162.329"
+        //         "source": 0,
+        //         "executedPrice": "108741.01",
+        //         "executedQuantity": "0.02477",
+        //         "executedTimestamp": 1751513940144
         //     }
         //
         // fetchOrderTrades, fetchOrder
@@ -714,12 +777,15 @@ export default class woo extends Exchange {
         //     }
         //
         const isFromFetchOrder = ('id' in trade);
-        const timestamp = this.safeTimestamp (trade, 'executed_timestamp');
+        let timestamp = this.safeTimestamp (trade, 'executed_timestamp');
+        if (timestamp === undefined) {
+            timestamp = this.safeInteger (trade, 'executedTimestamp');
+        }
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const price = this.safeString (trade, 'executed_price');
-        const amount = this.safeString (trade, 'executed_quantity');
+        const price = this.safeString2 (trade, 'executed_price', 'executedPrice');
+        const amount = this.safeString2 (trade, 'executed_quantity', 'executedQuantity');
         const order_id = this.safeString (trade, 'order_id');
         const fee = this.parseTokenAndFeeTemp (trade, 'fee_asset', 'fee');
         const feeCost = this.safeString (fee, 'cost');
@@ -1836,7 +1902,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.woox.io/#orderbook-snapshot-public
+     * @see https://developer.woox.io/api-reference/endpoint/public_data/orderbook
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1849,41 +1915,46 @@ export default class woo extends Exchange {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            limit = Math.min (limit, 1000);
-            request['max_level'] = limit;
+            request['maxLevel'] = limit;
         }
-        const response = await this.v1PublicGetOrderbookSymbol (this.extend (request, params));
+        const response = await this.v3PublicGetOrderbook (this.extend (request, params));
         //
-        // {
-        //   "success": true,
-        //   "timestamp": "1641562961192",
-        //   "asks": [
-        //     { price: '0.921', quantity: "76.01" },
-        //     { price: '0.933', quantity: "477.10" },
-        //     ...
-        //   ],
-        //   "bids": [
-        //     { price: '0.940', quantity: "13502.47" },
-        //     { price: '0.932', quantity: "43.91" },
-        //     ...
-        //   ]
         // }
+        //     {
+        //         "success": true,
+        //         "timestamp": 1751620923344,
+        //         "data": {
+        //             "asks": [
+        //                 {
+        //                     "price": "108924.86",
+        //                     "quantity": "0.032126"
+        //                 }
+        //             ],
+        //             "bids": [
+        //                 {
+        //                     "price": "108924.85",
+        //                     "quantity": "1.714147"
+        //                 }
+        //             ]
+        //         }
+        //     }
         //
+        const data = this.safeDict (response, 'data', {});
         const timestamp = this.safeInteger (response, 'timestamp');
-        return this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks', 'price', 'quantity');
+        return this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 'price', 'quantity');
     }
 
     /**
      * @method
      * @name woo#fetchOHLCV
-     * @see https://docs.woox.io/#kline-public
-     * @see https://docs.woox.io/#kline-historical-data-public
+     * @see https://developer.woox.io/api-reference/endpoint/public_data/klineHistory
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] max=1000, max=100 when since is defined and is less than (now - (999 * (timeframe in ms)))
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
@@ -1893,74 +1964,48 @@ export default class woo extends Exchange {
             'symbol': market['id'],
             'type': this.safeString (this.timeframes, timeframe, timeframe),
         };
-        let useHistEndpoint = since !== undefined;
-        if ((limit !== undefined) && (since !== undefined)) {
-            const oneThousandCandles = this.parseTimeframe (timeframe) * 1000 * 999;  // 999 because there will be delay between this and the request, causing the latest candle to be excluded sometimes
-            const startWithLimit = this.milliseconds () - oneThousandCandles;
-            useHistEndpoint = since < startWithLimit;
-        }
-        if (useHistEndpoint) {
-            request['start_time'] = since;
-        } else if (limit !== undefined) {  // the hist endpoint does not accept limit
+        if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
         }
-        let response = undefined;
-        if (!useHistEndpoint) {
-            response = await this.v1PublicGetKline (this.extend (request, params));
-            //
-            //    {
-            //        "success": true,
-            //        "rows": [
-            //            {
-            //                "open": "0.94238",
-            //                "close": "0.94271",
-            //                "low": "0.94238",
-            //                "high": "0.94296",
-            //                "volume": "73.55",
-            //                "amount": "69.32040520",
-            //                "symbol": "SPOT_WOO_USDT",
-            //                "type": "1m",
-            //                "start_timestamp": "1641584700000",
-            //                "end_timestamp": "1641584760000"
-            //            },
-            //            ...
-            //        ]
-            //    }
-            //
-        } else {
-            response = await this.v1PubGetHistKline (this.extend (request, params));
-            response = this.safeDict (response, 'data');
-            //
-            //    {
-            //        "success": true,
-            //        "data": {
-            //            "rows": [
-            //                {
-            //                    "symbol": "SPOT_BTC_USDT",
-            //                    "open": 44181.40000000,
-            //                    "close": 44174.29000000,
-            //                    "high": 44193.44000000,
-            //                    "low": 44148.34000000,
-            //                    "volume": 110.11930100,
-            //                    "amount": 4863796.24318878,
-            //                    "type": "1m",
-            //                    "start_timestamp": 1704153600000,
-            //                    "end_timestamp": 1704153660000
-            //                },
-            //                ...
-            //            ]
-            //        }
-            //    }
-            //
+        if (since !== undefined) {
+            request['after'] = since;
         }
-        const rows = this.safeList (response, 'rows', []);
+        const until = this.safeInteger (params, 'until');
+        params = this.omit (params, 'until');
+        if (until !== undefined) {
+            request['before'] = until;
+        }
+        const response = await this.v3PublicGetKlineHistory (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "rows": [
+        //                 {
+        //                     "symbol": "SPOT_BTC_USDT",
+        //                     "open": "108994.16",
+        //                     "close": "108994.16",
+        //                     "high": "108994.16",
+        //                     "low": "108994.16",
+        //                     "volume": "0",
+        //                     "amount": "0",
+        //                     "type": "1m",
+        //                     "startTimestamp": 1751622120000,
+        //                     "endTimestamp": 1751622180000
+        //                 }
+        //             ]
+        //         },
+        //         "timestamp": 1751622205410
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const rows = this.safeList (data, 'rows', []);
         return this.parseOHLCVs (rows, market, timeframe, since, limit);
     }
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
-        // example response in fetchOHLCV
         return [
-            this.safeInteger (ohlcv, 'start_timestamp'),
+            this.safeInteger (ohlcv, 'startTimestamp'),
             this.safeNumber (ohlcv, 'open'),
             this.safeNumber (ohlcv, 'high'),
             this.safeNumber (ohlcv, 'low'),
@@ -2911,24 +2956,22 @@ export default class woo extends Exchange {
     parseFundingRate (fundingRate, market: Market = undefined): FundingRate {
         //
         //     {
-        //         "success": true,
-        //         "timestamp": 1727427915529,
         //         "symbol": "PERP_BTC_USDT",
-        //         "est_funding_rate": -0.00092719,
-        //         "est_funding_rate_timestamp": 1727427899060,
-        //         "last_funding_rate": -0.00092610,
-        //         "last_funding_rate_timestamp": 1727424000000,
-        //         "next_funding_time": 1727452800000,
-        //         "last_funding_rate_interval": 8,
-        //         "est_funding_rate_interval": 8
+        //         "estFundingRate": "-0.00000441",
+        //         "estFundingRateTimestamp": 1751623979022,
+        //         "lastFundingRate": "-0.00004953",
+        //         "lastFundingRateTimestamp": 1751616000000,
+        //         "nextFundingTime": 1751644800000,
+        //         "lastFundingIntervalHours": 8,
+        //         "estFundingIntervalHours": 8
         //     }
         //
         const symbol = this.safeString (fundingRate, 'symbol');
         market = this.market (symbol);
-        const nextFundingTimestamp = this.safeInteger (fundingRate, 'next_funding_time');
-        const estFundingRateTimestamp = this.safeInteger (fundingRate, 'est_funding_rate_timestamp');
-        const lastFundingRateTimestamp = this.safeInteger (fundingRate, 'last_funding_rate_timestamp');
-        const intervalString = this.safeString (fundingRate, 'est_funding_rate_interval');
+        const nextFundingTimestamp = this.safeInteger (fundingRate, 'nextFundingTime');
+        const estFundingRateTimestamp = this.safeInteger (fundingRate, 'estFundingRateTimestamp');
+        const lastFundingRateTimestamp = this.safeInteger (fundingRate, 'lastFundingRateTimestamp');
+        const intervalString = this.safeString (fundingRate, 'estFundingIntervalHours');
         return {
             'info': fundingRate,
             'symbol': market['symbol'],
@@ -2938,13 +2981,13 @@ export default class woo extends Exchange {
             'estimatedSettlePrice': undefined,
             'timestamp': estFundingRateTimestamp,
             'datetime': this.iso8601 (estFundingRateTimestamp),
-            'fundingRate': this.safeNumber (fundingRate, 'est_funding_rate'),
+            'fundingRate': this.safeNumber (fundingRate, 'estFundingRate'),
             'fundingTimestamp': nextFundingTimestamp,
             'fundingDatetime': this.iso8601 (nextFundingTimestamp),
             'nextFundingRate': undefined,
             'nextFundingTimestamp': undefined,
             'nextFundingDatetime': undefined,
-            'previousFundingRate': this.safeNumber (fundingRate, 'last_funding_rate'),
+            'previousFundingRate': this.safeNumber (fundingRate, 'lastFundingRate'),
             'previousFundingTimestamp': lastFundingRateTimestamp,
             'previousFundingDatetime': this.iso8601 (lastFundingRateTimestamp),
             'interval': intervalString + 'h',
@@ -2955,7 +2998,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchFundingInterval
      * @description fetch the current funding rate interval
-     * @see https://docs.woox.io/#get-predicted-funding-rate-for-one-market-public
+     * @see https://developer.woox.io/api-reference/endpoint/public_data/fundingRate
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -2968,7 +3011,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchFundingRate
      * @description fetch the current funding rate
-     * @see https://docs.woox.io/#get-predicted-funding-rate-for-one-market-public
+     * @see https://developer.woox.io/api-reference/endpoint/public_data/fundingRate
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -2979,29 +3022,38 @@ export default class woo extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        const response = await this.v1PublicGetFundingRateSymbol (this.extend (request, params));
+        const response = await this.v3PublicGetFundingRate (this.extend (request, params));
         //
         //     {
         //         "success": true,
-        //         "timestamp": 1727428037877,
-        //         "symbol": "PERP_BTC_USDT",
-        //         "est_funding_rate": -0.00092674,
-        //         "est_funding_rate_timestamp": 1727428019064,
-        //         "last_funding_rate": -0.00092610,
-        //         "last_funding_rate_timestamp": 1727424000000,
-        //         "next_funding_time": 1727452800000,
-        //         "last_funding_rate_interval": 8,
-        //         "est_funding_rate_interval": 8
+        //         "data": {
+        //             "rows": [
+        //                 {
+        //                     "symbol": "PERP_BTC_USDT",
+        //                     "estFundingRate": "-0.00000441",
+        //                     "estFundingRateTimestamp": 1751623979022,
+        //                     "lastFundingRate": "-0.00004953",
+        //                     "lastFundingRateTimestamp": 1751616000000,
+        //                     "nextFundingTime": 1751644800000,
+        //                     "lastFundingIntervalHours": 8,
+        //                     "estFundingIntervalHours": 8
+        //                 }
+        //             ]
+        //         },
+        //         "timestamp": 1751624037798
         //     }
         //
-        return this.parseFundingRate (response, market);
+        const data = this.safeDict (response, 'data', {});
+        const rows = this.safeList (data, 'rows', []);
+        const first = this.safeDict (rows, 0, {});
+        return this.parseFundingRate (first, market);
     }
 
     /**
      * @method
      * @name woo#fetchFundingRates
      * @description fetch the funding rate for multiple markets
-     * @see https://docs.woox.io/#get-predicted-funding-rate-for-all-markets-public
+     * @see https://developer.woox.io/api-reference/endpoint/public_data/fundingRate
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
@@ -3009,24 +3061,29 @@ export default class woo extends Exchange {
     async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const response = await this.v1PublicGetFundingRates (params);
+        const response = await this.v3PublicGetFundingRate (params);
         //
         //     {
-        //         "success":true,
-        //         "rows":[
-        //             {
-        //                 "symbol":"PERP_AAVE_USDT",
-        //                 "est_funding_rate":-0.00003447,
-        //                 "est_funding_rate_timestamp":1653633959001,
-        //                 "last_funding_rate":-0.00002094,
-        //                 "last_funding_rate_timestamp":1653631200000,
-        //                 "next_funding_time":1653634800000
-        //             }
-        //         ],
-        //         "timestamp":1653633985646
+        //         "success": true,
+        //         "data": {
+        //             "rows": [
+        //                 {
+        //                     "symbol": "PERP_BTC_USDT",
+        //                     "estFundingRate": "-0.00000441",
+        //                     "estFundingRateTimestamp": 1751623979022,
+        //                     "lastFundingRate": "-0.00004953",
+        //                     "lastFundingRateTimestamp": 1751616000000,
+        //                     "nextFundingTime": 1751644800000,
+        //                     "lastFundingIntervalHours": 8,
+        //                     "estFundingIntervalHours": 8
+        //                 }
+        //             ]
+        //         },
+        //         "timestamp": 1751624037798
         //     }
         //
-        const rows = this.safeList (response, 'rows', []);
+        const data = this.safeDict (response, 'data', {});
+        const rows = this.safeList (data, 'rows', []);
         return this.parseFundingRates (rows, symbols);
     }
 
@@ -3034,7 +3091,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchFundingRateHistory
      * @description fetches historical funding rate prices
-     * @see https://docs.woox.io/#get-funding-rate-history-for-one-market-public
+     * @see https://developer.woox.io/api-reference/endpoint/public_data/fundingRateHistory
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
      * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
@@ -3050,46 +3107,52 @@ export default class woo extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchFundingRateHistory', symbol, since, limit, params, 'page', 25) as FundingRateHistory[];
         }
-        let request: Dict = {};
-        if (symbol !== undefined) {
-            const market = this.market (symbol);
-            symbol = market['symbol'];
-            request['symbol'] = market['id'];
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        let request: Dict = {
+            'symbol': market['id'],
+        };
         if (since !== undefined) {
-            request['start_t'] = this.parseToInt (since / 1000);
+            request['startTime'] = since;
         }
-        [ request, params ] = this.handleUntilOption ('end_t', request, params, 0.001);
-        const response = await this.v1PublicGetFundingRateHistory (this.extend (request, params));
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        const response = await this.v3PublicGetFundingRateHistory (this.extend (request, params));
         //
         //     {
-        //         "success":true,
-        //         "meta":{
-        //             "total":2464,
-        //             "records_per_page":25,
-        //             "current_page":1
-        //         },
-        //         "rows":[
-        //             {
-        //                 "symbol":"PERP_BTC_USDT",
-        //                 "funding_rate":0.00000629,
-        //                 "funding_rate_timestamp":1653638400000,
-        //                 "next_funding_time":1653642000000
+        //         "success": true,
+        //         "data": {
+        //             "rows": [
+        //                 {
+        //                     "symbol": "PERP_BTC_USDT",
+        //                     "fundingRate": "-0.00004953",
+        //                     "fundingRateTimestamp": 1751616000000,
+        //                     "nextFundingTime": 1751644800000,
+        //                     "markPrice": "108708"
+        //                 }
+        //             ],
+        //             "meta": {
+        //                 "total": 11690,
+        //                 "recordsPerPage": 25,
+        //                 "currentPage": 1
         //             }
-        //         ],
-        //         "timestamp":1653640814885
+        //         },
+        //         "timestamp": 1751632390031
         //     }
         //
-        const result = this.safeList (response, 'rows');
+        const data = this.safeDict (response, 'data', {});
+        const rows = this.safeList (data, 'rows', []);
         const rates = [];
-        for (let i = 0; i < result.length; i++) {
-            const entry = result[i];
+        for (let i = 0; i < rows.length; i++) {
+            const entry = rows[i];
             const marketId = this.safeString (entry, 'symbol');
-            const timestamp = this.safeInteger (entry, 'funding_rate_timestamp');
+            const timestamp = this.safeInteger (entry, 'fundingRateTimestamp');
             rates.push ({
                 'info': entry,
                 'symbol': this.safeSymbol (marketId),
-                'fundingRate': this.safeNumber (entry, 'funding_rate'),
+                'fundingRate': this.safeNumber (entry, 'fundingRate'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
             });
