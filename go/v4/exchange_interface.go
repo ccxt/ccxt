@@ -181,6 +181,7 @@ type IDerivedExchange interface {
 	ParseLeverage(leverage interface{}, optionalArgs ...interface{}) interface{}
 	ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{}) interface{}
 	ParseTrade(trade interface{}, optionalArgs ...interface{}) interface{}
+	ParseGreeks(greeks interface{}, optionalArgs ...interface{}) interface{}
 	ParseMarket(market interface{}) interface{}
 	ParseCurrency(rawCurrency interface{}) interface{}
 	ParseTransaction(transaction interface{}, optionalArgs ...interface{}) interface{}

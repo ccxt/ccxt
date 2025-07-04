@@ -4480,7 +4480,7 @@ export default class Exchange {
     }
 
     parseLeverageTiers (response: any, symbols: string[] = undefined, marketIdKey = undefined): LeverageTiers {
-        // marketIdKey should only be undefined when response is a dictionary
+        // marketIdKey should only be undefined when response is a dictionary.
         symbols = this.marketSymbols (symbols);
         const tiers = {};
         let symbolsLength = 0;
