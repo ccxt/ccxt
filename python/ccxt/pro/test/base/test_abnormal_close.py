@@ -42,6 +42,7 @@ async def test_abnormal_close():
     ex = ccxt.binance({
         'verbose': True
     })
+    ex.set_sandbox_mode(True)
     asyncio.create_task(tcp_kill_after(15))
     start_time = ex.seconds()
     while True:
