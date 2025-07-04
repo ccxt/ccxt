@@ -473,7 +473,7 @@ func  (this *krakenfutures) FetchMarkets(optionalArgs ...interface{}) <- chan in
                     "precision": nil,
                 })
             }
-            this.Currencies = this.DeepExtend(currencies, this.Currencies)
+            this.Currencies = this.MapToSafeMap(this.DeepExtend(currencies, this.Currencies))
         
             ch <- result
             return nil

@@ -101,6 +101,7 @@ class bitmex(Exchange, ImplicitAPI):
                 'fetchTransactions': 'emulated',
                 'fetchTransfer': False,
                 'fetchTransfers': False,
+                'index': True,
                 'reduceMargin': None,
                 'sandbox': True,
                 'setLeverage': True,
@@ -427,8 +428,8 @@ class bitmex(Exchange, ImplicitAPI):
         #            # "mediumPrecision": "8",
         #            # "shorterPrecision": "4",
         #            # "symbol": "₿",
-        #            # "weight": "1",
         #            # "tickLog": "0",
+        #            # "weight": "1",
         #            "enabled": True,
         #            "isMarginCurrency": True,
         #            "minDepositAmount": "10000",
@@ -758,6 +759,11 @@ class bitmex(Exchange, ImplicitAPI):
         maxOrderQty = self.safe_number(market, 'maxOrderQty')
         initMargin = self.safe_string(market, 'initMargin', '1')
         maxLeverage = self.parse_number(Precise.string_div('1', initMargin))
+        # subtype should be None for spot markets
+        if spot:
+            isInverse = None
+            isQuanto = None
+            linear = None
         return {
             'id': id,
             'symbol': symbol,
@@ -807,7 +813,7 @@ class bitmex(Exchange, ImplicitAPI):
                     'max': maxOrderQty if positionIsQuote else None,
                 },
             },
-            'created': self.parse8601(self.safe_string(market, 'listing')),
+            'created': None,  # 'listing' field is buggy, e.g. 2200-02-01T00:00:00.000Z
             'info': market,
         }
 

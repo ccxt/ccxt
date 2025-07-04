@@ -203,6 +203,7 @@ class bitmart extends Exchange {
                         'contract/private/order' => 1.2,
                         'contract/private/order-history' => 10,
                         'contract/private/position' => 10,
+                        'contract/private/position-v2' => 10,
                         'contract/private/get-open-orders' => 1.2,
                         'contract/private/current-plan-order' => 1.2,
                         'contract/private/trades' => 10,
@@ -2202,6 +2203,7 @@ class bitmart extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch trades for
          * @param {boolean} [$params->marginMode] *spot* whether to fetch trades for margin orders or spot orders, defaults to spot orders (only isolated margin orders are supported)
+         * @param {string} [$params->stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
          */
         $this->load_markets();
@@ -2316,6 +2318,7 @@ class bitmart extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch trades for
          * @param {int} [$limit] the maximum number of trades to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
          */
         $this->load_markets();
@@ -2361,7 +2364,7 @@ class bitmart extends Exchange {
                 $code = $this->safe_currency_code($currencyId);
                 $account = $this->account();
                 $account['free'] = $this->safe_string_2($balance, 'available', 'available_balance');
-                $account['used'] = $this->safe_string_2($balance, 'frozen', 'frozen_balance');
+                $account['used'] = $this->safe_string_n($balance, array( 'unAvailable', 'frozen', 'frozen_balance' ));
                 $result[$code] = $account;
             }
             return $this->safe_balance($result);
@@ -2780,6 +2783,7 @@ class bitmart extends Exchange {
          * @param {string} [$params->stopLossPrice] *swap only* the $price to trigger a stop-loss $order
          * @param {string} [$params->takeProfitPrice] *swap only* the $price to trigger a take-profit $order
          * @param {int} [$params->plan_category] *swap tp/sl only* 1 => tp/sl, 2 => position tp/sl, default is 1
+         * @param {string} [$params->stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
          */
         $this->load_markets();
@@ -2846,6 +2850,7 @@ class bitmart extends Exchange {
          *
          * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
          * @param {array} [$params]  extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
          */
         $this->load_markets();
@@ -3405,6 +3410,7 @@ class bitmart extends Exchange {
          * @param {string} [$params->orderType] *swap only* 'limit', 'market', or 'trailing'
          * @param {boolean} [$params->trailing] *swap only* set to true if you want to fetch $trailing orders
          * @param {boolean} [$params->trigger] *swap only* set to true if you want to fetch trigger orders
+         * @param {string} [$params->stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
@@ -3529,6 +3535,7 @@ class bitmart extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest entry
          * @param {string} [$params->marginMode] *spot only* 'cross' or 'isolated', for margin trading
+         * @param {string} [$params->stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
@@ -3596,6 +3603,7 @@ class bitmart extends Exchange {
          * @param {string} [$params->clientOrderId] *spot* fetch the order by client order $id instead of order $id
          * @param {string} [$params->orderType] *swap only* 'limit', 'market', 'liquidate', 'bankruptcy', 'adl' or 'trailing'
          * @param {boolean} [$params->trailing] *swap only* set to true if you want to fetch a $trailing order
+         * @param {string} [$params->stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
@@ -4887,6 +4895,7 @@ class bitmart extends Exchange {
          * fetch all open contract $positions
          *
          * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-keyed
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-v2-keyed
          *
          * @param {string[]|null} $symbols list of unified $market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -4905,7 +4914,7 @@ class bitmart extends Exchange {
             // only supports $symbols or sending one symbol
             $request['symbol'] = $market['id'];
         }
-        $response = $this->privateGetContractPrivatePosition ($this->extend($request, $params));
+        $response = $this->privateGetContractPrivatePositionV2 ($this->extend($request, $params));
         //
         //     {
         //         "code" => 1000,

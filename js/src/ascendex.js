@@ -469,6 +469,7 @@ export default class ascendex extends Exchange {
                 'broad': {},
             },
             'commonCurrencies': {
+                'XBT': 'XBT',
                 'BOND': 'BONDED',
                 'BTCBEAR': 'BEAR',
                 'BTCBULL': 'BULL',
@@ -491,116 +492,83 @@ export default class ascendex extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies(params = {}) {
-        const assetsPromise = this.v1PublicGetAssets(params);
+        const response = await this.v2PublicGetAssets(params);
         //
-        //     {
-        //         "code":0,
-        //         "data":[
-        //             {
-        //                 "assetCode" : "LTCBULL",
-        //                 "assetName" : "3X Long LTC Token",
-        //                 "precisionScale" : 9,
-        //                 "nativeScale" : 4,
-        //                 "withdrawalFee" : "0.2",
-        //                 "minWithdrawalAmt" : "1.0",
-        //                 "status" : "Normal"
-        //             },
+        //    {
+        //        "code": "0",
+        //        "data": [
+        //            {
+        //                "assetCode": "USDT",
+        //                "assetName": "Tether",
+        //                "precisionScale": 9,
+        //                "nativeScale": 4,
+        //                "blockChain": [
+        //                    {
+        //                        "chainName": "Solana",
+        //                        "withdrawFee": "2.0",
+        //                        "allowDeposit": true,
+        //                        "allowWithdraw": true,
+        //                        "minDepositAmt": "0.01",
+        //                        "minWithdrawal": "4.0",
+        //                        "numConfirmations": 1
+        //                    },
+        //                    ...
+        //                ]
+        //            },
         //         ]
-        //     }
+        //    }
         //
-        const marginPromise = this.v1PublicGetMarginAssets(params);
-        //
-        //     {
-        //         "code":0,
-        //         "data":[
-        //             {
-        //                 "assetCode":"BTT",
-        //                 "displayName": "BTT",
-        //                 "borrowAssetCode":"BTT-B",
-        //                 "interestAssetCode":"BTT-I",
-        //                 "nativeScale":0,
-        //                 "numConfirmations":1,
-        //                 "withdrawFee":"100.0",
-        //                 "minWithdrawalAmt":"1000.0",
-        //                 "statusCode":"Normal",
-        //                 "statusMessage":"",
-        //                 "interestRate":"0.001"
-        //             }
-        //         ]
-        //     }
-        //
-        const cashPromise = this.v1PublicGetCashAssets(params);
-        //
-        //     {
-        //         "code":0,
-        //         "data":[
-        //             {
-        //                 "assetCode":"LTCBULL",
-        //                 "displayName": "LTCBULL",
-        //                 "nativeScale":4,
-        //                 "numConfirmations":20,
-        //                 "withdrawFee":"0.2",
-        //                 "minWithdrawalAmt":"1.0",
-        //                 "statusCode":"Normal",
-        //                 "statusMessage":""  // hideFromWalletTx
-        //             }
-        //         ]
-        //     }
-        //
-        const [assets, margin, cash] = await Promise.all([assetsPromise, marginPromise, cashPromise]);
-        const assetsData = this.safeList(assets, 'data', []);
-        const marginData = this.safeList(margin, 'data', []);
-        const cashData = this.safeList(cash, 'data', []);
-        const assetsById = this.indexBy(assetsData, 'assetCode');
-        const marginById = this.indexBy(marginData, 'assetCode');
-        const cashById = this.indexBy(cashData, 'assetCode');
-        const dataById = this.deepExtend(assetsById, marginById, cashById);
-        const ids = Object.keys(dataById);
+        const data = this.safeList(response, 'data', []);
         const result = {};
-        for (let i = 0; i < ids.length; i++) {
-            const id = this.safeString(ids, i);
-            const currency = dataById[id];
+        for (let i = 0; i < data.length; i++) {
+            const currency = data[i];
+            const id = this.safeString(currency, 'assetCode');
             const code = this.safeCurrencyCode(id);
-            const scale = this.safeString2(currency, 'precisionScale', 'nativeScale');
-            const precision = this.parseNumber(this.parsePrecision(scale));
-            const fee = this.safeNumber2(currency, 'withdrawFee', 'withdrawalFee');
-            const status = this.safeString(currency, 'status');
-            const statusCode = this.safeString(currency, 'statusCode');
-            const active = (status === 'Normal');
-            let depositEnabled = undefined;
-            let withdrawEnabled = undefined;
-            if (status === 'Delisted' || statusCode === 'hideFromWalletTx') {
-                depositEnabled = false;
-                withdrawEnabled = false;
+            const chains = this.safeList(currency, 'blockChain', []);
+            const precision = this.parseNumber(this.parsePrecision(this.safeString(currency, 'nativeScale')));
+            const networks = {};
+            for (let j = 0; j < chains.length; j++) {
+                const networkEtnry = chains[j];
+                const networkId = this.safeString(networkEtnry, 'chainName');
+                const networkCode = this.networkCodeToId(networkId);
+                networks[networkCode] = {
+                    'fee': this.safeNumber(networkEtnry, 'withdrawFee'),
+                    'active': undefined,
+                    'withdraw': this.safeBool(networkEtnry, 'allowWithdraw'),
+                    'deposit': this.safeBool(networkEtnry, 'allowDeposit'),
+                    'precision': precision,
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': this.safeNumber(networkEtnry, 'minWithdrawal'),
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': this.safeNumber(networkEtnry, 'minDepositAmt'),
+                            'max': undefined,
+                        },
+                    },
+                };
             }
-            else if (status === 'Normal') {
-                depositEnabled = true;
-                withdrawEnabled = true;
-            }
-            else if (status === 'NoTransaction' || statusCode === 'NoTransaction') {
-                depositEnabled = true;
-                withdrawEnabled = false;
-            }
-            else if (status === 'NoDeposit') {
-                depositEnabled = false;
-                withdrawEnabled = true;
-            }
-            const marginInside = ('borrowAssetCode' in currency);
-            result[code] = {
+            // todo type: if (chainsLength === 0 && (assetName.endsWith (' Staking') || assetName.indexOf (' Reward ') >= 0 || assetName.indexOf ('Slot Auction') >= 0 || assetName.indexOf (' Freeze Asset') >= 0))
+            result[code] = this.safeCurrencyStructure({
                 'id': id,
                 'code': code,
                 'info': currency,
                 'type': undefined,
-                'margin': marginInside,
+                'margin': undefined,
                 'name': this.safeString(currency, 'assetName'),
-                'active': active,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
-                'fee': fee,
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
+                'fee': undefined,
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': precision,
+                        'min': undefined,
                         'max': undefined,
                     },
                     'withdraw': {
@@ -608,8 +576,8 @@ export default class ascendex extends Exchange {
                         'max': undefined,
                     },
                 },
-                'networks': {},
-            };
+                'networks': networks,
+            });
         }
         return result;
     }
@@ -621,6 +589,12 @@ export default class ascendex extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
+        const spotPromise = this.fetchSpotMarkets(params);
+        const contractPromise = this.fetchContractMarkets(params);
+        const [spotMarkets, contractMarkets] = await Promise.all([spotPromise, contractPromise]);
+        return this.arrayConcat(spotMarkets, contractMarkets);
+    }
+    async fetchSpotMarkets(params = {}) {
         const productsPromise = this.v1PublicGetProducts(params);
         //
         //     {
@@ -672,7 +646,94 @@ export default class ascendex extends Exchange {
         //         ]
         //     }
         //
-        const perpetualsPromise = this.v2PublicGetFuturesContract(params);
+        const [products, cash] = await Promise.all([productsPromise, cashPromise]);
+        const productsData = this.safeList(products, 'data', []);
+        const productsById = this.indexBy(productsData, 'symbol');
+        const cashData = this.safeList(cash, 'data', []);
+        const cashAndPerpetualsById = this.indexBy(cashData, 'symbol');
+        const dataById = this.deepExtend(productsById, cashAndPerpetualsById);
+        const ids = Object.keys(dataById);
+        const result = [];
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            if (id.indexOf('-PERP') >= 0) {
+                continue; // skip perpetuals, as separate endpoint returns them
+            }
+            const market = dataById[id];
+            const status = this.safeString(market, 'status');
+            const domain = this.safeString(market, 'domain');
+            let active = false;
+            if (((status === 'Normal') || (status === 'InternalTrading')) && (domain !== 'LeveragedETF')) {
+                active = true;
+            }
+            const minQty = this.safeNumber(market, 'minQty');
+            const maxQty = this.safeNumber(market, 'maxQty');
+            const minPrice = this.safeNumber(market, 'tickSize');
+            const maxPrice = undefined;
+            const underlying = this.safeString2(market, 'underlying', 'symbol');
+            const parts = underlying.split('/');
+            const baseId = this.safeString(parts, 0);
+            const quoteId = this.safeString(parts, 1);
+            const base = this.safeCurrencyCode(baseId);
+            const quote = this.safeCurrencyCode(quoteId);
+            const fee = this.safeNumber(market, 'commissionReserveRate');
+            const marginTradable = this.safeBool(market, 'marginTradable', false);
+            result.push({
+                'id': id,
+                'symbol': base + '/' + quote,
+                'base': base,
+                'baseId': baseId,
+                'quote': quote,
+                'quoteId': quoteId,
+                'settle': undefined,
+                'settleId': undefined,
+                'type': 'spot',
+                'spot': true,
+                'margin': marginTradable,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': active,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'taker': fee,
+                'maker': fee,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.safeNumber(market, 'lotSize'),
+                    'price': this.safeNumber(market, 'tickSize'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': minQty,
+                        'max': maxQty,
+                    },
+                    'price': {
+                        'min': minPrice,
+                        'max': maxPrice,
+                    },
+                    'cost': {
+                        'min': this.safeNumber(market, 'minNotional'),
+                        'max': this.safeNumber(market, 'maxNotional'),
+                    },
+                },
+                'created': this.safeInteger(market, 'tradingStartTime'),
+                'info': market,
+            });
+        }
+        return result;
+    }
+    async fetchContractMarkets(params = {}) {
+        const contracts = await this.v2PublicGetFuturesContract(params);
         //
         //    {
         //        "code": 0,
@@ -685,9 +746,9 @@ export default class ascendex extends Exchange {
         //                "underlying": "BTC/USDT",
         //                "tradingStartTime": 1579701600000,
         //                "priceFilter": {
-        //                    "minPrice": "1",
+        //                    "minPrice": "0.1",
         //                    "maxPrice": "1000000",
-        //                    "tickSize": "1"
+        //                    "tickSize": "0.1"
         //                },
         //                "lotSizeFilter": {
         //                    "minQty": "0.0001",
@@ -710,52 +771,25 @@ export default class ascendex extends Exchange {
         //        ]
         //    }
         //
-        const [products, cash, perpetuals] = await Promise.all([productsPromise, cashPromise, perpetualsPromise]);
-        const productsData = this.safeList(products, 'data', []);
-        const productsById = this.indexBy(productsData, 'symbol');
-        const cashData = this.safeList(cash, 'data', []);
-        const perpetualsData = this.safeList(perpetuals, 'data', []);
-        const cashAndPerpetualsData = this.arrayConcat(cashData, perpetualsData);
-        const cashAndPerpetualsById = this.indexBy(cashAndPerpetualsData, 'symbol');
-        const dataById = this.deepExtend(productsById, cashAndPerpetualsById);
-        const ids = Object.keys(dataById);
+        const data = this.safeList(contracts, 'data', []);
         const result = [];
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const market = dataById[id];
-            const settleId = this.safeString(market, 'settlementAsset');
-            const settle = this.safeCurrencyCode(settleId);
-            const status = this.safeString(market, 'status');
-            const domain = this.safeString(market, 'domain');
-            let active = false;
-            if (((status === 'Normal') || (status === 'InternalTrading')) && (domain !== 'LeveragedETF')) {
-                active = true;
-            }
-            const spot = settle === undefined;
-            const swap = !spot;
-            const linear = swap ? true : undefined;
-            let minQty = this.safeNumber(market, 'minQty');
-            let maxQty = this.safeNumber(market, 'maxQty');
-            let minPrice = this.safeNumber(market, 'tickSize');
-            let maxPrice = undefined;
-            const underlying = this.safeString2(market, 'underlying', 'symbol');
+        for (let i = 0; i < data.length; i++) {
+            const market = data[i];
+            const id = this.safeString(market, 'symbol');
+            const underlying = this.safeString(market, 'underlying');
             const parts = underlying.split('/');
             const baseId = this.safeString(parts, 0);
-            const quoteId = this.safeString(parts, 1);
             const base = this.safeCurrencyCode(baseId);
+            const quoteId = this.safeString(parts, 1);
             const quote = this.safeCurrencyCode(quoteId);
-            let symbol = base + '/' + quote;
-            if (swap) {
-                const lotSizeFilter = this.safeDict(market, 'lotSizeFilter');
-                minQty = this.safeNumber(lotSizeFilter, 'minQty');
-                maxQty = this.safeNumber(lotSizeFilter, 'maxQty');
-                const priceFilter = this.safeDict(market, 'priceFilter');
-                minPrice = this.safeNumber(priceFilter, 'minPrice');
-                maxPrice = this.safeNumber(priceFilter, 'maxPrice');
-                symbol = base + '/' + quote + ':' + settle;
-            }
+            const settleId = this.safeString(market, 'settlementAsset');
+            const settle = this.safeCurrencyCode(settleId);
+            const linear = settle === quote;
+            const inverse = settle === base;
+            const symbol = base + '/' + quote + ':' + settle;
+            const priceFilter = this.safeDict(market, 'priceFilter');
+            const lotSizeFilter = this.safeDict(market, 'lotSizeFilter');
             const fee = this.safeNumber(market, 'commissionReserveRate');
-            const marginTradable = this.safeBool(market, 'marginTradable', false);
             result.push({
                 'id': id,
                 'symbol': symbol,
@@ -765,26 +799,26 @@ export default class ascendex extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
-                'type': swap ? 'swap' : 'spot',
-                'spot': spot,
-                'margin': spot ? marginTradable : undefined,
-                'swap': swap,
+                'type': 'swap',
+                'spot': false,
+                'margin': undefined,
+                'swap': true,
                 'future': false,
                 'option': false,
-                'active': active,
-                'contract': swap,
+                'active': this.safeString(market, 'status') === 'Normal',
+                'contract': true,
                 'linear': linear,
-                'inverse': swap ? !linear : undefined,
+                'inverse': inverse,
                 'taker': fee,
                 'maker': fee,
-                'contractSize': swap ? this.parseNumber('1') : undefined,
+                'contractSize': this.parseNumber('1'),
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeNumber(market, 'lotSize'),
-                    'price': this.safeNumber(market, 'tickSize'),
+                    'amount': this.safeNumber(lotSizeFilter, 'lotSize'),
+                    'price': this.safeNumber(priceFilter, 'tickSize'),
                 },
                 'limits': {
                     'leverage': {
@@ -792,12 +826,12 @@ export default class ascendex extends Exchange {
                         'max': undefined,
                     },
                     'amount': {
-                        'min': minQty,
-                        'max': maxQty,
+                        'min': this.safeNumber(lotSizeFilter, 'minQty'),
+                        'max': this.safeNumber(lotSizeFilter, 'maxQty'),
                     },
                     'price': {
-                        'min': minPrice,
-                        'max': maxPrice,
+                        'min': this.safeNumber(priceFilter, 'minPrice'),
+                        'max': this.safeNumber(priceFilter, 'maxPrice'),
                     },
                     'cost': {
                         'min': this.safeNumber(market, 'minNotional'),
@@ -1407,6 +1441,8 @@ export default class ascendex extends Exchange {
         //         "timestamp": 1573576916201
         //     }
         //
+        //  & linear (fetchClosedOrders)
+        //
         //     {
         //         "ac": "FUTURES",
         //         "accountId": "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
@@ -1414,7 +1450,7 @@ export default class ascendex extends Exchange {
         //         "orderId": "a17e0874ecbdU0711043490bbtcpDU5X",
         //         "seqNum": -1,
         //         "orderType": "Limit",
-        //         "execInst": "NULL_VAL",
+        //         "execInst": "NULL_VAL", // NULL_VAL, ReduceOnly , ...
         //         "side": "Buy",
         //         "symbol": "BTC-PERP",
         //         "price": "30000",
@@ -1503,14 +1539,14 @@ export default class ascendex extends Exchange {
         const status = this.parseOrderStatus(this.safeString(order, 'status'));
         const marketId = this.safeString(order, 'symbol');
         const symbol = this.safeSymbol(marketId, market, '/');
-        let timestamp = this.safeInteger2(order, 'timestamp', 'sendingTime');
+        let timestamp = this.safeIntegerN(order, ['timestamp', 'sendingTime', 'time']);
         const lastTradeTimestamp = this.safeInteger(order, 'lastExecTime');
         if (timestamp === undefined) {
             timestamp = lastTradeTimestamp;
         }
         const price = this.safeString(order, 'price');
         const amount = this.safeString(order, 'orderQty');
-        const average = this.safeString(order, 'avgPx');
+        const average = this.safeString2(order, 'avgPx', 'avgFilledPx');
         const filled = this.safeStringN(order, ['cumFilledQty', 'cumQty', 'fillQty']);
         const id = this.safeString(order, 'orderId');
         let clientOrderId = this.safeString(order, 'id');
@@ -1542,12 +1578,12 @@ export default class ascendex extends Exchange {
         }
         const triggerPrice = this.omitZero(this.safeString(order, 'stopPrice'));
         let reduceOnly = undefined;
-        const execInst = this.safeString(order, 'execInst');
-        if (execInst === 'reduceOnly') {
+        const execInst = this.safeStringLower(order, 'execInst');
+        if (execInst === 'reduceonly') {
             reduceOnly = true;
         }
         let postOnly = undefined;
-        if (execInst === 'Post') {
+        if (execInst === 'post') {
             postOnly = true;
         }
         return this.safeOrder({
@@ -2311,8 +2347,7 @@ export default class ascendex extends Exchange {
         //     }
         //
         let data = this.safeList(response, 'data', []);
-        const isArray = Array.isArray(data);
-        if (!isArray) {
+        if (!Array.isArray(data)) {
             data = this.safeList(data, 'data', []);
         }
         return this.parseOrders(data, market, since, limit);

@@ -53,6 +53,7 @@ public partial class binance : Exchange
                 { "editOrder", true },
                 { "editOrders", true },
                 { "fetchAccounts", null },
+                { "fetchAllGreeks", true },
                 { "fetchBalance", true },
                 { "fetchBidsAsks", true },
                 { "fetchBorrowInterest", true },
@@ -4031,7 +4032,7 @@ public partial class binance : Exchange
         //
         //     {
         //         "symbol": "BTCUSDT",
-        //         "markPrice": "11793.63104562", // mark price
+        //         "markPrice": "11793.63104561", // mark price
         //         "indexPrice": "11781.80495970", // index price
         //         "estimatedSettlePrice": "11781.16138815", // Estimated Settle Price, only useful in the last hour before the settlement starts
         //         "lastFundingRate": "0.00038246",  // This is the lastest estimated funding rate
@@ -5300,7 +5301,6 @@ public partial class binance : Exchange
         {
             uppercaseType = "LIMIT_MAKER";
         }
-        ((IDictionary<string,object>)request)["type"] = uppercaseType;
         object triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice");
         if (isTrue(!isEqual(triggerPrice, null)))
         {
@@ -5312,6 +5312,7 @@ public partial class binance : Exchange
                 uppercaseType = "STOP_LOSS_LIMIT";
             }
         }
+        ((IDictionary<string,object>)request)["type"] = uppercaseType;
         object validOrderTypes = this.safeList(getValue(market, "info"), "orderTypes");
         if (!isTrue(this.inArray(uppercaseType, validOrderTypes)))
         {
@@ -10848,7 +10849,7 @@ public partial class binance : Exchange
             {
                 throw new NotSupported ((string)add(this.id, " loadLeverageBrackets() supports linear and inverse contracts only")) ;
             }
-            ((IDictionary<string,object>)this.options)["leverageBrackets"] = new Dictionary<string, object>() {};
+            ((IDictionary<string,object>)this.options)["leverageBrackets"] = this.createSafeDictionary();
             for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
             {
                 object entry = getValue(response, i);
@@ -13983,6 +13984,52 @@ public partial class binance : Exchange
         //     ]
         //
         return this.parseGreeks(getValue(response, 0), market);
+    }
+
+    /**
+     * @method
+     * @name binance#fetchAllGreeks
+     * @description fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+     * @see https://developers.binance.com/docs/derivatives/option/market-data/Option-Mark-Price
+     * @param {string[]} [symbols] unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}
+     */
+    public async override Task<object> fetchAllGreeks(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, true, true, true);
+        object request = new Dictionary<string, object>() {};
+        object market = null;
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            object symbolsLength = getArrayLength(symbols);
+            if (isTrue(isEqual(symbolsLength, 1)))
+            {
+                market = this.market(getValue(symbols, 0));
+                ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            }
+        }
+        object response = await this.eapiPublicGetMark(this.extend(request, parameters));
+        //
+        //     [
+        //         {
+        //             "symbol": "BTC-231229-40000-C",
+        //             "markPrice": "2012",
+        //             "bidIV": "0.60236275",
+        //             "askIV": "0.62267244",
+        //             "markIV": "0.6125176",
+        //             "delta": "0.39111646",
+        //             "theta": "-32.13948531",
+        //             "gamma": "0.00004656",
+        //             "vega": "51.70062218",
+        //             "highPriceLimit": "6474",
+        //             "lowPriceLimit": "5"
+        //         }
+        //     ]
+        //
+        return this.parseAllGreeks(response, symbols);
     }
 
     public override object parseGreeks(object greeks, object market = null)

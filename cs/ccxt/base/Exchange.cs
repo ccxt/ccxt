@@ -164,10 +164,11 @@ public partial class Exchange
         var headers = this.extend(this.headers, headers3) as dict;
         var body = body2 as String;
 
-        var proxyUrl = this.checkProxyUrlSettings (url, method, headers, body);
-        if (proxyUrl != null) {
+        var proxyUrl = this.checkProxyUrlSettings(url, method, headers, body);
+        if (proxyUrl != null)
+        {
             proxyUrl = proxyUrl.ToString();
-            url = proxyUrl + this.urlEncoderForProxyUrl (url).ToString();
+            url = proxyUrl + this.urlEncoderForProxyUrl(url).ToString();
         }
 
         if (this.verbose)
@@ -460,8 +461,10 @@ public partial class Exchange
         if (has["fetchCurrencies"] != null)
         {
             currencies = await this.fetchCurrencies();
+            this.options.TryAdd("cachedCurrencies", currencies);
         }
         var markets = await this.fetchMarkets();
+        this.options.TryRemove("cachedCurrencies", out _);
         return this.setMarkets(markets, currencies);
     }
 
@@ -1103,6 +1106,17 @@ public partial class Exchange
     {
         return new System.Collections.Concurrent.ConcurrentDictionary<string, object>();
     }
+
+    public IDictionary<string, object> mapToSafeMap(object obj)
+    {
+        return (IDictionary<string, object>)obj;
+    }
+
+    public IDictionary<string, object> safeMapToMap(object obj)
+    {
+        return (IDictionary<string, object>)obj;
+    }
+
     public class DynamicInvoker
     {
         public static object InvokeMethod(object action, object[] parameters)

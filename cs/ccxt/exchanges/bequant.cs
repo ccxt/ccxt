@@ -10,8 +10,8 @@ public partial class bequant : hitbtc
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "bequant" },
             { "name", "Bequant" },
-            { "countries", new List<object>() {"MT"} },
             { "pro", true },
+            { "countries", new List<object>() {"MT"} },
             { "urls", new Dictionary<string, object>() {
                 { "logo", "https://github.com/user-attachments/assets/0583ef1f-29fe-4b7c-8189-63565a0e2867" },
                 { "api", new Dictionary<string, object>() {

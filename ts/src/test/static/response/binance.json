@@ -3477,6 +3477,69 @@
                     }
                 ]
             }
+        ],
+        "fetchAllGreeks": [
+            {
+                "description": "fetchAllGreeks for a single symbol",
+                "method": "fetchAllGreeks",
+                "input": [
+                    [
+                        "ETH/USDT:USDT-231229-800-C"
+                    ]
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "ETH-231229-800-C",
+                        "markPrice": "1789.2",
+                        "bidIV": "-0.00000001",
+                        "askIV": "-0.00000001",
+                        "markIV": "0.708575",
+                        "delta": "-0.91110168",
+                        "theta": "-1.0575559",
+                        "gamma": "0.0001436",
+                        "vega": "2.00337645",
+                        "highPriceLimit": "1982.4",
+                        "lowPriceLimit": "1596",
+                        "riskFreeInterest": "0.065"
+                    }
+                ],
+                "parsedResponse": {
+                    "ETH/USDT:USDT-231229-800-C": {
+                        "symbol": "ETH/USDT:USDT-231229-800-C",
+                        "timestamp": null,
+                        "datetime": null,
+                        "delta": -0.91110168,
+                        "gamma": 0.0001436,
+                        "theta": -1.0575559,
+                        "vega": 2.00337645,
+                        "rho": null,
+                        "bidSize": null,
+                        "askSize": null,
+                        "bidImpliedVolatility": -1e-8,
+                        "askImpliedVolatility": -1e-8,
+                        "markImpliedVolatility": 0.708575,
+                        "bidPrice": null,
+                        "askPrice": null,
+                        "markPrice": 1789.2,
+                        "lastPrice": null,
+                        "underlyingPrice": null,
+                        "info": {
+                            "symbol": "ETH-231229-800-C",
+                            "markPrice": "1789.2",
+                            "bidIV": "-0.00000001",
+                            "askIV": "-0.00000001",
+                            "markIV": "0.708575",
+                            "delta": "-0.91110168",
+                            "theta": "-1.0575559",
+                            "gamma": "0.0001436",
+                            "vega": "2.00337645",
+                            "highPriceLimit": "1982.4",
+                            "lowPriceLimit": "1596",
+                            "riskFreeInterest": "0.065"
+                        }
+                    }
+                }
+            }
         ]
     }
 }

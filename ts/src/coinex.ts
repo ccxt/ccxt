@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/coinex.js';
-import { ExchangeError, ArgumentsRequired, BadSymbol, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError, PermissionDenied, ExchangeNotAvailable, RequestTimeout, BadRequest, RateLimitExceeded, NotSupported, AccountSuspended } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, BadSymbol, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError, PermissionDenied, ExchangeNotAvailable, RequestTimeout, BadRequest, RateLimitExceeded, NotSupported, AccountSuspended, OperationFailed } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -659,6 +659,7 @@ export default class coinex extends Exchange {
                 'broad': {
                     'ip not allow visit': PermissionDenied,
                     'service too busy': ExchangeNotAvailable,
+                    'Service is not available during funding fee settlement': OperationFailed,
                 },
             },
         });
@@ -724,33 +725,7 @@ export default class coinex extends Exchange {
             const canWithdraw = this.safeBool (asset, 'withdraw_enabled');
             const firstChain = this.safeDict (chains, 0, {});
             const firstPrecisionString = this.parsePrecision (this.safeString (firstChain, 'withdrawal_precision'));
-            result[code] = {
-                'id': currencyId,
-                'code': code,
-                'name': undefined,
-                'active': canDeposit && canWithdraw,
-                'deposit': canDeposit,
-                'withdraw': canWithdraw,
-                'fee': undefined,
-                'precision': this.parseNumber (firstPrecisionString),
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'networks': {},
-                'type': 'crypto',
-                'info': coin,
-            };
+            const networks: Dict = {};
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString (chain, 'chain');
@@ -788,10 +763,35 @@ export default class coinex extends Exchange {
                     },
                     'info': chain,
                 };
-                const networks = this.safeDict (result[code], 'networks', {});
                 networks[networkId] = network;
-                result[code]['networks'] = networks;
             }
+            result[code] = this.safeCurrencyStructure ({
+                'id': currencyId,
+                'code': code,
+                'name': undefined,
+                'active': canDeposit && canWithdraw,
+                'deposit': canDeposit,
+                'withdraw': canWithdraw,
+                'fee': undefined,
+                'precision': this.parseNumber (firstPrecisionString),
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'networks': {},
+                'type': 'crypto',
+                'info': coin,
+            });
         }
         return result;
     }

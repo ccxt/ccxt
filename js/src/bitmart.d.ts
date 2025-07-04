@@ -167,6 +167,7 @@ export default class bitmart extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch trades for
      * @param {boolean} [params.marginMode] *spot* whether to fetch trades for margin orders or spot orders, defaults to spot orders (only isolated margin orders are supported)
+     * @param {string} [params.stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
@@ -180,6 +181,7 @@ export default class bitmart extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
     fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
@@ -252,6 +254,7 @@ export default class bitmart extends Exchange {
      * @param {string} [params.stopLossPrice] *swap only* the price to trigger a stop-loss order
      * @param {string} [params.takeProfitPrice] *swap only* the price to trigger a take-profit order
      * @param {int} [params.plan_category] *swap tp/sl only* 1: tp/sl, 2: position tp/sl, default is 1
+     * @param {string} [params.stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
@@ -262,6 +265,7 @@ export default class bitmart extends Exchange {
      * @see https://developer-pro.bitmart.com/en/spot/#new-batch-order-v4-signed
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params]  extra parameters specific to the exchange API endpoint
+     * @param {string} [params.stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
@@ -328,6 +332,7 @@ export default class bitmart extends Exchange {
      * @param {string} [params.orderType] *swap only* 'limit', 'market', or 'trailing'
      * @param {boolean} [params.trailing] *swap only* set to true if you want to fetch trailing orders
      * @param {boolean} [params.trigger] *swap only* set to true if you want to fetch trigger orders
+     * @param {string} [params.stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
@@ -343,6 +348,7 @@ export default class bitmart extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest entry
      * @param {string} [params.marginMode] *spot only* 'cross' or 'isolated', for margin trading
+     * @param {string} [params.stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
@@ -370,6 +376,7 @@ export default class bitmart extends Exchange {
      * @param {string} [params.clientOrderId] *spot* fetch the order by client order id instead of order id
      * @param {string} [params.orderType] *swap only* 'limit', 'market', 'liquidate', 'bankruptcy', 'adl' or 'trailing'
      * @param {boolean} [params.trailing] *swap only* set to true if you want to fetch a trailing order
+     * @param {string} [params.stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
@@ -607,6 +614,7 @@ export default class bitmart extends Exchange {
      * @name bitmart#fetchPositions
      * @description fetch all open contract positions
      * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-keyed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-v2-keyed
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}

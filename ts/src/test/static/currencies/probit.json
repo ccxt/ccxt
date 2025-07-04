@@ -1,7 +1,5 @@
 {
     "BTC": {
-        "id": "BTC",
-        "code": "BTC",
         "info": {
             "id": "BTC",
             "display_name": {
@@ -22,15 +20,14 @@
                     "allow_withdrawal_destination_tag": false,
                     "display_name": {
                         "name": {
-                            "en-us": "BTC",
-                            "ko-kr": "비트코인"
+                            "en-us": "Bitcoin (BTC/BRC-20)"
                         }
                     },
-                    "min_deposit_amount": "0",
-                    "min_withdrawal_amount": "0.0005",
+                    "min_deposit_amount": "0.000006",
+                    "min_withdrawal_amount": "0.0006",
                     "withdrawal_fee": [
                         {
-                            "amount": "0.0005",
+                            "amount": "0.00006",
                             "priority": "1",
                             "currency_id": "BTC"
                         }
@@ -41,37 +38,34 @@
                     "withdrawal_suspended": false,
                     "platform_currency_display_name": {
                         "name": {
-                            "en-us": "BTC",
-                            "ko-kr": "비트코인"
+                            "en-us": "Bitcoin (BTC/BRC-20)"
                         }
                     }
                 }
             ],
-            "internal_transfer": {
-                "suspended_reason": null,
-                "suspended": false
-            },
             "stakeable": false,
             "unstakeable": false,
             "auto_stake": false,
             "auto_stake_amount": "0",
-            "shutdown": false
+            "shutdown": false,
+            "internal_transfer": {
+                "precision": "8",
+                "min_withdrawal_amount": "0",
+                "suspended": false,
+                "suspended_reason": null
+            }
         },
+        "id": "BTC",
+        "numericId": null,
+        "code": "BTC",
+        "precision": 1e-8,
+        "type": "crypto",
         "name": "Bitcoin",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.0005,
-        "precision": 1e-8,
-        "limits": {
-            "amount": {},
-            "deposit": {
-                "min": 0
-            },
-            "withdraw": {
-                "min": 0.0005
-            }
-        },
+        "fee": 0.00006,
+        "fees": {},
         "networks": {
             "BTC": {
                 "id": "BTC",
@@ -79,14 +73,16 @@
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.0005,
+                "fee": 0.00006,
                 "precision": 1e-8,
                 "limits": {
                     "withdraw": {
-                        "min": 0.0005
+                        "min": 0.0006,
+                        "max": null
                     },
                     "deposit": {
-                        "min": 0
+                        "min": 0.000006,
+                        "max": null
                     }
                 },
                 "info": {
@@ -101,15 +97,14 @@
                     "allow_withdrawal_destination_tag": false,
                     "display_name": {
                         "name": {
-                            "en-us": "BTC",
-                            "ko-kr": "비트코인"
+                            "en-us": "Bitcoin (BTC/BRC-20)"
                         }
                     },
-                    "min_deposit_amount": "0",
-                    "min_withdrawal_amount": "0.0005",
+                    "min_deposit_amount": "0.000006",
+                    "min_withdrawal_amount": "0.0006",
                     "withdrawal_fee": [
                         {
-                            "amount": "0.0005",
+                            "amount": "0.00006",
                             "priority": "1",
                             "currency_id": "BTC"
                         }
@@ -120,17 +115,28 @@
                     "withdrawal_suspended": false,
                     "platform_currency_display_name": {
                         "name": {
-                            "en-us": "BTC",
-                            "ko-kr": "비트코인"
+                            "en-us": "Bitcoin (BTC/BRC-20)"
                         }
                     }
                 }
             }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": 0.000006,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0.0006,
+                "max": null
+            }
         }
     },
     "USDT": {
-        "id": "USDT",
-        "code": "USDT",
         "info": {
             "id": "USDT",
             "display_name": {
@@ -140,32 +146,61 @@
             "show_in_ui": true,
             "platform": [
                 {
-                    "id": "ETH",
+                    "id": "SOL",
                     "priority": "1",
-                    "deposit": true,
-                    "withdrawal": true,
+                    "deposit": false,
+                    "withdrawal": false,
                     "currency_id": "USDT",
                     "precision": "6",
-                    "min_confirmation_count": "15",
+                    "min_confirmation_count": "5",
                     "require_destination_tag": false,
                     "allow_withdrawal_destination_tag": false,
                     "display_name": {
                         "name": {
-                            "en-us": "Ethereum (ERC-20)"
+                            "en-us": "Solana"
                         }
                     },
                     "min_deposit_amount": "0",
-                    "min_withdrawal_amount": "1",
+                    "min_withdrawal_amount": "0",
                     "withdrawal_fee": [
                         {
-                            "amount": "48.1142",
+                            "amount": "3",
                             "priority": "1",
                             "currency_id": "USDT"
-                        },
+                        }
+                    ],
+                    "deposit_fee": {},
+                    "suspended_reason": "",
+                    "deposit_suspended": true,
+                    "withdrawal_suspended": true,
+                    "platform_currency_display_name": {
+                        "name": {
+                            "en-us": "Solana"
+                        }
+                    }
+                },
+                {
+                    "id": "BSC",
+                    "priority": "1",
+                    "deposit": true,
+                    "withdrawal": true,
+                    "currency_id": "USDT",
+                    "precision": "18",
+                    "min_confirmation_count": "60",
+                    "require_destination_tag": false,
+                    "allow_withdrawal_destination_tag": false,
+                    "display_name": {
+                        "name": {
+                            "en-us": "BNB Smart Chain (BEP-20)"
+                        }
+                    },
+                    "min_deposit_amount": "0",
+                    "min_withdrawal_amount": "5",
+                    "withdrawal_fee": [
                         {
-                            "amount": "0.018",
-                            "priority": "2",
-                            "currency_id": "ETH"
+                            "amount": "1",
+                            "priority": "1",
+                            "currency_id": "USDT"
                         }
                     ],
                     "deposit_fee": {},
@@ -174,7 +209,7 @@
                     "withdrawal_suspended": false,
                     "platform_currency_display_name": {
                         "name": {
-                            "en-us": "Ethereum (ERC-20)"
+                            "en-us": "BNB Smart Chain (BEP-20)"
                         }
                     }
                 },
@@ -190,40 +225,28 @@
                     "allow_withdrawal_destination_tag": true,
                     "display_name": {
                         "name": {
-                            "en-us": "EOS",
-                            "ko-kr": "이오에스"
+                            "en-us": "EOS"
                         },
                         "destinationTag": {
-                            "en-us": "Memo",
-                            "ko-kr": "메모"
+                            "en-us": "Tag/Memo"
                         }
                     },
                     "min_deposit_amount": "0",
                     "min_withdrawal_amount": "0",
                     "withdrawal_fee": [
                         {
-                            "amount": "0.104734",
+                            "amount": "0.171267",
                             "priority": "1",
                             "currency_id": "USDT"
-                        },
-                        {
-                            "amount": "0.11",
-                            "priority": "2",
-                            "currency_id": "EOS"
                         }
                     ],
                     "deposit_fee": {},
-                    "suspended_reason": "",
+                    "suspended_reason": "token_swap",
                     "deposit_suspended": true,
                     "withdrawal_suspended": true,
                     "platform_currency_display_name": {
                         "name": {
-                            "en-us": "EOS",
-                            "ko-kr": "이오에스"
-                        },
-                        "destinationTag": {
-                            "en-us": "Memo",
-                            "ko-kr": "메모"
+                            "en-us": "EOS"
                         }
                     }
                 },
@@ -243,17 +266,12 @@
                         }
                     },
                     "min_deposit_amount": "0",
-                    "min_withdrawal_amount": "1",
+                    "min_withdrawal_amount": "0",
                     "withdrawal_fee": [
                         {
-                            "amount": "5.2611",
+                            "amount": "1",
                             "priority": "1",
                             "currency_id": "USDT"
-                        },
-                        {
-                            "amount": "37.5",
-                            "priority": "2",
-                            "currency_id": "TRX"
                         }
                     ],
                     "deposit_fee": {},
@@ -267,27 +285,27 @@
                     }
                 },
                 {
-                    "id": "BSC",
+                    "id": "ETH",
                     "priority": "3",
                     "deposit": true,
                     "withdrawal": true,
                     "currency_id": "USDT",
-                    "precision": "18",
-                    "min_confirmation_count": "60",
+                    "precision": "6",
+                    "min_confirmation_count": "15",
                     "require_destination_tag": false,
                     "allow_withdrawal_destination_tag": false,
                     "display_name": {
                         "name": {
-                            "en-us": "BNB Smart Chain (BEP-20)"
+                            "en-us": "Ethereum (ERC-20)"
                         }
                     },
                     "min_deposit_amount": "0",
-                    "min_withdrawal_amount": "0",
+                    "min_withdrawal_amount": "5",
                     "withdrawal_fee": [
                         {
-                            "amount": "0.0015",
+                            "amount": "4",
                             "priority": "1",
-                            "currency_id": "BNB"
+                            "currency_id": "USDT"
                         }
                     ],
                     "deposit_fee": {},
@@ -296,7 +314,41 @@
                     "withdrawal_suspended": false,
                     "platform_currency_display_name": {
                         "name": {
-                            "en-us": "BNB Smart Chain (BEP-20)"
+                            "en-us": "Ethereum (ERC-20)"
+                        }
+                    }
+                },
+                {
+                    "id": "ARB",
+                    "priority": "4",
+                    "deposit": true,
+                    "withdrawal": true,
+                    "currency_id": "USDT",
+                    "precision": "6",
+                    "min_confirmation_count": "60",
+                    "require_destination_tag": false,
+                    "allow_withdrawal_destination_tag": false,
+                    "display_name": {
+                        "name": {
+                            "en-us": "Arbitrum One"
+                        }
+                    },
+                    "min_deposit_amount": "0",
+                    "min_withdrawal_amount": "5",
+                    "withdrawal_fee": [
+                        {
+                            "currency_id": "USDT",
+                            "amount": "1",
+                            "priority": "1"
+                        }
+                    ],
+                    "deposit_fee": {},
+                    "suspended_reason": "",
+                    "deposit_suspended": false,
+                    "withdrawal_suspended": false,
+                    "platform_currency_display_name": {
+                        "name": {
+                            "en-us": "Arbitrum One"
                         }
                     }
                 },
@@ -326,7 +378,7 @@
                         }
                     ],
                     "deposit_fee": {},
-                    "suspended_reason": "",
+                    "suspended_reason": "paused",
                     "deposit_suspended": true,
                     "withdrawal_suspended": true,
                     "platform_currency_display_name": {
@@ -337,46 +389,12 @@
                     }
                 },
                 {
-                    "id": "ARB",
-                    "priority": "4",
-                    "deposit": true,
-                    "withdrawal": true,
-                    "currency_id": "USDT",
-                    "precision": "6",
-                    "min_confirmation_count": "60",
-                    "require_destination_tag": false,
-                    "allow_withdrawal_destination_tag": false,
-                    "display_name": {
-                        "name": {
-                            "en-us": "Arbitrum One"
-                        }
-                    },
-                    "min_deposit_amount": "0",
-                    "min_withdrawal_amount": "0",
-                    "withdrawal_fee": [
-                        {
-                            "currency_id": "ETH",
-                            "amount": "0.0003",
-                            "priority": "1"
-                        }
-                    ],
-                    "deposit_fee": {},
-                    "suspended_reason": "paused",
-                    "deposit_suspended": false,
-                    "withdrawal_suspended": true,
-                    "platform_currency_display_name": {
-                        "name": {
-                            "en-us": "Arbitrum One"
-                        }
-                    }
-                },
-                {
                     "id": "MATIC",
                     "priority": "4",
                     "deposit": true,
                     "withdrawal": true,
                     "currency_id": "USDT",
-                    "precision": "18",
+                    "precision": "6",
                     "min_confirmation_count": "18",
                     "require_destination_tag": false,
                     "allow_withdrawal_destination_tag": false,
@@ -386,47 +404,12 @@
                         }
                     },
                     "min_deposit_amount": "0",
-                    "min_withdrawal_amount": "0",
+                    "min_withdrawal_amount": "5",
                     "withdrawal_fee": [
                         {
-                            "currency_id": "MATIC",
-                            "amount": "0.5",
-                            "priority": "4"
-                        }
-                    ],
-                    "deposit_fee": {},
-                    "suspended_reason": "",
-                    "deposit_suspended": false,
-                    "withdrawal_suspended": true,
-                    "platform_currency_display_name": {
-                        "name": {
-                            "en-us": "Polygon"
-                        }
-                    }
-                },
-                {
-                    "id": "AVAX",
-                    "priority": "5",
-                    "deposit": true,
-                    "withdrawal": true,
-                    "currency_id": "USDT",
-                    "precision": "18",
-                    "min_confirmation_count": "30",
-                    "require_destination_tag": false,
-                    "allow_withdrawal_destination_tag": false,
-                    "display_name": {
-                        "name": {
-                            "en-us": "AVAX C-Chain"
-                        },
-                        "destinationTag": {}
-                    },
-                    "min_deposit_amount": "0",
-                    "min_withdrawal_amount": "0",
-                    "withdrawal_fee": [
-                        {
-                            "currency_id": "AVAX",
-                            "amount": "0.10",
-                            "priority": "5"
+                            "currency_id": "USDT",
+                            "amount": "1",
+                            "priority": "1"
                         }
                     ],
                     "deposit_fee": {},
@@ -435,15 +418,55 @@
                     "withdrawal_suspended": false,
                     "platform_currency_display_name": {
                         "name": {
-                            "en-us": "AVAX C-Chain"
+                            "en-us": "Polygon"
+                        }
+                    }
+                },
+                {
+                    "id": "TON",
+                    "priority": "5",
+                    "deposit": true,
+                    "withdrawal": true,
+                    "currency_id": "USDT",
+                    "precision": "6",
+                    "min_confirmation_count": "30",
+                    "require_destination_tag": true,
+                    "allow_withdrawal_destination_tag": true,
+                    "display_name": {
+                        "name": {
+                            "en-us": "Toncoin"
+                        },
+                        "destinationTag": {
+                            "en-us": "Tag/Memo"
+                        }
+                    },
+                    "min_deposit_amount": "0",
+                    "min_withdrawal_amount": "5",
+                    "withdrawal_fee": [
+                        {
+                            "currency_id": "USDT",
+                            "amount": "3",
+                            "priority": "1"
+                        }
+                    ],
+                    "deposit_fee": {},
+                    "suspended_reason": "",
+                    "deposit_suspended": false,
+                    "withdrawal_suspended": false,
+                    "platform_currency_display_name": {
+                        "name": {
+                            "en-us": "Toncoin"
+                        },
+                        "destinationTag": {
+                            "en-us": "Tag/Memo"
                         }
                     }
                 },
                 {
                     "id": "BNC",
                     "priority": "6",
-                    "deposit": true,
-                    "withdrawal": true,
+                    "deposit": false,
+                    "withdrawal": false,
                     "currency_id": "USDT",
                     "precision": "18",
                     "min_confirmation_count": "1",
@@ -454,99 +477,55 @@
                             "en-us": "BNB Beacon Chain (BEP2)"
                         },
                         "destinationTag": {
-                            "en-us": "Memo",
-                            "ko-kr": "메모"
+                            "en-us": "Tag/Memo"
                         }
                     },
                     "min_deposit_amount": "0",
                     "min_withdrawal_amount": "0",
                     "withdrawal_fee": [
                         {
-                            "amount": "0.0011",
+                            "amount": "0.910653",
                             "priority": "1",
+                            "currency_id": "USDT"
+                        },
+                        {
+                            "amount": "0.0011",
+                            "priority": "2",
                             "currency_id": "BNB"
                         }
                     ],
                     "deposit_fee": {},
-                    "suspended_reason": "withdrawal_paused",
-                    "deposit_suspended": false,
+                    "suspended_reason": "not_supported",
+                    "deposit_suspended": true,
                     "withdrawal_suspended": true,
                     "platform_currency_display_name": {
                         "name": {
                             "en-us": "BNB Beacon Chain (BEP2)"
                         }
                     }
-                }
-            ],
-            "internal_transfer": {
-                "suspended_reason": null,
-                "suspended": false
-            },
-            "stakeable": false,
-            "unstakeable": false,
-            "auto_stake": false,
-            "auto_stake_amount": "0",
-            "shutdown": false
-        },
-        "name": "Tether",
-        "active": true,
-        "deposit": true,
-        "withdraw": true,
-        "fee": 0.1,
-        "precision": 1e-18,
-        "limits": {
-            "amount": {},
-            "deposit": {
-                "min": 0
-            },
-            "withdraw": {
-                "min": 0
-            }
-        },
-        "networks": {
-            "ERC20": {
-                "id": "ETH",
-                "network": "ERC20",
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": 48.1142,
-                "precision": 0.000001,
-                "limits": {
-                    "withdraw": {
-                        "min": 1
-                    },
-                    "deposit": {
-                        "min": 0
-                    }
                 },
-                "info": {
-                    "id": "ETH",
-                    "priority": "1",
+                {
+                    "id": "AVAX",
+                    "priority": "6",
                     "deposit": true,
                     "withdrawal": true,
                     "currency_id": "USDT",
                     "precision": "6",
-                    "min_confirmation_count": "15",
+                    "min_confirmation_count": "30",
                     "require_destination_tag": false,
                     "allow_withdrawal_destination_tag": false,
                     "display_name": {
                         "name": {
-                            "en-us": "Ethereum (ERC-20)"
+                            "en-us": "AVAX C-Chain"
                         }
                     },
                     "min_deposit_amount": "0",
-                    "min_withdrawal_amount": "1",
+                    "min_withdrawal_amount": "5",
                     "withdrawal_fee": [
                         {
-                            "amount": "48.1142",
-                            "priority": "1",
-                            "currency_id": "USDT"
-                        },
-                        {
-                            "amount": "0.018",
-                            "priority": "2",
-                            "currency_id": "ETH"
+                            "currency_id": "USDT",
+                            "amount": "1",
+                            "priority": "1"
                         }
                     ],
                     "deposit_fee": {},
@@ -555,7 +534,137 @@
                     "withdrawal_suspended": false,
                     "platform_currency_display_name": {
                         "name": {
-                            "en-us": "Ethereum (ERC-20)"
+                            "en-us": "AVAX C-Chain"
+                        }
+                    }
+                }
+            ],
+            "stakeable": false,
+            "unstakeable": false,
+            "auto_stake": false,
+            "auto_stake_amount": "0",
+            "shutdown": false,
+            "internal_transfer": {
+                "precision": "6",
+                "min_withdrawal_amount": "0",
+                "suspended": false,
+                "suspended_reason": null
+            }
+        },
+        "id": "USDT",
+        "numericId": null,
+        "code": "USDT",
+        "precision": 0.000001,
+        "type": "crypto",
+        "name": "Tether",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.171267,
+        "fees": {},
+        "networks": {
+            "SOL": {
+                "id": "SOL",
+                "network": "SOL",
+                "active": false,
+                "deposit": false,
+                "withdraw": false,
+                "fee": 3,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {
+                        "min": 0,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0,
+                        "max": null
+                    }
+                },
+                "info": {
+                    "id": "SOL",
+                    "priority": "1",
+                    "deposit": false,
+                    "withdrawal": false,
+                    "currency_id": "USDT",
+                    "precision": "6",
+                    "min_confirmation_count": "5",
+                    "require_destination_tag": false,
+                    "allow_withdrawal_destination_tag": false,
+                    "display_name": {
+                        "name": {
+                            "en-us": "Solana"
+                        }
+                    },
+                    "min_deposit_amount": "0",
+                    "min_withdrawal_amount": "0",
+                    "withdrawal_fee": [
+                        {
+                            "amount": "3",
+                            "priority": "1",
+                            "currency_id": "USDT"
+                        }
+                    ],
+                    "deposit_fee": {},
+                    "suspended_reason": "",
+                    "deposit_suspended": true,
+                    "withdrawal_suspended": true,
+                    "platform_currency_display_name": {
+                        "name": {
+                            "en-us": "Solana"
+                        }
+                    }
+                }
+            },
+            "BEP20": {
+                "id": "BSC",
+                "network": "BEP20",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 1,
+                "precision": 1e-18,
+                "limits": {
+                    "withdraw": {
+                        "min": 5,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0,
+                        "max": null
+                    }
+                },
+                "info": {
+                    "id": "BSC",
+                    "priority": "1",
+                    "deposit": true,
+                    "withdrawal": true,
+                    "currency_id": "USDT",
+                    "precision": "18",
+                    "min_confirmation_count": "60",
+                    "require_destination_tag": false,
+                    "allow_withdrawal_destination_tag": false,
+                    "display_name": {
+                        "name": {
+                            "en-us": "BNB Smart Chain (BEP-20)"
+                        }
+                    },
+                    "min_deposit_amount": "0",
+                    "min_withdrawal_amount": "5",
+                    "withdrawal_fee": [
+                        {
+                            "amount": "1",
+                            "priority": "1",
+                            "currency_id": "USDT"
+                        }
+                    ],
+                    "deposit_fee": {},
+                    "suspended_reason": "",
+                    "deposit_suspended": false,
+                    "withdrawal_suspended": false,
+                    "platform_currency_display_name": {
+                        "name": {
+                            "en-us": "BNB Smart Chain (BEP-20)"
                         }
                     }
                 }
@@ -566,14 +675,16 @@
                 "active": false,
                 "deposit": false,
                 "withdraw": false,
-                "fee": 0.104734,
+                "fee": 0.171267,
                 "precision": 1e-18,
                 "limits": {
                     "withdraw": {
-                        "min": 0
+                        "min": 0,
+                        "max": null
                     },
                     "deposit": {
-                        "min": 0
+                        "min": 0,
+                        "max": null
                     }
                 },
                 "info": {
@@ -588,40 +699,28 @@
                     "allow_withdrawal_destination_tag": true,
                     "display_name": {
                         "name": {
-                            "en-us": "EOS",
-                            "ko-kr": "이오에스"
+                            "en-us": "EOS"
                         },
                         "destinationTag": {
-                            "en-us": "Memo",
-                            "ko-kr": "메모"
+                            "en-us": "Tag/Memo"
                         }
                     },
                     "min_deposit_amount": "0",
                     "min_withdrawal_amount": "0",
                     "withdrawal_fee": [
                         {
-                            "amount": "0.104734",
+                            "amount": "0.171267",
                             "priority": "1",
                             "currency_id": "USDT"
-                        },
-                        {
-                            "amount": "0.11",
-                            "priority": "2",
-                            "currency_id": "EOS"
                         }
                     ],
                     "deposit_fee": {},
-                    "suspended_reason": "",
+                    "suspended_reason": "token_swap",
                     "deposit_suspended": true,
                     "withdrawal_suspended": true,
                     "platform_currency_display_name": {
                         "name": {
-                            "en-us": "EOS",
-                            "ko-kr": "이오에스"
-                        },
-                        "destinationTag": {
-                            "en-us": "Memo",
-                            "ko-kr": "메모"
+                            "en-us": "EOS"
                         }
                     }
                 }
@@ -632,14 +731,16 @@
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 5.2611,
+                "fee": 1,
                 "precision": 0.000001,
                 "limits": {
                     "withdraw": {
-                        "min": 1
+                        "min": 0,
+                        "max": null
                     },
                     "deposit": {
-                        "min": 0
+                        "min": 0,
+                        "max": null
                     }
                 },
                 "info": {
@@ -658,17 +759,12 @@
                         }
                     },
                     "min_deposit_amount": "0",
-                    "min_withdrawal_amount": "1",
+                    "min_withdrawal_amount": "0",
                     "withdrawal_fee": [
                         {
-                            "amount": "5.2611",
+                            "amount": "1",
                             "priority": "1",
                             "currency_id": "USDT"
-                        },
-                        {
-                            "amount": "37.5",
-                            "priority": "2",
-                            "currency_id": "TRX"
                         }
                     ],
                     "deposit_fee": {},
@@ -682,44 +778,46 @@
                     }
                 }
             },
-            "BEP20": {
-                "id": "BSC",
-                "network": "BEP20",
+            "ERC20": {
+                "id": "ETH",
+                "network": "ERC20",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.0015,
-                "precision": 1e-18,
+                "fee": 4,
+                "precision": 0.000001,
                 "limits": {
                     "withdraw": {
-                        "min": 0
+                        "min": 5,
+                        "max": null
                     },
                     "deposit": {
-                        "min": 0
+                        "min": 0,
+                        "max": null
                     }
                 },
                 "info": {
-                    "id": "BSC",
+                    "id": "ETH",
                     "priority": "3",
                     "deposit": true,
                     "withdrawal": true,
                     "currency_id": "USDT",
-                    "precision": "18",
-                    "min_confirmation_count": "60",
+                    "precision": "6",
+                    "min_confirmation_count": "15",
                     "require_destination_tag": false,
                     "allow_withdrawal_destination_tag": false,
                     "display_name": {
                         "name": {
-                            "en-us": "BNB Smart Chain (BEP-20)"
+                            "en-us": "Ethereum (ERC-20)"
                         }
                     },
                     "min_deposit_amount": "0",
-                    "min_withdrawal_amount": "0",
+                    "min_withdrawal_amount": "5",
                     "withdrawal_fee": [
                         {
-                            "amount": "0.0015",
+                            "amount": "4",
                             "priority": "1",
-                            "currency_id": "BNB"
+                            "currency_id": "USDT"
                         }
                     ],
                     "deposit_fee": {},
@@ -728,7 +826,60 @@
                     "withdrawal_suspended": false,
                     "platform_currency_display_name": {
                         "name": {
-                            "en-us": "BNB Smart Chain (BEP-20)"
+                            "en-us": "Ethereum (ERC-20)"
+                        }
+                    }
+                }
+            },
+            "ARB": {
+                "id": "ARB",
+                "network": "ARB",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 1,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {
+                        "min": 5,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0,
+                        "max": null
+                    }
+                },
+                "info": {
+                    "id": "ARB",
+                    "priority": "4",
+                    "deposit": true,
+                    "withdrawal": true,
+                    "currency_id": "USDT",
+                    "precision": "6",
+                    "min_confirmation_count": "60",
+                    "require_destination_tag": false,
+                    "allow_withdrawal_destination_tag": false,
+                    "display_name": {
+                        "name": {
+                            "en-us": "Arbitrum One"
+                        }
+                    },
+                    "min_deposit_amount": "0",
+                    "min_withdrawal_amount": "5",
+                    "withdrawal_fee": [
+                        {
+                            "currency_id": "USDT",
+                            "amount": "1",
+                            "priority": "1"
+                        }
+                    ],
+                    "deposit_fee": {},
+                    "suspended_reason": "",
+                    "deposit_suspended": false,
+                    "withdrawal_suspended": false,
+                    "platform_currency_display_name": {
+                        "name": {
+                            "en-us": "Arbitrum One"
                         }
                     }
                 }
@@ -743,10 +894,12 @@
                 "precision": 0.000001,
                 "limits": {
                     "withdraw": {
-                        "min": 5
+                        "min": 5,
+                        "max": null
                     },
                     "deposit": {
-                        "min": 0
+                        "min": 0,
+                        "max": null
                     }
                 },
                 "info": {
@@ -775,7 +928,7 @@
                         }
                     ],
                     "deposit_fee": {},
-                    "suspended_reason": "",
+                    "suspended_reason": "paused",
                     "deposit_suspended": true,
                     "withdrawal_suspended": true,
                     "platform_currency_display_name": {
@@ -786,71 +939,22 @@
                     }
                 }
             },
-            "ARB": {
-                "id": "ARB",
-                "network": "ARB",
-                "active": false,
-                "deposit": true,
-                "withdraw": false,
-                "fee": 0.0003,
-                "precision": 0.000001,
-                "limits": {
-                    "withdraw": {
-                        "min": 0
-                    },
-                    "deposit": {
-                        "min": 0
-                    }
-                },
-                "info": {
-                    "id": "ARB",
-                    "priority": "4",
-                    "deposit": true,
-                    "withdrawal": true,
-                    "currency_id": "USDT",
-                    "precision": "6",
-                    "min_confirmation_count": "60",
-                    "require_destination_tag": false,
-                    "allow_withdrawal_destination_tag": false,
-                    "display_name": {
-                        "name": {
-                            "en-us": "Arbitrum One"
-                        }
-                    },
-                    "min_deposit_amount": "0",
-                    "min_withdrawal_amount": "0",
-                    "withdrawal_fee": [
-                        {
-                            "currency_id": "ETH",
-                            "amount": "0.0003",
-                            "priority": "1"
-                        }
-                    ],
-                    "deposit_fee": {},
-                    "suspended_reason": "paused",
-                    "deposit_suspended": false,
-                    "withdrawal_suspended": true,
-                    "platform_currency_display_name": {
-                        "name": {
-                            "en-us": "Arbitrum One"
-                        }
-                    }
-                }
-            },
             "MATIC": {
                 "id": "MATIC",
                 "network": "MATIC",
-                "active": false,
+                "active": true,
                 "deposit": true,
-                "withdraw": false,
-                "fee": 0.5,
-                "precision": 1e-18,
+                "withdraw": true,
+                "fee": 1,
+                "precision": 0.000001,
                 "limits": {
                     "withdraw": {
-                        "min": 0
+                        "min": 5,
+                        "max": null
                     },
                     "deposit": {
-                        "min": 0
+                        "min": 0,
+                        "max": null
                     }
                 },
                 "info": {
@@ -859,7 +963,7 @@
                     "deposit": true,
                     "withdrawal": true,
                     "currency_id": "USDT",
-                    "precision": "18",
+                    "precision": "6",
                     "min_confirmation_count": "18",
                     "require_destination_tag": false,
                     "allow_withdrawal_destination_tag": false,
@@ -869,21 +973,141 @@
                         }
                     },
                     "min_deposit_amount": "0",
-                    "min_withdrawal_amount": "0",
+                    "min_withdrawal_amount": "5",
                     "withdrawal_fee": [
                         {
-                            "currency_id": "MATIC",
-                            "amount": "0.5",
-                            "priority": "4"
+                            "currency_id": "USDT",
+                            "amount": "1",
+                            "priority": "1"
                         }
                     ],
                     "deposit_fee": {},
                     "suspended_reason": "",
                     "deposit_suspended": false,
-                    "withdrawal_suspended": true,
+                    "withdrawal_suspended": false,
                     "platform_currency_display_name": {
                         "name": {
                             "en-us": "Polygon"
+                        }
+                    }
+                }
+            },
+            "TON": {
+                "id": "TON",
+                "network": "TON",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 3,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {
+                        "min": 5,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0,
+                        "max": null
+                    }
+                },
+                "info": {
+                    "id": "TON",
+                    "priority": "5",
+                    "deposit": true,
+                    "withdrawal": true,
+                    "currency_id": "USDT",
+                    "precision": "6",
+                    "min_confirmation_count": "30",
+                    "require_destination_tag": true,
+                    "allow_withdrawal_destination_tag": true,
+                    "display_name": {
+                        "name": {
+                            "en-us": "Toncoin"
+                        },
+                        "destinationTag": {
+                            "en-us": "Tag/Memo"
+                        }
+                    },
+                    "min_deposit_amount": "0",
+                    "min_withdrawal_amount": "5",
+                    "withdrawal_fee": [
+                        {
+                            "currency_id": "USDT",
+                            "amount": "3",
+                            "priority": "1"
+                        }
+                    ],
+                    "deposit_fee": {},
+                    "suspended_reason": "",
+                    "deposit_suspended": false,
+                    "withdrawal_suspended": false,
+                    "platform_currency_display_name": {
+                        "name": {
+                            "en-us": "Toncoin"
+                        },
+                        "destinationTag": {
+                            "en-us": "Tag/Memo"
+                        }
+                    }
+                }
+            },
+            "BNC": {
+                "id": "BNC",
+                "network": "BNC",
+                "active": false,
+                "deposit": false,
+                "withdraw": false,
+                "fee": 0.910653,
+                "precision": 1e-18,
+                "limits": {
+                    "withdraw": {
+                        "min": 0,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0,
+                        "max": null
+                    }
+                },
+                "info": {
+                    "id": "BNC",
+                    "priority": "6",
+                    "deposit": false,
+                    "withdrawal": false,
+                    "currency_id": "USDT",
+                    "precision": "18",
+                    "min_confirmation_count": "1",
+                    "require_destination_tag": true,
+                    "allow_withdrawal_destination_tag": true,
+                    "display_name": {
+                        "name": {
+                            "en-us": "BNB Beacon Chain (BEP2)"
+                        },
+                        "destinationTag": {
+                            "en-us": "Tag/Memo"
+                        }
+                    },
+                    "min_deposit_amount": "0",
+                    "min_withdrawal_amount": "0",
+                    "withdrawal_fee": [
+                        {
+                            "amount": "0.910653",
+                            "priority": "1",
+                            "currency_id": "USDT"
+                        },
+                        {
+                            "amount": "0.0011",
+                            "priority": "2",
+                            "currency_id": "BNB"
+                        }
+                    ],
+                    "deposit_fee": {},
+                    "suspended_reason": "not_supported",
+                    "deposit_suspended": true,
+                    "withdrawal_suspended": true,
+                    "platform_currency_display_name": {
+                        "name": {
+                            "en-us": "BNB Beacon Chain (BEP2)"
                         }
                     }
                 }
@@ -894,39 +1118,40 @@
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.1,
-                "precision": 1e-18,
+                "fee": 1,
+                "precision": 0.000001,
                 "limits": {
                     "withdraw": {
-                        "min": 0
+                        "min": 5,
+                        "max": null
                     },
                     "deposit": {
-                        "min": 0
+                        "min": 0,
+                        "max": null
                     }
                 },
                 "info": {
                     "id": "AVAX",
-                    "priority": "5",
+                    "priority": "6",
                     "deposit": true,
                     "withdrawal": true,
                     "currency_id": "USDT",
-                    "precision": "18",
+                    "precision": "6",
                     "min_confirmation_count": "30",
                     "require_destination_tag": false,
                     "allow_withdrawal_destination_tag": false,
                     "display_name": {
                         "name": {
                             "en-us": "AVAX C-Chain"
-                        },
-                        "destinationTag": {}
+                        }
                     },
                     "min_deposit_amount": "0",
-                    "min_withdrawal_amount": "0",
+                    "min_withdrawal_amount": "5",
                     "withdrawal_fee": [
                         {
-                            "currency_id": "AVAX",
-                            "amount": "0.10",
-                            "priority": "5"
+                            "currency_id": "USDT",
+                            "amount": "1",
+                            "priority": "1"
                         }
                     ],
                     "deposit_fee": {},
@@ -939,67 +1164,24 @@
                         }
                     }
                 }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
             },
-            "BNC": {
-                "id": "BNC",
-                "network": "BNC",
-                "active": false,
-                "deposit": true,
-                "withdraw": false,
-                "fee": 0.0011,
-                "precision": 1e-18,
-                "limits": {
-                    "withdraw": {
-                        "min": 0
-                    },
-                    "deposit": {
-                        "min": 0
-                    }
-                },
-                "info": {
-                    "id": "BNC",
-                    "priority": "6",
-                    "deposit": true,
-                    "withdrawal": true,
-                    "currency_id": "USDT",
-                    "precision": "18",
-                    "min_confirmation_count": "1",
-                    "require_destination_tag": true,
-                    "allow_withdrawal_destination_tag": true,
-                    "display_name": {
-                        "name": {
-                            "en-us": "BNB Beacon Chain (BEP2)"
-                        },
-                        "destinationTag": {
-                            "en-us": "Memo",
-                            "ko-kr": "메모"
-                        }
-                    },
-                    "min_deposit_amount": "0",
-                    "min_withdrawal_amount": "0",
-                    "withdrawal_fee": [
-                        {
-                            "amount": "0.0011",
-                            "priority": "1",
-                            "currency_id": "BNB"
-                        }
-                    ],
-                    "deposit_fee": {},
-                    "suspended_reason": "withdrawal_paused",
-                    "deposit_suspended": false,
-                    "withdrawal_suspended": true,
-                    "platform_currency_display_name": {
-                        "name": {
-                            "en-us": "BNB Beacon Chain (BEP2)"
-                        }
-                    }
-                }
+            "deposit": {
+                "min": 0,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0,
+                "max": null
             }
         }
     },
     "LTC": {
-        "id": "LTC",
-        "code": "LTC",
         "info": {
             "id": "LTC",
             "display_name": {
@@ -1020,10 +1202,9 @@
                     "allow_withdrawal_destination_tag": false,
                     "display_name": {
                         "name": {
-                            "en-us": "LTC(Legacy)",
+                            "en-us": "Litecoin Legacy",
                             "ko-kr": "라이트코인"
-                        },
-                        "destinationTag": {}
+                        }
                     },
                     "min_deposit_amount": "0",
                     "min_withdrawal_amount": "0.005",
@@ -1040,38 +1221,35 @@
                     "withdrawal_suspended": false,
                     "platform_currency_display_name": {
                         "name": {
-                            "en-us": "LTC(Legacy)",
+                            "en-us": "Litecoin Legacy",
                             "ko-kr": "라이트코인"
-                        },
-                        "destinationTag": {}
+                        }
                     }
                 }
             ],
-            "internal_transfer": {
-                "suspended_reason": null,
-                "suspended": false
-            },
             "stakeable": false,
             "unstakeable": false,
             "auto_stake": false,
             "auto_stake_amount": "0",
-            "shutdown": false
+            "shutdown": false,
+            "internal_transfer": {
+                "precision": "8",
+                "min_withdrawal_amount": "0",
+                "suspended": false,
+                "suspended_reason": null
+            }
         },
+        "id": "LTC",
+        "numericId": null,
+        "code": "LTC",
+        "precision": 1e-8,
+        "type": "crypto",
         "name": "Litecoin",
         "active": true,
         "deposit": true,
         "withdraw": true,
         "fee": 0.005,
-        "precision": 1e-8,
-        "limits": {
-            "amount": {},
-            "deposit": {
-                "min": 0
-            },
-            "withdraw": {
-                "min": 0.005
-            }
-        },
+        "fees": {},
         "networks": {
             "LTC": {
                 "id": "LTC",
@@ -1083,10 +1261,12 @@
                 "precision": 1e-8,
                 "limits": {
                     "withdraw": {
-                        "min": 0.005
+                        "min": 0.005,
+                        "max": null
                     },
                     "deposit": {
-                        "min": 0
+                        "min": 0,
+                        "max": null
                     }
                 },
                 "info": {
@@ -1101,10 +1281,9 @@
                     "allow_withdrawal_destination_tag": false,
                     "display_name": {
                         "name": {
-                            "en-us": "LTC(Legacy)",
+                            "en-us": "Litecoin Legacy",
                             "ko-kr": "라이트코인"
-                        },
-                        "destinationTag": {}
+                        }
                     },
                     "min_deposit_amount": "0",
                     "min_withdrawal_amount": "0.005",
@@ -1121,18 +1300,29 @@
                     "withdrawal_suspended": false,
                     "platform_currency_display_name": {
                         "name": {
-                            "en-us": "LTC(Legacy)",
+                            "en-us": "Litecoin Legacy",
                             "ko-kr": "라이트코인"
-                        },
-                        "destinationTag": {}
+                        }
                     }
                 }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": 0,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0.005,
+                "max": null
             }
         }
     },
     "ETH": {
-        "id": "ETH",
-        "code": "ETH",
         "info": {
             "id": "ETH",
             "display_name": {
@@ -1141,6 +1331,40 @@
             },
             "show_in_ui": true,
             "platform": [
+                {
+                    "id": "KRO",
+                    "priority": "1",
+                    "deposit": false,
+                    "withdrawal": false,
+                    "currency_id": "ETH",
+                    "precision": "18",
+                    "min_confirmation_count": "30",
+                    "require_destination_tag": false,
+                    "allow_withdrawal_destination_tag": false,
+                    "display_name": {
+                        "name": {
+                            "en-us": "Kroma"
+                        }
+                    },
+                    "min_deposit_amount": "0",
+                    "min_withdrawal_amount": "0",
+                    "withdrawal_fee": [
+                        {
+                            "currency_id": "ETH",
+                            "amount": "0.000001",
+                            "priority": "1"
+                        }
+                    ],
+                    "deposit_fee": {},
+                    "suspended_reason": "",
+                    "deposit_suspended": true,
+                    "withdrawal_suspended": true,
+                    "platform_currency_display_name": {
+                        "name": {
+                            "en-us": "Kroma"
+                        }
+                    }
+                },
                 {
                     "id": "ETH",
                     "priority": "1",
@@ -1153,15 +1377,14 @@
                     "allow_withdrawal_destination_tag": false,
                     "display_name": {
                         "name": {
-                            "en-us": "Ethereum (ERC-20)",
-                            "ko-kr": "Ethereum (ERC-20)"
+                            "en-us": "Ethereum (ERC-20)"
                         }
                     },
                     "min_deposit_amount": "0",
-                    "min_withdrawal_amount": "0.015",
+                    "min_withdrawal_amount": "0.005",
                     "withdrawal_fee": [
                         {
-                            "amount": "0.012",
+                            "amount": "0.0012",
                             "priority": "1",
                             "currency_id": "ETH"
                         }
@@ -1172,13 +1395,12 @@
                     "withdrawal_suspended": false,
                     "platform_currency_display_name": {
                         "name": {
-                            "en-us": "Ethereum (ERC-20)",
-                            "ko-kr": "Ethereum (ERC-20)"
+                            "en-us": "Ethereum (ERC-20)"
                         }
                     }
                 },
                 {
-                    "id": "BASE",
+                    "id": "BLAST",
                     "priority": "1",
                     "deposit": false,
                     "withdrawal": false,
@@ -1189,7 +1411,7 @@
                     "allow_withdrawal_destination_tag": false,
                     "display_name": {
                         "name": {
-                            "en-us": "BASE"
+                            "en-us": "Blast L2"
                         }
                     },
                     "min_deposit_amount": "0",
@@ -1197,24 +1419,24 @@
                     "withdrawal_fee": [
                         {
                             "currency_id": "ETH",
-                            "amount": "0.0005",
+                            "amount": "0.0002",
                             "priority": "1"
                         }
                     ],
                     "deposit_fee": {},
-                    "suspended_reason": "",
+                    "suspended_reason": "not_supported",
                     "deposit_suspended": true,
                     "withdrawal_suspended": true,
                     "platform_currency_display_name": {
                         "name": {
-                            "en-us": "BASE"
+                            "en-us": "Blast L2"
                         }
                     }
                 },
                 {
                     "id": "OP",
                     "priority": "1",
-                    "deposit": true,
+                    "deposit": false,
                     "withdrawal": false,
                     "currency_id": "ETH",
                     "precision": "18",
@@ -1236,12 +1458,80 @@
                         }
                     ],
                     "deposit_fee": {},
-                    "suspended_reason": "",
+                    "suspended_reason": "not_supported",
                     "deposit_suspended": true,
                     "withdrawal_suspended": true,
                     "platform_currency_display_name": {
                         "name": {
                             "en-us": "Optimism"
+                        }
+                    }
+                },
+                {
+                    "id": "LINEA",
+                    "priority": "1",
+                    "deposit": false,
+                    "withdrawal": false,
+                    "currency_id": "ETH",
+                    "precision": "18",
+                    "min_confirmation_count": "30",
+                    "require_destination_tag": false,
+                    "allow_withdrawal_destination_tag": false,
+                    "display_name": {
+                        "name": {
+                            "en-us": "Linea"
+                        }
+                    },
+                    "min_deposit_amount": "0",
+                    "min_withdrawal_amount": "0",
+                    "withdrawal_fee": [
+                        {
+                            "currency_id": "ETH",
+                            "amount": "0.0003",
+                            "priority": "1"
+                        }
+                    ],
+                    "deposit_fee": {},
+                    "suspended_reason": "",
+                    "deposit_suspended": true,
+                    "withdrawal_suspended": true,
+                    "platform_currency_display_name": {
+                        "name": {
+                            "en-us": "Linea"
+                        }
+                    }
+                },
+                {
+                    "id": "BASE",
+                    "priority": "1",
+                    "deposit": false,
+                    "withdrawal": false,
+                    "currency_id": "ETH",
+                    "precision": "18",
+                    "min_confirmation_count": "30",
+                    "require_destination_tag": false,
+                    "allow_withdrawal_destination_tag": false,
+                    "display_name": {
+                        "name": {
+                            "en-us": "Base"
+                        }
+                    },
+                    "min_deposit_amount": "0",
+                    "min_withdrawal_amount": "0",
+                    "withdrawal_fee": [
+                        {
+                            "currency_id": "ETH",
+                            "amount": "0.0005",
+                            "priority": "1"
+                        }
+                    ],
+                    "deposit_fee": {},
+                    "suspended_reason": "",
+                    "deposit_suspended": true,
+                    "withdrawal_suspended": true,
+                    "platform_currency_display_name": {
+                        "name": {
+                            "en-us": "Base"
                         }
                     }
                 },
@@ -1270,9 +1560,9 @@
                         }
                     ],
                     "deposit_fee": {},
-                    "suspended_reason": "paused",
+                    "suspended_reason": "",
                     "deposit_suspended": false,
-                    "withdrawal_suspended": true,
+                    "withdrawal_suspended": false,
                     "platform_currency_display_name": {
                         "name": {
                             "en-us": "Arbitrum One"
@@ -1280,46 +1570,99 @@
                     }
                 }
             ],
-            "internal_transfer": {
-                "suspended_reason": null,
-                "suspended": false
-            },
             "stakeable": false,
             "unstakeable": true,
             "auto_stake": false,
             "auto_stake_amount": "0",
-            "shutdown": false
+            "shutdown": false,
+            "internal_transfer": {
+                "precision": "18",
+                "min_withdrawal_amount": "0",
+                "suspended": false,
+                "suspended_reason": ""
+            }
         },
+        "id": "ETH",
+        "numericId": null,
+        "code": "ETH",
+        "precision": 1e-18,
+        "type": "crypto",
         "name": "Ethereum",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.012,
-        "precision": 1e-18,
-        "limits": {
-            "amount": {},
-            "deposit": {
-                "min": 0
-            },
-            "withdraw": {
-                "min": 0.015
-            }
-        },
+        "fee": 0.000001,
+        "fees": {},
         "networks": {
+            "KRO": {
+                "id": "KRO",
+                "network": "KRO",
+                "active": false,
+                "deposit": false,
+                "withdraw": false,
+                "fee": 0.000001,
+                "precision": 1e-18,
+                "limits": {
+                    "withdraw": {
+                        "min": 0,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0,
+                        "max": null
+                    }
+                },
+                "info": {
+                    "id": "KRO",
+                    "priority": "1",
+                    "deposit": false,
+                    "withdrawal": false,
+                    "currency_id": "ETH",
+                    "precision": "18",
+                    "min_confirmation_count": "30",
+                    "require_destination_tag": false,
+                    "allow_withdrawal_destination_tag": false,
+                    "display_name": {
+                        "name": {
+                            "en-us": "Kroma"
+                        }
+                    },
+                    "min_deposit_amount": "0",
+                    "min_withdrawal_amount": "0",
+                    "withdrawal_fee": [
+                        {
+                            "currency_id": "ETH",
+                            "amount": "0.000001",
+                            "priority": "1"
+                        }
+                    ],
+                    "deposit_fee": {},
+                    "suspended_reason": "",
+                    "deposit_suspended": true,
+                    "withdrawal_suspended": true,
+                    "platform_currency_display_name": {
+                        "name": {
+                            "en-us": "Kroma"
+                        }
+                    }
+                }
+            },
             "ERC20": {
                 "id": "ETH",
                 "network": "ERC20",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.012,
+                "fee": 0.0012,
                 "precision": 1e-18,
                 "limits": {
                     "withdraw": {
-                        "min": 0.015
+                        "min": 0.005,
+                        "max": null
                     },
                     "deposit": {
-                        "min": 0
+                        "min": 0,
+                        "max": null
                     }
                 },
                 "info": {
@@ -1334,15 +1677,14 @@
                     "allow_withdrawal_destination_tag": false,
                     "display_name": {
                         "name": {
-                            "en-us": "Ethereum (ERC-20)",
-                            "ko-kr": "Ethereum (ERC-20)"
+                            "en-us": "Ethereum (ERC-20)"
                         }
                     },
                     "min_deposit_amount": "0",
-                    "min_withdrawal_amount": "0.015",
+                    "min_withdrawal_amount": "0.005",
                     "withdrawal_fee": [
                         {
-                            "amount": "0.012",
+                            "amount": "0.0012",
                             "priority": "1",
                             "currency_id": "ETH"
                         }
@@ -1353,30 +1695,31 @@
                     "withdrawal_suspended": false,
                     "platform_currency_display_name": {
                         "name": {
-                            "en-us": "Ethereum (ERC-20)",
-                            "ko-kr": "Ethereum (ERC-20)"
+                            "en-us": "Ethereum (ERC-20)"
                         }
                     }
                 }
             },
-            "BASE": {
-                "id": "BASE",
-                "network": "BASE",
+            "BLAST": {
+                "id": "BLAST",
+                "network": "BLAST",
                 "active": false,
                 "deposit": false,
                 "withdraw": false,
-                "fee": 0.0005,
+                "fee": 0.0002,
                 "precision": 1e-18,
                 "limits": {
                     "withdraw": {
-                        "min": 0
+                        "min": 0,
+                        "max": null
                     },
                     "deposit": {
-                        "min": 0
+                        "min": 0,
+                        "max": null
                     }
                 },
                 "info": {
-                    "id": "BASE",
+                    "id": "BLAST",
                     "priority": "1",
                     "deposit": false,
                     "withdrawal": false,
@@ -1387,7 +1730,7 @@
                     "allow_withdrawal_destination_tag": false,
                     "display_name": {
                         "name": {
-                            "en-us": "BASE"
+                            "en-us": "Blast L2"
                         }
                     },
                     "min_deposit_amount": "0",
@@ -1395,17 +1738,17 @@
                     "withdrawal_fee": [
                         {
                             "currency_id": "ETH",
-                            "amount": "0.0005",
+                            "amount": "0.0002",
                             "priority": "1"
                         }
                     ],
                     "deposit_fee": {},
-                    "suspended_reason": "",
+                    "suspended_reason": "not_supported",
                     "deposit_suspended": true,
                     "withdrawal_suspended": true,
                     "platform_currency_display_name": {
                         "name": {
-                            "en-us": "BASE"
+                            "en-us": "Blast L2"
                         }
                     }
                 }
@@ -1420,16 +1763,18 @@
                 "precision": 1e-18,
                 "limits": {
                     "withdraw": {
-                        "min": 0
+                        "min": 0,
+                        "max": null
                     },
                     "deposit": {
-                        "min": 0
+                        "min": 0,
+                        "max": null
                     }
                 },
                 "info": {
                     "id": "OP",
                     "priority": "1",
-                    "deposit": true,
+                    "deposit": false,
                     "withdrawal": false,
                     "currency_id": "ETH",
                     "precision": "18",
@@ -1451,7 +1796,7 @@
                         }
                     ],
                     "deposit_fee": {},
-                    "suspended_reason": "",
+                    "suspended_reason": "not_supported",
                     "deposit_suspended": true,
                     "withdrawal_suspended": true,
                     "platform_currency_display_name": {
@@ -1461,20 +1806,128 @@
                     }
                 }
             },
-            "ARB": {
-                "id": "ARB",
-                "network": "ARB",
+            "LINEA": {
+                "id": "LINEA",
+                "network": "LINEA",
                 "active": false,
-                "deposit": true,
+                "deposit": false,
                 "withdraw": false,
                 "fee": 0.0003,
                 "precision": 1e-18,
                 "limits": {
                     "withdraw": {
-                        "min": 0
+                        "min": 0,
+                        "max": null
                     },
                     "deposit": {
-                        "min": 0
+                        "min": 0,
+                        "max": null
+                    }
+                },
+                "info": {
+                    "id": "LINEA",
+                    "priority": "1",
+                    "deposit": false,
+                    "withdrawal": false,
+                    "currency_id": "ETH",
+                    "precision": "18",
+                    "min_confirmation_count": "30",
+                    "require_destination_tag": false,
+                    "allow_withdrawal_destination_tag": false,
+                    "display_name": {
+                        "name": {
+                            "en-us": "Linea"
+                        }
+                    },
+                    "min_deposit_amount": "0",
+                    "min_withdrawal_amount": "0",
+                    "withdrawal_fee": [
+                        {
+                            "currency_id": "ETH",
+                            "amount": "0.0003",
+                            "priority": "1"
+                        }
+                    ],
+                    "deposit_fee": {},
+                    "suspended_reason": "",
+                    "deposit_suspended": true,
+                    "withdrawal_suspended": true,
+                    "platform_currency_display_name": {
+                        "name": {
+                            "en-us": "Linea"
+                        }
+                    }
+                }
+            },
+            "BASE": {
+                "id": "BASE",
+                "network": "BASE",
+                "active": false,
+                "deposit": false,
+                "withdraw": false,
+                "fee": 0.0005,
+                "precision": 1e-18,
+                "limits": {
+                    "withdraw": {
+                        "min": 0,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0,
+                        "max": null
+                    }
+                },
+                "info": {
+                    "id": "BASE",
+                    "priority": "1",
+                    "deposit": false,
+                    "withdrawal": false,
+                    "currency_id": "ETH",
+                    "precision": "18",
+                    "min_confirmation_count": "30",
+                    "require_destination_tag": false,
+                    "allow_withdrawal_destination_tag": false,
+                    "display_name": {
+                        "name": {
+                            "en-us": "Base"
+                        }
+                    },
+                    "min_deposit_amount": "0",
+                    "min_withdrawal_amount": "0",
+                    "withdrawal_fee": [
+                        {
+                            "currency_id": "ETH",
+                            "amount": "0.0005",
+                            "priority": "1"
+                        }
+                    ],
+                    "deposit_fee": {},
+                    "suspended_reason": "",
+                    "deposit_suspended": true,
+                    "withdrawal_suspended": true,
+                    "platform_currency_display_name": {
+                        "name": {
+                            "en-us": "Base"
+                        }
+                    }
+                }
+            },
+            "ARB": {
+                "id": "ARB",
+                "network": "ARB",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.0003,
+                "precision": 1e-18,
+                "limits": {
+                    "withdraw": {
+                        "min": 0,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0,
+                        "max": null
                     }
                 },
                 "info": {
@@ -1502,9 +1955,9 @@
                         }
                     ],
                     "deposit_fee": {},
-                    "suspended_reason": "paused",
+                    "suspended_reason": "",
                     "deposit_suspended": false,
-                    "withdrawal_suspended": true,
+                    "withdrawal_suspended": false,
                     "platform_currency_display_name": {
                         "name": {
                             "en-us": "Arbitrum One"
@@ -1512,11 +1965,23 @@
                     }
                 }
             }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": 0,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0,
+                "max": null
+            }
         }
     },
     "XRP": {
-        "id": "XRP",
-        "code": "XRP",
         "info": {
             "id": "XRP",
             "display_name": {
@@ -1537,12 +2002,10 @@
                     "allow_withdrawal_destination_tag": true,
                     "display_name": {
                         "name": {
-                            "en-us": "Ripple",
-                            "ko-kr": "리플"
+                            "en-us": "Ripple"
                         },
                         "destinationTag": {
-                            "en-us": "Destination Tag",
-                            "ko-kr": "데스티네이션 태그"
+                            "en-us": "Tag/Memo"
                         }
                     },
                     "min_deposit_amount": "0",
@@ -1550,7 +2013,7 @@
                     "withdrawal_fee": [
                         {
                             "currency_id": "XRP",
-                            "amount": "1",
+                            "amount": "0.3",
                             "priority": "1"
                         }
                     ],
@@ -1560,41 +2023,34 @@
                     "withdrawal_suspended": false,
                     "platform_currency_display_name": {
                         "name": {
-                            "en-us": "Ripple",
-                            "ko-kr": "리플"
-                        },
-                        "destinationTag": {
-                            "en-us": "Destination Tag",
-                            "ko-kr": "데스티네이션 태그"
+                            "en-us": "Ripple"
                         }
                     }
                 }
             ],
-            "internal_transfer": {
-                "suspended_reason": null,
-                "suspended": false
-            },
             "stakeable": false,
             "unstakeable": false,
             "auto_stake": false,
             "auto_stake_amount": "0",
-            "shutdown": false
+            "shutdown": false,
+            "internal_transfer": {
+                "precision": "6",
+                "min_withdrawal_amount": "0",
+                "suspended": false,
+                "suspended_reason": null
+            }
         },
+        "id": "XRP",
+        "numericId": null,
+        "code": "XRP",
+        "precision": 0.000001,
+        "type": "crypto",
         "name": "Ripple",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 1,
-        "precision": 0.000001,
-        "limits": {
-            "amount": {},
-            "deposit": {
-                "min": 0
-            },
-            "withdraw": {
-                "min": 22
-            }
-        },
+        "fee": 0.3,
+        "fees": {},
         "networks": {
             "XRP": {
                 "id": "XRP",
@@ -1602,14 +2058,16 @@
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 1,
+                "fee": 0.3,
                 "precision": 0.000001,
                 "limits": {
                     "withdraw": {
-                        "min": 22
+                        "min": 22,
+                        "max": null
                     },
                     "deposit": {
-                        "min": 0
+                        "min": 0,
+                        "max": null
                     }
                 },
                 "info": {
@@ -1624,12 +2082,10 @@
                     "allow_withdrawal_destination_tag": true,
                     "display_name": {
                         "name": {
-                            "en-us": "Ripple",
-                            "ko-kr": "리플"
+                            "en-us": "Ripple"
                         },
                         "destinationTag": {
-                            "en-us": "Destination Tag",
-                            "ko-kr": "데스티네이션 태그"
+                            "en-us": "Tag/Memo"
                         }
                     },
                     "min_deposit_amount": "0",
@@ -1637,7 +2093,7 @@
                     "withdrawal_fee": [
                         {
                             "currency_id": "XRP",
-                            "amount": "1",
+                            "amount": "0.3",
                             "priority": "1"
                         }
                     ],
@@ -1647,21 +2103,28 @@
                     "withdrawal_suspended": false,
                     "platform_currency_display_name": {
                         "name": {
-                            "en-us": "Ripple",
-                            "ko-kr": "리플"
-                        },
-                        "destinationTag": {
-                            "en-us": "Destination Tag",
-                            "ko-kr": "데스티네이션 태그"
+                            "en-us": "Ripple"
                         }
                     }
                 }
             }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": 0,
+                "max": null
+            },
+            "withdraw": {
+                "min": 22,
+                "max": null
+            }
         }
     },
     "USDC": {
-        "id": "USDC",
-        "code": "USDC",
         "info": {
             "id": "USDC",
             "display_name": {
@@ -1670,6 +2133,82 @@
             },
             "show_in_ui": true,
             "platform": [
+                {
+                    "id": "XLM",
+                    "priority": "1",
+                    "deposit": false,
+                    "withdrawal": false,
+                    "currency_id": "USDC",
+                    "precision": "7",
+                    "min_confirmation_count": "1",
+                    "require_destination_tag": true,
+                    "allow_withdrawal_destination_tag": true,
+                    "display_name": {
+                        "name": {
+                            "en-us": "Stellar Lumens"
+                        },
+                        "destinationTag": {
+                            "en-us": "Tag/Memo"
+                        }
+                    },
+                    "min_deposit_amount": "0",
+                    "min_withdrawal_amount": "0",
+                    "withdrawal_fee": [
+                        {
+                            "amount": "0.0041066",
+                            "priority": "1",
+                            "currency_id": "USDC"
+                        },
+                        {
+                            "amount": "0.011",
+                            "priority": "2",
+                            "currency_id": "XLM"
+                        }
+                    ],
+                    "deposit_fee": {},
+                    "suspended_reason": "",
+                    "deposit_suspended": true,
+                    "withdrawal_suspended": true,
+                    "platform_currency_display_name": {
+                        "name": {
+                            "en-us": "Stellar Lumens"
+                        }
+                    }
+                },
+                {
+                    "id": "BASE",
+                    "priority": "1",
+                    "deposit": false,
+                    "withdrawal": false,
+                    "currency_id": "USDC",
+                    "precision": "6",
+                    "min_confirmation_count": "30",
+                    "require_destination_tag": false,
+                    "allow_withdrawal_destination_tag": false,
+                    "display_name": {
+                        "name": {
+                            "en-us": "Base"
+                        }
+                    },
+                    "min_deposit_amount": "0",
+                    "min_withdrawal_amount": "0",
+                    "withdrawal_fee": [
+                        {
+                            "currency_id": "ETH",
+                            "amount": "0.0005",
+                            "priority": "1"
+                        }
+                    ],
+                    "deposit_fee": {},
+                    "suspended_reason": "",
+                    "deposit_suspended": true,
+                    "withdrawal_suspended": true,
+                    "platform_currency_display_name": {
+                        "name": {
+                            "en-us": "Base"
+                        }
+                    }
+                },
                 {
                     "id": "ETH",
                     "priority": "1",
@@ -1682,20 +2221,19 @@
                     "allow_withdrawal_destination_tag": false,
                     "display_name": {
                         "name": {
-                            "en-us": "Ethereum (ERC-20)",
-                            "ko-kr": "Ethereum (ERC-20)"
+                            "en-us": "Ethereum (ERC-20)"
                         }
                     },
                     "min_deposit_amount": "0",
                     "min_withdrawal_amount": "1.5",
                     "withdrawal_fee": [
                         {
-                            "amount": "48.2154",
+                            "amount": "4",
                             "priority": "1",
                             "currency_id": "USDC"
                         },
                         {
-                            "amount": "0.018",
+                            "amount": "0.0025",
                             "priority": "2",
                             "currency_id": "ETH"
                         }
@@ -1706,52 +2244,243 @@
                     "withdrawal_suspended": false,
                     "platform_currency_display_name": {
                         "name": {
-                            "en-us": "Ethereum (ERC-20)",
-                            "ko-kr": "Ethereum (ERC-20)"
+                            "en-us": "Ethereum (ERC-20)"
+                        }
+                    }
+                },
+                {
+                    "id": "SOL",
+                    "priority": "1",
+                    "deposit": false,
+                    "withdrawal": false,
+                    "currency_id": "USDC",
+                    "precision": "6",
+                    "min_confirmation_count": "5",
+                    "require_destination_tag": false,
+                    "allow_withdrawal_destination_tag": false,
+                    "display_name": {
+                        "name": {
+                            "en-us": "Solana"
+                        }
+                    },
+                    "min_deposit_amount": "0",
+                    "min_withdrawal_amount": "0",
+                    "withdrawal_fee": [
+                        {
+                            "amount": "1.37862",
+                            "priority": "1",
+                            "currency_id": "USDC"
+                        },
+                        {
+                            "amount": "0.006",
+                            "priority": "2",
+                            "currency_id": "SOL"
+                        }
+                    ],
+                    "deposit_fee": {},
+                    "suspended_reason": "",
+                    "deposit_suspended": true,
+                    "withdrawal_suspended": true,
+                    "platform_currency_display_name": {
+                        "name": {
+                            "en-us": "Solana"
+                        }
+                    }
+                },
+                {
+                    "id": "BSC",
+                    "priority": "2",
+                    "deposit": true,
+                    "withdrawal": true,
+                    "currency_id": "USDC",
+                    "precision": "18",
+                    "min_confirmation_count": "60",
+                    "require_destination_tag": false,
+                    "allow_withdrawal_destination_tag": false,
+                    "display_name": {
+                        "name": {
+                            "en-us": "BNB Smart Chain (BEP-20)"
+                        }
+                    },
+                    "min_deposit_amount": "0",
+                    "min_withdrawal_amount": "0",
+                    "withdrawal_fee": [
+                        {
+                            "amount": "1.5",
+                            "priority": "1",
+                            "currency_id": "USDC"
+                        },
+                        {
+                            "amount": "0.0025",
+                            "priority": "2",
+                            "currency_id": "BNB"
+                        }
+                    ],
+                    "deposit_fee": {},
+                    "suspended_reason": "",
+                    "deposit_suspended": false,
+                    "withdrawal_suspended": false,
+                    "platform_currency_display_name": {
+                        "name": {
+                            "en-us": "BNB Smart Chain (BEP-20)"
                         }
                     }
                 }
             ],
-            "internal_transfer": {
-                "suspended_reason": null,
-                "suspended": false
-            },
             "stakeable": false,
             "unstakeable": false,
             "auto_stake": false,
             "auto_stake_amount": "0",
-            "shutdown": false
+            "shutdown": false,
+            "internal_transfer": {
+                "precision": "6",
+                "min_withdrawal_amount": "0",
+                "suspended": false,
+                "suspended_reason": null
+            }
         },
+        "id": "USDC",
+        "numericId": null,
+        "code": "USDC",
+        "precision": 0.000001,
+        "type": "crypto",
         "name": "USD Coin",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 48.2154,
-        "precision": 0.000001,
-        "limits": {
-            "amount": {},
-            "deposit": {
-                "min": 0
-            },
-            "withdraw": {
-                "min": 1.5
-            }
-        },
+        "fee": 0.0005,
+        "fees": {},
         "networks": {
+            "XLM": {
+                "id": "XLM",
+                "network": "XLM",
+                "active": false,
+                "deposit": false,
+                "withdraw": false,
+                "fee": 0.0041066,
+                "precision": 1e-7,
+                "limits": {
+                    "withdraw": {
+                        "min": 0,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0,
+                        "max": null
+                    }
+                },
+                "info": {
+                    "id": "XLM",
+                    "priority": "1",
+                    "deposit": false,
+                    "withdrawal": false,
+                    "currency_id": "USDC",
+                    "precision": "7",
+                    "min_confirmation_count": "1",
+                    "require_destination_tag": true,
+                    "allow_withdrawal_destination_tag": true,
+                    "display_name": {
+                        "name": {
+                            "en-us": "Stellar Lumens"
+                        },
+                        "destinationTag": {
+                            "en-us": "Tag/Memo"
+                        }
+                    },
+                    "min_deposit_amount": "0",
+                    "min_withdrawal_amount": "0",
+                    "withdrawal_fee": [
+                        {
+                            "amount": "0.0041066",
+                            "priority": "1",
+                            "currency_id": "USDC"
+                        },
+                        {
+                            "amount": "0.011",
+                            "priority": "2",
+                            "currency_id": "XLM"
+                        }
+                    ],
+                    "deposit_fee": {},
+                    "suspended_reason": "",
+                    "deposit_suspended": true,
+                    "withdrawal_suspended": true,
+                    "platform_currency_display_name": {
+                        "name": {
+                            "en-us": "Stellar Lumens"
+                        }
+                    }
+                }
+            },
+            "BASE": {
+                "id": "BASE",
+                "network": "BASE",
+                "active": false,
+                "deposit": false,
+                "withdraw": false,
+                "fee": 0.0005,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {
+                        "min": 0,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0,
+                        "max": null
+                    }
+                },
+                "info": {
+                    "id": "BASE",
+                    "priority": "1",
+                    "deposit": false,
+                    "withdrawal": false,
+                    "currency_id": "USDC",
+                    "precision": "6",
+                    "min_confirmation_count": "30",
+                    "require_destination_tag": false,
+                    "allow_withdrawal_destination_tag": false,
+                    "display_name": {
+                        "name": {
+                            "en-us": "Base"
+                        }
+                    },
+                    "min_deposit_amount": "0",
+                    "min_withdrawal_amount": "0",
+                    "withdrawal_fee": [
+                        {
+                            "currency_id": "ETH",
+                            "amount": "0.0005",
+                            "priority": "1"
+                        }
+                    ],
+                    "deposit_fee": {},
+                    "suspended_reason": "",
+                    "deposit_suspended": true,
+                    "withdrawal_suspended": true,
+                    "platform_currency_display_name": {
+                        "name": {
+                            "en-us": "Base"
+                        }
+                    }
+                }
+            },
             "ERC20": {
                 "id": "ETH",
                 "network": "ERC20",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 48.2154,
+                "fee": 4,
                 "precision": 0.000001,
                 "limits": {
                     "withdraw": {
-                        "min": 1.5
+                        "min": 1.5,
+                        "max": null
                     },
                     "deposit": {
-                        "min": 0
+                        "min": 0,
+                        "max": null
                     }
                 },
                 "info": {
@@ -1766,20 +2495,19 @@
                     "allow_withdrawal_destination_tag": false,
                     "display_name": {
                         "name": {
-                            "en-us": "Ethereum (ERC-20)",
-                            "ko-kr": "Ethereum (ERC-20)"
+                            "en-us": "Ethereum (ERC-20)"
                         }
                     },
                     "min_deposit_amount": "0",
                     "min_withdrawal_amount": "1.5",
                     "withdrawal_fee": [
                         {
-                            "amount": "48.2154",
+                            "amount": "4",
                             "priority": "1",
                             "currency_id": "USDC"
                         },
                         {
-                            "amount": "0.018",
+                            "amount": "0.0025",
                             "priority": "2",
                             "currency_id": "ETH"
                         }
@@ -1790,11 +2518,140 @@
                     "withdrawal_suspended": false,
                     "platform_currency_display_name": {
                         "name": {
-                            "en-us": "Ethereum (ERC-20)",
-                            "ko-kr": "Ethereum (ERC-20)"
+                            "en-us": "Ethereum (ERC-20)"
                         }
                     }
                 }
+            },
+            "SOL": {
+                "id": "SOL",
+                "network": "SOL",
+                "active": false,
+                "deposit": false,
+                "withdraw": false,
+                "fee": 1.37862,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {
+                        "min": 0,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0,
+                        "max": null
+                    }
+                },
+                "info": {
+                    "id": "SOL",
+                    "priority": "1",
+                    "deposit": false,
+                    "withdrawal": false,
+                    "currency_id": "USDC",
+                    "precision": "6",
+                    "min_confirmation_count": "5",
+                    "require_destination_tag": false,
+                    "allow_withdrawal_destination_tag": false,
+                    "display_name": {
+                        "name": {
+                            "en-us": "Solana"
+                        }
+                    },
+                    "min_deposit_amount": "0",
+                    "min_withdrawal_amount": "0",
+                    "withdrawal_fee": [
+                        {
+                            "amount": "1.37862",
+                            "priority": "1",
+                            "currency_id": "USDC"
+                        },
+                        {
+                            "amount": "0.006",
+                            "priority": "2",
+                            "currency_id": "SOL"
+                        }
+                    ],
+                    "deposit_fee": {},
+                    "suspended_reason": "",
+                    "deposit_suspended": true,
+                    "withdrawal_suspended": true,
+                    "platform_currency_display_name": {
+                        "name": {
+                            "en-us": "Solana"
+                        }
+                    }
+                }
+            },
+            "BEP20": {
+                "id": "BSC",
+                "network": "BEP20",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 1.5,
+                "precision": 1e-18,
+                "limits": {
+                    "withdraw": {
+                        "min": 0,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0,
+                        "max": null
+                    }
+                },
+                "info": {
+                    "id": "BSC",
+                    "priority": "2",
+                    "deposit": true,
+                    "withdrawal": true,
+                    "currency_id": "USDC",
+                    "precision": "18",
+                    "min_confirmation_count": "60",
+                    "require_destination_tag": false,
+                    "allow_withdrawal_destination_tag": false,
+                    "display_name": {
+                        "name": {
+                            "en-us": "BNB Smart Chain (BEP-20)"
+                        }
+                    },
+                    "min_deposit_amount": "0",
+                    "min_withdrawal_amount": "0",
+                    "withdrawal_fee": [
+                        {
+                            "amount": "1.5",
+                            "priority": "1",
+                            "currency_id": "USDC"
+                        },
+                        {
+                            "amount": "0.0025",
+                            "priority": "2",
+                            "currency_id": "BNB"
+                        }
+                    ],
+                    "deposit_fee": {},
+                    "suspended_reason": "",
+                    "deposit_suspended": false,
+                    "withdrawal_suspended": false,
+                    "platform_currency_display_name": {
+                        "name": {
+                            "en-us": "BNB Smart Chain (BEP-20)"
+                        }
+                    }
+                }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": 0,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0,
+                "max": null
             }
         }
     }

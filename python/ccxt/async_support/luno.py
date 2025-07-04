@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.luno import ImplicitAPI
-from ccxt.base.types import Account, Any, Balances, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface
+from ccxt.base.types import Account, Any, Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -44,6 +44,7 @@ class luno(Exchange, ImplicitAPI):
                 'fetchClosedOrders': True,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
+                'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
@@ -125,6 +126,7 @@ class luno(Exchange, ImplicitAPI):
                         'accounts/{id}/transactions': 1,
                         'balance': 1,
                         'beneficiaries': 1,
+                        'send/networks': 1,
                         'fee_info': 1,
                         'funding_address': 1,
                         'listorders': 1,
@@ -264,6 +266,90 @@ class luno(Exchange, ImplicitAPI):
                 },
             },
         })
+
+    async def fetch_currencies(self, params={}) -> Currencies:
+        """
+        fetches all available currencies on an exchange
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an associative dictionary of currencies
+        """
+        if not self.check_required_credentials(False):
+            return None
+        response = await self.privateGetSendNetworks(params)
+        #
+        #     {
+        #         "networks": [
+        #           {
+        #             "id": 0,
+        #             "name": "Ethereum",
+        #             "native_currency": "ETH"
+        #           },
+        #           ...
+        #         ]
+        #     }
+        #
+        currenciesData = self.safe_list(response, 'data', [])
+        result: dict = {}
+        for i in range(0, len(currenciesData)):
+            networkEntry = currenciesData[i]
+            id = self.safe_string(networkEntry, 'native_currency')
+            code = self.safe_currency_code(id)
+            if not (code in result):
+                result[code] = {
+                    'id': id,
+                    'code': code,
+                    'precision': None,
+                    'type': None,
+                    'name': None,
+                    'active': None,
+                    'deposit': None,
+                    'withdraw': None,
+                    'fee': None,
+                    'limits': {
+                        'withdraw': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'deposit': {
+                            'min': None,
+                            'max': None,
+                        },
+                    },
+                    'networks': {},
+                    'info': {},
+                }
+            networkId = self.safe_string(networkEntry, 'name')
+            networkCode = self.network_id_to_code(networkId)
+            result[code]['networks'][networkCode] = {
+                'id': networkId,
+                'network': networkCode,
+                'limits': {
+                    'withdraw': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'deposit': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+                'active': None,
+                'deposit': None,
+                'withdraw': None,
+                'fee': None,
+                'precision': None,
+                'info': networkEntry,
+            }
+            # add entry in info
+            info = self.safe_list(result[code], 'info', [])
+            info.append(networkEntry)
+            result[code]['info'] = info
+        # only after all entries are formed in currencies, restructure each entry
+        allKeys = list(result.keys())
+        for i in range(0, len(allKeys)):
+            code = allKeys[i]
+            result[code] = self.safe_currency_structure(result[code])  # self is needed after adding network entry
+        return result
 
     async def fetch_markets(self, params={}) -> List[Market]:
         """

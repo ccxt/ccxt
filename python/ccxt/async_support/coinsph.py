@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinsph import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -75,7 +75,7 @@ class coinsph(Exchange, ImplicitAPI):
                 'fetchClosedOrders': True,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
-                'fetchCurrencies': False,
+                'fetchCurrencies': True,
                 'fetchDeposit': None,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': False,
@@ -500,6 +500,128 @@ class coinsph(Exchange, ImplicitAPI):
                 },
             },
         })
+
+    async def fetch_currencies(self, params={}) -> Currencies:
+        """
+        fetches all available currencies on an exchange
+
+        https://docs.coins.ph/rest-api/#all-coins-information-user_data
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an associative dictionary of currencies
+        """
+        if not self.check_required_credentials(False):
+            return None
+        response = await self.privateGetOpenapiWalletV1ConfigGetall(params)
+        #
+        #    [
+        #        {
+        #            "coin": "PHP",
+        #            "name": "PHP",
+        #            "depositAllEnable": False,
+        #            "withdrawAllEnable": False,
+        #            "free": "0",
+        #            "locked": "0",
+        #            "transferPrecision": "2",
+        #            "transferMinQuantity": "0",
+        #            "networkList": [],
+        #            "legalMoney": True
+        #        },
+        #        {
+        #            "coin": "USDT",
+        #            "name": "USDT",
+        #            "depositAllEnable": True,
+        #            "withdrawAllEnable": True,
+        #            "free": "0",
+        #            "locked": "0",
+        #            "transferPrecision": "8",
+        #            "transferMinQuantity": "0",
+        #            "networkList": [
+        #                {
+        #                    "addressRegex": "^0x[0-9a-fA-F]{40}$",
+        #                    "memoRegex": " ",
+        #                    "network": "ETH",
+        #                    "name": "Ethereum(ERC20)",
+        #                    "depositEnable": True,
+        #                    "minConfirm": "12",
+        #                    "unLockConfirm": "-1",
+        #                    "withdrawDesc": "",
+        #                    "withdrawEnable": True,
+        #                    "withdrawFee": "6",
+        #                    "withdrawIntegerMultiple": "0.000001",
+        #                    "withdrawMax": "500000",
+        #                    "withdrawMin": "10",
+        #                    "sameAddress": False
+        #                },
+        #                {
+        #                    "addressRegex": "^T[0-9a-zA-Z]{33}$",
+        #                    "memoRegex": "",
+        #                    "network": "TRX",
+        #                    "name": "TRON",
+        #                    "depositEnable": True,
+        #                    "minConfirm": "19",
+        #                    "unLockConfirm": "-1",
+        #                    "withdrawDesc": "",
+        #                    "withdrawEnable": True,
+        #                    "withdrawFee": "3",
+        #                    "withdrawIntegerMultiple": "0.000001",
+        #                    "withdrawMax": "1000000",
+        #                    "withdrawMin": "20",
+        #                    "sameAddress": False
+        #                }
+        #            ],
+        #            "legalMoney": False
+        #        }
+        #    ]
+        #
+        result: dict = {}
+        for i in range(0, len(response)):
+            entry = response[i]
+            id = self.safe_string(entry, 'coin')
+            code = self.safe_currency_code(id)
+            isFiat = self.safe_bool(entry, 'isLegalMoney')
+            networkList = self.safe_list(entry, 'networkList', [])
+            networks: dict = {}
+            for j in range(0, len(networkList)):
+                networkItem = networkList[j]
+                network = self.safe_string(networkItem, 'network')
+                networkCode = self.network_id_to_code(network)
+                networks[networkCode] = {
+                    'info': networkItem,
+                    'id': network,
+                    'network': networkCode,
+                    'active': None,
+                    'deposit': self.safe_bool(networkItem, 'depositEnable'),
+                    'withdraw': self.safe_bool(networkItem, 'withdrawEnable'),
+                    'fee': self.safe_number(networkItem, 'withdrawFee'),
+                    'precision': self.safe_number(networkItem, 'withdrawIntegerMultiple'),
+                    'limits': {
+                        'withdraw': {
+                            'min': self.safe_number(networkItem, 'withdrawMin'),
+                            'max': self.safe_number(networkItem, 'withdrawMax'),
+                        },
+                        'deposit': {
+                            'min': None,
+                            'max': None,
+                        },
+                    },
+                }
+            result[code] = self.safe_currency_structure({
+                'id': id,
+                'name': self.safe_string(entry, 'name'),
+                'code': code,
+                'type': 'fiat' if isFiat else 'crypto',
+                'precision': self.parse_number(self.parse_precision(self.safe_string(entry, 'transferPrecision'))),
+                'info': entry,
+                'active': None,
+                'deposit': self.safe_bool(entry, 'depositAllEnable'),
+                'withdraw': self.safe_bool(entry, 'withdrawAllEnable'),
+                'networks': networks,
+                'fee': None,
+                'fees': None,
+                'limits': {},
+            })
+        return result
 
     def calculate_rate_limiter_cost(self, api, method, path, params, config={}):
         if ('noSymbol' in config) and not ('symbol' in params):

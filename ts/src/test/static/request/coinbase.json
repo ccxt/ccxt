@@ -7,6 +7,16 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "disabled": true,
+                "url": "https://api.coinbase.com/v2/exchange-rates",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchTime": [
             {
                 "description": "fetch time",

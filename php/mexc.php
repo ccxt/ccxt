@@ -837,6 +837,7 @@ class mexc extends Exchange {
                 'PROS' => 'PROSFINANCE', // conflict with Prosper
                 'SIN' => 'SINCITYTOKEN',
                 'SOUL' => 'SOULSWAP',
+                'XBT' => 'XBT', // restore original mapping
             ),
             'exceptions' => array(
                 'exact' => array(
@@ -1085,7 +1086,6 @@ class mexc extends Exchange {
             $currency = $response[$i];
             $id = $this->safe_string($currency, 'coin');
             $code = $this->safe_currency_code($id);
-            $name = $this->safe_string($currency, 'name');
             $networks = array();
             $chains = $this->safe_value($currency, 'networkList', array());
             for ($j = 0; $j < count($chains); $j++) {
@@ -1107,13 +1107,14 @@ class mexc extends Exchange {
                             'max' => $this->safe_string($chain, 'withdrawMax'),
                         ),
                     ),
+                    'contract' => $this->safe_string($chain, 'contract'),
                 );
             }
             $result[$code] = $this->safe_currency_structure(array(
                 'info' => $currency,
                 'id' => $id,
                 'code' => $code,
-                'name' => $name,
+                'name' => $this->safe_string($currency, 'name'),
                 'active' => null,
                 'deposit' => null,
                 'withdraw' => null,

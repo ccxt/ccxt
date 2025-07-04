@@ -1540,6 +1540,26 @@ public partial class okx
         return new FundingRate(res);
     }
     /// <summary>
+    /// fetches the current funding rates for multiple symbols
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a dictionary of [funding rates structure]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}.</returns>
+    public async Task<FundingRates> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchFundingRates(symbols, parameters);
+        return new FundingRates(res);
+    }
+    /// <summary>
     /// fetch the history of funding payments paid and received on this account
     /// </summary>
     /// <remarks>
@@ -1812,7 +1832,7 @@ public partial class okx
         return ((IList<object>)res).Select(item => new LeverageTier(item)).ToList<LeverageTier>();
     }
     /// <summary>
-    /// fetch the interest owed by the user for borrowing currency for margin trading
+    /// fetch the interest owed b the user for borrowing currency for margin trading
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.okx.com/docs-v5/en/#rest-api-account-get-interest-accrued-data"/>  <br/>
@@ -1876,6 +1896,26 @@ public partial class okx
     {
         var res = await this.fetchOpenInterest(symbol, parameters);
         return new OpenInterest(res);
+    }
+    /// <summary>
+    /// Retrieves the open interests of some currencies
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.okx.com/docs-v5/en/#rest-api-public-data-get-open-interest"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : exchange specific parameters
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an dictionary of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}.</returns>
+    public async Task<OpenInterests> FetchOpenInterests(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOpenInterests(symbols, parameters);
+        return new OpenInterests(res);
     }
     /// <summary>
     /// Retrieves the open interest history of a currency

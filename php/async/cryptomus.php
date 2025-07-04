@@ -372,112 +372,45 @@ class cryptomus extends Exchange {
             //     }
             //
             $coins = $this->safe_list($response, 'result');
+            $groupedById = $this->group_by($coins, 'currency_code');
+            $keys = is_array($groupedById) ? array_keys($groupedById) : array();
             $result = array();
-            for ($i = 0; $i < count($coins); $i++) {
-                $currency = $coins[$i];
-                $currencyId = $this->safe_string($currency, 'currency_code');
-                $code = $this->safe_currency_code($currencyId);
-                $allowWithdraw = $this->safe_bool($currency, 'can_withdraw');
-                $allowDeposit = $this->safe_bool($currency, 'can_deposit');
-                $isActive = $allowWithdraw && $allowDeposit;
-                $networkId = $this->safe_string($currency, 'network_code');
-                $networksById = $this->safe_dict($this->options, 'networksById');
-                $networkName = $this->safe_string($networksById, $networkId, $networkId);
-                $minWithdraw = $this->safe_number($currency, 'min_withdraw');
-                $maxWithdraw = $this->safe_number($currency, 'max_withdraw');
-                $minDeposit = $this->safe_number($currency, 'min_deposit');
-                $maxDeposit = $this->safe_number($currency, 'max_deposit');
-                $network = array(
-                    'id' => $networkId,
-                    'network' => $networkName,
-                    'limits' => array(
-                        'withdraw' => array(
-                            'min' => $minWithdraw,
-                            'max' => $maxWithdraw,
-                        ),
-                        'deposit' => array(
-                            'min' => $minDeposit,
-                            'max' => $maxDeposit,
-                        ),
-                    ),
-                    'active' => $isActive,
-                    'deposit' => $allowDeposit,
-                    'withdraw' => $allowWithdraw,
-                    'fee' => null,
-                    'precision' => null,
-                    'info' => $currency,
-                );
+            for ($i = 0; $i < count($keys); $i++) {
+                $id = $keys[$i];
+                $code = $this->safe_currency_code($id);
                 $networks = array();
-                $networks[$networkName] = $network;
-                if (!(is_array($result) && array_key_exists($code, $result))) {
-                    $result[$code] = array(
-                        'id' => $currencyId,
-                        'code' => $code,
-                        'precision' => null,
-                        'type' => null,
-                        'name' => null,
-                        'active' => $isActive,
-                        'deposit' => $allowDeposit,
-                        'withdraw' => $allowWithdraw,
-                        'fee' => null,
+                $networkEntries = $groupedById[$id];
+                for ($j = 0; $j < count($networkEntries); $j++) {
+                    $networkEntry = $networkEntries[$j];
+                    $networkId = $this->safe_string($networkEntry, 'network_code');
+                    $networkCode = $this->network_id_to_code($networkId);
+                    $networks[$networkCode] = array(
+                        'id' => $networkId,
+                        'network' => $networkCode,
                         'limits' => array(
                             'withdraw' => array(
-                                'min' => $minWithdraw,
-                                'max' => $maxWithdraw,
+                                'min' => $this->safe_number($networkEntry, 'min_withdraw'),
+                                'max' => $this->safe_number($networkEntry, 'max_withdraw'),
                             ),
                             'deposit' => array(
-                                'min' => $minDeposit,
-                                'max' => $maxDeposit,
+                                'min' => $this->safe_number($networkEntry, 'min_deposit'),
+                                'max' => $this->safe_number($networkEntry, 'max_deposit'),
                             ),
                         ),
-                        'networks' => $networks,
-                        'info' => $currency,
+                        'active' => null,
+                        'deposit' => $this->safe_bool($networkEntry, 'can_withdraw'),
+                        'withdraw' => $this->safe_bool($networkEntry, 'can_deposit'),
+                        'fee' => null,
+                        'precision' => null,
+                        'info' => $networkEntry,
                     );
-                } else {
-                    $parsed = $result[$code];
-                    $parsedNetworks = $this->safe_dict($parsed, 'networks');
-                    $parsed['networks'] = $this->extend($parsedNetworks, $networks);
-                    if ($isActive) {
-                        $parsed['active'] = true;
-                        $parsed['deposit'] = true;
-                        $parsed['withdraw'] = true;
-                    } else {
-                        if ($allowWithdraw) {
-                            $parsed['withdraw'] = true;
-                        }
-                        if ($allowDeposit) {
-                            $parsed['deposit'] = true;
-                        }
-                    }
-                    $parsedLimits = $this->safe_dict($parsed, 'limits');
-                    $withdrawLimits = array(
-                        'min' => null,
-                        'max' => null,
-                    );
-                    $parsedWithdrawLimits = $this->safe_dict($parsedLimits, 'withdraw', $withdrawLimits);
-                    $depositLimits = array(
-                        'min' => null,
-                        'max' => null,
-                    );
-                    $parsedDepositLimits = $this->safe_dict($parsedLimits, 'deposit', $depositLimits);
-                    if ($minWithdraw) {
-                        $withdrawLimits['min'] = $parsedWithdrawLimits['min'] ? min ($parsedWithdrawLimits['min'], $minWithdraw) : $minWithdraw;
-                    }
-                    if ($maxWithdraw) {
-                        $withdrawLimits['max'] = $parsedWithdrawLimits['max'] ? max ($parsedWithdrawLimits['max'], $maxWithdraw) : $maxWithdraw;
-                    }
-                    if ($minDeposit) {
-                        $depositLimits['min'] = $parsedDepositLimits['min'] ? min ($parsedDepositLimits['min'], $minDeposit) : $minDeposit;
-                    }
-                    if ($maxDeposit) {
-                        $depositLimits['max'] = $parsedDepositLimits['max'] ? max ($parsedDepositLimits['max'], $maxDeposit) : $maxDeposit;
-                    }
-                    $limits = array(
-                        'withdraw' => $withdrawLimits,
-                        'deposit' => $depositLimits,
-                    );
-                    $parsed['limits'] = $limits;
                 }
+                $result[$code] = $this->safe_currency_structure(array(
+                    'id' => $id,
+                    'code' => $code,
+                    'networks' => $networks,
+                    'info' => $networkEntries,
+                ));
             }
             return $result;
         }) ();
@@ -518,7 +451,7 @@ class cryptomus extends Exchange {
         //
         //     {
         //         "currency_pair" => "XMR_USDT",
-        //         "last_price" => "158.04829771",
+        //         "last_price" => "158.04829772",
         //         "base_volume" => "0.35185785",
         //         "quote_volume" => "55.523761128544"
         //     }

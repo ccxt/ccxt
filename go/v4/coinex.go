@@ -646,6 +646,7 @@ func  (this *coinex) Describe() interface{}  {
             "broad": map[string]interface{} {
                 "ip not allow visit": PermissionDenied,
                 "service too busy": ExchangeNotAvailable,
+                "Service is not available during funding fee settlement": OperationFailed,
             },
         },
     })
@@ -718,33 +719,7 @@ func  (this *coinex) FetchCurrencies(optionalArgs ...interface{}) <- chan interf
                 var canWithdraw interface{} = this.SafeBool(asset, "withdraw_enabled")
                 var firstChain interface{} = this.SafeDict(chains, 0, map[string]interface{} {})
                 var firstPrecisionString interface{} = this.ParsePrecision(this.SafeString(firstChain, "withdrawal_precision"))
-                AddElementToObject(result, code, map[string]interface{} {
-            "id": currencyId,
-            "code": code,
-            "name": nil,
-            "active": IsTrue(canDeposit) && IsTrue(canWithdraw),
-            "deposit": canDeposit,
-            "withdraw": canWithdraw,
-            "fee": nil,
-            "precision": this.ParseNumber(firstPrecisionString),
-            "limits": map[string]interface{} {
-                "amount": map[string]interface{} {
-                    "min": nil,
-                    "max": nil,
-                },
-                "deposit": map[string]interface{} {
-                    "min": nil,
-                    "max": nil,
-                },
-                "withdraw": map[string]interface{} {
-                    "min": nil,
-                    "max": nil,
-                },
-            },
-            "networks": map[string]interface{} {},
-            "type": "crypto",
-            "info": coin,
-        })
+                var networks interface{} = map[string]interface{} {}
                 for j := 0; IsLessThan(j, GetArrayLength(chains)); j++ {
                     var chain interface{} = GetValue(chains, j)
                     var networkId interface{} = this.SafeString(chain, "chain")
@@ -782,10 +757,35 @@ func  (this *coinex) FetchCurrencies(optionalArgs ...interface{}) <- chan interf
                         },
                         "info": chain,
                     }
-                    var networks interface{} = this.SafeDict(GetValue(result, code), "networks", map[string]interface{} {})
                     AddElementToObject(networks, networkId, network)
-                    AddElementToObject(GetValue(result, code), "networks", networks)
                 }
+                AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]interface{} {
+            "id": currencyId,
+            "code": code,
+            "name": nil,
+            "active": IsTrue(canDeposit) && IsTrue(canWithdraw),
+            "deposit": canDeposit,
+            "withdraw": canWithdraw,
+            "fee": nil,
+            "precision": this.ParseNumber(firstPrecisionString),
+            "limits": map[string]interface{} {
+                "amount": map[string]interface{} {
+                    "min": nil,
+                    "max": nil,
+                },
+                "deposit": map[string]interface{} {
+                    "min": nil,
+                    "max": nil,
+                },
+                "withdraw": map[string]interface{} {
+                    "min": nil,
+                    "max": nil,
+                },
+            },
+            "networks": map[string]interface{} {},
+            "type": "crypto",
+            "info": coin,
+        }))
             }
         
             ch <- result

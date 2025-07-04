@@ -367,104 +367,44 @@ class cryptomus(Exchange, ImplicitAPI):
         #     }
         #
         coins = self.safe_list(response, 'result')
+        groupedById = self.group_by(coins, 'currency_code')
+        keys = list(groupedById.keys())
         result: dict = {}
-        for i in range(0, len(coins)):
-            currency = coins[i]
-            currencyId = self.safe_string(currency, 'currency_code')
-            code = self.safe_currency_code(currencyId)
-            allowWithdraw = self.safe_bool(currency, 'can_withdraw')
-            allowDeposit = self.safe_bool(currency, 'can_deposit')
-            isActive = allowWithdraw and allowDeposit
-            networkId = self.safe_string(currency, 'network_code')
-            networksById = self.safe_dict(self.options, 'networksById')
-            networkName = self.safe_string(networksById, networkId, networkId)
-            minWithdraw = self.safe_number(currency, 'min_withdraw')
-            maxWithdraw = self.safe_number(currency, 'max_withdraw')
-            minDeposit = self.safe_number(currency, 'min_deposit')
-            maxDeposit = self.safe_number(currency, 'max_deposit')
-            network = {
-                'id': networkId,
-                'network': networkName,
-                'limits': {
-                    'withdraw': {
-                        'min': minWithdraw,
-                        'max': maxWithdraw,
-                    },
-                    'deposit': {
-                        'min': minDeposit,
-                        'max': maxDeposit,
-                    },
-                },
-                'active': isActive,
-                'deposit': allowDeposit,
-                'withdraw': allowWithdraw,
-                'fee': None,
-                'precision': None,
-                'info': currency,
-            }
+        for i in range(0, len(keys)):
+            id = keys[i]
+            code = self.safe_currency_code(id)
             networks = {}
-            networks[networkName] = network
-            if not (code in result):
-                result[code] = {
-                    'id': currencyId,
-                    'code': code,
-                    'precision': None,
-                    'type': None,
-                    'name': None,
-                    'active': isActive,
-                    'deposit': allowDeposit,
-                    'withdraw': allowWithdraw,
-                    'fee': None,
+            networkEntries = groupedById[id]
+            for j in range(0, len(networkEntries)):
+                networkEntry = networkEntries[j]
+                networkId = self.safe_string(networkEntry, 'network_code')
+                networkCode = self.network_id_to_code(networkId)
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
                     'limits': {
                         'withdraw': {
-                            'min': minWithdraw,
-                            'max': maxWithdraw,
+                            'min': self.safe_number(networkEntry, 'min_withdraw'),
+                            'max': self.safe_number(networkEntry, 'max_withdraw'),
                         },
                         'deposit': {
-                            'min': minDeposit,
-                            'max': maxDeposit,
+                            'min': self.safe_number(networkEntry, 'min_deposit'),
+                            'max': self.safe_number(networkEntry, 'max_deposit'),
                         },
                     },
-                    'networks': networks,
-                    'info': currency,
+                    'active': None,
+                    'deposit': self.safe_bool(networkEntry, 'can_withdraw'),
+                    'withdraw': self.safe_bool(networkEntry, 'can_deposit'),
+                    'fee': None,
+                    'precision': None,
+                    'info': networkEntry,
                 }
-            else:
-                parsed = result[code]
-                parsedNetworks = self.safe_dict(parsed, 'networks')
-                parsed['networks'] = self.extend(parsedNetworks, networks)
-                if isActive:
-                    parsed['active'] = True
-                    parsed['deposit'] = True
-                    parsed['withdraw'] = True
-                else:
-                    if allowWithdraw:
-                        parsed['withdraw'] = True
-                    if allowDeposit:
-                        parsed['deposit'] = True
-                parsedLimits = self.safe_dict(parsed, 'limits')
-                withdrawLimits = {
-                    'min': None,
-                    'max': None,
-                }
-                parsedWithdrawLimits = self.safe_dict(parsedLimits, 'withdraw', withdrawLimits)
-                depositLimits = {
-                    'min': None,
-                    'max': None,
-                }
-                parsedDepositLimits = self.safe_dict(parsedLimits, 'deposit', depositLimits)
-                if minWithdraw:
-                    withdrawLimits['min'] = min(parsedWithdrawLimits['min'], minWithdraw) if parsedWithdrawLimits['min'] else minWithdraw
-                if maxWithdraw:
-                    withdrawLimits['max'] = max(parsedWithdrawLimits['max'], maxWithdraw) if parsedWithdrawLimits['max'] else maxWithdraw
-                if minDeposit:
-                    depositLimits['min'] = min(parsedDepositLimits['min'], minDeposit) if parsedDepositLimits['min'] else minDeposit
-                if maxDeposit:
-                    depositLimits['max'] = max(parsedDepositLimits['max'], maxDeposit) if parsedDepositLimits['max'] else maxDeposit
-                limits = {
-                    'withdraw': withdrawLimits,
-                    'deposit': depositLimits,
-                }
-                parsed['limits'] = limits
+            result[code] = self.safe_currency_structure({
+                'id': id,
+                'code': code,
+                'networks': networks,
+                'info': networkEntries,
+            })
         return result
 
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
@@ -499,7 +439,7 @@ class cryptomus(Exchange, ImplicitAPI):
         #
         #     {
         #         "currency_pair": "XMR_USDT",
-        #         "last_price": "158.04829771",
+        #         "last_price": "158.04829772",
         #         "base_volume": "0.35185785",
         #         "quote_volume": "55.523761128544"
         #     }

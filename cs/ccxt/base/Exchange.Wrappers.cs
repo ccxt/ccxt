@@ -881,6 +881,11 @@ public partial class Exchange
         var res = await this.fetchGreeks(symbol, parameters);
         return new Greeks(res);
     }
+    public async Task<List<Greeks>> FetchAllGreeks(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchAllGreeks(symbols, parameters);
+        return ((IList<object>)res).Select(item => new Greeks(item)).ToList<Greeks>();
+    }
     public async Task<OptionChain> FetchOptionChain(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOptionChain(code, parameters);
@@ -1232,8 +1237,8 @@ public class  Bitrue: bitrue { public Bitrue(object args = null) : base(args) { 
 public class  Bitso: bitso { public Bitso(object args = null) : base(args) { } }
 public class  Bitstamp: bitstamp { public Bitstamp(object args = null) : base(args) { } }
 public class  Bitteam: bitteam { public Bitteam(object args = null) : base(args) { } }
+public class  Bittrade: bittrade { public Bittrade(object args = null) : base(args) { } }
 public class  Bitvavo: bitvavo { public Bitvavo(object args = null) : base(args) { } }
-public class  Bl3p: bl3p { public Bl3p(object args = null) : base(args) { } }
 public class  Blockchaincom: blockchaincom { public Blockchaincom(object args = null) : base(args) { } }
 public class  Blofin: blofin { public Blofin(object args = null) : base(args) { } }
 public class  Btcalpha: btcalpha { public Btcalpha(object args = null) : base(args) { } }
@@ -1249,7 +1254,6 @@ public class  Coinbaseinternational: coinbaseinternational { public Coinbaseinte
 public class  Coincatch: coincatch { public Coincatch(object args = null) : base(args) { } }
 public class  Coincheck: coincheck { public Coincheck(object args = null) : base(args) { } }
 public class  Coinex: coinex { public Coinex(object args = null) : base(args) { } }
-public class  Coinlist: coinlist { public Coinlist(object args = null) : base(args) { } }
 public class  Coinmate: coinmate { public Coinmate(object args = null) : base(args) { } }
 public class  Coinmetro: coinmetro { public Coinmetro(object args = null) : base(args) { } }
 public class  Coinone: coinone { public Coinone(object args = null) : base(args) { } }
@@ -1273,27 +1277,26 @@ public class  Hitbtc: hitbtc { public Hitbtc(object args = null) : base(args) { 
 public class  Hollaex: hollaex { public Hollaex(object args = null) : base(args) { } }
 public class  Htx: htx { public Htx(object args = null) : base(args) { } }
 public class  Huobi: huobi { public Huobi(object args = null) : base(args) { } }
-public class  Huobijp: huobijp { public Huobijp(object args = null) : base(args) { } }
 public class  Hyperliquid: hyperliquid { public Hyperliquid(object args = null) : base(args) { } }
-public class  Idex: idex { public Idex(object args = null) : base(args) { } }
 public class  Independentreserve: independentreserve { public Independentreserve(object args = null) : base(args) { } }
 public class  Indodax: indodax { public Indodax(object args = null) : base(args) { } }
 public class  Kraken: kraken { public Kraken(object args = null) : base(args) { } }
 public class  Krakenfutures: krakenfutures { public Krakenfutures(object args = null) : base(args) { } }
 public class  Kucoin: kucoin { public Kucoin(object args = null) : base(args) { } }
 public class  Kucoinfutures: kucoinfutures { public Kucoinfutures(object args = null) : base(args) { } }
-public class  Kuna: kuna { public Kuna(object args = null) : base(args) { } }
 public class  Latoken: latoken { public Latoken(object args = null) : base(args) { } }
 public class  Lbank: lbank { public Lbank(object args = null) : base(args) { } }
 public class  Luno: luno { public Luno(object args = null) : base(args) { } }
 public class  Mercado: mercado { public Mercado(object args = null) : base(args) { } }
 public class  Mexc: mexc { public Mexc(object args = null) : base(args) { } }
+public class  Modetrade: modetrade { public Modetrade(object args = null) : base(args) { } }
 public class  Myokx: myokx { public Myokx(object args = null) : base(args) { } }
 public class  Ndax: ndax { public Ndax(object args = null) : base(args) { } }
 public class  Novadax: novadax { public Novadax(object args = null) : base(args) { } }
 public class  Oceanex: oceanex { public Oceanex(object args = null) : base(args) { } }
 public class  Okcoin: okcoin { public Okcoin(object args = null) : base(args) { } }
 public class  Okx: okx { public Okx(object args = null) : base(args) { } }
+public class  Okxus: okxus { public Okxus(object args = null) : base(args) { } }
 public class  Onetrading: onetrading { public Onetrading(object args = null) : base(args) { } }
 public class  Oxfun: oxfun { public Oxfun(object args = null) : base(args) { } }
 public class  P2b: p2b { public P2b(object args = null) : base(args) { } }

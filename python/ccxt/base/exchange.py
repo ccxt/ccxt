@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.79'
+__version__ = '4.4.92'
 
 # -----------------------------------------------------------------------------
 
@@ -311,6 +311,7 @@ class Exchange(object):
     base_currencies = None
     quote_currencies = None
     currencies = None
+
     options = None  # Python does not allow to define properties in run-time with setattr
     isSandboxModeEnabled = False
     accounts = None
@@ -906,6 +907,10 @@ class Exchange(object):
         return collections.OrderedDict(sorted(dictionary.items(), key=lambda t: t[0]))
 
     @staticmethod
+    def sort(array):
+        return sorted(array)
+
+    @staticmethod
     def extend(*args):
         if args is not None:
             result = None
@@ -955,6 +960,11 @@ class Exchange(object):
     def groupBy(array, key):
         return Exchange.group_by(array, key)
 
+
+    @staticmethod
+    def index_by_safe(array, key):
+        return Exchange.index_by(array, key)  # wrapper for go
+
     @staticmethod
     def index_by(array, key):
         result = {}
@@ -1000,7 +1010,7 @@ class Exchange(object):
         return string
 
     @staticmethod
-    def urlencode(params={}, doseq=False):
+    def urlencode(params={}, doseq=False, sort=False):
         newParams = params.copy()
         for key, value in params.items():
             if isinstance(value, bool):
@@ -1036,7 +1046,7 @@ class Exchange(object):
         return _urlencode.urlencode(result, quote_via=_urlencode.quote)
 
     @staticmethod
-    def rawencode(params={}):
+    def rawencode(params={}, sort=False):
         return _urlencode.unquote(Exchange.urlencode(params))
 
     @staticmethod
@@ -1505,7 +1515,32 @@ class Exchange(object):
         parts = re.sub(r'0+$', '', str).split('.')
         return len(parts[1]) if len(parts) > 1 else 0
 
+    def map_to_safe_map(self, dictionary):
+        return dictionary  # wrapper for go
+
+    def safe_map_to_map(self, dictionary):
+        return dictionary  # wrapper for go
+
     def load_markets(self, reload=False, params={}):
+        """
+        Loads and prepares the markets for trading.
+
+        Args:
+            reload (bool): If True, the markets will be reloaded from the exchange.
+            params (dict): Additional exchange-specific parameters for the request.
+
+        Returns:
+            dict: A dictionary of markets.
+
+        Raises:
+            Exception: If the markets cannot be loaded or prepared.
+
+        Notes:
+            It ensures that the markets are only loaded once, even if called multiple times.
+            If the markets are already loaded and `reload` is False or not provided, it returns the existing markets.
+            If a reload is in progress, it waits for completion before returning.
+            If an error occurs during loading or preparation, an exception is raised.
+        """
         if not reload:
             if self.markets:
                 if not self.markets_by_id:
@@ -1514,7 +1549,10 @@ class Exchange(object):
         currencies = None
         if self.has['fetchCurrencies'] is True:
             currencies = self.fetch_currencies()
+            self.options['cachedCurrencies'] = currencies
         markets = self.fetch_markets(params)
+        if 'cachedCurrencies' in self.options:
+            del self.options['cachedCurrencies']
         return self.set_markets(markets, currencies)
 
     def fetch_markets(self, params={}):
@@ -2548,6 +2586,9 @@ class Exchange(object):
     def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchTrades() is not supported yet')
 
+    def un_watch_orders(self, symbol: Str = None, params={}):
+        raise NotSupported(self.id + ' unWatchOrders() is not supported yet')
+
     def un_watch_trades(self, symbol: str, params={}):
         raise NotSupported(self.id + ' unWatchTrades() is not supported yet')
 
@@ -3008,7 +3049,7 @@ class Exchange(object):
                         currency['networks'][key]['active'] = True
                     elif deposit is not None and withdraw is not None:
                         currency['networks'][key]['active'] = False
-                active = self.safe_bool(network, 'active')
+                active = self.safe_bool(currency['networks'][key], 'active')  # dict might have been updated on above lines, so access directly instead of `network` variable
                 currencyActive = self.safe_bool(currency, 'active')
                 if currencyActive is None or active:
                     currency['active'] = active
@@ -3164,7 +3205,7 @@ class Exchange(object):
 
     def set_markets(self, markets, currencies=None):
         values = []
-        self.markets_by_id = {}
+        self.markets_by_id = self.create_safe_dictionary()
         # handle marketId conflicts
         # we insert spot markets first
         marketValues = self.sort_by(self.to_array(markets), 'spot', True, True)
@@ -3187,14 +3228,14 @@ class Exchange(object):
             else:
                 market['subType'] = None
             values.append(market)
-        self.markets = self.index_by(values, 'symbol')
+        self.markets = self.map_to_safe_map(self.index_by(values, 'symbol'))
         marketsSortedBySymbol = self.keysort(self.markets)
         marketsSortedById = self.keysort(self.markets_by_id)
         self.symbols = list(marketsSortedBySymbol.keys())
         self.ids = list(marketsSortedById.keys())
         if currencies is not None:
             # currencies is always None when called in constructor but not when called from loadMarkets
-            self.currencies = self.deep_extend(self.currencies, currencies)
+            self.currencies = self.map_to_safe_map(self.deep_extend(self.currencies, currencies))
         else:
             baseCurrencies = []
             quoteCurrencies = []
@@ -3220,8 +3261,8 @@ class Exchange(object):
                     quoteCurrencies.append(currency)
             baseCurrencies = self.sort_by(baseCurrencies, 'code', False, '')
             quoteCurrencies = self.sort_by(quoteCurrencies, 'code', False, '')
-            self.baseCurrencies = self.index_by(baseCurrencies, 'code')
-            self.quoteCurrencies = self.index_by(quoteCurrencies, 'code')
+            self.baseCurrencies = self.map_to_safe_map(self.index_by(baseCurrencies, 'code'))
+            self.quoteCurrencies = self.map_to_safe_map(self.index_by(quoteCurrencies, 'code'))
             allCurrencies = self.array_concat(baseCurrencies, quoteCurrencies)
             groupedCurrencies = self.group_by(allCurrencies, 'code')
             codes = list(groupedCurrencies.keys())
@@ -3238,8 +3279,8 @@ class Exchange(object):
                         highestPrecisionCurrency = currentCurrency if (currentCurrency['precision'] > highestPrecisionCurrency['precision']) else highestPrecisionCurrency
                 resultingCurrencies.append(highestPrecisionCurrency)
             sortedCurrencies = self.sort_by(resultingCurrencies, 'code')
-            self.currencies = self.deep_extend(self.currencies, self.index_by(sortedCurrencies, 'code'))
-        self.currencies_by_id = self.index_by(self.currencies, 'id')
+            self.currencies = self.map_to_safe_map(self.deep_extend(self.currencies, self.index_by(sortedCurrencies, 'code')))
+        self.currencies_by_id = self.index_by_safe(self.currencies, 'id')
         currenciesSortedByCode = self.keysort(self.currencies)
         self.codes = list(currenciesSortedByCode.keys())
         return self.markets
@@ -4147,11 +4188,11 @@ class Exchange(object):
                 raise NotSupported(self.id + ' - ' + networkCode + ' network did not return any result for ' + currencyCode)
             else:
                 # if networkCode was provided by user, we should check it after response, referenced exchange doesn't support network-code during request
-                networkId = networkCode if isIndexedByUnifiedNetworkCode else self.network_code_to_id(networkCode, currencyCode)
-                if networkId in indexedNetworkEntries:
-                    chosenNetworkId = networkId
+                networkIdOrCode = networkCode if isIndexedByUnifiedNetworkCode else self.network_code_to_id(networkCode, currencyCode)
+                if networkIdOrCode in indexedNetworkEntries:
+                    chosenNetworkId = networkIdOrCode
                 else:
-                    raise NotSupported(self.id + ' - ' + networkId + ' network was not found for ' + currencyCode + ', use one of ' + ', '.join(availableNetworkIds))
+                    raise NotSupported(self.id + ' - ' + networkIdOrCode + ' network was not found for ' + currencyCode + ', use one of ' + ', '.join(availableNetworkIds))
         else:
             if responseNetworksLength == 0:
                 raise NotSupported(self.id + ' - no networks were returned for ' + currencyCode)
@@ -4439,15 +4480,15 @@ class Exchange(object):
         if self.enableRateLimit:
             cost = self.calculate_rate_limiter_cost(api, method, path, params, config)
             self.throttle(cost)
+        retries = None
+        retries, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailure', 0)
+        retryDelay = None
+        retryDelay, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailureDelay', 0)
         self.lastRestRequestTimestamp = self.milliseconds()
         request = self.sign(path, api, method, params, headers, body)
         self.last_request_headers = request['headers']
         self.last_request_body = request['body']
         self.last_request_url = request['url']
-        retries = None
-        retries, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailure', 0)
-        retryDelay = None
-        retryDelay, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailureDelay', 0)
         for i in range(0, retries + 1):
             try:
                 return self.fetch(request['url'], request['method'], request['headers'], request['body'])
@@ -5409,6 +5450,9 @@ class Exchange(object):
     def fetch_greeks(self, symbol: str, params={}):
         raise NotSupported(self.id + ' fetchGreeks() is not supported yet')
 
+    def fetch_all_greeks(self, symbols: Strings = None, params={}):
+        raise NotSupported(self.id + ' fetchAllGreeks() is not supported yet')
+
     def fetch_option_chain(self, code: str, params={}):
         raise NotSupported(self.id + ' fetchOptionChain() is not supported yet')
 
@@ -5521,6 +5565,24 @@ class Exchange(object):
 
     def create_expired_option_market(self, symbol: str):
         raise NotSupported(self.id + ' createExpiredOptionMarket() is not supported yet')
+
+    def is_leveraged_currency(self, currencyCode, checkBaseCoin: Bool = False, existingCurrencies: dict = None):
+        leverageSuffixes = [
+            '2L', '2S', '3L', '3S', '4L', '4S', '5L', '5S',  # Leveraged Tokens(LT)
+            'UP', 'DOWN',  # exchange-specific(e.g. BLVT)
+            'BULL', 'BEAR',  # similar
+        ]
+        for i in range(0, len(leverageSuffixes)):
+            leverageSuffix = leverageSuffixes[i]
+            if currencyCode.endswith(leverageSuffix):
+                if not checkBaseCoin:
+                    return True
+                else:
+                    # check if base currency is inside dict
+                    baseCurrencyCode = currencyCode.replace(leverageSuffix, '')
+                    if baseCurrencyCode in existingCurrencies:
+                        return True
+        return False
 
     def handle_withdraw_tag_and_params(self, tag, params):
         if (tag is not None) and (isinstance(tag, dict)):
@@ -6623,6 +6685,27 @@ class Exchange(object):
     def parse_greeks(self, greeks: dict, market: Market = None):
         raise NotSupported(self.id + ' parseGreeks() is not supported yet')
 
+    def parse_all_greeks(self, greeks, symbols: Strings = None, params={}):
+        #
+        # the value of greeks is either a dict or a list
+        #
+        results = []
+        if isinstance(greeks, list):
+            for i in range(0, len(greeks)):
+                parsedTicker = self.parse_greeks(greeks[i])
+                greek = self.extend(parsedTicker, params)
+                results.append(greek)
+        else:
+            marketIds = list(greeks.keys())
+            for i in range(0, len(marketIds)):
+                marketId = marketIds[i]
+                market = self.safe_market(marketId)
+                parsed = self.parse_greeks(greeks[marketId], market)
+                greek = self.extend(parsed, params)
+                results.append(greek)
+        symbols = self.market_symbols(symbols)
+        return self.filter_by_array(results, 'symbol', symbols)
+
     def parse_option(self, chain: dict, currency: Currency = None, market: Market = None):
         raise NotSupported(self.id + ' parseOption() is not supported yet')
 
@@ -6739,7 +6822,7 @@ class Exchange(object):
         return reconstructedDate
 
     def convert_market_id_expire_date(self, date: str):
-        # parse 03JAN24 to 240103
+        # parse 03JAN24 to 240103.
         monthMappping = {
             'JAN': '01',
             'FEB': '02',
@@ -6824,14 +6907,27 @@ class Exchange(object):
         """
         raise NotSupported(self.id + ' fetchTransfers() is not supported yet')
 
-    def clean_unsubscription(self, client, subHash: str, unsubHash: str):
+    def clean_unsubscription(self, client, subHash: str, unsubHash: str, subHashIsPrefix=False):
         if unsubHash in client.subscriptions:
             del client.subscriptions[unsubHash]
-        if subHash in client.subscriptions:
-            del client.subscriptions[subHash]
-        if subHash in client.futures:
-            error = UnsubscribeError(self.id + ' ' + subHash)
-            client.reject(error, subHash)
+        if not subHashIsPrefix:
+            if subHash in client.subscriptions:
+                del client.subscriptions[subHash]
+            if subHash in client.futures:
+                error = UnsubscribeError(self.id + ' ' + subHash)
+                client.reject(error, subHash)
+        else:
+            clientSubscriptions = list(client.subscriptions.keys())
+            for i in range(0, len(clientSubscriptions)):
+                sub = clientSubscriptions[i]
+                if sub.startswith(subHash):
+                    del client.subscriptions[sub]
+            clientFutures = list(client.futures.keys())
+            for i in range(0, len(clientFutures)):
+                future = clientFutures[i]
+                if future.startswith(subHash):
+                    error = UnsubscribeError(self.id + ' ' + future)
+                    client.reject(error, future)
         client.resolve(True, unsubHash)
 
     def clean_cache(self, subscription: dict):
@@ -6844,7 +6940,7 @@ class Exchange(object):
                 symbolAndTimeFrame = symbolsAndTimeFrames[i]
                 symbol = self.safe_string(symbolAndTimeFrame, 0)
                 timeframe = self.safe_string(symbolAndTimeFrame, 1)
-                if symbol in self.ohlcvs:
+                if (self.ohlcvs is not None) and (symbol in self.ohlcvs):
                     if timeframe in self.ohlcvs[symbol]:
                         del self.ohlcvs[symbol][timeframe]
         elif symbolsLength > 0:
@@ -6860,21 +6956,11 @@ class Exchange(object):
                     if symbol in self.tickers:
                         del self.tickers[symbol]
         else:
-            if topic == 'myTrades':
-                # don't reset self.myTrades directly here
-                # because in c# we need to use a different object(thread-safe dict)
-                keys = list(self.myTrades.keys())
-                for i in range(0, len(keys)):
-                    key = keys[i]
-                    if key in self.myTrades:
-                        del self.myTrades[key]
-            elif topic == 'orders':
-                orderSymbols = list(self.orders.keys())
-                for i in range(0, len(orderSymbols)):
-                    orderSymbol = orderSymbols[i]
-                    if orderSymbol in self.orders:
-                        del self.orders[orderSymbol]
-            elif topic == 'ticker':
+            if topic == 'myTrades' and (self.myTrades is not None):
+                self.myTrades = None
+            elif topic == 'orders' and (self.orders is not None):
+                self.orders = None
+            elif topic == 'ticker' and (self.tickers is not None):
                 tickerSymbols = list(self.tickers.keys())
                 for i in range(0, len(tickerSymbols)):
                     tickerSymbol = tickerSymbols[i]

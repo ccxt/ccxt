@@ -855,6 +855,7 @@ class mexc(Exchange, ImplicitAPI):
                 'PROS': 'PROSFINANCE',  # conflict with Prosper
                 'SIN': 'SINCITYTOKEN',
                 'SOUL': 'SOULSWAP',
+                'XBT': 'XBT',  # restore original mapping
             },
             'exceptions': {
                 'exact': {
@@ -1097,7 +1098,6 @@ class mexc(Exchange, ImplicitAPI):
             currency = response[i]
             id = self.safe_string(currency, 'coin')
             code = self.safe_currency_code(id)
-            name = self.safe_string(currency, 'name')
             networks: dict = {}
             chains = self.safe_value(currency, 'networkList', [])
             for j in range(0, len(chains)):
@@ -1119,12 +1119,13 @@ class mexc(Exchange, ImplicitAPI):
                             'max': self.safe_string(chain, 'withdrawMax'),
                         },
                     },
+                    'contract': self.safe_string(chain, 'contract'),
                 }
             result[code] = self.safe_currency_structure({
                 'info': currency,
                 'id': id,
                 'code': code,
-                'name': name,
+                'name': self.safe_string(currency, 'name'),
                 'active': None,
                 'deposit': None,
                 'withdraw': None,

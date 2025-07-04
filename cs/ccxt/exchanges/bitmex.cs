@@ -78,6 +78,7 @@ public partial class bitmex : Exchange
                 { "fetchTransactions", "emulated" },
                 { "fetchTransfer", false },
                 { "fetchTransfers", false },
+                { "index", true },
                 { "reduceMargin", null },
                 { "sandbox", true },
                 { "setLeverage", true },
@@ -397,8 +398,8 @@ public partial class bitmex : Exchange
         //            // "mediumPrecision": "8",
         //            // "shorterPrecision": "4",
         //            // "symbol": "₿",
-        //            // "weight": "1",
         //            // "tickLog": "0",
+        //            // "weight": "1",
         //            "enabled": true,
         //            "isMarginCurrency": true,
         //            "minDepositAmount": "10000",
@@ -777,6 +778,13 @@ public partial class bitmex : Exchange
         object maxOrderQty = this.safeNumber(market, "maxOrderQty");
         object initMargin = this.safeString(market, "initMargin", "1");
         object maxLeverage = this.parseNumber(Precise.stringDiv("1", initMargin));
+        // subtype should be undefined for spot markets
+        if (isTrue(spot))
+        {
+            isInverse = null;
+            isQuanto = null;
+            linear = null;
+        }
         return new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
@@ -826,7 +834,7 @@ public partial class bitmex : Exchange
                     { "max", ((bool) isTrue(positionIsQuote)) ? maxOrderQty : null },
                 } },
             } },
-            { "created", this.parse8601(this.safeString(market, "listing")) },
+            { "created", null },
             { "info", market },
         };
     }

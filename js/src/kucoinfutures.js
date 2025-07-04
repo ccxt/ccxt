@@ -1534,6 +1534,7 @@ export default class kucoinfutures extends kucoin {
      * @param {string} [params.timeInForce] GTC, GTT, IOC, or FOK, default is GTC, limit orders only
      * @param {string} [params.postOnly] Post only flag, invalid when timeInForce is IOC or FOK
      * @param {float} [params.cost] the cost of the order in units of USDT
+     * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'isolated'
      * ----------------- Exchange Specific Parameters -----------------
      * @param {float} [params.leverage] Leverage size of the order (mandatory param in request, default is 1)
      * @param {string} [params.clientOid] client order id, defaults to uuid if not passed
@@ -1637,6 +1638,11 @@ export default class kucoinfutures extends kucoin {
             'type': type,
             'leverage': 1,
         };
+        const marginModeUpper = this.safeStringUpper(params, 'marginMode');
+        if (marginModeUpper !== undefined) {
+            params = this.omit(params, 'marginMode');
+            request['marginMode'] = marginModeUpper;
+        }
         const cost = this.safeString(params, 'cost');
         params = this.omit(params, 'cost');
         if (cost !== undefined) {

@@ -1,0 +1,63 @@
+name: Release JS workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      example_input:
+        description: 'An example input value'
+        required: false
+        default: 'default-value'
+
+permissions:
+  contents: write
+
+
+jobs:
+  manual-job:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master' && contains(fromJSON('["kroitor", "frosty00", "carlosmiei"]'), github.actor)
+
+    steps:
+      - name: Print Trigger Info
+        run: |
+          echo "This workflow was triggered manually."
+          echo "Input value: ${{ github.event.inputs.example_input }}"
+      - uses: actions/checkout@v4
+        if: github.ref == 'refs/heads/master'
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+          fetch-depth: 2
+          fetch-tags: true
+      - uses: actions/checkout@v4
+        if: github.ref != 'refs/heads/master'
+        with:
+          fetch-depth: 2
+          fetch-tags: true
+      - name: Setup PHP with PECL extension
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          # cache: true
+          ini-values: |
+            zend.assertions=1
+            display_errors=On
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - name: create usr/share/dotnet folder
+        run: |
+          sudo mkdir -p /usr/share/dotnet
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '7.0.x'
+          dotnet-quality: 'preview'
+          run: |
+            sudo mkdir -p /usr/share/dotnet
+      - name: Install NPM dependencies
+        run: npm ci
+      - name: Transpile TS
+        run: npm run tsBuild
+      - uses: JS-DevTools/npm-publish@v3
+        with:
+          token: ${{ secrets.NPM_TOKEN }}

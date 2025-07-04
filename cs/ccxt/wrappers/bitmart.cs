@@ -316,6 +316,12 @@ public partial class bitmart
     /// boolean : *spot* whether to fetch trades for margin orders or spot orders, defaults to spot orders (only isolated margin orders are supported)
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.stpMode</term>
+    /// <description>
+    /// string : self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}.</returns>
@@ -348,6 +354,12 @@ public partial class bitmart
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stpMode</term>
+    /// <description>
+    /// string : self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
     /// </description>
     /// </item>
     /// </list>
@@ -530,6 +542,12 @@ public partial class bitmart
     /// int : *swap tp/sl only* 1: tp/sl, 2: position tp/sl, default is 1
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.stpMode</term>
+    /// <description>
+    /// string : self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -549,6 +567,12 @@ public partial class bitmart
     /// <term>params</term>
     /// <description>
     /// object :  extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stpMode</term>
+    /// <description>
+    /// string : self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
     /// </description>
     /// </item>
     /// </list>
@@ -865,6 +889,12 @@ public partial class bitmart
     /// boolean : *swap only* set to true if you want to fetch trigger orders
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.stpMode</term>
+    /// <description>
+    /// string : self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -910,6 +940,12 @@ public partial class bitmart
     /// <term>params.marginMode</term>
     /// <description>
     /// string : *spot only* 'cross' or 'isolated', for margin trading
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stpMode</term>
+    /// <description>
+    /// string : self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
     /// </description>
     /// </item>
     /// </list>
@@ -985,6 +1021,12 @@ public partial class bitmart
     /// <term>params.trailing</term>
     /// <description>
     /// boolean : *swap only* set to true if you want to fetch a trailing order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stpMode</term>
+    /// <description>
+    /// string : self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
     /// </description>
     /// </item>
     /// </list>
@@ -1422,6 +1464,7 @@ public partial class bitmart
     /// </summary>
     /// <remarks>
     /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-keyed"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-v2-keyed"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

@@ -20,6 +20,21 @@ func NewCex(userConfig map[string]interface{}) Cex {
 
 /**
  * @method
+ * @name cex#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://trade.cex.io/docs/#rest-public-api-calls-currencies-info
+ * @param {dict} [params] extra parameters specific to the exchange API endpoint
+ * @returns {dict} an associative dictionary of currencies
+ */
+func (this *Cex) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name cex#fetchMarkets
  * @description retrieves data on all markets for ace
  * @see https://trade.cex.io/docs/#rest-public-api-calls-pairs-info

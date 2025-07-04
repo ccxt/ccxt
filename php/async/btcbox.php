@@ -10,6 +10,7 @@ use ccxt\async\abstract\btcbox as Exchange;
 use ccxt\ExchangeError;
 use ccxt\Precise;
 use \React\Async;
+use \React\Promise;
 use \React\Promise\PromiseInterface;
 
 class btcbox extends Exchange {
@@ -30,28 +31,57 @@ class btcbox extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
+                'borrowCrossMargin' => false,
+                'borrowIsolatedMargin' => false,
+                'borrowMargin' => false,
                 'cancelOrder' => true,
                 'closeAllPositions' => false,
                 'closePosition' => false,
                 'createOrder' => true,
+                'createOrderWithTakeProfitAndStopLoss' => false,
+                'createOrderWithTakeProfitAndStopLossWs' => false,
+                'createPostOnlyOrder' => false,
                 'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
+                'fetchBorrowInterest' => false,
+                'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
                 'fetchFundingHistory' => false,
+                'fetchFundingInterval' => false,
+                'fetchFundingIntervals' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
+                'fetchGreeks' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
+                'fetchIsolatedPositions' => false,
                 'fetchLeverage' => false,
+                'fetchLeverages' => false,
+                'fetchLeverageTiers' => false,
+                'fetchLiquidations' => false,
+                'fetchLongShortRatio' => false,
+                'fetchLongShortRatioHistory' => false,
+                'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => false,
+                'fetchMarginModes' => false,
+                'fetchMarketLeverageTiers' => false,
                 'fetchMarkOHLCV' => false,
+                'fetchMarkPrices' => false,
+                'fetchMyLiquidations' => false,
+                'fetchMySettlementHistory' => false,
+                'fetchOpenInterest' => false,
                 'fetchOpenInterestHistory' => false,
+                'fetchOpenInterests' => false,
                 'fetchOpenOrders' => true,
+                'fetchOption' => false,
+                'fetchOptionChain' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
@@ -63,15 +93,21 @@ class btcbox extends Exchange {
                 'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
+                'fetchSettlementHistory' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
+                'fetchVolatilityHistory' => false,
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => false,
                 'reduceMargin' => false,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => false,
+                'repayMargin' => false,
                 'setLeverage' => false,
+                'setMargin' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
                 'transfer' => false,
@@ -106,6 +142,18 @@ class btcbox extends Exchange {
                         'wallet',
                     ),
                 ),
+                'webApi' => array(
+                    'get' => array(
+                        'ajax/coin/coinInfo',
+                    ),
+                ),
+            ),
+            'options' => array(
+                'fetchMarkets' => array(
+                    'webApiEnable' => true, // fetches from WEB
+                    'webApiRetries' => 3,
+                ),
+                'amountPrecision' => '0.0001', // exchange has only few pairs and all of them
             ),
             'features' => array(
                 'spot' => array(
@@ -191,9 +239,12 @@ class btcbox extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
              */
-            $response = Async\await($this->publicGetTickers ());
+            $promise1 = $this->publicGetTickers ();
+            $promise2 = $this->fetch_web_endpoint('fetchMarkets', 'webApiGetAjaxCoinCoinInfo', true);
+            list($response1, $response2) = Async\await(Promise\all(array( $promise1, $promise2 )));
             //
-            $marketIds = is_array($response) ? array_keys($response) : array();
+            $result2Data = $this->safe_dict($response2, 'data', array());
+            $marketIds = is_array($response1) ? array_keys($response1) : array();
             $markets = array();
             for ($i = 0; $i < count($marketIds); $i++) {
                 $marketId = $marketIds[$i];
@@ -202,9 +253,11 @@ class btcbox extends Exchange {
                 $quote = $this->safe_string($symbolParts, 1);
                 $quoteId = strtolower($quote);
                 $id = strtolower($baseCurr);
-                $res = $response[$marketId];
+                $res = $response1[$marketId];
                 $symbol = $baseCurr . '/' . $quote;
                 $fee = ($id === 'BTC') ? $this->parse_number('0.0005') : $this->parse_number('0.0010');
+                $details = $this->safe_dict($result2Data, $id, array());
+                $tradeDetails = $this->safe_dict($details, 'trade', array());
                 $markets[] = $this->safe_market_structure(array(
                     'id' => $id,
                     'uppercaseId' => null,
@@ -250,10 +303,10 @@ class btcbox extends Exchange {
                         ),
                     ),
                     'precision' => array(
-                        'price' => null,
+                        'price' => $this->parse_number($this->parse_precision($this->safe_string($tradeDetails, 'pricedecimal'))),
                         'amount' => null,
                     ),
-                    'active' => null,
+                    'active' => $this->safe_string($tradeDetails, 'enable') === '1',
                     'created' => null,
                     'info' => $res,
                 ));
@@ -766,6 +819,8 @@ class btcbox extends Exchange {
             if ($params) {
                 $url .= '?' . $this->urlencode($params);
             }
+        } elseif ($api === 'webApi') {
+            $url = $this->urls['www'] . '/' . $path;
         } else {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();

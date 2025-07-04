@@ -22,13 +22,13 @@ public partial class Exchange
 
     public string hostname { get; set; } = "";
 
-    public dict baseCurrencies { get; set; } = new dict();
+    public IDictionary<string, object> baseCurrencies { get; set; } = new dict();
 
     public bool reloadingMarkets { get; set; } = false;
 
     public Task<object> marketsLoading { get; set; } = null;
 
-    public dict quoteCurrencies { get; set; } = new dict();
+    public IDictionary<string, object> quoteCurrencies { get; set; } = new dict();
 
     public dict api { get; set; } = new dict();
 
@@ -36,7 +36,7 @@ public partial class Exchange
 
     public bool reduceFees { get; set; } = true;
 
-    public dict markets_by_id { get; set; } = null;
+    public IDictionary<string, object> markets_by_id { get; set; } = null;
 
     public List<object> symbols { get; set; } = new list();
 
@@ -260,9 +260,11 @@ public partial class Exchange
             var extendedDict = extendedOptions as dict;
             var concurrentExtendedDict = new ConcurrentDictionary<string, object>(extendedDict);
             this.options = concurrentExtendedDict;
-        } else {
+        }
+        else
+        {
             var dict2 = this.getDefaultOptions() as dict;
-            this.options =  new ConcurrentDictionary<string, object>(dict2);
+            this.options = new ConcurrentDictionary<string, object>(dict2);
         }
         this.verbose = (bool)this.safeValue(extendedProperties, "verbose", false);
         this.timeframes = SafeValue(extendedProperties, "timeframes", new dict()) as dict;

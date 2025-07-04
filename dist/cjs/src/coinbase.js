@@ -375,8 +375,7 @@ class coinbase extends coinbase$1 {
                 'fetchAccounts': 'fetchAccountsV3',
                 'fetchBalance': 'v2PrivateGetAccounts',
                 'fetchTime': 'v2PublicGetTime',
-                'user_native_currency': 'USD',
-                'aliasCbMarketIds': {},
+                'user_native_currency': 'USD', // needed to get fees for v3
             },
             'features': {
                 'default': {
@@ -1453,10 +1452,6 @@ class coinbase extends coinbase$1 {
                 this.v3PublicGetBrokerageMarketProducts(this.extend(params, { 'product_type': 'FUTURE' })),
                 this.v3PublicGetBrokerageMarketProducts(this.extend(params, { 'product_type': 'FUTURE', 'contract_expiry_type': 'PERPETUAL' })),
             ];
-            if (this.checkRequiredCredentials(false)) {
-                unresolvedContractPromises.push(this.extend(params, { 'product_type': 'FUTURE' }));
-                unresolvedContractPromises.push(this.extend(params, { 'product_type': 'FUTURE', 'contract_expiry_type': 'PERPETUAL' }));
-            }
         }
         catch (e) {
             unresolvedContractPromises = []; // the sync version of ccxt won't have the promise.all line so the request is made here. Some users can't access perpetual products
@@ -1473,8 +1468,8 @@ class coinbase extends coinbase$1 {
         const fees = this.safeDict(promises, 1, {});
         const expiringFutures = this.safeDict(contractPromises, 0, {});
         const perpetualFutures = this.safeDict(contractPromises, 1, {});
-        const expiringFees = this.safeDict(contractPromises, 2, {});
-        const perpetualFees = this.safeDict(contractPromises, 3, {});
+        const expiringFees = this.safeDict(contractPromises, 0, {});
+        const perpetualFees = this.safeDict(contractPromises, 1, {});
         //
         //     {
         //         "total_volume": 0,
@@ -1510,8 +1505,6 @@ class coinbase extends coinbase$1 {
         for (let i = 0; i < perpetualData.length; i++) {
             result.push(this.parseContractMarket(perpetualData[i], perpetualFeeTier));
         }
-        // remove aliases
-        this.options['aliasCbMarketIds'] = {};
         const newMarkets = [];
         for (let i = 0; i < result.length; i++) {
             const market = result[i];
@@ -1519,24 +1512,14 @@ class coinbase extends coinbase$1 {
             const realMarketIds = this.safeList(info, 'alias_to', []);
             const length = realMarketIds.length;
             if (length > 0) {
-                this.options['aliasCbMarketIds'][market['id']] = realMarketIds[0];
-                this.options['aliasCbMarketIds'][market['symbol']] = realMarketIds[0];
+                market['alias'] = realMarketIds[0];
             }
             else {
-                newMarkets.push(market);
+                market['alias'] = undefined;
             }
+            newMarkets.push(market);
         }
         return newMarkets;
-    }
-    market(symbol) {
-        const finalSymbol = this.safeString(this.options['aliasCbMarketIds'], symbol, symbol);
-        return super.market(finalSymbol);
-    }
-    safeMarket(marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
-        if (marketId in this.options['aliasCbMarketIds']) {
-            return this.market(marketId);
-        }
-        return super.safeMarket(marketId, market, delimiter, marketType);
     }
     parseSpotMarket(market, feeTier) {
         //
@@ -1887,45 +1870,46 @@ class coinbase extends coinbase$1 {
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies(params = {}) {
-        const response = await this.fetchCurrenciesFromCache(params);
-        const currencies = this.safeList(response, 'currencies', []);
+        const promises = [
+            this.v2PublicGetCurrencies(params),
+            this.v2PublicGetCurrenciesCrypto(params),
+            this.v2PublicGetExchangeRates(params),
+        ];
+        const promisesResult = await Promise.all(promises);
+        const fiatResponse = this.safeDict(promisesResult, 0, {});
         //
-        // fiat
+        //    [
+        //        "data": [
+        //            {
+        //                id: 'IMP',
+        //                name: 'Isle of Man Pound',
+        //                min_size: '0.01'
+        //            },
+        //        ...
         //
-        //    {
-        //        id: 'IMP',
-        //        name: 'Isle of Man Pound',
-        //        min_size: '0.01'
-        //    },
+        const cryptoResponse = this.safeDict(promisesResult, 1, {});
         //
-        // crypto
+        //     [
+        //        "data": [
+        //           {
+        //              asset_id: '9476e3be-b731-47fa-82be-347fabc573d9',
+        //              code: 'AERO',
+        //              name: 'Aerodrome Finance',
+        //              color: '#0433FF',
+        //              sort_index: '340',
+        //              exponent: '8',
+        //              type: 'crypto',
+        //              address_regex: '^(?:0x)?[0-9a-fA-F]{40}$'
+        //           },
+        //          ...
         //
-        //    {
-        //        asset_id: '9476e3be-b731-47fa-82be-347fabc573d9',
-        //        code: 'AERO',
-        //        name: 'Aerodrome Finance',
-        //        color: '#0433FF',
-        //        sort_index: '340',
-        //        exponent: '8',
-        //        type: 'crypto',
-        //        address_regex: '^(?:0x)?[0-9a-fA-F]{40}$'
-        //    }
-        //
-        //
-        //     {
-        //         "data":{
-        //             "currency":"USD",
-        //             "rates":{
-        //                 "AED":"3.67",
-        //                 "AFN":"78.21",
-        //                 "ALL":"110.42",
-        //                 "AMD":"474.18",
-        //                 "ANG":"1.75",
-        //                 ...
-        //             },
-        //         }
-        //     }
-        //
+        const ratesResponse = this.safeDict(promisesResult, 2, {});
+        const fiatData = this.safeList(fiatResponse, 'data', []);
+        const cryptoData = this.safeList(cryptoResponse, 'data', []);
+        const ratesData = this.safeDict(ratesResponse, 'data', {});
+        const rates = this.safeDict(ratesData, 'rates', {});
+        const ratesIds = Object.keys(rates);
+        const currencies = this.arrayConcat(fiatData, cryptoData);
         const result = {};
         const networks = {};
         const networksById = {};
@@ -1937,12 +1921,13 @@ class coinbase extends coinbase$1 {
             const name = this.safeString(currency, 'name');
             this.options['networks'][code] = name.toLowerCase();
             this.options['networksById'][code] = name.toLowerCase();
-            result[code] = {
+            const type = (assetId !== undefined) ? 'crypto' : 'fiat';
+            result[code] = this.safeCurrencyStructure({
                 'info': currency,
                 'id': id,
                 'code': code,
-                'type': (assetId !== undefined) ? 'crypto' : 'fiat',
-                'name': this.safeString(currency, 'name'),
+                'type': type,
+                'name': name,
                 'active': true,
                 'deposit': undefined,
                 'withdraw': undefined,
@@ -1959,11 +1944,25 @@ class coinbase extends coinbase$1 {
                         'max': undefined,
                     },
                 },
-            };
+            });
             if (assetId !== undefined) {
                 const lowerCaseName = name.toLowerCase();
                 networks[code] = lowerCaseName;
                 networksById[lowerCaseName] = code;
+            }
+        }
+        // we have to add other currencies here ( https://discord.com/channels/1220414409550336183/1220464770239430761/1372215891940479098 )
+        for (let i = 0; i < ratesIds.length; i++) {
+            const currencyId = ratesIds[i];
+            const code = this.safeCurrencyCode(currencyId);
+            if (!(code in result)) {
+                result[code] = this.safeCurrencyStructure({
+                    'info': {},
+                    'id': currencyId,
+                    'code': code,
+                    'type': 'crypto',
+                    'networks': {}, // todo
+                });
             }
         }
         this.options['networks'] = this.extend(networks, this.options['networks']);
@@ -4598,7 +4597,7 @@ class coinbase extends coinbase$1 {
      * @method
      * @name coinbase#closePosition
      * @description *futures only* closes open positions for a market
-     * @see https://coinbase-api.github.io/docs/#/en-us/swapV2/trade-api.html#One-Click%20Close%20All%20Positions
+     * @see https://docs.cdp.coinbase.com/coinbase-app/trade/reference/retailbrokerageapi_closeposition
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} [side] not used by coinbase
      * @param {object} [params] extra parameters specific to the coinbase api endpoint
@@ -4609,9 +4608,6 @@ class coinbase extends coinbase$1 {
     async closePosition(symbol, side = undefined, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (!market['future']) {
-            throw new errors.NotSupported(this.id + ' closePosition() only supported for futures markets');
-        }
         const clientOrderId = this.safeString2(params, 'client_order_id', 'clientOrderId');
         params = this.omit(params, 'clientOrderId');
         const request = {

@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.okx import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Account, Any, Balances, BorrowInterest, Conversion, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, DepositAddress, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LongShortRatio, MarginModification, Market, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, MarketInterface, TransferEntry
+from ccxt.base.types import Account, Any, Balances, BorrowInterest, Conversion, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, DepositAddress, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LongShortRatio, MarginModification, Market, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, OpenInterests, Trade, TradingFeeInterface, Transaction, MarketInterface, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -109,7 +109,7 @@ class okx(Exchange, ImplicitAPI):
                 'fetchFundingIntervals': False,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
-                'fetchFundingRates': False,
+                'fetchFundingRates': True,
                 'fetchGreeks': True,
                 'fetchIndexOHLCV': True,
                 'fetchIsolatedBorrowRate': False,
@@ -132,6 +132,7 @@ class okx(Exchange, ImplicitAPI):
                 'fetchOHLCV': True,
                 'fetchOpenInterest': True,
                 'fetchOpenInterestHistory': True,
+                'fetchOpenInterests': True,
                 'fetchOpenOrder': None,
                 'fetchOpenOrders': True,
                 'fetchOption': True,
@@ -389,6 +390,7 @@ class okx(Exchange, ImplicitAPI):
                         'account/spot-manual-borrow-repay': 10,
                         'account/set-auto-repay': 4,
                         'account/spot-borrow-repay-history': 4,
+                        'account/move-positions-history': 10,
                         # subaccount
                         'users/subaccount/list': 10,
                         'account/subaccount/balances': 10 / 3,
@@ -526,6 +528,7 @@ class okx(Exchange, ImplicitAPI):
                         'account/fixed-loan/manual-reborrow': 5,
                         'account/fixed-loan/repay-borrowing-order': 5,
                         'account/bills-history-archive': 72000,  # 12 req/day
+                        'account/move-positions': 10,
                         # subaccount
                         'users/subaccount/modify-apikey': 10,
                         'asset/subaccount/transfer': 10,
@@ -992,6 +995,13 @@ class okx(Exchange, ImplicitAPI):
                     '70010': BadRequest,  # Timestamp parameters need to be in Unix timestamp format in milliseconds.
                     '70013': BadRequest,  # endTs needs to be bigger than or equal to beginTs.
                     '70016': BadRequest,  # Please specify your instrument settings for at least one instType.
+                    '70060': BadRequest,  # The account doesn’t exist or the position side is incorrect. To and from accounts must be under the same main account.
+                    '70061': BadRequest,  # To move position, please enter a position that’s opposite to your current side and is smaller than or equal to your current size.
+                    '70062': BadRequest,  # account has reached the maximum number of position transfers allowed per day.
+                    '70064': BadRequest,  # Position does not exist.
+                    '70065': BadRequest,  # Couldn’t move position. Execution price cannot be determined
+                    '70066': BadRequest,  # Moving positions isn't supported in spot mode. Switch to any other account mode and try again.
+                    '70067': BadRequest,  # Moving positions isn't supported in margin trading.
                     '1009': BadRequest,  # Request message exceeds the maximum frame length
                     '4001': AuthenticationError,  # Login Failed
                     '4002': BadRequest,  # Invalid Request
@@ -1597,6 +1607,7 @@ class okx(Exchange, ImplicitAPI):
         #         "instType": "OPTION",
         #         "lever": "",
         #         "listTime": "1631262612280",
+        #         "contTdSwTime": "1631262812280",
         #         "lotSz": "1",
         #         "minSz": "1",
         #         "optType": "P",
@@ -1648,7 +1659,6 @@ class okx(Exchange, ImplicitAPI):
                     ymd = self.yymmdd(expiry)
                     symbol = symbol + '-' + ymd + '-' + strikePrice + '-' + optionType
                     optionType = 'put' if (optionType == 'P') else 'call'
-        tickSize = self.safe_string(market, 'tickSz')
         fees = self.safe_dict_2(self.fees, type, 'trading', {})
         maxLeverage = self.safe_string(market, 'lever', '1')
         maxLeverage = Precise.string_max(maxLeverage, '1')
@@ -1677,10 +1687,10 @@ class okx(Exchange, ImplicitAPI):
             'expiryDatetime': self.iso8601(expiry),
             'strike': self.parse_number(strikePrice),
             'optionType': optionType,
-            'created': self.safe_integer(market, 'listTime'),
+            'created': self.safe_integer_2(market, 'contTdSwTime', 'listTime'),  # contTdSwTime is public trading start time, while listTime considers pre-trading too
             'precision': {
                 'amount': self.safe_number(market, 'lotSz'),
-                'price': self.parse_number(tickSize),
+                'price': self.safe_number(market, 'tickSz'),
             },
             'limits': {
                 'leverage': {
@@ -4832,7 +4842,7 @@ class okx(Exchange, ImplicitAPI):
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         await self.load_markets()
-        rawNetwork = self.safe_string_upper(params, 'network')
+        rawNetwork = self.safe_string(params, 'network')  # some networks are like "Dora Vota Mainnet"
         params = self.omit(params, 'network')
         code = self.safe_currency_code(code)
         network = self.network_id_to_code(rawNetwork, code)
@@ -4884,7 +4894,7 @@ class okx(Exchange, ImplicitAPI):
         fee = self.safe_string(params, 'fee')
         if fee is None:
             currencies = await self.fetch_currencies()
-            self.currencies = self.deep_extend(self.currencies, currencies)
+            self.currencies = self.map_to_safe_map(self.deep_extend(self.currencies, currencies))
             targetNetwork = self.safe_dict(currency['networks'], self.network_id_to_code(network), {})
             fee = self.safe_string(targetNetwork, 'fee')
             if fee is None:
@@ -5977,7 +5987,7 @@ class okx(Exchange, ImplicitAPI):
         nextFundingRate = self.safe_number(contract, 'nextFundingRate')
         fundingTime = self.safe_integer(contract, 'fundingTime')
         fundingTimeString = self.safe_string(contract, 'fundingTime')
-        nextFundingTimeString = self.safe_string(contract, 'nextFundingRate')
+        nextFundingTimeString = self.safe_string(contract, 'nextFundingTime')
         millisecondsInterval = Precise.string_sub(nextFundingTimeString, fundingTimeString)
         # https://www.okx.com/support/hc/en-us/articles/360053909272-Ⅸ-Introduction-to-perpetual-swap-funding-fee
         # > The current interest is 0.
@@ -6061,6 +6071,39 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         entry = self.safe_dict(data, 0, {})
         return self.parse_funding_rate(entry, market)
+
+    async def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
+        """
+        fetches the current funding rates for multiple symbols
+
+        https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate
+
+        :param str[] symbols: unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `funding rates structure <https://docs.ccxt.com/#/?id=funding-rates-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, 'swap', True)
+        request: dict = {'instId': 'ANY'}
+        response = await self.publicGetPublicFundingRate(self.extend(request, params))
+        #
+        #    {
+        #        "code": "0",
+        #        "data": [
+        #            {
+        #                "fundingRate": "0.00027815",
+        #                "fundingTime": "1634256000000",
+        #                "instId": "BTC-USD-SWAP",
+        #                "instType": "SWAP",
+        #                "nextFundingRate": "0.00017",
+        #                "nextFundingTime": "1634284800000"
+        #            }
+        #        ],
+        #        "msg": ""
+        #    }
+        #
+        data = self.safe_list(response, 'data', [])
+        return self.parse_funding_rates(data, symbols)
 
     async def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
@@ -6801,7 +6844,7 @@ class okx(Exchange, ImplicitAPI):
 
     async def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[BorrowInterest]:
         """
-        fetch the interest owed by the user for borrowing currency for margin trading
+        fetch the interest owed b the user for borrowing currency for margin trading
 
         https://www.okx.com/docs-v5/en/#rest-api-account-get-interest-accrued-data
 
@@ -7018,6 +7061,59 @@ class okx(Exchange, ImplicitAPI):
         #
         data = self.safe_list(response, 'data', [])
         return self.parse_open_interest(data[0], market)
+
+    async def fetch_open_interests(self, symbols: Strings = None, params={}) -> OpenInterests:
+        """
+        Retrieves the open interests of some currencies
+
+        https://www.okx.com/docs-v5/en/#rest-api-public-data-get-open-interest
+
+        :param str[] symbols: Unified CCXT market symbols
+        :param dict [params]: exchange specific parameters
+        :param str params['instType']: Instrument type, options: 'SWAP', 'FUTURES', 'OPTION', default to 'SWAP'
+        :param str params['uly']: Underlying, Applicable to FUTURES/SWAP/OPTION, if instType is 'OPTION', either uly or instFamily is required
+        :param str params['instFamily']: Instrument family, Applicable to FUTURES/SWAP/OPTION, if instType is 'OPTION', either uly or instFamily is required
+        :returns dict: an dictionary of `open interest structures <https://docs.ccxt.com/#/?id=open-interest-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, True, True)
+        market = None
+        if symbols is not None:
+            market = self.market(symbols[0])
+        marketType = None
+        marketType, params = self.handle_sub_type_and_params('fetchOpenInterests', market, params, 'swap')
+        instType = 'SWAP'
+        if marketType == 'future':
+            instType = 'FUTURES'
+        elif instType == 'option':
+            instType = 'OPTION'
+        request: dict = {'instType': instType}
+        uly = self.safe_string(params, 'uly')
+        if uly is not None:
+            request['uly'] = uly
+        instFamily = self.safe_string(params, 'instFamily')
+        if instFamily is not None:
+            request['instFamily'] = instFamily
+        if instType == 'OPTION' and uly is None and instFamily is None:
+            raise BadRequest(self.id + ' fetchOpenInterests() requires either uly or instFamily parameter for OPTION markets')
+        response = await self.publicGetPublicOpenInterest(self.extend(request, params))
+        #
+        #     {
+        #         "code": "0",
+        #         "data": [
+        #             {
+        #                 "instId": "BTC-USDT-SWAP",
+        #                 "instType": "SWAP",
+        #                 "oi": "2125419",
+        #                 "oiCcy": "21254.19",
+        #                 "ts": "1664005108969"
+        #             }
+        #         ],
+        #         "msg": ""
+        #     }
+        #
+        data = self.safe_list(response, 'data', [])
+        return self.parse_open_interests(data, symbols)
 
     async def fetch_open_interest_history(self, symbol: str, timeframe='1d', since: Int = None, limit: Int = None, params={}):
         """
