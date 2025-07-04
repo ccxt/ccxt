@@ -3313,7 +3313,7 @@ export default class Exchange {
         if (type === 'market') {
             takerOrMaker = 'taker';
         }
-        const rate = (feeRate !== undefined) ? feeRate : this.safeString (market, takerOrMaker);
+        const rate = (feeRate !== undefined) ? this.numberToString (feeRate) : this.safeString (market, takerOrMaker);
         cost = Precise.stringMul (cost, rate);
         return {
             'type': takerOrMaker,
