@@ -13158,10 +13158,14 @@ export default class binance extends Exchange {
     async fetchAllGreeks (symbols: Strings = undefined, params = {}): Promise<Greeks[]> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true, true, true);
-        const market = this.getMarketFromSymbols (symbols);
         const request: Dict = {};
-        if (market !== undefined) {
-            request['symbol'] = market['id'];
+        let market = undefined;
+        if (symbols !== undefined) {
+            symbols = this.marketSymbols (symbols);
+            if (symbols.length === 1) {
+                market = this.market (symbols[0]);
+                request['symbol'] = market['id'];
+            }
         }
         const response = await this.eapiPublicGetMark (this.extend (request, params));
         //
