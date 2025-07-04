@@ -1902,7 +1902,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.woox.io/#orderbook-snapshot-public
+     * @see https://developer.woox.io/api-reference/endpoint/public_data/orderbook
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1915,28 +1915,33 @@ export default class woo extends Exchange {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            limit = Math.min (limit, 1000);
-            request['max_level'] = limit;
+            request['maxLevel'] = limit;
         }
-        const response = await this.v1PublicGetOrderbookSymbol (this.extend (request, params));
+        const response = await this.v3PublicGetOrderbook (this.extend (request, params));
         //
-        // {
-        //   "success": true,
-        //   "timestamp": "1641562961192",
-        //   "asks": [
-        //     { price: '0.921', quantity: "76.01" },
-        //     { price: '0.933', quantity: "477.10" },
-        //     ...
-        //   ],
-        //   "bids": [
-        //     { price: '0.940', quantity: "13502.47" },
-        //     { price: '0.932', quantity: "43.91" },
-        //     ...
-        //   ]
         // }
+        //     {
+        //         "success": true,
+        //         "timestamp": 1751620923344,
+        //         "data": {
+        //             "asks": [
+        //                 {
+        //                     "price": "108924.86",
+        //                     "quantity": "0.032126"
+        //                 }
+        //             ],
+        //             "bids": [
+        //                 {
+        //                     "price": "108924.85",
+        //                     "quantity": "1.714147"
+        //                 }
+        //             ]
+        //         }
+        //     }
         //
+        const data = this.safeDict (response, 'data', {});
         const timestamp = this.safeInteger (response, 'timestamp');
-        return this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks', 'price', 'quantity');
+        return this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 'price', 'quantity');
     }
 
     /**

@@ -638,7 +638,7 @@
             {
                 "description": "fetchOrderBook",
                 "method": "fetchOrderBook",
-                "url": "https://api.woox.io/v1/public/orderbook/SPOT_LTC_USDT?max_level=5",
+                "url": "https://api.woox.io/v3/public/orderbook?symbol=SPOT_LTC_USDT&maxLevel=5",
                 "input": [
                     "LTC/USDT",
                     5
@@ -647,7 +647,7 @@
             {
                 "description": "spot orderbook",
                 "method": "fetchOrderBook",
-                "url": "https://api.woox.io/v1/public/orderbook/SPOT_BTC_USDT",
+                "url": "https://api.woox.io/v3/public/orderbook?symbol=SPOT_BTC_USDT",
                 "input": [
                     "BTC/USDT"
                 ]
@@ -655,7 +655,7 @@
             {
                 "description": "swap orderbook",
                 "method": "fetchOrderBook",
-                "url": "https://api.woox.io/v1/public/orderbook/PERP_BTC_USDT",
+                "url": "https://api.woox.io/v3/public/orderbook?symbol=PERP_BTC_USDT",
                 "input": [
                     "BTC/USDT:USDT"
                 ]

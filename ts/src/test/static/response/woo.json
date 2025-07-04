@@ -1762,6 +1762,52 @@
                     }
                 ]
             }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook",
+                "method": "fetchOrderBook",
+                "input": [
+                    "LTC/USDT",
+                    1
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "timestamp": 1751621356649,
+                    "data": {
+                        "asks": [
+                            {
+                                "price": "87.97",
+                                "quantity": "3.410253"
+                            }
+                        ],
+                        "bids": [
+                            {
+                                "price": "87.95",
+                                "quantity": "0.047358"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "LTC/USDT",
+                    "bids": [
+                        [
+                            87.95,
+                            0.047358
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            87.97,
+                            3.410253
+                        ]
+                    ],
+                    "timestamp": 1751621356649,
+                    "datetime": "2025-07-04T09:29:16.649Z",
+                    "nonce": null
+                }
+            }
         ]
     }
 }
