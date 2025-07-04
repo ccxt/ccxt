@@ -38,7 +38,6 @@ async def tcp_kill_after(seconds):
 
 async def test_abnormal_close():
     print('test_abnormal_close')
-    just_reconnected = False
     received_network_error = False
     ex = ccxt.binance({
         'verbose': True
@@ -60,7 +59,6 @@ async def test_abnormal_close():
                 break
         except Exception as e:
             logging.info(f"received unexpected exception: {e}")
-            just_reconnected = True
     assert received_network_error, "Failed to receive network error"
     print("test_abnormal_close between watch calls")
     await ex.watch_trades('BTC/USDT:USDT')
