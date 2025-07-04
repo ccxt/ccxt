@@ -4022,7 +4022,7 @@ class Exchange {
         return this.filterBySinceLimit(sorted, since, limit, 0, tail);
     }
     parseLeverageTiers(response, symbols = undefined, marketIdKey = undefined) {
-        // marketIdKey should only be undefined when response is a dictionary
+        // marketIdKey should only be undefined when response is a dictionary.
         symbols = this.marketSymbols(symbols);
         const tiers = {};
         let symbolsLength = 0;
