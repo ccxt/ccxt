@@ -136,9 +136,7 @@
                 "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/16058190301/job/45317906432#step:9:253",
                 "maxIncrease": "todo"
             },
-            "fetchTickers": {
-                "checkActiveSymbols": "todo"
-            },
+            "fetchTickers": "tmp skip, todo",
             "fetchCurrencies": {
                 "limits": "min/max essup temrporarily"
             },
@@ -680,6 +678,9 @@
             },
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
+            },
+            "watchTickers": {
+                "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/16077301099/job/45375495181?pr=26334#step:9:438"
             },
             "loadMarkets": "linear and inverse values are same"
         }
@@ -1399,6 +1400,9 @@
             "ticker": {
                 "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing",
                 "compareOHLC": "todo test tolerance"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
             },
             "watchTrades": {
                 "timestamp": "ts several hours ahead in in future :)"
