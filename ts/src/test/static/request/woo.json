@@ -483,28 +483,32 @@
             {
                 "description": "fetchOHLCV with since and limit",
                 "method": "fetchOHLCV",
-                "url": "https://api-pub.woox.io/v1/hist/kline?start_time=1704067200000&symbol=SPOT_BTC_USDT&type=1m",
+                "url": "https://api.woox.io/v3/public/klineHistory?symbol=SPOT_BTC_USDT&type=1m&limit=200",
                 "input": [
                     "BTC/USDT",
                     "1m",
-                    1704067200000,
+                    null,
                     200
                 ]
             },
             {
-                "description": "fetchOHLCV with limit",
+                "description": "fetchOHLCV with since & until",
                 "method": "fetchOHLCV",
-                "url": "https://api-pub.woox.io/v1/hist/kline?start_time=1704067200000&symbol=SPOT_BTC_USDT&type=1m",
+                "url": "https://api.woox.io/v3/public/klineHistory?after=1704067200000&before=1704067300000&symbol=SPOT_BTC_USDT&type=1m",
                 "input": [
                     "BTC/USDT",
                     "1m",
-                    1704067200000
+                    1704067200000,
+                    null,
+                    {
+                        "until": 1704067300000
+                    }
                 ]
             },
             {
                 "description": "fetchOHLCV with limit and without since",
                 "method": "fetchOHLCV",
-                "url": "https://api.woox.io/v1/public/kline?limit=200&symbol=SPOT_BTC_USDT&type=1m",
+                "url": "https://api.woox.io/v3/public/klineHistory?limit=200&symbol=SPOT_BTC_USDT&type=1m",
                 "input": [
                     "BTC/USDT",
                     "1m",
@@ -515,7 +519,7 @@
             {
                 "description": "spot ohlcv",
                 "method": "fetchOHLCV",
-                "url": "https://api.woox.io/v1/public/kline?symbol=SPOT_BTC_USDT&type=1m",
+                "url": "https://api.woox.io/v3/public/klineHistory?symbol=SPOT_BTC_USDT&type=1m",
                 "input": [
                     "BTC/USDT"
                 ]
@@ -523,7 +527,7 @@
             {
                 "description": "swap ohlcv",
                 "method": "fetchOHLCV",
-                "url": "https://api.woox.io/v1/public/kline?symbol=PERP_BTC_USDT&type=1m",
+                "url": "https://api.woox.io/v3/public/klineHistory?symbol=PERP_BTC_USDT&type=1m",
                 "input": [
                     "BTC/USDT:USDT"
                 ]
