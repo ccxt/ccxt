@@ -3143,7 +3143,7 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function parse_leverage_tiers(mixed $response, ?array $symbols = null, $marketIdKey = null) {
-        // $marketIdKey should only be null when $response is a dictionary
+        // $marketIdKey should only be null when $response is a dictionary.
         $symbols = $this->market_symbols($symbols);
         $tiers = array();
         $symbolsLength = 0;
