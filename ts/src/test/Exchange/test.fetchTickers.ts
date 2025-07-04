@@ -39,13 +39,13 @@ function testFetchTickersAmounts (exchange: Exchange, skippedProperties: object,
         const notInactiveSymbolsLength = nonInactiveMarkets.length;
         const obtainedTickersLength = tickersValues.length;
         const toleranceCoefficient = 0.01; // 1% tolerance, eg. when 100 active markets, we should have at least 99 tickers
-        assert (obtainedTickersLength >= notInactiveSymbolsLength * (1 - toleranceCoefficient), exchange.id + ' ' + 'fetchTickers' + ' must return tickers for all active markets. but returned: ' + obtainedTickersLength + ' tickers, ' + notInactiveSymbolsLength + ' active markets');
+        assert (obtainedTickersLength >= notInactiveSymbolsLength * (1 - toleranceCoefficient), exchange.id + ' ' + 'fetchTickers' + ' must return tickers for all active markets. but returned: ' + obtainedTickersLength.toString () + ' tickers, ' + notInactiveSymbolsLength.toString () + ' active markets');
         //
         // ensure tickers length is less than markets length
         //
         const allMarkets = exchange.markets;
         const allMarketsLength = Object.keys (allMarkets).length;
-        assert (obtainedTickersLength <= allMarketsLength, exchange.id + ' ' + 'fetchTickers' + ' must return <= than all markets, but returned: ' + obtainedTickersLength + ' tickers, ' + allMarketsLength + ' markets');
+        assert (obtainedTickersLength <= allMarketsLength, exchange.id + ' ' + 'fetchTickers' + ' must return <= than all markets, but returned: ' + obtainedTickersLength.toString () + ' tickers, ' + allMarketsLength.toString () + ' markets');
     }
 }
 

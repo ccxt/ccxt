@@ -133,7 +133,8 @@
                 "askVolume": "weird value https://app.travis-ci.com/github/ccxt/ccxt/builds/272650012#L3904",
                 "compareQuoteVolumeBaseVolume": "not supported",
                 "spread": "same bid-ask https://app.travis-ci.com/github/ccxt/ccxt/builds/269550508#L3581",
-                "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/16058190301/job/45317906432#step:9:253"
+                "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/16058190301/job/45317906432#step:9:253",
+                "maxIncrease": "todo"
             },
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
@@ -197,7 +198,8 @@
             "ticker": {
                 "spread": "ask equals to bid",
                 "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/16058190301/job/45317906432#step:9:291"
-            }
+            },
+            "fetchTickers": "todo fix parsing"
         }
     },
     "bitfinex": {
@@ -507,7 +509,8 @@
                 "timestamp":""
             },
             "ticker": {
-                "spread": "messed bid-ask"
+                "spread": "messed bid-ask",
+                "compareOHLC": "fix implementation"
             },
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
@@ -868,6 +871,9 @@
             "ohlcv": {
                 "1": "distorted open: https://github.com/ccxt/ccxt/actions/runs/14648217027/job/41107795879?pr=25786#step:9:458"
             },
+            "ticker": {
+                "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/16075871000/job/45371060374?pr=26334#step:9:298"
+            },
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
             },
@@ -997,7 +1003,8 @@
                 "activeMajorCurrencies": "todo"
             },
             "ticker": {
-                "compareQuoteVolumeBaseVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269352042#L3690"
+                "compareQuoteVolumeBaseVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269352042#L3690",
+                "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/16075871000/job/45371060374?pr=26334#step:9:324"
             },
             "watchOrderBook": {
                 "nonce": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4807"
@@ -1313,6 +1320,9 @@
                 "compareQuoteVolumeBaseVolume": "quoteVolume <= baseVolume * high https://app.travis-ci.com/github/ccxt/ccxt/builds/263304041#L2190",
                 "maxIncrease": "todo",
                 "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/16059129227/job/45320923643?pr=26334#step:9:317"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
             }
         }
     },
@@ -1387,7 +1397,8 @@
                 "type":"not provided"
             },
             "ticker": {
-                "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing"
+                "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing",
+                "compareOHLC": "todo test tolerance"
             },
             "watchTrades": {
                 "timestamp": "ts several hours ahead in in future :)"
@@ -1433,7 +1444,8 @@
             "ticker": {
                 "compareQuoteVolumeBaseVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L6610",
                 "spread":"https://app.travis-ci.com/github/ccxt/ccxt/builds/269273148#L3916",
-                "vwap": "https://app.travis-ci.com/github/ccxt/ccxt/builds/271520319#L5664"
+                "vwap": "https://app.travis-ci.com/github/ccxt/ccxt/builds/271520319#L5664",
+                "maxIncrease": "too high gains"
             },
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
