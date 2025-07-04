@@ -5450,6 +5450,9 @@ class Exchange(object):
     def fetch_greeks(self, symbol: str, params={}):
         raise NotSupported(self.id + ' fetchGreeks() is not supported yet')
 
+    def fetch_all_greeks(self, symbols: Strings = None, params={}):
+        raise NotSupported(self.id + ' fetchAllGreeks() is not supported yet')
+
     def fetch_option_chain(self, code: str, params={}):
         raise NotSupported(self.id + ' fetchOptionChain() is not supported yet')
 
@@ -6681,6 +6684,27 @@ class Exchange(object):
 
     def parse_greeks(self, greeks: dict, market: Market = None):
         raise NotSupported(self.id + ' parseGreeks() is not supported yet')
+
+    def parse_all_greeks(self, greeks, symbols: Strings = None, params={}):
+        #
+        # the value of greeks is either a dict or a list
+        #
+        results = []
+        if isinstance(greeks, list):
+            for i in range(0, len(greeks)):
+                parsedTicker = self.parse_greeks(greeks[i])
+                greek = self.extend(parsedTicker, params)
+                results.append(greek)
+        else:
+            marketIds = list(greeks.keys())
+            for i in range(0, len(marketIds)):
+                marketId = marketIds[i]
+                market = self.safe_market(marketId)
+                parsed = self.parse_greeks(greeks[marketId], market)
+                greek = self.extend(parsed, params)
+                results.append(greek)
+        symbols = self.market_symbols(symbols)
+        return self.filter_by_array(results, 'symbol', symbols)
 
     def parse_option(self, chain: dict, currency: Currency = None, market: Market = None):
         raise NotSupported(self.id + ' parseOption() is not supported yet')
