@@ -67,10 +67,10 @@
                 "method": "createOrder",
                 "url": "https://api.woox.io/v1/order",
                 "input": [
-                  "LTC/USDT",
-                  "market",
-                  "buy",
-                  0.1
+                    "LTC/USDT",
+                    "market",
+                    "buy",
+                    0.1
                 ],
                 "output": "broker_id=bc830de7-50f3-460b-9ee0-f430f83f9dad&order_quantity=0.1&order_type=MARKET&side=BUY&symbol=SPOT_LTC_USDT"
             },
@@ -195,14 +195,14 @@
                 "output": "broker_id=bc830de7-50f3-460b-9ee0-f430f83f9dad&order_amount=5&order_type=MARKET&side=BUY&symbol=SPOT_LTC_USDT"
             }
         ],
-        "createMarketSellOrderWithCost":[
+        "createMarketSellOrderWithCost": [
             {
                 "description": "spot market sell with cost",
                 "method": "createMarketSellOrderWithCost",
                 "url": "https://api.woox.io/v1/order",
                 "input": [
-                  "LTC/USDT",
-                  5
+                    "LTC/USDT",
+                    5
                 ],
                 "output": "broker_id=bc830de7-50f3-460b-9ee0-f430f83f9dad&order_amount=5&order_type=MARKET&side=SELL&symbol=SPOT_LTC_USDT"
             }
@@ -714,19 +714,31 @@
                 "method": "fetchFundingHistory",
                 "url": "https://api.woox.io/v1/funding_fee/history?size=1&symbol=PERP_LTC_USDT",
                 "input": [
-                  "LTC/USDT:USDT",
-                  null,
-                  1
+                    "LTC/USDT:USDT",
+                    null,
+                    1
                 ]
             }
         ],
         "fetchFundingRate": [
             {
-                "description": "fundingRate",
+                "description": "fetchFundingRate",
                 "method": "fetchFundingRate",
-                "url": "https://api.woox.io/v1/public/funding_rate/PERP_BTC_USDT",
+                "url": "https://api.woox.io/v3/public/fundingRate?symbol=PERP_BTC_USDT",
                 "input": [
                     "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "fetchFundingRates",
+                "method": "fetchFundingRates",
+                "url": "https://api.woox.io/v3/public/fundingRate",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
                 ]
             }
         ],
@@ -766,7 +778,7 @@
                 "method": "fetchConvertTrade",
                 "url": "https://api.staging.woox.io/v3/convert/trade?quoteId=12",
                 "input": [
-                  "12"
+                    "12"
                 ]
             }
         ],
@@ -776,11 +788,11 @@
                 "method": "addMargin",
                 "url": "https://api.staging.woox.io/v1/client/isolated_margin",
                 "input": [
-                  "XRP/USDT:USDT",
-                  0.2,
-                  {
-                    "position_side": "LONG"
-                  }
+                    "XRP/USDT:USDT",
+                    0.2,
+                    {
+                        "position_side": "LONG"
+                    }
                 ],
                 "output": "action=ADD&adjust_amount=0.2&adjust_token=USDT&position_side=LONG&symbol=PERP_XRP_USDT"
             },
@@ -830,9 +842,9 @@
             {
                 "description": "linear swap fetch the funding interval",
                 "method": "fetchFundingInterval",
-                "url": "https://api.staging.woox.io/v1/public/funding_rate/PERP_BTC_USDT",
+                "url": "https://api.staging.woox.io/v3/public/fundingRate?symbol=PERP_BTC_USDT",
                 "input": [
-                  "BTC/USDT:USDT"
+                    "BTC/USDT:USDT"
                 ]
             }
         ]

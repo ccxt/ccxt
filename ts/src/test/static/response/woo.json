@@ -1811,6 +1811,122 @@
                     "nonce": null
                 }
             }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "fetchFundingRate",
+                "method": "fetchFundingRate",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "data": {
+                        "rows": [
+                            {
+                                "symbol": "PERP_BTC_USDT",
+                                "estFundingRate": "-0.00000441",
+                                "estFundingRateTimestamp": 1751623979022,
+                                "lastFundingRate": "-0.00004953",
+                                "lastFundingRateTimestamp": 1751616000000,
+                                "nextFundingTime": 1751644800000,
+                                "lastFundingIntervalHours": 8,
+                                "estFundingIntervalHours": 8
+                            }
+                        ]
+                    },
+                    "timestamp": 1751624037798
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "PERP_BTC_USDT",
+                        "estFundingRate": "-0.00000441",
+                        "estFundingRateTimestamp": 1751623979022,
+                        "lastFundingRate": "-0.00004953",
+                        "lastFundingRateTimestamp": 1751616000000,
+                        "nextFundingTime": 1751644800000,
+                        "lastFundingIntervalHours": 8,
+                        "estFundingIntervalHours": 8
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "interestRate": 0,
+                    "estimatedSettlePrice": null,
+                    "timestamp": 1751623979022,
+                    "datetime": "2025-07-04T10:12:59.022Z",
+                    "fundingRate": -0.00000441,
+                    "fundingTimestamp": 1751644800000,
+                    "fundingDatetime": "2025-07-04T16:00:00.000Z",
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": null,
+                    "nextFundingDatetime": null,
+                    "previousFundingRate": -0.00004953,
+                    "previousFundingTimestamp": 1751616000000,
+                    "previousFundingDatetime": "2025-07-04T08:00:00.000Z",
+                    "interval": "8h"
+                }
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "fetchFundingRates",
+                "method": "fetchFundingRates",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "data": {
+                        "rows": [
+                            {
+                                "symbol": "PERP_BTC_USDT",
+                                "estFundingRate": "-0.00000441",
+                                "estFundingRateTimestamp": 1751623979022,
+                                "lastFundingRate": "-0.00004953",
+                                "lastFundingRateTimestamp": 1751616000000,
+                                "nextFundingTime": 1751644800000,
+                                "lastFundingIntervalHours": 8,
+                                "estFundingIntervalHours": 8
+                            }
+                        ]
+                    },
+                    "timestamp": 1751624037798
+                },
+                "parsedResponse": {
+                    "BTC/USDT:USDT": {
+                        "info": {
+                            "symbol": "PERP_BTC_USDT",
+                            "estFundingRate": "-0.00000441",
+                            "estFundingRateTimestamp": 1751623979022,
+                            "lastFundingRate": "-0.00004953",
+                            "lastFundingRateTimestamp": 1751616000000,
+                            "nextFundingTime": 1751644800000,
+                            "lastFundingIntervalHours": 8,
+                            "estFundingIntervalHours": 8
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "interestRate": 0,
+                        "estimatedSettlePrice": null,
+                        "timestamp": 1751623979022,
+                        "datetime": "2025-07-04T10:12:59.022Z",
+                        "fundingRate": -0.00000441,
+                        "fundingTimestamp": 1751644800000,
+                        "fundingDatetime": "2025-07-04T16:00:00.000Z",
+                        "nextFundingRate": null,
+                        "nextFundingTimestamp": null,
+                        "nextFundingDatetime": null,
+                        "previousFundingRate": -0.00004953,
+                        "previousFundingTimestamp": 1751616000000,
+                        "previousFundingDatetime": "2025-07-04T08:00:00.000Z",
+                        "interval": "8h"
+                    }
+                }
+            }
         ]
     }
 }

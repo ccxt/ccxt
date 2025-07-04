@@ -2956,24 +2956,22 @@ export default class woo extends Exchange {
     parseFundingRate (fundingRate, market: Market = undefined): FundingRate {
         //
         //     {
-        //         "success": true,
-        //         "timestamp": 1727427915529,
         //         "symbol": "PERP_BTC_USDT",
-        //         "est_funding_rate": -0.00092719,
-        //         "est_funding_rate_timestamp": 1727427899060,
-        //         "last_funding_rate": -0.00092610,
-        //         "last_funding_rate_timestamp": 1727424000000,
-        //         "next_funding_time": 1727452800000,
-        //         "last_funding_rate_interval": 8,
-        //         "est_funding_rate_interval": 8
+        //         "estFundingRate": "-0.00000441",
+        //         "estFundingRateTimestamp": 1751623979022,
+        //         "lastFundingRate": "-0.00004953",
+        //         "lastFundingRateTimestamp": 1751616000000,
+        //         "nextFundingTime": 1751644800000,
+        //         "lastFundingIntervalHours": 8,
+        //         "estFundingIntervalHours": 8
         //     }
         //
         const symbol = this.safeString (fundingRate, 'symbol');
         market = this.market (symbol);
-        const nextFundingTimestamp = this.safeInteger (fundingRate, 'next_funding_time');
-        const estFundingRateTimestamp = this.safeInteger (fundingRate, 'est_funding_rate_timestamp');
-        const lastFundingRateTimestamp = this.safeInteger (fundingRate, 'last_funding_rate_timestamp');
-        const intervalString = this.safeString (fundingRate, 'est_funding_rate_interval');
+        const nextFundingTimestamp = this.safeInteger (fundingRate, 'nextFundingTime');
+        const estFundingRateTimestamp = this.safeInteger (fundingRate, 'estFundingRateTimestamp');
+        const lastFundingRateTimestamp = this.safeInteger (fundingRate, 'lastFundingRateTimestamp');
+        const intervalString = this.safeString (fundingRate, 'estFundingIntervalHours');
         return {
             'info': fundingRate,
             'symbol': market['symbol'],
@@ -2983,13 +2981,13 @@ export default class woo extends Exchange {
             'estimatedSettlePrice': undefined,
             'timestamp': estFundingRateTimestamp,
             'datetime': this.iso8601 (estFundingRateTimestamp),
-            'fundingRate': this.safeNumber (fundingRate, 'est_funding_rate'),
+            'fundingRate': this.safeNumber (fundingRate, 'estFundingRate'),
             'fundingTimestamp': nextFundingTimestamp,
             'fundingDatetime': this.iso8601 (nextFundingTimestamp),
             'nextFundingRate': undefined,
             'nextFundingTimestamp': undefined,
             'nextFundingDatetime': undefined,
-            'previousFundingRate': this.safeNumber (fundingRate, 'last_funding_rate'),
+            'previousFundingRate': this.safeNumber (fundingRate, 'lastFundingRate'),
             'previousFundingTimestamp': lastFundingRateTimestamp,
             'previousFundingDatetime': this.iso8601 (lastFundingRateTimestamp),
             'interval': intervalString + 'h',
@@ -3000,7 +2998,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchFundingInterval
      * @description fetch the current funding rate interval
-     * @see https://docs.woox.io/#get-predicted-funding-rate-for-one-market-public
+     * @see https://developer.woox.io/api-reference/endpoint/public_data/fundingRate
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -3013,7 +3011,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchFundingRate
      * @description fetch the current funding rate
-     * @see https://docs.woox.io/#get-predicted-funding-rate-for-one-market-public
+     * @see https://developer.woox.io/api-reference/endpoint/public_data/fundingRate
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -3024,29 +3022,38 @@ export default class woo extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        const response = await this.v1PublicGetFundingRateSymbol (this.extend (request, params));
+        const response = await this.v3PublicGetFundingRate (this.extend (request, params));
         //
         //     {
         //         "success": true,
-        //         "timestamp": 1727428037877,
-        //         "symbol": "PERP_BTC_USDT",
-        //         "est_funding_rate": -0.00092674,
-        //         "est_funding_rate_timestamp": 1727428019064,
-        //         "last_funding_rate": -0.00092610,
-        //         "last_funding_rate_timestamp": 1727424000000,
-        //         "next_funding_time": 1727452800000,
-        //         "last_funding_rate_interval": 8,
-        //         "est_funding_rate_interval": 8
+        //         "data": {
+        //             "rows": [
+        //                 {
+        //                     "symbol": "PERP_BTC_USDT",
+        //                     "estFundingRate": "-0.00000441",
+        //                     "estFundingRateTimestamp": 1751623979022,
+        //                     "lastFundingRate": "-0.00004953",
+        //                     "lastFundingRateTimestamp": 1751616000000,
+        //                     "nextFundingTime": 1751644800000,
+        //                     "lastFundingIntervalHours": 8,
+        //                     "estFundingIntervalHours": 8
+        //                 }
+        //             ]
+        //         },
+        //         "timestamp": 1751624037798
         //     }
         //
-        return this.parseFundingRate (response, market);
+        const data = this.safeDict (response, 'data', {});
+        const rows = this.safeList (data, 'rows', []);
+        const first = this.safeDict (rows, 0, {});
+        return this.parseFundingRate (first, market);
     }
 
     /**
      * @method
      * @name woo#fetchFundingRates
      * @description fetch the funding rate for multiple markets
-     * @see https://docs.woox.io/#get-predicted-funding-rate-for-all-markets-public
+     * @see https://developer.woox.io/api-reference/endpoint/public_data/fundingRate
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
@@ -3054,24 +3061,29 @@ export default class woo extends Exchange {
     async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const response = await this.v1PublicGetFundingRates (params);
+        const response = await this.v3PublicGetFundingRate (params);
         //
         //     {
-        //         "success":true,
-        //         "rows":[
-        //             {
-        //                 "symbol":"PERP_AAVE_USDT",
-        //                 "est_funding_rate":-0.00003447,
-        //                 "est_funding_rate_timestamp":1653633959001,
-        //                 "last_funding_rate":-0.00002094,
-        //                 "last_funding_rate_timestamp":1653631200000,
-        //                 "next_funding_time":1653634800000
-        //             }
-        //         ],
-        //         "timestamp":1653633985646
+        //         "success": true,
+        //         "data": {
+        //             "rows": [
+        //                 {
+        //                     "symbol": "PERP_BTC_USDT",
+        //                     "estFundingRate": "-0.00000441",
+        //                     "estFundingRateTimestamp": 1751623979022,
+        //                     "lastFundingRate": "-0.00004953",
+        //                     "lastFundingRateTimestamp": 1751616000000,
+        //                     "nextFundingTime": 1751644800000,
+        //                     "lastFundingIntervalHours": 8,
+        //                     "estFundingIntervalHours": 8
+        //                 }
+        //             ]
+        //         },
+        //         "timestamp": 1751624037798
         //     }
         //
-        const rows = this.safeList (response, 'rows', []);
+        const data = this.safeDict (response, 'data', {});
+        const rows = this.safeList (data, 'rows', []);
         return this.parseFundingRates (rows, symbols);
     }
 
