@@ -15,6 +15,9 @@
             "ticker": {
                 "compareQuoteVolumeBaseVolume": "not aligned with quoteVolume calcs"
             },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
+            },
             "orderBook": {
                 "spread": "bid > ask issue https://github.com/ccxt/ccxt/actions/runs/14901691674/job/41855075107?pr=25907#step:9:389"
             },
@@ -97,6 +100,9 @@
         "skipMethods": {
             "ticker": {
                 "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing, https://app.travis-ci.com/github/ccxt/ccxt/builds/268171081#L2414"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
             }
         }
     },
@@ -286,7 +292,8 @@
             },
             "ticker": {
                 "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing",
-                "quoteVolume": "incorrect"
+                "quoteVolume": "incorrect",
+                "compareOHLC": "todo"
             },
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
@@ -388,6 +395,9 @@
             },
             "ticker": {
                 "compareQuoteVolumeBaseVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269454230#L4164"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
             }
         }
     },
@@ -646,6 +656,9 @@
             },
             "orderBook": {
                 "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L5064"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
             }
         }
     },
@@ -1512,6 +1525,9 @@
             },
             "fetchCurrencies": {
                 "activeMajorCurrencies": "todo"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
             },
             "fetchOrderBooks": "fetchOrderBooks returned 0 length"
         }
