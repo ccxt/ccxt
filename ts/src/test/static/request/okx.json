@@ -1630,6 +1630,21 @@
                   "BTC/USDT:USDT"
                 ]
             }
+        ],
+        "fetchAllGreeks": [
+            {
+                "description": "fetchAllGreeks with one symbol and a uly parameter",
+                "method": "fetchAllGreeks",
+                "url": "https://www.okx.com/api/v5/public/opt-summary?uly=BTC-USD&instFamily=BTC-USD&expTime=250926",
+                "input": [
+                    [
+                        "BTC/USD:BTC-241227-60000-P"
+                    ],
+                    {
+                        "uly": "BTC-USD"
+                    }
+                ]
+            }
         ]
     }
 }
