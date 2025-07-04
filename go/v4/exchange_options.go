@@ -373,7 +373,10 @@ func (this *Exchange) initializeProperties(extendedProperties map[string]interfa
 	this.Has = SafeValue(extendedProperties, "has", map[string]interface{}{}).(map[string]interface{})
 	// this.httpExceptions = SafeValue(extendedProperties, "httpExceptions",map[string]interface{}{}).(map[string]interface{})
 	this.Exceptions = SafeValue(extendedProperties, "exceptions", map[string]interface{}{}).(map[string]interface{})
-	this.Markets = this.MapToSafeMap(SafeValue(extendedProperties, "markets", map[string]interface{}{}).(map[string]interface{}))
+	propertiesMarkets := SafeValue(extendedProperties, "markets", nil)
+	if propertiesMarkets != nil {
+		this.Markets = this.MapToSafeMap(propertiesMarkets.(map[string]interface{}))
+	}
 	propCurrencies := SafeValue(extendedProperties, "currencies", map[string]interface{}{}).(map[string]interface{})
 	if len(propCurrencies) > 0 {
 		this.Currencies = this.MapToSafeMap(propCurrencies)
