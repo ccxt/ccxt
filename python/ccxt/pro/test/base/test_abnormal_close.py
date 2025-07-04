@@ -62,6 +62,11 @@ async def test_abnormal_close():
             logging.info(f"received unexpected exception: {e}")
             just_reconnected = True
     assert received_network_error, "Failed to receive network error"
+    print ("test_abnormal_close between watch calls")
+    await ex.watch_trades('BTC/USDT:USDT')
+    await tcp_kill_after(1)
+    await asyncio.sleep(2)
+    await ex.watch_trades('BTC/USDT:USDT')
     await ex.close()
 
 asyncio.run(test_abnormal_close())
