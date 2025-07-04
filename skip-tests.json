@@ -370,6 +370,9 @@
             },
             "watchTickers": {
                 "compareOHLC": "same"
+            },
+            "ticker": {
+                "compareOHLC": "todo fix rounding"
             }
         }
     },
@@ -883,7 +886,8 @@
             },
             "ticker": {
                 "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing",
-                "bid": "failing the test"
+                "bid": "failing the test",
+                "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/16059129227/job/45320923643?pr=26334#step:9:291"
             },
             "fetchOHLCV": {
                 "4":"https://app.travis-ci.com/github/ccxt/ccxt/builds/269542746#L3512"
@@ -1307,7 +1311,8 @@
             "ticker": {
                 "bid":"messed bid-ask",
                 "compareQuoteVolumeBaseVolume": "quoteVolume <= baseVolume * high https://app.travis-ci.com/github/ccxt/ccxt/builds/263304041#L2190",
-                "maxIncrease": "todo"
+                "maxIncrease": "todo",
+                "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/16059129227/job/45320923643?pr=26334#step:9:317"
             }
         }
     },
@@ -1848,11 +1853,13 @@
                 "compareOHLC": "broken by exchange https://github.com/ccxt/ccxt/actions/runs/16057416332/job/45315454452?pr=26334#step:11:2055"
             },
             "ticker": {
-                "maxIncrease": "too much increases https://github.com/ccxt/ccxt/actions/runs/16058190301/job/45317906432#step:9:925"
+                "maxIncrease": "too much increases https://github.com/ccxt/ccxt/actions/runs/16058190301/job/45317906432#step:9:925",
+                "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/16059129227/job/45320923643?pr=26334#step:9:317"
             },
             "fetchTickers": {
                 "ask": "weird values",
-                "bid": "weird values"
+                "bid": "weird values",
+                "checkActiveSymbols": "todo"
             },
             "watchOrderBook": {
                 "timestamp": "not provided",
