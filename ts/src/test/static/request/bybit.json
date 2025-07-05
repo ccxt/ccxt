@@ -1646,7 +1646,7 @@
             {
                 "description": "fetch all greeks with a single symbol argument and baseCoin parameter",
                 "method": "fetchAllGreeks",
-                "url": "https://api-testnet.bybit.com/v5/market/tickers?category=option&baseCoin=BTC&symbol=BTC-30May25-70000-C-USDT",
+                "url": "https://api-testnet.bybit.com/v5/market/tickers?category=option&baseCoin=BTC&symbol=BTC-30MAY25-70000-C-USDT",
                 "input": [
                     [
                         "BTC/USDT:USDT-250530-70000-C"
