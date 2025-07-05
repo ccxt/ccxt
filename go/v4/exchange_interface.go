@@ -35,8 +35,8 @@ type IExchange interface {
 	GetUrls() interface{}
 	GetApi() map[string]interface{}
 	GetOptions() *sync.Map
-	GetCurrencies() map[string]interface{}
-	GetMarkets() map[string]interface{}
+	GetCurrencies() *sync.Map
+	GetMarkets() *sync.Map
 	CheckRequiredCredentials(optionalArgs ...interface{}) interface{}
 	Sleep(milliseconds interface{}) <-chan bool
 	Json(object interface{}) interface{}
@@ -181,6 +181,7 @@ type IDerivedExchange interface {
 	ParseLeverage(leverage interface{}, optionalArgs ...interface{}) interface{}
 	ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{}) interface{}
 	ParseTrade(trade interface{}, optionalArgs ...interface{}) interface{}
+	ParseGreeks(greeks interface{}, optionalArgs ...interface{}) interface{}
 	ParseMarket(market interface{}) interface{}
 	ParseCurrency(rawCurrency interface{}) interface{}
 	ParseTransaction(transaction interface{}, optionalArgs ...interface{}) interface{}

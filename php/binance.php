@@ -58,6 +58,7 @@ class binance extends Exchange {
                 'editOrder' => true,
                 'editOrders' => true,
                 'fetchAccounts' => null,
+                'fetchAllGreeks' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => true,
                 'fetchBorrowInterest' => true,
@@ -13132,6 +13133,48 @@ class binance extends Exchange {
         //     )
         //
         return $this->parse_greeks($response[0], $market);
+    }
+
+    public function fetch_all_greeks(?array $symbols = null, $params = array ()): array {
+        /**
+         * fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+         *
+         * @see https://developers.binance.com/docs/derivatives/option/market-data/Option-Mark-Price
+         *
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch greeks for, all markets are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=greeks-structure greeks structure~
+         */
+        $this->load_markets();
+        $symbols = $this->market_symbols($symbols, null, true, true, true);
+        $request = array();
+        $market = null;
+        if ($symbols !== null) {
+            $symbolsLength = count($symbols);
+            if ($symbolsLength === 1) {
+                $market = $this->market($symbols[0]);
+                $request['symbol'] = $market['id'];
+            }
+        }
+        $response = $this->eapiPublicGetMark ($this->extend($request, $params));
+        //
+        //     array(
+        //         {
+        //             "symbol" => "BTC-231229-40000-C",
+        //             "markPrice" => "2012",
+        //             "bidIV" => "0.60236275",
+        //             "askIV" => "0.62267244",
+        //             "markIV" => "0.6125176",
+        //             "delta" => "0.39111646",
+        //             "theta" => "-32.13948531",
+        //             "gamma" => "0.00004656",
+        //             "vega" => "51.70062218",
+        //             "highPriceLimit" => "6474",
+        //             "lowPriceLimit" => "5"
+        //         }
+        //     )
+        //
+        return $this->parse_all_greeks($response, $symbols);
     }
 
     public function parse_greeks(array $greeks, ?array $market = null): array {

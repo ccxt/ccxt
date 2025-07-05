@@ -638,6 +638,7 @@ public partial class coinex : Exchange
                 { "broad", new Dictionary<string, object>() {
                     { "ip not allow visit", typeof(PermissionDenied) },
                     { "service too busy", typeof(ExchangeNotAvailable) },
+                    { "Service is not available during funding fee settlement", typeof(OperationFailed) },
                 } },
             } },
         });

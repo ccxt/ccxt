@@ -1688,6 +1688,27 @@ func WithFetchGreeksParams(params map[string]interface{}) FetchGreeksOptions {
 }
 
 
+type FetchAllGreeksOptionsStruct struct {
+    Symbols *[]string
+    Params *map[string]interface{}
+}
+
+type FetchAllGreeksOptions func(opts *FetchAllGreeksOptionsStruct)
+
+func WithFetchAllGreeksSymbols(symbols []string) FetchAllGreeksOptions {
+    return func(opts *FetchAllGreeksOptionsStruct) {
+        opts.Symbols = &symbols
+    }
+}
+
+
+func WithFetchAllGreeksParams(params map[string]interface{}) FetchAllGreeksOptions {
+    return func(opts *FetchAllGreeksOptionsStruct) {
+        opts.Params = &params
+    }
+}
+
+
 type FetchTradingLimitsOptionsStruct struct {
     Symbols *[]string
     Params *map[string]interface{}

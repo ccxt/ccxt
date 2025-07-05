@@ -703,7 +703,8 @@ export default class hyperliquid extends Exchange {
         //     }
         //
         const quoteId = 'USDC';
-        const base = this.safeString (market, 'name');
+        const baseName = this.safeString (market, 'name');
+        const base = this.safeCurrencyCode (baseName);
         const quote = this.safeCurrencyCode (quoteId);
         const baseId = this.safeString (market, 'baseId');
         const settleId = 'USDC';

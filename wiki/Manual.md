@@ -1827,6 +1827,7 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 - `fetchLiquidations (symbol, since, limit, params)`
 - `fetchMyLiquidations (symbol, since, limit, params)`
 - `fetchGreeks (symbol, params)`
+- `fetchAllGreeks (symbols, params)`
 - `fetchCrossBorrowRate (code, params)`
 - `fetchCrossBorrowRates (params)`
 - `fetchIsolatedBorrowRate (symbol, params)`
@@ -3469,7 +3470,7 @@ Returns
 
 *option only*
 
-Use the `fetchGreeks` method to get the public greeks and implied volatility of an options trading pair from the exchange.
+Use the `fetchGreeks` method to get the public greeks and implied volatility of an options trading pair from the exchange. Use `fetchAllGreeks` to get the greeks for all symbols or multiple symbols.
 The greeks measure how factors like the underlying assets price, time to expiration, volatility, and interest rates, affect the price of an options contract.
 
 ```javascript
@@ -3484,6 +3485,23 @@ Parameters
 Returns
 
 - A [greeks structure](#greeks-structure)
+
+```javascript
+fetchAllGreeks (symbols = undefined, params = {})
+```
+
+Parameters
+
+- **symbols** (String) Unified CCXT symbol (e.g. `"BTC/USD:BTC-240927-40000-C"`)
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"category": "options"}`)
+
+// for example
+fetchAllGreeks () // all symbols
+fetchAllGreeks ([ 'BTC/USD:BTC-240927-40000-C', 'ETH/USD:ETH-240927-4000-C' ]) // an array of specific symbols
+
+Returns
+
+- A list of [greeks structure](#greeks-structure)
 
 ### Greeks Structure
 

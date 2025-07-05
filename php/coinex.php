@@ -653,6 +653,7 @@ class coinex extends Exchange {
                 'broad' => array(
                     'ip not allow visit' => '\\ccxt\\PermissionDenied',
                     'service too busy' => '\\ccxt\\ExchangeNotAvailable',
+                    'Service is not available during funding fee settlement' => '\\ccxt\\OperationFailed',
                 ),
             ),
         ));

@@ -859,6 +859,12 @@ class Exchange {
             return hexData;
         }
     }
+    mapToSafeMap(dict) {
+        return dict; // wrapper for go
+    }
+    safeMapToMap(dict) {
+        return dict; // wrapper for go
+    }
     spawn(method, ...args) {
         const future = Future.Future();
         // using setTimeout 0 to force the execution to run after the future is returned
@@ -2817,14 +2823,14 @@ class Exchange {
             }
             values.push(market);
         }
-        this.markets = this.indexBy(values, 'symbol');
+        this.markets = this.mapToSafeMap(this.indexBy(values, 'symbol'));
         const marketsSortedBySymbol = this.keysort(this.markets);
         const marketsSortedById = this.keysort(this.markets_by_id);
         this.symbols = Object.keys(marketsSortedBySymbol);
         this.ids = Object.keys(marketsSortedById);
         if (currencies !== undefined) {
             // currencies is always undefined when called in constructor but not when called from loadMarkets
-            this.currencies = this.deepExtend(this.currencies, currencies);
+            this.currencies = this.mapToSafeMap(this.deepExtend(this.currencies, currencies));
         }
         else {
             let baseCurrencies = [];
@@ -2854,8 +2860,8 @@ class Exchange {
             }
             baseCurrencies = this.sortBy(baseCurrencies, 'code', false, '');
             quoteCurrencies = this.sortBy(quoteCurrencies, 'code', false, '');
-            this.baseCurrencies = this.indexBy(baseCurrencies, 'code');
-            this.quoteCurrencies = this.indexBy(quoteCurrencies, 'code');
+            this.baseCurrencies = this.mapToSafeMap(this.indexBy(baseCurrencies, 'code'));
+            this.quoteCurrencies = this.mapToSafeMap(this.indexBy(quoteCurrencies, 'code'));
             const allCurrencies = this.arrayConcat(baseCurrencies, quoteCurrencies);
             const groupedCurrencies = this.groupBy(allCurrencies, 'code');
             const codes = Object.keys(groupedCurrencies);
@@ -2876,7 +2882,7 @@ class Exchange {
                 resultingCurrencies.push(highestPrecisionCurrency);
             }
             const sortedCurrencies = this.sortBy(resultingCurrencies, 'code');
-            this.currencies = this.deepExtend(this.currencies, this.indexBy(sortedCurrencies, 'code'));
+            this.currencies = this.mapToSafeMap(this.deepExtend(this.currencies, this.indexBy(sortedCurrencies, 'code')));
         }
         this.currencies_by_id = this.indexBySafe(this.currencies, 'id');
         const currenciesSortedByCode = this.keysort(this.currencies);
@@ -4016,7 +4022,7 @@ class Exchange {
         return this.filterBySinceLimit(sorted, since, limit, 0, tail);
     }
     parseLeverageTiers(response, symbols = undefined, marketIdKey = undefined) {
-        // marketIdKey should only be undefined when response is a dictionary
+        // marketIdKey should only be undefined when response is a dictionary.
         symbols = this.marketSymbols(symbols);
         const tiers = {};
         let symbolsLength = 0;
@@ -5453,6 +5459,9 @@ class Exchange {
     }
     async fetchGreeks(symbol, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchGreeks() is not supported yet');
+    }
+    async fetchAllGreeks(symbols = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchAllGreeks() is not supported yet');
     }
     async fetchOptionChain(code, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchOptionChain() is not supported yet');
@@ -6909,6 +6918,31 @@ class Exchange {
     parseGreeks(greeks, market = undefined) {
         throw new errors.NotSupported(this.id + ' parseGreeks () is not supported yet');
     }
+    parseAllGreeks(greeks, symbols = undefined, params = {}) {
+        //
+        // the value of greeks is either a dict or a list
+        //
+        const results = [];
+        if (Array.isArray(greeks)) {
+            for (let i = 0; i < greeks.length; i++) {
+                const parsedTicker = this.parseGreeks(greeks[i]);
+                const greek = this.extend(parsedTicker, params);
+                results.push(greek);
+            }
+        }
+        else {
+            const marketIds = Object.keys(greeks);
+            for (let i = 0; i < marketIds.length; i++) {
+                const marketId = marketIds[i];
+                const market = this.safeMarket(marketId);
+                const parsed = this.parseGreeks(greeks[marketId], market);
+                const greek = this.extend(parsed, params);
+                results.push(greek);
+            }
+        }
+        symbols = this.marketSymbols(symbols);
+        return this.filterByArray(results, 'symbol', symbols);
+    }
     parseOption(chain, currency = undefined, market = undefined) {
         throw new errors.NotSupported(this.id + ' parseOption () is not supported yet');
     }
@@ -7147,16 +7181,35 @@ class Exchange {
          */
         throw new errors.NotSupported(this.id + ' fetchTransfers () is not supported yet');
     }
-    cleanUnsubscription(client, subHash, unsubHash) {
+    cleanUnsubscription(client, subHash, unsubHash, subHashIsPrefix = false) {
         if (unsubHash in client.subscriptions) {
             delete client.subscriptions[unsubHash];
         }
-        if (subHash in client.subscriptions) {
-            delete client.subscriptions[subHash];
+        if (!subHashIsPrefix) {
+            if (subHash in client.subscriptions) {
+                delete client.subscriptions[subHash];
+            }
+            if (subHash in client.futures) {
+                const error = new errors.UnsubscribeError(this.id + ' ' + subHash);
+                client.reject(error, subHash);
+            }
         }
-        if (subHash in client.futures) {
-            const error = new errors.UnsubscribeError(this.id + ' ' + subHash);
-            client.reject(error, subHash);
+        else {
+            const clientSubscriptions = Object.keys(client.subscriptions);
+            for (let i = 0; i < clientSubscriptions.length; i++) {
+                const sub = clientSubscriptions[i];
+                if (sub.startsWith(subHash)) {
+                    delete client.subscriptions[sub];
+                }
+            }
+            const clientFutures = Object.keys(client.futures);
+            for (let i = 0; i < clientFutures.length; i++) {
+                const future = clientFutures[i];
+                if (future.startsWith(subHash)) {
+                    const error = new errors.UnsubscribeError(this.id + ' ' + future);
+                    client.reject(error, future);
+                }
+            }
         }
         client.resolve(true, unsubHash);
     }

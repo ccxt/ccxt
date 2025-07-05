@@ -7122,7 +7122,7 @@ public partial class htx : Exchange
             if (isTrue(isEqual(fee, null)))
             {
                 object currencies = await this.fetchCurrencies();
-                this.currencies = this.deepExtend(this.currencies, currencies);
+                this.currencies = this.mapToSafeMap(this.deepExtend(this.currencies, currencies));
                 object targetNetwork = this.safeValue(getValue(currency, "networks"), networkCode, new Dictionary<string, object>() {});
                 fee = this.safeNumber(targetNetwork, "fee");
                 if (isTrue(isEqual(fee, null)))

@@ -626,3 +626,4 @@ class ConstructorArgs(TypedDict, total=False):
     hostname: str
     urls: Dict[str, Any]
     headers: Dict[str, Any]
+    session: Any
