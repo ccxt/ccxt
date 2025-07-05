@@ -4,6 +4,7 @@ namespace ccxt\pro;
 
 use React\Async;
 use React\Promise;
+use ccxt\ConsumerFunctionError;
 
 class Consumer
 {
@@ -15,10 +16,10 @@ class Consumer
     public $running = false;
     public $backlog = [];
 
-    public function __construct(callable $fn, bool $synchronous, int $currentIndex)
+    public function __construct(callable $fn, int $currentIndex = 0, array $options = [])
     {
         $this->fn = $fn;
-        $this->synchronous = $synchronous;
+        $this->synchronous = $options['synchronous'] ?? false;
         $this->currentIndex = $currentIndex;
         $this->running = false;
     }

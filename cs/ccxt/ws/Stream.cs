@@ -102,7 +102,7 @@ public class Stream : IBaseStream
             Console.WriteLine("Consumer function is required");
             throw new Exception("Consumer function is required");
         }
-        var consumer = new Consumer(consumerFn, synchronous, GetLastIndex(topic));
+        var consumer = new Consumer(consumerFn, GetLastIndex(topic), new ConsumerOptions { synchronous = synchronous });
 
         if (!consumers.ContainsKey(topic))
         {

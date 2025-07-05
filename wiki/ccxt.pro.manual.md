@@ -441,13 +441,14 @@ You can choose to consume messages synchronously or asynchronously:
 #### subscribeTickers example
 **Syntax**
 ```typescript
-async subscribeTickers(symbols?: string[], callback: ConsumerFunction, synchronous: boolean = true, params: object = {}): Promise<void>
+async subscribeTickers(symbols?: string[], callback: ConsumerFunction, options?: { synchronous?: boolean }, params: object = {}): Promise<void>
 ```
 **Parameters:**
 
 - **symbols**: Optional array of symbols to monitor. If omitted, subscribes to updates for all symbols.
 - **callback**: Function to execute with each message.
-- **synchronous**: Determines if messages should be processed synchronously (true by default).
+- **options**: Optional object containing configuration options:
+  - **synchronous**: Determines if messages should be processed synchronously (true by default).
 - **params**: Extra parameters for the exchange API endpoint.
 
 <!-- tabs:start -->
@@ -460,8 +461,11 @@ const handleTickerUpdate: ConsumerFunction = (message: Message): void => {
     console.log('History:', message.history);
 };
 
-// Subscribe to ticker updates for BTC/USD and ETH/USD
-await subscribeTickers(['BTC/USD', 'ETH/USD'], handleTickerUpdate, true)
+// Subscribe to ticker updates for BTC/USD and ETH/USD with synchronous processing
+await subscribeTickers(['BTC/USD', 'ETH/USD'], handleTickerUpdate, { synchronous: true });
+
+// Subscribe with asynchronous processing
+await subscribeTickers(['BTC/USD', 'ETH/USD'], handleTickerUpdate, { synchronous: false });
 ```
 #### **Python**
 ```python
@@ -473,8 +477,11 @@ def handle_ticker_update(message: Message) -> None:
     print('Metadata:', message.metadata.__dict__)
     print('History:', [msg.payload for msg in message.history])
 
-# Subscribe to ticker updates for BTC/USD and ETH/USD
-await subscribe_tickers(['BTC/USD', 'ETH/USD'], handle_ticker_update, True)
+# Subscribe to ticker updates for BTC/USD and ETH/USD with synchronous processing
+await subscribe_tickers(['BTC/USD', 'ETH/USD'], handle_ticker_update, { 'synchronous': True })
+
+# Subscribe with asynchronous processing
+await subscribe_tickers(['BTC/USD', 'ETH/USD'], handle_ticker_update, { 'synchronous': False })
 ```
 #### **PHP**
 ```php
@@ -485,8 +492,11 @@ function handleTickerUpdate($message) {
     echo 'History: ', json_encode(array_map(fn($msg) => $msg->payload, $message->history)), PHP_EOL;
 }
 
-// Subscribe to ticker updates for BTC/USD and ETH/USD
-subscribeTickers(['BTC/USD', 'ETH/USD'], 'handleTickerUpdate', true);
+// Subscribe to ticker updates for BTC/USD and ETH/USD with synchronous processing
+subscribeTickers(['BTC/USD', 'ETH/USD'], 'handleTickerUpdate', ['synchronous' => true]);
+
+// Subscribe with asynchronous processing
+subscribeTickers(['BTC/USD', 'ETH/USD'], 'handleTickerUpdate', ['synchronous' => false]);
 ```
 #### **C#**
 ```csharp
@@ -500,16 +510,20 @@ subscribeTickers(['BTC/USD', 'ETH/USD'], 'handleTickerUpdate', true);
 
     public static async Task Main(string[] args)
     {
-        await SubscribeTickers(new string[] { "BTC/USD", "ETH/USD" }, HandleTickerUpdate, true);
+        // Subscribe to ticker updates for BTC/USD and ETH/USD with synchronous processing
+        await SubscribeTickers(new string[] { "BTC/USD", "ETH/USD" }, HandleTickerUpdate, new Dictionary<string, object> { { "synchronous", true } });
+        
+        // Subscribe with asynchronous processing
+        await SubscribeTickers(new string[] { "BTC/USD", "ETH/USD" }, HandleTickerUpdate, new Dictionary<string, object> { { "synchronous", false } });
     }
 ```
 <!-- tabs:end -->
 
 ### Streaming Helpers
 #### All Raw Messages
-You can use the function `subscribeRaw(callback, synchroneous = true)` to subscribe to all raw messages published to the stream
+You can use the function `subscribeRaw(callback, options?: { synchronous?: boolean })` to subscribe to all raw messages published to the stream
 ### Subscribe to Errors
-You can use the function `subscribeErrors(callback, synchroneous = true)` to subscribe to all errors thrown to the stream
+You can use the function `subscribeErrors(callback, options?: { synchronous?: boolean })` to subscribe to all errors thrown to the stream
 #### Access Topic History 
 The stream will keep a history of all the messages, use `getMessageHistory(topic)` to access them.
 The history size is set by `stream.maxMessagesPerTopic`
@@ -621,7 +635,7 @@ var unsubscribed = exchange.stream.Unsubscribe(topic, callback);
 - Notifies all subscribers of new messages
 
 ##### Subscription Management
-- `subscribe(topic, consumerFn, synchronous)`: Registers a consumer for a topic
+- `subscribe(topic, consumerFn, options?: { synchronous?: boolean })`: Registers a consumer for a topic
 - `unsubscribe(topic, consumerFn)`: Removes a consumer from a topic
 - Supports both synchronous and asynchronous consumers
 
@@ -660,6 +674,21 @@ var unsubscribed = exchange.stream.Unsubscribe(topic, callback);
 - `publish(message)`: Adds messages to the backlog
 - `_run()`: Processes the message backlog
 - `_handleMessage(message)`: Executes the consumer function with the message
+
+##### Consumer Options
+The Consumer constructor accepts an options object with the following properties:
+- `synchronous`: Boolean that determines if messages should be processed synchronously (default: false)
+  - When `true`: Messages are processed one at a time, waiting for each to complete
+  - When `false`: Messages are processed without waiting for completion
+
+Example:
+```typescript
+// Create a consumer with synchronous processing
+const consumer = new Consumer(callbackFunction, currentIndex, { synchronous: true });
+
+// Create a consumer with asynchronous processing
+const consumer = new Consumer(callbackFunction, currentIndex, { synchronous: false });
+```
 
 ## Streaming Specifics
 

@@ -2,6 +2,10 @@ import { ConsumerFunctionError } from "../errors.js";
 import { Int, ConsumerFunction, Message } from "../types";
 import FastQueue from "./FastQueue.js";
 
+interface ConsumerOptions {
+    synchronous?: boolean;
+}
+
 export default class Consumer {
 
     public fn: ConsumerFunction;
@@ -16,9 +20,9 @@ export default class Consumer {
 
     private static readonly MAX_BACKLOG_SIZE = 10; // Maximum number of messages in backlog
 
-    constructor (fn: ConsumerFunction, synchronous: boolean, currentIndex: Int) {
+    constructor (fn: ConsumerFunction, currentIndex: Int, options: ConsumerOptions = {}) {
         this.fn = fn;
-        this.synchronous = synchronous;
+        this.synchronous = options.synchronous ?? false;
         this.currentIndex = currentIndex;
         this.running = false;
         this.backlog = new FastQueue<Message> ();
@@ -77,5 +81,6 @@ export default class Consumer {
 }
 
 export {
-    Consumer
+    Consumer,
+    ConsumerOptions
 }

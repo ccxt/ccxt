@@ -29,6 +29,11 @@ namespace ccxt.pro
 
     public delegate Task ConsumerFunction(Message message);
 
+    public class ConsumerOptions
+    {
+        public bool synchronous { get; set; } = false;
+    }
+
     public class Consumer
     {
         private const int MAX_BACKLOG_SIZE = 10;  // Maximum number of messages in backlog
@@ -39,10 +44,10 @@ namespace ccxt.pro
         public bool running { get; private set; }
         public Queue<Message> backlog { get; private set; }
 
-        public Consumer(ConsumerFunction fn, bool synchronous, int currentIndex)
+        public Consumer(ConsumerFunction fn, int currentIndex = 0, ConsumerOptions options = null)
         {
             this.fn = fn;
-            this.synchronous = synchronous;
+            this.synchronous = options?.synchronous ?? false;
             this.currentIndex = currentIndex;
             this.running = false;
             this.backlog = new Queue<Message>();

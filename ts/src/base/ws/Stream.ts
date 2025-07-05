@@ -70,7 +70,7 @@ export class Stream implements BaseStream {
      * @param synchronous - Optional. Indicates whether the consumer function should be executed synchronously or asynchronously. Default is true.
      */
     subscribe (topic: Topic, consumerFn: ConsumerFunction, synchronous: boolean = true): void {
-        const consumer = new Consumer (consumerFn, synchronous, this.getLastIndex (topic));
+        const consumer = new Consumer (consumerFn, this.getLastIndex (topic), { synchronous });
 
         if (!this.consumers[topic]) {
             this.consumers[topic] = [];

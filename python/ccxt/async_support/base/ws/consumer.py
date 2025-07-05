@@ -1,5 +1,5 @@
 import asyncio
-from typing import List
+from typing import List, Dict, Any, Optional
 from collections import deque
 from ....base.types import Message, ConsumerFunction
 from ....base.errors import ConsumerFunctionError
@@ -10,9 +10,11 @@ logger = logging.getLogger(__name__)
 class Consumer:
     MAX_BACKLOG_SIZE = 10  # Maximum number of messages in backlog - higher number means less messages are dropped but can cause higher latency
 
-    def __init__(self, fn: ConsumerFunction, synchronous: bool, current_index: int):
+    def __init__(self, fn: ConsumerFunction, current_index: int = 0, options: Optional[Dict[str, Any]] = None):
+        if options is None:
+            options = {}
         self.fn = fn
-        self.synchronous = synchronous
+        self.synchronous = options.get('synchronous', False)
         self.current_index = current_index
         self.running = False
         self.backlog: deque[Message] = deque()

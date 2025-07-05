@@ -68,7 +68,7 @@ class Stream {
     }
 
     public function subscribe($topic, callable $consumerFn, $synchronous = true) {
-        $consumer = new Consumer($consumerFn, $synchronous, $this->get_last_index($topic));
+        $consumer = new Consumer($consumerFn, $this->get_last_index($topic), ['synchronous' => $synchronous]);
         if (!isset($this->consumers[$topic])) {
             $this->consumers[$topic] = [];
         }
