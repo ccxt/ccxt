@@ -3775,7 +3775,7 @@ export default class okx extends Exchange {
         //         "uTime": "1621910749815"
         //     }
         //
-        // watchOrders
+        // watchOrders & fetchClosedOrders
         //
         //    {
         //        "algoClOrdId": "",
@@ -3836,7 +3836,6 @@ export default class okx extends Exchange {
         //
         //        "pnl": "-0.0001",
         //        "accFillSz": "0.1",
-        //        "fillNotionalUsd": "1.314515408", // field present only in WS
         //        "avgPx": "13.142",
         //        "state": "filled",
         //        "fee": "-0.00026284",
@@ -3844,6 +3843,7 @@ export default class okx extends Exchange {
         //        "tradeId": "293429690",
         //        "fillSz": "0.1",
         //        "fillTime": "1751705807467",
+        //        "fillNotionalUsd": "1.314515408", // field present only in WS
         //        "fillPnl": "-0.0001",             // field present only in WS
         //        "fillFee": "-0.00026284",         // field present only in WS
         //        "fillFeeCcy": "USDT",             // field present only in WS
