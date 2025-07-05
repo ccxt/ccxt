@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/hyperliquid.js';
-import { ExchangeError, ArgumentsRequired, NotSupported, InvalidOrder, OrderNotFound, BadRequest, InsufficientFunds } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, NotSupported, InvalidOrder, OrderNotFound, BadRequest, InsufficientFunds, InvalidAddress } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { ROUND, SIGNIFICANT_DIGITS, DECIMAL_PLACES, TICK_SIZE } from './base/functions/number.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
@@ -796,6 +796,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @param {string} [params.type] wallet type, ['spot', 'swap'], defaults to swap
      * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
+     * @param {string} [params.subAccountUser] sub account user address
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
@@ -805,13 +806,19 @@ export default class hyperliquid extends Exchange {
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBalance', params);
+        let subAccountUser = undefined;
+        [ subAccountUser, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'subAccountUser');
         const isSpot = (type === 'spot');
-        const reqType = (isSpot) ? 'spotClearinghouseState' : 'clearinghouseState';
+        let reqType = (isSpot) ? 'spotClearinghouseState' : 'clearinghouseState';
+        const isSubAccount = (subAccountUser !== undefined);
+        if (isSubAccount) {
+            reqType = 'subAccounts';
+        }
         const request: Dict = {
             'type': reqType,
             'user': userAddress,
         };
-        const response = await this.publicPostInfo (this.extend (request, params));
+        let response = await this.publicPostInfo (this.extend (request, params));
         //
         //     {
         //         "assetPositions": [],
@@ -847,6 +854,89 @@ export default class hyperliquid extends Exchange {
         //            }
         //     }
         //
+        // subAccounts
+        //     [
+        //         {
+        //             "name": "ccxtsc0vu",
+        //             "subAccountUser": "0xxxxxxxxxxxxxxx",
+        //             "master": "0x754e6a9e4bc74d119263fd249fac5d876d0d10ee",
+        //             "clearinghouseState": {
+        //                 "marginSummary": {
+        //                     "accountValue": "69.876721",
+        //                     "totalNtlPos": "49.05315",
+        //                     "totalRawUsd": "118.929871",
+        //                     "totalMarginUsed": "49.05315"
+        //                 },
+        //                 "crossMarginSummary": {
+        //                     "accountValue": "69.876721",
+        //                     "totalNtlPos": "49.05315",
+        //                     "totalRawUsd": "118.929871",
+        //                     "totalMarginUsed": "49.05315"
+        //                 },
+        //                 "crossMaintenanceMarginUsed": "0.613164",
+        //                 "withdrawable": "20.823571",
+        //                 "assetPositions": [
+        //                     {
+        //                         "type": "oneWay",
+        //                         "position": {
+        //                             "coin": "BTC",
+        //                             "szi": "-0.00045",
+        //                             "leverage": {
+        //                                 "type": "cross",
+        //                                 "value": 1
+        //                             },
+        //                             "entryPx": "108748.0",
+        //                             "positionValue": "49.05315",
+        //                             "unrealizedPnl": "-0.11655",
+        //                             "returnOnEquity": "-0.002381653",
+        //                             "liquidationPx": "261025.7799725652",
+        //                             "marginUsed": "49.05315",
+        //                             "maxLeverage": 40,
+        //                             "cumFunding": {
+        //                                 "allTime": "-0.000611",
+        //                                 "sinceOpen": "-0.000611",
+        //                                 "sinceChange": "-0.000611"
+        //                             }
+        //                         }
+        //                     }
+        //                 ],
+        //                 "time": 1751622240924
+        //             },
+        //             "spotState": {
+        //                 "balances": [
+        //                     {
+        //                         "coin": "USDC",
+        //                         "token": 0,
+        //                         "total": "16.0",
+        //                         "hold": "0.0",
+        //                         "entryNtl": "0.0"
+        //                     },
+        //                     {
+        //                         "coin": "HYPE",
+        //                         "token": 1105,
+        //                         "total": "0.09993",
+        //                         "hold": "0.0",
+        //                         "entryNtl": "14.0"
+        //                     }
+        //                 ]
+        //             }
+        //         }
+        //     ]
+        //
+        if (isSubAccount) {
+            for (let i = 0; i < response.length; i++) {
+                const subAccount = response[i];
+                const subAccountUserAddress = this.safeString (subAccount, 'subAccountUser');
+                if (subAccountUserAddress === subAccountUser) {
+                    const typeKey = (isSpot) ? 'spotState' : 'clearinghouseState';
+                    response = this.safeDict (subAccount, typeKey);
+                }
+            }
+            // throw error if subaccount isn't existed
+            if (Array.isArray (response)) {
+                throw new InvalidAddress (this.id + ' subAccountUser ' + subAccountUser + ' is not existed');
+            }
+        }
         const balances = this.safeList (response, 'balances');
         if (balances !== undefined) {
             const spotBalances: Dict = { 'info': response };
