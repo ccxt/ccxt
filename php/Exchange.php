@@ -1114,6 +1114,10 @@ class Exchange {
         return json_encode($data, $flags);
     }
 
+    public static function orderbook_to_dict($orderbook) {
+        return json_decode(json_encode($orderbook), true);
+    }
+
     public static function is_json_encoded_object($input) {
         return ('string' === gettype($input)) &&
                 (strlen($input) >= 2) &&
