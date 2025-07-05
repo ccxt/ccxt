@@ -537,6 +537,13 @@ function assertOrderState (exchange, skippedProperties, method, order, assertedS
     }
 }
 
+function getNonInactiveMarkets (exchange) {
+    const filteredActive = exchange.filterBy (exchange.markets, 'active', true);
+    const filteredUndefined = exchange.filterBy (exchange.markets, 'active', undefined);
+    const all = exchange.arrayConcat (filteredActive, filteredUndefined);
+    return all;
+}
+
 function removeProxyOptions (exchange: Exchange, skippedProperties: object) {
     const proxyUrl = exchange.checkProxyUrlSettings ();
     const [ httpProxy, httpsProxy, socksProxy ] = exchange.checkProxySettings ();
@@ -639,4 +646,5 @@ export default {
     assertNonEmtpyArray,
     assertRoundMinuteTimestamp,
     concat,
+    getNonInactiveMarkets,
 };
