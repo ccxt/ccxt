@@ -859,7 +859,7 @@ export default class coinex extends Exchange {
                 'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'margin': undefined,
+                'margin': this.safeBool (market, 'is_margin_available'),
                 'swap': false,
                 'future': false,
                 'option': false,
