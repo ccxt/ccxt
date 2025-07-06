@@ -865,7 +865,7 @@ class coinex(Exchange, ImplicitAPI):
                 'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'margin': None,
+                'margin': self.safe_bool(market, 'is_margin_available'),
                 'swap': False,
                 'future': False,
                 'option': False,
