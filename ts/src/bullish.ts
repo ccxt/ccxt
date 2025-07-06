@@ -213,6 +213,7 @@ export default class bullish extends Exchange {
             'precisionMode': TICK_SIZE,
             // exchange-specific options
             'options': {
+                'tokenExpires': undefined, // used for the login endpoint
                 'networks': {
                     'BTC': 'BTC',
                     'EOS': 'EOS',
@@ -2465,8 +2466,11 @@ export default class bullish extends Exchange {
                 headers['BX-PUBLIC-KEY'] = this.apiKey;
             } else {
                 const token = this.token;
-                if (token === undefined) {
+                const tokenExpires = this.safeInteger (this.options, 'tokenExpires', 0);
+                if ((token === undefined)) {
                     throw new AuthenticationError (this.id + ' requires a token, please call signIn() first');
+                } else if (this.milliseconds () > tokenExpires) {
+                    throw new AuthenticationError (this.id + ' token has expired, please call signIn()');
                 }
                 headers['Authorization'] = 'Bearer ' + token;
                 // headers['BX-NONCE-WINDOW-ENABLED'] = 'false'; // default is false
@@ -2500,6 +2504,7 @@ export default class bullish extends Exchange {
         //
         const token = this.safeString (response, 'token');
         this.token = token;
+        this.options['tokenExpires'] = this.sum (this.milliseconds (), 1000 * 60 * 60 * 24); // token expires in 24 hours
         return response;
     }
 
