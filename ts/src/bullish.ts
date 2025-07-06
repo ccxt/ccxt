@@ -2466,11 +2466,8 @@ export default class bullish extends Exchange {
                 headers['BX-PUBLIC-KEY'] = this.apiKey;
             } else {
                 const token = this.token;
-                const tokenExpires = this.safeInteger (this.options, 'tokenExpires', 0);
                 if ((token === undefined)) {
                     throw new AuthenticationError (this.id + ' requires a token, please call signIn() first');
-                } else if (this.milliseconds () > tokenExpires) {
-                    throw new AuthenticationError (this.id + ' token has expired, please call signIn()');
                 }
                 headers['Authorization'] = 'Bearer ' + token;
                 // headers['BX-NONCE-WINDOW-ENABLED'] = 'false'; // default is false
