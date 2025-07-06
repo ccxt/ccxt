@@ -37,7 +37,7 @@ public partial class Exchange
         return async (Message message) =>
         {
             var error = message.payload;
-            if (error != null && !(message.error is ExchangeClosedByUser) && !(message.error is ccxt.ConsumerFunctionError))
+            if (error != null && !(message.error is ExchangeClosedByUser) && !(message.error is ConsumerFunctionError))
             {
                 try
                 {
