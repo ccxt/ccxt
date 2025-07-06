@@ -788,7 +788,7 @@ export default class coinex extends Exchange {
                         'max': undefined,
                     },
                 },
-                'networks': {},
+                'networks': networks,
                 'type': 'crypto',
                 'info': coin,
             });
