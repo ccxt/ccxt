@@ -126,24 +126,16 @@
         ],
         "fetchTrades": [
             {
-                "description": "Fetch trades with since and until parameters",
+                "description": "Fetch trades with since and until",
                 "method": "fetchTrades",
-                "url": "https://api.simnext.bullish-test.com/trading-api/v1/history/markets/BTCUSDC/trades?createdAtDatetime[gte]=2025-06-10T11:24:15.000Z&_pageSize=100",
+                "url": "https://api.exchange.bullish.com/trading-api/v1/history/markets/BTCUSDC/trades?createdAtDatetime[gte]=2025-06-10T11:24:15.000Z&createdAtDatetime[lte]=2025-06-10T10:24:15.000Z&_pageSize=100",
                 "input": [
                     "BTC/USDC",
                     1749554655000,
+                    null,
                     {
-                        "util": 1749551055000
+                        "until": 1749551055000
                     }
-                ],
-                "output": null
-            },
-            {
-                "description": "Fetch trades for BTC/USDC",
-                "method": "fetchTrades",
-                "url": "https://api.simnext.bullish-test.com/trading-api/v1/markets/BTCUSDC/trades",
-                "input": [
-                    "BTC/USDC"
                 ],
                 "output": null
             },
