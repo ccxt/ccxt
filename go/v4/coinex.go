@@ -872,7 +872,7 @@ func  (this *coinex) FetchSpotMarkets(params interface{}) <- chan interface{} {
                     "settleId": nil,
                     "type": "spot",
                     "spot": true,
-                    "margin": nil,
+                    "margin": this.SafeBool(market, "is_margin_available"),
                     "swap": false,
                     "future": false,
                     "option": false,
