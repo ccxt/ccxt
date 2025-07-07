@@ -3962,7 +3962,7 @@ export default class Exchange {
         if (vwap === undefined) {
             vwap = Precise.stringDiv (this.omitZero (quoteVolume), baseVolume);
         }
-        [ close, open, change, percentage, average ] = this.safeTickerCalculationHelper (open, close, change, percentage, average, market);
+        [ open, close, change, percentage, average ] = this.safeTickerCalculationHelper (open, close, change, percentage, average, market);
         // timestamp and symbol operations don't belong in safeTicker
         // they should be done in the derived classes
         const closeParsed = this.parseNumber (this.omitZero (close));
@@ -4002,22 +4002,27 @@ export default class Exchange {
                 const openAddClose = Precise.stringMul (average, '2');
                 // openAddClose = open * (1 + (100 + percentage)/100)
                 const denominator = Precise.stringAdd ('2', Precise.stringDiv (percentage, '100'));
-                const calculatedOpen = (open !== undefined) ? open : Precise.stringDiv (openAddClose, denominator);
-                close = Precise.stringMul (calculatedOpen, Precise.stringAdd ('1', Precise.stringDiv (percentage, '100')));
+                const calcOpen = (open !== undefined) ? open : Precise.stringDiv (openAddClose, denominator);
+                close = Precise.stringMul (calcOpen, Precise.stringAdd ('1', Precise.stringDiv (percentage, '100')));
             }
             if (open === undefined && close !== undefined) {
                 open = Precise.stringDiv (close, Precise.stringAdd ('1', Precise.stringDiv (percentage, '100')));
             }
         }
         // calculate things according to "open" (similar can be done with "close")
+        // change
+        if (change === undefined) {
+            if (close !== undefined && open !== undefined) {
+                change = Precise.stringSub (close, open);
+            } else if (close !== undefined && percentage !== undefined) {
+                change = Precise.stringMul (Precise.stringDiv (percentage, '100'), Precise.stringDiv (close, '100'));
+            } else if (open !== undefined && percentage !== undefined) {
+                change = Precise.stringMul (Precise.stringDiv (percentage, '100'), Precise.stringDiv (open, '100'));
+            }
+        }
         if (open !== undefined) {
-            // change
-            if (change === undefined) {
-                if (percentage !== undefined) {
-                    change = Precise.stringMul (Precise.stringDiv (percentage, '100'), open);
-                } else if (close !== undefined) {
-                    change = Precise.stringSub (close, open);
-                }
+            if (change === undefined && close !== undefined) {
+                change = Precise.stringSub (close, open);
             }
             // percentage (using change)
             if (percentage === undefined && change !== undefined) {
@@ -4044,7 +4049,7 @@ export default class Exchange {
                 average = Precise.stringDiv (Precise.stringAdd (open, close), '2', precision);
             }
         }
-        return [ close, open, change, percentage, average ];
+        return [ open, close, change, percentage, average ];
     }
 
     async fetchBorrowRate (code: string, amount: number, params = {}): Promise<{}> {
