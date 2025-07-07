@@ -16,7 +16,7 @@ export default class bullish extends bullishRest {
                 'watchTicker': true,
                 'watchTickers': false,
                 'watchOrderBook': true,
-                'watchOrders': false,
+                'watchOrders': true,
                 'watchTrades': true,
                 'watchPositions': false,
                 'watchMyTrades': false,
@@ -360,8 +360,7 @@ export default class bullish extends bullishRest {
         const subscribeHash = 'orders';
         let messageHash = subscribeHash;
         if (symbol !== undefined) {
-            const market = this.market (symbol);
-            symbol = market['symbol'];
+            symbol = this.symbol (symbol);
             messageHash = messageHash + '::' + symbol;
         }
         const request: Dict = {
@@ -374,8 +373,16 @@ export default class bullish extends bullishRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrder (client: Client, message) {
+    handleOrders (client: Client, message) {
+        // snapshot
+        //     {
+        //         "type": "snapshot",
+        //         "tradingAccountId": "111309424211255",
+        //         "dataType": "V1TAOrder",
+        //         "data": [ ... ] // could be an empty list or a list of orders
+        //     }
         //
+        // update
         //     {
         //         "type": "update",
         //         "tradingAccountId": "111309424211255",
@@ -411,20 +418,124 @@ export default class bullish extends bullishRest {
         //         }
         //     }
         //
-        const data = this.safeValue (message, 'data'); // could be an empty list
-        const parsed = this.parseOrder (data);
-        const symbol = this.safeString (parsed, 'symbol');
-        if (symbol !== undefined) {
+        const type = this.safeString (message, 'type');
+        let rawOrders = [];
+        if (type === 'update') {
+            const data = this.safeDict (message, 'data', {});
+            rawOrders = [ data ]; // update is a single order
+        } else {
+            rawOrders = this.safeList (message, 'data', []); // snapshot is a list of orders
+        }
+        if (rawOrders.length > 0) {
+            const messageHash = 'orders';
             if (this.orders === undefined) {
                 const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
                 this.orders = new ArrayCacheBySymbolById (limit);
             }
             const orders = this.orders;
-            orders.append (parsed);
-            const messageHash = 'orders';
-            const symbolMessageHash = messageHash + '::' + symbol;
-            client.resolve (orders, symbolMessageHash);
+            for (let i = 0; i < rawOrders.length; i++) {
+                const rawOrder = rawOrders[i];
+                const parsedOrder = this.parseOrder (rawOrder);
+                const symbol = this.safeString (parsedOrder, 'symbol');
+                orders.append (parsedOrder);
+                const symbolMessageHash = messageHash + '::' + symbol;
+                client.resolve (orders, symbolMessageHash);
+            }
             client.resolve (orders, messageHash);
+        }
+    }
+
+    /**
+     * @method
+     * @name bullish#watchMyTrades
+     * @description watches information on multiple trades made by the user
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#overview--private-data-websocket-authenticated
+     * @param {string} symbol unified market symbol of the market trades were made in
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        const subscribeHash = 'myTrades';
+        let messageHash = subscribeHash;
+        if (symbol !== undefined) {
+            symbol = this.symbol (symbol);
+            messageHash += '::' + symbol;
+        }
+        const request: Dict = {
+            'topic': 'trades',
+        };
+        const trades = await this.watchPrivate (messageHash, subscribeHash, request, params);
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    handleMyTrades (client: Client, message) {
+        //
+        // snapshot
+        //     {
+        //         "type": "snapshot",
+        //         "tradingAccountId": "111309424211255",
+        //         "dataType": "V1TATrade",
+        //         "data": [ ... ] // could be an empty list or a list of trades
+        //     }
+        //
+        // update
+        //     {
+        //         "type": "update",
+        //         "tradingAccountId": "111309424211255",
+        //         "dataType": "V1TATrade",
+        //         "data": {
+        //             "clientOtcTradeId": null,
+        //             "tradeId": "100203000003940164",
+        //             "baseFee": "0.00000000",
+        //             "isTaker": true,
+        //             "quoteAmount": "253.6012195",
+        //             "price": "2536.0121950",
+        //             "createdAtTimestamp": "1751914859840",
+        //             "quoteFee": "0.0000000",
+        //             "tradeRebateAmount": null,
+        //             "tradeRebateAssetSymbol": null,
+        //             "handle": null,
+        //             "otcTradeId": null,
+        //             "otcMatchId": null,
+        //             "orderId": "862407873644725249",
+        //             "quantity": "0.10000000",
+        //             "publishedAtTimestamp": "1751914859843",
+        //             "side": "SELL",
+        //             "createdAtDatetime": "2025-07-07T19:00:59.840Z",
+        //             "symbol": "ETHUSDT"
+        //         }
+        //     }
+        //
+        const type = this.safeString (message, 'type');
+        let rawTrades = [];
+        if (type === 'update') {
+            const data = this.safeDict (message, 'data', {});
+            rawTrades = [ data ]; // update is a single trade
+        } else {
+            rawTrades = this.safeList (message, 'data', []); // snapshot is a list of trades
+        }
+        if (rawTrades.length > 0) {
+            if (this.myTrades === undefined) {
+                const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+                this.myTrades = new ArrayCacheBySymbolById (limit);
+            }
+            const trades = this.myTrades;
+            const messageHash = 'myTrades';
+            for (let i = 0; i < rawTrades.length; i++) {
+                const rawTrade = rawTrades[i];
+                const parsedTrade = this.parseTrade (rawTrade);
+                const symbol = this.safeString (parsedTrade, 'symbol');
+                trades.append (parsedTrade);
+                const symbolMessageHash = messageHash + '::' + symbol;
+                client.resolve (trades, symbolMessageHash);
+            }
+            client.resolve (trades, messageHash);
         }
     }
 
@@ -441,7 +552,10 @@ export default class bullish extends bullishRest {
                 this.handleOrderBook (client, message);
             }
             if (dataType === 'V1TAOrder') {
-                this.handleOrder (client, message);
+                this.handleOrders (client, message);
+            }
+            if (dataType === 'V1TATrade') {
+                this.handleMyTrades (client, message);
             }
         }
     }
