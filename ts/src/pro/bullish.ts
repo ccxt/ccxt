@@ -2,8 +2,8 @@
 //  ---------------------------------------------------------------------------
 
 import bullishRest from '../bullish.js';
-import { ArrayCache } from '../base/ws/Cache.js';
-import type { Dict, Int, OrderBook, Ticker, Trade } from '../base/types.js';
+import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import type { Dict, Int, Order, OrderBook, Str, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -82,7 +82,7 @@ export default class bullish extends bullishRest {
         return await this.watch (fullUrl, messageHash, this.deepExtend (message, params), messageHash);
     }
 
-    async watchPrivate (methodName: string, messageHash: string, request = {}, params = {}): Promise<any> {
+    async watchPrivate (messageHash: string, subscribeHash: string, request = {}, params = {}): Promise<any> {
         const url = this.urls['api']['ws']['private'];
         let token = this.token;
         const now = this.milliseconds ();
@@ -95,7 +95,6 @@ export default class bullish extends bullishRest {
             'JWT_COOKIE': token,
         };
         this.options['ws']['cookies'] = cookies;
-        request['topic'] = 'orders';
         const id = this.requestId ().toString ();
         const message = {
             'jsonrpc': '2.0',
@@ -104,7 +103,7 @@ export default class bullish extends bullishRest {
             'params': request,
             'id': id,
         };
-        const result = await this.watch (url, messageHash, this.deepExtend (message, params), messageHash);
+        const result = await this.watch (url, messageHash, this.deepExtend (message, params), subscribeHash);
         return result;
     }
 
@@ -345,6 +344,90 @@ export default class bullish extends bullishRest {
         return result;
     }
 
+    /**
+     * @method
+     * @name bullish#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#overview--private-data-websocket-authenticated
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        const subscribeHash = 'orders';
+        let messageHash = subscribeHash;
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            symbol = market['symbol'];
+            messageHash = messageHash + '::' + symbol;
+        }
+        const request: Dict = {
+            'topic': 'orders',
+        };
+        const orders = await this.watchPrivate (messageHash, subscribeHash, request, params);
+        if (this.newUpdates) {
+            limit = orders.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+    }
+
+    handleOrder (client: Client, message) {
+        //
+        //     {
+        //         "type": "update",
+        //         "tradingAccountId": "111309424211255",
+        //         "dataType": "V1TAOrder",
+        //         "data": {
+        //             "status": "OPEN",
+        //             "createdAtTimestamp": "1751893427971",
+        //             "quoteFee": "0.000000",
+        //             "stopPrice": null,
+        //             "quantityFilled": "0.00000000",
+        //             "handle": null,
+        //             "clientOrderId": null,
+        //             "quantity": "0.10000000",
+        //             "margin": false,
+        //             "side": "BUY",
+        //             "createdAtDatetime": "2025-07-07T13:03:47.971Z",
+        //             "isLiquidation": false,
+        //             "borrowedQuoteQuantity": null,
+        //             "borrowedBaseQuantity": null,
+        //             "timeInForce": "GTC",
+        //             "borrowedQuantity": null,
+        //             "baseFee": "0.000000",
+        //             "quoteAmount": "0.0000000",
+        //             "price": "0.0000000",
+        //             "statusReason": "Order accepted",
+        //             "type": "MKT",
+        //             "statusReasonCode": 6014,
+        //             "allowBorrow": false,
+        //             "orderId": "862317981870850049",
+        //             "publishedAtTimestamp": "1751893427975",
+        //             "symbol": "ETHUSDT",
+        //             "averageFillPrice": null
+        //         }
+        //     }
+        //
+        const data = this.safeValue (message, 'data'); // could be an empty list
+        const parsed = this.parseOrder (data);
+        const symbol = this.safeString (parsed, 'symbol');
+        if (symbol !== undefined) {
+            if (this.orders === undefined) {
+                const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+                this.orders = new ArrayCacheBySymbolById (limit);
+            }
+            const orders = this.orders;
+            orders.append (parsed);
+            const messageHash = 'orders';
+            const symbolMessageHash = messageHash + '::' + symbol;
+            client.resolve (orders, symbolMessageHash);
+            client.resolve (orders, messageHash);
+        }
+    }
+
     handleMessage (client: Client, message) {
         const dataType = this.safeString (message, 'dataType');
         if (dataType !== undefined) {
@@ -356,6 +439,9 @@ export default class bullish extends bullishRest {
             }
             if (dataType === 'V1TALevel2') {
                 this.handleOrderBook (client, message);
+            }
+            if (dataType === 'V1TAOrder') {
+                this.handleOrder (client, message);
             }
         }
     }
