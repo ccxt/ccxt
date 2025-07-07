@@ -1971,6 +1971,36 @@
                     }
                 ]
             }
+        ],
+        "fetchTradingFee": [
+            {
+                "description": "fetchTradingFee",
+                "method": "fetchTradingFee",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "data": {
+                        "symbol": "PERP_BTC_USDT",
+                        "takerFee": "5",
+                        "makerFee": "2"
+                    },
+                    "timestamp": 1751859421833
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "PERP_BTC_USDT",
+                        "takerFee": "5",
+                        "makerFee": "2"
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "maker": 0.02,
+                    "taker": 0.05,
+                    "percentage": null,
+                    "tierBased": null
+                }
+            }
         ]
     }
 }

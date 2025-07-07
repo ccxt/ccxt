@@ -620,6 +620,16 @@
                 "input": []
             }
         ],
+        "fetchTradingFee": [
+            {
+                "description": "fetchTradingFee",
+                "method": "fetchTradingFee",
+                "url": "https://api.woox.io/v3/trade/tradingFee?symbol=PERP_BTC_USDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
         "fetchTradingFees": [
             {
                 "description": "fetchTradingFees",
