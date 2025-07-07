@@ -3,9 +3,8 @@
 
 import bullishRest from '../bullish.js';
 import { ArrayCache } from '../base/ws/Cache.js';
-import type { Dict, Int, OrderBook, Str, Ticker, Trade } from '../base/types.js';
+import type { Dict, Int, OrderBook, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import { ArgumentsRequired } from '../base/errors.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -46,18 +45,38 @@ export default class bullish extends bullishRest {
             },
             'streaming': {
                 'ping': this.ping,
-                'keepAlive': 299000,
+                'keepAlive': 99000,
             },
         });
     }
 
+    requestId () {
+        const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
+        this.options['requestId'] = requestId;
+        return requestId;
+    }
+
+    ping (client: Client) {
+        // bullish does not support built-in ws protocol-level ping-pong
+        // https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#overview--keep-websocket-open
+        const id = this.requestId ().toString ();
+        return {
+            'jsonrpc': '2.0',
+            'type': 'command',
+            'method': 'keepalivePing',
+            'params': {},
+            'id': id,
+        };
+    }
+
     async watchPublic (url: string, messageHash: string, request = {}, params = {}): Promise<any> {
+        const id = this.requestId ().toString ();
         const message = {
             'jsonrpc': '2.0',
             'type': 'command',
             'method': 'subscribe',
             'params': request,
-            'id': this.milliseconds (),
+            'id': id,
         };
         const fullUrl = this.urls['api']['ws']['public'] + url;
         return await this.watch (fullUrl, messageHash, this.deepExtend (message, params), messageHash);
@@ -65,24 +84,25 @@ export default class bullish extends bullishRest {
 
     async watchPrivate (methodName: string, messageHash: string, request = {}, params = {}): Promise<any> {
         const url = this.urls['api']['ws']['private'];
-        await this.signIn ();
-        let tradingAccountId: Str = undefined;
-        [ tradingAccountId, params ] = this.handleOptionAndParams (params, methodName, 'tradingAccountId');
-        if (tradingAccountId === undefined) {
-            throw new ArgumentsRequired (this.id + ' ' + methodName + ' requires a tradingAccountId parameter');
+        let token = this.token;
+        const now = this.milliseconds ();
+        const tokenExpires = this.safeInteger (this.options, 'tokenExpires');
+        if ((token !== undefined) || (tokenExpires === undefined) || (now > tokenExpires)) {
+            await this.signIn ();
+            token = this.token;
         }
-        const token = this.token;
         const cookies = {
             'JWT_COOKIE': token,
         };
         this.options['ws']['cookies'] = cookies;
         request['topic'] = 'orders';
+        const id = this.requestId ().toString ();
         const message = {
             'jsonrpc': '2.0',
             'type': 'command',
             'method': 'subscribe',
             'params': request,
-            'id': this.milliseconds (),
+            'id': id,
         };
         const result = await this.watch (url, messageHash, this.deepExtend (message, params), messageHash);
         return result;
