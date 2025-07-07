@@ -796,7 +796,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @param {string} [params.type] wallet type, ['spot', 'swap'], defaults to swap
      * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
-     * @param {string} [params.subAccountUser] sub account user address
+     * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
@@ -806,11 +806,11 @@ export default class hyperliquid extends Exchange {
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBalance', params);
-        let subAccountUser = undefined;
-        [ subAccountUser, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'subAccountUser');
+        let subAccountAddress = undefined;
+        [ subAccountAddress, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'subAccountAddress');
         const isSpot = (type === 'spot');
         let reqType = (isSpot) ? 'spotClearinghouseState' : 'clearinghouseState';
-        const isSubAccount = (subAccountUser !== undefined);
+        const isSubAccount = (subAccountAddress !== undefined);
         if (isSubAccount) {
             reqType = 'subAccounts';
         }
@@ -927,14 +927,14 @@ export default class hyperliquid extends Exchange {
             for (let i = 0; i < response.length; i++) {
                 const subAccount = response[i];
                 const subAccountUserAddress = this.safeString (subAccount, 'subAccountUser');
-                if (subAccountUserAddress === subAccountUser) {
+                if (subAccountUserAddress === subAccountAddress) {
                     const typeKey = (isSpot) ? 'spotState' : 'clearinghouseState';
                     response = this.safeDict (subAccount, typeKey);
                 }
             }
             // throw error if subaccount isn't existed
             if (Array.isArray (response)) {
-                throw new InvalidAddress (this.id + ' subAccountUser ' + subAccountUser + ' is not existed');
+                throw new InvalidAddress (this.id + ' subAccountAddress ' + subAccountAddress + ' is not existed');
             }
         }
         const balances = this.safeList (response, 'balances');
