@@ -213,7 +213,6 @@ export default class bullish extends Exchange {
             'precisionMode': TICK_SIZE,
             // exchange-specific options
             'options': {
-                'tokenExpires': undefined, // used for the login endpoint
                 'networks': {
                     'BTC': 'BTC',
                     'EOS': 'EOS',
