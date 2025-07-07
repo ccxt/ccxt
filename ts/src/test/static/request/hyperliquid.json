@@ -658,12 +658,11 @@
                 "url": "https://api.hyperliquid.xyz/info",
                 "input": [
                     {
-                        "type": "subAccounts",
-                        "user": "0x3B3741c0EFf9C6b556Ec813e70589161F416662A",
+                        "type": "spot",
                         "subAccountAddress": "0x3B3741c0EFf9C6b556Ec813e70589161F416661B"
                     }
                 ],
-                "output": "{\"type\":\"subAccounts\",\"user\":\"0x3B3741c0EFf9C6b556Ec813e70589161F416662A\"}"
+                "output": "{\"type\":\"spotClearinghouseState\",\"user\":\"0x3B3741c0EFf9C6b556Ec813e70589161F416661B\"}"
             }
         ],
         "fetchOrderBook": [

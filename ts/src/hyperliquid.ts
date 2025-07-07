@@ -806,19 +806,12 @@ export default class hyperliquid extends Exchange {
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBalance', params);
-        let subAccountAddress = undefined;
-        [ subAccountAddress, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'subAccountAddress');
         const isSpot = (type === 'spot');
-        let reqType = (isSpot) ? 'spotClearinghouseState' : 'clearinghouseState';
-        const isSubAccount = (subAccountAddress !== undefined);
-        if (isSubAccount) {
-            reqType = 'subAccounts';
-        }
         const request: Dict = {
-            'type': reqType,
+            'type': (isSpot) ? 'spotClearinghouseState' : 'clearinghouseState',
             'user': userAddress,
         };
-        let response = await this.publicPostInfo (this.extend (request, params));
+        const response = await this.publicPostInfo (this.extend (request, params));
         //
         //     {
         //         "assetPositions": [],
@@ -854,89 +847,6 @@ export default class hyperliquid extends Exchange {
         //            }
         //     }
         //
-        // subAccounts
-        //     [
-        //         {
-        //             "name": "ccxtsc0vu",
-        //             "subAccountUser": "0xxxxxxxxxxxxxxx",
-        //             "master": "0x754e6a9e4bc74d119263fd249fac5d876d0d10ee",
-        //             "clearinghouseState": {
-        //                 "marginSummary": {
-        //                     "accountValue": "69.876721",
-        //                     "totalNtlPos": "49.05315",
-        //                     "totalRawUsd": "118.929871",
-        //                     "totalMarginUsed": "49.05315"
-        //                 },
-        //                 "crossMarginSummary": {
-        //                     "accountValue": "69.876721",
-        //                     "totalNtlPos": "49.05315",
-        //                     "totalRawUsd": "118.929871",
-        //                     "totalMarginUsed": "49.05315"
-        //                 },
-        //                 "crossMaintenanceMarginUsed": "0.613164",
-        //                 "withdrawable": "20.823571",
-        //                 "assetPositions": [
-        //                     {
-        //                         "type": "oneWay",
-        //                         "position": {
-        //                             "coin": "BTC",
-        //                             "szi": "-0.00045",
-        //                             "leverage": {
-        //                                 "type": "cross",
-        //                                 "value": 1
-        //                             },
-        //                             "entryPx": "108748.0",
-        //                             "positionValue": "49.05315",
-        //                             "unrealizedPnl": "-0.11655",
-        //                             "returnOnEquity": "-0.002381653",
-        //                             "liquidationPx": "261025.7799725652",
-        //                             "marginUsed": "49.05315",
-        //                             "maxLeverage": 40,
-        //                             "cumFunding": {
-        //                                 "allTime": "-0.000611",
-        //                                 "sinceOpen": "-0.000611",
-        //                                 "sinceChange": "-0.000611"
-        //                             }
-        //                         }
-        //                     }
-        //                 ],
-        //                 "time": 1751622240924
-        //             },
-        //             "spotState": {
-        //                 "balances": [
-        //                     {
-        //                         "coin": "USDC",
-        //                         "token": 0,
-        //                         "total": "16.0",
-        //                         "hold": "0.0",
-        //                         "entryNtl": "0.0"
-        //                     },
-        //                     {
-        //                         "coin": "HYPE",
-        //                         "token": 1105,
-        //                         "total": "0.09993",
-        //                         "hold": "0.0",
-        //                         "entryNtl": "14.0"
-        //                     }
-        //                 ]
-        //             }
-        //         }
-        //     ]
-        //
-        if (isSubAccount) {
-            for (let i = 0; i < response.length; i++) {
-                const subAccount = response[i];
-                const subAccountUserAddress = this.safeString (subAccount, 'subAccountUser');
-                if (subAccountUserAddress === subAccountAddress) {
-                    const typeKey = (isSpot) ? 'spotState' : 'clearinghouseState';
-                    response = this.safeDict (subAccount, typeKey);
-                }
-            }
-            // throw error if subaccount isn't existed
-            if (Array.isArray (response)) {
-                throw new InvalidAddress (this.id + ' subAccountAddress ' + subAccountAddress + ' is not existed');
-            }
-        }
         const balances = this.safeList (response, 'balances');
         if (balances !== undefined) {
             const spotBalances: Dict = { 'info': response };
@@ -1293,6 +1203,7 @@ export default class hyperliquid extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest trade
      * @param {string} [params.address] wallet address that made trades
      * @param {string} [params.user] wallet address that made trades
+     * @param {string} [params.subAccountAddress] sub account user address
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
     async fetchTrades (symbol: Str, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -2279,6 +2190,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @param {string} [params.method] 'openOrders' or 'frontendOpenOrders' default is 'frontendOpenOrders'
+     * @param {string} [params.subAccountAddress] sub account user address
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -2381,6 +2293,7 @@ export default class hyperliquid extends Exchange {
      * @param {int} [limit] the maximum number of open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @param {string} [params.subAccountAddress] sub account user address
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -2418,6 +2331,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -2653,6 +2567,7 @@ export default class hyperliquid extends Exchange {
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest trade
+     * @param {string} [params.subAccountAddress] sub account user address
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -2780,6 +2695,7 @@ export default class hyperliquid extends Exchange {
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
@@ -3360,6 +3276,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
      */
     async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
@@ -3470,6 +3387,7 @@ export default class hyperliquid extends Exchange {
      * @param {int} [limit] max number of ledger entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest ledger entry
+     * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
@@ -3565,6 +3483,7 @@ export default class hyperliquid extends Exchange {
      * @param {int} [limit] the maximum number of deposits structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch withdrawals for
+     * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -3611,6 +3530,7 @@ export default class hyperliquid extends Exchange {
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch withdrawals for
+     * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
@@ -3721,6 +3641,7 @@ export default class hyperliquid extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch funding history for
      * @param {int} [limit] the maximum number of funding history structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
      */
     async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -3822,7 +3743,7 @@ export default class hyperliquid extends Exchange {
 
     handlePublicAddress (methodName: string, params: Dict) {
         let userAux = undefined;
-        [ userAux, params ] = this.handleOptionAndParams (params, methodName, 'user');
+        [ userAux, params ] = this.handleOptionAndParams2 (params, methodName, 'user', 'subAccountAddress');
         let user = userAux;
         [ user, params ] = this.handleOptionAndParams (params, methodName, 'address', userAux);
         if ((user !== undefined) && (user !== '')) {
