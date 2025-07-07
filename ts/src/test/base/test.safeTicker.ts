@@ -6,6 +6,11 @@ import Precise from '../../base/Precise.js';
 import ccxt from '../../../ccxt.js';
 
 
+
+function preciseEqualStr (exchange:any, result: any, key: string, expected: string) {
+    return Precise.stringEq (exchange.safeString (result, key), expected);
+}
+
 function testSafeTicker () {
 
     const exchange = new ccxt.Exchange ({
@@ -18,10 +23,10 @@ function testSafeTicker () {
         'change': 1.0,
     };
     const result1 = exchange.safeTicker (ticker1);
-    assert (result1['percentage'] === 20.0);
-    assert (result1['average'] === 5.5);
-    assert (result1['close'] === 6.0);
-    assert (result1['last'] === 6.0);
+    assert (preciseEqualStr (exchange, result1, 'percentage', '20.0'));
+    assert (preciseEqualStr (exchange, result1, 'average', '5.5'));
+    assert (preciseEqualStr (exchange, result1, 'close', '6.0'));
+    assert (preciseEqualStr (exchange, result1, 'last', '6.0'));
 
     // CASE 2 - by open
     const ticker2 = {
@@ -29,10 +34,10 @@ function testSafeTicker () {
         'percentage': 20.0,
     };
     const result2 = exchange.safeTicker (ticker2);
-    assert (result2['change'] === 1.0);
-    assert (result2['average'] === 5.5);
-    assert (result2['close'] === 6.0);
-    assert (result2['last'] === 6.0);
+    assert (preciseEqualStr (exchange, result2, 'change', '1.0'));
+    assert (preciseEqualStr (exchange, result2, 'average', '5.5'));
+    assert (preciseEqualStr (exchange, result2, 'close', '6.0'));
+    assert (preciseEqualStr (exchange, result2, 'last', '6.0'));
 
 
     // CASE 3 - by close
@@ -41,10 +46,10 @@ function testSafeTicker () {
         'change': 1.0,
     };
     const result3 = exchange.safeTicker (ticker3);
-    assert (result3['open'] === 5.0);
-    assert (result3['percentage'] === 20.0);
-    assert (result3['average'] === 5.5);
-    assert (result3['last'] === 6.0);
+    assert (preciseEqualStr (exchange, result3, 'open', '5.0'));
+    assert (preciseEqualStr (exchange, result3, 'percentage', '20.0'));
+    assert (preciseEqualStr (exchange, result3, 'average', '5.5'));
+    assert (preciseEqualStr (exchange, result3, 'last', '6.0'));
 
     // CASE 4 - by close
     const ticker4 = {
@@ -52,10 +57,10 @@ function testSafeTicker () {
         'percentage': 20.0,
     };
     const result4 = exchange.safeTicker (ticker4);
-    assert (result4['open'] === 5.0);
-    assert (result4['change'] === 1.0);
-    assert (result4['average'] === 5.5);
-    assert (result4['last'] === 6.0);
+    assert (preciseEqualStr (exchange, result4, 'open', '5.0'));
+    assert (preciseEqualStr (exchange, result4, 'change', '1.0'));
+    assert (preciseEqualStr (exchange, result4, 'average', '5.5'));
+    assert (preciseEqualStr (exchange, result4, 'last', '6.0'));
 
     // CASE 5 - by average
     const ticker5 = {
@@ -63,10 +68,10 @@ function testSafeTicker () {
         'percentage': 20.0,
     };
     const result5 = exchange.safeTicker (ticker5);
-    assert (result5['open'] === 5.0);
-    assert (result5['change'] === 1.0);
-    assert (result5['close'] === 6.0);
-    assert (result5['last'] === 6.0);
+    assert (preciseEqualStr (exchange, result5, 'open', '5.0'));
+    assert (preciseEqualStr (exchange, result5, 'change', '1.0'));
+    assert (preciseEqualStr (exchange, result5, 'close', '6.0'));
+    assert (preciseEqualStr (exchange, result5, 'last', '6.0'));
 
     // CASE 6
     const ticker6 = {
@@ -74,10 +79,10 @@ function testSafeTicker () {
         'change': 1.0,
     };
     const result6 = exchange.safeTicker (ticker6);
-    assert (result6['open'] === 5.0);
-    assert (result6['percentage'] === 20.0);
-    assert (result6['close'] === 6.0);
-    assert (result6['last'] === 6.0);
+    assert (preciseEqualStr (exchange, result6, 'open', '5.0'));
+    assert (preciseEqualStr (exchange, result6, 'percentage', '20.0'));
+    assert (preciseEqualStr (exchange, result6, 'close', '6.0'));
+    assert (preciseEqualStr (exchange, result6, 'last', '6.0'));
 
     // CASE 7 - by open and close
     const ticker7 = {
@@ -85,10 +90,10 @@ function testSafeTicker () {
         'close': 6.0,
     };
     const result7 = exchange.safeTicker (ticker7);
-    assert (result7['change'] === 1.0);
-    assert (result7['percentage'] === 20.0);
-    assert (result7['average'] === 5.5);
-    assert (result7['last'] === 6.0);
+    assert (preciseEqualStr (exchange, result7, 'change', '1.0'));
+    assert (preciseEqualStr (exchange, result7, 'percentage', '20.0'));
+    assert (preciseEqualStr (exchange, result7, 'average', '5.5'));
+    assert (preciseEqualStr (exchange, result7, 'last', '6.0'));
 }
 
 export default testSafeTicker;
