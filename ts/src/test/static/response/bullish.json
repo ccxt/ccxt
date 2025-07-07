@@ -2,6 +2,22 @@
     "exchange": "bullish",
     "skipKeys": [],
     "methods": {
+        "fetchTrades": [
+            {
+                "description": "Fetch trades with since and until",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDC",
+                    1749554655000,
+                    null,
+                    {
+                        "until": 1749551055000
+                    }
+                ],
+                "httpResponse": "[]",
+                "parsedResponse": []
+            }
+        ],
         "fetchBalance": [
             {
                 "description": "Fetch balance",
@@ -395,7 +411,7 @@
                     "type": "market",
                     "timeInForce": "GTC",
                     "postOnly": false,
-                    "side": "BUY",
+                    "side": "buy",
                     "price": 109645.1357,
                     "triggerPrice": null,
                     "amount": 1,
@@ -558,7 +574,7 @@
                         "type": "STOP_LIMIT",
                         "timeInForce": "GTC",
                         "postOnly": false,
-                        "side": "SELL",
+                        "side": "sell",
                         "price": 110000,
                         "triggerPrice": 100000,
                         "amount": 1,
@@ -665,7 +681,7 @@
                         "order": "100182000000516287",
                         "type": null,
                         "takerOrMaker": "maker",
-                        "side": "BUY",
+                        "side": "buy",
                         "price": 110000,
                         "amount": 1,
                         "cost": 110000,
