@@ -4001,9 +4001,9 @@ export default class Exchange {
             if (close === undefined && average !== undefined) {
                 const openAddClose = Precise.stringMul (average, '2');
                 // openAddClose = open * (1 + (100 + percentage)/100)
-                const denominator = Precise.stringAdd('2', Precise.stringDiv(percentage, '100'));
-                const calculatedOpen = (open !== undefined) ? open : Precise.stringDiv(openAddClose, denominator);
-                close = Precise.stringMul(calculatedOpen, Precise.stringAdd('1', Precise.stringDiv(percentage, '100')));
+                const denominator = Precise.stringAdd ('2', Precise.stringDiv (percentage, '100'));
+                const calculatedOpen = (open !== undefined) ? open : Precise.stringDiv (openAddClose, denominator);
+                close = Precise.stringMul (calculatedOpen, Precise.stringAdd ('1', Precise.stringDiv (percentage, '100')));
             }
             if (open === undefined && close !== undefined) {
                 open = Precise.stringDiv (close, Precise.stringAdd ('1', Precise.stringDiv (percentage, '100')));
