@@ -4009,7 +4009,6 @@ export default class Exchange {
                 open = Precise.stringDiv (close, Precise.stringAdd ('1', Precise.stringDiv (percentage, '100')));
             }
         }
-        // calculate things according to "open" (similar can be done with "close")
         // change
         if (change === undefined) {
             if (close !== undefined && open !== undefined) {
@@ -4020,10 +4019,8 @@ export default class Exchange {
                 change = Precise.stringMul (Precise.stringDiv (percentage, '100'), Precise.stringDiv (open, '100'));
             }
         }
+        // calculate things according to "open" (similar can be done with "close")
         if (open !== undefined) {
-            if (change === undefined && close !== undefined) {
-                change = Precise.stringSub (close, open);
-            }
             // percentage (using change)
             if (percentage === undefined && change !== undefined) {
                 percentage = Precise.stringMul (Precise.stringDiv (change, open), '100');
