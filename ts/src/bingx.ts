@@ -114,6 +114,7 @@ export default class bingx extends Exchange {
                     'account': 'https://open-api.{hostname}/openApi',
                     'copyTrading': 'https://open-api.{hostname}/openApi',
                     'cswap': 'https://open-api.{hostname}/openApi',
+                    'api': 'https://open-api.{hostname}/openApi',
                 },
                 'test': {
                     'swap': 'https://open-api-vst.{hostname}/openApi', // only swap is really "test" but since the API keys are the same, we want to keep all the functionalities when the user enables the sandboxmode
@@ -448,6 +449,15 @@ export default class bingx extends Exchange {
                             },
                             'post': {
                                 'post/asset/transfer': 1,
+                            },
+                        },
+                    },
+                    'asset': {
+                        'v1': {
+                            'private': {
+                                'post': {
+                                    'transfer': 5,
+                                },
                             },
                         },
                     },
@@ -6527,8 +6537,14 @@ export default class bingx extends Exchange {
         }
         let url = this.implodeHostname (this.urls['api'][type]);
         path = this.implodeParams (path, params);
-        if (version === 'transfer') {
-            type = 'account/transfer';
+        const versionIsTransfer = (version === 'transfer');
+        const versionIsAsset = (version === 'asset');
+        if (versionIsTransfer || versionIsAsset) {
+            if (versionIsTransfer) {
+                type = 'account/transfer';
+            } else {
+                type = 'api/asset';
+            }
             version = section[2];
             access = section[3];
         }
