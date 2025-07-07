@@ -23,6 +23,18 @@
                     1
                 ],
                 "output": "{\"nonce\":1748964667610,\"action\":{\"type\":\"scheduleCancel\",\"time\":1748964667611},\"signature\":{\"r\":\"0x2097f6619664dc6725d38970768c44094fc48510311b3cdbc2d6ac6396af16a9\",\"s\":\"0x1f0e8d2fee5d26d5c4022a84f3b7ece04e329f7fd8eada3a66d7fb8ab5d06605\",\"v\":28},\"vaultAddress\":\"cb4d9044aab9e5aa3965b470ebff554cc8820c7b\"}"
+            },
+            {
+                "description": "request with subAccount in options",
+                "options": {
+                    "subAccountAddress": "0xcb4d9044aab9e5aa3965b470ebff554cc8820c7b"
+                },
+                "method": "cancelAllOrdersAfter",
+                "url": "https://api.hyperliquid.xyz/exchange",
+                "input": [
+                    1
+                ],
+                "output": "{\"nonce\":1748964667610,\"action\":{\"type\":\"scheduleCancel\",\"time\":1748964667611},\"signature\":{\"r\":\"0x2097f6619664dc6725d38970768c44094fc48510311b3cdbc2d6ac6396af16a9\",\"s\":\"0x1f0e8d2fee5d26d5c4022a84f3b7ece04e329f7fd8eada3a66d7fb8ab5d06605\",\"v\":28},\"vaultAddress\":\"cb4d9044aab9e5aa3965b470ebff554cc8820c7b\"}"
             }
         ],
         "fetchCurrencies": [
@@ -485,6 +497,22 @@
                     }
                 ],
                 "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":5,\"b\":false,\"p\":\"142.5\",\"s\":\"2\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Ioc\"}}},{\"a\":5,\"b\":true,\"p\":\"40\",\"s\":\"2\",\"r\":true,\"t\":{\"trigger\":{\"isMarket\":false,\"triggerPx\":\"50\",\"tpsl\":\"tp\"}}},{\"a\":5,\"b\":true,\"p\":\"190\",\"s\":\"2\",\"r\":true,\"t\":{\"trigger\":{\"isMarket\":false,\"triggerPx\":\"200\",\"tpsl\":\"sl\"}}}],\"grouping\":\"normalTpsl\",\"brokerCode\":1},\"nonce\":1750773815078,\"signature\":{\"r\":\"\",\"s\":\"\",\"v\":27}}"
+            },
+            {
+                "description": "order with a subaccount",
+                "method": "createOrder",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    "SOL/USDC:USDC",
+                    "market",
+                    "buy",
+                    0.1,
+                    175,
+                    {
+                        "subAccountAddress": "eba57e1d6bd242ba5f41b61ff1d30b481a535b58"
+                    }
+                ],
+                "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":5,\"b\":true,\"p\":\"183.75\",\"s\":\"0.1\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Ioc\"}}}],\"grouping\":\"na\"},\"nonce\":1711104140105,\"signature\":{\"r\":\"0xf389ba0e2bd5f1384e80e4fba5e337273bd02d40b19127206dea14ffe6c7e0af\",\"s\":\"0xc4089eac6cc70d6834f595acce82d32252f11c9459e4a3868548b6fc3087043\",\"v\":27},\"vaultAddress\":\"eba57e1d6bd242ba5f41b61ff1d30b481a535b58\"}"
             }
         ],
         "createOrders": [
@@ -541,6 +569,23 @@
                     151,
                     {
                         "vaultAddress": "0xeba57e1d6bd242ba5f41b61ff1d30b481a535b58"
+                    }
+                ],
+                "output": "{\"action\":{\"type\":\"batchModify\",\"modifies\":[{\"oid\":8553833906,\"order\":{\"a\":5,\"b\":true,\"p\":\"151\",\"s\":\"0.2\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Gtc\"}}}}]},\"nonce\":1711105489002,\"signature\":{\"r\":\"0x1d07b1ae45cc8551b3d6d610780cc32d12a263cdabbe4013f4f927122215dfa8\",\"s\":\"0x33df2aea44f821de5e3b80e290ce2da30d8bd35f0358e04fec4c0daf60811f03\",\"v\":27},\"vaultAddress\":\"eba57e1d6bd242ba5f41b61ff1d30b481a535b58\"}"
+            },
+            {
+                "description": "edit order with a subaccount",
+                "method": "editOrder",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    "8553833906",
+                    "SOL/USDC:USDC",
+                    "limit",
+                    "buy",
+                    0.2,
+                    151,
+                    {
+                        "subAccountAddress": "0xeba57e1d6bd242ba5f41b61ff1d30b481a535b58"
                     }
                 ],
                 "output": "{\"action\":{\"type\":\"batchModify\",\"modifies\":[{\"oid\":8553833906,\"order\":{\"a\":5,\"b\":true,\"p\":\"151\",\"s\":\"0.2\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Gtc\"}}}}]},\"nonce\":1711105489002,\"signature\":{\"r\":\"0x1d07b1ae45cc8551b3d6d610780cc32d12a263cdabbe4013f4f927122215dfa8\",\"s\":\"0x33df2aea44f821de5e3b80e290ce2da30d8bd35f0358e04fec4c0daf60811f03\",\"v\":27},\"vaultAddress\":\"eba57e1d6bd242ba5f41b61ff1d30b481a535b58\"}"
@@ -608,14 +653,14 @@
                 "output": "{\"type\":\"spotClearinghouseState\",\"user\":\"0x3B3741c0EFf9C6b556Ec813e70589161F416662A\"}"
             },
             {
-                "description": "fetch balance for subaccount user",
+                "description": "fetch balance for a subaccount",
                 "method": "fetchBalance",
                 "url": "https://api.hyperliquid.xyz/info",
                 "input": [
                     {
                         "type": "subAccounts",
                         "user": "0x3B3741c0EFf9C6b556Ec813e70589161F416662A",
-                        "subAccountUser": "0x3B3741c0EFf9C6b556Ec813e70589161F416661B"
+                        "subAccountAddress": "0x3B3741c0EFf9C6b556Ec813e70589161F416661B"
                     }
                 ],
                 "output": "{\"type\":\"subAccounts\",\"user\":\"0x3B3741c0EFf9C6b556Ec813e70589161F416662A\"}"
@@ -832,6 +877,19 @@
                     "SOL/USDC:USDC",
                     {
                         "vaultAddress": "0xeba57e1d6bd242ba5f41b61ff1d30b481a535b58"
+                    }
+                ],
+                "output": "{\"action\":{\"type\":\"updateLeverage\",\"asset\":5,\"isCross\":true,\"leverage\":5},\"nonce\":1711105382021,\"signature\":{\"r\":\"0xafbc0ef20e0b277cf4722f4ceb4fcf2f085c55a1ed41fa1a21fb9429772c5aa5\",\"s\":\"0x1975ac7cc0a533162ac24bb1457c4785d531f46e59eef33bf4a4131f1ea4b249\",\"v\":28},\"vaultAddress\":\"eba57e1d6bd242ba5f41b61ff1d30b481a535b58\"}"
+            },
+            {
+                "description": "set leverage with a subaccount",
+                "method": "setLeverage",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    5,
+                    "SOL/USDC:USDC",
+                    {
+                        "subAccountAddress": "0xeba57e1d6bd242ba5f41b61ff1d30b481a535b58"
                     }
                 ],
                 "output": "{\"action\":{\"type\":\"updateLeverage\",\"asset\":5,\"isCross\":true,\"leverage\":5},\"nonce\":1711105382021,\"signature\":{\"r\":\"0xafbc0ef20e0b277cf4722f4ceb4fcf2f085c55a1ed41fa1a21fb9429772c5aa5\",\"s\":\"0x1975ac7cc0a533162ac24bb1457c4785d531f46e59eef33bf4a4131f1ea4b249\",\"v\":28},\"vaultAddress\":\"eba57e1d6bd242ba5f41b61ff1d30b481a535b58\"}"

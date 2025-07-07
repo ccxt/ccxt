@@ -1506,6 +1506,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
      * @param {string} [params.slippage] the slippage for market order
      * @param {string} [params.vaultAddress] the vault address for order
+     * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -1739,6 +1740,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
      * @param {string} [params.vaultAddress] the vault address for order
+     * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -1757,6 +1759,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string|string[]} [params.clientOrderId] client order ids, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
      * @param {string} [params.vaultAddress] the vault address
+     * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
@@ -1801,7 +1804,7 @@ export default class hyperliquid extends Exchange {
         }
         cancelAction['cancels'] = cancelReq;
         let vaultAddress = undefined;
-        [ vaultAddress, params ] = this.handleOptionAndParams (params, 'cancelOrders', 'vaultAddress');
+        [ vaultAddress, params ] = this.handleOptionAndParams2 (params, 'cancelOrders', 'vaultAddress', 'subAccountAddress');
         vaultAddress = this.formatVaultAddress (vaultAddress);
         const signature = this.signL1Action (cancelAction, nonce, vaultAddress);
         request['action'] = cancelAction;
@@ -1847,6 +1850,7 @@ export default class hyperliquid extends Exchange {
      * @param {CancellationRequest[]} orders each order should contain the parameters required by cancelOrder namely id and symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.vaultAddress] the vault address
+     * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrdersForSymbols (orders: CancellationRequest[], params = {}) {
@@ -1888,7 +1892,7 @@ export default class hyperliquid extends Exchange {
         cancelAction['type'] = cancelByCloid ? 'cancelByCloid' : 'cancel';
         cancelAction['cancels'] = cancelReq;
         let vaultAddress = undefined;
-        [ vaultAddress, params ] = this.handleOptionAndParams (params, 'cancelOrdersForSymbols', 'vaultAddress');
+        [ vaultAddress, params ] = this.handleOptionAndParams2 (params, 'cancelOrdersForSymbols', 'vaultAddress', 'subAccountAddress');
         vaultAddress = this.formatVaultAddress (vaultAddress);
         const signature = this.signL1Action (cancelAction, nonce, vaultAddress);
         request['action'] = cancelAction;
@@ -1921,6 +1925,7 @@ export default class hyperliquid extends Exchange {
      * @param {number} timeout time in milliseconds, 0 represents cancel the timer
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.vaultAddress] the vault address
+     * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} the api result
      */
     async cancelAllOrdersAfter (timeout: Int, params = {}) {
@@ -1937,7 +1942,7 @@ export default class hyperliquid extends Exchange {
             'time': nonce + timeout,
         };
         let vaultAddress = undefined;
-        [ vaultAddress, params ] = this.handleOptionAndParams (params, 'cancelAllOrdersAfter', 'vaultAddress');
+        [ vaultAddress, params ] = this.handleOptionAndParams2 (params, 'cancelAllOrdersAfter', 'vaultAddress', 'subAccountAddress');
         vaultAddress = this.formatVaultAddress (vaultAddress);
         const signature = this.signL1Action (cancelAction, nonce, vaultAddress);
         request['action'] = cancelAction;
@@ -2095,6 +2100,7 @@ export default class hyperliquid extends Exchange {
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
      * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
      * @param {string} [params.vaultAddress] the vault address for order
+     * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async editOrder (id: string, symbol: string, type: string, side: string, amount: Num = undefined, price: Num = undefined, params = {}) {
@@ -2920,6 +2926,8 @@ export default class hyperliquid extends Exchange {
      * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.leverage] the rate of leverage, is required if setting trade mode (symbol)
+     * @param {string} [params.vaultAddress] the vault address
+     * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} response from the exchange
      */
     async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
@@ -2943,7 +2951,7 @@ export default class hyperliquid extends Exchange {
             'leverage': leverage,
         };
         let vaultAddress = undefined;
-        [ vaultAddress, params ] = this.handleOptionAndParams (params, 'setMarginMode', 'vaultAddress');
+        [ vaultAddress, params ] = this.handleOptionAndParams2 (params, 'setMarginMode', 'vaultAddress', 'subAccountAddress');
         if (vaultAddress !== undefined) {
             if (vaultAddress.startsWith ('0x')) {
                 vaultAddress = vaultAddress.replace ('0x', '');
@@ -2999,7 +3007,7 @@ export default class hyperliquid extends Exchange {
             'leverage': leverage,
         };
         let vaultAddress = undefined;
-        [ vaultAddress, params ] = this.handleOptionAndParams (params, 'setLeverage', 'vaultAddress');
+        [ vaultAddress, params ] = this.handleOptionAndParams2 (params, 'setLeverage', 'vaultAddress', 'subAccountAddress');
         vaultAddress = this.formatVaultAddress (vaultAddress);
         const signature = this.signL1Action (updateAction, nonce, vaultAddress);
         const request: Dict = {
@@ -3032,6 +3040,8 @@ export default class hyperliquid extends Exchange {
      * @param {string} symbol unified market symbol
      * @param {float} amount amount of margin to add
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.vaultAddress] the vault address
+     * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
      */
     async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
@@ -3046,6 +3056,8 @@ export default class hyperliquid extends Exchange {
      * @param {string} symbol unified market symbol
      * @param {float} amount the amount of margin to remove
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.vaultAddress] the vault address
+     * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
      */
     async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
@@ -3068,7 +3080,7 @@ export default class hyperliquid extends Exchange {
             'ntli': sz,
         };
         let vaultAddress = undefined;
-        [ vaultAddress, params ] = this.handleOptionAndParams (params, 'modifyMargin', 'vaultAddress');
+        [ vaultAddress, params ] = this.handleOptionAndParams2 (params, 'modifyMargin', 'vaultAddress', 'subAccountAddress');
         vaultAddress = this.formatVaultAddress (vaultAddress);
         const signature = this.signL1Action (updateAction, nonce, vaultAddress);
         const request: Dict = {
@@ -3892,7 +3904,7 @@ export default class hyperliquid extends Exchange {
     parseCreateEditOrderArgs (id: Str, symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         const market = this.market (symbol);
         let vaultAddress = undefined;
-        [ vaultAddress, params ] = this.handleOptionAndParams (params, 'createOrder', 'vaultAddress');
+        [ vaultAddress, params ] = this.handleOptionAndParams2 (params, 'createOrder', 'vaultAddress', 'subAccountAddress');
         vaultAddress = this.formatVaultAddress (vaultAddress);
         symbol = market['symbol'];
         const order = {
