@@ -219,7 +219,7 @@ export default class bullish extends Exchange {
                     'EOS': 'EOS',
                     'ERC20': 'ETH',
                 },
-                'tradingAccountId': '111309424211255',
+                'tradingAccountId': '111309424211255', // todo remove before release
             },
             'features': {
                 'spot': {
@@ -1580,7 +1580,7 @@ export default class bullish extends Exchange {
         const id = this.safeString (order, 'orderId');
         const timestamp = this.safeInteger (order, 'createdAtTimestamp');
         const type = this.parseOrderType (this.safeString (order, 'type'));
-        const side = this.safeString (order, 'side');
+        const side = this.safeStringLower (order, 'side');
         const price = this.safeString (order, 'price');
         const amount = this.safeString (order, 'quantity');
         const filled = this.safeString (order, 'quantityFilled');
