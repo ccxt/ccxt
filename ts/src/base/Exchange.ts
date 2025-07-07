@@ -3963,7 +3963,6 @@ export default class Exchange {
             vwap = Precise.stringDiv (this.omitZero (quoteVolume), baseVolume);
         }
         [ close, open, change, percentage, average ] = this.safeTickerCalculationHelper (open, close, change, percentage, average, market);
-        [ close, open, change, percentage, average ] = this.safeTickerCalculationHelper (open, close, change, percentage, average, market);
         // timestamp and symbol operations don't belong in safeTicker
         // they should be done in the derived classes
         const closeParsed = this.parseNumber (this.omitZero (close));
@@ -3989,37 +3988,51 @@ export default class Exchange {
         });
     }
 
- 
     safeTickerCalculationHelper (open: Str = undefined, close: Str = undefined, change: Str = undefined, percentage: Str = undefined, average: Str = undefined, market: any = undefined) {
-        if ((open === undefined) && (close !== undefined)) {
-            if (change !== undefined) {
-                open = Precise.stringSub (close, change);
-            } else if (percentage !== undefined) {
-                open = Precise.stringDiv (close, Precise.stringAdd ('1', Precise.stringDiv (percentage, '100')));
+        // calculate open
+        if (change !== undefined) {
+            if (close === undefined && average !== undefined) {
+                close = Precise.stringAdd (average, Precise.stringDiv (change, '2'));
             }
-        } else if ((open !== undefined) && (close === undefined)) {
-            if (change !== undefined) {
-                close = Precise.stringAdd (open, change);
-            } else if (percentage !== undefined) {
-                close = Precise.stringMul (open, Precise.stringAdd ('1', Precise.stringDiv (percentage, '100')));
+            if (open === undefined && close !== undefined) {
+                open = Precise.stringSub (close, change);
+            }
+        } else if (percentage !== undefined) {
+            if (close === undefined && average !== undefined) {
+                const openAddClose = Precise.stringMul (average, '2');
+                // openAddClose = open * (1 + (100 + percentage)/100)
+                const denominator = Precise.stringAdd('2', Precise.stringDiv(percentage, '100'));
+                const calculatedOpen = (open !== undefined) ? open : Precise.stringDiv(openAddClose, denominator);
+                close = Precise.stringMul(calculatedOpen, Precise.stringAdd('1', Precise.stringDiv(percentage, '100')));
+            }
+            if (open === undefined && close !== undefined) {
+                open = Precise.stringDiv (close, Precise.stringAdd ('1', Precise.stringDiv (percentage, '100')));
             }
         }
         // calculate things according to "open" (similar can be done with "close")
         if (open !== undefined) {
-            // percentage
-            if ((percentage === undefined) && (change !== undefined)) {
-                percentage = Precise.stringMul (Precise.stringDiv (change, open), '100');
-            }
             // change
-            if ((change === undefined) && (percentage !== undefined)) {
-                change = Precise.stringDiv (Precise.stringMul (percentage, open), '100');
-            } else if ((close !== undefined)) {
-                if (change === undefined) {
+            if (change === undefined) {
+                if (percentage !== undefined) {
+                    change = Precise.stringMul (Precise.stringDiv (percentage, '100'), open);
+                } else if (close !== undefined) {
                     change = Precise.stringSub (close, open);
                 }
             }
+            // percentage (using change)
+            if (percentage === undefined && change !== undefined) {
+                percentage = Precise.stringMul (Precise.stringDiv (change, open), '100');
+            }
+            // close (using change)
+            if (close === undefined && change !== undefined) {
+                close = Precise.stringAdd (open, change);
+            }
+            // close (using average)
+            if (close === undefined && average !== undefined) {
+                close = Precise.stringMul (average, '2');
+            }
             // average
-            if (close !== undefined && average === undefined) {
+            if (average === undefined && close !== undefined) {
                 let precision = 18;
                 if (market !== undefined && this.isTickPrecision ()) {
                     const marketPrecision = this.safeDict (market, 'precision');
@@ -4029,8 +4042,6 @@ export default class Exchange {
                     }
                 }
                 average = Precise.stringDiv (Precise.stringAdd (open, close), '2', precision);
-            } else if (close === undefined && average !== undefined) {
-                close = Precise.stringMul (average, '2');
             }
         }
         return [ close, open, change, percentage, average ];
