@@ -3952,8 +3952,7 @@ export default class Exchange {
 
     safeTicker (ticker: Dict, market: Market = undefined): Ticker {
         let open = this.omitZero (this.safeString (ticker, 'open'));
-        let close = this.omitZero (this.safeString (ticker, 'close'));
-        let last = this.omitZero (this.safeString (ticker, 'last'));
+        let close = this.omitZero (this.safeString2 (ticker, 'close', 'last'));
         let change = this.omitZero (this.safeString (ticker, 'change'));
         let percentage = this.omitZero (this.safeString (ticker, 'percentage'));
         let average = this.omitZero (this.safeString (ticker, 'average'));
@@ -3963,14 +3962,11 @@ export default class Exchange {
         if (vwap === undefined) {
             vwap = Precise.stringDiv (this.omitZero (quoteVolume), baseVolume);
         }
-        [ close, last ] = this.safeTickerHelperForCloseLast (close, last);
-        change = this.safeTickerHelperForChange (last, open, change);
-        [ change, percentage ] = this.safeTickerHelperForChangePercentage (percentage, change, open);
-        open = this.safeTickerHelperForOpen (open, close, change, percentage);
-        [ change, percentage ] = this.safeTickerHelperForChangePercentage (percentage, change, open);
-        average = this.safeTickerHelperForAverage (last, open, average, market);
+        [ close, open, change, percentage, average ] = this.safeTickerHelperVars (open, close, change, percentage, average, market);
+        [ close, open, change, percentage, average ] = this.safeTickerHelperVars (open, close, change, percentage, average, market);
         // timestamp and symbol operations don't belong in safeTicker
         // they should be done in the derived classes
+        const closeParsed = this.parseNumber (this.omitZero (close));
         return this.extend (ticker, {
             'bid': this.parseNumber (this.omitZero (this.safeString (ticker, 'bid'))),
             'bidVolume': this.safeNumber (ticker, 'bidVolume'),
@@ -3979,8 +3975,8 @@ export default class Exchange {
             'high': this.parseNumber (this.omitZero (this.safeString (ticker, 'high'))),
             'low': this.parseNumber (this.omitZero (this.safeString (ticker, 'low'))),
             'open': this.parseNumber (this.omitZero (open)),
-            'close': this.parseNumber (this.omitZero (close)),
-            'last': this.parseNumber (this.omitZero (last)),
+            'close': closeParsed,
+            'last': closeParsed,
             'change': this.parseNumber (change),
             'percentage': this.parseNumber (percentage),
             'average': this.parseNumber (average),
@@ -3993,48 +3989,37 @@ export default class Exchange {
         });
     }
 
-    safeTickerHelperForCloseLast (close: Str = undefined, last: Str = undefined) {
-        if ((last !== undefined) && (close === undefined)) {
-            close = last;
-        } else if ((last === undefined) && (close !== undefined)) {
-            last = close;
-        }
-        return [ close, last ];
-    }
-
-    safeTickerHelperForChangePercentage (percentage: Str = undefined, change: Str = undefined, open: Str = undefined) {
-        if ((percentage === undefined) && (change !== undefined) && (open !== undefined)) {
-            percentage = Precise.stringMul (Precise.stringDiv (change, open), '100');
-        }
-        if ((change === undefined) && (percentage !== undefined) && (open !== undefined)) {
-            change = Precise.stringDiv (Precise.stringMul (percentage, open), '100');
-        }
-        return [ change, percentage ];
-    }
-
-    safeTickerHelperForOpen (open: Str = undefined, close: Str = undefined, change: Str = undefined, percentage: Str = undefined) {
+ 
+    safeTickerHelperVars (open: Str = undefined, close: Str = undefined, change: Str = undefined, percentage: Str = undefined, average: Str = undefined, market: any = undefined) {
         if ((open === undefined) && (close !== undefined)) {
             if (change !== undefined) {
                 open = Precise.stringSub (close, change);
             } else if (percentage !== undefined) {
                 open = Precise.stringDiv (close, Precise.stringAdd ('1', Precise.stringDiv (percentage, '100')));
             }
-        }
-        return open;
-    }
-
-    safeTickerHelperForChange (last: Str = undefined, open: Str = undefined, change: Str = undefined) {
-        if ((last !== undefined) && (open !== undefined)) {
-            if (change === undefined) {
-                change = Precise.stringSub (last, open);
+        } else if ((open !== undefined) && (close === undefined)) {
+            if (change !== undefined) {
+                close = Precise.stringAdd (open, change);
+            } else if (percentage !== undefined) {
+                close = Precise.stringMul (open, Precise.stringAdd ('1', Precise.stringDiv (percentage, '100')));
             }
         }
-        return change;
-    }
-
-    safeTickerHelperForAverage (last: Str = undefined, open: Str = undefined, average: Str = undefined, market: any = undefined) {
-        if ((last !== undefined) && (open !== undefined)) {
-            if (average === undefined) {
+        // calculate things according to "open" (similar can be done with "close")
+        if (open !== undefined) {
+            // percentage
+            if ((percentage === undefined) && (change !== undefined)) {
+                percentage = Precise.stringMul (Precise.stringDiv (change, open), '100');
+            }
+            // change
+            if ((change === undefined) && (percentage !== undefined)) {
+                change = Precise.stringDiv (Precise.stringMul (percentage, open), '100');
+            } else if ((close !== undefined)) {
+                if (change === undefined) {
+                    change = Precise.stringSub (close, open);
+                }
+            }
+            // average
+            if (close !== undefined && average === undefined) {
                 let precision = 18;
                 if (market !== undefined && this.isTickPrecision ()) {
                     const marketPrecision = this.safeDict (market, 'precision');
@@ -4043,10 +4028,12 @@ export default class Exchange {
                         precision = this.precisionFromString (precisionPrice);
                     }
                 }
-                average = Precise.stringDiv (Precise.stringAdd (last, open), '2', precision);
+                average = Precise.stringDiv (Precise.stringAdd (open, close), '2', precision);
+            } else if (close === undefined && average !== undefined) {
+                close = Precise.stringMul (average, '2');
             }
         }
-        return average;
+        return [ close, open, change, percentage, average ];
     }
 
     async fetchBorrowRate (code: string, amount: number, params = {}): Promise<{}> {
