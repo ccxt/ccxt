@@ -3962,33 +3962,6 @@ export default class Exchange {
         if (vwap === undefined) {
             vwap = Precise.stringDiv (this.omitZero (quoteVolume), baseVolume);
         }
-        [ open, close, change, percentage, average ] = this.safeTickerCalculationHelper (open, close, change, percentage, average, market);
-        // timestamp and symbol operations don't belong in safeTicker
-        // they should be done in the derived classes
-        const closeParsed = this.parseNumber (this.omitZero (close));
-        return this.extend (ticker, {
-            'bid': this.parseNumber (this.omitZero (this.safeString (ticker, 'bid'))),
-            'bidVolume': this.safeNumber (ticker, 'bidVolume'),
-            'ask': this.parseNumber (this.omitZero (this.safeString (ticker, 'ask'))),
-            'askVolume': this.safeNumber (ticker, 'askVolume'),
-            'high': this.parseNumber (this.omitZero (this.safeString (ticker, 'high'))),
-            'low': this.parseNumber (this.omitZero (this.safeString (ticker, 'low'))),
-            'open': this.parseNumber (this.omitZero (open)),
-            'close': closeParsed,
-            'last': closeParsed,
-            'change': this.parseNumber (change),
-            'percentage': this.parseNumber (percentage),
-            'average': this.parseNumber (average),
-            'vwap': this.parseNumber (vwap),
-            'baseVolume': this.parseNumber (baseVolume),
-            'quoteVolume': this.parseNumber (quoteVolume),
-            'previousClose': this.safeNumber (ticker, 'previousClose'),
-            'indexPrice': this.safeNumber (ticker, 'indexPrice'),
-            'markPrice': this.safeNumber (ticker, 'markPrice'),
-        });
-    }
-
-    safeTickerCalculationHelper (open: Str = undefined, close: Str = undefined, change: Str = undefined, percentage: Str = undefined, average: Str = undefined, market: any = undefined) {
         // calculate open
         if (change !== undefined) {
             if (close === undefined && average !== undefined) {
@@ -4046,7 +4019,29 @@ export default class Exchange {
                 average = Precise.stringDiv (Precise.stringAdd (open, close), '2', precision);
             }
         }
-        return [ open, close, change, percentage, average ];
+        // timestamp and symbol operations don't belong in safeTicker
+        // they should be done in the derived classes
+        const closeParsed = this.parseNumber (this.omitZero (close));
+        return this.extend (ticker, {
+            'bid': this.parseNumber (this.omitZero (this.safeString (ticker, 'bid'))),
+            'bidVolume': this.safeNumber (ticker, 'bidVolume'),
+            'ask': this.parseNumber (this.omitZero (this.safeString (ticker, 'ask'))),
+            'askVolume': this.safeNumber (ticker, 'askVolume'),
+            'high': this.parseNumber (this.omitZero (this.safeString (ticker, 'high'))),
+            'low': this.parseNumber (this.omitZero (this.safeString (ticker, 'low'))),
+            'open': this.parseNumber (this.omitZero (open)),
+            'close': closeParsed,
+            'last': closeParsed,
+            'change': this.parseNumber (change),
+            'percentage': this.parseNumber (percentage),
+            'average': this.parseNumber (average),
+            'vwap': this.parseNumber (vwap),
+            'baseVolume': this.parseNumber (baseVolume),
+            'quoteVolume': this.parseNumber (quoteVolume),
+            'previousClose': this.safeNumber (ticker, 'previousClose'),
+            'indexPrice': this.safeNumber (ticker, 'indexPrice'),
+            'markPrice': this.safeNumber (ticker, 'markPrice'),
+        });
     }
 
     async fetchBorrowRate (code: string, amount: number, params = {}): Promise<{}> {
