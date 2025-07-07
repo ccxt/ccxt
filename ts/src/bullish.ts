@@ -934,7 +934,7 @@ export default class bullish extends Exchange {
         const timestamp = this.safeInteger (trade, 'createdAtTimestamp');
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'quantity');
-        const side = this.safeString (trade, 'side');
+        const side = this.safeStringLower (trade, 'side');
         const isTaker = this.safeBool (trade, 'isTaker');
         const currency = market['quote'];
         const code = this.safeCurrencyCode (currency);
