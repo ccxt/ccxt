@@ -8,14 +8,56 @@
                 "method": "fetchTrades",
                 "input": [
                     "BTC/USDC",
-                    1749554655000,
+                    1751916049016,
                     null,
                     {
-                        "until": 1749551055000
+                        "until": 1751916053580
                     }
                 ],
-                "httpResponse": "[]",
-                "parsedResponse": []
+                "httpResponse": [
+                    {
+                        "tradeId": "100088000007345488",
+                        "symbol": "BTCUSDC",
+                        "price": "108279.9848",
+                        "quantity": "0.11919626",
+                        "quoteAmount": "12906.5687",
+                        "side": "BUY",
+                        "isTaker": true,
+                        "createdAtTimestamp": "1751916050174",
+                        "createdAtDatetime": "2025-07-07T19:20:50.174Z"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "tradeId": "100088000007345488",
+                            "symbol": "BTCUSDC",
+                            "price": "108279.9848",
+                            "quantity": "0.11919626",
+                            "quoteAmount": "12906.5687",
+                            "side": "BUY",
+                            "isTaker": true,
+                            "createdAtTimestamp": "1751916050174",
+                            "createdAtDatetime": "2025-07-07T19:20:50.174Z"
+                        },
+                        "timestamp": 1751916050174,
+                        "datetime": "2025-07-07T19:20:50.174Z",
+                        "symbol": "BTC/USDC",
+                        "id": "100088000007345488",
+                        "order": "100088000007345488",
+                        "type": null,
+                        "takerOrMaker": "taker",
+                        "side": "buy",
+                        "price": 108279.9848,
+                        "amount": 0.11919626,
+                        "cost": 12906.569221016847,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
             }
         ],
         "fetchBalance": [
