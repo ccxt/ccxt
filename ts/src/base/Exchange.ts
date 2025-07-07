@@ -3962,8 +3962,8 @@ export default class Exchange {
         if (vwap === undefined) {
             vwap = Precise.stringDiv (this.omitZero (quoteVolume), baseVolume);
         }
-        [ close, open, change, percentage, average ] = this.safeTickerHelperVars (open, close, change, percentage, average, market);
-        [ close, open, change, percentage, average ] = this.safeTickerHelperVars (open, close, change, percentage, average, market);
+        [ close, open, change, percentage, average ] = this.safeTickerCalculationHelper (open, close, change, percentage, average, market);
+        [ close, open, change, percentage, average ] = this.safeTickerCalculationHelper (open, close, change, percentage, average, market);
         // timestamp and symbol operations don't belong in safeTicker
         // they should be done in the derived classes
         const closeParsed = this.parseNumber (this.omitZero (close));
@@ -3990,7 +3990,7 @@ export default class Exchange {
     }
 
  
-    safeTickerHelperVars (open: Str = undefined, close: Str = undefined, change: Str = undefined, percentage: Str = undefined, average: Str = undefined, market: any = undefined) {
+    safeTickerCalculationHelper (open: Str = undefined, close: Str = undefined, change: Str = undefined, percentage: Str = undefined, average: Str = undefined, market: any = undefined) {
         if ((open === undefined) && (close !== undefined)) {
             if (change !== undefined) {
                 open = Precise.stringSub (close, change);
