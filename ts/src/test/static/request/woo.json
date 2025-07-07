@@ -39,7 +39,7 @@
             {
                 "description": "spot limit buy",
                 "method": "createOrder",
-                "url": "https://api.woox.io/v1/order",
+                "url": "https://api.woox.io/v3/trade/order",
                 "input": [
                     "LTC/USDT",
                     "limit",
@@ -47,12 +47,12 @@
                     0.1,
                     50
                 ],
-                "output": "broker_id=bc830de7-50f3-460b-9ee0-f430f83f9dad&order_price=50&order_quantity=0.1&order_type=LIMIT&side=BUY&symbol=SPOT_LTC_USDT"
+                "output": "{\"price\":\"50\",\"quantity\":\"0.1\",\"side\":\"BUY\",\"symbol\":\"SPOT_LTC_USDT\",\"type\":\"LIMIT\"}"
             },
             {
                 "description": "spot market buy",
                 "method": "createOrder",
-                "url": "https://api.woox.io/v1/order",
+                "url": "https://api.woox.io/v3/trade/order",
                 "input": [
                     "LTC/USDT",
                     "market",
@@ -60,48 +60,48 @@
                     10,
                     1
                 ],
-                "output": "broker_id=bc830de7-50f3-460b-9ee0-f430f83f9dad&order_amount=10&order_type=MARKET&side=BUY&symbol=SPOT_LTC_USDT"
+                "output": "{\"amount\":\"10\",\"side\":\"BUY\",\"symbol\":\"SPOT_LTC_USDT\",\"type\":\"MARKET\"}"
             },
             {
                 "description": "spot market buy using base amount",
                 "method": "createOrder",
-                "url": "https://api.woox.io/v1/order",
+                "url": "https://api.woox.io/v3/trade/order",
                 "input": [
                     "LTC/USDT",
                     "market",
                     "buy",
                     0.1
                 ],
-                "output": "broker_id=bc830de7-50f3-460b-9ee0-f430f83f9dad&order_quantity=0.1&order_type=MARKET&side=BUY&symbol=SPOT_LTC_USDT"
+                "output": "{\"quantity\":\"0.1\",\"side\":\"BUY\",\"symbol\":\"SPOT_LTC_USDT\",\"type\":\"MARKET\"}"
             },
             {
                 "description": "spot market sell",
                 "method": "createOrder",
-                "url": "https://api.woox.io/v1/order",
+                "url": "https://api.woox.io/v3/trade/order",
                 "input": [
                     "LTC/USDT",
                     "market",
                     "sell",
                     0.1
                 ],
-                "output": "broker_id=bc830de7-50f3-460b-9ee0-f430f83f9dad&order_quantity=0.1&order_type=MARKET&side=SELL&symbol=SPOT_LTC_USDT"
+                "output": "{\"quantity\":\"0.1\",\"side\":\"SELL\",\"symbol\":\"SPOT_LTC_USDT\",\"type\":\"MARKET\"}"
             },
             {
                 "description": "swap market buy",
                 "method": "createOrder",
-                "url": "https://api.woox.io/v1/order",
+                "url": "https://api.woox.io/v3/trade/order",
                 "input": [
                     "LTC/USDT:USDT",
                     "market",
                     "buy",
                     0.1
                 ],
-                "output": "broker_id=bc830de7-50f3-460b-9ee0-f430f83f9dad&order_quantity=0.1&order_type=MARKET&side=BUY&symbol=PERP_LTC_USDT"
+                "output": "{\"quantity\":\"0.1\",\"side\":\"BUY\",\"symbol\":\"PERP_LTC_USDT\",\"type\":\"MARKET\"}"
             },
             {
                 "description": "Swap market sell with reduceOnly",
                 "method": "createOrder",
-                "url": "https://api.woox.io/v1/order",
+                "url": "https://api.woox.io/v3/trade/order",
                 "input": [
                     "LTC/USDT:USDT",
                     "market",
@@ -112,12 +112,12 @@
                         "reduceOnly": true
                     }
                 ],
-                "output": "broker_id=bc830de7-50f3-460b-9ee0-f430f83f9dad&order_quantity=0.1&order_type=MARKET&reduce_only=true&side=SELL&symbol=PERP_LTC_USDT"
+                "output": "{\"quantity\":\"0.1\",\"reduceOnly\":true,\"side\":\"SELL\",\"symbol\":\"PERP_LTC_USDT\",\"type\":\"MARKET\"}"
             },
             {
                 "description": "Swap trailingAmount reduceOnly order",
                 "method": "createOrder",
-                "url": "https://api.staging.woox.io/v3/algo/order",
+                "url": "https://api.woox.io/v3/trade/algoOrder",
                 "input": [
                     "BTC/USDT:USDT",
                     "market",
@@ -135,7 +135,7 @@
             {
                 "description": "Swap trailingPercent reduceOnly order",
                 "method": "createOrder",
-                "url": "https://api.staging.woox.io/v3/algo/order",
+                "url": "https://api.woox.io/v3/trade/algoOrder",
                 "input": [
                     "BTC/USDT:USDT",
                     "market",
@@ -153,7 +153,7 @@
             {
                 "description": "Swap margine mode isolated order",
                 "method": "createOrder",
-                "url": "https://api.staging.woox.io/v1/order",
+                "url": "https://api.woox.io/v3/trade/order",
                 "input": [
                     "LTC/USDT:USDT",
                     "limit",
@@ -164,12 +164,12 @@
                         "marginMode": "isolated"
                     }
                 ],
-                "output": "broker_id=bc830de7-50f3-460b-9ee0-f430f83f9dad&margin_mode=ISOLATED&order_price=50&order_quantity=0.2&order_type=LIMIT&side=BUY&symbol=PERP_LTC_USDT"
+                "output": "{\"marginMode\":\"ISOLATED\",\"price\":\"50\",\"quantity\":\"0.2\",\"side\":\"BUY\",\"symbol\":\"PERP_LTC_USDT\",\"type\":\"LIMIT\"}"
             },
             {
                 "description": "Swap margine mode cross order",
                 "method": "createOrder",
-                "url": "https://api.staging.woox.io/v1/order",
+                "url": "https://api.woox.io/v3/trade/order",
                 "input": [
                     "LTC/USDT:USDT",
                     "limit",
@@ -180,31 +180,31 @@
                         "marginMode": "cross"
                     }
                 ],
-                "output": "broker_id=bc830de7-50f3-460b-9ee0-f430f83f9dad&margin_mode=CROSS&order_price=50&order_quantity=0.2&order_type=LIMIT&side=BUY&symbol=PERP_LTC_USDT"
+                "output": "{\"marginMode\":\"CROSS\",\"price\":\"50\",\"quantity\":\"0.2\",\"side\":\"BUY\",\"symbol\":\"PERP_LTC_USDT\",\"type\":\"LIMIT\"}"
             }
         ],
         "createMarketBuyOrderWithCost": [
             {
                 "description": "spot market buy with cost",
                 "method": "createMarketBuyOrderWithCost",
-                "url": "https://api.woox.io/v1/order",
+                "url": "https://api.woox.io/v3/trade/order",
                 "input": [
                     "LTC/USDT",
                     5
                 ],
-                "output": "broker_id=bc830de7-50f3-460b-9ee0-f430f83f9dad&order_amount=5&order_type=MARKET&side=BUY&symbol=SPOT_LTC_USDT"
+                "output": "{\"amount\":\"5\",\"side\":\"BUY\",\"symbol\":\"SPOT_LTC_USDT\",\"type\":\"MARKET\"}"
             }
         ],
         "createMarketSellOrderWithCost": [
             {
                 "description": "spot market sell with cost",
                 "method": "createMarketSellOrderWithCost",
-                "url": "https://api.woox.io/v1/order",
+                "url": "https://api.woox.io/v3/trade/order",
                 "input": [
                     "LTC/USDT",
                     5
                 ],
-                "output": "broker_id=bc830de7-50f3-460b-9ee0-f430f83f9dad&order_amount=5&order_type=MARKET&side=SELL&symbol=SPOT_LTC_USDT"
+                "output": "{\"amount\":\"5\",\"side\":\"SELL\",\"symbol\":\"SPOT_LTC_USDT\",\"type\":\"MARKET\"}"
             }
         ],
         "fetchOrders": [

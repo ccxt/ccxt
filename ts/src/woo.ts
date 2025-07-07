@@ -1183,8 +1183,8 @@ export default class woo extends Exchange {
      * @method
      * @name woo#createOrder
      * @description create a trade order
-     * @see https://docs.woox.io/#send-order
-     * @see https://docs.woox.io/#send-algo-order
+     * @see https://developer.woox.io/api-reference/endpoint/trading/post_order
+     * @see https://developer.woox.io/api-reference/endpoint/trading/post_algo_order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -1219,7 +1219,7 @@ export default class woo extends Exchange {
         let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
         if (marginMode !== undefined) {
-            request['margin_mode'] = this.encodeMarginMode (marginMode);
+            request['marginMode'] = this.encodeMarginMode (marginMode);
         }
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const stopLoss = this.safeValue (params, 'stopLoss');
@@ -1235,31 +1235,27 @@ export default class woo extends Exchange {
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringLower (params, 'timeInForce');
         const postOnly = this.isPostOnly (isMarket, undefined, params);
-        const reduceOnlyKey = isConditional ? 'reduceOnly' : 'reduce_only';
-        const clientOrderIdKey = isConditional ? 'clientOrderId' : 'client_order_id';
-        const orderQtyKey = isConditional ? 'quantity' : 'order_quantity';
-        const priceKey = isConditional ? 'price' : 'order_price';
-        const typeKey = isConditional ? 'type' : 'order_type';
-        request[typeKey] = orderType; // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
+        const clientOrderIdKey = isConditional ? 'clientAlgoOrderId' : 'clientOrderId';
+        request['type'] = orderType; // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
         if (!isConditional) {
             if (postOnly) {
-                request['order_type'] = 'POST_ONLY';
+                request['type'] = 'POST_ONLY';
             } else if (timeInForce === 'fok') {
-                request['order_type'] = 'FOK';
+                request['type'] = 'FOK';
             } else if (timeInForce === 'ioc') {
-                request['order_type'] = 'IOC';
+                request['type'] = 'IOC';
             }
         }
         if (reduceOnly) {
-            request[reduceOnlyKey] = reduceOnly;
+            request['reduceOnly'] = reduceOnly;
         }
         if (!isMarket && price !== undefined) {
-            request[priceKey] = this.priceToPrecision (symbol, price);
+            request['price'] = this.priceToPrecision (symbol, price);
         }
         if (isMarket && !isConditional) {
             // for market buy it requires the amount of quote currency to spend
-            const cost = this.safeString2 (params, 'cost', 'order_amount');
-            params = this.omit (params, [ 'cost', 'order_amount' ]);
+            const cost = this.safeStringN (params, [ 'cost', 'order_amount', 'orderAmount' ]);
+            params = this.omit (params, [ 'cost', 'order_amount', 'orderAmount' ]);
             const isPriceProvided = price !== undefined;
             if (market['spot'] && (isPriceProvided || (cost !== undefined))) {
                 let quoteAmount = undefined;
@@ -1271,12 +1267,12 @@ export default class woo extends Exchange {
                     const costRequest = Precise.stringMul (amountString, priceString);
                     quoteAmount = this.costToPrecision (symbol, costRequest);
                 }
-                request['order_amount'] = quoteAmount;
+                request['amount'] = quoteAmount;
             } else {
-                request['order_quantity'] = this.amountToPrecision (symbol, amount);
+                request['quantity'] = this.amountToPrecision (symbol, amount);
             }
         } else if (algoType !== 'POSITIONAL_TP_SL') {
-            request[orderQtyKey] = this.amountToPrecision (symbol, amount);
+            request['quantity'] = this.amountToPrecision (symbol, amount);
         }
         const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
         if (clientOrderId !== undefined) {
@@ -1336,43 +1332,45 @@ export default class woo extends Exchange {
         params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingPercent', 'trailingAmount', 'trailingTriggerPrice' ]);
         let response = undefined;
         if (isConditional) {
-            response = await this.v3PrivatePostAlgoOrder (this.extend (request, params));
+            response = await this.v3PrivatePostTradeAlgoOrder (this.extend (request, params));
+            //
+            // {
+            //     "success": true,
+            //     "data": {
+            //       "rows": [
+            //         {
+            //           "orderId": "1578938",
+            //           "clientOrderId": "0",
+            //           "algoType": "STOP_LOSS",
+            //           "quantity": "0.1"
+            //         }
+            //       ]
+            //     },
+            //     "timestamp": "1686149372216"
+            // }
+            //
         } else {
-            response = await this.v1PrivatePostOrder (this.extend (request, params));
+            response = await this.v3PrivatePostTradeOrder (this.extend (request, params));
+            //
+            //     {
+            //         "success": true,
+            //         "data": {
+            //             "orderId": 60667653330,
+            //             "clientOrderId": 0,
+            //             "type": "LIMIT",
+            //             "price": 60,
+            //             "quantity": 0.1,
+            //             "amount": null,
+            //             "bidAskLevel": null
+            //         },
+            //         "timestamp": 1751871779855
+            //     }
+            //
         }
-        // {
-        //     "success": true,
-        //     "timestamp": "1641383206.489",
-        //     "order_id": "86980774",
-        //     "order_type": "LIMIT",
-        //     "order_price": "1", // null for "MARKET" order
-        //     "order_quantity": "12", // null for "MARKET" order
-        //     "order_amount": null, // NOT-null for "MARKET" order
-        //     "client_order_id": "0"
-        // }
-        // stop orders
-        // {
-        //     "success": true,
-        //     "data": {
-        //       "rows": [
-        //         {
-        //           "orderId": "1578938",
-        //           "clientOrderId": "0",
-        //           "algoType": "STOP_LOSS",
-        //           "quantity": "0.1"
-        //         }
-        //       ]
-        //     },
-        //     "timestamp": "1686149372216"
-        // }
-        const data = this.safeDict (response, 'data');
-        if (data !== undefined) {
-            const rows = this.safeList (data, 'rows', []);
-            return this.parseOrder (rows[0], market);
-        }
-        const order = this.parseOrder (response, market);
-        order['type'] = type;
-        return order;
+        let data = this.safeDict (response, 'data', {});
+        data = this.safeDict (this.safeList (data, 'rows'), 0, data);
+        data['timestamp'] = this.safeString (response, 'timestamp');
+        return this.parseOrder (data, market);
     }
 
     encodeMarginMode (mode) {
@@ -1406,7 +1404,7 @@ export default class woo extends Exchange {
      * @param {string} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -1860,9 +1858,12 @@ export default class woo extends Exchange {
         //       "updatedTime": "1686149903.362"
         //   }
         //
-        const timestamp = this.safeTimestampN (order, [ 'timestamp', 'created_time', 'createdTime' ]);
+        let timestamp = this.safeTimestampN (order, [ 'created_time', 'createdTime' ]);
+        if (timestamp === undefined) {
+            timestamp = this.safeInteger (order, 'timestamp');
+        }
         const orderId = this.safeStringN (order, [ 'order_id', 'orderId', 'algoOrderId' ]);
-        const clientOrderId = this.omitZero (this.safeString2 (order, 'client_order_id', 'clientOrderId')); // Somehow, this always returns 0 for limit order
+        const clientOrderId = this.omitZero (this.safeStringN (order, [ 'client_order_id', 'clientOrderId', 'clientAlgoOrderId' ])); // Somehow, this always returns 0 for limit order
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
@@ -1906,7 +1907,7 @@ export default class woo extends Exchange {
             'type': orderType,
             'timeInForce': this.parseTimeInForce (orderType),
             'postOnly': undefined, // TO_DO
-            'reduceOnly': this.safeBool (order, 'reduce_only'),
+            'reduceOnly': this.safeBool2 (order, 'reduce_only', 'reduceOnly'),
             'side': side,
             'price': price,
             'triggerPrice': triggerPrice,
@@ -2322,7 +2323,7 @@ export default class woo extends Exchange {
 
     async getAssetHistoryRows (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<any> {
         await this.loadMarkets ();
-        const request: Dict = { };
+        const request: Dict = {};
         let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -2576,7 +2577,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
      */
-    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
+    async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request: Dict = {
