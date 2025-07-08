@@ -5706,10 +5706,16 @@ class Exchange(object):
         precisionNumber = int(precision)
         if precisionNumber == 0:
             return '1'
-        parsedPrecision = '0.'
-        for i in range(0, precisionNumber - 1):
-            parsedPrecision = parsedPrecision + '0'
-        return parsedPrecision + '1'
+        if precisionNumber > 0:
+            parsedPrecision = '0.'
+            for i in range(0, precisionNumber - 1):
+                parsedPrecision = parsedPrecision + '0'
+            return parsedPrecision + '1'
+        else:
+            parsedPrecision = '1'
+            for i in range(0, precisionNumber * -1 - 1):
+                parsedPrecision = parsedPrecision + '0'
+            return parsedPrecision + '0'
 
     def integer_precision_to_amount(self, precision: Str):
         """
