@@ -10845,7 +10845,7 @@ func  (this *bybit) Sign(path interface{}, optionalArgs ...interface{}) interfac
                 authFull = Add(auth_base, body)
             } else {
                 authFull = Add(auth_base, queryEncoded)
-                url = Add(url, Add("?", this.Rawencode(query)))
+                url = Add(url, Add("?", queryEncoded))
             }
             var signature interface{} = nil
             if IsTrue(IsGreaterThan(GetIndexOf(this.Secret, "PRIVATE KEY"), OpNeg(1))) {
@@ -10861,7 +10861,7 @@ func  (this *bybit) Sign(path interface{}, optionalArgs ...interface{}) interfac
                 "timestamp": timestamp,
             })
             var sortedQuery interface{} = this.Keysort(query)
-            var auth interface{} = this.Rawencode(sortedQuery)
+            var auth interface{} = this.Rawencode(sortedQuery, true)
             var signature interface{} = nil
             if IsTrue(IsGreaterThan(GetIndexOf(this.Secret, "PRIVATE KEY"), OpNeg(1))) {
                 signature = Rsa(auth, this.Secret, sha256)
@@ -10885,7 +10885,7 @@ func  (this *bybit) Sign(path interface{}, optionalArgs ...interface{}) interfac
                     }
                 }
             } else {
-                url = Add(url, Add("?", this.Rawencode(sortedQuery)))
+                url = Add(url, Add("?", this.Rawencode(sortedQuery, true)))
                 url = Add(url, Add("&sign=", signature))
             }
         }
