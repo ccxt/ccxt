@@ -657,15 +657,17 @@ export default class coincheck extends Exchange {
             'pair': market['id'],
         };
         if (type === 'market') {
-            const order_type = type + '_' + side;
-            request['order_type'] = order_type;
-            const prefix = (side === 'buy') ? (order_type + '_') : '';
-            const cost = this.safeNumber (params, 'cost');
-            params = this.omit (params, 'cost');
-            if (cost !== undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder() : you should use "cost" parameter instead of "amount" argument to create market buy orders');
+            request['order_type'] = type + '_' + side;
+            if (side === 'sell') {
+                request['amount'] = amount;
+            } else {
+                const cost = this.safeNumber (params, 'cost');
+                params = this.omit (params, 'cost');
+                if (cost !== undefined) {
+                    throw new ArgumentsRequired (this.id + ' createOrder() : you should use "cost" parameter instead of "amount" argument to create market buy orders');
+                }
+                request['market_buy_amount'] = cost;
             }
-            request[prefix + 'amount'] = cost;
         } else {
             request['order_type'] = side;
             request['rate'] = price;
