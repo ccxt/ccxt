@@ -5,6 +5,7 @@ import bullishRest from '../bullish.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import type { Balances, Dict, Int, Order, OrderBook, Str, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import { ExchangeError } from '../base/errors.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -669,6 +670,23 @@ export default class bullish extends bullishRest {
         client.resolve (this.balance[tradingAccountId], messageHash + tradingAccountIdHash);
     }
 
+    handleErrorMessage (client: Client, message) {
+        //
+        //     {
+        //         "data": {
+        //             "errorCode": 401,
+        //             "errorCodeName": "UNAUTHORIZED",
+        //             "message": "Unable to authenticate; JWT is missing/invalid or unauthorised to access account"
+        //         },
+        //         "dataType": "V1TAErrorResponse",
+        //         "type": "error"
+        //     }
+        //
+        const data = this.safeDict (message, 'data', {});
+        const feedback = this.id + ' ' + this.json (data);
+        throw new ExchangeError (feedback);
+    }
+
     handleMessage (client: Client, message) {
         const dataType = this.safeString (message, 'dataType');
         const result = this.safeDict (message, 'result', {});
@@ -695,6 +713,9 @@ export default class bullish extends bullishRest {
             }
             if (dataType === 'V1TAAssetAccount') {
                 this.handleBalance (client, message);
+            }
+            if (dataType === 'V1TAErrorResponse') {
+                this.handleErrorMessage (client, message);
             }
         }
     }
