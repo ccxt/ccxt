@@ -3,7 +3,7 @@
 
 import bullishRest from '../bullish.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Dict, Int, Order, OrderBook, Str, Ticker, Trade } from '../base/types.js';
+import type { Balances, Dict, Int, Order, OrderBook, Str, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -563,6 +563,96 @@ export default class bullish extends bullishRest {
         }
     }
 
+    /**
+     * @method
+     * @name bullish#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#overview--private-data-websocket-authenticated
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tradingAccountId] the trading account id to fetch entries for
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
+    async watchBalance (params = {}): Promise<Balances> {
+        await this.loadMarkets ();
+        const request: Dict = {
+            'topic': 'assetAccounts',
+        };
+        let messageHash = 'balance';
+        const tradingAccountId = this.safeString (params, 'tradingAccountId');
+        if (tradingAccountId !== undefined) {
+            params = this.omit (params, 'tradingAccountId');
+            request['tradingAccountId'] = tradingAccountId;
+            messageHash += '::' + tradingAccountId;
+        }
+        return await this.watchPrivate (messageHash, messageHash, request, params);
+    }
+
+    handleBalance (client: Client, message) {
+        //
+        // snapshot
+        //     {
+        //         "type": "snapshot",
+        //         "tradingAccountId": "111309424211255",
+        //         "dataType": "V1TAAssetAccount",
+        //         "data": [
+        //             {
+        //                 "updatedAtTimestamp": "1751989627509",
+        //                 "borrowedQuantity": "0.0000",
+        //                 "tradingAccountId": "111309424211255",
+        //                 "loanedQuantity": "0.0000",
+        //                 "lockedQuantity": "0.0000",
+        //                 "assetId": "5",
+        //                 "assetSymbol": "USDC",
+        //                 "publishedAtTimestamp": "1751989627512",
+        //                 "availableQuantity": "999672939.8767",
+        //                 "updatedAtDatetime": "2025-07-08T15:47:07.509Z"
+        //             }
+        //         ]
+        //     }
+        //
+        // update
+        //     {
+        //         "type": "update",
+        //         "tradingAccountId": "111309424211255",
+        //         "dataType": "V1TAAssetAccount",
+        //         "data": {
+        //             "updatedAtTimestamp": "1751989627509",
+        //             "borrowedQuantity": "0.0000",
+        //             "tradingAccountId": "111309424211255",
+        //             "loanedQuantity": "0.0000",
+        //             "lockedQuantity": "0.0000",
+        //             "assetId": "5",
+        //             "assetSymbol": "USDC",
+        //             "publishedAtTimestamp": "1751989627512",
+        //             "availableQuantity": "999672939.8767",
+        //             "updatedAtDatetime": "2025-07-08T15:47:07.509Z"
+        //         }
+        //     }
+        //
+        const tradingAccountId = this.safeString (message, 'tradingAccountId');
+        if (!(tradingAccountId in this.balance)) {
+            this.balance[tradingAccountId] = {};
+        }
+        const messageType = this.safeString (message, 'type');
+        if (messageType === 'snapshot') {
+            const data = this.safeList (message, 'data', []);
+            this.balance[tradingAccountId] = this.parseBalance (data);
+        } else {
+            const data = this.safeDict (message, 'data', {});
+            const assetId = this.safeString (data, 'assetSymbol');
+            const account = this.account ();
+            account['total'] = this.safeString (data, 'availableQuantity');
+            account['used'] = this.safeString (data, 'lockedQuantity');
+            const code = this.safeCurrencyCode (assetId);
+            this.balance[tradingAccountId][code] = account;
+            this.balance[tradingAccountId] = this.safeBalance (this.balance[tradingAccountId]);
+        }
+        const messageHash = 'balance';
+        const tradingAccountIdHash = '::' + tradingAccountId;
+        client.resolve (this.balance[tradingAccountId], messageHash);
+        client.resolve (this.balance[tradingAccountId], messageHash + tradingAccountIdHash);
+    }
+
     handleMessage (client: Client, message) {
         const dataType = this.safeString (message, 'dataType');
         if (dataType !== undefined) {
@@ -580,6 +670,9 @@ export default class bullish extends bullishRest {
             }
             if (dataType === 'V1TATrade') {
                 this.handleMyTrades (client, message);
+            }
+            if (dataType === 'V1TAAssetAccount') {
+                this.handleBalance (client, message);
             }
         }
     }
