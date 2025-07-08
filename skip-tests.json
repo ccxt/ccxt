@@ -1260,7 +1260,9 @@
     },
     "lbank": {
         "skipMethods": {
-            "loadMarkets": "settle must be defined when contract is true",
+            "loadMarkets": {
+                "currencyIdAndCode": "messed codes"
+            },
             "fetchCurrencies":{
                 "activeMajorCurrencies": "todo",
                 "deposit":"not provider",
