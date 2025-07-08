@@ -1542,9 +1542,8 @@ export default class woo extends Exchange {
     /**
      * @method
      * @name woo#cancelAllOrders
-     * @see https://docs.woox.io/#cancel-all-pending-orders
-     * @see https://docs.woox.io/#cancel-orders
-     * @see https://docs.woox.io/#cancel-all-pending-algo-orders
+     * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_all_order
+     * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_algo_orders
      * @description cancel all open orders in a market
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1556,25 +1555,24 @@ export default class woo extends Exchange {
         const trigger = this.safeBool2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
         if (trigger) {
-            return await this.v3PrivateDeleteAlgoOrdersPending (params);
+            return await this.v3PrivateDeleteTradeAlgoOrders (params);
         }
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
+        const request: Dict = {};
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            request['symbol'] = market['id'];
         }
-        const market = this.market (symbol);
-        const request: Dict = {
-            'symbol': market['id'],
-        };
-        const response = await this.v1PrivateDeleteOrders (this.extend (request, params));
+        const response = await this.v3PrivateDeleteTradeOrders (this.extend (request, params));
         //
         //     {
-        //         "success":true,
-        //         "status":"CANCEL_ALL_SENT"
+        //         "success": true,
+        //         "data": {
+        //             "status": "CANCEL_ALL_SENT"
+        //         },
+        //         "timestamp": 1751941988134
         //     }
         //
-        return [
-            this.safeOrder (response),
-        ];
+        return response;
     }
 
     /**

@@ -1994,6 +1994,27 @@
                     "stopPrice": null
                 }
             }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "cancelAllOrders",
+                "method": "cancelAllOrders",
+                "input": [],
+                "httpResponse": {
+                    "success": true,
+                    "data": {
+                        "status": "CANCEL_All_SENT"
+                    },
+                    "timestamp": 1751940315838
+                },
+                "parsedResponse": {
+                    "success": true,
+                    "data": {
+                        "status": "CANCEL_All_SENT"
+                    },
+                    "timestamp": 1751940315838
+                }
+            }
         ]
     }
 }

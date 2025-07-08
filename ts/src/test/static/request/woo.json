@@ -262,22 +262,25 @@
         ],
         "cancelAllOrders": [
             {
-                "description": "Cancel swap orders",
+                "description": "cancelAllOrders",
                 "method": "cancelAllOrders",
-                "url": "https://api.woox.io/v1/orders",
-                "input": [
-                    "LTC/USDT:USDT"
-                ],
-                "output": "symbol=PERP_LTC_USDT"
-            },
-            {
-                "description": "Cancel spot orders",
-                "method": "cancelAllOrders",
-                "url": "https://api.woox.io/v1/orders",
+                "url": "https://api.woox.io/v3/trade/orders",
                 "input": [
                     "LTC/USDT"
                 ],
-                "output": "symbol=SPOT_LTC_USDT"
+                "output": "{\"symbol\":\"SPOT_LTC_USDT\"}"
+            },
+            {
+                "description": "cancelAllOrders algo",
+                "method": "cancelAllOrders",
+                "url": "https://api.woox.io/v3/trade/algoOrders",
+                "input": [
+                    "LTC/USDT",
+                    {
+                        "stop": true
+                    }
+                ],
+                "output": "{}"
             }
         ],
         "cancelAllOrdersAfter": [
