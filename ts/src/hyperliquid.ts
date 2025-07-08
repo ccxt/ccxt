@@ -1435,6 +1435,14 @@ export default class hyperliquid extends Exchange {
             'signature': sig,
             'vaultAddress': undefined,
         };
+        //
+        // {
+        //     "status": "ok",
+        //     "response": {
+        //         "type": "default"
+        //     }
+        // }
+        //
         return await this.privatePostExchange (request);
     }
 
