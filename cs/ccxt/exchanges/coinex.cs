@@ -773,7 +773,7 @@ public partial class coinex : Exchange
                         { "max", null },
                     } },
                 } },
-                { "networks", new Dictionary<string, object>() {} },
+                { "networks", networks },
                 { "type", "crypto" },
                 { "info", coin },
             });
