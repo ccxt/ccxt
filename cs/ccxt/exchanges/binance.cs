@@ -11967,6 +11967,7 @@ public partial class binance : Exchange
         if (isTrue(!isEqual(symbol, null)))
         {
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            symbol = getValue(market, "symbol");
         }
         if (isTrue(!isEqual(since, null)))
         {
@@ -11999,7 +12000,7 @@ public partial class binance : Exchange
         //
         object settlements = this.parseSettlements(response, market);
         object sorted = this.sortBy(settlements, "timestamp");
-        return this.filterBySymbolSinceLimit(sorted, getValue(market, "symbol"), since, limit);
+        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
 
     public virtual object parseSettlement(object settlement, object market)
