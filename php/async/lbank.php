@@ -683,7 +683,7 @@ class lbank extends Exchange {
                     'active' => true,
                     'contract' => true,
                     'linear' => true,
-                    'inverse' => null,
+                    'inverse' => false,
                     'contractSize' => $this->safe_number($market, 'volumeMultiple'),
                     'expiry' => null,
                     'expiryDatetime' => null,
