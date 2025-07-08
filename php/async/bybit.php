@@ -9452,7 +9452,7 @@ class bybit extends Exchange {
                     $authFull = $auth_base . $body;
                 } else {
                     $authFull = $auth_base . $queryEncoded;
-                    $url .= '?' . $this->rawencode($query);
+                    $url .= '?' . $queryEncoded;
                 }
                 $signature = null;
                 if (mb_strpos($this->secret, 'PRIVATE KEY') > -1) {
@@ -9468,7 +9468,7 @@ class bybit extends Exchange {
                     'timestamp' => $timestamp,
                 ));
                 $sortedQuery = $this->keysort($query);
-                $auth = $this->rawencode($sortedQuery);
+                $auth = $this->rawencode($sortedQuery, true);
                 $signature = null;
                 if (mb_strpos($this->secret, 'PRIVATE KEY') > -1) {
                     $signature = $this->rsa($auth, $this->secret, 'sha256');
@@ -9492,7 +9492,7 @@ class bybit extends Exchange {
                         );
                     }
                 } else {
-                    $url .= '?' . $this->rawencode($sortedQuery);
+                    $url .= '?' . $this->rawencode($sortedQuery, true);
                     $url .= '&sign=' . $signature;
                 }
             }
