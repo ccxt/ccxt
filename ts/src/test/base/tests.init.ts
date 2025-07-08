@@ -19,6 +19,7 @@ import testFilterBy from './test.filterBy.js';
 import testAfterConstructor from './test.afterConstructor.js';
 import testHandleMethods from './test.handleMethods.js';
 import testRemoveRepeatedElementsFromArray from './test.removeRepeatedElementsFromArray.js';
+import testParsePrecision from './test.parsePrecision.js';
 
 function baseTestsInit () {
     testLanguageSpecific ();
@@ -39,6 +40,7 @@ function baseTestsInit () {
     testFilterBy ();
     testHandleMethods ();
     testRemoveRepeatedElementsFromArray ();
+    testParsePrecision ();
 }
 
 export default baseTestsInit;
