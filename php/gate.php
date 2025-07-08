@@ -1235,7 +1235,7 @@ class gate extends Exchange {
             $this->fetch_option_markets($params),
         );
         if (!$sandboxMode) {
-            // gate does not have a sandbox for spot $markets
+            // gate doesn't have a sandbox for spot $markets
             $mainnetOnly = array( $this->fetch_spot_markets($params) );
             $rawPromises = $this->array_concat($rawPromises, $mainnetOnly);
         }
@@ -1658,7 +1658,7 @@ class gate extends Exchange {
                     'contractSize' => $this->parse_number('1'),
                     'expiry' => $expiry,
                     'expiryDatetime' => $this->iso8601($expiry),
-                    'strike' => $strike,
+                    'strike' => $this->parse_number($strike),
                     'optionType' => $optionType,
                     'precision' => array(
                         'amount' => $this->parse_number('1'), // all options have this step size

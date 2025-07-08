@@ -28,6 +28,7 @@
         "fetchCurrencies": [
             {
                 "description": "fetchCurrencies",
+                "disabled": true,
                 "method": "fetchCurrencies",
                 "url": "https://api.crypto.com/exchange/v1/private/get-currency-networks",
                 "input": [],

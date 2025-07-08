@@ -26,5 +26,6 @@ public partial class BaseTest
             testFilterBy();
             testHandleMethods();
             testRemoveRepeatedElementsFromArray();
+            testParsePrecision();
         }
 }

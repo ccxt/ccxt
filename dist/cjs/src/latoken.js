@@ -233,6 +233,8 @@ class latoken extends latoken$1 {
                 'fetchTradingFee': {
                     'method': 'fetchPrivateTradingFee', // or 'fetchPublicTradingFee'
                 },
+                'timeDifference': 0,
+                'adjustForTimeDifference': true, // controls the adjustment logic upon instantiation
             },
             'features': {
                 'spot': {
@@ -333,39 +335,6 @@ class latoken extends latoken$1 {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
-        const currencies = await this.fetchCurrenciesFromCache(params);
-        //
-        //     [
-        //         {
-        //             "id":"1a075819-9e0b-48fc-8784-4dab1d186d6d",
-        //             "status":"CURRENCY_STATUS_ACTIVE",
-        //             "type":"CURRENCY_TYPE_ALTERNATIVE", // CURRENCY_TYPE_CRYPTO, CURRENCY_TYPE_IEO
-        //             "name":"MyCryptoBank",
-        //             "tag":"MCB",
-        //             "description":"",
-        //             "logo":"",
-        //             "decimals":18,
-        //             "created":1572912000000,
-        //             "tier":1,
-        //             "assetClass":"ASSET_CLASS_UNKNOWN",
-        //             "minTransferAmount":0
-        //         },
-        //         {
-        //             "id":"db02758e-2507-46a5-a805-7bc60355b3eb",
-        //             "status":"CURRENCY_STATUS_ACTIVE",
-        //             "type":"CURRENCY_TYPE_FUTURES_CONTRACT",
-        //             "name":"BTC USDT Futures Contract",
-        //             "tag":"BTCUSDT",
-        //             "description":"",
-        //             "logo":"",
-        //             "decimals":8,
-        //             "created":1589459984395,
-        //             "tier":1,
-        //             "assetClass":"ASSET_CLASS_UNKNOWN",
-        //             "minTransferAmount":0
-        //         },
-        //     ]
-        //
         const response = await this.publicGetPair(params);
         //
         //     [
@@ -387,9 +356,10 @@ class latoken extends latoken$1 {
         //         }
         //     ]
         //
-        if (this.safeValue(this.options, 'adjustForTimeDifference', true)) {
+        if (this.safeBool(this.options, 'adjustForTimeDifference', false)) {
             await this.loadTimeDifference();
         }
+        const currencies = this.safeDict(this.options, 'cachedCurrencies', {});
         const currenciesById = this.indexBy(currencies, 'id');
         const result = [];
         for (let i = 0; i < response.length; i++) {
@@ -398,11 +368,13 @@ class latoken extends latoken$1 {
             // the exchange shows them inverted
             const baseId = this.safeString(market, 'baseCurrency');
             const quoteId = this.safeString(market, 'quoteCurrency');
-            const baseCurrency = this.safeValue(currenciesById, baseId);
-            const quoteCurrency = this.safeValue(currenciesById, quoteId);
-            if (baseCurrency !== undefined && quoteCurrency !== undefined) {
-                const base = this.safeCurrencyCode(this.safeString(baseCurrency, 'tag'));
-                const quote = this.safeCurrencyCode(this.safeString(quoteCurrency, 'tag'));
+            const baseCurrency = this.safeDict(currenciesById, baseId);
+            const quoteCurrency = this.safeDict(currenciesById, quoteId);
+            const baseCurrencyInfo = this.safeDict(baseCurrency, 'info');
+            const quoteCurrencyInfo = this.safeDict(quoteCurrency, 'info');
+            if (baseCurrencyInfo !== undefined && quoteCurrencyInfo !== undefined) {
+                const base = this.safeCurrencyCode(this.safeString(baseCurrencyInfo, 'tag'));
+                const quote = this.safeCurrencyCode(this.safeString(quoteCurrencyInfo, 'tag'));
                 const lowercaseQuote = quote.toLowerCase();
                 const capitalizedQuote = this.capitalize(lowercaseQuote);
                 const status = this.safeString(market, 'status');
@@ -459,22 +431,6 @@ class latoken extends latoken$1 {
         }
         return result;
     }
-    async fetchCurrenciesFromCache(params = {}) {
-        // this method is now redundant
-        // currencies are now fetched before markets
-        const options = this.safeValue(this.options, 'fetchCurrencies', {});
-        const timestamp = this.safeInteger(options, 'timestamp');
-        const expires = this.safeInteger(options, 'expires', 1000);
-        const now = this.milliseconds();
-        if ((timestamp === undefined) || ((now - timestamp) > expires)) {
-            const response = await this.publicGetCurrency(params);
-            this.options['fetchCurrencies'] = this.extend(options, {
-                'response': response,
-                'timestamp': now,
-            });
-        }
-        return this.safeValue(this.options['fetchCurrencies'], 'response');
-    }
     /**
      * @method
      * @name latoken#fetchCurrencies
@@ -483,7 +439,7 @@ class latoken extends latoken$1 {
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies(params = {}) {
-        const response = await this.fetchCurrenciesFromCache(params);
+        const response = await this.publicGetCurrency(params);
         //
         //     [
         //         {
@@ -522,29 +478,18 @@ class latoken extends latoken$1 {
             const id = this.safeString(currency, 'id');
             const tag = this.safeString(currency, 'tag');
             const code = this.safeCurrencyCode(tag);
-            const fee = this.safeNumber(currency, 'fee');
             const currencyType = this.safeString(currency, 'type');
-            let type = undefined;
-            if (currencyType === 'CURRENCY_TYPE_ALTERNATIVE') {
-                type = 'other';
-            }
-            else {
-                // CURRENCY_TYPE_CRYPTO and CURRENCY_TYPE_IEO are all cryptos
-                type = 'crypto';
-            }
-            const status = this.safeString(currency, 'status');
-            const active = (status === 'CURRENCY_STATUS_ACTIVE');
-            const name = this.safeString(currency, 'name');
-            result[code] = {
+            const isCrypto = (currencyType === 'CURRENCY_TYPE_CRYPTO' || currencyType === 'CURRENCY_TYPE_IEO');
+            result[code] = this.safeCurrencyStructure({
                 'id': id,
                 'code': code,
                 'info': currency,
-                'name': name,
-                'type': type,
-                'active': active,
+                'name': this.safeString(currency, 'name'),
+                'type': isCrypto ? 'crypto' : 'other',
+                'active': this.safeString(currency, 'status') === 'CURRENCY_STATUS_ACTIVE',
                 'deposit': undefined,
                 'withdraw': undefined,
-                'fee': fee,
+                'fee': this.safeNumber(currency, 'fee'),
                 'precision': this.parseNumber(this.parsePrecision(this.safeString(currency, 'decimals'))),
                 'limits': {
                     'amount': {
@@ -557,7 +502,7 @@ class latoken extends latoken$1 {
                     },
                 },
                 'networks': {},
-            };
+            });
         }
         return result;
     }

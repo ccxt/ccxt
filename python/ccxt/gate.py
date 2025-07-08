@@ -1241,7 +1241,7 @@ class gate(Exchange, ImplicitAPI):
             self.fetch_option_markets(params),
         ]
         if not sandboxMode:
-            # gate does not have a sandbox for spot markets
+            # gate doesn't have a sandbox for spot markets
             mainnetOnly = [self.fetch_spot_markets(params)]
             rawPromises = self.array_concat(rawPromises, mainnetOnly)
         promises = rawPromises
@@ -1652,7 +1652,7 @@ class gate(Exchange, ImplicitAPI):
                     'contractSize': self.parse_number('1'),
                     'expiry': expiry,
                     'expiryDatetime': self.iso8601(expiry),
-                    'strike': strike,
+                    'strike': self.parse_number(strike),
                     'optionType': optionType,
                     'precision': {
                         'amount': self.parse_number('1'),  # all options have self step size

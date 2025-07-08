@@ -4409,7 +4409,7 @@ class coinbase(Exchange, ImplicitAPI):
         """
         *futures only* closes open positions for a market
 
-        https://coinbase-api.github.io/docs/#/en-us/swapV2/trade-api.html#One-Click%20Close%20All%20Positions
+        https://docs.cdp.coinbase.com/coinbase-app/trade/reference/retailbrokerageapi_closeposition
 
         :param str symbol: Unified CCXT market symbol
         :param str [side]: not used by coinbase
@@ -4420,8 +4420,6 @@ class coinbase(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        if not market['future']:
-            raise NotSupported(self.id + ' closePosition() only supported for futures markets')
         clientOrderId = self.safe_string_2(params, 'client_order_id', 'clientOrderId')
         params = self.omit(params, 'clientOrderId')
         request: dict = {

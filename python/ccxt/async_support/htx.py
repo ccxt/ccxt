@@ -6342,7 +6342,7 @@ class htx(Exchange, ImplicitAPI):
             fee = self.safe_number(params, 'fee')
             if fee is None:
                 currencies = await self.fetch_currencies()
-                self.currencies = self.deep_extend(self.currencies, currencies)
+                self.currencies = self.map_to_safe_map(self.deep_extend(self.currencies, currencies))
                 targetNetwork = self.safe_value(currency['networks'], networkCode, {})
                 fee = self.safe_number(targetNetwork, 'fee')
                 if fee is None:

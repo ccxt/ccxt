@@ -548,7 +548,22 @@ class cryptocom(Exchange, ImplicitAPI):
         # self endpoint requires authentication
         if not self.check_required_credentials(False):
             return None
-        response = self.v1PrivatePostPrivateGetCurrencyNetworks(params)
+        skipFetchCurrencies = False
+        skipFetchCurrencies, params = self.handle_option_and_params(params, 'fetchCurrencies', 'skipFetchCurrencies', False)
+        if skipFetchCurrencies:
+            # sub-accounts can't access self endpoint
+            return None
+        response = {}
+        try:
+            response = self.v1PrivatePostPrivateGetCurrencyNetworks(params)
+        except Exception as e:
+            if isinstance(e, ExchangeError):
+                # sub-accounts can't access self endpoint
+                # {"code":"10001","msg":"SYS_ERROR"}
+                return None
+            raise e
+            # do nothing
+            # sub-accounts can't access self endpoint
         #
         #    {
         #        "id": "1747502328559",
@@ -573,7 +588,7 @@ class cryptocom(Exchange, ImplicitAPI):
         #                            "network_id": "CRONOS",
         #                            "withdrawal_fee": "0.18000000",
         #                            "withdraw_enabled": True,
-        #                            "min_withdrawal_amount": "0.36",
+        #                            "min_withdrawal_amount": "0.35",
         #                            "deposit_enabled": True,
         #                            "confirmation_required": "15"
         #                        },

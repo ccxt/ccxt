@@ -531,7 +531,26 @@ class cryptocom extends cryptocom$1 {
         if (!this.checkRequiredCredentials(false)) {
             return undefined;
         }
-        const response = await this.v1PrivatePostPrivateGetCurrencyNetworks(params);
+        let skipFetchCurrencies = false;
+        [skipFetchCurrencies, params] = this.handleOptionAndParams(params, 'fetchCurrencies', 'skipFetchCurrencies', false);
+        if (skipFetchCurrencies) {
+            // sub-accounts can't access this endpoint
+            return undefined;
+        }
+        let response = {};
+        try {
+            response = await this.v1PrivatePostPrivateGetCurrencyNetworks(params);
+        }
+        catch (e) {
+            if (e instanceof errors.ExchangeError) {
+                // sub-accounts can't access this endpoint
+                // {"code":"10001","msg":"SYS_ERROR"}
+                return undefined;
+            }
+            throw e;
+            // do nothing
+            // sub-accounts can't access this endpoint
+        }
         //
         //    {
         //        "id": "1747502328559",
@@ -556,7 +575,7 @@ class cryptocom extends cryptocom$1 {
         //                            "network_id": "CRONOS",
         //                            "withdrawal_fee": "0.18000000",
         //                            "withdraw_enabled": true,
-        //                            "min_withdrawal_amount": "0.36",
+        //                            "min_withdrawal_amount": "0.35",
         //                            "deposit_enabled": true,
         //                            "confirmation_required": "15"
         //                        },

@@ -675,10 +675,20 @@ public partial class coincheck : Exchange
         };
         if (isTrue(isEqual(type, "market")))
         {
-            object order_type = add(add(type, "_"), side);
-            ((IDictionary<string,object>)request)["order_type"] = order_type;
-            object prefix = ((bool) isTrue((isEqual(side, "buy")))) ? (add(order_type, "_")) : "";
-            ((IDictionary<string,object>)request)[(string)add(prefix, "amount")] = amount;
+            ((IDictionary<string,object>)request)["order_type"] = add(add(type, "_"), side);
+            if (isTrue(isEqual(side, "sell")))
+            {
+                ((IDictionary<string,object>)request)["amount"] = amount;
+            } else
+            {
+                object cost = this.safeNumber(parameters, "cost");
+                parameters = this.omit(parameters, "cost");
+                if (isTrue(!isEqual(cost, null)))
+                {
+                    throw new ArgumentsRequired ((string)add(this.id, " createOrder() : you should use \"cost\" parameter instead of \"amount\" argument to create market buy orders")) ;
+                }
+                ((IDictionary<string,object>)request)["market_buy_amount"] = cost;
+            }
         } else
         {
             ((IDictionary<string,object>)request)["order_type"] = side;

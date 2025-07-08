@@ -854,6 +854,7 @@ class mexc(Exchange, ImplicitAPI):
                 'PROS': 'PROSFINANCE',  # conflict with Prosper
                 'SIN': 'SINCITYTOKEN',
                 'SOUL': 'SOULSWAP',
+                'XBT': 'XBT',  # restore original mapping
             },
             'exceptions': {
                 'exact': {

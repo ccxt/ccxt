@@ -63,6 +63,7 @@ class bybit extends Exchange {
                 'createTriggerOrder' => true,
                 'editOrder' => true,
                 'editOrders' => true,
+                'fetchAllGreeks' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => 'emulated',
                 'fetchBorrowInterest' => false, // temporarily disabled, doesn't work
@@ -8190,6 +8191,80 @@ class bybit extends Exchange {
         }) ();
     }
 
+    public function fetch_all_greeks(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+             *
+             * @see https://bybit-exchange.github.io/docs/api-explorer/v5/market/tickers
+             *
+             * @param {string[]} [$symbols] unified $symbols of the markets to fetch greeks for, all markets are returned if not assigned
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->baseCoin] the $baseCoin of the symbol, default is BTC
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=greeks-structure greeks structure~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, true, true, true);
+            $baseCoin = $this->safe_string($params, 'baseCoin', 'BTC');
+            $request = array(
+                'category' => 'option',
+                'baseCoin' => $baseCoin,
+            );
+            $market = null;
+            if ($symbols !== null) {
+                $symbolsLength = count($symbols);
+                if ($symbolsLength === 1) {
+                    $market = $this->market($symbols[0]);
+                    $request['symbol'] = $market['id'];
+                }
+            }
+            $response = Async\await($this->publicGetV5MarketTickers ($this->extend($request, $params)));
+            //
+            //     {
+            //         "retCode" => 0,
+            //         "retMsg" => "SUCCESS",
+            //         "result" => {
+            //             "category" => "option",
+            //             "list" => array(
+            //                 array(
+            //                     "symbol" => "BTC-26JAN24-39000-C",
+            //                     "bid1Price" => "3205",
+            //                     "bid1Size" => "7.1",
+            //                     "bid1Iv" => "0.5478",
+            //                     "ask1Price" => "3315",
+            //                     "ask1Size" => "1.98",
+            //                     "ask1Iv" => "0.5638",
+            //                     "lastPrice" => "3230",
+            //                     "highPrice24h" => "3255",
+            //                     "lowPrice24h" => "3200",
+            //                     "markPrice" => "3273.02263032",
+            //                     "indexPrice" => "36790.96",
+            //                     "markIv" => "0.5577",
+            //                     "underlyingPrice" => "37649.67254894",
+            //                     "openInterest" => "19.67",
+            //                     "turnover24h" => "170140.33875912",
+            //                     "volume24h" => "4.56",
+            //                     "totalVolume" => "22",
+            //                     "totalTurnover" => "789305",
+            //                     "delta" => "0.49640971",
+            //                     "gamma" => "0.00004131",
+            //                     "vega" => "69.08651675",
+            //                     "theta" => "-24.9443226",
+            //                     "predictedDeliveryPrice" => "0",
+            //                     "change24h" => "0.18532111"
+            //                 }
+            //             )
+            //         ),
+            //         "retExtInfo" => array(),
+            //         "time" => 1699584008326
+            //     }
+            //
+            $result = $this->safe_dict($response, 'result', array());
+            $data = $this->safe_list($result, 'list', array());
+            return $this->parse_all_greeks($data, $symbols);
+        }) ();
+    }
+
     public function parse_greeks(array $greeks, ?array $market = null): array {
         //
         //     {
@@ -9377,7 +9452,7 @@ class bybit extends Exchange {
                     $authFull = $auth_base . $body;
                 } else {
                     $authFull = $auth_base . $queryEncoded;
-                    $url .= '?' . $this->rawencode($query);
+                    $url .= '?' . $queryEncoded;
                 }
                 $signature = null;
                 if (mb_strpos($this->secret, 'PRIVATE KEY') > -1) {
@@ -9393,7 +9468,7 @@ class bybit extends Exchange {
                     'timestamp' => $timestamp,
                 ));
                 $sortedQuery = $this->keysort($query);
-                $auth = $this->rawencode($sortedQuery);
+                $auth = $this->rawencode($sortedQuery, true);
                 $signature = null;
                 if (mb_strpos($this->secret, 'PRIVATE KEY') > -1) {
                     $signature = $this->rsa($auth, $this->secret, 'sha256');
@@ -9417,7 +9492,7 @@ class bybit extends Exchange {
                         );
                     }
                 } else {
-                    $url .= '?' . $this->rawencode($sortedQuery);
+                    $url .= '?' . $this->rawencode($sortedQuery, true);
                     $url .= '&sign=' . $signature;
                 }
             }

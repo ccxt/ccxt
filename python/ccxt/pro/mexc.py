@@ -1058,7 +1058,6 @@ class mexc(ccxt.async_support.mexc):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        params = self.omit(params, 'type')
         messageHash = 'orders'
         market = None
         if symbol is not None:

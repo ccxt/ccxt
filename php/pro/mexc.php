@@ -1150,7 +1150,6 @@ class mexc extends \ccxt\async\mexc {
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
-            $params = $this->omit($params, 'type');
             $messageHash = 'orders';
             $market = null;
             if ($symbol !== null) {

@@ -578,7 +578,7 @@ public partial class bitstamp : ccxt.bitstamp
             object sessionToken = this.safeString(response, "token");
             if (isTrue(!isEqual(sessionToken, null)))
             {
-                object userId = this.safeNumber(response, "user_id");
+                object userId = this.safeString(response, "user_id");
                 object validity = this.safeIntegerProduct(response, "valid_sec", 1000);
                 ((IDictionary<string,object>)this.options)["expiresIn"] = this.sum(time, validity);
                 ((IDictionary<string,object>)this.options)["userId"] = userId;
