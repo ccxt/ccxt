@@ -1485,6 +1485,13 @@ export default class hyperliquid extends Exchange {
      */
     async createOrders (orders: OrderRequest[], params = {}) {
         await this.loadMarkets ();
+        const approvedBuilderFee = this.safeBool (this.options, 'approvedBuilderFee', false);
+        if (!approvedBuilderFee) {
+            const builder = this.safeString (this.options, 'builder', '0x2e3AB3E88a7DBdc763AaDf5b28c18fb085aF420a');
+            const maxFeeRate = this.safeString (this.options, 'feeRate', '0.001%');
+            await this.approveBuilderFee (builder, maxFeeRate);
+            this.options['approvedBuilderFee'] = true;
+        }
         const request = this.createOrdersRequest (orders, params);
         const response = await this.privatePostExchange (request);
         //
