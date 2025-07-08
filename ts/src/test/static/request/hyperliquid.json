@@ -1029,16 +1029,28 @@
                 "output": "{\"action\":{\"hyperliquidChain\":\"Mainnet\",\"signatureChainId\":\"0x66eee\",\"type\":\"usdClassTransfer\",\"amount\":\"100\",\"toPerp\":false,\"nonce\":1733369421528},\"nonce\":1733369421528,\"signature\":{\"r\":\"0x6dea451134dc4ec8f5b83aff45d776b41874aaa0db42002b954d927d95872fa0\",\"s\":\"0x24f03636d21aa06a1029a3f7e67ba84454ed41af2d6e48033f186ec3bc4b4399\",\"v\":27}}"
             },
             {
-                "description": "transfer on chain",
+                "description": "transfer from main to subaccount",
                 "method": "transfer",
                 "url": "https://api.hyperliquid-testnet.xyz/exchange",
                 "input": [
                     "USDC",
                     100,
-                    "",
+                    "main",
                     "0xc751489d24a33172541ea451bc253d7a9e98c781"
                 ],
-                "output": "{\"action\":{\"hyperliquidChain\":\"Mainnet\",\"signatureChainId\":\"0x66eee\",\"destination\":\"0xc751489d24a33172541ea451bc253d7a9e98c781\",\"amount\":\"100\",\"time\":1718449507242,\"type\":\"usdSend\"},\"nonce\":1718449507242,\"signature\":{\"r\":\"0x575f802d4117366cdfc2df33185bf21af6d2cebf1549689cc23082ffcf232a5d\",\"s\":\"0x661b7e839f0a66de5c63f9d3ff437f0455f74f7e3218332e26f6f2616b0e50eb\",\"v\":27}}"
+                "output": "{\"action\":{\"type\":\"subAccountTransfer\",\"subAccountUser\":\"0xc751489d24a33172541ea451bc253d7a9e98c781\",\"isDeposit\":true,\"usd\":100000000},\"nonce\":1718449507242,\"signature\":{\"r\":\"0x575f802d4117366cdfc2df33185bf21af6d2cebf1549689cc23082ffcf232a5d\",\"s\":\"0x661b7e839f0a66de5c63f9d3ff437f0455f74f7e3218332e26f6f2616b0e50eb\",\"v\":27}}"
+            },
+            {
+                "description": "transfer from subaccount to main",
+                "method": "transfer",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    "USDC",
+                    100,
+                    "0xc751489d24a33172541ea451bc253d7a9e98c781",
+                    "main"
+                ],
+                "output": "{\"action\":{\"type\":\"subAccountTransfer\",\"subAccountUser\":\"0xc751489d24a33172541ea451bc253d7a9e98c781\",\"isDeposit\":false,\"usd\":100000000},\"nonce\":1718449507242,\"signature\":{\"r\":\"0x575f802d4117366cdfc2df33185bf21af6d2cebf1549689cc23082ffcf232a5d\",\"s\":\"0x661b7e839f0a66de5c63f9d3ff437f0455f74f7e3218332e26f6f2616b0e50eb\",\"v\":27}}"
             }
         ],
         "withdraw": [

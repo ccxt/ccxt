@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/hyperliquid.js';
-import { ExchangeError, ArgumentsRequired, NotSupported, InvalidOrder, OrderNotFound, BadRequest, InsufficientFunds, InvalidAddress } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, NotSupported, InvalidOrder, OrderNotFound, BadRequest, InsufficientFunds } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { ROUND, SIGNIFICANT_DIGITS, DECIMAL_PLACES, TICK_SIZE } from './base/functions/number.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
@@ -3098,30 +3098,34 @@ export default class hyperliquid extends Exchange {
             const transferResponse = await this.privatePostExchange (transferRequest);
             return transferResponse;
         }
-        // handle sub-account/different account transfer
-        this.checkAddress (toAccount);
+        // transfer between main account and subaccount
         if (code !== undefined) {
             code = code.toUpperCase ();
             if (code !== 'USDC') {
                 throw new NotSupported (this.id + ' transfer() only support USDC');
             }
         }
-        const payload: Dict = {
-            'hyperliquidChain': isSandboxMode ? 'Testnet' : 'Mainnet',
-            'destination': toAccount,
-            'amount': this.numberToString (amount),
-            'time': nonce,
+        let isDeposit = false;
+        let subAccountAddress = undefined;
+        if (fromAccount === 'main') {
+            subAccountAddress = toAccount;
+            isDeposit = true;
+        } else if (toAccount === 'main') {
+            subAccountAddress = fromAccount;
+        } else {
+            throw new NotSupported (this.id + ' transfer() only support main <> subaccount transfer');
+        }
+        this.checkAddress (subAccountAddress);
+        const usd = this.parseToInt (Precise.stringMul (this.numberToString (amount), '1000000'));
+        const action = {
+            'type': 'subAccountTransfer',
+            'subAccountUser': subAccountAddress,
+            'isDeposit': isDeposit,
+            'usd': usd,
         };
-        const sig = this.buildUsdSendSig (payload);
+        const sig = this.signL1Action (action, nonce);
         const request: Dict = {
-            'action': {
-                'hyperliquidChain': payload['hyperliquidChain'],
-                'signatureChainId': '0x66eee', // check this out
-                'destination': toAccount,
-                'amount': amount.toString (),
-                'time': nonce,
-                'type': 'usdSend',
-            },
+            'action': action,
             'nonce': nonce,
             'signature': sig,
         };
