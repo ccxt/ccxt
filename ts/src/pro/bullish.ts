@@ -19,7 +19,7 @@ export default class bullish extends bullishRest {
                 'watchOrders': true,
                 'watchTrades': true,
                 'watchPositions': false,
-                'watchMyTrades': false,
+                'watchMyTrades': true,
                 'watchBalance': false,
                 'watchOHLCV': false,
             },
@@ -45,7 +45,7 @@ export default class bullish extends bullishRest {
             },
             'streaming': {
                 'ping': this.ping,
-                'keepAlive': 99000,
+                'keepAlive': 99000, // disconnect after 100 seconds of inactivity
             },
         });
     }
@@ -87,7 +87,7 @@ export default class bullish extends bullishRest {
         let token = this.token;
         const now = this.milliseconds ();
         const tokenExpires = this.safeInteger (this.options, 'tokenExpires');
-        if ((token !== undefined) || (tokenExpires === undefined) || (now > tokenExpires)) {
+        if ((token === undefined) || (tokenExpires === undefined) || (now > tokenExpires)) {
             await this.signIn ();
             token = this.token;
         }
@@ -353,6 +353,7 @@ export default class bullish extends bullishRest {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tradingAccountId] the trading account id to fetch entries for
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -366,6 +367,11 @@ export default class bullish extends bullishRest {
         const request: Dict = {
             'topic': 'orders',
         };
+        const tradingAccountId = this.safeString (params, 'tradingAccountId');
+        if (tradingAccountId !== undefined) {
+            request['tradingAccountId'] = tradingAccountId;
+            params = this.omit (params, 'tradingAccountId');
+        }
         const orders = await this.watchPrivate (messageHash, subscribeHash, request, params);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
@@ -422,26 +428,32 @@ export default class bullish extends bullishRest {
         let rawOrders = [];
         if (type === 'update') {
             const data = this.safeDict (message, 'data', {});
-            rawOrders = [ data ]; // update is a single order
+            rawOrders.push (data); // update is a single order
         } else {
             rawOrders = this.safeList (message, 'data', []); // snapshot is a list of orders
         }
         if (rawOrders.length > 0) {
-            const messageHash = 'orders';
             if (this.orders === undefined) {
                 const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
                 this.orders = new ArrayCacheBySymbolById (limit);
             }
             const orders = this.orders;
+            const symbols: Dict = {};
             for (let i = 0; i < rawOrders.length; i++) {
                 const rawOrder = rawOrders[i];
                 const parsedOrder = this.parseOrder (rawOrder);
-                const symbol = this.safeString (parsedOrder, 'symbol');
                 orders.append (parsedOrder);
-                const symbolMessageHash = messageHash + '::' + symbol;
-                client.resolve (orders, symbolMessageHash);
+                const symbol = this.safeString (parsedOrder, 'symbol');
+                symbols[symbol] = true;
             }
+            const messageHash = 'orders';
             client.resolve (orders, messageHash);
+            const keys = Object.keys (symbols);
+            for (let i = 0; i < keys.length; i++) {
+                const hashSymbol = keys[i];
+                const symbolMessageHash = messageHash + '::' + hashSymbol;
+                client.resolve (this.orders, symbolMessageHash);
+            }
         }
     }
 
@@ -454,6 +466,7 @@ export default class bullish extends bullishRest {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tradingAccountId] the trading account id to fetch entries for
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -467,6 +480,11 @@ export default class bullish extends bullishRest {
         const request: Dict = {
             'topic': 'trades',
         };
+        const tradingAccountId = this.safeString (params, 'tradingAccountId');
+        if (tradingAccountId !== undefined) {
+            request['tradingAccountId'] = tradingAccountId;
+            params = this.omit (params, 'tradingAccountId');
+        }
         const trades = await this.watchPrivate (messageHash, subscribeHash, request, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
@@ -516,7 +534,7 @@ export default class bullish extends bullishRest {
         let rawTrades = [];
         if (type === 'update') {
             const data = this.safeDict (message, 'data', {});
-            rawTrades = [ data ]; // update is a single trade
+            rawTrades.push (data); // update is a single trade
         } else {
             rawTrades = this.safeList (message, 'data', []); // snapshot is a list of trades
         }
@@ -526,16 +544,22 @@ export default class bullish extends bullishRest {
                 this.myTrades = new ArrayCacheBySymbolById (limit);
             }
             const trades = this.myTrades;
-            const messageHash = 'myTrades';
+            const symbols: Dict = {};
             for (let i = 0; i < rawTrades.length; i++) {
                 const rawTrade = rawTrades[i];
                 const parsedTrade = this.parseTrade (rawTrade);
-                const symbol = this.safeString (parsedTrade, 'symbol');
                 trades.append (parsedTrade);
-                const symbolMessageHash = messageHash + '::' + symbol;
-                client.resolve (trades, symbolMessageHash);
+                const symbol = this.safeString (parsedTrade, 'symbol');
+                symbols[symbol] = true;
             }
+            const messageHash = 'myTrades';
             client.resolve (trades, messageHash);
+            const keys = Object.keys (symbols);
+            for (let i = 0; i < keys.length; i++) {
+                const hashSymbol = keys[i];
+                const symbolMessageHash = messageHash + '::' + hashSymbol;
+                client.resolve (this.myTrades, symbolMessageHash);
+            }
         }
     }
 
