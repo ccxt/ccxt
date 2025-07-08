@@ -653,10 +653,17 @@ class coincheck extends Exchange {
             'pair' => $market['id'],
         );
         if ($type === 'market') {
-            $order_type = $type . '_' . $side;
-            $request['order_type'] = $order_type;
-            $prefix = ($side === 'buy') ? ($order_type . '_') : '';
-            $request[$prefix . 'amount'] = $amount;
+            $request['order_type'] = $type . '_' . $side;
+            if ($side === 'sell') {
+                $request['amount'] = $amount;
+            } else {
+                $cost = $this->safe_number($params, 'cost');
+                $params = $this->omit($params, 'cost');
+                if ($cost !== null) {
+                    throw new ArgumentsRequired($this->id . ' createOrder() : you should use "cost" parameter instead of "amount" argument to create $market buy orders');
+                }
+                $request['market_buy_amount'] = $cost;
+            }
         } else {
             $request['order_type'] = $side;
             $request['rate'] = $price;

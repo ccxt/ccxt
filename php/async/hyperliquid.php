@@ -711,7 +711,8 @@ class hyperliquid extends Exchange {
         //     }
         //
         $quoteId = 'USDC';
-        $base = $this->safe_string($market, 'name');
+        $baseName = $this->safe_string($market, 'name');
+        $base = $this->safe_currency_code($baseName);
         $quote = $this->safe_currency_code($quoteId);
         $baseId = $this->safe_string($market, 'baseId');
         $settleId = 'USDC';

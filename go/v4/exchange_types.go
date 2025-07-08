@@ -1814,6 +1814,18 @@ func NewOrderArray(orders2 interface{}) []Order {
 	return result
 }
 
+func NewGreeksArray(orders2 interface{}) []Greeks {
+	orders := orders2.([]interface{})
+	result := make([]Greeks, 0, len(orders))
+	for _, t := range orders {
+		if tradeMap, ok := t.(map[string]interface{}); ok {
+			order := NewGreeks(tradeMap)
+			result = append(result, order)
+		}
+	}
+	return result
+}
+
 func NewOHLCVArray(orders2 interface{}) []OHLCV {
 	orders := orders2.([]interface{})
 	result := make([]OHLCV, 0, len(orders))

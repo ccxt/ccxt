@@ -10,6 +10,7 @@ from ccxt.base.types import Any, Balances, Currency, Int, Market, Num, Order, Or
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadSymbol
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
@@ -637,10 +638,15 @@ class coincheck(Exchange, ImplicitAPI):
             'pair': market['id'],
         }
         if type == 'market':
-            order_type = type + '_' + side
-            request['order_type'] = order_type
-            prefix = (order_type + '_') if (side == 'buy') else ''
-            request[prefix + 'amount'] = amount
+            request['order_type'] = type + '_' + side
+            if side == 'sell':
+                request['amount'] = amount
+            else:
+                cost = self.safe_number(params, 'cost')
+                params = self.omit(params, 'cost')
+                if cost is not None:
+                    raise ArgumentsRequired(self.id + ' createOrder() : you should use "cost" parameter instead of "amount" argument to create market buy orders')
+                request['market_buy_amount'] = cost
         else:
             request['order_type'] = side
             request['rate'] = price

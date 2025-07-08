@@ -777,10 +777,17 @@ func  (this *coincheck) CreateOrder(symbol interface{}, typeVar interface{}, sid
                 "pair": GetValue(market, "id"),
             }
             if IsTrue(IsEqual(typeVar, "market")) {
-                var order_type interface{} = Add(Add(typeVar, "_"), side)
-                AddElementToObject(request, "order_type", order_type)
-                var prefix interface{} = Ternary(IsTrue((IsEqual(side, "buy"))), (Add(order_type, "_")), "")
-                AddElementToObject(request, Add(prefix, "amount"), amount)
+                AddElementToObject(request, "order_type", Add(Add(typeVar, "_"), side))
+                if IsTrue(IsEqual(side, "sell")) {
+                    AddElementToObject(request, "amount", amount)
+                } else {
+                    var cost interface{} = this.SafeNumber(params, "cost")
+                    params = this.Omit(params, "cost")
+                    if IsTrue(!IsEqual(cost, nil)) {
+                        panic(ArgumentsRequired(Add(this.Id, " createOrder() : you should use \"cost\" parameter instead of \"amount\" argument to create market buy orders")))
+                    }
+                    AddElementToObject(request, "market_buy_amount", cost)
+                }
             } else {
                 AddElementToObject(request, "order_type", side)
                 AddElementToObject(request, "rate", price)
@@ -863,8 +870,8 @@ func  (this *coincheck) FetchDeposits(optionalArgs ...interface{}) <- chan inter
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes7128 := (<-this.LoadMarkets())
-            PanicOnError(retRes7128)
+            retRes7198 := (<-this.LoadMarkets())
+            PanicOnError(retRes7198)
             var currency interface{} = nil
             var request interface{} = map[string]interface{} {}
             if IsTrue(!IsEqual(code, nil)) {
@@ -935,8 +942,8 @@ func  (this *coincheck) FetchWithdrawals(optionalArgs ...interface{}) <- chan in
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes7628 := (<-this.LoadMarkets())
-            PanicOnError(retRes7628)
+            retRes7698 := (<-this.LoadMarkets())
+            PanicOnError(retRes7698)
             var currency interface{} = nil
             if IsTrue(!IsEqual(code, nil)) {
                 currency = this.Currency(code)

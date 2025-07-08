@@ -3143,7 +3143,7 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function parse_leverage_tiers(mixed $response, ?array $symbols = null, $marketIdKey = null) {
-        // $marketIdKey should only be null when $response is a dictionary
+        // $marketIdKey should only be null when $response is a dictionary.
         $symbols = $this->market_symbols($symbols);
         $tiers = array();
         $symbolsLength = 0;
@@ -4744,6 +4744,10 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchGreeks() is not supported yet');
     }
 
+    public function fetch_all_greeks(?array $symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchAllGreeks() is not supported yet');
+    }
+
     public function fetch_option_chain(string $code, $params = array ()) {
         throw new NotSupported($this->id . ' fetchOptionChain() is not supported yet');
     }
@@ -6333,6 +6337,31 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' parseGreeks () is not supported yet');
     }
 
+    public function parse_all_greeks($greeks, ?array $symbols = null, $params = array ()) {
+        //
+        // the value of $greeks is either a dict or a list
+        //
+        $results = array();
+        if (gettype($greeks) === 'array' && array_keys($greeks) === array_keys(array_keys($greeks))) {
+            for ($i = 0; $i < count($greeks); $i++) {
+                $parsedTicker = $this->parse_greeks($greeks[$i]);
+                $greek = $this->extend($parsedTicker, $params);
+                $results[] = $greek;
+            }
+        } else {
+            $marketIds = is_array($greeks) ? array_keys($greeks) : array();
+            for ($i = 0; $i < count($marketIds); $i++) {
+                $marketId = $marketIds[$i];
+                $market = $this->safe_market($marketId);
+                $parsed = $this->parse_greeks($greeks[$marketId], $market);
+                $greek = $this->extend($parsed, $params);
+                $results[] = $greek;
+            }
+        }
+        $symbols = $this->market_symbols($symbols);
+        return $this->filter_by_array($results, 'symbol', $symbols);
+    }
+
     public function parse_option(array $chain, ?array $currency = null, ?array $market = null) {
         throw new NotSupported($this->id . ' parseOption () is not supported yet');
     }
@@ -6570,16 +6599,34 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchTransfers () is not supported yet');
     }
 
-    public function clean_unsubscription($client, string $subHash, string $unsubHash) {
+    public function clean_unsubscription($client, string $subHash, string $unsubHash, $subHashIsPrefix = false) {
         if (is_array($client->subscriptions) && array_key_exists($unsubHash, $client->subscriptions)) {
             unset($client->subscriptions[$unsubHash]);
         }
-        if (is_array($client->subscriptions) && array_key_exists($subHash, $client->subscriptions)) {
-            unset($client->subscriptions[$subHash]);
-        }
-        if (is_array($client->futures) && array_key_exists($subHash, $client->futures)) {
-            $error = new UnsubscribeError ($this->id . ' ' . $subHash);
-            $client->reject ($error, $subHash);
+        if (!$subHashIsPrefix) {
+            if (is_array($client->subscriptions) && array_key_exists($subHash, $client->subscriptions)) {
+                unset($client->subscriptions[$subHash]);
+            }
+            if (is_array($client->futures) && array_key_exists($subHash, $client->futures)) {
+                $error = new UnsubscribeError ($this->id . ' ' . $subHash);
+                $client->reject ($error, $subHash);
+            }
+        } else {
+            $clientSubscriptions = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
+            for ($i = 0; $i < count($clientSubscriptions); $i++) {
+                $sub = $clientSubscriptions[$i];
+                if (str_starts_with($sub, $subHash)) {
+                    unset($client->subscriptions[$sub]);
+                }
+            }
+            $clientFutures = is_array($client->futures) ? array_keys($client->futures) : array();
+            for ($i = 0; $i < count($clientFutures); $i++) {
+                $future = $clientFutures[$i];
+                if (str_starts_with($future, $subHash)) {
+                    $error = new UnsubscribeError ($this->id . ' ' . $future);
+                    $client->reject ($error, $future);
+                }
+            }
         }
         $client->resolve (true, $unsubHash);
     }

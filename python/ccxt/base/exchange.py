@@ -4229,7 +4229,7 @@ class Exchange(object):
         return self.filter_by_since_limit(sorted, since, limit, 0, tail)
 
     def parse_leverage_tiers(self, response: Any, symbols: List[str] = None, marketIdKey=None):
-        # marketIdKey should only be None when response is a dictionary
+        # marketIdKey should only be None when response is a dictionary.
         symbols = self.market_symbols(symbols)
         tiers = {}
         symbolsLength = 0
@@ -5449,6 +5449,9 @@ class Exchange(object):
 
     def fetch_greeks(self, symbol: str, params={}):
         raise NotSupported(self.id + ' fetchGreeks() is not supported yet')
+
+    def fetch_all_greeks(self, symbols: Strings = None, params={}):
+        raise NotSupported(self.id + ' fetchAllGreeks() is not supported yet')
 
     def fetch_option_chain(self, code: str, params={}):
         raise NotSupported(self.id + ' fetchOptionChain() is not supported yet')
@@ -6682,6 +6685,27 @@ class Exchange(object):
     def parse_greeks(self, greeks: dict, market: Market = None):
         raise NotSupported(self.id + ' parseGreeks() is not supported yet')
 
+    def parse_all_greeks(self, greeks, symbols: Strings = None, params={}):
+        #
+        # the value of greeks is either a dict or a list
+        #
+        results = []
+        if isinstance(greeks, list):
+            for i in range(0, len(greeks)):
+                parsedTicker = self.parse_greeks(greeks[i])
+                greek = self.extend(parsedTicker, params)
+                results.append(greek)
+        else:
+            marketIds = list(greeks.keys())
+            for i in range(0, len(marketIds)):
+                marketId = marketIds[i]
+                market = self.safe_market(marketId)
+                parsed = self.parse_greeks(greeks[marketId], market)
+                greek = self.extend(parsed, params)
+                results.append(greek)
+        symbols = self.market_symbols(symbols)
+        return self.filter_by_array(results, 'symbol', symbols)
+
     def parse_option(self, chain: dict, currency: Currency = None, market: Market = None):
         raise NotSupported(self.id + ' parseOption() is not supported yet')
 
@@ -6883,14 +6907,27 @@ class Exchange(object):
         """
         raise NotSupported(self.id + ' fetchTransfers() is not supported yet')
 
-    def clean_unsubscription(self, client, subHash: str, unsubHash: str):
+    def clean_unsubscription(self, client, subHash: str, unsubHash: str, subHashIsPrefix=False):
         if unsubHash in client.subscriptions:
             del client.subscriptions[unsubHash]
-        if subHash in client.subscriptions:
-            del client.subscriptions[subHash]
-        if subHash in client.futures:
-            error = UnsubscribeError(self.id + ' ' + subHash)
-            client.reject(error, subHash)
+        if not subHashIsPrefix:
+            if subHash in client.subscriptions:
+                del client.subscriptions[subHash]
+            if subHash in client.futures:
+                error = UnsubscribeError(self.id + ' ' + subHash)
+                client.reject(error, subHash)
+        else:
+            clientSubscriptions = list(client.subscriptions.keys())
+            for i in range(0, len(clientSubscriptions)):
+                sub = clientSubscriptions[i]
+                if sub.startswith(subHash):
+                    del client.subscriptions[sub]
+            clientFutures = list(client.futures.keys())
+            for i in range(0, len(clientFutures)):
+                future = clientFutures[i]
+                if future.startswith(subHash):
+                    error = UnsubscribeError(self.id + ' ' + future)
+                    client.reject(error, future)
         client.resolve(True, unsubHash)
 
     def clean_cache(self, subscription: dict):

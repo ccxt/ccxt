@@ -845,7 +845,7 @@ public partial class coinex : Exchange
                 { "settleId", null },
                 { "type", "spot" },
                 { "spot", true },
-                { "margin", null },
+                { "margin", this.safeBool(market, "is_margin_available") },
                 { "swap", false },
                 { "future", false },
                 { "option", false },

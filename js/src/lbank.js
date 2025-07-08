@@ -128,7 +128,7 @@ export default class lbank extends Exchange {
                             'accuracy': 2.5,
                             'usdToCny': 2.5,
                             'assetConfigs': 2.5,
-                            'withdrawConfigs': 2.5,
+                            'withdrawConfigs': 2.5 * 1.5,
                             'timestamp': 2.5,
                             'ticker/24hr': 2.5,
                             'ticker': 2.5,
