@@ -69,6 +69,21 @@ export default class bullish extends bullishRest {
         };
     }
 
+    handlePong (client: Client, message) {
+        //
+        //     {
+        //         "id": "7",
+        //         "jsonrpc": "2.0",
+        //         "result": {
+        //             "responseCodeName": "OK",
+        //             "responseCode": "200",
+        //             "message": "Keep alive pong"
+        //         }
+        //     }
+        //
+        client.lastPong = this.milliseconds ();
+    }
+
     async watchPublic (url: string, messageHash: string, request = {}, params = {}): Promise<any> {
         const id = this.requestId ().toString ();
         const message = {
@@ -645,6 +660,7 @@ export default class bullish extends bullishRest {
             account['used'] = this.safeString (data, 'lockedQuantity');
             const code = this.safeCurrencyCode (assetId);
             this.balance[tradingAccountId][code] = account;
+            this.balance[tradingAccountId]['info'] = message;
             this.balance[tradingAccountId] = this.safeBalance (this.balance[tradingAccountId]);
         }
         const messageHash = 'balance';
@@ -655,7 +671,13 @@ export default class bullish extends bullishRest {
 
     handleMessage (client: Client, message) {
         const dataType = this.safeString (message, 'dataType');
-        if (dataType !== undefined) {
+        const result = this.safeDict (message, 'result', {});
+        if (result !== undefined) {
+            const response = this.safeString (result, 'message');
+            if (response === 'Keep alive pong') {
+                this.handlePong (client, message);
+            }
+        } else if (dataType !== undefined) {
             if (dataType === 'V1TAAnonymousTradeUpdate') {
                 this.handleTrades (client, message);
             }
