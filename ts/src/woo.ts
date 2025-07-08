@@ -2857,7 +2857,7 @@ export default class woo extends Exchange {
             };
             if (version === 'v3') {
                 auth = ts + method + '/' + version + '/' + pathWithParams;
-                if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
+                if (method === 'POST' || method === 'PUT') {
                     body = this.json (params);
                     auth += body;
                 } else {

@@ -264,11 +264,10 @@
             {
                 "description": "cancelAllOrders",
                 "method": "cancelAllOrders",
-                "url": "https://api.woox.io/v3/trade/orders",
+                "url": "https://api.woox.io/v3/trade/orders?symbol=SPOT_LTC_USDT",
                 "input": [
                     "LTC/USDT"
-                ],
-                "output": "{\"symbol\":\"SPOT_LTC_USDT\"}"
+                ]
             },
             {
                 "description": "cancelAllOrders algo",
@@ -279,8 +278,7 @@
                     {
                         "stop": true
                     }
-                ],
-                "output": "{}"
+                ]
             }
         ],
         "cancelAllOrdersAfter": [
@@ -578,25 +576,23 @@
             {
                 "description": "cancelOrder",
                 "method": "cancelOrder",
-                "url": "https://api.woox.io/v3/trade/order",
+                "url": "https://api.woox.io/v3/trade/order?orderId=1111779&symbol=PERP_LTC_USDT",
                 "input": [
                     "1111779",
                     "LTC/USDT:USDT"
-                ],
-                "output": "{\"orderId\":\"1111779\",\"symbol\":\"PERP_LTC_USDT\"}"
+                ]
             },
             {
                 "description": "cancelOrder - algo",
                 "method": "cancelOrder",
-                "url": "https://api.woox.io/v3/trade/algoOrder",
+                "url": "https://api.woox.io/v3/trade/algoOrder?algoOrderId=1111779",
                 "input": [
                     "1111779",
                     "LTC/USDT:USDT",
                     {
                         "stop": true
                     }
-                ],
-                "output": "{\"algoOrderId\":\"1111779\"}"
+                ]
             }
         ],
         "fetchTime": [
