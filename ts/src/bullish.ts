@@ -694,7 +694,7 @@ export default class bullish extends Exchange {
                 'base': this.parseNumber (this.parsePrecision (basePrecision)),
                 'quote': this.parseNumber (this.parsePrecision (quotePrecision)),
             },
-            'active': undefined,
+            'active': this.safeBool (market, 'marketEnabled'),
             'created': undefined,
             'info': market,
         });
