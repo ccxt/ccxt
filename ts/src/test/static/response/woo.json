@@ -1936,6 +1936,64 @@
                     "tierBased": null
                 }
             }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancelOrder",
+                "method": "cancelOrder",
+                "input": [
+                    "10376200",
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "data": {
+                        "status": "CANCEL_SENT"
+                    },
+                    "timestamp": 1751940315838
+                },
+                "parsedResponse": {
+                    "id": "10376200",
+                    "clientOrderId": null,
+                    "timestamp": 1751940315838,
+                    "datetime": "2025-07-08T02:05:15.838Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": "canceled",
+                    "symbol": "BTC/USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "average": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "cost": null,
+                    "trades": [],
+                    "fee": {
+                        "cost": null,
+                        "currency": null
+                    },
+                    "info": {
+                        "status": "CANCEL_SENT",
+                        "timestamp": "1751940315838",
+                        "orderId": "10376200"
+                    },
+                    "fees": [
+                        {
+                            "cost": null,
+                            "currency": null
+                        }
+                    ],
+                    "stopPrice": null
+                }
+            }
         ]
     }
 }

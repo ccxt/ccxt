@@ -1478,9 +1478,8 @@ export default class woo extends Exchange {
     /**
      * @method
      * @name woo#cancelOrder
-     * @see https://docs.woox.io/#cancel-algo-order
-     * @see https://docs.woox.io/#cancel-order
-     * @see https://docs.woox.io/#cancel-order-by-client_order_id
+     * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_order
+     * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_algo_order
      * @description cancels an open order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
@@ -1502,32 +1501,42 @@ export default class woo extends Exchange {
         const request: Dict = {};
         const clientOrderIdUnified = this.safeString2 (params, 'clOrdID', 'clientOrderId');
         const clientOrderIdExchangeSpecific = this.safeString (params, 'client_order_id', clientOrderIdUnified);
+        params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
         let response = undefined;
         if (isTrigger) {
-            request['order_id'] = id;
-            response = await this.v3PrivateDeleteAlgoOrderOrderId (this.extend (request, params));
+            if (isByClientOrder) {
+                request['clientAlgoOrderId'] = clientOrderIdExchangeSpecific;
+            } else {
+                request['algoOrderId'] = id;
+            }
+            response = await this.v3PrivateDeleteTradeAlgoOrder (this.extend (request, params));
         } else {
             request['symbol'] = market['id'];
             if (isByClientOrder) {
-                request['client_order_id'] = clientOrderIdExchangeSpecific;
-                params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
-                response = await this.v1PrivateDeleteClientOrder (this.extend (request, params));
+                request['clientOrderId'] = clientOrderIdExchangeSpecific;
             } else {
-                request['order_id'] = id;
-                response = await this.v1PrivateDeleteOrder (this.extend (request, params));
+                request['orderId'] = id;
             }
+            response = await this.v3PrivateDeleteTradeOrder (this.extend (request, params));
         }
         //
-        // { success: true, status: "CANCEL_SENT" }
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "status": "CANCEL_SENT"
+        //         },
+        //         "timestamp": 1751940315838
+        //     }
         //
-        const extendParams: Dict = { 'symbol': symbol };
+        const data = this.safeDict (response, 'data', {});
+        data['timestamp'] = this.safeString (response, 'timestamp');
         if (isByClientOrder) {
-            extendParams['client_order_id'] = clientOrderIdExchangeSpecific;
+            data['clientOrderId'] = clientOrderIdExchangeSpecific;
         } else {
-            extendParams['id'] = id;
+            data['orderId'] = id;
         }
-        return this.extend (this.parseOrder (response), extendParams);
+        return this.parseOrder (data, market);
     }
 
     /**
