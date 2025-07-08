@@ -8800,7 +8800,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
                     authFull = auth_base + body
                 else:
                     authFull = auth_base + queryEncoded
-                    url += '?' + self.rawencode(query)
+                    url += '?' + queryEncoded
                 signature = None
                 if self.secret.find('PRIVATE KEY') > -1:
                     signature = self.rsa(authFull, self.secret, 'sha256')
@@ -8814,7 +8814,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
                     'timestamp': timestamp,
                 })
                 sortedQuery = self.keysort(query)
-                auth = self.rawencode(sortedQuery)
+                auth = self.rawencode(sortedQuery, True)
                 signature = None
                 if self.secret.find('PRIVATE KEY') > -1:
                     signature = self.rsa(auth, self.secret, 'sha256')
@@ -8836,7 +8836,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
                             'Content-Type': 'application/json',
                         }
                 else:
-                    url += '?' + self.rawencode(sortedQuery)
+                    url += '?' + self.rawencode(sortedQuery, True)
                     url += '&sign=' + signature
         if method == 'POST':
             brokerId = self.safe_string(self.options, 'brokerId')
