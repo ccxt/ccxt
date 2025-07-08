@@ -793,7 +793,7 @@ class coinex extends Exchange {
                             'max' => null,
                         ),
                     ),
-                    'networks' => array(),
+                    'networks' => $networks,
                     'type' => 'crypto',
                     'info' => $coin,
                 ));
