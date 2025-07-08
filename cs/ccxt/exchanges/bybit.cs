@@ -9992,7 +9992,7 @@ public partial class bybit : Exchange
                 } else
                 {
                     authFull = add(auth_base, queryEncoded);
-                    url = add(url, add("?", this.rawencode(query)));
+                    url = add(url, add("?", queryEncoded));
                 }
                 object signature = null;
                 if (isTrue(isGreaterThan(getIndexOf(this.secret, "PRIVATE KEY"), -1)))
@@ -10011,7 +10011,7 @@ public partial class bybit : Exchange
                     { "timestamp", timestamp },
                 });
                 object sortedQuery = this.keysort(query);
-                object auth = this.rawencode(sortedQuery);
+                object auth = this.rawencode(sortedQuery, true);
                 object signature = null;
                 if (isTrue(isGreaterThan(getIndexOf(this.secret, "PRIVATE KEY"), -1)))
                 {
@@ -10041,7 +10041,7 @@ public partial class bybit : Exchange
                     }
                 } else
                 {
-                    url = add(url, add("?", this.rawencode(sortedQuery)));
+                    url = add(url, add("?", this.rawencode(sortedQuery, true)));
                     url = add(url, add("&sign=", signature));
                 }
             }
