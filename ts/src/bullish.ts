@@ -623,8 +623,8 @@ export default class bullish extends Exchange {
         let spot: Bool = false;
         let swap: Bool = false;
         let future: Bool = false;
-        let linear: Bool = false;
-        let inverse: Bool = false;
+        let linear: Bool = undefined;
+        let inverse: Bool = undefined;
         let expiryDatetime: Str = undefined;
         if (type === 'spot') {
             spot = true;
