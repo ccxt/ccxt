@@ -21,7 +21,7 @@ export default class bullish extends bullishRest {
                 'watchTrades': true,
                 'watchPositions': false,
                 'watchMyTrades': true,
-                'watchBalance': false,
+                'watchBalance': true,
                 'watchOHLCV': false,
             },
             'urls': {
@@ -83,6 +83,7 @@ export default class bullish extends bullishRest {
         //     }
         //
         client.lastPong = this.milliseconds ();
+        return message; // current line is for transpilation compatibility
     }
 
     async watchPublic (url: string, messageHash: string, request = {}, params = {}): Promise<any> {
