@@ -796,7 +796,7 @@ class coinex(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
-                'networks': {},
+                'networks': networks,
                 'type': 'crypto',
                 'info': coin,
             })
