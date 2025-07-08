@@ -919,6 +919,17 @@ export default class bybit extends Exchange {
      * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}
      */
     fetchGreeks(symbol: string, params?: {}): Promise<Greeks>;
+    /**
+     * @method
+     * @name bybit#fetchAllGreeks
+     * @description fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+     * @see https://bybit-exchange.github.io/docs/api-explorer/v5/market/tickers
+     * @param {string[]} [symbols] unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.baseCoin] the baseCoin of the symbol, default is BTC
+     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}
+     */
+    fetchAllGreeks(symbols?: Strings, params?: {}): Promise<Greeks[]>;
     parseGreeks(greeks: Dict, market?: Market): Greeks;
     /**
      * @method

@@ -55,6 +55,7 @@ class okx extends okx$1 {
                 'createTriggerOrder': true,
                 'editOrder': true,
                 'fetchAccounts': true,
+                'fetchAllGreeks': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
                 'fetchBorrowInterest': true,
@@ -7942,6 +7943,83 @@ class okx extends okx$1 {
             }
         }
         return undefined;
+    }
+    /**
+     * @method
+     * @name okx#fetchAllGreeks
+     * @description fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+     * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-option-market-data
+     * @param {string[]} [symbols] unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.uly Underlying, either uly or instFamily is required
+     * @param {string} params.instFamily Instrument family, either uly or instFamily is required
+     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}
+     */
+    async fetchAllGreeks(symbols = undefined, params = {}) {
+        await this.loadMarkets();
+        const request = {};
+        symbols = this.marketSymbols(symbols, undefined, true, true, true);
+        let symbolsLength = undefined;
+        if (symbols !== undefined) {
+            symbolsLength = symbols.length;
+        }
+        if ((symbols === undefined) || (symbolsLength !== 1)) {
+            const uly = this.safeString(params, 'uly');
+            if (uly !== undefined) {
+                request['uly'] = uly;
+            }
+            const instFamily = this.safeString(params, 'instFamily');
+            if (instFamily !== undefined) {
+                request['instFamily'] = instFamily;
+            }
+            if ((uly === undefined) && (instFamily === undefined)) {
+                throw new errors.BadRequest(this.id + ' fetchAllGreeks() requires either a uly or instFamily parameter');
+            }
+        }
+        let market = undefined;
+        if (symbols !== undefined) {
+            if (symbolsLength === 1) {
+                market = this.market(symbols[0]);
+                const marketId = market['id'];
+                const optionParts = marketId.split('-');
+                request['uly'] = market['info']['uly'];
+                request['instFamily'] = market['info']['instFamily'];
+                request['expTime'] = this.safeString(optionParts, 2);
+            }
+        }
+        params = this.omit(params, ['uly', 'instFamily']);
+        const response = await this.publicGetPublicOptSummary(this.extend(request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "askVol": "0",
+        //                 "bidVol": "0",
+        //                 "delta": "0.5105464486882039",
+        //                 "deltaBS": "0.7325502184143025",
+        //                 "fwdPx": "37675.80158694987186",
+        //                 "gamma": "-0.13183515090501083",
+        //                 "gammaBS": "0.000024139685826358558",
+        //                 "instId": "BTC-USD-240329-32000-C",
+        //                 "instType": "OPTION",
+        //                 "lever": "4.504428015946619",
+        //                 "markVol": "0.5916253554539876",
+        //                 "realVol": "0",
+        //                 "theta": "-0.0004202992014012855",
+        //                 "thetaBS": "-18.52354631567909",
+        //                 "ts": "1699586421976",
+        //                 "uly": "BTC-USD",
+        //                 "vega": "0.0020207455080045846",
+        //                 "vegaBS": "74.44022302387287",
+        //                 "volLv": "0.5948549730405797"
+        //             },
+        //         ],
+        //         "msg": ""
+        //     }
+        //
+        const data = this.safeList(response, 'data', []);
+        return this.parseAllGreeks(data, symbols);
     }
     parseGreeks(greeks, market = undefined) {
         //
