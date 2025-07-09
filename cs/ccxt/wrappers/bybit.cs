@@ -461,7 +461,7 @@ public partial class bybit
     /// <item>
     /// <term>params.triggerDirection</term>
     /// <description>
-    /// string : *contract only* the direction for trigger orders, 'above' or 'below'
+    /// string : *contract only* the direction for trigger orders, 'ascending' or 'descending'
     /// </description>
     /// </item>
     /// <item>

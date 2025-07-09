@@ -2873,10 +2873,10 @@ public partial class phemex : Exchange
                 parameters = ((IList<object>)triggerDirectionparametersVariable)[1];
                 if (isTrue(isEqual(triggerDirection, null)))
                 {
-                    throw new ArgumentsRequired ((string)add(this.id, " createOrder() also requires a 'triggerDirection' parameter with either 'up' or 'down' value")) ;
+                    throw new ArgumentsRequired ((string)add(this.id, " createOrder() also requires a 'triggerDirection' parameter with either 'ascending' or 'descending' value")) ;
                 }
                 // the flow defined per https://phemex-docs.github.io/#more-order-type-examples
-                if (isTrue(isEqual(triggerDirection, "up")))
+                if (isTrue(isTrue(isEqual(triggerDirection, "ascending")) || isTrue(isEqual(triggerDirection, "up"))))
                 {
                     if (isTrue(isEqual(side, "sell")))
                     {
@@ -2885,7 +2885,7 @@ public partial class phemex : Exchange
                     {
                         ((IDictionary<string,object>)request)["ordType"] = ((bool) isTrue((isEqual(type, "Market")))) ? "Stop" : "StopLimit";
                     }
-                } else if (isTrue(isEqual(triggerDirection, "down")))
+                } else if (isTrue(isTrue(isEqual(triggerDirection, "descending")) || isTrue(isEqual(triggerDirection, "down"))))
                 {
                     if (isTrue(isEqual(side, "sell")))
                     {
