@@ -2146,52 +2146,45 @@ export default class bullish extends Exchange {
         //
         //     [
         //         {
-        //         "tradingAccountId": "111000000000001",
-        //         "symbol": "BTC-USDC-PERP",
-        //         "side": "BUY",
-        //         "quantity": "1.00000000",
-        //         "notional": "1.0000",
-        //         "entryNotional": "1.0000",
-        //         "mtmPnl": "1.0000",
-        //         "reportedMtmPnl": "1.0000",
-        //         "reportedFundingPnl": "1.0000",
-        //         "realizedPnl": "1.0000",
-        //         "settlementAssetSymbol": "USDC",
-        //         "createdAtDatetime": "2021-05-20T01:01:01.000Z",
-        //         "createdAtTimestamp": "1621490985000",
-        //         "updatedAtDatetime": "2021-05-20T01:01:01.000Z",
-        //         "updatedAtTimestamp": "1621490985000"
+        //             "tradingAccountId": "111000000000001",
+        //             "symbol": "BTC-USDC-PERP",
+        //             "side": "BUY",
+        //             "quantity": "1.00000000",
+        //             "notional": "1.0000",
+        //             "entryNotional": "1.0000",
+        //             "mtmPnl": "1.0000",
+        //             "reportedMtmPnl": "1.0000",
+        //             "reportedFundingPnl": "1.0000",
+        //             "realizedPnl": "1.0000",
+        //             "settlementAssetSymbol": "USDC",
+        //             "createdAtDatetime": "2021-05-20T01:01:01.000Z",
+        //             "createdAtTimestamp": "1621490985000",
+        //             "updatedAtDatetime": "2021-05-20T01:01:01.000Z",
+        //             "updatedAtTimestamp": "1621490985000"
         //         }
         //     ]
         //
         market = this.safeMarket (this.safeString (position, 'symbol'), market);
         const symbol = market['symbol'];
-        const datetime = this.iso8601 (this.safeInteger (position, 'createdAtTimestamp'));
-        const timestamp = this.safeString (position, 'createdAtTimestamp');
-        const updatedTimestamp = this.safeString (position, 'updatedAtTimestamp');
+        const timestamp = this.safeInteger (position, 'createdAtTimestamp');
         const side = this.safeString (position, 'side');
-        const entryPrice = this.safeNumber (position, 'entryNotional');
-        const markPrice = this.safeNumber (position, 'mtmPnl');
-        const notional = this.safeNumber (position, 'notional');
-        const lastPrice = this.safeNumber (position, 'reportedFundingPnl');
-        const collateral = this.safeNumber (position, 'quantity');
         return this.safePosition ({
             'info': position,
-            'id': this.safeString (position, 'account'),
+            'id': undefined,
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': datetime,
-            'lastUpdateTimestamp': updatedTimestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastUpdateTimestamp': this.safeInteger (position, 'updatedAtTimestamp'),
             'hedged': undefined,
-            'side': side,
-            'contracts': undefined,
+            'side': this.parsePositionSide (side),
+            'contracts': this.safeNumber (position, 'quantity'),
             'contractSize': undefined,
-            'entryPrice': entryPrice,
-            'markPrice': markPrice,
-            'lastPrice': lastPrice,
-            'notional': notional,
+            'entryPrice': undefined,
+            'markPrice': undefined,
+            'lastPrice': undefined,
+            'notional': this.safeNumber (position, 'notional'),
             'leverage': undefined,
-            'collateral': collateral,
+            'collateral': undefined,
             'initialMargin': undefined,
             'initialMarginPercentage': undefined,
             'maintenanceMargin': undefined,
@@ -2204,6 +2197,14 @@ export default class bullish extends Exchange {
             'stopLossPrice': undefined,
             'takeProfitPrice': undefined,
         });
+    }
+
+    parsePositionSide (side: Str) {
+        const sides: Dict = {
+            'BUY': 'long',
+            'SELL': 'short',
+        };
+        return this.safeString (sides, side, side);
     }
 
     /**
