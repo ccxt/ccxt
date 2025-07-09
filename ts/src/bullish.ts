@@ -1,6 +1,5 @@
 //  ---------------------------------------------------------------------------
 
-import { Precise } from '../ccxt.js';
 import Exchange from './abstract/bullish.js';
 import { AuthenticationError, ArgumentsRequired, BadRequest, BadSymbol, BaseError, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InvalidNonce, InvalidOrder, InsufficientFunds, OperationFailed, OperationRejected, OrderNotFound, RateLimitExceeded, UnsubscribeError } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
