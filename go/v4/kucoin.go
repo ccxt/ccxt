@@ -2893,7 +2893,7 @@ func  (this *kucoin) CancelAllOrders(optionalArgs ...interface{}) <- chan interf
             retRes27018 := (<-this.LoadMarkets())
             PanicOnError(retRes27018)
             var request interface{} = map[string]interface{} {}
-            var trigger interface{} = this.SafeBool(params, "stop", false)
+            var trigger interface{} = this.SafeBool2(params, "trigger", "stop", false)
             var hf interface{} = nil
             hfparamsVariable := this.HandleHfAndParams(params);
             hf = GetValue(hfparamsVariable,0);
