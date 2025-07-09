@@ -1924,7 +1924,7 @@ class bitmex(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param dict [params.triggerPrice]: the price at which a trigger order is triggered at
-        :param dict [params.triggerDirection]: the direction whenever the trigger happens with relation to price - 'above' or 'below'
+        :param dict [params.triggerDirection]: the direction whenever the trigger happens with relation to price - 'ascending' or 'descending'
         :param float [params.trailingAmount]: the quote amount to trail away from the current market price
         :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
@@ -1951,7 +1951,7 @@ class bitmex(Exchange, ImplicitAPI):
         isTrailingAmountOrder = trailingAmount is not None
         if isTriggerOrder or isTrailingAmountOrder:
             triggerDirection = self.safe_string(params, 'triggerDirection')
-            triggerAbove = (triggerDirection == 'above')
+            triggerAbove = ((triggerDirection == 'ascending') or (triggerDirection == 'above'))
             if (type == 'limit') or (type == 'market'):
                 self.check_required_argument('createOrder', triggerDirection, 'triggerDirection', ['above', 'below'])
             if type == 'limit':
@@ -1994,7 +1994,7 @@ class bitmex(Exchange, ImplicitAPI):
         isTrailingAmountOrder = trailingAmount is not None
         if isTrailingAmountOrder:
             triggerDirection = self.safe_string(params, 'triggerDirection')
-            triggerAbove = (triggerDirection == 'above')
+            triggerAbove = ((triggerDirection == 'ascending') or (triggerDirection == 'above'))
             if (type == 'limit') or (type == 'market'):
                 self.check_required_argument('createOrder', triggerDirection, 'triggerDirection', ['above', 'below'])
             orderType = None

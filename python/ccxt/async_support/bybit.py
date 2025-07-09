@@ -3728,7 +3728,7 @@ class bybit(Exchange, ImplicitAPI):
         :param int [params.isLeverage]: *unified spot only* False then spot trading True then margin trading
         :param str [params.tpslMode]: *contract only* 'full' or 'partial'
         :param str [params.mmp]: *option only* market maker protection
-        :param str [params.triggerDirection]: *contract only* the direction for trigger orders, 'above' or 'below'
+        :param str [params.triggerDirection]: *contract only* the direction for trigger orders, 'ascending' or 'descending'
         :param float [params.triggerPrice]: The price at which a trigger order is triggered at
         :param float [params.stopLossPrice]: The price at which a stop loss order is triggered at
         :param float [params.takeProfitPrice]: The price at which a take profit order is triggered at
@@ -3938,8 +3938,8 @@ class bybit(Exchange, ImplicitAPI):
                     raise NotSupported(self.id + ' createOrder() : trigger order does not support triggerDirection for spot markets yet')
             else:
                 if triggerDirection is None:
-                    raise ArgumentsRequired(self.id + ' stop/trigger orders require a triggerDirection parameter, either "above" or "below" to determine the direction of the trigger.')
-                isAsending = ((triggerDirection == 'above') or (triggerDirection == '1'))
+                    raise ArgumentsRequired(self.id + ' stop/trigger orders require a triggerDirection parameter, either "ascending" or "descending" to determine the direction of the trigger.')
+                isAsending = ((triggerDirection == 'ascending') or (triggerDirection == 'above') or (triggerDirection == '1'))
                 request['triggerDirection'] = 1 if isAsending else 2
             request['triggerPrice'] = self.get_price(symbol, triggerPrice)
         elif (isStopLossTriggerOrder or isTakeProfitTriggerOrder) and not isAlternativeEndpoint:
