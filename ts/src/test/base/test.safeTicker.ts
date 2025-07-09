@@ -94,6 +94,49 @@ function testSafeTicker () {
     assert (preciseEqualStr (exchange, result7, 'percentage', '20.0'));
     assert (preciseEqualStr (exchange, result7, 'average', '5.5'));
     assert (preciseEqualStr (exchange, result7, 'last', '6.0'));
+
+    // CASE 8 - full ticker
+    const ticker8 = {
+        'open': 5.0,
+        'close': 6.0,
+        'last': 6.0,
+        'high': 6.5,
+        'low': 4.5,
+        'average': 5.5,
+        'bid': 5.9,
+        'bidVolume': 100,
+        'ask': 6.1,
+        'askVolume': 200,
+        'change': 1.0,
+        'percentage': 20.0,
+        'vwap': 5.75,
+        'baseVolume': 1000,
+        'quoteVolume': 5750,
+        'previousClose': 4.9,
+        'indexPrice': 5.8,
+        'markPrice': 5.9,
+        'info': {}
+    };
+    const result8 = exchange.safeTicker (ticker8);
+    assert (preciseEqualStr (exchange, result8, 'open', '5.0'));
+    assert (preciseEqualStr (exchange, result8, 'high', '6.5'));
+    assert (preciseEqualStr (exchange, result8, 'low', '4.5'));
+    assert (preciseEqualStr (exchange, result8, 'close', '6.0'));
+    assert (preciseEqualStr (exchange, result8, 'last', '6.0'));
+    assert (preciseEqualStr (exchange, result8, 'change', '1.0'));
+    assert (preciseEqualStr (exchange, result8, 'percentage', '20.0'));
+    assert (preciseEqualStr (exchange, result8, 'average', '5.5'));
+    assert (preciseEqualStr (exchange, result8, 'bid', '5.9'));
+    assert (preciseEqualStr (exchange, result8, 'bidVolume', '100.0'));
+    assert (preciseEqualStr (exchange, result8, 'ask', '6.1'));
+    assert (preciseEqualStr (exchange, result8, 'askVolume', '200.0'));
+    assert (preciseEqualStr (exchange, result8, 'vwap', '5.75'));
+    assert (preciseEqualStr (exchange, result8, 'baseVolume', '1000.0'));
+    assert (preciseEqualStr (exchange, result8, 'quoteVolume', '5750.0'));
+    assert (preciseEqualStr (exchange, result8, 'previousClose', '4.9'));
+    assert (preciseEqualStr (exchange, result8, 'indexPrice', '5.8'));
+    assert (preciseEqualStr (exchange, result8, 'markPrice', '5.9'));
+    assert (result8['info'] !== undefined);
 }
 
 export default testSafeTicker;
