@@ -2015,6 +2015,29 @@
                     "timestamp": 1751940315838
                 }
             }
+        ],
+        "cancelAllOrdersAfter": [
+            {
+                "description": "cancelAllOrdersAfter",
+                "method": "cancelAllOrdersAfter",
+                "input": [
+                    10000
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "timestamp": 123,
+                    "data": {
+                        "expectedTriggerTime": 123
+                    }
+                },
+                "parsedResponse": {
+                    "success": true,
+                    "timestamp": 123,
+                    "data": {
+                        "expectedTriggerTime": 123
+                    }
+                }
+            }
         ]
     }
 }

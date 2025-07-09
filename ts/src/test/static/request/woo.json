@@ -285,20 +285,20 @@
             {
                 "description": "Cancel all orders after",
                 "method": "cancelAllOrdersAfter",
-                "url": "https://api.woox.io/v1/order/cancel_all_after",
+                "url": "https://api.woox.io/v3/trade/cancelAllAfter",
                 "input": [
                     10000
                 ],
-                "output": "trigger_after=10000"
+                "output": "{\"triggerAfter\":10000}"
             },
             {
                 "description": "Close cancel all orders after",
                 "method": "cancelAllOrdersAfter",
-                "url": "https://api.woox.io/v1/order/cancel_all_after",
+                "url": "https://api.woox.io/v3/trade/cancelAllAfter",
                 "input": [
                     0
                 ],
-                "output": "trigger_after=0"
+                "output": "{\"triggerAfter\":0}"
             }
         ],
         "fetchBalance": [

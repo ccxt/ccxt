@@ -1579,7 +1579,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#cancelAllOrdersAfter
      * @description dead man's switch, cancel all orders after the given timeout
-     * @see https://docs.woox.io/#cancel-all-after
+     * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_all_after
      * @param {number} timeout time in milliseconds, 0 represents cancel the timer
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
@@ -1587,21 +1587,19 @@ export default class woo extends Exchange {
     async cancelAllOrdersAfter (timeout: Int, params = {}) {
         await this.loadMarkets ();
         const request: Dict = {
-            'trigger_after': (timeout > 0) ? timeout : 0,
+            'triggerAfter': (timeout > 0) ? Math.min (timeout, 900000) : 0,
         };
-        const response = await this.v1PrivatePostOrderCancelAllAfter (this.extend (request, params));
+        const response = await this.v3PrivatePostTradeCancelAllAfter (this.extend (request, params));
         //
-        //     {
-        //         "success": true,
-        //         "data": {
-        //             "expected_trigger_time": 1711534302938
-        //         },
-        //         "timestamp": 1711534302943
+        // {
+        //     "success": true,
+        //     "timestamp": 123,
+        //     "data": {
+        //         "expectedTriggerTime": 123
         //     }
+        // }
         //
-        return [
-            this.safeOrder (response),
-        ];
+        return response;
     }
 
     /**
