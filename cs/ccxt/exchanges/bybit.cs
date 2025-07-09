@@ -1082,6 +1082,7 @@ public partial class bybit : Exchange
                     { "4h", "4h" },
                     { "1d", "1d" },
                 } },
+                { "useMarkPriceForPositionCollateral", false },
             } },
             { "features", new Dictionary<string, object>() {
                 { "default", new Dictionary<string, object>() {
@@ -6987,6 +6988,7 @@ public partial class bybit : Exchange
         }
         object collateralString = this.safeString(position, "positionBalance");
         object entryPrice = this.omitZero(this.safeStringN(position, new List<object>() {"entryPrice", "avgPrice", "avgEntryPrice"}));
+        object markPrice = this.safeString(position, "markPrice");
         object liquidationPrice = this.omitZero(this.safeString(position, "liqPrice"));
         object leverage = this.safeString(position, "leverage");
         if (isTrue(!isEqual(liquidationPrice, null)))
@@ -6994,7 +6996,8 @@ public partial class bybit : Exchange
             if (isTrue(isEqual(getValue(market, "settle"), "USDC")))
             {
                 //  (Entry price - Liq price) * Contracts + Maintenance Margin + (unrealised pnl) = Collateral
-                object difference = Precise.stringAbs(Precise.stringSub(entryPrice, liquidationPrice));
+                object price = ((bool) isTrue(this.safeBool(this.options, "useMarkPriceForPositionCollateral", false))) ? markPrice : entryPrice;
+                object difference = Precise.stringAbs(Precise.stringSub(price, liquidationPrice));
                 collateralString = Precise.stringAdd(Precise.stringAdd(Precise.stringMul(difference, size), maintenanceMarginString), unrealisedPnl);
             } else
             {
@@ -7053,7 +7056,7 @@ public partial class bybit : Exchange
             { "contractSize", this.safeNumber(market, "contractSize") },
             { "marginRatio", this.parseNumber(marginRatio) },
             { "liquidationPrice", this.parseNumber(liquidationPrice) },
-            { "markPrice", this.safeNumber(position, "markPrice") },
+            { "markPrice", this.parseNumber(markPrice) },
             { "lastPrice", this.safeNumber(position, "avgExitPrice") },
             { "collateral", this.parseNumber(collateralString) },
             { "marginMode", marginMode },
