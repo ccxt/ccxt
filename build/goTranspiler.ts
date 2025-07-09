@@ -225,13 +225,13 @@ class NewTranspiler {
             // Remove stray semicolons that leak from TS/CS syntax
             [/;\s*\n/g, '\n'],
             [/\.Append\(/g, '.(appender).Append('],
-            [/orderbook\.(Reset|Limit)/g, 'orderbook.(*OrderBook).$1'],
+            [/orderbook\.(Reset|Limit)/g, 'orderbook.(*WsOrderBook).$1'],
             [/promise\.Resolve\(([^)]+)\)/g, 'promise.(*Future).Resolve(ToGetsLimit($1))'],
             [/future\.Resolve/g, 'future.(*Future).Resolve'],
             [/([a-zA-Z0-9]+)\.Call\(this, /g, 'callDynamically($1, '], // TODO: maybe put in ast
             [/\(<\-future\)/g, '<-(future.(*Future).Await())'], // TODO: maybe put in ast
             [/([a-z]+)\.GetLimit/g, '$1.(GetsLimit).GetLimit'],
-            [/orderbook\.Cache/g, 'orderbook.(*OrderBook).Cache'],
+            [/orderbook\.Cache/g, 'orderbook.(*WsOrderBook).Cache'],
             [/bookside\.Store/g, 'bookside.(*OrderBookSide).Store'],
             [/bookside\.StoreArray/g, 'bookside.(*OrderBookSide).StoreArray'],
             [/bookside\.StoreArray/g, 'bookside.(*OrderBookSide).StoreArray'],
@@ -246,11 +246,11 @@ class NewTranspiler {
             [/([a-zA-Z0-9]+).StoreArray/g, '$1.(*OrderBookSide).StoreArray'],
             [/client\.(KeepAlive|Send|Reset|OnPong|LastPong|Reject|Future|Subscriptions|Resolve)/g, 'client.(*Client).$1'],
             [/(stored|cached)?([Oo]rders)?\.Hashmap/g, '$1$2.(*ArrayCache).Hashmap'],
-            [/storedOrderBook.Cache/g, 'storedOrderBook.(*OrderBook).Cache'],
+            [/storedOrderBook.Cache/g, 'storedOrderBook.(*WsOrderBook).Cache'],
             [/(asks|bids|Side).Store/g, '$1.(*OrderBookSide).Store'],
             [/CleanUnsubscription\(([a-zA-Z0-9]+),/g, 'CleanUnsubscription($1.(Client),'],
             [/orderbooks.GetLimit/g, 'orderbooks.(GetsLimit).GetLimit'],
-            [/orderbooks.Limit/g, 'orderbooks.(*OrderBook).Limit'],
+            [/orderbooks.Limit/g, 'orderbooks.(*WsOrderBook).Limit'],
             [/order.Limit/g, 'orderbooks.(GetsLimit).GetLimit'],
             [/<-spawaned/g, '<-spawaned.(*Future).Await()'],
             // [/New([A-Z][a-z0-9]+)Error\(([^)]+)/g, 'panic($1Error($1)'],  // old regex
@@ -259,6 +259,7 @@ class NewTranspiler {
             [/NewInvalidNonce/g, 'InvalidNonce'],
             [/NewUnsubscribeError/g, 'UnsubscribeError'],
             [/NewGetValue\(([A-Za-z0-9]+), ([A-Za-z0-9]+)\)\(([A-Za-z0-9]+)\)/g, 'callDynamically(GetValue($1, $2), $3)'],
+            [/NewOrderBook/g, 'NewWsOrderBook'],
             // [/New([A-Za-z0-9]+Error)\(/g, '$1('],
             [ new RegExp(`\\s*New(${exchangeNamePattern})(?:Rest)?\\(([^)]*)\\)`, 'g'), 'New$1($2).Exchange' ],
         ]

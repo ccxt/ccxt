@@ -161,7 +161,7 @@ func (this *Exchange) OmitMap(aa interface{}, k interface{}) interface{} {
 	return outDict
 }
 
-// removes specified keys from a map
+// omitN removes specified keys from a map.
 func (this *Exchange) OmitN(aa interface{}, keys []interface{}) interface{} {
 	outDict := make(map[string]interface{})
 	a, ok := aa.(map[string]interface{})
@@ -186,7 +186,7 @@ func (this *Exchange) Contains(slice []interface{}, elem string) bool {
 	return false
 }
 
-// toArray converts a map to a slice of its values
+// toArray converts a map to a slice of its values.
 // func (this *Exchange) ToArray(a interface{}) []interface{} {
 // 	if a == nil {
 // 		return nil
@@ -209,7 +209,6 @@ func (this *Exchange) Contains(slice []interface{}, elem string) bool {
 // }
 
 func (this *Exchange) ToArray(a interface{}) []interface{} {
-	
 	if a == nil {
 		return nil
 	}
@@ -266,7 +265,7 @@ func (this *Exchange) ArrayConcat(aa, bb interface{}) interface{} {
 	return nil
 }
 
-// aggregate is a stub function that returns an empty slice
+// aggregate is a stub function that returns an empty slice.
 func (this *Exchange) Aggregate(bidasks interface{}) []interface{} {
 	var outList []interface{}
 	return outList

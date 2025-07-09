@@ -1,20 +1,23 @@
 package ccxt
 
 import (
+	"crypto/rand"
 	"encoding/hex"
-	"encoding/json"
+	j "encoding/json"
 	"errors"
 	"fmt"
-	"log"
-	"math/rand"
+	random2 "math/rand"
 	"net/http"
-	neturl "net/url"
+	"net/url"
 	"reflect"
 	"regexp"
+	"runtime/debug"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"golang.org/x/net/proxy"
 )
 
 type Exchange struct {
@@ -134,6 +137,13 @@ type Exchange struct {
 	WsProxy  string
 	Ws_proxy string
 
+	HttpProxyAgentModule    interface{}   // or interface{} if you don't have a type yet
+    HttpsProxyAgentModule   interface{}
+    SocksProxyAgentModule   interface{}
+    SocksProxyAgentModuleChecked bool
+    ProxyDictionaries      map[string]interface{}
+    ProxiesModulesLoading  chan struct{} // or something to represent a Promise/future
+
 	SubstituteCommonCurrencyCodes bool
 
 	Twofa interface{}
@@ -222,6 +232,8 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 	this.Transactions = make(map[string]interface{})
 	this.Liquidations = make(map[string]interface{})
 	this.MyLiquidations = make(map[string]interface{})
+	this.Clients = make(map[string]*WSClient)
+
 	// beforeNs := time.Now().UnixNano()
 	// this.WarmUpCache(this.Itf)
 	// afterNs := time.Now().UnixNano()
@@ -344,7 +356,9 @@ func (this *Exchange) LoadMarketsHelper(params ...interface{}) <-chan interface{
 		defer close(ch)
 		defer func() {
 			if r := recover(); r != nil {
-				ch <- "panic:" + ToString(r)
+				stack := debug.Stack()
+				panicMsg := fmt.Sprintf("panic: %v\nStack trace:\n%s", r, stack)
+				ch <- panicMsg
 			}
 		}()
 		reload := GetArg(params, 0, false).(bool)
@@ -476,7 +490,7 @@ func Unique(obj interface{}) []string {
 
 func (this *Exchange) Log(args ...interface{}) {
 	// convert to str and print
-	fmt.Println(args)
+	fmt.Println(args...)
 }
 
 func (this *Exchange) callEndpoint(endpoint2 interface{}, parameters interface{}) <-chan interface{} {
@@ -484,10 +498,11 @@ func (this *Exchange) callEndpoint(endpoint2 interface{}, parameters interface{}
 
 	go func() {
 		defer close(ch)
-
 		defer func() {
 			if r := recover(); r != nil {
-				ch <- "panic:" + ToString(r)
+				stack := debug.Stack()
+				panicMsg := fmt.Sprintf("panic: %v\nStack trace:\n%s", r, stack)
+				ch <- panicMsg
 			}
 		}()
 
@@ -597,7 +612,7 @@ func ToSafeFloat(v interface{}) (float64, error) {
 
 // json converts an object to a JSON string
 func (this *Exchange) Json(object interface{}) interface{} {
-	jsonBytes, err := json.Marshal(object)
+	jsonBytes, err := j.Marshal(object)
 	if err != nil {
 		return nil
 	}
@@ -620,7 +635,13 @@ func (this *Exchange) ParseNumber(v interface{}, a ...interface{}) interface{} {
 }
 
 func (this *Exchange) ValueIsDefined(v interface{}) bool {
-	return v != nil
+	if v == nil {
+		return false
+	}
+	if str, ok := v.(string); ok {
+		return str != ""
+	}
+	return true
 }
 
 // func (this *Exchange) CreateSafeDictionary() interface{} {
@@ -667,64 +688,43 @@ type IArrayCache interface {
 }
 
 func (this *Exchange) ArraySlice(array interface{}, first interface{}, second ...interface{}) interface{} {
-	// If the incoming object implements IArrayCache convert it first.
-	if cache, ok := array.(IArrayCache); ok {
-		return this.ArraySlice(cache.ToArray(), first, second...)
-	}
+    // If the incoming object implements IArrayCache convert it first.
+    if cache, ok := array.(IArrayCache); ok {
+        return this.ArraySlice(cache.ToArray(), first, second...)
+    }
 
-	firstInt := reflect.ValueOf(first).Convert(reflect.TypeOf(0)).Interface().(int)
-	parsedArray := reflect.ValueOf(array)
-	
-	if parsedArray.Kind() != reflect.Slice {
-		return nil
-	}
+    firstInt := reflect.ValueOf(first).Convert(reflect.TypeOf(0)).Interface().(int)
+    parsedArray := reflect.ValueOf(array)
 
-	length := parsedArray.Len()
+    if parsedArray.Kind() != reflect.Slice {
+        return nil
+    }
 
-	if len(second) == 0 {
-		if firstInt < 0 {
-			// Negative index, slice from end
-			start := length + firstInt
-			if start < 0 {
-				start = 0
-			}
-			result := parsedArray.Slice(start, length).Interface()
-			return result
-		} else {
-			// Positive index, slice from start
-			if firstInt >= length {
-				return reflect.MakeSlice(parsedArray.Type(), 0, 0).Interface()
-			}
-			result := parsedArray.Slice(firstInt, length).Interface()
-			return result
-		}
-	} else {
-		// Both first and second parameters provided
-		secondInt := reflect.ValueOf(second[0]).Convert(reflect.TypeOf(0)).Interface().(int)
-		
-		start := firstInt
-		end := secondInt
-		
-		if start < 0 {
-			start = length + start
-		}
-		if end < 0 {
-			end = length + end
-		}
-		
-		if start < 0 {
-			start = 0
-		}
-		if end > length {
-			end = length
-		}
-		if start > end {
-			start = end
-		}
-		
-		result := parsedArray.Slice(start, end).Interface()
-		return result
-	}
+    length := parsedArray.Len()
+    isArrayCache := reflect.TypeOf(array).Implements(reflect.TypeOf((*IArrayCache)(nil)).Elem())
+
+    if len(second) == 0 {
+        if firstInt < 0 {
+            index := length + firstInt
+            if index < 0 {
+                index = 0
+            }
+            if isArrayCache {
+                return reflect.ValueOf(array).Interface().(IArrayCache).ToArray()[index:]
+            }
+            return this.sliceToInterface(parsedArray.Slice(index, length))
+        }
+        if isArrayCache {
+            return reflect.ValueOf(array).Interface().(IArrayCache).ToArray()[firstInt:]
+        }
+        return this.sliceToInterface(parsedArray.Slice(firstInt, length))
+    }
+
+    secondInt := reflect.ValueOf(second[0]).Convert(reflect.TypeOf(0)).Interface().(int)
+    if isArrayCache {
+        return reflect.ValueOf(array).Interface().(IArrayCache).ToArray()[firstInt:secondInt]
+    }
+    return this.sliceToInterface(parsedArray.Slice(firstInt, secondInt))
 }
 
 func (this *Exchange) sliceToInterface(value reflect.Value) []interface{} {
@@ -990,7 +990,9 @@ func (this *Exchange) callInternal(name2 string, args ...interface{}) <-chan int
 		defer func() {
 			if r := recover(); r != nil {
 				if r != "break" {
-					ch <- "panic:" + ToString(r)
+					stack := debug.Stack()
+					panicMsg := fmt.Sprintf("panic: %v\nStack trace:\n%s", r, stack)
+					ch <- panicMsg
 				}
 			}
 		}()
@@ -1260,7 +1262,9 @@ func (this *Exchange) GetZKContractSignatureObj(seed interface{}, params interfa
 		defer close(ch)
 		defer func() {
 			if r := recover(); r != nil {
-				ch <- "panic:" + ToString(r)
+				stack := debug.Stack()
+				panicMsg := fmt.Sprintf("panic: %v\nStack trace:\n%s", r, stack)
+				ch <- panicMsg
 			}
 		}()
 
@@ -1276,7 +1280,9 @@ func (this *Exchange) GetZKTransferSignatureObj(seed interface{}, params interfa
 		defer close(ch)
 		defer func() {
 			if r := recover(); r != nil {
-				ch <- "panic:" + ToString(r)
+				stack := debug.Stack()
+				panicMsg := fmt.Sprintf("panic: %v\nStack trace:\n%s", r, stack)
+				ch <- panicMsg
 			}
 		}()
 
@@ -1302,11 +1308,11 @@ func (this *Exchange) RandNumber(size interface{}) int64 {
 		return 0
 	}
 
-	rand.Seed(time.Now().UnixNano())
+	random2.Seed(time.Now().UnixNano())
 	number := ""
 
 	for i := 0; i < intSize; i++ {
-		digit := rand.Intn(10) // Random digit 0-9
+		digit := random2.Intn(10) // Random digit 0-9
 		number += strconv.Itoa(digit)
 	}
 
@@ -1343,7 +1349,7 @@ func (this *Exchange) UpdateProxySettings() {
 		} else {
 			proxyUrlStr = httpsProxy.(string)
 		}
-		proxyURLParsed, _ := neturl.Parse(proxyUrlStr)
+		proxyURLParsed, _ := url.Parse(proxyUrlStr)
 		proxyTransport.Proxy = http.ProxyURL(proxyURLParsed)
 
 		this.httpClient.Transport = proxyTransport
@@ -1373,455 +1379,499 @@ func (this *Exchange) callEndpointAsync(endpointName string, args ...interface{}
 //   - [message]      subscribe payload (optional)
 //   - [subscribeHash] key for "subscriptions" map (optional)
 //   - [subscription]  arbitrary value stored in subscriptions (optional)
-func (this *Exchange) Watch(args ...interface{}) <-chan interface{} {
-	if len(args) < 2 {
-		// programmer error – return closed chan so callers don't hang
-		ch := make(chan interface{})
-		close(ch)
-		return ch
-	}
+func (this *Exchange) Watch(args ...interface{}) Future {
 
 	url, _ := args[0].(string)
 	messageHash, _ := args[1].(string)
-
 	var message interface{}
+	var subscribeHash interface{}
+	var subscription interface{}
+
 	if len(args) >= 3 {
 		message = args[2]
 	}
-
-	var subscription interface{}
+	if len(args) >= 4 {
+		subscribeHash = args[3]
+	} else {
+		subscribeHash = messageHash
+	}
 	if len(args) >= 5 {
 		subscription = args[4]
 	}
 
-	// avoid unused-lint; in future expand to store real subscription info
-	_ = subscription
-
-	// obtain/create client for URL
-	this.WsClientsMu.Lock()
-	if this.WsClients == nil {
-		this.WsClients = make(map[string]*Client)
-	}
-	client, exists := this.WsClients[url]
-	if !exists {
-		// no custom headers yet
-		cli, err := NewClient(url, nil)
-		this.setOwner(cli)
-		if err != nil {
-			// Return a dummy client that will fail gracefully
-			client = &Client{}
-		} else {
-			client = cli
+	client := this.Client(url)
+	// todo: calculate the backoff using the clients cache
+	backoffDelay := 0
+	//
+	//  watchOrderBook ---- future ----+---------------+----→ user
+	//                                 |               |
+	//                                 ↓               ↑
+	//                                 |               |
+	//                              connect ......→ resolve
+	//                                 |               |
+	//                                 ↓               ↑
+	//                                 |               |
+	//                             subscribe -----→ receive
+	//
+	if subscribeHash == nil {
+		if val, ok := client.Futures[messageHash]; ok {
+			return val
 		}
-		this.WsClients[url] = client
 	}
-	this.WsClientsMu.Unlock()
-
-	// send subscription message if necessary
-	if message != nil {
-		client.Send(message)
+	future := client.Future(messageHash)
+	// read and write subscription, this is done before connecting the client
+	// to avoid race conditions when other parts of the code read or write to the client.subscriptions
+	clientSubscription := SafeValue(client.Subscriptions, subscribeHash, nil)
+	if (clientSubscription == nil) {
+		if subscription != nil {
+			client.Subscriptions[subscribeHash.(string)] = subscription.(chan interface{})
+		} else {
+			client.Subscriptions[subscribeHash.(string)] = make(chan interface{})
+		}
 	}
-
-	// create Future for this message hash
-	fut := client.Future(messageHash)
-
-	// return the channel from the future
-	return fut.Await()
+	// we intentionally do not use await here to avoid unhandled exceptions
+	// the policy is to make sure that 100% of promises are resolved or rejected
+	// either with a call to client.resolve or client.reject with
+	//  a proper exception class instance
+	connected, err := client.Connect(backoffDelay)
+	if err != nil {
+		delete(client.Subscriptions, subscribeHash.(string))
+		future.Reject(err)
+		return future
+	}
+	// the following is executed only if the catch-clause does not
+	// catch any connection-level exceptions from the client
+	// (connection established successfully)
+	if (clientSubscription == nil) {
+		go func() {
+			<-connected
+			options := SafeValue(this.Options, "ws", make(map[string]interface{}))
+			cost := SafeValue(options, "cost", 1)
+			if message != nil {
+				if this.EnableRateLimit && client.Throttle != nil {
+					// add cost here |
+					//               |
+					//               V
+					if throttleFunc, ok := client.Throttle.(func(interface{}) error); ok {
+						if err := throttleFunc(cost); err != nil {
+							client.OnError(err)
+							return
+						}
+					}
+					sendFuture := client.Send(message)
+					go func() {
+						if err := <-sendFuture; err != nil {
+							client.OnError(err)
+						}
+					}()
+				} else {
+					sendFuture := client.Send(message)
+					go func() {
+						if err := <-sendFuture; err != nil {
+							client.OnError(err)
+						}
+					}()
+				}
+			}
+		}()
+	}
+	return future;
 }
 
 // ------------------- WS helper wrappers (parity with TS) ------------------
 
 // OrderBook returns a new mutable order-book using our Go implementation.
-func (this *Exchange) OrderBook(optionalArgs ...interface{}) *OrderBook {
-	snapshot := GetArg(optionalArgs, 0, map[string]interface{}{})
-	
-	orderbook := NewOrderBook(snapshot)
-	
-	return &orderbook
+func (this *Exchange) OrderBook(optionalArgs ...interface{}) *WsOrderBook {
+    snapshot := GetArg(optionalArgs, 0, map[string]interface{}{})
+	// if (len(optionalArgs) > 0) {
+	// 	snapshot = optionalArgs[0]
+	// }
+    
+    orderbook := NewWsOrderBook(snapshot, nil)
+    
+    return &orderbook
 }
 
 // IndexedOrderBook and CountedOrderBook share the same implementation for now.
-func (this *Exchange) IndexedOrderBook(args ...interface{}) *OrderBook {
+func (this *Exchange) IndexedOrderBook(args ...interface{}) *WsOrderBook {
 	return this.OrderBook(args...)
 }
 
-func (this *Exchange) CountedOrderBook(optionalArgs ...interface{}) interface{} {
-	snapshot := GetArg(optionalArgs, 0, map[string]interface{}{})
-	
-	orderbook := this.OrderBook(snapshot)
-	
-	if orderbook != nil {
-		// Ensure cache is a map
-		if orderbook.Cache == nil {
-			orderbook.Cache = make(map[string]interface{})
-		}
-		
-		// Convert slice cache to map if necessary
-		if _, isSlice := orderbook.Cache.([]interface{}); isSlice {
-			orderbook.Cache = make(map[string]interface{})
-		}
-		
-		if cache, ok := orderbook.Cache.(map[string]interface{}); ok {
-			// Create OrderBookSide objects for asks and bids
-			asksOrderBookSide := NewOrderBookSide(false) // false = asks (ascending)
-			bidsOrderBookSide := NewOrderBookSide(true)  // true = bids (descending)
-			
-			cache["asks"] = asksOrderBookSide
-			cache["bids"] = bidsOrderBookSide
-		}
-	}
-	
-	return orderbook
+func (this *Exchange) CountedOrderBook(args ...interface{}) *WsOrderBook {
+	return this.OrderBook(args...)
 }
 
-func (this *Exchange) setOwner(cli *Client) {
-	if this.DerivedExchange != nil {
-		cli.Owner = this.DerivedExchange
+// func (this *Exchange) setOwner(cli *WSClient) {
+// 	if this.DerivedExchange != nil {
+// 		cli.Owner = this.DerivedExchange.(*Exchange)
+// 	} else {
+// 		cli.Owner = this
+// 	}
+// }
+
+func (this *Exchange) SetProxyAgents(httpProxy interface{}, httpsProxy interface{}, socksProxy interface{}) (interface{}, error) {
+	var transport *http.Transport
+
+	// Handle HTTP proxy
+	if httpProxy != "" {
+		proxyURL, err := url.Parse(httpProxy.(string))
+		if err != nil {
+			return nil, BadRequest(this.Id + " invalid HTTP proxy URL: " + err.Error())
+		}
+		transport = &http.Transport{
+			Proxy: http.ProxyURL(proxyURL),
+		}
+	} else if httpsProxy != "" {
+		// Handle HTTPS proxy
+		proxyURL, err := url.Parse(httpsProxy.(string))
+		if err != nil {
+			return nil, BadRequest(this.Id + " invalid HTTPS proxy URL: " + err.Error())
+		}
+		transport = &http.Transport{
+			Proxy: http.ProxyURL(proxyURL),
+		}
+	} else if socksProxy != "" {
+		// Handle SOCKS proxy
+		proxyURL, err := url.Parse(socksProxy.(string))
+		if err != nil {
+			return nil, BadRequest(this.Id + " invalid SOCKS proxy URL: " + err.Error())
+		}
+		
+		// Create SOCKS5 dialer
+		dialer, err := proxy.SOCKS5("tcp", proxyURL.Host, nil, proxy.Direct)
+		if err != nil {
+			return nil, BadRequest(this.Id + " failed to create SOCKS5 dialer: " + err.Error())
+		}
+		
+		transport = &http.Transport{
+			Dial: dialer.Dial,
+		}
+	}
+
+	return transport, nil
+}
+
+func (this *Exchange) GetHttpAgentIfNeeded(url string) (interface{}, error) {
+	// if isNode { // TODO: implement this
+		if len(url) >= 5 && url[:5] == "ws://" {
+			if this.HttpProxy == nil {
+				return nil, NotSupported(this.Id + " to use proxy with non-ssl ws:// urls, at first run `await exchange.loadHttpProxyAgent()` method")
+			}
+			return this.HttpProxy, nil
+		}
+	// }
+	return nil, nil // no agent needed
+}
+
+func (this *Exchange) Ping(client *Client) interface{} {
+    return nil
+}
+
+func (this *Exchange) HandleMessage(client interface{}, message interface{}) {
+	// stub to override
+}
+
+func (this *Exchange) OnConnected(client interface{}, message interface{}) {
+	// for user hooks
+	// fmt.Println('Connected to', client.url)
+}
+
+func (this *Exchange) OnError(client interface{}, err interface{}) {
+	this.WsClientsMu.Lock()
+	if c, ok := this.Clients[client.(*Client).Url]; ok && c.Error != nil {
+		delete(this.Clients, client.(*Client).Url)
+	}
+	this.WsClientsMu.Unlock()
+	client.(*Client).Error = fmt.Errorf("%v", err)
+}
+
+func (this *Exchange) OnClose(client interface{}, err interface{}) {
+	if client.(*Client).Error != nil {
+		// connection closed due to an error, do nothing
 	} else {
-		cli.Owner = this
+		this.WsClientsMu.Lock()
+		if _, ok := this.Clients[client.(*Client).Url]; ok {
+			delete(this.Clients, client.(*Client).Url)
+		}
+		this.WsClientsMu.Unlock()
 	}
 }
 
 // Client returns (and caches) a *Client for the given WS URL.
-func (this *Exchange) Client(url interface{}) *Client {
+func (this *Exchange) Client(url interface{}) *WSClient {
+	// TODO: what to do with errors
 	this.WsClientsMu.Lock()
 	defer this.WsClientsMu.Unlock()
-	if this.WsClients == nil {
-		this.WsClients = make(map[string]*Client)
+	if client, ok := this.Clients[url.(string)]; ok {
+		return client //, nil
 	}
-	if c, ok := this.WsClients[url.(string)]; ok {
-		return c
+	// TODO: add options to NewWSClient
+	client, err := NewWSClient(url.(string), this.DerivedExchange.HandleMessage, this.DerivedExchange.OnError, this.DerivedExchange.OnClose, this.DerivedExchange.OnConnected, nil)
+	if err != nil {
+		return nil //, err
 	}
-	cli, err := NewClient(url.(string), http.Header{})
+	wsOptions := SafeValue(this.Options, "ws", map[string]interface{}{});
+	// proxy agents
+	proxies := this.CheckWsProxySettings();
+	var httpProxy, httpsProxy, socksProxy string
+	if proxySlice, ok := proxies.([]interface{}); ok {
+		httpProxy, _ = proxySlice[0].(string)
+		httpsProxy, _ = proxySlice[1].(string)
+		socksProxy, _ = proxySlice[2].(string)
+	}
+
+	chosenAgent, err := this.SetProxyAgents(httpProxy, httpsProxy, socksProxy);
+	if err != nil {
+		return nil //, err
+	}
+	httpProxyAgent, err := this.GetHttpAgentIfNeeded(url.(string));
+	if err != nil {
+		return nil //, err
+	}
+	var finalAgent interface{}
+	if chosenAgent != nil {
+		finalAgent = chosenAgent
+	} else if httpProxyAgent != nil {
+		finalAgent = httpProxyAgent
+	}
+	//
+	options := DeepExtend(
+		this.streaming,
+		map[string]interface{}{
+			"log": this.Log,
+			"ping": this.Ping,
+			"verbose": this.Verbose,
+			"throttler": NewThrottler(this.TokenBucket),
+			"options": map[string]interface{}{
+				"agent": finalAgent,
+			},
+		},
+		wsOptions,
+	)
+	
+	// set back-reference so client can dispatch messages
+	// this.setOwner(client)
+	// Throttling can be added later once implemented on Client
+	this.Clients[url.(string)], err = NewWSClient(url.(string), this.DerivedExchange.HandleMessage, this.DerivedExchange.OnError, this.DerivedExchange.OnClose, this.DerivedExchange.OnConnected, options)
 	if err != nil {
 		return nil
 	}
-	// set back-reference so client can dispatch messages
-	this.setOwner(cli)
-	// Throttling can be added later once implemented on Client
-	this.WsClients[url.(string)] = cli
-	return cli
+	return client
 }
 
-// WatchMultiple awaits any of the messageHashes and returns the first future
-// to resolve (similar to Future.race in TS)
-func (this *Exchange) WatchMultiple(url interface{}, messageHashes interface{}, message interface{}, subscribeHashes interface{}, subscription interface{}) <-chan interface{} {
-	client := this.Client(url.(string))
-	if client == nil {
-		// return empty closed channel if client is nil
-		ch := make(chan interface{})
-		close(ch)
-		return ch
+func (this *Exchange) WatchMultiple(args ...interface{}) Future {
+	url, _ := args[0].(string)
+	var messageHashes []string
+	
+	// Handle both []string and []interface{} for messageHashes
+	if hashes, ok := args[1].([]string); ok {
+		messageHashes = hashes
+	} else if hashesInterface, ok := args[1].([]interface{}); ok {
+		// Convert []interface{} to []string
+		messageHashes = make([]string, len(hashesInterface))
+		for i, hash := range hashesInterface {
+			if str, ok := hash.(string); ok {
+				messageHashes[i] = str
+			}
+		}
+	}
+	var message interface{}
+	var subscribeHashes interface{}
+	var subscription interface{}
+
+	if len(args) >= 3 {
+		message = args[2]
+	}
+	if len(args) >= 4 {
+		subscribeHashes = args[3]
+	} else {
+		subscribeHashes = messageHashes
+	}
+	if len(args) >= 5 {
+		subscription = args[4]
 	}
 
-	// Create a future per symbol, to return data for each symbol
-	futures := make([]Future, len(messageHashes.([]interface{})))
-	for i, h := range messageHashes.([]interface{}) {
-		futures[i] = client.Future(h.(string))
+	client := this.Client(url)
+	// todo: calculate the backoff using the clients cache
+	backoffDelay := 0
+	//
+	//  watchOrderBook ---- future ----+---------------+----→ user
+	//                                 |               |
+	//                                 ↓               ↑
+	//                                 |               |
+	//                              connect ......→ resolve
+	//                                 |               |
+	//                                 ↓               ↑
+	//                                 |               |
+	//                             subscribe -----→ receive
+	//
+	futures := make([]Future, len(messageHashes))
+	for i, messageHash := range messageHashes {
+		futures[i] = client.Future(messageHash)
 	}
-
-	missing := []string{}	// Track which subscription hashes we need to create (haven't seen before)
+	future := FutureRace(futures)
+	// read and write subscription, this is done before connecting the client
+	// to avoid race conditions when other parts of the code read or write to the client.subscriptions
+	missingSubscriptions := []string{}
 	if subscribeHashes != nil {
-		for _, sh := range subscribeHashes.([]interface{}) {
-			if _, ok := client.Subscriptions[sh.(string)]; !ok {	// Check if we already have a channel for this subscription hash
-				if ch, ok := subscription.(chan interface{}); ok {
-					// If caller provided a custom channel, use it
-					client.Subscriptions[sh.(string)] = ch
-				} else {
-					// Otherwise create a new buffered channel for this subscription
-					client.Subscriptions[sh.(string)] = make(chan interface{}, 1000)
+		// Handle both []string and []interface{} for subscribeHashes
+		var subscribeHashesList []interface{}
+		if hashes, ok := subscribeHashes.([]string); ok {
+			subscribeHashesList = make([]interface{}, len(hashes))
+			for i, hash := range hashes {
+				subscribeHashesList[i] = hash
+			}
+		} else if hashes, ok := subscribeHashes.([]interface{}); ok {
+			subscribeHashesList = hashes
+		}
+		
+		for _, subscribeHash := range subscribeHashesList {
+			if hashStr, ok := subscribeHash.(string); ok {
+				if _, exists := client.Subscriptions[hashStr]; !exists {
+					missingSubscriptions = append(missingSubscriptions, hashStr)
+					if subscription != nil {
+						client.Subscriptions[hashStr] = subscription.(chan interface{})
+					} else {
+						client.Subscriptions[hashStr] = make(chan interface{})
+					}
 				}
-				missing = append(missing, sh.(string))	// Mark this subscription as new (we'll send subscribe message for it)
 			}
 		}
 	}
-
-	go func() {										// Start a goroutine to send subscribe message once connected
-		<-client.Connected 							// blocks until websocket is connected
-		if message != nil && len(missing) > 0 {  	// If we have a new subscription
-			_ = client.Send(message)				// send a subscribe message to the exchange
-		}
-	}()
-
-	// Return a channel that yields results from any resolved future (continuous streaming)
-	out := make(chan interface{}, 1000)
-	go func() {
-		defer close(out)
-		
-		// build select cases for each future
-		cases := make([]reflect.SelectCase, len(futures))
-		for i, fut := range futures {
-			cases[i] = reflect.SelectCase{Dir: reflect.SelectRecv, Chan: reflect.ValueOf(fut.Await())}
-		}
-		
-
-		// Keep listening for results from any future (like TypeScript Future.race)
-		for {
-			chosen, val, ok := reflect.Select(cases)
-			
-			if !ok {
-				// Channel closed, remove it from cases and continue with remaining
-				if len(cases) <= 1 {
-					break // No more active cases
+	// we intentionally do not use await here to avoid unhandled exceptions
+	// the policy is to make sure that 100% of promises are resolved or rejected
+	// either with a call to client.resolve or client.reject with
+	//  a proper exception class instance
+	connected, err := client.Connect(backoffDelay)
+	if err != nil {
+		future.Reject(err)
+		return future
+	}
+	// the following is executed only if the catch-clause does not
+	// catch any connection-level exceptions from the client
+	// (connection established successfully)
+	if ((subscribeHashes == nil) || missingSubscriptions != nil) {
+		go func() {
+			defer func() {
+				if r := recover(); r != nil {
+					for _, subscribeHash := range missingSubscriptions {
+						delete(client.Subscriptions, subscribeHash)
+					}
+					future.Reject(r)
 				}
-				// Remove the closed case
-				cases = append(cases[:chosen], cases[chosen+1:]...)
-				continue
-			}
-
-			result := val.Interface()
+			}()
 			
-			// Debug the result content
-			if cache, ok := result.(*ArrayCache); ok {
-				arr := cache.ToArray()
-				if len(arr) > 0 {
+			<-connected
+			options := SafeValue(this.Options, "ws", make(map[string]interface{}))
+			cost := SafeValue(options, "cost", 1)
+			if message != nil {
+				if this.EnableRateLimit && client.Throttle != nil {
+					// add cost here |
+					//               |
+					//               V
+					if throttleFunc, ok := client.Throttle.(func(interface{}) error); ok {
+						if err := throttleFunc(cost); err != nil {
+							for _, subscribeHash := range missingSubscriptions {
+								delete(client.Subscriptions, subscribeHash)
+							}
+							future.Reject(err)
+							return
+						}
+					}
+					sendFuture := client.Send(message)
+					go func() {
+						if err := <-sendFuture; err != nil {
+							for _, subscribeHash := range missingSubscriptions {
+								delete(client.Subscriptions, subscribeHash)
+							}
+							future.Reject(err)
+						}
+					}()
+				} else {
+					sendFuture := client.Send(message)
+					go func() {
+						if err := <-sendFuture; err != nil {
+							for _, subscribeHash := range missingSubscriptions {
+								delete(client.Subscriptions, subscribeHash)
+							}
+							future.Reject(err)
+						}
+					}()
 				}
-			} else {
 			}
-
-			// Forward the result to output channel
-			select {
-			case out <- result:
-			default:
-				go func(res interface{}) {
-					out <- res
-				}(result)
-			}
-		}
-		
-	}()
-	return out	// channel that will contain ongoing results from any resolved future
+		}()
+	}
+	return future;
 }
 
 func (this *Exchange) Spawn(method interface{}, args ...interface{}) Future {
-	fut := NewFuture()
-	go func() {
-		defer func() { if r := recover(); r != nil { fut.Reject(ToGetsLimit(r)) } }()
-		v := reflect.ValueOf(method)
-		in := make([]reflect.Value, len(args))
-		for i, a := range args { in[i] = reflect.ValueOf(a) }
-		out := v.Call(in)
-		if len(out) == 0 {
-			fut.Resolve(ToGetsLimit(nil))
-			return
-		}
-		if ch, ok := out[0].Interface().(<-chan interface{}); ok {
-			fut.Resolve(ToGetsLimit(<-ch))
-		} else {
-			fut.Resolve(ToGetsLimit(out[0].Interface()))
-		}
-	}()
-	return fut
+    future := NewFuture()
+
+    go func() {
+        // mimic "setTimeout(..., 0)" by deferring execution
+        time.Sleep(0) // or remove entirely since Go goroutine runs async
+        result, err := method.(func(args ...interface{}) (interface{}, error))(args...)
+        if err != nil {
+            future.Reject(err)
+        } else {
+            future.Resolve(result)
+        }
+    }()
+
+    return future
 }
+
 
 func (this *Exchange) Delay(timeout interface{}, method interface{}, args ...interface{}) {
 	go func() {
 		time.Sleep(time.Duration(timeout.(int)) * time.Millisecond)
-		this.Spawn(method, args...)
+		this.Spawn(method.(func(args ...interface{}) (interface{}, error)), args...)
 	}()
 }
 
 func (this *Exchange) LoadOrderBook(client interface{}, messageHash interface{}, symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-    ch := make(chan interface{})
-    go func() {
-        defer close(ch)
-
-        // Type assertions & helpers
-        cli, _ := client.(*Client)
-        msgHashStr := fmt.Sprintf("%v", messageHash)
-        symStr := fmt.Sprintf("%v", symbol)
-
-        // Retrieve the stored local order-book for this symbol (created by the WS handler)
-        var stored interface{}
-        if obMap, ok := this.Orderbooks.(map[string]interface{}); ok {
-            stored = obMap[symStr]
-        }
-
-        if stored == nil {
-            if cli != nil {
-                cli.Reject(ToGetsLimit(NewError("ExchangeError", this.Id+" loadOrderBook() orderbook is not initiated")), msgHashStr)
-            }
-            ch <- nil
-            return
-        }
-
-        // Check if this is a CountedOrderBook that already has data in main arrays
-        if obPtr, ok := stored.(*OrderBook); ok {
-            if len(obPtr.Bids) > 0 || len(obPtr.Asks) > 0 {
-                if cli != nil {
-                    cli.Resolve(obPtr, msgHashStr)
-                }
-                ch <- obPtr
-                return
-            }
-            
-            // Check if this is a snapshot case - if we have cached data but empty main arrays,
-            // this might be a snapshot that was stored in cache and needs to be processed
-            if cacheMap, ok := obPtr.Cache.(map[string]interface{}); ok && len(cacheMap) > 0 {
-                // Check if we have snapshot data in cache (indicated by datetime/timestamp)
-                if cacheMap["datetime"] != nil || cacheMap["timestamp"] != nil {
-                    
-                    // Extract snapshot data from cache
-                    var asks interface{}
-                    var bids interface{}
-                    if asksCache, ok := cacheMap["asks"]; ok {
-                        asks = asksCache
-                    }
-                    if bidsCache, ok := cacheMap["bids"]; ok {
-                        bids = bidsCache
-                    }
-                    
-                    // For CountedOrderBook, the OrderBookSide objects are stored in cache
-                    // We need to populate them and also update the main arrays for compatibility
-                    if asksArray, ok := asks.([]interface{}); ok {
-                        // Get the cached OrderBookSide for asks
-                        if asksSideCache, exists := cacheMap["asks"]; exists {
-                            if asksSide, ok := asksSideCache.(*OrderBookSide); ok {
-                                // Clear existing levels and populate with snapshot data
-                                asksSide.Levels = []PriceLevel{}
-                                for _, ask := range asksArray {
-                                    if askArray, ok := ask.([]interface{}); ok && len(askArray) >= 2 {
-                                        price := askArray[0]
-                                        amount := askArray[1]
-                                        bidAsk := []interface{}{price, amount, askArray} // Include original for checksum
-                                        asksSide.StoreArray(bidAsk)
-                                    }
-                                }
-                                
-                                // Also populate the main Asks array for compatibility
-                                obPtr.Asks = make([][]float64, len(asksSide.Levels))
-                                for i, level := range asksSide.Levels {
-                                    obPtr.Asks[i] = []float64{level.Price, level.Amount}
-                                }
-                            }
-                        }
-                    }
-                    
-                    if bidsArray, ok := bids.([]interface{}); ok {
-                        // Get the cached OrderBookSide for bids
-                        if bidsSideCache, exists := cacheMap["bids"]; exists {
-                            if bidsSide, ok := bidsSideCache.(*OrderBookSide); ok {
-                                // Clear existing levels and populate with snapshot data
-                                bidsSide.Levels = []PriceLevel{}
-                                for _, bid := range bidsArray {
-                                    if bidArray, ok := bid.([]interface{}); ok && len(bidArray) >= 2 {
-                                        price := bidArray[0]
-                                        amount := bidArray[1]
-                                        bidAsk := []interface{}{price, amount, bidArray} // Include original for checksum
-                                        bidsSide.StoreArray(bidAsk)
-                                    }
-                                }
-                                
-                                // Also populate the main Bids array for compatibility
-                                obPtr.Bids = make([][]float64, len(bidsSide.Levels))
-                                for i, level := range bidsSide.Levels {
-                                    obPtr.Bids[i] = []float64{level.Price, level.Amount}
-                                }
-                            }
-                        }
-                    }
-                    
-                    // Set metadata with proper type assertions
-                    if ts, ok := cacheMap["timestamp"]; ok {
-                        if tsInt64, ok := ts.(int64); ok {
-                            obPtr.Timestamp = &tsInt64
-                        }
-                    }
-                    if dt, ok := cacheMap["datetime"]; ok {
-                        if dtStr, ok := dt.(string); ok {
-                            obPtr.Datetime = &dtStr
-                        }
-                    }
-                    if obPtr.Symbol == nil {
-                        obPtr.Symbol = &symStr
-                    }
-                     
-                    // Clear the cache since we've processed the snapshot
-                    obPtr.Cache = map[string]interface{}{}
-                    
-                    if cli != nil {
-                        cli.Resolve(obPtr, msgHashStr)
-                    }
-                    ch <- obPtr
-                    return
-                }
-            }
-        }
-
-        // Parse optional arguments
-        var limit interface{}
-        var params interface{}
-        if len(optionalArgs) > 0 {
-            limit = optionalArgs[0]
-        }
-        if len(optionalArgs) > 1 {
-            params = optionalArgs[1]
-        }
-        if params == nil {
-            params = map[string]interface{}{}
-        }
-
-        // Get retry settings
-        var snapshotMaxRetries int = 3
-        if retryOpt := this.HandleOption("watchOrderBook", "snapshotMaxRetries", 3); retryOpt != nil {
-            if retryInt, ok := retryOpt.(int); ok {
-                snapshotMaxRetries = retryInt
-            }
-        }
-
-        var tries int = 0
-        var maxRetries int = snapshotMaxRetries
-
-        for tries < maxRetries {
-            snapshot := <-this.FetchRestOrderBookSafe(symbol, limit, params)
-            tries++
-
-            if snapshot != nil {
-                log.Printf("[DEBUG][LoadOrderBook] got snapshot for symbol=%s", symStr)
-                // We got a snapshot – merge it with the cached deltas and resolve
-                if obPtr, ok := stored.(*OrderBook); ok {
-                    obPtr.Reset(snapshot)
-                    // Apply any cached deltas collected before the snapshot arrived
-                    if cacheArr, ok := obPtr.Cache.([]interface{}); ok && len(cacheArr) > 0 {
-                        this.HandleDeltas(obPtr, cacheArr)
-                    }
-                    obPtr.Cache = []interface{}{}
-                    log.Printf("[DEBUG][LoadOrderBook] snapshot merged symbol=%s bids=%d asks=%d", symStr, len(obPtr.Bids), len(obPtr.Asks))
-                    if cli != nil {
-                        cli.Resolve(obPtr, msgHashStr)
-                    }
-                    ch <- obPtr
-                    return
-                }
-            }
-        }
-
-        // If we exit the loop, all retries failed – reject and drop the client
-        if cli != nil {
-            cli.Reject(ToGetsLimit(NewError("ExchangeError", "failed to load orderbook snapshot after retries")), msgHashStr)
-        }
-        ch <- nil
-    }()
-    return ch
-}
-
-// ---------------- Connection lifecycle helpers ----------------
-func (this *Exchange) OnConnected(client interface{}, message interface{}) {}
-
-func (this *Exchange) OnError(client interface{}, err interface{}) {
-	if client == nil { return }
-	this.WsClientsMu.Lock()
-	delete(this.WsClients, client.(*Client).Url)
-	this.WsClientsMu.Unlock()
-	client.(*Client).Err = fmt.Errorf("%v", err)
-}
-
-func (this *Exchange) OnClose(client interface{}, err interface{}) {
-	if client == nil { return }
-	if client.(*Client).Err != nil { return }
-	this.WsClientsMu.Lock()
-	delete(this.WsClients, client.(*Client).Url)
-	this.WsClientsMu.Unlock()
+	if _, exists := this.Orderbooks.(map[string]interface{})[symbol.(string)]; !exists {
+		client.(*Client).Reject(ExchangeError(this.Id + " loadOrderBook() orderbook is not initiated"), messageHash)
+		return nil
+	}
+    maxRetries := this.HandleOption("watchOrderBook", "snapshotMaxRetries", 3)
+	tries := 0
+	defer func() {
+		if r := recover(); r != nil {
+			client.(*Client).Reject(r, messageHash)
+			this.LoadOrderBook(client, messageHash, symbol, optionalArgs...)
+		}
+	}()
+	
+	if obMap, ok := this.Orderbooks.(map[string]interface{}); ok {
+		stored := obMap[symbol.(string)]
+		for tries < maxRetries.(int) {
+			cache := this.GetProperty(stored, "Cache")
+			limit := GetArg(optionalArgs, 0, nil)
+			params := GetArg(optionalArgs, 1, map[string]interface{}{})
+			orderBook := <-this.FetchRestOrderBookSafe(symbol, limit, params)
+			index := this.GetCacheIndex(orderBook, cache)
+			if index.(int) >= 0 {
+				// Call Reset method on stored orderbook
+				if ob, ok := stored.(interface{ Reset(interface{}) }); ok {
+					ob.Reset(orderBook)
+				}
+				if cacheSlice, ok := cache.([]interface{}); ok {
+					this.HandleDeltas(stored, cacheSlice[index.(int):])
+				}
+				this.SetProperty(cache, "length", 0)
+				client.(*Client).Resolve(stored, messageHash)
+				return nil
+			}
+			tries++
+		}
+		errorMsg := fmt.Sprintf("%s nonce is behind the cache after %v tries.", this.Id, maxRetries)
+		client.(*Client).Reject(ExchangeError(errorMsg), messageHash)
+		if cli, ok := client.(*Client); ok {
+			delete(this.Clients, cli.Url)
+		}
+	}
+	return nil
 }
 
 func (this *Exchange) Close() []error {
@@ -1858,5 +1908,3 @@ func (this *Exchange) Crc32(str interface{}, signed2 bool) int64 {
 	// }
 	return Crc32(str.(string), signed2)
 }
-
-
