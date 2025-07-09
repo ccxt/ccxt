@@ -2692,7 +2692,7 @@ class kucoin extends kucoin$1 {
     async cancelAllOrders(symbol = undefined, params = {}) {
         await this.loadMarkets();
         const request = {};
-        const trigger = this.safeBool(params, 'stop', false);
+        const trigger = this.safeBool2(params, 'trigger', 'stop', false);
         let hf = undefined;
         [hf, params] = this.handleHfAndParams(params);
         params = this.omit(params, 'stop');
