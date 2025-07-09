@@ -750,32 +750,44 @@
         ],
         "fetchOpenOrders": [
             {
-                "description": "fetch trailing spot orders",
+                "description": "fetchOpenOrders",
                 "method": "fetchOpenOrders",
-                "url": "https://api.woox.io/v3/algo/orders?algoType=TRAILING_STOP&size=50&status=INCOMPLETE",
+                "url": "https://api.woox.io/v3/trade/orders?status=INCOMPLETE",
+                "input": []
+            },
+            {
+                "description": "fetchOpenOrders - algo",
+                "method": "fetchOpenOrders",
+                "url": "https://api.woox.io/v3/trade/algoOrders?status=INCOMPLETE",
                 "input": [
                     null,
                     null,
                     null,
                     {
-                        "trailing": true
+                        "stop": true
                     }
-                ],
-                "output": null
-            },
-            {
-                "description": "open orders",
-                "method": "fetchOpenOrders",
-                "url": "https://api.staging.woox.io/v1/orders?size=500&status=INCOMPLETE",
-                "input": []
+                ]
             }
         ],
         "fetchClosedOrders": [
             {
-                "description": "closed orders",
+                "description": "fetchClosedOrders",
                 "method": "fetchClosedOrders",
-                "url": "https://api.staging.woox.io/v1/orders?size=500&status=COMPLETED",
+                "url": "https://api.woox.io/v3/trade/orders?status=COMPLETED",
                 "input": []
+            },
+            {
+                "description": "fetchClosedOrders - algo",
+                "method": "fetchClosedOrders",
+                "url": "https://api.woox.io/v3/trade/algoOrders?status=COMPLETED",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "stop": true
+                    }
+                ]
             }
         ],
         "fetchConvertTrade": [
