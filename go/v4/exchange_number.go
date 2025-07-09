@@ -274,6 +274,23 @@ func (this *Exchange) _decimalToPrecision(x interface{}, roundingMode2, numPreci
 	if countMode == TICK_SIZE {
 		precisionDigitsString := this._decimalToPrecision(numPrecisionDigits, ROUND, 22, DECIMAL_PLACES, NO_PADDING)
 		newNumPrecisionDigits := this.PrecisionFromString(precisionDigitsString)
+		if roundingMode == TRUNCATE {
+			scale := math.Pow(10, math.Max(float64(newNumPrecisionDigits), 10))
+			xScaled := math.Round(parsedX * scale)
+			tickScaled := math.Round(numPrecisionDigits * scale)
+			ticks := math.Trunc(xScaled / tickScaled)
+			parsedX = (ticks * tickScaled) / scale
+
+			if paddingMode == NO_PADDING {
+				// Format with fixed precision
+				formatted := strconv.FormatFloat(parsedX, 'f', newNumPrecisionDigits, 64)
+				// Convert back to float to remove trailing zeros
+				floatVal, _ := strconv.ParseFloat(formatted, 64)
+				return strconv.FormatFloat(floatVal, 'f', -1, 64)
+			}
+
+			return this._decimalToPrecision(parsedX, ROUND, newNumPrecisionDigits, DECIMAL_PLACES, paddingMode)
+		}
 		missing := math.Mod(parsedX, numPrecisionDigits)
 		missingRes := this._decimalToPrecision(missing, ROUND, 8, DECIMAL_PLACES, NO_PADDING)
 		missingFloat, _ := strconv.ParseFloat(missingRes, 64)
