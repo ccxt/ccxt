@@ -2,6 +2,122 @@
     "exchange": "deribit",
     "skipKeys": [],
     "methods": {
+        "fetchPositions": [
+            {
+                "description": "short negative position",
+                "method": "fetchPositions",
+                "input": [
+                    [
+                        "ETH/USDT:USDT"
+                    ]
+                ],
+                "httpResponse": {
+                    "jsonrpc": "2.0",
+                    "result": [
+                        {
+                            "size": "-3.0",
+                            "kind": "future",
+                            "maintenance_margin": "1.1506e-5",
+                            "initial_margin": "2.3012e-5",
+                            "open_orders_margin": "0.0",
+                            "direction": "sell",
+                            "index_price": "2607.28",
+                            "instrument_name": "ETH-PERPETUAL",
+                            "settlement_price": "2626.15",
+                            "mark_price": "2607.39",
+                            "interest_value": "0.0",
+                            "delta": "-0.001150576",
+                            "average_price": "3193.4",
+                            "leverage": "50",
+                            "floating_profit_loss": "8.219e-6",
+                            "realized_profit_loss": "0.0",
+                            "total_profit_loss": "2.11138e-4",
+                            "realized_funding": "0.0",
+                            "size_currency": "-0.001150576",
+                            "estimated_liquidation_price": null
+                        },
+                        {
+                            "size": "-312.793464",
+                            "kind": "future",
+                            "maintenance_margin": "3.128084781",
+                            "initial_margin": "6.256019421",
+                            "open_orders_margin": "0.0",
+                            "direction": "sell",
+                            "index_price": "2606.4297",
+                            "instrument_name": "ETH_USDT-PERPETUAL",
+                            "settlement_price": "2624.9889",
+                            "mark_price": "2606.6122",
+                            "interest_value": "71093.80629498",
+                            "delta": "-0.12",
+                            "average_price": "2611.283333",
+                            "leverage": "50",
+                            "floating_profit_loss": "0.560536",
+                            "realized_profit_loss": "-0.058998752",
+                            "total_profit_loss": "0.560536",
+                            "realized_funding": "1.0e-6",
+                            "size_currency": "-0.12",
+                            "estimated_liquidation_price": null
+                        }
+                    ],
+                    "usIn": "1752052451952389",
+                    "usOut": "1752052452001088",
+                    "usDiff": "48699",
+                    "testnet": true
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "size": "-312.793464",
+                            "kind": "future",
+                            "maintenance_margin": "3.128084781",
+                            "initial_margin": "6.256019421",
+                            "open_orders_margin": "0.0",
+                            "direction": "sell",
+                            "index_price": "2606.4297",
+                            "instrument_name": "ETH_USDT-PERPETUAL",
+                            "settlement_price": "2624.9889",
+                            "mark_price": "2606.6122",
+                            "interest_value": "71093.80629498",
+                            "delta": "-0.12",
+                            "average_price": "2611.283333",
+                            "leverage": "50",
+                            "floating_profit_loss": "0.560536",
+                            "realized_profit_loss": "-0.058998752",
+                            "total_profit_loss": "0.560536",
+                            "realized_funding": "1.0e-6",
+                            "size_currency": "-0.12",
+                            "estimated_liquidation_price": null
+                        },
+                        "id": null,
+                        "symbol": "ETH/USDT:USDT",
+                        "timestamp": 1752052453296,
+                        "datetime": "2025-07-09T09:14:13.296Z",
+                        "lastUpdateTimestamp": null,
+                        "initialMargin": 6.256019421,
+                        "initialMarginPercentage": 5213.3495175,
+                        "maintenanceMargin": 3.128084781,
+                        "maintenanceMarginPercentage": 2606.7373175,
+                        "entryPrice": 2611.283333,
+                        "notional": 0.12,
+                        "leverage": 50,
+                        "unrealizedPnl": 0.560536,
+                        "contracts": null,
+                        "contractSize": 0.01,
+                        "marginRatio": null,
+                        "liquidationPrice": null,
+                        "markPrice": 2606.6122,
+                        "lastPrice": null,
+                        "collateral": null,
+                        "marginMode": null,
+                        "side": "short",
+                        "percentage": null,
+                        "hedged": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null
+                    }
+                ]
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "fetchCurrencies",
