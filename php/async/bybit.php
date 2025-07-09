@@ -1162,6 +1162,7 @@ class bybit extends Exchange {
                     '4h' => '4h',
                     '1d' => '1d',
                 ),
+                'useMarkPriceForPositionCollateral' => false, // use mark price for position collateral
             ),
             'features' => array(
                 'default' => array(
@@ -6646,20 +6647,22 @@ class bybit extends Exchange {
         }
         $collateralString = $this->safe_string($position, 'positionBalance');
         $entryPrice = $this->omit_zero($this->safe_string_n($position, array( 'entryPrice', 'avgPrice', 'avgEntryPrice' )));
+        $markPrice = $this->safe_string($position, 'markPrice');
         $liquidationPrice = $this->omit_zero($this->safe_string($position, 'liqPrice'));
         $leverage = $this->safe_string($position, 'leverage');
         if ($liquidationPrice !== null) {
             if ($market['settle'] === 'USDC') {
-                //  (Entry price - Liq price) * Contracts . Maintenance Margin . (unrealised pnl) = Collateral
-                $difference = Precise::string_abs(Precise::string_sub($entryPrice, $liquidationPrice));
+                //  (Entry $price - Liq $price) * Contracts . Maintenance Margin . (unrealised pnl) = Collateral
+                $price = $this->safe_bool($this->options, 'useMarkPriceForPositionCollateral', false) ? $markPrice : $entryPrice;
+                $difference = Precise::string_abs(Precise::string_sub($price, $liquidationPrice));
                 $collateralString = Precise::string_add(Precise::string_add(Precise::string_mul($difference, $size), $maintenanceMarginString), $unrealisedPnl);
             } else {
                 $bustPrice = $this->safe_string($position, 'bustPrice');
                 if ($market['linear']) {
                     // derived from the following formulas
-                    //  (Entry price - Bust price) * Contracts = Collateral
-                    //  (Entry price - Liq price) * Contracts = Collateral - Maintenance Margin
-                    // Maintenance Margin = (Bust price - Liq price) x Contracts
+                    //  (Entry $price - Bust $price) * Contracts = Collateral
+                    //  (Entry $price - Liq $price) * Contracts = Collateral - Maintenance Margin
+                    // Maintenance Margin = (Bust $price - Liq $price) x Contracts
                     $maintenanceMarginPriceDifference = Precise::string_abs(Precise::string_sub($liquidationPrice, $bustPrice));
                     $maintenanceMarginString = Precise::string_mul($maintenanceMarginPriceDifference, $size);
                     // Initial Margin = Contracts x Entry Price / Leverage
@@ -6667,10 +6670,10 @@ class bybit extends Exchange {
                         $initialMarginString = Precise::string_div(Precise::string_mul($size, $entryPrice), $leverage);
                     }
                 } else {
-                    // Contracts * (1 / Entry price - 1 / Bust price) = Collateral
-                    // Contracts * (1 / Entry price - 1 / Liq price) = Collateral - Maintenance Margin
-                    // Maintenance Margin = Contracts * (1 / Liq price - 1 / Bust price)
-                    // Maintenance Margin = Contracts * (Bust price - Liq price) / (Liq price x Bust price)
+                    // Contracts * (1 / Entry $price - 1 / Bust $price) = Collateral
+                    // Contracts * (1 / Entry $price - 1 / Liq $price) = Collateral - Maintenance Margin
+                    // Maintenance Margin = Contracts * (1 / Liq $price - 1 / Bust $price)
+                    // Maintenance Margin = Contracts * (Bust $price - Liq $price) / (Liq $price x Bust $price)
                     $difference = Precise::string_abs(Precise::string_sub($bustPrice, $liquidationPrice));
                     $multiply = Precise::string_mul($bustPrice, $liquidationPrice);
                     $maintenanceMarginString = Precise::string_div(Precise::string_mul($size, $difference), $multiply);
@@ -6705,7 +6708,7 @@ class bybit extends Exchange {
             'contractSize' => $this->safe_number($market, 'contractSize'),
             'marginRatio' => $this->parse_number($marginRatio),
             'liquidationPrice' => $this->parse_number($liquidationPrice),
-            'markPrice' => $this->safe_number($position, 'markPrice'),
+            'markPrice' => $this->parse_number($markPrice),
             'lastPrice' => $this->safe_number($position, 'avgExitPrice'),
             'collateral' => $this->parse_number($collateralString),
             'marginMode' => $marginMode,
