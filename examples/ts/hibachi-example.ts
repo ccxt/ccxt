@@ -6,5 +6,8 @@ async function example () {
 
     const markets = await exchange.fetchMarkets();
     console.log ('fetchMarkets', markets.length, markets[0]);
+
+    const currencies = await exchange.fetchCurrencies();
+    console.dir (currencies, { depth: null, colors: true });
 }
 example ();

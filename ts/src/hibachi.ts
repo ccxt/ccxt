@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/hibachi.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, Market, Str } from './base/types.js';
+import type { Currencies, Dict, Market, Str } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -27,7 +27,7 @@ export default class hibachi extends Exchange {
                 'CORS': undefined,
                 'spot': false,
                 'margin': false,
-                'swap': false,
+                'swap': true,
                 'future': false,
                 'option': false,
                 'addMargin': false,
@@ -61,7 +61,7 @@ export default class hibachi extends Exchange {
                 'fetchClosedOrders': false,
                 'fetchConvertCurrencies': false,
                 'fetchConvertQuote': false,
-                'fetchCurrencies': false,
+                'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchDeposits': false,
                 'fetchDepositsWithdrawals': false,
@@ -234,14 +234,98 @@ export default class hibachi extends Exchange {
      * @method
      * @name hibachi#fetchMarkets
      * @description retrieves data on all markets for hibachi
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-available-symbols
+     * @see https://api-doc.hibachi.xyz/#183981da-8df5-40a0-a155-da15015dd536
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
         const response = await this.publicGetMarketExchangeInfo (params);
+        // {
+        //     "displayName": "ETH/USDT Perps",
+        //     "id": 1,
+        //     "maintenanceFactorForPositions": "0.030000",
+        //     "marketCloseTimestamp": null,
+        //     "marketOpenTimestamp": null,
+        //     "minNotional": "1",
+        //     "minOrderSize": "0.000000001",
+        //     "orderbookGranularities": [
+        //         "0.01",
+        //         "0.1",
+        //         "1",
+        //         "10"
+        //     ],
+        //     "riskFactorForOrders": "0.066667",
+        //     "riskFactorForPositions": "0.030000",
+        //     "settlementDecimals": 6,
+        //     "settlementSymbol": "USDT",
+        //     "status": "LIVE",
+        //     "stepSize": "0.000000001",
+        //     "symbol": "ETH/USDT-P",
+        //     "tickSize": "0.000001",
+        //     "underlyingDecimals": 9,
+        //     "underlyingSymbol": "ETH"
+        // },
         const rows = this.safeList (response, 'futureContracts');
         return this.parseMarkets (rows);
+    }
+
+    /**
+     * @method
+     * @name hibachi#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://api-doc.hibachi.xyz/#183981da-8df5-40a0-a155-da15015dd536
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
+    async fetchCurrencies (params = {}): Promise<Currencies> {
+        // Hibachi only supports USDT on Arbitrum at this time
+        // We don't have an API endpoint to expose this information yet
+        const result: Dict = {};
+        const networks: Dict = {};
+        const networkId = 'ARBITRUM';
+        networks[networkId] = {
+            'id': networkId,
+            'network': networkId,
+            'limits': {
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'info': {},
+        };
+        const code = this.safeCurrencyCode ('USDT');
+        result[code] = this.safeCurrencyStructure ({
+            'id': 'USDT',
+            'name': 'USDT',
+            'type': 'fiat',
+            'code': code,
+            'precision': this.parseNumber ('0.000001'),
+            'active': true,
+            'fee': undefined,
+            'networks': networks,
+            'deposit': true,
+            'withdraw': true,
+            'limits': {
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'info': {},
+        });
+        return result;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

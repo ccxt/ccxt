@@ -1006,6 +1006,16 @@
             }
         }
     },
+    "hibachi": {
+        "skipMethods": {
+            "loadMarkets": {
+                "currencyIdAndCode": "only have USDT"
+            },
+            "fetchCurrencies": {
+                "amountOfCurrencies": "exchange has only 1 currency"
+            }
+        }
+    },
     "hitbtc": {
         "skipMethods": {
             "loadMarkets": {
