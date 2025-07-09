@@ -2,8 +2,8 @@
 //  ---------------------------------------------------------------------------
 
 import bullishRest from '../bullish.js';
-import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Balances, Dict, Int, Order, OrderBook, Str, Ticker, Trade } from '../base/types.js';
+import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
+import type { Balances, Dict, Int, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ExchangeError } from '../base/errors.js';
 
@@ -19,7 +19,7 @@ export default class bullish extends bullishRest {
                 'watchOrderBook': true,
                 'watchOrders': true,
                 'watchTrades': true,
-                'watchPositions': false,
+                'watchPositions': true,
                 'watchMyTrades': true,
                 'watchBalance': true,
                 'watchOHLCV': false,
@@ -669,6 +669,72 @@ export default class bullish extends bullishRest {
         const tradingAccountIdHash = '::' + tradingAccountId;
         client.resolve (this.balance[tradingAccountId], messageHash);
         client.resolve (this.balance[tradingAccountId], messageHash + tradingAccountIdHash);
+    }
+
+    /**
+     * @method
+     * @name bullish#watchPositions
+     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#overview--private-data-websocket-authenticated
+     * @description watch all open positions
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {int} [since] the earliest time in ms to fetch positions for
+     * @param {int} [limit] the maximum number of positions to retrieve
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+     */
+    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        const subscribeHash = 'positions';
+        let messageHash = subscribeHash;
+        if (!this.isEmpty (symbols)) {
+            symbols = this.marketSymbols (symbols);
+            messageHash += '::' + symbols.join (',');
+        }
+        const request: Dict = {
+            'topic': 'derivativesPositionsV2',
+        };
+        const positions = await this.watchPrivate (messageHash, subscribeHash, request, params);
+        if (this.newUpdates) {
+            return positions;
+        }
+        return this.filterBySymbolsSinceLimit (positions, symbols, since, limit, true);
+    }
+
+    handlePositions (client: Client, message) {
+        // exchange does not return messages for sandbox mode
+        // current method is implemented blindly
+        // todo: check if this works with not-sandbox mode
+        const messageType = this.safeString (message, 'type');
+        let rawPositions = [];
+        if (messageType === 'update') {
+            const data = this.safeDict (message, 'data', {});
+            rawPositions.push (data);
+        } else {
+            rawPositions = this.safeList (message, 'data', []);
+        }
+        if (this.positions === undefined) {
+            this.positions = new ArrayCacheBySymbolBySide ();
+        }
+        const positions = this.positions;
+        const newPositions = [];
+        for (let i = 0; i < rawPositions.length; i++) {
+            const rawPosition = rawPositions[i];
+            const position = this.parsePosition (rawPosition);
+            positions.append (position);
+            newPositions.push (position);
+        }
+        const messageHashes = this.findMessageHashes (client, 'positions::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split ('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split (',');
+            const symbolPositions = this.filterByArray (newPositions, 'symbol', symbols, false);
+            if (!this.isEmpty (symbolPositions)) {
+                client.resolve (symbolPositions, messageHash);
+            }
+        }
+        client.resolve (positions, 'positions');
     }
 
     handleErrorMessage (client: Client, message) {
