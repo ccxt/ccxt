@@ -8,7 +8,7 @@ package ccxt
 // statistics, etc.).
 
 type IOrderBook struct {
-    *OrderBook
+    *WsOrderBook
 }
 
 // NewIOrderBook attempts to convert arbitrary return values coming from the
@@ -18,14 +18,14 @@ type IOrderBook struct {
 // fresh order-book.
 func NewIOrderBook(v interface{}) IOrderBook {
     switch t := v.(type) {
-    case *OrderBook:
+    case *WsOrderBook:
         return IOrderBook{t}
     case map[string]interface{}:
         ob := (&Exchange{}).OrderBook(t) // depth defaults to max-int
         return IOrderBook{ob}
     default:
         // unknown type – create empty orderbook
-        ob := NewOrderBook(map[string]interface{}{})
+        ob := NewWsOrderBook(map[string]interface{}{}, nil)
         return IOrderBook{&ob}
     }
 } 

@@ -11,12 +11,8 @@ package ccxt
 // dependency is present in go.mod (go get if needed).
 
 import (
-	"bytes"
-	"encoding/json"
-	"errors"
-	"fmt"
 	"net/http"
-	"sync"
+	"strings"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -28,162 +24,146 @@ import (
 // receive-only channel that the caller reads updates from.
 
 type WSClient struct {
-	client *Client
-	url string
+	*Client
 
-	conn *websocket.Conn
-	mu   sync.Mutex // protects conn writes
-
-	subsMu         sync.RWMutex
-	subscriptions  map[string]chan interface{}
-	readLoopClosed chan struct{}
+	ConnectionStarted    int64          
+    Protocols            interface{}   
+    Options              interface{}   
+    StartedConnecting    bool          
 }
 
 // NewWSClient dials the given URL and starts the read-loop.
-func NewWSClient(url interface{}, headers interface{}) (*WSClient, error) {
-	d := websocket.Dialer{
+func NewWSClient(url string, onMessageCallback func(client interface{}, err interface{}), onErrorCallback func(client interface{}, err interface{}), onCloseCallback func(client interface{}, err interface{}), onConnectedCallback func(client interface{}, err interface{}), config ...map[string]interface{}) (*WSClient, error) {
+	// Call NewClient to do exactly the same initialization
+	client, err := NewClient(url, onMessageCallback, onErrorCallback, onCloseCallback, onConnectedCallback, config...)
+	if err != nil {
+		return nil, err
+	}
+	
+	// Wrap the Client in a WSClient
+	wsClient := &WSClient{
+		Client: client.(*Client),
+	}
+	wsClient.StartedConnecting = false
+	
+	return wsClient, nil
+}
+
+func (this *WSClient) CreateConnection() error {
+	if this.Verbose {
+		this.Log(time.Now(), "connecting to", this.Url)
+	}
+	this.ConnectionStarted = Milliseconds()
+	this.SetConnectionTimeout()
+
+	// Create WebSocket dialer
+	dialer := websocket.Dialer{
 		Proxy:             http.ProxyFromEnvironment,
 		HandshakeTimeout:  10 * time.Second,
 		EnableCompression: true,
 	}
 
-	conn, _, err := d.Dial(url.(string), headers.(http.Header))
-	if err != nil {
-		return nil, err
-	}
-
-	c := &WSClient{
-		url:            url.(string),
-		conn:           conn,
-		subscriptions:  make(map[string]chan interface{}),
-		readLoopClosed: make(chan struct{}),
-	}
-
-	go c.readLoop()
-	return c, nil
-}
-
-// Subscribe sends the payload over the wire and returns a channel that will
-// receive messages tagged with the given subHash by the higher-level handler.
-func (c *WSClient) Subscribe(subHash interface{}, payload interface{}) (<-chan interface{}, error) {
-	c.subsMu.Lock()
-	defer c.subsMu.Unlock()
-	if _, exists := c.subscriptions[subHash.(string)]; exists {
-		return nil, fmt.Errorf("subscription %s already exists", subHash.(string))
-	}
-
-	if err := c.Send(payload); err != nil {
-		return nil, err
-	}
-
-	ch := make(chan interface{}, 1024) // buffered to decouple producer
-	c.subscriptions[subHash.(string)] = ch
-	return ch, nil
-}
-
-// Unsubscribe closes and deletes the subscription, optionally sending a WS
-// message to the server (payload may be nil).
-func (c *WSClient) Unsubscribe(subHash interface{}, payload interface{}) error {
-	if payload != nil {
-		if err := c.Send(payload); err != nil {
-			return err
+	// Set up headers for protocols
+	headers := http.Header{}
+	if this.Protocols != nil {
+		if protocols, ok := this.Protocols.([]string); ok {
+			headers.Set("Sec-WebSocket-Protocol", strings.Join(protocols, ", "))
 		}
 	}
-	c.subsMu.Lock()
-	if ch, ok := c.subscriptions[subHash.(string)]; ok {
-		close(ch)
-		delete(c.subscriptions, subHash.(string))
+
+	// Connect to WebSocket
+	conn, _, err := dialer.Dial(this.Url, headers)
+	if err != nil {
+		return err
 	}
-	c.subsMu.Unlock()
+	this.Connection = conn
+
+	// Start event handling goroutines
+	go this.handleOpen()
+	go this.handleMessages()
+
 	return nil
 }
 
-// Send encodes v as JSON and writes it to the socket.
-func (c *WSClient) Send(v interface{}) error {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	if c.conn == nil {
-		return errors.New("websocket connection closed")
-	}
-	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(v); err != nil {
-		return err
-	}
-	return c.conn.WriteMessage(websocket.TextMessage, buf.Bytes())
+// Handle WebSocket open event
+func (this *WSClient) handleOpen() {
+	this.OnOpen()
 }
 
-// readLoop pumps frames from the socket and broadcasts them to all
-// subscription channels.  Higher-level code is responsible for inspecting the
-// raw JSON and routing it further (or closing the sub).
-func (c *WSClient) readLoop() {
-	defer close(c.readLoopClosed)
+// Handle incoming WebSocket messages
+func (this *WSClient) handleMessages() {
+	defer func() {
+		this.OnClose(nil)
+		if this.Connection != nil {
+			this.Connection.Close()
+		}
+	}()
 
 	for {
-		_, data, err := c.conn.ReadMessage()
+		if this.Connection == nil {
+			return
+		}
+		
+		messageType, data, err := this.Connection.ReadMessage()
 		if err != nil {
-			// propagate error to all subs and exit
-			c.subsMu.Lock()
-			for _, ch := range c.subscriptions {
-				ch <- err
-				close(ch)
-			}
-			c.subscriptions = nil
-			c.subsMu.Unlock()
+			this.OnError(err)
 			return
 		}
 
-		// deliver raw bytes so exchange-specific decoder can inspect quickly
-		var msg interface{}
-		if err := json.Unmarshal(data, &msg); err != nil {
-			msg = err // forward decoding error for diagnosis
+		switch messageType {
+		case websocket.TextMessage, websocket.BinaryMessage:
+			this.OnMessage(data)
+		case websocket.PingMessage:
+			this.OnPing()
+			// Respond with pong
+			this.Connection.WriteMessage(websocket.PongMessage, nil)
+		case websocket.PongMessage:
+			this.OnPong()
+		case websocket.CloseMessage:
+			return
 		}
+	}
+}
 
-		c.subsMu.RLock()
-		for _, ch := range c.subscriptions {
-			select {
-			case ch <- msg:
-			default:
-				// drop if receiver is slow; could implement back-pressure
+func (this *WSClient) Connect(backoffDelay ...int) (Future, error) {
+	if !this.StartedConnecting {
+		this.StartedConnecting = true
+		// exponential backoff for consequent ws connections if necessary
+		delay := 0
+		if len(backoffDelay) > 0 {
+			delay = backoffDelay[0]
+		}
+		
+		if delay > 0 {
+			go func() {
+				time.Sleep(time.Duration(delay) * time.Millisecond)
+				this.CreateConnection()
+				// TODO: handle error
+				// if err != nil {
+				// 	return nil, err
+				// }
+			}()
+		} else {
+			err := this.CreateConnection()
+			if err != nil {
+				return nil, err
 			}
 		}
-		c.subsMu.RUnlock()
 	}
+	return this.Connected, nil
 }
 
-// Close shuts down the socket and all subscription channels.
-func (c *WSClient) Close() error {
-	c.mu.Lock()
-	if c.conn != nil {
-		_ = c.conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
-		_ = c.conn.Close()
-		c.conn = nil
-	}
-	c.mu.Unlock()
-
-	<-c.readLoopClosed // wait for graceful exit
-
-	c.subsMu.Lock()
-	for _, ch := range c.subscriptions {
-		close(ch)
-	}
-	c.subscriptions = nil
-	c.subsMu.Unlock()
-	return nil
+func (this *WSClient) IsOpen() bool {
+	return this.Connection != nil
 }
 
-// Resolve delivers result to every listener of messageHash.
-func (c *WSClient) Resolve(result interface{}, messageHash interface{}) {
-	// Normalise the hash to string – generated code always passes a string.
-	hash, ok := messageHash.(string)
-	if !ok {
-		return // or panic/log if that should never happen
-	}
-
-	if ch, exists := c.subscriptions[hash]; exists {
-		// non-blocking send; drop if receiver is slow or gone
-		select {
-		case ch <- result:
-		default:
+func (this *WSClient) Close() Future {
+	if this.Connection != nil {
+		if this.Disconnected == nil {
+			this.Disconnected = NewFuture()
 		}
+		this.Connection.Close()
+		this.Connection = nil
 	}
+	return this.Disconnected
 }
