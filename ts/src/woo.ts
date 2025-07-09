@@ -1712,8 +1712,8 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://docs.woox.io/#get-orders
-     * @see https://docs.woox.io/#get-algo-orders
+     * @see https://developer.woox.io/api-reference/endpoint/trading/get_orders
+     * @see https://developer.woox.io/api-reference/endpoint/trading/get_algo_orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1721,7 +1721,6 @@ export default class woo extends Exchange {
      * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @param {boolean} [params.isTriggered] whether the order has been triggered (false by default)
      * @param {string} [params.side] 'buy' or 'sell'
-     * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
      * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -1735,68 +1734,115 @@ export default class woo extends Exchange {
         const request: Dict = {};
         let market: Market = undefined;
         const trigger = this.safeBool2 (params, 'stop', 'trigger');
-        const trailing = this.safeBool (params, 'trailing', false);
-        params = this.omit (params, [ 'stop', 'trailing', 'trigger' ]);
+        params = this.omit (params, [ 'stop', 'trigger' ]);
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
         if (since !== undefined) {
-            if (trigger || trailing) {
-                request['createdTimeStart'] = since;
-            } else {
-                request['start_t'] = since;
-            }
+            request['startTime'] = since;
+        }
+        const until = this.safeInteger (params, 'until'); // unified in milliseconds
+        params = this.omit (params, [ 'until' ]);
+        if (until !== undefined) {
+            request['endTime'] = until;
         }
         if (limit !== undefined) {
-            request['size'] = limit;
-        } else {
-            request['size'] = trailing ? 50 : 500;
-        }
-        if (trigger) {
-            request['algoType'] = 'stop';
-        } else if (trailing) {
-            request['algoType'] = 'TRAILING_STOP';
+            request['size'] = Math.min (limit, 500);
         }
         let response = undefined;
-        if (trigger || trailing) {
-            response = await this.v3PrivateGetAlgoOrders (this.extend (request, params));
+        if (trigger) {
+            response = await this.v3PrivateGetTradeAlgoOrders (this.extend (request, params));
+            //
+            //     {
+            //         "success": true,
+            //         "data": {
+            //             "rows": [
+            //                 {
+            //                     "algoOrderId": 10399260,
+            //                     "clientAlgoOrderId": 0,
+            //                     "rootAlgoOrderId": 10399260,
+            //                     "parentAlgoOrderId": 0,
+            //                     "symbol": "SPOT_LTC_USDT",
+            //                     "algoOrderTag": "default",
+            //                     "algoType": "TAKE_PROFIT",
+            //                     "side": "BUY",
+            //                     "quantity": 0.1,
+            //                     "isTriggered": false,
+            //                     "triggerPrice": 65,
+            //                     "triggerStatus": "USELESS",
+            //                     "type": "LIMIT",
+            //                     "rootAlgoStatus": "NEW",
+            //                     "algoStatus": "NEW",
+            //                     "triggerPriceType": "MARKET_PRICE",
+            //                     "price": 60,
+            //                     "triggerTime": "0",
+            //                     "totalExecutedQuantity": 0,
+            //                     "visibleQuantity": 0.1,
+            //                     "averageExecutedPrice": 0,
+            //                     "totalFee": 0,
+            //                     "feeAsset": "",
+            //                     "totalRebate": 0,
+            //                     "rebateAsset": "",
+            //                     "reduceOnly": false,
+            //                     "createdTime": "1752049747.730",
+            //                     "updatedTime": "1752049747.730",
+            //                     "positionSide": "BOTH"
+            //                 }
+            //             ],
+            //             "meta": {
+            //                 "total": 7,
+            //                 "recordsPerPage": 1,
+            //                 "currentPage": 1
+            //             }
+            //         },
+            //         "timestamp": 1752053127448
+            //     }
+            //
         } else {
-            response = await this.v1PrivateGetOrders (this.extend (request, params));
+            response = await this.v3PrivateGetTradeOrders (this.extend (request, params));
+            //
+            //     {
+            //         "success": true,
+            //         "data": {
+            //             "rows": [
+            //                 {
+            //                     "orderId": 60780315704,
+            //                     "clientOrderId": 0,
+            //                     "symbol": "SPOT_LTC_USDT",
+            //                     "orderTag": "default",
+            //                     "side": "BUY",
+            //                     "quantity": 0.1,
+            //                     "amount": null,
+            //                     "type": "LIMIT",
+            //                     "status": "NEW",
+            //                     "price": 60,
+            //                     "executed": 0,
+            //                     "visible": 0.1,
+            //                     "averageExecutedPrice": 0,
+            //                     "totalFee": 0,
+            //                     "feeAsset": "LTC",
+            //                     "totalRebate": 0,
+            //                     "rebateAsset": "USDT",
+            //                     "reduceOnly": false,
+            //                     "createdTime": "1752049062.496",
+            //                     "realizedPnl": null,
+            //                     "positionSide": "BOTH",
+            //                     "bidAskLevel": null
+            //                 }
+            //             ],
+            //             "meta": {
+            //                 "total": 11,
+            //                 "recordsPerPage": 1,
+            //                 "currentPage": 1
+            //             }
+            //         },
+            //         "timestamp": 1752053061236
+            //     }
+            //
         }
-        //
-        //     {
-        //         "success":true,
-        //         "meta":{
-        //             "total":1,
-        //             "records_per_page":100,
-        //             "current_page":1
-        //         },
-        //         "rows":[
-        //             {
-        //                 "symbol":"PERP_BTC_USDT",
-        //                 "status":"FILLED",
-        //                 "side":"SELL",
-        //                 "created_time":"1611617776.000",
-        //                 "updated_time":"1611617776.000",
-        //                 "order_id":52121167,
-        //                 "order_tag":"default",
-        //                 "price":null,
-        //                 "type":"MARKET",
-        //                 "quantity":0.002,
-        //                 "amount":null,
-        //                 "visible":0,
-        //                 "executed":0.002,
-        //                 "total_fee":0.01732885,
-        //                 "fee_asset":"USDT",
-        //                 "client_order_id":null,
-        //                 "average_executed_price":28881.41
-        //             }
-        //         ]
-        //     }
-        //
-        const data = this.safeValue (response, 'data', response);
-        const orders = this.safeList (data, 'rows');
+        const data = this.safeValue (response, 'data', {});
+        const orders = this.safeList (data, 'rows', []);
         return this.parseOrders (orders, market, since, limit);
     }
 

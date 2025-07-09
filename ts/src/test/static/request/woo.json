@@ -209,31 +209,28 @@
         ],
         "fetchOrders": [
             {
-                "description": "Spot orders",
+                "description": "fetchOrders",
                 "method": "fetchOrders",
-                "url": "https://api.woox.io/v1/orders?symbol=SPOT_LTC_USDT&size=500",
+                "url": "https://api.woox.io/v3/trade/orders?symbol=SPOT_LTC_USDT&size=1&startTime=1752049747730&endTime=1752149747730",
                 "input": [
-                    "LTC/USDT"
-                ]
-            },
-            {
-                "description": "Swap orders",
-                "method": "fetchOrders",
-                "url": "https://api.woox.io/v1/orders?symbol=PERP_LTC_USDT&size=500",
-                "input": [
-                    "LTC/USDT:USDT"
-                ]
-            },
-            {
-                "description": "Swap trailing orders",
-                "method": "fetchOrders",
-                "url": "https://api.staging.woox.io/v3/algo/orders?algoType=TRAILING_STOP&symbol=PERP_BTC_USDT&size=50",
-                "input": [
-                    "BTC/USDT:USDT",
-                    null,
-                    null,
+                    "LTC/USDT",
+                    1752049747730,
+                    1,
                     {
-                        "trailing": true
+                        "until": 1752149747730
+                    }
+                ]
+            },
+            {
+                "description": "fetchOrders - algo",
+                "method": "fetchOrders",
+                "url": "https://api.woox.io/v3/trade/algoOrders?symbol=SPOT_LTC_USDT&size=1&startTime=1752049747730",
+                "input": [
+                    "LTC/USDT",
+                    1752049747730,
+                    1,
+                    {
+                        "stop": true
                     }
                 ]
             }
