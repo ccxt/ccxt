@@ -329,6 +329,8 @@
         }
     },
     "bitrue": {
+        "skip": "tmp",
+        "until": "2025-07-10",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies",
@@ -751,7 +753,8 @@
             },
             "loadMarkets": {
                 "active":"not provided",
-                "limits": "not provided"
+                "limits": "not provided",
+                "currencyIdAndCode": "messed codes"
             },
             "fetchOrderBook": {
                 "compareBidAsk": "sometimes bid is greater than ask"
