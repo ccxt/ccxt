@@ -2633,7 +2633,7 @@ public partial class kucoin : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
-        object trigger = this.safeBool(parameters, "stop", false);
+        object trigger = this.safeBool2(parameters, "trigger", "stop", false);
         object hf = null;
         var hfparametersVariable = this.handleHfAndParams(parameters);
         hf = ((IList<object>)hfparametersVariable)[0];
