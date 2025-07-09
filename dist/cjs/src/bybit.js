@@ -1156,6 +1156,7 @@ class bybit extends bybit$1 {
                     '4h': '4h',
                     '1d': '1d',
                 },
+                'useMarkPriceForPositionCollateral': false, // use mark price for position collateral
             },
             'features': {
                 'default': {
@@ -6554,12 +6555,14 @@ class bybit extends bybit$1 {
         }
         let collateralString = this.safeString(position, 'positionBalance');
         const entryPrice = this.omitZero(this.safeStringN(position, ['entryPrice', 'avgPrice', 'avgEntryPrice']));
+        const markPrice = this.safeString(position, 'markPrice');
         const liquidationPrice = this.omitZero(this.safeString(position, 'liqPrice'));
         const leverage = this.safeString(position, 'leverage');
         if (liquidationPrice !== undefined) {
             if (market['settle'] === 'USDC') {
                 //  (Entry price - Liq price) * Contracts + Maintenance Margin + (unrealised pnl) = Collateral
-                const difference = Precise["default"].stringAbs(Precise["default"].stringSub(entryPrice, liquidationPrice));
+                const price = this.safeBool(this.options, 'useMarkPriceForPositionCollateral', false) ? markPrice : entryPrice;
+                const difference = Precise["default"].stringAbs(Precise["default"].stringSub(price, liquidationPrice));
                 collateralString = Precise["default"].stringAdd(Precise["default"].stringAdd(Precise["default"].stringMul(difference, size), maintenanceMarginString), unrealisedPnl);
             }
             else {
@@ -6615,7 +6618,7 @@ class bybit extends bybit$1 {
             'contractSize': this.safeNumber(market, 'contractSize'),
             'marginRatio': this.parseNumber(marginRatio),
             'liquidationPrice': this.parseNumber(liquidationPrice),
-            'markPrice': this.safeNumber(position, 'markPrice'),
+            'markPrice': this.parseNumber(markPrice),
             'lastPrice': this.safeNumber(position, 'avgExitPrice'),
             'collateral': this.parseNumber(collateralString),
             'marginMode': marginMode,
