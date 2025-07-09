@@ -6,7 +6,7 @@ import { AuthenticationError, RateLimitExceeded, BadRequest, OperationFailed, Ex
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Balances, Conversion, Currency, FundingRateHistory, Int, Market, MarginModification, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Dict, Bool, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees, int, FundingHistory, LedgerEntry, FundingRate, FundingRates, DepositAddress, Position, TradingFeeInterface, List } from './base/types.js';
+import type { TransferEntry, Balances, Conversion, Currency, FundingRateHistory, Int, Market, MarginModification, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Dict, Bool, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees, int, FundingHistory, LedgerEntry, FundingRate, FundingRates, DepositAddress, Position, TradingFeeInterface } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -823,7 +823,7 @@ export default class woo extends Exchange {
         }, market);
     }
 
-    parseTokenAndFeeTemp (item: Dict, feeTokenKeys: List, feeAmountKeys: List) {
+    parseTokenAndFeeTemp (item, feeTokenKeys, feeAmountKeys) {
         const feeCost = this.safeStringN (item, feeAmountKeys);
         let fee = undefined;
         if (feeCost !== undefined) {
@@ -2296,47 +2296,105 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchAccounts
      * @description fetch all the accounts associated with a profile
-     * @see https://docs.woox.io/#get-assets-of-subaccounts
+     * @see https://developer.woox.io/api-reference/endpoint/account/get_account_info
+     * @see https://developer.woox.io/api-reference/endpoint/account/sub_accounts
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
      */
     async fetchAccounts (params = {}): Promise<Account[]> {
-        const response = await this.v1PrivateGetSubAccountAssets (params);
+        const mainAccountPromise = this.v3PrivateGetAccountInfo (params);
         //
         //     {
-        //         "rows": [{
-        //                 "application_id": "13e4fc34-e2ff-4cb7-b1e4-4c22fee7d365",
-        //                 "account": "Main",
-        //                 "usdt_balance": "4.0"
-        //             },
-        //             {
-        //                 "application_id": "432952aa-a401-4e26-aff6-972920aebba3",
-        //                 "account": "subaccount",
-        //                 "usdt_balance": "1.0"
-        //             }
-        //         ],
-        //         "success": true
+        //         "success": true,
+        //         "data": {
+        //             "applicationId": "251bf5c4-f3c8-4544-bb8b-80001007c3c0",
+        //             "account": "carlos_jose_lima@yahoo.com",
+        //             "alias": "carlos_jose_lima@yahoo.com",
+        //             "otpauth": true,
+        //             "accountMode": "FUTURES",
+        //             "positionMode": "ONE_WAY",
+        //             "leverage": 0,
+        //             "marginRatio": "10",
+        //             "openMarginRatio": "10",
+        //             "initialMarginRatio": "10",
+        //             "maintenanceMarginRatio": "0.03",
+        //             "totalCollateral": "165.55629469",
+        //             "freeCollateral": "165.55629469",
+        //             "totalAccountValue": "167.32418611",
+        //             "totalTradingValue": "167.32418611",
+        //             "totalVaultValue": "0",
+        //             "totalStakingValue": "0",
+        //             "totalLaunchpadValue": "0",
+        //             "totalEarnValue": "0",
+        //             "referrerID": null,
+        //             "accountType": "Main"
+        //         },
+        //         "timestamp": 1752062807915
         //     }
         //
-        const rows = this.safeList (response, 'rows', []);
+        const subAccountPromise = this.v3PrivateGetAccountSubAccountsAll (params);
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "rows": [
+        //                 {
+        //                     "applicationId": "6b43de5c-0955-4887-9862-d84e4689f9fe",
+        //                     "name": "sub_account_2",
+        //                     "createdTime": "1606897264.994"
+        //                 },
+        //             ]
+        //         },
+        //         "timestamp": 1721295317627
+        //     }
+        //
+        const [ mainAccountResponse, subAccountResponse ] = await Promise.all ([ mainAccountPromise, subAccountPromise ]);
+        const mainData = this.safeDict (mainAccountResponse, 'data', {});
+        const mainRows = [ mainData ];
+        const subData = this.safeDict (subAccountResponse, 'data', {});
+        const subRows = this.safeList (subData, 'rows', []);
+        const rows = this.arrayConcat (mainRows, subRows);
         return this.parseAccounts (rows, params);
     }
 
     parseAccount (account) {
         //
         //     {
-        //         "application_id": "336952aa-a401-4e26-aff6-972920aebba3",
-        //         "account": "subaccount",
-        //         "usdt_balance": "1.0",
+        //         "applicationId": "251bf5c4-f3c8-4544-bb8b-80001007c3c0",
+        //         "account": "carlos_jose_lima@yahoo.com",
+        //         "alias": "carlos_jose_lima@yahoo.com",
+        //         "otpauth": true,
+        //         "accountMode": "FUTURES",
+        //         "positionMode": "ONE_WAY",
+        //         "leverage": 0,
+        //         "marginRatio": "10",
+        //         "openMarginRatio": "10",
+        //         "initialMarginRatio": "10",
+        //         "maintenanceMarginRatio": "0.03",
+        //         "totalCollateral": "165.55629469",
+        //         "freeCollateral": "165.55629469",
+        //         "totalAccountValue": "167.32418611",
+        //         "totalTradingValue": "167.32418611",
+        //         "totalVaultValue": "0",
+        //         "totalStakingValue": "0",
+        //         "totalLaunchpadValue": "0",
+        //         "totalEarnValue": "0",
+        //         "referrerID": null,
+        //         "accountType": "Main"
         //     }
         //
-        const accountId = this.safeString (account, 'account');
+        //     {
+        //         "applicationId": "6b43de5c-0955-4887-9862-d84e4689f9fe",
+        //         "name": "sub_account_2",
+        //         "createdTime": "1606897264.994"
+        //     }
+        //
         return {
             'info': account,
-            'id': this.safeString (account, 'application_id'),
-            'name': accountId,
+            'id': this.safeString (account, 'applicationId'),
+            'name': this.safeStringN (account, [ 'name', 'account', 'alias' ]),
             'code': undefined,
-            'type': accountId === 'Main' ? 'main' : 'subaccount',
+            'type': this.safeStringLower (account, 'accountType', 'subaccount'),
         };
     }
 

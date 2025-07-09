@@ -672,14 +672,6 @@
                 ]
             }
         ],
-        "fetchAccounts": [
-            {
-                "description": "fetchAccounts",
-                "method": "fetchAccounts",
-                "url": "https://api.woox.io/v1/sub_account/assets",
-                "input": []
-            }
-        ],
         "transfer": [
             {
                 "description": "transfer",
