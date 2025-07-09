@@ -1605,8 +1605,8 @@ export default class woo extends Exchange {
     /**
      * @method
      * @name woo#fetchOrder
-     * @see https://docs.woox.io/#get-algo-order
-     * @see https://docs.woox.io/#get-order
+     * @see https://developer.woox.io/api-reference/endpoint/trading/get_order
+     * @see https://developer.woox.io/api-reference/endpoint/trading/get_algo_order
      * @description fetches information on an order made by the user
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
@@ -1623,52 +1623,89 @@ export default class woo extends Exchange {
         const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
         let response = undefined;
         if (trigger) {
-            request['oid'] = id;
-            response = await this.v3PrivateGetAlgoOrderOid (this.extend (request, params));
-        } else if (clientOrderId) {
-            request['client_order_id'] = clientOrderId;
-            response = await this.v1PrivateGetClientOrderClientOrderId (this.extend (request, params));
+            if (clientOrderId !== undefined) {
+                request['clientAlgoOrderId'] = id;
+            } else {
+                request['algoOrderId'] = id;
+            }
+            response = await this.v3PrivateGetTradeAlgoOrder (this.extend (request, params));
+            //
+            //     {
+            //         "success": true,
+            //         "data": {
+            //             "algoOrderId": 10399260,
+            //             "clientAlgoOrderId": 0,
+            //             "rootAlgoOrderId": 10399260,
+            //             "parentAlgoOrderId": 0,
+            //             "symbol": "SPOT_LTC_USDT",
+            //             "algoOrderTag": "default",
+            //             "algoType": "TAKE_PROFIT",
+            //             "side": "BUY",
+            //             "quantity": 0.1,
+            //             "isTriggered": false,
+            //             "triggerPrice": 65,
+            //             "triggerStatus": "USELESS",
+            //             "type": "LIMIT",
+            //             "rootAlgoStatus": "NEW",
+            //             "algoStatus": "NEW",
+            //             "triggerPriceType": "MARKET_PRICE",
+            //             "price": 60,
+            //             "triggerTime": "0",
+            //             "totalExecutedQuantity": 0,
+            //             "visibleQuantity": 0.1,
+            //             "averageExecutedPrice": 0,
+            //             "totalFee": 0,
+            //             "feeAsset": "",
+            //             "totalRebate": 0,
+            //             "rebateAsset": "",
+            //             "reduceOnly": false,
+            //             "createdTime": "1752049747.732",
+            //             "updatedTime": "1752049747.732",
+            //             "positionSide": "BOTH"
+            //         },
+            //         "timestamp": 1752049767550
+            //     }
+            //
         } else {
-            request['oid'] = id;
-            response = await this.v1PrivateGetOrderOid (this.extend (request, params));
+            if (clientOrderId !== undefined) {
+                request['clientOrderId'] = clientOrderId;
+            } else {
+                request['orderId'] = id;
+            }
+            response = await this.v3PrivateGetTradeOrder (this.extend (request, params));
+            //
+            //     {
+            //         "success": true,
+            //         "data": {
+            //             "orderId": 60780315704,
+            //             "clientOrderId": 0,
+            //             "symbol": "SPOT_LTC_USDT",
+            //             "orderTag": "default",
+            //             "side": "BUY",
+            //             "quantity": 0.1,
+            //             "amount": null,
+            //             "type": "LIMIT",
+            //             "status": "NEW",
+            //             "price": 60,
+            //             "executed": 0,
+            //             "visible": 0.1,
+            //             "averageExecutedPrice": 0,
+            //             "totalFee": 0,
+            //             "feeAsset": "LTC",
+            //             "totalRebate": 0,
+            //             "rebateAsset": "USDT",
+            //             "reduceOnly": false,
+            //             "createdTime": "1752049062.496",
+            //             "realizedPnl": null,
+            //             "positionSide": "BOTH",
+            //             "bidAskLevel": null
+            //         },
+            //         "timestamp": 1752049393466
+            //     }
+            //
         }
-        //
-        // {
-        //     "success": true,
-        //     "symbol": "SPOT_WOO_USDT",
-        //     "status": "FILLED", // FILLED, NEW
-        //     "side": "BUY",
-        //     "created_time": "1641480933.000",
-        //     "order_id": "87541111",
-        //     "order_tag": "default",
-        //     "price": "1",
-        //     "type": "LIMIT",
-        //     "quantity": "12",
-        //     "amount": null,
-        //     "visible": "12",
-        //     "executed": "12", // or any partial amount
-        //     "total_fee": "0.0024",
-        //     "fee_asset": "WOO",
-        //     "client_order_id": null,
-        //     "average_executed_price": "1",
-        //     "Transactions": [
-        //       {
-        //         "id": "99111647",
-        //         "symbol": "SPOT_WOO_USDT",
-        //         "fee": "0.0024",
-        //         "side": "BUY",
-        //         "executed_timestamp": "1641482113.084",
-        //         "order_id": "87541111",
-        //         "executed_price": "1",
-        //         "executed_quantity": "12",
-        //         "fee_asset": "WOO",
-        //         "is_maker": "1"
-        //       }
-        //     ]
-        // }
-        //
-        const orders = this.safeDict (response, 'data', response);
-        return this.parseOrder (orders, market);
+        const data = this.safeDict (response, 'data', {});
+        return this.parseOrder (data, market);
     }
 
     /**
@@ -1820,86 +1857,108 @@ export default class woo extends Exchange {
 
     parseOrder (order: Dict, market: Market = undefined): Order {
         //
-        // Possible input functions:
-        // * createOrder
-        // * cancelOrder
-        // * fetchOrder
-        // * fetchOrders
-        // const isFromFetchOrder = ('order_tag' in order); TO_DO
+        // createOrder
+        //     {
+        //         "orderId": 60667653330,
+        //         "clientOrderId": 0,
+        //         "type": "LIMIT",
+        //         "price": 60,
+        //         "quantity": 0.1,
+        //         "amount": null,
+        //         "bidAskLevel": null,
+        //         "timestamp": 1751871779855
+        //     }
         //
-        // stop order after creating it:
-        //   {
-        //     "orderId": "1578938",
-        //     "clientOrderId": "0",
-        //     "algoType": "STOP_LOSS",
-        //     "quantity": "0.1"
-        //   }
-        // stop order after fetching it:
-        //   {
-        //       "algoOrderId": "1578958",
-        //       "clientOrderId": "0",
-        //       "rootAlgoOrderId": "1578958",
-        //       "parentAlgoOrderId": "0",
-        //       "symbol": "SPOT_LTC_USDT",
-        //       "orderTag": "default",
-        //       "algoType": "STOP_LOSS",
-        //       "side": "BUY",
-        //       "quantity": "0.1",
-        //       "isTriggered": false,
-        //       "triggerPrice": "100",
-        //       "triggerStatus": "USELESS",
-        //       "type": "LIMIT",
-        //       "rootAlgoStatus": "CANCELLED",
-        //       "algoStatus": "CANCELLED",
-        //       "triggerPriceType": "MARKET_PRICE",
-        //       "price": "75",
-        //       "triggerTime": "0",
-        //       "totalExecutedQuantity": "0",
-        //       "averageExecutedPrice": "0",
-        //       "totalFee": "0",
-        //       "feeAsset": '',
-        //       "reduceOnly": false,
-        //       "createdTime": "1686149609.744",
-        //       "updatedTime": "1686149903.362"
-        //   }
+        // createOrder - algo
+        //     {
+        //         "orderId": "1578938",
+        //         "clientOrderId": "0",
+        //         "algoType": "STOP_LOSS",
+        //         "quantity": "0.1",
+        //         "timestamp": "1686149372216"
+        //     }
         //
-        let timestamp = this.safeTimestampN (order, [ 'created_time', 'createdTime' ]);
+        // fetchOrder
+        //     {
+        //         "orderId": 60780315704,
+        //         "clientOrderId": 0,
+        //         "symbol": "SPOT_LTC_USDT",
+        //         "orderTag": "default",
+        //         "side": "BUY",
+        //         "quantity": 0.1,
+        //         "amount": null,
+        //         "type": "LIMIT",
+        //         "status": "NEW",
+        //         "price": 60,
+        //         "executed": 0,
+        //         "visible": 0.1,
+        //         "averageExecutedPrice": 0,
+        //         "totalFee": 0,
+        //         "feeAsset": "LTC",
+        //         "totalRebate": 0,
+        //         "rebateAsset": "USDT",
+        //         "reduceOnly": false,
+        //         "createdTime": "1752049062.496",
+        //         "realizedPnl": null,
+        //         "positionSide": "BOTH",
+        //         "bidAskLevel": null
+        //     }
+        //
+        // fetchOrder - algo
+        //     {
+        //         "algoOrderId": 10399260,
+        //         "clientAlgoOrderId": 0,
+        //         "rootAlgoOrderId": 10399260,
+        //         "parentAlgoOrderId": 0,
+        //         "symbol": "SPOT_LTC_USDT",
+        //         "algoOrderTag": "default",
+        //         "algoType": "TAKE_PROFIT",
+        //         "side": "BUY",
+        //         "quantity": 0.1,
+        //         "isTriggered": false,
+        //         "triggerPrice": 65,
+        //         "triggerStatus": "USELESS",
+        //         "type": "LIMIT",
+        //         "rootAlgoStatus": "NEW",
+        //         "algoStatus": "NEW",
+        //         "triggerPriceType": "MARKET_PRICE",
+        //         "price": 60,
+        //         "triggerTime": "0",
+        //         "totalExecutedQuantity": 0,
+        //         "visibleQuantity": 0.1,
+        //         "averageExecutedPrice": 0,
+        //         "totalFee": 0,
+        //         "feeAsset": "",
+        //         "totalRebate": 0,
+        //         "rebateAsset": "",
+        //         "reduceOnly": false,
+        //         "createdTime": "1752049747.732",
+        //         "updatedTime": "1752049747.732",
+        //         "positionSide": "BOTH"
+        //     }
+        //
+        let timestamp = this.safeTimestamp (order, 'createdTime');
         if (timestamp === undefined) {
             timestamp = this.safeInteger (order, 'timestamp');
         }
-        const orderId = this.safeStringN (order, [ 'order_id', 'orderId', 'algoOrderId' ]);
-        const clientOrderId = this.omitZero (this.safeStringN (order, [ 'client_order_id', 'clientOrderId', 'clientAlgoOrderId' ])); // Somehow, this always returns 0 for limit order
+        const orderId = this.safeString2 (order, 'orderId', 'algoOrderId');
+        const clientOrderId = this.omitZero (this.safeString2 (order, 'clientOrderId', 'clientAlgoOrderId')); // Somehow, this always returns 0 for limit order
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const price = this.safeString2 (order, 'order_price', 'price');
-        const amount = this.safeString2 (order, 'order_quantity', 'quantity'); // This is base amount
-        const cost = this.safeString2 (order, 'order_amount', 'amount'); // This is quote amount
-        const orderType = this.safeStringLower2 (order, 'order_type', 'type');
+        const price = this.safeString (order, 'price');
+        const amount = this.safeString (order, 'quantity'); // This is base amount
+        const cost = this.safeString (order, 'amount'); // This is quote amount
+        const orderType = this.safeStringLower (order, 'type');
         const status = this.safeValue2 (order, 'status', 'algoStatus');
         const side = this.safeStringLower (order, 'side');
         const filled = this.omitZero (this.safeValue2 (order, 'executed', 'totalExecutedQuantity'));
-        const average = this.omitZero (this.safeString2 (order, 'average_executed_price', 'averageExecutedPrice'));
+        const average = this.omitZero (this.safeString (order, 'averageExecutedPrice'));
         // const remaining = Precise.stringSub (cost, filled);
-        const fee = this.safeNumber2 (order, 'total_fee', 'totalFee');
-        const feeCurrency = this.safeString2 (order, 'fee_asset', 'feeAsset');
-        const transactions = this.safeValue (order, 'Transactions');
+        const fee = this.safeNumber (order, 'totalFee');
+        const feeCurrency = this.safeString (order, 'feeAsset');
         const triggerPrice = this.safeNumber (order, 'triggerPrice');
-        let takeProfitPrice: Num = undefined;
-        let stopLossPrice: Num = undefined;
-        const childOrders = this.safeValue (order, 'childOrders');
-        if (childOrders !== undefined) {
-            const first = this.safeValue (childOrders, 0);
-            const innerChildOrders = this.safeValue (first, 'childOrders', []);
-            const innerChildOrdersLength = innerChildOrders.length;
-            if (innerChildOrdersLength > 0) {
-                const takeProfitOrder = this.safeValue (innerChildOrders, 0);
-                const stopLossOrder = this.safeValue (innerChildOrders, 1);
-                takeProfitPrice = this.safeNumber (takeProfitOrder, 'triggerPrice');
-                stopLossPrice = this.safeNumber (stopLossOrder, 'triggerPrice');
-            }
-        }
-        const lastUpdateTimestamp = this.safeTimestamp2 (order, 'updatedTime', 'updated_time');
+        const lastUpdateTimestamp = this.safeTimestamp (order, 'updatedTime');
         return this.safeOrder ({
             'id': orderId,
             'clientOrderId': clientOrderId,
@@ -1912,18 +1971,18 @@ export default class woo extends Exchange {
             'type': orderType,
             'timeInForce': this.parseTimeInForce (orderType),
             'postOnly': undefined, // TO_DO
-            'reduceOnly': this.safeBool2 (order, 'reduce_only', 'reduceOnly'),
+            'reduceOnly': this.safeBool (order, 'reduceOnly'),
             'side': side,
             'price': price,
             'triggerPrice': triggerPrice,
-            'takeProfitPrice': takeProfitPrice,
-            'stopLossPrice': stopLossPrice,
+            'takeProfitPrice': undefined,
+            'stopLossPrice': undefined,
             'average': average,
             'amount': amount,
             'filled': filled,
             'remaining': undefined, // TO_DO
             'cost': cost,
-            'trades': transactions,
+            'trades': undefined,
             'fee': {
                 'cost': fee,
                 'currency': feeCurrency,

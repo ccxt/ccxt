@@ -856,6 +856,28 @@
                     "BTC/USDT:USDT"
                 ]
             }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetchOrder",
+                "method": "fetchOrder",
+                "url": "https://api.woox.io/v3/trade/order?orderId=60780315704",
+                "input": [
+                    "60780315704"
+                ]
+            },
+            {
+                "description": "fetchOrder - algo",
+                "method": "fetchOrder",
+                "url": "https://api.woox.io/v3/trade/algoOrder?algoOrderId=10399260",
+                "input": [
+                    "10399260",
+                    null,
+                    {
+                        "stop": true
+                    }
+                ]
+            }
         ]
     }
 }
