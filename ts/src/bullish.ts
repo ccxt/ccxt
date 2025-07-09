@@ -395,18 +395,17 @@ export default class bullish extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const currency = response[i];
             const id = this.safeString (currency, 'symbol');
-            const code = this.safeString (currency, 'symbol');
+            const code = this.safeCurrencyCode (id);
             const name = this.safeString (currency, 'name');
             const precision = this.safeString (currency, 'precision');
-            const minFee = Precise.stringMax (this.safeString (currency, 'minFee'), '0.00000');
             result[code] = {
                 'id': id,
                 'code': code,
                 'name': name,
-                'active': true,
+                'active': undefined,
                 'deposit': undefined,
                 'withdraw': undefined,
-                'fee': minFee,
+                'fee': this.safeNumber (currency, 'minFee'),
                 'precision': this.parseNumber (this.parsePrecision (precision)),
                 'limits': {
                     'amount': { 'min': undefined, 'max': undefined },
@@ -623,11 +622,13 @@ export default class bullish extends Exchange {
         let spot: Bool = false;
         let swap: Bool = false;
         let future: Bool = false;
+        let contract: Bool = true;
         let linear: Bool = undefined;
         let inverse: Bool = undefined;
         let expiryDatetime: Str = undefined;
         if (type === 'spot') {
             spot = true;
+            contract = false;
         } else if (type === 'swap') {
             swap = true;
             linear = true;
@@ -660,12 +661,12 @@ export default class bullish extends Exchange {
             'swap': swap,
             'future': future,
             'option': false,
-            'contract': false,
+            'contract': contract,
             'linear': linear,
             'inverse': inverse,
             'taker': this.fees['trading']['taker'],
             'maker': this.fees['trading']['maker'],
-            'contractSize': undefined,
+            'contractSize': this.safeNumber (market, 'contractMultiplier'),
             'expiry': this.parse8601 (expiryDatetime),
             'expiryDatetime': expiryDatetime,
             'strike': undefined,
@@ -2063,21 +2064,21 @@ export default class bullish extends Exchange {
         //
         //     [
         //         {
-        //         "tradingAccountId": "111000000000001",
-        //         "symbol": "BTC-USDC-PERP",
-        //         "side": "BUY",
-        //         "quantity": "1.00000000",
-        //         "notional": "1.0000",
-        //         "entryNotional": "1.0000",
-        //         "mtmPnl": "1.0000",
-        //         "reportedMtmPnl": "1.0000",
-        //         "reportedFundingPnl": "1.0000",
-        //         "realizedPnl": "1.0000",
-        //         "settlementAssetSymbol": "USDC",
-        //         "createdAtDatetime": "2021-05-20T01:01:01.000Z",
-        //         "createdAtTimestamp": "1621490985000",
-        //         "updatedAtDatetime": "2021-05-20T01:01:01.000Z",
-        //         "updatedAtTimestamp": "1621490985000"
+        //             "tradingAccountId": "111000000000001",
+        //             "symbol": "BTC-USDC-PERP",
+        //             "side": "BUY",
+        //             "quantity": "1.00000000",
+        //             "notional": "1.0000",
+        //             "entryNotional": "1.0000",
+        //             "mtmPnl": "1.0000",
+        //             "reportedMtmPnl": "1.0000",
+        //             "reportedFundingPnl": "1.0000",
+        //             "realizedPnl": "1.0000",
+        //             "settlementAssetSymbol": "USDC",
+        //             "createdAtDatetime": "2021-05-20T01:01:01.000Z",
+        //             "createdAtTimestamp": "1621490985000",
+        //             "updatedAtDatetime": "2021-05-20T01:01:01.000Z",
+        //             "updatedAtTimestamp": "1621490985000"
         //         }
         //     ]
         //
