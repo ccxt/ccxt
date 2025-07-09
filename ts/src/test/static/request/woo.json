@@ -237,23 +237,13 @@
         ],
         "fetchMyTrades": [
             {
-                "description": "Spot private trades",
+                "description": "fetchMyTrades",
                 "method": "fetchMyTrades",
-                "url": "https://api.woox.io/v1/client/trades?start_t=1699457638000&symbol=SPOT_LTC_USDT&size=5",
+                "url": "https://api.woox.io/v3/trade/transactionHistory?symbol=SPOT_LTC_USDT&startTime=1699457638000&limit=1",
                 "input": [
                     "LTC/USDT",
                     1699457638000,
-                    5
-                ]
-            },
-            {
-                "description": "Swap private trades",
-                "method": "fetchMyTrades",
-                "url": "https://api.woox.io/v1/client/trades?start_t=1699457638000&symbol=PERP_LTC_USDT&size=5",
-                "input": [
-                    "LTC/USDT:USDT",
-                    1699457638000,
-                    5
+                    1
                 ]
             }
         ],

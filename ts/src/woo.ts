@@ -6,7 +6,7 @@ import { AuthenticationError, RateLimitExceeded, BadRequest, OperationFailed, Ex
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Balances, Conversion, Currency, FundingRateHistory, Int, Market, MarginModification, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Dict, Bool, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees, int, FundingHistory, LedgerEntry, FundingRate, FundingRates, DepositAddress, Position, TradingFeeInterface } from './base/types.js';
+import type { TransferEntry, Balances, Conversion, Currency, FundingRateHistory, Int, Market, MarginModification, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Dict, Bool, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees, int, FundingHistory, LedgerEntry, FundingRate, FundingRates, DepositAddress, Position, TradingFeeInterface, List } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -763,31 +763,37 @@ export default class woo extends Exchange {
         // fetchOrderTrades, fetchOrder
         //
         //     {
-        //         "id": "99119876",
-        //         "symbol": "SPOT_WOO_USDT",
-        //         "fee": "0.0024",
+        //         "id": 1734947821,
+        //         "symbol": "SPOT_LTC_USDT",
+        //         "orderId": 60780383217,
+        //         "executedPrice": 87.86,
+        //         "executedQuantity": 0.1,
+        //         "fee": 0.0001,
+        //         "realizedPnl": null,
+        //         "feeAsset": "LTC",
+        //         "orderTag": "default",
         //         "side": "BUY",
-        //         "executed_timestamp": "1641481113.084",
-        //         "order_id": "87001234",
-        //         "order_tag": "default", <-- this param only in "fetchOrderTrades"
-        //         "executed_price": "1",
-        //         "executed_quantity": "12",
-        //         "fee_asset": "WOO",
-        //         "is_maker": "1"
+        //         "executedTimestamp": "1752055173.630",
+        //         "isMaker": 0
         //     }
         //
         const isFromFetchOrder = ('id' in trade);
-        let timestamp = this.safeTimestamp (trade, 'executed_timestamp');
-        if (timestamp === undefined) {
-            timestamp = this.safeInteger (trade, 'executedTimestamp');
+        const timestampString = this.safeString2 (trade, 'executed_timestamp', 'executedTimestamp');
+        let timestamp = undefined;
+        if (timestampString !== undefined) {
+            if (timestampString.indexOf ('.') > -1) {
+                timestamp = this.safeTimestamp2 (trade, 'executed_timestamp', 'executedTimestamp');
+            } else {
+                timestamp = this.safeInteger (trade, 'executedTimestamp');
+            }
         }
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const price = this.safeString2 (trade, 'executed_price', 'executedPrice');
         const amount = this.safeString2 (trade, 'executed_quantity', 'executedQuantity');
-        const order_id = this.safeString (trade, 'order_id');
-        const fee = this.parseTokenAndFeeTemp (trade, 'fee_asset', 'fee');
+        const order_id = this.safeString2 (trade, 'order_id', 'orderId');
+        const fee = this.parseTokenAndFeeTemp (trade, [ 'fee_asset', 'feeAsset' ], [ 'fee' ]);
         const feeCost = this.safeString (fee, 'cost');
         if (feeCost !== undefined) {
             fee['cost'] = feeCost;
@@ -797,7 +803,7 @@ export default class woo extends Exchange {
         const id = this.safeString (trade, 'id');
         let takerOrMaker: Str = undefined;
         if (isFromFetchOrder) {
-            const isMaker = this.safeString (trade, 'is_maker') === '1';
+            const isMaker = this.safeString2 (trade, 'is_maker', 'isMaker') === '1';
             takerOrMaker = isMaker ? 'maker' : 'taker';
         }
         return this.safeTrade ({
@@ -817,11 +823,11 @@ export default class woo extends Exchange {
         }, market);
     }
 
-    parseTokenAndFeeTemp (item, feeTokenKey, feeAmountKey) {
-        const feeCost = this.safeString (item, feeAmountKey);
+    parseTokenAndFeeTemp (item: Dict, feeTokenKeys: List, feeAmountKeys: List) {
+        const feeCost = this.safeStringN (item, feeAmountKeys);
         let fee = undefined;
         if (feeCost !== undefined) {
-            const feeCurrencyId = this.safeString (item, feeTokenKey);
+            const feeCurrencyId = this.safeStringN (item, feeTokenKeys);
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
                 'cost': feeCost,
@@ -2219,7 +2225,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchMyTrades
      * @description fetch all trades made by the user
-     * @see https://docs.woox.io/#get-trade-history
+     * @see https://developer.woox.io/api-reference/endpoint/trading/get_transactions
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -2234,46 +2240,55 @@ export default class woo extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchMyTrades', symbol, since, limit, params, 'page', 500) as Trade[];
         }
-        let request: Dict = {};
+        const request: Dict = {};
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
         if (since !== undefined) {
-            request['start_t'] = since;
+            request['startTime'] = since;
         }
-        [ request, params ] = this.handleUntilOption ('end_t', request, params);
+        const until = this.safeInteger (params, 'until'); // unified in milliseconds
+        params = this.omit (params, [ 'until' ]);
+        if (until !== undefined) {
+            request['endTime'] = until;
+        }
         if (limit !== undefined) {
-            request['size'] = limit;
-        } else {
-            request['size'] = 500;
+            request['limit'] = limit;
         }
-        const response = await this.v1PrivateGetClientTrades (this.extend (request, params));
-        // {
-        //     "success": true,
-        //     "meta": {
-        //         "records_per_page": 25,
-        //         "current_page": 1
-        //     },
-        //     "rows": [
-        //         {
-        //             "id": 5,
-        //             "symbol": "SPOT_BTC_USDT",
-        //             "order_id": 211,
-        //             "order_tag": "default",
-        //             "executed_price": 10892.84,
-        //             "executed_quantity": 0.002,
-        //             "is_maker": 0,
-        //             "side": "SELL",
-        //             "fee": 0,
-        //             "fee_asset": "USDT",
-        //             "executed_timestamp": "1566264290.250"
+        const response = await this.v3PrivateGetTradeTransactionHistory (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "rows": [
+        //                 {
+        //                     "id": 1734947821,
+        //                     "symbol": "SPOT_LTC_USDT",
+        //                     "orderId": 60780383217,
+        //                     "executedPrice": 87.86,
+        //                     "executedQuantity": 0.1,
+        //                     "fee": 0.0001,
+        //                     "realizedPnl": null,
+        //                     "feeAsset": "LTC",
+        //                     "orderTag": "default",
+        //                     "side": "BUY",
+        //                     "executedTimestamp": "1752055173.630",
+        //                     "isMaker": 0
+        //                 }
+        //             ],
+        //             "meta": {
+        //                 "total": 1,
+        //                 "recordsPerPage": 100,
+        //                 "currentPage": 1
+        //             }
         //         },
-        //         ...
-        //     ]
-        // }
-        const trades = this.safeList (response, 'rows', []);
+        //         "timestamp": 1752055545121
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const trades = this.safeList (data, 'rows', []);
         return this.parseTrades (trades, market, since, limit, params);
     }
 
@@ -2515,7 +2530,7 @@ export default class woo extends Exchange {
         const side = this.safeString (item, 'token_side');
         const direction = (side === 'DEPOSIT') ? 'in' : 'out';
         const timestamp = this.safeTimestamp (item, 'created_time');
-        const fee = this.parseTokenAndFeeTemp (item, 'fee_token', 'fee_amount');
+        const fee = this.parseTokenAndFeeTemp (item, [ 'fee_token' ], [ 'fee_amount' ]);
         return this.safeLedgerEntry ({
             'info': item,
             'id': this.safeString (item, 'id'),
@@ -2636,7 +2651,7 @@ export default class woo extends Exchange {
         if (movementDirection === 'withdraw') {
             movementDirection = 'withdrawal';
         }
-        const fee = this.parseTokenAndFeeTemp (transaction, 'fee_token', 'fee_amount');
+        const fee = this.parseTokenAndFeeTemp (transaction, [ 'fee_token' ], [ 'fee_amount' ]);
         const addressTo = this.safeString (transaction, 'target_address');
         const addressFrom = this.safeString (transaction, 'source_address');
         const timestamp = this.safeTimestamp (transaction, 'created_time');
