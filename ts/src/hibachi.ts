@@ -380,7 +380,7 @@ export default class hibachi extends Exchange {
         };
         const prices_response = await this.publicGetMarketDataPrices (this.extend (request));
         const stats_response = await this.publicGetMarketDataStats (this.extend (request));
-        return this.parseTicker (prices_response, stats_response);
+        return this.parseTicker (prices_response, stats_response, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
