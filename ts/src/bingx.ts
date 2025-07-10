@@ -4850,24 +4850,46 @@ export default class bingx extends Exchange {
      * @method
      * @name bingx#transfer
      * @description transfer currency internally between wallets on the same account
-     * @see https://bingx-api.github.io/docs/#/en-us/common/account-api.html#Asset%20Transfer
+     * @see https://bingx-api.github.io/docs/#/en-us/common/account-api.html#Asset%20Transfer%20New
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
      * @param {string} fromAccount account to transfer from (spot, swap, futures, or funding)
-     * @param {string} toAccount account to transfer to (spot, swap, futures, or funding)
+     * @param {string} toAccount account to transfer to (spot, swap (linear or inverse), future, or funding)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
      */
     async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const accountsByType = this.safeDict (this.options, 'accountsByType', {});
-        const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
-        const toId = this.safeString (accountsByType, toAccount, toAccount);
+        const transferAccountsByType = {
+            'funding': 'fund',
+            'spot': 'spot',
+            'swap': 'USDTMPerp',
+            'future': 'stdFutures',
+        };
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('transfer', undefined, params);
+        let fromId = this.safeString (transferAccountsByType, fromAccount, fromAccount);
+        let toId = this.safeString (transferAccountsByType, toAccount, toAccount);
+        if (fromId === 'swap') {
+            if (subType === 'inverse') {
+                fromId = 'coinMPerp';
+            } else {
+                fromId = 'USDTMPerp';
+            }
+        }
+        if (toId === 'swap') {
+            if (subType === 'inverse') {
+                toId = 'coinMPerp';
+            } else {
+                toId = 'USDTMPerp';
+            }
+        }
         const request: Dict = {
+            'fromAccount': fromId,
+            'toAccount': toId,
             'asset': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
-            'type': fromId + '_' + toId,
         };
         const response = await this.spotV3PrivateGetGetAssetTransfer (this.extend (request, params));
         //
@@ -4878,7 +4900,7 @@ export default class bingx extends Exchange {
         //
         return {
             'info': response,
-            'id': this.safeString (response, 'tranId'),
+            'id': this.safeString (response, 'transferId'),
             'timestamp': undefined,
             'datetime': undefined,
             'currency': code,
