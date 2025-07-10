@@ -15,6 +15,7 @@ func BaseTestsInit()  {
     TestNumberToString()
     TestPrecise()
     TestSafeMethods()
+    TestSafeTicker()
     // testJson ();
     TestSortBy()
     TestSum()
