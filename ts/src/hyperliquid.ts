@@ -1455,13 +1455,14 @@ export default class hyperliquid extends Exchange {
             return false; // skip if builder fee is not enabled
         }
         const approvedBuilderFee = this.safeBool (this.options, 'approvedBuilderFee', false);
+        if (approvedBuilderFee) {
+            return true; // skip if builder fee is already approved
+        }
         try {
-            if (!approvedBuilderFee) {
-                const builder = this.safeString (this.options, 'builder', '0x2e3AB3E88a7DBdc763AaDf5b28c18fb085aF420a');
-                const maxFeeRate = this.safeString (this.options, 'feeRate', '0.001%');
-                await this.approveBuilderFee (builder, maxFeeRate);
-                this.options['approvedBuilderFee'] = true;
-            }
+            const builder = this.safeString (this.options, 'builder', '0x2e3AB3E88a7DBdc763AaDf5b28c18fb085aF420a');
+            const maxFeeRate = this.safeString (this.options, 'feeRate', '0.001%');
+            await this.approveBuilderFee (builder, maxFeeRate);
+            this.options['approvedBuilderFee'] = true;
         } catch (e) {
             this.options['builderFee'] = false; // disable builder fee if an error occurs
         }
