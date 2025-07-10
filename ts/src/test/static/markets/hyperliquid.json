@@ -475,5 +475,85 @@
         "tierBased": null,
         "percentage": null,
         "baseName": "PURR"
+    },
+    "KPEPE/USDC:USDC": {
+        "id": "15",
+        "lowercaseId": null,
+        "symbol": "KPEPE/USDC:USDC",
+        "base": "KPEPE",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "15",
+        "quoteId": "USDC",
+        "settleId": "USDC",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.00045,
+        "maker": 0.00015,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1,
+            "price": 0.000001
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": 10
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 10,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "szDecimals": "0",
+            "name": "kPEPE",
+            "maxLeverage": "10",
+            "marginTableId": "52",
+            "funding": "0.0000125",
+            "openInterest": "7615207738.0",
+            "prevDayPx": "0.010272",
+            "dayNtlVlm": "116293439.1419929415",
+            "premium": "0.0004490346",
+            "oraclePx": "0.011135",
+            "markPx": "0.01114",
+            "midPx": "0.011142",
+            "impactPxs": [
+                "0.01114",
+                "0.011144"
+            ],
+            "dayBaseVlm": "10788814936.0",
+            "baseId": 15
+        },
+        "tierBased": null,
+        "percentage": null,
+        "baseName": "kPEPE"
     }
 }
