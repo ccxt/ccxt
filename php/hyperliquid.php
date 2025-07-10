@@ -627,6 +627,7 @@ class hyperliquid extends Exchange {
                 'quote' => $quote,
                 'settle' => null,
                 'baseId' => $baseId,
+                'baseName' => $baseName,
                 'quoteId' => $quoteId,
                 'settleId' => null,
                 'type' => 'spot',
@@ -735,6 +736,7 @@ class hyperliquid extends Exchange {
             'quote' => $quote,
             'settle' => $settle,
             'baseId' => $baseId,
+            'baseName' => $baseName,
             'quoteId' => $quoteId,
             'settleId' => $settleId,
             'type' => 'swap',
@@ -891,7 +893,7 @@ class hyperliquid extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'type' => 'l2Book',
-            'coin' => $market['swap'] ? $market['base'] : $market['id'],
+            'coin' => $market['swap'] ? $market['baseName'] : $market['id'],
         );
         $response = $this->publicPostInfo ($this->extend($request, $params));
         //
@@ -1134,7 +1136,7 @@ class hyperliquid extends Exchange {
         $request = array(
             'type' => 'candleSnapshot',
             'req' => array(
-                'coin' => $market['swap'] ? $market['base'] : $market['id'],
+                'coin' => $market['swap'] ? $market['baseName'] : $market['id'],
                 'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
                 'startTime' => $since,
                 'endTime' => $until,
@@ -2192,7 +2194,7 @@ class hyperliquid extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'type' => 'fundingHistory',
-            'coin' => $market['base'],
+            'coin' => $market['baseName'],
         );
         if ($since !== null) {
             $request['startTime'] = $since;
