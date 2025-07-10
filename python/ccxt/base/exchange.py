@@ -1461,6 +1461,10 @@ class Exchange(object):
         return json.dumps(data, separators=(',', ':'), cls=SafeJSONEncoder)
 
     @staticmethod
+    def orderbook_to_dict(orderbook):
+        return orderbook
+
+    @staticmethod
     def is_json_encoded_object(input):
         return (isinstance(input, str) and
                 (len(input) >= 2) and

@@ -311,6 +311,11 @@ public partial class Exchange
         // return null;
     }
 
+    public ccxt.pro.IOrderBook orderbookToDict(object obj)
+    {
+        return (ccxt.pro.IOrderBook)obj;
+    }
+
     public object ordered(object ob)
     {
         return ob; //stub
