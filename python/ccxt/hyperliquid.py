@@ -1411,8 +1411,8 @@ class hyperliquid(Exchange, ImplicitAPI):
         if approvedBuilderFee:
             return True  # skip if builder fee is already approved
         try:
-            builder = self.safe_string(self.options, 'builder', '0x2e3AB3E88a7DBdc763AaDf5b28c18fb085aF420a')
-            maxFeeRate = self.safe_string(self.options, 'feeRate', '0.001%')
+            builder = self.safe_string(self.options, 'builder', '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6')
+            maxFeeRate = self.safe_string(self.options, 'feeRate', '0.01%')
             self.approve_builder_fee(builder, maxFeeRate)
             self.options['approvedBuilderFee'] = True
         except Exception as e:
@@ -1622,6 +1622,9 @@ class hyperliquid(Exchange, ImplicitAPI):
             'orders': orderReq,
             'grouping': grouping,
         }
+        if self.safe_bool(self.options, 'approvedBuilderFee', False):
+            wallet = self.safe_string_lower(self.options, 'builder', '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6')
+            orderAction['builder'] = {'b': wallet, 'f': self.safe_integer(self.options, 'feeInt', 10)}
         signature = self.sign_l1_action(orderAction, nonce, vaultAddress)
         request: dict = {
             'action': orderAction,
