@@ -1453,8 +1453,8 @@ class hyperliquid extends Exchange {
             return true; // skip if $builder fee is already approved
         }
         try {
-            $builder = $this->safe_string($this->options, 'builder', '0x2e3AB3E88a7DBdc763AaDf5b28c18fb085aF420a');
-            $maxFeeRate = $this->safe_string($this->options, 'feeRate', '0.001%');
+            $builder = $this->safe_string($this->options, 'builder', '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6');
+            $maxFeeRate = $this->safe_string($this->options, 'feeRate', '0.01%');
             $this->approve_builder_fee($builder, $maxFeeRate);
             $this->options['approvedBuilderFee'] = true;
         } catch (Exception $e) {
@@ -1685,6 +1685,10 @@ class hyperliquid extends Exchange {
             'orders' => $orderReq,
             'grouping' => $grouping,
         );
+        if ($this->safe_bool($this->options, 'approvedBuilderFee', false)) {
+            $wallet = $this->safe_string_lower($this->options, 'builder', '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6');
+            $orderAction['builder'] = array( 'b' => $wallet, 'f' => $this->safe_integer($this->options, 'feeInt', 10) );
+        }
         $signature = $this->sign_l1_action($orderAction, $nonce, $vaultAddress);
         $request = array(
             'action' => $orderAction,
