@@ -632,6 +632,7 @@ export default class hyperliquid extends Exchange {
                 'quote': quote,
                 'settle': undefined,
                 'baseId': baseId,
+                'baseName': baseName,
                 'quoteId': quoteId,
                 'settleId': undefined,
                 'type': 'spot',
@@ -740,6 +741,7 @@ export default class hyperliquid extends Exchange {
             'quote': quote,
             'settle': settle,
             'baseId': baseId,
+            'baseName': baseName,
             'quoteId': quoteId,
             'settleId': settleId,
             'type': 'swap',
@@ -896,7 +898,7 @@ export default class hyperliquid extends Exchange {
         const market = this.market (symbol);
         const request: Dict = {
             'type': 'l2Book',
-            'coin': market['swap'] ? market['base'] : market['id'],
+            'coin': market['swap'] ? market['baseName'] : market['id'],
         };
         const response = await this.publicPostInfo (this.extend (request, params));
         //
@@ -1139,7 +1141,7 @@ export default class hyperliquid extends Exchange {
         const request: Dict = {
             'type': 'candleSnapshot',
             'req': {
-                'coin': market['swap'] ? market['base'] : market['id'],
+                'coin': market['swap'] ? market['baseName'] : market['id'],
                 'interval': this.safeString (this.timeframes, timeframe, timeframe),
                 'startTime': since,
                 'endTime': until,
@@ -2132,7 +2134,7 @@ export default class hyperliquid extends Exchange {
         const market = this.market (symbol);
         const request: Dict = {
             'type': 'fundingHistory',
-            'coin': market['base'],
+            'coin': market['baseName'],
         };
         if (since !== undefined) {
             request['startTime'] = since;
