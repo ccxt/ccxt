@@ -7562,7 +7562,7 @@ func  (this *htx) Withdraw(code interface{}, amount interface{}, address interfa
         
                     currencies:= (<-this.FetchCurrencies())
                     PanicOnError(currencies)
-                    this.Currencies = this.DeepExtend(this.Currencies, currencies)
+                    this.Currencies = this.MapToSafeMap(this.DeepExtend(this.Currencies, currencies))
                     var targetNetwork interface{} = this.SafeValue(GetValue(currency, "networks"), networkCode, map[string]interface{} {})
                     fee = this.SafeNumber(targetNetwork, "fee")
                     if IsTrue(IsEqual(fee, nil)) {

@@ -245,6 +245,9 @@ func (this *Exchange) DeepExtend(objs ...interface{}) map[string]interface{} {
 	// Helper function to convert *sync.Map to map[string]interface{}
 	convertSyncMap := func(sm *sync.Map) map[string]interface{} {
 		m := make(map[string]interface{})
+		if sm == nil {
+			return m
+		}
 		sm.Range(func(key, value interface{}) bool {
 			if ks, ok := key.(string); ok {
 				m[ks] = value
@@ -506,6 +509,11 @@ func (this *Exchange) IndexBy(a interface{}, key interface{}) map[string]interfa
 		for _, v := range aMap {
 			targetX = append(targetX, v)
 		}
+	} else if syncMap, ok := a.(*sync.Map); ok {
+		syncMap.Range(func(_, v interface{}) bool {
+			targetX = append(targetX, v)
+			return true
+		})
 	} else {
 		return outDict // Unsupported type
 	}
@@ -518,6 +526,18 @@ func (this *Exchange) IndexBy(a interface{}, key interface{}) map[string]interfa
 			if val, ok := v[ToString(key)]; ok {
 				outDict[ToString(val)] = v
 			}
+		case *sync.Map:
+			// Handle *sync.Map entries
+			v.Range(func(k, val interface{}) bool {
+				if _, ok := k.(string); ok {
+					if valMap, ok := val.(map[string]interface{}); ok {
+						if keyStr, ok := valMap[ToString(key)].(string); ok {
+							outDict[keyStr] = valMap
+						}
+					}
+				}
+				return true
+			})
 		case []interface{}:
 			// Handle slices of []interface{}
 			if idx, ok := key.(int); ok && idx >= 0 && idx < len(v) {

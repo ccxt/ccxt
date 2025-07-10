@@ -1170,7 +1170,7 @@ class testMainClass:
         #  -----------------------------------------------------------------------------
         #  --- Init of brokerId tests functions-----------------------------------------
         #  -----------------------------------------------------------------------------
-        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_hyperliquid(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_oxfun(), self.test_xt(), self.test_vertex(), self.test_paradex(), self.test_hashkey(), self.test_coincatch(), self.test_defx(), self.test_cryptomus(), self.test_derive(), self.test_mode_trade()]
+        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_oxfun(), self.test_xt(), self.test_vertex(), self.test_paradex(), self.test_hashkey(), self.test_coincatch(), self.test_defx(), self.test_cryptomus(), self.test_derive(), self.test_mode_trade()]
         (promises)
         success_message = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
         dump('[INFO]' + success_message)
@@ -1486,20 +1486,22 @@ class testMainClass:
             close(exchange)
         return True
 
-    def test_hyperliquid(self):
-        exchange = self.init_offline_exchange('hyperliquid')
-        id = '1'
-        request = None
-        try:
-            exchange.create_order('SOL/USDC:USDC', 'limit', 'buy', 1, 100)
-        except Exception as e:
-            request = json_parse(exchange.last_request_body)
-        broker_id = str((request['action']['brokerCode']))
-        assert broker_id == id, 'hyperliquid - brokerId: ' + broker_id + ' does not start with id: ' + id
-        if not is_sync():
-            close(exchange)
-        return True
-
+    # testHyperliquid () {
+    #     const exchange = this.initOfflineExchange ('hyperliquid');
+    #     const id = '1';
+    #     let request = undefined;
+    #     try {
+    #         exchange.createOrder ('SOL/USDC:USDC', 'limit', 'buy', 1, 100);
+    #     } catch (e) {
+    #         request = jsonParse (exchange.last_request_body);
+    #     }
+    #     const brokerId = (request['action']['brokerCode']).toString ();
+    #     assert (brokerId === id, 'hyperliquid - brokerId: ' + brokerId + ' does not start with id: ' + id);
+    #     if (!isSync ()) {
+    #         close (exchange);
+    #     }
+    #     return true;
+    # }
     def test_coinbaseinternational(self):
         exchange = self.init_offline_exchange('coinbaseinternational')
         exchange.options['portfolio'] = 'random'

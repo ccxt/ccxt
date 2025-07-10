@@ -3776,6 +3776,18 @@
                   "BTC/USDT:USDT"
                 ]
             }
+        ],
+        "fetchAllGreeks": [
+            {
+                "description": "fetchAllGreeks with a single symbol",
+                "method": "fetchAllGreeks",
+                "url": "https://eapi.binance.com/eapi/v1/mark?symbol=ETH-231229-800-C",
+                "input": [
+                    [
+                        "ETH/USDT:USDT-231229-800-C"
+                    ]
+                ]
+            }
         ]
     }
 }

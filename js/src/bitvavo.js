@@ -656,7 +656,7 @@ export default class bitvavo extends Exchange {
             });
         }
         // set currencies here to avoid calling publicGetAssets twice
-        this.currencies = this.deepExtend(this.currencies, result);
+        this.currencies = this.mapToSafeMap(this.deepExtend(this.currencies, result));
         return result;
     }
     /**
@@ -1228,6 +1228,9 @@ export default class bitvavo extends Exchange {
         if (operatorId !== undefined) {
             request['operatorId'] = this.parseToInt(operatorId);
         }
+        else {
+            throw new ArgumentsRequired(this.id + ' createOrder() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890');
+        }
         return this.extend(request, params);
     }
     /**
@@ -1332,6 +1335,9 @@ export default class bitvavo extends Exchange {
         if (operatorId !== undefined) {
             request['operatorId'] = this.parseToInt(operatorId);
         }
+        else {
+            throw new ArgumentsRequired(this.id + ' editOrder() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890');
+        }
         request['market'] = market['id'];
         return request;
     }
@@ -1372,6 +1378,9 @@ export default class bitvavo extends Exchange {
         [operatorId, params] = this.handleOptionAndParams(params, 'cancelOrder', 'operatorId');
         if (operatorId !== undefined) {
             request['operatorId'] = this.parseToInt(operatorId);
+        }
+        else {
+            throw new ArgumentsRequired(this.id + ' cancelOrder() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890');
         }
         return this.extend(request, params);
     }

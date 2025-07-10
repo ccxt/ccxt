@@ -3,6 +3,7 @@
 var bitstamp$1 = require('../bitstamp.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
+var Precise = require('../base/Precise.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -306,6 +307,7 @@ class bitstamp extends bitstamp$1 {
         //        "price_str":"1000.00"
         //     },
         //     "channel":"private-my_orders_ltcusd-4848701",
+        //     "event": "order_deleted" // field only present for cancelOrder
         // }
         //
         const channel = this.safeString(message, 'channel');
@@ -318,29 +320,65 @@ class bitstamp extends bitstamp$1 {
         const subscription = this.safeValue(client.subscriptions, channel);
         const symbol = this.safeString(subscription, 'symbol');
         const market = this.market(symbol);
+        order['event'] = this.safeString(message, 'event');
         const parsed = this.parseWsOrder(order, market);
         stored.append(parsed);
         client.resolve(this.orders, channel);
     }
     parseWsOrder(order, market = undefined) {
         //
-        //   {
-        //        "id":"1463471322288128",
-        //        "id_str":"1463471322288128",
-        //        "order_type":1,
-        //        "datetime":"1646127778",
-        //        "microtimestamp":"1646127777950000",
-        //        "amount":0.05,
-        //        "amount_str":"0.05000000",
-        //        "price":1000,
-        //        "price_str":"1000.00"
+        //    {
+        //        "id": "1894876776091648",
+        //        "id_str": "1894876776091648",
+        //        "order_type": 0,
+        //        "order_subtype": 0,
+        //        "datetime": "1751451375",
+        //        "microtimestamp": "1751451375070000",
+        //        "amount": 1.1,
+        //        "amount_str": "1.10000000",
+        //        "amount_traded": "0",
+        //        "amount_at_create": "1.10000000",
+        //        "price": 10.23,
+        //        "price_str": "10.23",
+        //        "is_liquidation": false,
+        //        "trade_account_id": 0
         //    }
         //
         const id = this.safeString(order, 'id_str');
-        const orderType = this.safeStringLower(order, 'order_type');
+        const orderTypeRaw = this.safeStringLower(order, 'order_type');
+        const side = (orderTypeRaw === '1') ? 'sell' : 'buy';
+        const orderSubTypeRaw = this.safeStringLower(order, 'order_subtype'); // https://www.bitstamp.net/websocket/v2/#:~:text=order_subtype
+        let orderType = undefined;
+        let timeInForce = undefined;
+        if (orderSubTypeRaw === '0') {
+            orderType = 'limit';
+        }
+        else if (orderSubTypeRaw === '2') {
+            orderType = 'market';
+        }
+        else if (orderSubTypeRaw === '4') {
+            orderType = 'limit';
+            timeInForce = 'IOC';
+        }
+        else if (orderSubTypeRaw === '6') {
+            orderType = 'limit';
+            timeInForce = 'FOK';
+        }
+        else if (orderSubTypeRaw === '8') {
+            orderType = 'limit';
+            timeInForce = 'GTD';
+        }
         const price = this.safeString(order, 'price_str');
         const amount = this.safeString(order, 'amount_str');
-        const side = (orderType === '1') ? 'sell' : 'buy';
+        const filled = this.safeString(order, 'amount_traded');
+        const event = this.safeString(order, 'event');
+        let status = undefined;
+        if (Precise["default"].stringEq(filled, amount)) {
+            status = 'closed';
+        }
+        else if (event === 'order_deleted') {
+            status = 'canceled';
+        }
         const timestamp = this.safeTimestamp(order, 'datetime');
         market = this.safeMarket(undefined, market);
         const symbol = market['symbol'];
@@ -352,8 +390,8 @@ class bitstamp extends bitstamp$1 {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': undefined,
-            'type': undefined,
-            'timeInForce': undefined,
+            'type': orderType,
+            'timeInForce': timeInForce,
             'postOnly': undefined,
             'side': side,
             'price': price,
@@ -362,9 +400,9 @@ class bitstamp extends bitstamp$1 {
             'amount': amount,
             'cost': undefined,
             'average': undefined,
-            'filled': undefined,
+            'filled': filled,
             'remaining': undefined,
-            'status': undefined,
+            'status': status,
             'fee': undefined,
             'trades': undefined,
         }, market);
@@ -429,6 +467,7 @@ class bitstamp extends bitstamp$1 {
         //         "price_str":"1000.00"
         //         },
         //         "channel":"private-my_orders_ltcusd-4848701",
+        //         "event": "order_deleted" // field only present for cancelOrder
         //     }
         //
         const channel = this.safeString(message, 'channel');

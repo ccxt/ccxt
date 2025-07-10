@@ -382,39 +382,19 @@ func  (this *cryptomus) FetchCurrencies(optionalArgs ...interface{}) <- chan int
             //     }
             //
             var coins interface{} = this.SafeList(response, "result")
+            var groupedById interface{} = this.GroupBy(coins, "currency_code")
+            var keys interface{} = ObjectKeys(groupedById)
             var result interface{} = map[string]interface{} {}
-            for i := 0; IsLessThan(i, GetArrayLength(coins)); i++ {
-                var networkEntry interface{} = GetValue(coins, i)
-                var currencyId interface{} = this.SafeString(networkEntry, "currency_code")
-                var code interface{} = this.SafeCurrencyCode(currencyId)
-                if !IsTrue((InOp(result, code))) {
-                    AddElementToObject(result, code, map[string]interface{} {
-            "id": currencyId,
-            "code": code,
-            "precision": nil,
-            "type": nil,
-            "name": nil,
-            "active": nil,
-            "deposit": nil,
-            "withdraw": nil,
-            "fee": nil,
-            "limits": map[string]interface{} {
-                "withdraw": map[string]interface{} {
-                    "min": nil,
-                    "max": nil,
-                },
-                "deposit": map[string]interface{} {
-                    "min": nil,
-                    "max": nil,
-                },
-            },
-            "networks": map[string]interface{} {},
-            "info": map[string]interface{} {},
-        })
-                }
-                var networkId interface{} = this.SafeString(networkEntry, "network_code")
-                var networkCode interface{} = this.NetworkIdToCode(networkId)
-                AddElementToObject(GetValue(GetValue(result, code), "networks"), networkCode, map[string]interface{} {
+            for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
+                var id interface{} = GetValue(keys, i)
+                var code interface{} = this.SafeCurrencyCode(id)
+                var networks interface{} = map[string]interface{} {}
+                var networkEntries interface{} = GetValue(groupedById, id)
+                for j := 0; IsLessThan(j, GetArrayLength(networkEntries)); j++ {
+                    var networkEntry interface{} = GetValue(networkEntries, j)
+                    var networkId interface{} = this.SafeString(networkEntry, "network_code")
+                    var networkCode interface{} = this.NetworkIdToCode(networkId)
+                    AddElementToObject(networks, networkCode, map[string]interface{} {
             "id": networkId,
             "network": networkCode,
             "limits": map[string]interface{} {
@@ -434,16 +414,13 @@ func  (this *cryptomus) FetchCurrencies(optionalArgs ...interface{}) <- chan int
             "precision": nil,
             "info": networkEntry,
         })
-                // add entry in info
-                var info interface{} = this.SafeList(GetValue(result, code), "info", []interface{}{})
-                AppendToArray(&info,networkEntry)
-                AddElementToObject(GetValue(result, code), "info", info)
-            }
-            // only after all entries are formed in currencies, restructure each entry
-            var allKeys interface{} = ObjectKeys(result)
-            for i := 0; IsLessThan(i, GetArrayLength(allKeys)); i++ {
-                var code interface{} = GetValue(allKeys, i)
-                AddElementToObject(result, code, this.SafeCurrencyStructure(GetValue(result, code))) // this is needed after adding network entry
+                }
+                AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]interface{} {
+            "id": id,
+            "code": code,
+            "networks": networks,
+            "info": networkEntries,
+        }))
             }
         
             ch <- result
@@ -471,8 +448,8 @@ func  (this *cryptomus) FetchTickers(optionalArgs ...interface{}) <- chan interf
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes4468 := (<-this.LoadMarkets())
-            PanicOnError(retRes4468)
+            retRes4238 := (<-this.LoadMarkets())
+            PanicOnError(retRes4238)
             symbols = this.MarketSymbols(symbols)
         
             response:= (<-this.PublicGetV1ExchangeMarketTickers(params))
@@ -556,8 +533,8 @@ func  (this *cryptomus) FetchOrderBook(symbol interface{}, optionalArgs ...inter
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes5148 := (<-this.LoadMarkets())
-            PanicOnError(retRes5148)
+            retRes4918 := (<-this.LoadMarkets())
+            PanicOnError(retRes4918)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "currencyPair": GetValue(market, "id"),
@@ -621,8 +598,8 @@ func  (this *cryptomus) FetchTrades(symbol interface{}, optionalArgs ...interfac
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes5598 := (<-this.LoadMarkets())
-            PanicOnError(retRes5598)
+            retRes5368 := (<-this.LoadMarkets())
+            PanicOnError(retRes5368)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "currencyPair": GetValue(market, "id"),
@@ -701,8 +678,8 @@ func  (this *cryptomus) FetchBalance(optionalArgs ...interface{}) <- chan interf
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes6248 := (<-this.LoadMarkets())
-            PanicOnError(retRes6248)
+            retRes6018 := (<-this.LoadMarkets())
+            PanicOnError(retRes6018)
             var request interface{} = map[string]interface{} {}
         
             response:= (<-this.PrivateGetV2UserApiExchangeAccountBalance(this.Extend(request, params)))
@@ -774,8 +751,8 @@ func  (this *cryptomus) CreateOrder(symbol interface{}, typeVar interface{}, sid
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes6828 := (<-this.LoadMarkets())
-            PanicOnError(retRes6828)
+            retRes6598 := (<-this.LoadMarkets())
+            PanicOnError(retRes6598)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "market": GetValue(market, "id"),
@@ -861,8 +838,8 @@ func  (this *cryptomus) CancelOrder(id interface{}, optionalArgs ...interface{})
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes7478 := (<-this.LoadMarkets())
-            PanicOnError(retRes7478)
+            retRes7248 := (<-this.LoadMarkets())
+            PanicOnError(retRes7248)
             var request interface{} = map[string]interface{} {}
             AddElementToObject(request, "orderId", id)
         
@@ -910,8 +887,8 @@ func  (this *cryptomus) FetchCanceledAndClosedOrders(optionalArgs ...interface{}
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes7768 := (<-this.LoadMarkets())
-            PanicOnError(retRes7768)
+            retRes7538 := (<-this.LoadMarkets())
+            PanicOnError(retRes7538)
             var request interface{} = map[string]interface{} {}
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
@@ -1006,8 +983,8 @@ func  (this *cryptomus) FetchOpenOrders(optionalArgs ...interface{}) <- chan int
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes8528 := (<-this.LoadMarkets())
-            PanicOnError(retRes8528)
+            retRes8298 := (<-this.LoadMarkets())
+            PanicOnError(retRes8298)
             var market interface{} = nil
             if IsTrue(!IsEqual(symbol, nil)) {
                 market = this.Market(symbol)

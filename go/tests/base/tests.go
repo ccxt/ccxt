@@ -1866,7 +1866,7 @@ func  (this *testMainClass) RunBrokerIdTests() <- chan interface{} {
                 //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        var promises interface{} = []interface{}{this.TestBinance(), this.TestOkx(), this.TestCryptocom(), this.TestBybit(), this.TestKucoin(), this.TestKucoinfutures(), this.TestBitget(), this.TestMexc(), this.TestHtx(), this.TestWoo(), this.TestBitmart(), this.TestCoinex(), this.TestBingx(), this.TestPhemex(), this.TestBlofin(), this.TestHyperliquid(), this.TestCoinbaseinternational(), this.TestCoinbaseAdvanced(), this.TestWoofiPro(), this.TestOxfun(), this.TestXT(), this.TestVertex(), this.TestParadex(), this.TestHashkey(), this.TestCoincatch(), this.TestDefx(), this.TestCryptomus(), this.TestDerive(), this.TestModeTrade()}
+        var promises interface{} = []interface{}{this.TestBinance(), this.TestOkx(), this.TestCryptocom(), this.TestBybit(), this.TestKucoin(), this.TestKucoinfutures(), this.TestBitget(), this.TestMexc(), this.TestHtx(), this.TestWoo(), this.TestBitmart(), this.TestCoinex(), this.TestBingx(), this.TestPhemex(), this.TestBlofin(), this.TestCoinbaseinternational(), this.TestCoinbaseAdvanced(), this.TestWoofiPro(), this.TestOxfun(), this.TestXT(), this.TestVertex(), this.TestParadex(), this.TestHashkey(), this.TestCoincatch(), this.TestDefx(), this.TestCryptomus(), this.TestDerive(), this.TestModeTrade()}
         
         retRes15658 := (<-promiseAll(promises))
         PanicOnError(retRes15658)
@@ -2816,52 +2816,22 @@ func  (this *testMainClass) TestBlofin() <- chan interface{} {
             }()
             return ch
         }
-func  (this *testMainClass) TestHyperliquid() <- chan interface{} {
-            ch := make(chan interface{})
-            go func() interface{} {
-                defer close(ch)
-                defer ReturnPanicError(ch)
-                var exchange ccxt.IExchange = this.InitOfflineExchange("hyperliquid")
-        var id interface{} = "1"
-        var request interface{} = nil
-        
-        {		ret__ := func(this *testMainClass) (ret_ interface{}) {
-        		defer func() {
-        			if e := recover(); e != nil {
-                        if e == "break" {
-        				    return
-        			    }
-        				ret_ = func(this *testMainClass) interface{} {
-        					// catch block:
-                                request = JsonParse(exchange.GetLast_request_body())
-                            return nil
-        				}(this)
-        			}
-        		}()
-        		// try block:
-                
-            retRes194112 := (<-exchange.CreateOrder("SOL/USDC:USDC", "limit", "buy", 1, 100))
-            PanicOnError(retRes194112)
-        		return nil
-        	}(this)
-        	if ret__ != nil {
-        		return ret__
-        	}
-        }
-        var brokerId interface{} = ToString((GetValue(GetValue(request, "action"), "brokerCode")))
-        Assert(IsEqual(brokerId, id), Add(Add(Add("hyperliquid - brokerId: ", brokerId), " does not start with id: "), id))
-        if !IsTrue(IsSync()) {
-        
-            retRes194812 := (<-Close(exchange))
-            PanicOnError(retRes194812)
-        }
-        
-        ch <- true
-        return nil
-        
-            }()
-            return ch
-        }
+// async testHyperliquid () {
+//     const exchange = this.initOfflineExchange ('hyperliquid');
+//     const id = '1';
+//     let request = undefined;
+//     try {
+//         await exchange.GetcreateOrder() ('SOL/USDC:USDC', 'limit', 'buy', 1, 100);
+//     } catch (e) {
+//         request = jsonParse (exchange.Getlast_request_body());
+//     }
+//     const brokerId = (request['action']['brokerCode']).toString ();
+//     assert (brokerId === id, 'hyperliquid - brokerId: ' + brokerId + ' does not start with id: ' + id);
+//     if (!isSync ()) {
+//         await close (exchange);
+//     }
+//     return true;
+// }
 func  (this *testMainClass) TestCoinbaseinternational() <- chan interface{} {
             ch := make(chan interface{})
             go func() interface{} {

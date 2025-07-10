@@ -38,7 +38,6 @@ export default class bitmex extends Exchange {
                 'swap': true,
                 'future': true,
                 'option': false,
-                'index': true,
                 'addMargin': undefined,
                 'cancelAllOrders': true,
                 'cancelAllOrdersAfter': true,
@@ -94,6 +93,7 @@ export default class bitmex extends Exchange {
                 'fetchTransactions': 'emulated',
                 'fetchTransfer': false,
                 'fetchTransfers': false,
+                'index': true,
                 'reduceMargin': undefined,
                 'sandbox': true,
                 'setLeverage': true,
@@ -1990,7 +1990,7 @@ export default class bitmex extends Exchange {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {object} [params.triggerPrice] the price at which a trigger order is triggered at
-     * @param {object} [params.triggerDirection] the direction whenever the trigger happens with relation to price - 'above' or 'below'
+     * @param {object} [params.triggerDirection] the direction whenever the trigger happens with relation to price - 'ascending' or 'descending'
      * @param {float} [params.trailingAmount] the quote amount to trail away from the current market price
      * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
@@ -2020,7 +2020,7 @@ export default class bitmex extends Exchange {
         const isTrailingAmountOrder = trailingAmount !== undefined;
         if (isTriggerOrder || isTrailingAmountOrder) {
             const triggerDirection = this.safeString(params, 'triggerDirection');
-            const triggerAbove = (triggerDirection === 'above');
+            const triggerAbove = ((triggerDirection === 'ascending') || (triggerDirection === 'above'));
             if ((type === 'limit') || (type === 'market')) {
                 this.checkRequiredArgument('createOrder', triggerDirection, 'triggerDirection', ['above', 'below']);
             }
@@ -2077,7 +2077,7 @@ export default class bitmex extends Exchange {
         const isTrailingAmountOrder = trailingAmount !== undefined;
         if (isTrailingAmountOrder) {
             const triggerDirection = this.safeString(params, 'triggerDirection');
-            const triggerAbove = (triggerDirection === 'above');
+            const triggerAbove = ((triggerDirection === 'ascending') || (triggerDirection === 'above'));
             if ((type === 'limit') || (type === 'market')) {
                 this.checkRequiredArgument('createOrder', triggerDirection, 'triggerDirection', ['above', 'below']);
             }
