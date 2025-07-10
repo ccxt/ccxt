@@ -1551,8 +1551,8 @@ public partial class hyperliquid : Exchange
         }
         try
         {
-            object builder = this.safeString(this.options, "builder", "0x2e3AB3E88a7DBdc763AaDf5b28c18fb085aF420a");
-            object maxFeeRate = this.safeString(this.options, "feeRate", "0.001%");
+            object builder = this.safeString(this.options, "builder", "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6");
+            object maxFeeRate = this.safeString(this.options, "feeRate", "0.01%");
             await this.approveBuilderFee(builder, maxFeeRate);
             ((IDictionary<string,object>)this.options)["approvedBuilderFee"] = true;
         } catch(Exception e)
@@ -1817,6 +1817,14 @@ public partial class hyperliquid : Exchange
             { "orders", orderReq },
             { "grouping", grouping },
         };
+        if (isTrue(this.safeBool(this.options, "approvedBuilderFee", false)))
+        {
+            object wallet = this.safeStringLower(this.options, "builder", "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6");
+            ((IDictionary<string,object>)orderAction)["builder"] = new Dictionary<string, object>() {
+                { "b", wallet },
+                { "f", this.safeInteger(this.options, "feeInt", 10) },
+            };
+        }
         object signature = this.signL1Action(orderAction, nonce, vaultAddress);
         object request = new Dictionary<string, object>() {
             { "action", orderAction },
