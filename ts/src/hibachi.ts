@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/hibachi.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Dict, Market, Str } from './base/types.js';
+import type { Balances, Currencies, Dict, Market, Str, Ticker } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -92,7 +92,7 @@ export default class hibachi extends Exchange {
                 'fetchPositions': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': false,
-                'fetchTicker': false,
+                'fetchTicker': true,
                 'fetchTickers': false,
                 'fetchTime': false,
                 'fetchTrades': false,
@@ -124,6 +124,8 @@ export default class hibachi extends Exchange {
                 'public': {
                     'get': {
                         'market/exchange-info': 1,
+                        'market/data/prices': 1,
+                        'market/data/stats': 1,
                     },
                 },
                 'private': {
@@ -375,6 +377,77 @@ export default class hibachi extends Exchange {
         // }
         //
         return this.parseBalance (response);
+    }
+
+    parseTicker (prices: Dict, stats: Dict, market: Market = undefined): Ticker {
+        const bid = this.safeFloat (prices, 'bidPrice');
+        const ask = this.safeFloat (prices, 'askPrice');
+        const last = this.safeFloat (prices, 'tradePrice');
+        const high = this.safeFloat (stats, 'high24h');
+        const low = this.safeFloat (stats, 'low24h');
+        const volume = this.safeFloat (stats, 'volume24h');
+        prices['high24h'] = this.safeString (stats, 'high24h');
+        prices['low24h'] = this.safeString (stats, 'low24h');
+        prices['volume24h'] = this.safeString (stats, 'volume24h');
+        return this.safeTicker ({
+            'symbol': this.safeSymbol (undefined, market),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'bid': bid,
+            'ask': ask,
+            'last': last,
+            'high': high,
+            'low': low,
+            'bidVolume': undefined,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': undefined,
+            'close': last,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': volume,
+            'info': prices,
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name hibachi#fetchTicker
+     * @see https://api-doc.hibachi.xyz/#4abb30c4-e5c7-4b0f-9ade-790111dbfa47
+     * @description fetches a price ticker and the related information for the past 24h
+     * @param {string} symbol unified symbol of the market
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async fetchTicker (symbol: Str): Promise<Ticker> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const prices_response = await this.publicGetMarketDataPrices (this.extend (request));
+        // {
+        //     "askPrice": "3514.650296",
+        //     "bidPrice": "3513.596112",
+        //     "fundingRateEstimation": {
+        //         "estimatedFundingRate": "0.000001",
+        //         "nextFundingTimestamp": 1712707200
+        //     },
+        //     "markPrice": "3514.288858",
+        //     "spotPrice": "3514.715000",
+        //     "symbol": "ETH/USDT-P",
+        //     "tradePrice": "2372.746570"
+        // }
+        const stats_response = await this.publicGetMarketDataStats (this.extend (request));
+        // {
+        //     "high24h": "3819.507827",
+        //     "low24h": "3754.474162",
+        //     "symbol": "ETH/USDT-P",
+        //     "volume24h": "23554.858590416"
+        // }
+        return this.parseTicker (prices_response, stats_response, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

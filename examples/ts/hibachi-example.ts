@@ -14,6 +14,9 @@ async function example () {
 
     const balance = await exchange.fetchBalance();
     console.dir (balance, { depth: null, colors: true });
+
+    const ticker = await exchange.fetchTicker('BTC/USDT:USDT');
+    console.log ('fetchTicket', ticker);
     
 }
 example ();
