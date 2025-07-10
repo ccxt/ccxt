@@ -1425,7 +1425,7 @@ export default class hyperliquid extends Exchange {
             'hyperliquidChain': payload['hyperliquidChain'],
             'signatureChainId': '0x66eee',
             'maxFeeRate': payload['maxFeeRate'],
-            'builder': '0x2e3AB3E88a7DBdc763AaDf5b28c18fb085aF420a',
+            'builder': payload['builder'],
             'nonce': nonce,
             'type': 'approveBuilderFee',
         };
