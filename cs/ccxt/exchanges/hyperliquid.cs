@@ -637,6 +637,7 @@ public partial class hyperliquid : Exchange
                 { "quote", quote },
                 { "settle", null },
                 { "baseId", baseId },
+                { "baseName", baseName },
                 { "quoteId", quoteId },
                 { "settleId", null },
                 { "type", "spot" },
@@ -750,6 +751,7 @@ public partial class hyperliquid : Exchange
             { "quote", quote },
             { "settle", settle },
             { "baseId", baseId },
+            { "baseName", baseName },
             { "quoteId", quoteId },
             { "settleId", settleId },
             { "type", "swap" },
@@ -922,7 +924,7 @@ public partial class hyperliquid : Exchange
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "type", "l2Book" },
-            { "coin", ((bool) isTrue(getValue(market, "swap"))) ? getValue(market, "base") : getValue(market, "id") },
+            { "coin", ((bool) isTrue(getValue(market, "swap"))) ? getValue(market, "baseName") : getValue(market, "id") },
         };
         object response = await this.publicPostInfo(this.extend(request, parameters));
         //
@@ -1179,7 +1181,7 @@ public partial class hyperliquid : Exchange
         object request = new Dictionary<string, object>() {
             { "type", "candleSnapshot" },
             { "req", new Dictionary<string, object>() {
-                { "coin", ((bool) isTrue(getValue(market, "swap"))) ? getValue(market, "base") : getValue(market, "id") },
+                { "coin", ((bool) isTrue(getValue(market, "swap"))) ? getValue(market, "baseName") : getValue(market, "id") },
                 { "interval", this.safeString(this.timeframes, timeframe, timeframe) },
                 { "startTime", since },
                 { "endTime", until },
@@ -2383,7 +2385,7 @@ public partial class hyperliquid : Exchange
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "type", "fundingHistory" },
-            { "coin", getValue(market, "base") },
+            { "coin", getValue(market, "baseName") },
         };
         if (isTrue(!isEqual(since, null)))
         {
