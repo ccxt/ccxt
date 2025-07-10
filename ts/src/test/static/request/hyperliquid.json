@@ -670,6 +670,15 @@
         ],
         "fetchOrderBook": [
             {
+                "description": "fetch orderbook with kilo pair",
+                "method": "fetchOrderBook",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    "KPEPE/USDC:USDC"
+                ],
+                "output": "{\"type\":\"l2Book\",\"coin\":\"kPEPE\"}"
+            },
+            {
                 "description": "fetchOrderBook",
                 "method": "fetchOrderBook",
                 "url": "https://api.hyperliquid.xyz/info",
@@ -689,6 +698,15 @@
             }
         ],
         "fetchOHLCV": [
+            {
+                "description": "fetch ohlcv  with kilo pair",
+                "method": "fetchOHLCV",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    "KPEPE/USDC:USDC"
+                ],
+                "output": "{\"type\":\"candleSnapshot\",\"req\":{\"coin\":\"kPEPE\",\"interval\":\"1m\",\"startTime\":0,\"endTime\":1752145874428}}"
+            },
             {
                 "description": "fetchOHLCV",
                 "method": "fetchOHLCV",
@@ -724,6 +742,15 @@
             }
         ],
         "fetchFundingRateHistory": [
+            {
+                "description": "funding rate history with kilo pair",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    "KPEPE/USDC:USDC"
+                ],
+                "output": "{\"type\":\"fundingHistory\",\"coin\":\"kPEPE\",\"startTime\":1750345830702}"
+            },
             {
                 "description": "fetchFundingRateHistory",
                 "method": "fetchFundingRateHistory",
