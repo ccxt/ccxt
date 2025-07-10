@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/hibachi.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Dict, Market, Str, Ticker } from './base/types.js';
+import type { Balances, Currencies, Dict, Market, Str, Ticker, Trade, Int } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -95,7 +95,7 @@ export default class hibachi extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': false,
                 'fetchTime': false,
-                'fetchTrades': false,
+                'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTransactions': 'emulated',
@@ -124,6 +124,7 @@ export default class hibachi extends Exchange {
                 'public': {
                     'get': {
                         'market/exchange-info': 1,
+                        'market/data/trades': 1,
                         'market/data/prices': 1,
                         'market/data/stats': 1,
                     },
@@ -411,6 +412,72 @@ export default class hibachi extends Exchange {
             'quoteVolume': volume,
             'info': prices,
         }, market);
+    }
+
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
+        // public fetchTrades:
+        //      {
+        //          "price": "3512.431902",
+        //          "quantity": "1.414780098",
+        //          "takerSide": "Buy",
+        //          "timestamp": 1712692147
+        //      }
+        const timestamp = this.safeTimestamp (trade, 'timestamp'); // in seconds
+        const price = this.safeString (trade, 'price');
+        const amount = this.safeString (trade, 'quantity');
+        let side = this.safeString (trade, 'takerSide');
+        if (side !== undefined) {
+            side = side.toLowerCase ();
+        }
+        return this.safeTrade ({
+            'id': undefined,
+            'order': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': this.safeSymbol (undefined, market),
+            'type': undefined,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': undefined,
+            'takerOrMaker': 'taker',
+            'fee': undefined,
+            'info': trade,
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name hibachi#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://api-doc.hibachi.xyz/#86a53bc1-d3bb-4b93-8a11-7034d4698caa
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch (maximum value is 100)
+     * @param {object} [params] extra parameters specific to the hibachi api endpoint
+     * @returns {object[]} a list of recent [trade structures]
+     */
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetMarketDataTrades (this.extend (request, params));
+        //
+        // {
+        //     "trades": [
+        //         {
+        //             "price": "111091.38352",
+        //             "quantity": "0.0090090093",
+        //             "takerSide": "Buy",
+        //             "timestamp": 1752095479
+        //         },
+        //     ]
+        // }
+        //
+        const trades = this.safeList (response, 'trades', []);
+        return this.parseTrades (trades, market);
     }
 
     /**
