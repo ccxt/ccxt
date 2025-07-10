@@ -53,6 +53,24 @@
         ],
         "createOrder": [
             {
+                "description": "sell order with stopLoss",
+                "method": "createOrder",
+                "url": "https://www.okx.com/api/v5/trade/batch-orders",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "limit",
+                    "sell",
+                    0.4,
+                    100,
+                    {
+                        "stopLoss": {
+                            "triggerPrice": 120
+                        }
+                    }
+                ],
+                "output": "[{\"instId\":\"LTC-USDT-SWAP\",\"side\":\"sell\",\"ordType\":\"limit\",\"sz\":\"0.4\",\"tdMode\":\"cross\",\"px\":\"100\",\"slTriggerPx\":\"120\",\"slOrdPx\":\"-1\",\"slTriggerPxType\":\"last\",\"clOrdId\":\"e847386590ce4dBC07979b70a40dbf86\",\"tag\":\"e847386590ce4dBC\"}]"
+            },
+            {
                 "description": "Spot limit buy order",
                 "method": "createOrder",
                 "url": "https://www.okx.com/api/v5/trade/batch-orders",
