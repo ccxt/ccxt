@@ -384,8 +384,6 @@
         }
     },
     "bitrue": {
-        "skip": "tmp",
-        "until": "2025-07-10",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies",
@@ -396,7 +394,8 @@
                 "currencyIdAndCode": "broken currencies"
             },
             "ticker": {
-                "compareQuoteVolumeBaseVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269454230#L4164"
+                "compareQuoteVolumeBaseVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269454230#L4164",
+                "maxIncrease": "tmp vbtc issue"
             },
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
