@@ -347,6 +347,9 @@ export default class hyperliquid extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies (params = {}): Promise<Currencies> {
+        if (this.checkRequiredCredentials (false)) {
+            await this.handleBuilderFeeApproval ();
+        }
         const request: Dict = {
             'type': 'meta',
         };
@@ -1446,6 +1449,24 @@ export default class hyperliquid extends Exchange {
         return await this.privatePostExchange (request);
     }
 
+    async handleBuilderFeeApproval () {
+        const buildFee = this.safeBool (this.options, 'builderFee', true);
+        if (!buildFee) {
+            return; // skip if builder fee is not enabled
+        }
+        const approvedBuilderFee = this.safeBool (this.options, 'approvedBuilderFee', false);
+        try {
+            if (!approvedBuilderFee) {
+                const builder = this.safeString (this.options, 'builder', '0x2e3AB3E88a7DBdc763AaDf5b28c18fb085aF420a');
+                const maxFeeRate = this.safeString (this.options, 'feeRate', '0.001%');
+                await this.approveBuilderFee (builder, maxFeeRate);
+                this.options['approvedBuilderFee'] = true;
+            }
+        } catch (e) {
+            this.options['builderFee'] = false; // disable builder fee if an error occurs
+        }
+    }
+
     /**
      * @method
      * @name hyperliquid#createOrder
@@ -1485,13 +1506,7 @@ export default class hyperliquid extends Exchange {
      */
     async createOrders (orders: OrderRequest[], params = {}) {
         await this.loadMarkets ();
-        const approvedBuilderFee = this.safeBool (this.options, 'approvedBuilderFee', false);
-        if (!approvedBuilderFee) {
-            const builder = this.safeString (this.options, 'builder', '0x2e3AB3E88a7DBdc763AaDf5b28c18fb085aF420a');
-            const maxFeeRate = this.safeString (this.options, 'feeRate', '0.001%');
-            await this.approveBuilderFee (builder, maxFeeRate);
-            this.options['approvedBuilderFee'] = true;
-        }
+        await this.handleBuilderFeeApproval ();
         const request = this.createOrdersRequest (orders, params);
         const response = await this.privatePostExchange (request);
         //
