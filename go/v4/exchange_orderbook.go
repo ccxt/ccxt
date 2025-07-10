@@ -16,84 +16,40 @@ type WsOrderBook struct {
 }
 
 func NewWsOrderBook(snapshot interface{}, depth interface{}) WsOrderBook {
-	// TODO: double check
-    // Handle default parameters
-    if snapshot == nil {
-        snapshot = make(map[string]interface{})
-    }
-    
-    var finalDepth *int
-    if depth != nil {
-        finalDepth = depth.(*int)
-    } else {
-        finalDepth = nil
+    // Sanitize snapshot to ensure asks and bids are always [][]float64
+    if snapshotMap, ok := snapshot.(map[string]interface{}); ok {
+        if _, ok := snapshotMap["asks"]; !ok {
+            snapshotMap["asks"] = [][]float64{}
+        } else {
+            // Convert to [][]float64 if needed
+            if arr, ok := snapshotMap["asks"].([]interface{}); ok {
+                asks := [][]float64{}
+                for _, v := range arr {
+                    if row, ok := v.([]float64); ok {
+                        asks = append(asks, row)
+                    }
+                }
+                snapshotMap["asks"] = asks
+            }
+        }
+        if _, ok := snapshotMap["bids"]; !ok {
+            snapshotMap["bids"] = [][]float64{}
+        } else {
+            if arr, ok := snapshotMap["bids"].([]interface{}); ok {
+                bids := [][]float64{}
+                for _, v := range arr {
+                    if row, ok := v.([]float64); ok {
+                        bids = append(bids, row)
+                    }
+                }
+                snapshotMap["bids"] = bids
+            }
+        }
     }
     
     ob := WsOrderBook{
-        Cache: make(map[string]interface{}, 0), // equivalent to cache: []
-    }
-    
-    // Set defaults
-    defaults := map[string]interface{}{
-        "bids":      make([][]float64, 0),
-        "asks":      make([][]float64, 0),
-        "timestamp": nil,
-        "datetime":  nil,
-        "nonce":     nil,
-        "symbol":    nil,
-    }
-    
-    // Merge defaults with snapshot
-    merged := make(map[string]interface{})
-    for k, v := range defaults {
-        merged[k] = v
-    }
-    for k, v := range snapshot.(map[string]interface{}) {
-        merged[k] = v
-    }
-    
-    // Extract values from merged map
-    if val, ok := merged["timestamp"]; ok && val != nil {
-        if timestamp, ok := val.(int64); ok {
-            ob.Timestamp = timestamp
-            ob.Datetime = Iso8601(timestamp)
-        }
-    }
-    
-    if val, ok := merged["nonce"]; ok && val != nil {
-        if nonce, ok := val.(int64); ok {
-            ob.Nonce = nonce
-        }
-    }
-    
-    if val, ok := merged["symbol"]; ok && val != nil {
-        if symbol, ok := val.(string); ok {
-            ob.Symbol = symbol
-        }
-    }
-    
-    // Handle asks - wrap with Asks class if necessary
-    if val, ok := merged["asks"]; ok && val != nil {
-        if asksData, ok := val.([][]float64); ok {
-            ob.Asks = NewAsks(asksData, finalDepth)
-        } else {
-            // Default empty asks
-            ob.Asks = NewAsks(make([][]float64, 0), finalDepth)
-        }
-    } else {
-        ob.Asks = NewAsks(make([][]float64, 0), finalDepth)
-    }
-    
-    // Handle bids - wrap with Bids class if necessary  
-    if val, ok := merged["bids"]; ok && val != nil {
-        if bidsData, ok := val.([][]float64); ok {
-            ob.Bids = NewBids(bidsData, finalDepth)
-        } else {
-            // Default empty bids
-            ob.Bids = NewBids(make([][]float64, 0), finalDepth)
-        }
-    } else {
-        ob.Bids = NewBids(make([][]float64, 0), finalDepth)
+        Asks: NewAsks(GetValue(snapshot, "asks"), depth),
+        Bids: NewBids(GetValue(snapshot, "bids"), depth),
     }
     
     return ob
