@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/hibachi.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Currencies, Dict, Market, Str } from './base/types.js';
+import type { Balances, Currencies, Dict, Market, Str } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -55,7 +55,7 @@ export default class hibachi extends Exchange {
                 'createTrailingPercentOrder': false,
                 'createTriggerOrder': false,
                 'fetchAccounts': false,
-                'fetchBalance': false,
+                'fetchBalance': true,
                 'fetchCanceledOrders': false,
                 'fetchClosedOrder': false,
                 'fetchClosedOrders': false,
@@ -127,6 +127,9 @@ export default class hibachi extends Exchange {
                     },
                 },
                 'private': {
+                    'get': {
+                        'trade/account/info': 1,
+                    },
                 },
             },
             'requiredCredentials': {
@@ -328,16 +331,64 @@ export default class hibachi extends Exchange {
         return result;
     }
 
+    parseBalance (response): Balances {
+        const result: Dict = {
+            'info': response,
+        };
+        // Hibachi only supports USDT on Arbitrum at this time
+        const code = this.safeCurrencyCode ('USDT');
+        const account = this.account ();
+        account['total'] = this.safeString (response, 'balance');
+        account['free'] = this.safeString (response, 'maximalWithdraw');
+        result[code] = account;
+        return this.safeBalance (result);
+    }
+
+    /**
+     * @method
+     * @name hibachi#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://api-doc.hibachi.xyz/#69aafedb-8274-4e21-bbaf-91dace8b8f31
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
+    async fetchBalance (params = {}): Promise<Balances> {
+        this.checkRequiredCredentials ();
+        const request: Dict = {
+            'accountId': this.accountId,
+        };
+        const response = await this.privateGetTradeAccountInfo (this.extend (request, params));
+        //
+        // {
+        //     assets: [ { quantity: '3.000000', symbol: 'USDT' } ],
+        //     balance: '3.000000',
+        //     maximalWithdraw: '3.000000',
+        //     numFreeTransfersRemaining: '100',
+        //     positions: [],
+        //     totalOrderNotional: '0.000000',
+        //     totalPositionNotional: '0.000000',
+        //     totalUnrealizedFundingPnl: '0.000000',
+        //     totalUnrealizedPnl: '0.000000',
+        //     totalUnrealizedTradingPnl: '0.000000',
+        //     tradeMakerFeeRate: '0.00000000',
+        //     tradeTakerFeeRate: '0.00020000'
+        // }
+        //
+        return this.parseBalance (response);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const request = this.omit (params, this.extractParams (path));
         const endpoint = '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + endpoint;
         const query = this.urlencode (request);
-        if (api === 'private') {
-            // TODO: add auth header with API key here
-            headers = this.extend (headers, {});
-        } else if (query.length !== 0) {
+        if (query.length !== 0) {
             url += '?' + query;
+        }
+        if (api === 'private') {
+            headers = {
+                'Authorization': this.apiKey,
+            };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
