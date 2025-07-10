@@ -2890,7 +2890,7 @@ export default class okx extends Exchange {
 
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         const market = this.market (symbol);
-        const request: Dict = {
+        let request: Dict = {
             'instId': market['id'],
             // 'ccy': currency['id'], // only applicable to cross MARGIN orders in single-currency margin
             // 'clOrdId': clientOrderId, // up to 32 characters, must be unique
@@ -3045,7 +3045,11 @@ export default class okx extends Exchange {
                 if (stopLossTriggerPrice === undefined) {
                     throw new InvalidOrder (this.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"], or params["stopLoss"]["stopPrice"], or params["stopLoss"]["slTriggerPx"] for a stop loss order');
                 }
-                request['slTriggerPx'] = this.priceToPrecision (symbol, stopLossTriggerPrice);
+                const slTriggerPx = this.priceToPrecision (symbol, stopLossTriggerPrice);
+                request['slTriggerPx'] = slTriggerPx;
+                if ((slTriggerPx !== undefined) && (side === 'sell')) {
+                    request = this.omit (request, 'tgtCcy');
+                }
                 const stopLossLimitPrice = this.safeValueN (stopLoss, [ 'price', 'stopLossPrice', 'slOrdPx' ]);
                 const stopLossOrderType = this.safeString (stopLoss, 'type');
                 if (stopLossOrderType !== undefined) {
