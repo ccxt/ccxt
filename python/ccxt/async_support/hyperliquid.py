@@ -629,6 +629,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'quote': quote,
                 'settle': None,
                 'baseId': baseId,
+                'baseName': baseName,
                 'quoteId': quoteId,
                 'settleId': None,
                 'type': 'spot',
@@ -731,6 +732,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'quote': quote,
             'settle': settle,
             'baseId': baseId,
+            'baseName': baseName,
             'quoteId': quoteId,
             'settleId': settleId,
             'type': 'swap',
@@ -882,7 +884,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         market = self.market(symbol)
         request: dict = {
             'type': 'l2Book',
-            'coin': market['base'] if market['swap'] else market['id'],
+            'coin': market['baseName'] if market['swap'] else market['id'],
         }
         response = await self.publicPostInfo(self.extend(request, params))
         #
@@ -1115,7 +1117,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         request: dict = {
             'type': 'candleSnapshot',
             'req': {
-                'coin': market['base'] if market['swap'] else market['id'],
+                'coin': market['baseName'] if market['swap'] else market['id'],
                 'interval': self.safe_string(self.timeframes, timeframe, timeframe),
                 'startTime': since,
                 'endTime': until,
@@ -2092,7 +2094,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         market = self.market(symbol)
         request: dict = {
             'type': 'fundingHistory',
-            'coin': market['base'],
+            'coin': market['baseName'],
         }
         if since is not None:
             request['startTime'] = since
