@@ -1461,8 +1461,8 @@ export default class hyperliquid extends Exchange {
             return true; // skip if builder fee is already approved
         }
         try {
-            const builder = this.safeString (this.options, 'builder', '0x2e3AB3E88a7DBdc763AaDf5b28c18fb085aF420a');
-            const maxFeeRate = this.safeString (this.options, 'feeRate', '0.001%');
+            const builder = this.safeString (this.options, 'builder', '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6');
+            const maxFeeRate = this.safeString (this.options, 'feeRate', '0.01%');
             await this.approveBuilderFee (builder, maxFeeRate);
             this.options['approvedBuilderFee'] = true;
         } catch (e) {
@@ -1695,6 +1695,10 @@ export default class hyperliquid extends Exchange {
             'orders': orderReq,
             'grouping': grouping,
         };
+        if (this.safeBool (this.options, 'approvedBuilderFee', false)) {
+            const wallet = this.safeStringLower (this.options, 'builder', '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6');
+            orderAction['builder'] = { 'b': wallet, 'f': this.safeInteger (this.options, 'feeInt', 10) };
+        }
         const signature = this.signL1Action (orderAction, nonce, vaultAddress);
         const request: Dict = {
             'action': orderAction,
