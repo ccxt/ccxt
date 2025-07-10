@@ -1452,7 +1452,7 @@ export default class hyperliquid extends Exchange {
     async handleBuilderFeeApproval () {
         const buildFee = this.safeBool (this.options, 'builderFee', true);
         if (!buildFee) {
-            return; // skip if builder fee is not enabled
+            return false; // skip if builder fee is not enabled
         }
         const approvedBuilderFee = this.safeBool (this.options, 'approvedBuilderFee', false);
         try {
@@ -1465,6 +1465,7 @@ export default class hyperliquid extends Exchange {
         } catch (e) {
             this.options['builderFee'] = false; // disable builder fee if an error occurs
         }
+        return true;
     }
 
     /**
