@@ -490,21 +490,22 @@ func (this *Client) Send(message interface{}) Future {
 	
 	future := NewFuture()
 	
-	// TODO: needed?
-	// if (isNode) {
-	// /* eslint-disable no-inner-declarations */
-	// /* eslint-disable jsdoc/require-jsdoc */
-	// function onSendComplete (error: any) {
-	//     if (error) {
-	//         future.reject (error)
-	//     } else {
-	//         future.resolve (null)
-	//     }
-	// }
-	// this.connection.send (message, {}, onSendComplete)
-	//
-	this.Connection.WriteMessage(websocket.TextMessage, []byte(msgStr))
-	future.Resolve(nil)
+	go func() {
+		this.Mu.Lock()
+		defer this.Mu.Unlock()
+		
+		if this.Connection == nil {
+			future.Reject(fmt.Errorf("websocket connection closed"))
+			return
+		}
+		
+		err := this.Connection.WriteMessage(websocket.TextMessage, []byte(msgStr))
+		if err != nil {
+			future.Reject(err)
+		} else {
+			future.Resolve(nil)
+		}
+	}()
 	
 	return future
 }
@@ -541,7 +542,6 @@ func (this *Client) CloseConnection() (interface{}, error) {
 }
 
 func (this *Client) OnMessage(messageEvent interface{}) {
-	// TODO: double check this
 	// if we use onmessage we get MessageEvent objects
 	// MessageEvent {isTrusted: true, data: "{"e":"depthUpdate","E":1581358737706,"s":"ETHBTC",…"0.06200000"]],"a":[["0.02261300","0.00000000"]]}", origin: "wss://stream.binance.com:9443", lastEventId: "", source: null, …}
 

@@ -1483,12 +1483,37 @@ func (this *Exchange) Watch(args ...interface{}) Future {
 // OrderBook returns a new mutable order-book using our Go implementation.
 func (this *Exchange) OrderBook(optionalArgs ...interface{}) *WsOrderBook {
     snapshot := GetArg(optionalArgs, 0, map[string]interface{}{})
-	// if (len(optionalArgs) > 0) {
-	// 	snapshot = optionalArgs[0]
-	// }
-    
+    // Ensure asks and bids are always present and are [][]float64
+    if snapshotMap, ok := snapshot.(map[string]interface{}); ok {
+        if _, ok := snapshotMap["asks"]; !ok {
+            snapshotMap["asks"] = [][]float64{}
+        } else {
+            // Convert to [][]float64 if needed
+            if arr, ok := snapshotMap["asks"].([]interface{}); ok {
+                asks := [][]float64{}
+                for _, v := range arr {
+                    if row, ok := v.([]float64); ok {
+                        asks = append(asks, row)
+                    }
+                }
+                snapshotMap["asks"] = asks
+            }
+        }
+        if _, ok := snapshotMap["bids"]; !ok {
+            snapshotMap["bids"] = [][]float64{}
+        } else {
+            if arr, ok := snapshotMap["bids"].([]interface{}); ok {
+                bids := [][]float64{}
+                for _, v := range arr {
+                    if row, ok := v.([]float64); ok {
+                        bids = append(bids, row)
+                    }
+                }
+                snapshotMap["bids"] = bids
+            }
+        }
+    }
     orderbook := NewWsOrderBook(snapshot, nil)
-    
     return &orderbook
 }
 
@@ -1808,12 +1833,32 @@ func (this *Exchange) Spawn(method interface{}, args ...interface{}) Future {
     future := NewFuture()
 
     go func() {
-        // mimic "setTimeout(..., 0)" by deferring execution
-        time.Sleep(0) // or remove entirely since Go goroutine runs async
-        result, err := method.(func(args ...interface{}) (interface{}, error))(args...)
-        if err != nil {
-            future.Reject(err)
+        defer func() {
+            if r := recover(); r != nil {
+                future.Reject(r)
+            }
+        }()
+        
+        // Handle different function signatures
+        if fn, ok := method.(func(args ...interface{}) (interface{}, error)); ok {
+            // Function that returns (interface{}, error)
+            result, err := fn(args...)
+            if err != nil {
+                future.Reject(err)
+            } else {
+                future.Resolve(result)
+            }
+        } else if fn, ok := method.(func(interface{}, interface{}, interface{}) <-chan interface{}); ok {
+            // Function that returns <-chan interface{}
+            if len(args) >= 3 {
+                result := <-fn(args[0], args[1], args[2])
+                future.Resolve(result)
+            } else {
+                future.Reject(fmt.Errorf("insufficient arguments for function"))
+            }
         } else {
+            // Try to call dynamically using reflection
+            result := callDynamically(method, args...)
             future.Resolve(result)
         }
     }()
