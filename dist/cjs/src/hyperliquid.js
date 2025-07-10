@@ -625,6 +625,7 @@ class hyperliquid extends hyperliquid$1 {
                 'quote': quote,
                 'settle': undefined,
                 'baseId': baseId,
+                'baseName': baseName,
                 'quoteId': quoteId,
                 'settleId': undefined,
                 'type': 'spot',
@@ -732,6 +733,7 @@ class hyperliquid extends hyperliquid$1 {
             'quote': quote,
             'settle': settle,
             'baseId': baseId,
+            'baseName': baseName,
             'quoteId': quoteId,
             'settleId': settleId,
             'type': 'swap',
@@ -887,7 +889,7 @@ class hyperliquid extends hyperliquid$1 {
         const market = this.market(symbol);
         const request = {
             'type': 'l2Book',
-            'coin': market['swap'] ? market['base'] : market['id'],
+            'coin': market['swap'] ? market['baseName'] : market['id'],
         };
         const response = await this.publicPostInfo(this.extend(request, params));
         //
@@ -1125,7 +1127,7 @@ class hyperliquid extends hyperliquid$1 {
         const request = {
             'type': 'candleSnapshot',
             'req': {
-                'coin': market['swap'] ? market['base'] : market['id'],
+                'coin': market['swap'] ? market['baseName'] : market['id'],
                 'interval': this.safeString(this.timeframes, timeframe, timeframe),
                 'startTime': since,
                 'endTime': until,
@@ -1427,8 +1429,8 @@ class hyperliquid extends hyperliquid$1 {
             return true; // skip if builder fee is already approved
         }
         try {
-            const builder = this.safeString(this.options, 'builder', '0x2e3AB3E88a7DBdc763AaDf5b28c18fb085aF420a');
-            const maxFeeRate = this.safeString(this.options, 'feeRate', '0.001%');
+            const builder = this.safeString(this.options, 'builder', '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6');
+            const maxFeeRate = this.safeString(this.options, 'feeRate', '0.01%');
             await this.approveBuilderFee(builder, maxFeeRate);
             this.options['approvedBuilderFee'] = true;
         }
@@ -1662,6 +1664,10 @@ class hyperliquid extends hyperliquid$1 {
             'orders': orderReq,
             'grouping': grouping,
         };
+        if (this.safeBool(this.options, 'approvedBuilderFee', false)) {
+            const wallet = this.safeStringLower(this.options, 'builder', '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6');
+            orderAction['builder'] = { 'b': wallet, 'f': this.safeInteger(this.options, 'feeInt', 10) };
+        }
         const signature = this.signL1Action(orderAction, nonce, vaultAddress);
         const request = {
             'action': orderAction,
@@ -2170,7 +2176,7 @@ class hyperliquid extends hyperliquid$1 {
         const market = this.market(symbol);
         const request = {
             'type': 'fundingHistory',
-            'coin': market['base'],
+            'coin': market['baseName'],
         };
         if (since !== undefined) {
             request['startTime'] = since;
