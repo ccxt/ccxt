@@ -4073,7 +4073,7 @@ public partial class bybit : Exchange
         object isTakeProfit = !isEqual(takeProfitPrice, null);
         object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters, enableUnifiedAccount);
         object defaultMethod = null;
-        if (isTrue(isTrue(isTrue(isTrailingAmountOrder) || isTrue(isStopLoss)) || isTrue(isTakeProfit)))
+        if (isTrue(isTrue((isTrue(isTrue(isTrailingAmountOrder) || isTrue(isStopLoss)) || isTrue(isTakeProfit))) && !isTrue(getValue(market, "spot"))))
         {
             defaultMethod = "privatePostV5PositionTradingStop";
         } else
@@ -4141,7 +4141,7 @@ public partial class bybit : Exchange
         object isLimit = isEqual(lowerCaseType, "limit");
         object isBuy = isEqual(side, "buy");
         object defaultMethod = null;
-        if (isTrue(isTrue(isTrue(isTrailingAmountOrder) || isTrue(isStopLossTriggerOrder)) || isTrue(isTakeProfitTriggerOrder)))
+        if (isTrue(isTrue((isTrue(isTrue(isTrailingAmountOrder) || isTrue(isStopLossTriggerOrder)) || isTrue(isTakeProfitTriggerOrder))) && !isTrue(getValue(market, "spot"))))
         {
             defaultMethod = "privatePostV5PositionTradingStop";
         } else

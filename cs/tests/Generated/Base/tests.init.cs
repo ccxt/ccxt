@@ -18,6 +18,7 @@ public partial class BaseTest
             testNumberToString();
             testPrecise();
             testSafeMethods();
+            testSafeTicker();
             // testJson ();
             testSortBy();
             testSum();

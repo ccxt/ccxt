@@ -3942,7 +3942,7 @@ class bybit extends Exchange {
             $isTakeProfit = $takeProfitPrice !== null;
             $orderRequest = $this->create_order_request($symbol, $type, $side, $amount, $price, $params, $enableUnifiedAccount);
             $defaultMethod = null;
-            if ($isTrailingAmountOrder || $isStopLoss || $isTakeProfit) {
+            if (($isTrailingAmountOrder || $isStopLoss || $isTakeProfit) && !$market['spot']) {
                 $defaultMethod = 'privatePostV5PositionTradingStop';
             } else {
                 $defaultMethod = 'privatePostV5OrderCreate';
@@ -4023,7 +4023,7 @@ class bybit extends Exchange {
         $isLimit = $lowerCaseType === 'limit';
         $isBuy = $side === 'buy';
         $defaultMethod = null;
-        if ($isTrailingAmountOrder || $isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
+        if (($isTrailingAmountOrder || $isStopLossTriggerOrder || $isTakeProfitTriggerOrder) && !$market['spot']) {
             $defaultMethod = 'privatePostV5PositionTradingStop';
         } else {
             $defaultMethod = 'privatePostV5OrderCreate';

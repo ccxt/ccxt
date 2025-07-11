@@ -322,12 +322,14 @@ class coinbase extends coinbase$1 {
                     'rate_limit_exceeded': errors.RateLimitExceeded,
                     'internal_server_error': errors.ExchangeError,
                     'UNSUPPORTED_ORDER_CONFIGURATION': errors.BadRequest,
-                    'INSUFFICIENT_FUND': errors.BadRequest,
+                    'INSUFFICIENT_FUND': errors.InsufficientFunds,
                     'PERMISSION_DENIED': errors.PermissionDenied,
                     'INVALID_ARGUMENT': errors.BadRequest,
                     'PREVIEW_STOP_PRICE_ABOVE_LAST_TRADE_PRICE': errors.InvalidOrder,
+                    'PREVIEW_INSUFFICIENT_FUND': errors.InsufficientFunds,
                 },
                 'broad': {
+                    'Insufficient balance in source account': errors.InsufficientFunds,
                     'request timestamp expired': errors.InvalidNonce,
                     'order with this orderID was not found': errors.OrderNotFound, // {"error":"unknown","error_details":"order with this orderID was not found","message":"order with this orderID was not found"}
                 },
