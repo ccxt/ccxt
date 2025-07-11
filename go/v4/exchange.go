@@ -190,7 +190,6 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 	// this.id = SafeString(extendedProperties, "id", "").(string)
 	// this.Id = this.id333
 	// this.itf = itf
-
 	// warmup itf cache
 
 	this.initializeProperties(extendedProperties)
@@ -213,6 +212,22 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 		this.SetSandboxMode(true)
 	}
 
+	exchangeId := this.Name
+
+	market, ok := globalMarkets.GetUnifiedMarket(exchangeId)
+	if !ok {
+		markets := <-this.LoadMarkets()
+		switch markets.(type) {
+		case *sync.Map:
+			break
+		default:
+		}
+		globalMarkets.InsertUnifiedMarket(this.Markets, exchangeId)
+	} else {
+		this.MarketsMutex.Lock()
+		this.Markets = market.markets
+		this.MarketsMutex.Unlock()
+	}
 	// fmt.Println(this.TransformedApi)
 }
 
@@ -1052,7 +1067,6 @@ func (this *Exchange) GetMarketsList() []MarketInterface {
 	this.Markets.Range(func(key, value interface{}) bool {
 		markets = append(markets, NewMarketInterface(value))
 		return true
-
 	})
 	return markets
 }
