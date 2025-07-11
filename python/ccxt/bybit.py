@@ -3751,7 +3751,7 @@ class bybit(Exchange, ImplicitAPI):
         isTakeProfit = takeProfitPrice is not None
         orderRequest = self.create_order_request(symbol, type, side, amount, price, params, enableUnifiedAccount)
         defaultMethod = None
-        if isTrailingAmountOrder or isStopLoss or isTakeProfit:
+        if (isTrailingAmountOrder or isStopLoss or isTakeProfit) and not market['spot']:
             defaultMethod = 'privatePostV5PositionTradingStop'
         else:
             defaultMethod = 'privatePostV5OrderCreate'
@@ -3827,7 +3827,7 @@ class bybit(Exchange, ImplicitAPI):
         isLimit = lowerCaseType == 'limit'
         isBuy = side == 'buy'
         defaultMethod = None
-        if isTrailingAmountOrder or isStopLossTriggerOrder or isTakeProfitTriggerOrder:
+        if (isTrailingAmountOrder or isStopLossTriggerOrder or isTakeProfitTriggerOrder) and not market['spot']:
             defaultMethod = 'privatePostV5PositionTradingStop'
         else:
             defaultMethod = 'privatePostV5OrderCreate'
