@@ -7,6 +7,7 @@ import type { Balances, Currencies, Dict, Market, Str, Ticker, Trade, Int, Num, 
 import { ecdsa } from './base/functions/crypto.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
+import { Precise } from './base/Precise.js';
 
 // ---------------------------------------------------------------------------
 
@@ -195,8 +196,6 @@ export default class hibachi extends Exchange {
         const settleId: Str = this.safeString (market, 'settlementSymbol');
         const settle: Str = this.safeCurrencyCode (settleId);
         const symbol = base + '/' + quote + ':' + settle;
-        const underlyingDecimals = this.safeNumber (market, 'underlyingDecimals');
-        const settlementDecimals = this.safeNumber (market, 'settlementDecimals');
         return {
             'id': marketId,
             'numericId': numericId,
@@ -223,8 +222,8 @@ export default class hibachi extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': 10 ** (-underlyingDecimals),
-                'price': 10 ** (underlyingDecimals - settlementDecimals) / (2 ** 32),
+                'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'underlyingDecimals'))),
+                'price': undefined,
             },
             'limits': {
                 'leverage': {
@@ -509,7 +508,7 @@ export default class hibachi extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        const prices_response = await this.publicGetMarketDataPrices (this.extend (request));
+        const pricesResponse = await this.publicGetMarketDataPrices (this.extend (request));
         // {
         //     "askPrice": "3514.650296",
         //     "bidPrice": "3513.596112",
@@ -522,7 +521,7 @@ export default class hibachi extends Exchange {
         //     "symbol": "ETH/USDT-P",
         //     "tradePrice": "2372.746570"
         // }
-        const stats_response = await this.publicGetMarketDataStats (this.extend (request));
+        const statsResponse = await this.publicGetMarketDataStats (this.extend (request));
         // {
         //     "high24h": "3819.507827",
         //     "low24h": "3754.474162",
@@ -530,29 +529,49 @@ export default class hibachi extends Exchange {
         //     "volume24h": "23554.858590416"
         // }
         const ticker = {
-            'prices': prices_response,
-            'stats': stats_response,
+            'prices': pricesResponse,
+            'stats': statsResponse,
         };
         return this.parseTicker (ticker, market);
     }
 
-    orderMessage (market, nonce: number, fee_rate: number, type: OrderType, side: OrderSide, amount: number, price: Num = undefined) {
-        let side_code = 0;
+    orderMessage (market, nonce: number, feeRate: number, type: OrderType, side: OrderSide, amount: number, price: Num = undefined) {
+        let sideInternal = 0;
         if (side === 'ask') {
-            side_code = 0;
+            sideInternal = 0;
         } else if (side === 'buy') {
-            side_code = 1;
+            sideInternal = 1;
         }
-        // TODO: it will be safer to use big decimal to avoid rounding errors
-        const eps = 1e-6;
+        // Converting them to internal representation:
+        // - Quantity: Internal = External * (10^underlyingDecimals)
+        // - Price: Internal = External * (2^32) * (10^(settlementDecimals-underlyingDecimals))
+        // - FeeRate: Internal = External * (10^8)
+        const amountStr = amount.toString ();
+        const feeRateStr = feeRate.toString ();
+        const info = this.safeDict (market, 'info');
+        const underlying = '1e' + this.safeNumber (info, 'underlyingDecimals').toString ();
+        const settlement = '1e' + this.safeNumber (info, 'settlementDecimals').toString ();
+        const pOne = new Precise ('1');
+        const pFeeRateFactor = new Precise ('100000000'); // 10^8
+        const pPriceFactor = new Precise ('4294967296'); // 2^32
+        const pAmount = new Precise (amountStr);
+        const pFeeRate = new Precise (feeRateStr);
+        const pUnderlying = new Precise (underlying);
+        const pSettlement = new Precise (settlement);
+        const quantityInternal = pAmount.mul (pUnderlying).div (pOne, 0);
+        const feeRateInternal = pFeeRate.mul (pFeeRateFactor).div (pOne, 0);
+        // Encoding
         const encodedNonce = this.base16ToBinary (this.intToBase16 (nonce).padStart (16, '0'));
         const encodedMarketId = this.base16ToBinary (this.intToBase16 (market.numericId).padStart (8, '0'));
-        const encodedQuantity = this.base16ToBinary (this.intToBase16 (Math.floor (amount / market.precision.amount + eps)).padStart (16, '0'));
-        const encodedSide = this.base16ToBinary (this.intToBase16 (side_code).padStart (8, '0'));
-        const encodedFeeRate = this.base16ToBinary (this.intToBase16 (Math.floor (fee_rate * (10 ** 8) + eps)).padStart (16, '0'));
+        const encodedQuantity = this.base16ToBinary (this.intToBase16 (this.parseToInt (quantityInternal.toString ())).padStart (16, '0'));
+        const encodedSide = this.base16ToBinary (this.intToBase16 (sideInternal).padStart (8, '0'));
+        const encodedFeeRate = this.base16ToBinary (this.intToBase16 (this.parseToInt (feeRateInternal.toString ())).padStart (16, '0'));
         let encodedPrice = this.binaryConcat ();
         if (type === 'limit') {
-            encodedPrice = this.base16ToBinary (this.intToBase16 (Math.floor (price / market.precision.price + eps)).padStart (16, '0'));
+            const priceStr = price.toString ();
+            const pPrice = new Precise (priceStr);
+            const priceInternal = pPrice.mul (pPriceFactor).mul (pSettlement).div (pUnderlying).div (pOne, 0);
+            encodedPrice = this.base16ToBinary (this.intToBase16 (this.parseToInt (priceInternal.toString ())).padStart (16, '0'));
         }
         const message = this.binaryConcat (encodedNonce, encodedMarketId, encodedQuantity, encodedSide, encodedPrice, encodedFeeRate);
         return message;
@@ -576,29 +595,29 @@ export default class hibachi extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const nonce = this.nonce ();
-        const fee_rate = Math.max (market.taker, market.maker);
-        let side_internal = '';
+        const feeRate = Math.max (market.taker, market.maker);
+        let sideInternal = '';
         if (side === 'sell') {
-            side_internal = 'ASK';
+            sideInternal = 'ASK';
         } else if (side === 'buy') {
-            side_internal = 'BID';
+            sideInternal = 'BID';
         }
-        let price_internal = '';
+        let priceInternal = '';
         if (price) {
-            price_internal = price.toString ();
+            priceInternal = price.toString ();
         }
-        const message = this.orderMessage (market, nonce, fee_rate, type, side, amount, price);
+        const message = this.orderMessage (market, nonce, feeRate, type, side, amount, price);
         const signature = this.signMessage (message, this.privateKey);
         const request = {
             'accountId': this.accountId,
             'symbol': market.id,
             'nonce': nonce,
-            'side': side_internal,
+            'side': sideInternal,
             'orderType': type.toUpperCase (),
             'quantity': amount.toString (),
-            'price': price_internal,
+            'price': priceInternal,
             'signature': signature,
-            'maxFeesPercent': fee_rate.toString (),
+            'maxFeesPercent': feeRate.toString (),
         };
         const response = await this.privatePostTradeOrder (request);
         //
@@ -631,8 +650,8 @@ export default class hibachi extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const nonce = this.nonce ();
-        const fee_rate = Math.max (market.taker, market.maker);
-        const message = this.orderMessage (market, nonce, fee_rate, type, side, amount, price);
+        const feeRate = Math.max (market.taker, market.maker);
+        const message = this.orderMessage (market, nonce, feeRate, type, side, amount, price);
         const signature = this.signMessage (message, this.privateKey);
         const request = {
             'accountId': this.accountId,
@@ -640,7 +659,7 @@ export default class hibachi extends Exchange {
             'nonce': nonce,
             'updatedQuantity': amount.toString (),
             'updatedPrice': price.toString (),
-            'maxFeesPercent': fee_rate.toString (),
+            'maxFeesPercent': feeRate.toString (),
             'signature': signature,
         };
         await this.privatePutTradeOrder (request);
