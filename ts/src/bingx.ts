@@ -4891,7 +4891,7 @@ export default class bingx extends Exchange {
             'asset': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
         };
-        const response = await this.spotV3PrivateGetGetAssetTransfer (this.extend (request, params));
+        const response = await this.apiAssetV1PrivatePostTransfer (this.extend (request, params));
         //
         //     {
         //         "tranId": 1933130865269936128,
