@@ -2958,7 +2958,8 @@ class okx(Exchange, ImplicitAPI):
                 stopLossTriggerPrice = self.safe_value_n(stopLoss, ['triggerPrice', 'stopPrice', 'slTriggerPx'])
                 if stopLossTriggerPrice is None:
                     raise InvalidOrder(self.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"], or params["stopLoss"]["stopPrice"], or params["stopLoss"]["slTriggerPx"] for a stop loss order')
-                request['slTriggerPx'] = self.price_to_precision(symbol, stopLossTriggerPrice)
+                slTriggerPx = self.price_to_precision(symbol, stopLossTriggerPrice)
+                request['slTriggerPx'] = slTriggerPx
                 stopLossLimitPrice = self.safe_value_n(stopLoss, ['price', 'stopLossPrice', 'slOrdPx'])
                 stopLossOrderType = self.safe_string(stopLoss, 'type')
                 if stopLossOrderType is not None:
@@ -3024,6 +3025,12 @@ class okx(Exchange, ImplicitAPI):
             # tpOrdKind is 'condition' which is the default
             if twoWayCondition:
                 request['ordType'] = 'oco'
+            if side == 'sell':
+                request = self.omit(request, 'tgtCcy')
+            if self.safe_string(request, 'tdMode') == 'cash':
+                # for some reason tdMode = cash throws
+                # {"code":"1","data":[{"algoClOrdId":"","algoId":"","clOrdId":"","sCode":"51000","sMsg":"Parameter tdMode error ","tag":""}],"msg":""}
+                request['tdMode'] = marginMode
             if takeProfitPrice is not None:
                 request['tpTriggerPx'] = self.price_to_precision(symbol, takeProfitPrice)
                 tpOrdPxReq = '-1'
