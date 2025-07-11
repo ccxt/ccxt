@@ -6,7 +6,7 @@
 
 // ----------------------------------------------------------------------------
 import Exchange from './abstract/coinbase.js';
-import { ExchangeError, ArgumentsRequired, AuthenticationError, BadRequest, InvalidOrder, NotSupported, OrderNotFound, RateLimitExceeded, InvalidNonce, PermissionDenied } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, AuthenticationError, BadRequest, InvalidOrder, NotSupported, OrderNotFound, RateLimitExceeded, InvalidNonce, PermissionDenied, InsufficientFunds } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -325,12 +325,14 @@ export default class coinbase extends Exchange {
                     'rate_limit_exceeded': RateLimitExceeded,
                     'internal_server_error': ExchangeError,
                     'UNSUPPORTED_ORDER_CONFIGURATION': BadRequest,
-                    'INSUFFICIENT_FUND': BadRequest,
+                    'INSUFFICIENT_FUND': InsufficientFunds,
                     'PERMISSION_DENIED': PermissionDenied,
                     'INVALID_ARGUMENT': BadRequest,
                     'PREVIEW_STOP_PRICE_ABOVE_LAST_TRADE_PRICE': InvalidOrder,
+                    'PREVIEW_INSUFFICIENT_FUND': InsufficientFunds,
                 },
                 'broad': {
+                    'Insufficient balance in source account': InsufficientFunds,
                     'request timestamp expired': InvalidNonce,
                     'order with this orderID was not found': OrderNotFound, // {"error":"unknown","error_details":"order with this orderID was not found","message":"order with this orderID was not found"}
                 },
