@@ -190,6 +190,7 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 	// this.id = SafeString(extendedProperties, "id", "").(string)
 	// this.Id = this.id333
 	// this.itf = itf
+
 	// warmup itf cache
 
 	this.initializeProperties(extendedProperties)
@@ -212,7 +213,7 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 		this.SetSandboxMode(true)
 	}
 
-	exchangeId := this.Name
+	exchangeId := this.Id
 
 	market, ok := globalMarkets.GetUnifiedMarket(exchangeId)
 	if !ok {
