@@ -151,6 +151,7 @@ export default class oxfun extends oxfunRest {
             }
             const stored = this.trades[symbol];
             stored.append (parsedTrade);
+            this.streamProduce ('trades', parsedTrade);
             client.resolve (stored, messageHash);
         }
     }
@@ -300,6 +301,8 @@ export default class oxfun extends oxfunRest {
         const stored = this.ohlcvs[symbol][timeframe];
         stored.append (parsed);
         const messageHash = 'ohlcv:' + symbol + ':' + timeframe;
+        const ohlcvs = this.createOHLCVObject (symbol, timeframe, parsed);
+        this.streamProduce ('ohlcvs', ohlcvs);
         client.resolve (stored, messageHash);
         // for multiOHLCV we need special object, as opposed to other "multi"
         // methods, because OHLCV response item does not contain symbol
@@ -422,6 +425,7 @@ export default class oxfun extends oxfunRest {
         orderbook.reset (snapshot);
         orderbook['nonce'] = this.safeInteger (data, 'seqNum');
         this.orderbooks[symbol] = orderbook;
+        this.streamProduce ('orderbooks', orderbook);
         client.resolve (orderbook, messageHash);
     }
 
@@ -509,6 +513,7 @@ export default class oxfun extends oxfunRest {
             const symbol = ticker['symbol'];
             const messageHash = 'tickers:' + symbol;
             this.tickers[symbol] = ticker;
+            this.streamProduce ('tickers', ticker);
             client.resolve (ticker, messageHash);
         }
     }
@@ -648,6 +653,7 @@ export default class oxfun extends oxfunRest {
             this.balance[code] = account;
         }
         this.balance = this.safeBalance (this.balance);
+        this.streamProduce ('balances', this.balance);
         client.resolve (this.balance, 'balance');
     }
 
@@ -722,6 +728,7 @@ export default class oxfun extends oxfunRest {
             const symbol = position['symbol'];
             const messageHash = 'positions:' + symbol;
             cache.append (position);
+            this.streamProduce ('positions', position);
             client.resolve (position, messageHash);
         }
     }
@@ -850,6 +857,7 @@ export default class oxfun extends oxfunRest {
             const order = this.safeDict (data, i, {});
             const parsedOrder = this.parseOrder (order);
             orders.append (parsedOrder);
+            this.streamProduce ('orders', parsedOrder);
             messageHash += ':' + parsedOrder['symbol'];
             client.resolve (this.orders, messageHash);
         }
@@ -1080,6 +1088,7 @@ export default class oxfun extends oxfunRest {
             future.resolve (true);
         } else {
             const error = new AuthenticationError (this.json (message));
+            this.streamProduce ('errors', undefined, error);
             client.reject (error, messageHash);
             if (messageHash in client.subscriptions) {
                 delete client.subscriptions[messageHash];
@@ -1097,6 +1106,7 @@ export default class oxfun extends oxfunRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         if (message === 'pong') {
             this.handlePong (client, message);
             return;
