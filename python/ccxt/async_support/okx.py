@@ -2557,11 +2557,11 @@ class okx(Exchange, ImplicitAPI):
             # it may be incorrect to use total, free and used for swap accounts
             eq = self.safe_string(balance, 'eq')
             availEq = self.safe_string(balance, 'availEq')
-            if (eq is None) or (availEq is None):
+            account['total'] = eq
+            if availEq is None:
                 account['free'] = self.safe_string(balance, 'availBal')
                 account['used'] = self.safe_string(balance, 'frozenBal')
             else:
-                account['total'] = eq
                 account['free'] = availEq
             result[code] = account
         result['timestamp'] = timestamp
