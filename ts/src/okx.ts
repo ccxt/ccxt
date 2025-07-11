@@ -3047,9 +3047,6 @@ export default class okx extends Exchange {
                 }
                 const slTriggerPx = this.priceToPrecision (symbol, stopLossTriggerPrice);
                 request['slTriggerPx'] = slTriggerPx;
-                if ((slTriggerPx !== undefined) && (side === 'sell')) {
-                    request = this.omit (request, 'tgtCcy');
-                }
                 const stopLossLimitPrice = this.safeValueN (stopLoss, [ 'price', 'stopLossPrice', 'slOrdPx' ]);
                 const stopLossOrderType = this.safeString (stopLoss, 'type');
                 if (stopLossOrderType !== undefined) {
@@ -3128,6 +3125,12 @@ export default class okx extends Exchange {
             // tpOrdKind is 'condition' which is the default
             if (twoWayCondition) {
                 request['ordType'] = 'oco';
+            }
+            request = this.omit (request, 'tgtCcy');
+            if (this.safeString (request, 'tdMode') === 'cash') {
+                // for some reason tdMode = cash thros
+                // {"code":"1","data":[{"algoClOrdId":"","algoId":"","clOrdId":"","sCode":"51000","sMsg":"Parameter tdMode error ","tag":""}],"msg":""}
+                request['tdMode'] = marginMode;
             }
             if (takeProfitPrice !== undefined) {
                 request['tpTriggerPx'] = this.priceToPrecision (symbol, takeProfitPrice);
