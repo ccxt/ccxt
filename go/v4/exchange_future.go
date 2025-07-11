@@ -1,8 +1,7 @@
 package ccxt
 
 import (
-	"reflect"
-	"sync"
+	"time"
 )
 
 // Future is a one-shot promise
@@ -29,133 +28,75 @@ func ToGetsLimit(v interface{}) GetsLimit {
 	return NoopLimit{Val: v}  // otherwise it is wrapped in NoopLimit
 }
 
-type Future chan interface{}
 
-// futureState tracks the state of a Future to prevent double-close
-type futureState struct {
-	once   sync.Once
-	closed bool
-	mu     sync.Mutex
+type Future struct {
+    result chan interface{}
+    err    chan error
 }
 
-var futureStates = sync.Map{} // map[Future]*futureState
-
-// constructor
-func NewFuture() Future {
-	f := make(Future, 1000)
-	futureStates.Store(f, &futureState{})
-	return f
+// Create new Future
+func NewFuture() *Future {
+    return &Future{
+        result: make(chan interface{}, 1),
+        err:    make(chan error, 1),
+    }
 }
 
-// Await is still available (now just returns itself)
-func (f Future) Await() <-chan interface{} {
-	ch := make(chan interface{}, 1000)
-	go func() {
-		defer close(ch)
-		// Read all messages from the Future channel and forward them
-		for val := range f {
-			// Unwrap the GetsLimit interface to get the actual data
-			if noopLimit, ok := val.(NoopLimit); ok {
-				ch <- noopLimit.Val
-			} else {
-				// For debugging: print the type to understand what we're getting
-				ch <- val
-			}
-		}
-	}()
-	return ch
+// Resolve asynchronously with a value
+func (f *Future) Resolve(value interface{}) {
+    go func() {
+        time.Sleep(0) // defer to next goroutine scheduling, like setTimeout 0
+        f.result <- value
+    }()
 }
 
-// Resolve / Reject send once then close
-func (f Future) Resolve(vals ...interface{}) {
-	if state, ok := futureStates.Load(f); ok {
-		fs := state.(*futureState)
-		fs.once.Do(func() {
-			defer func() {
-				// Recover from panic if channel is already closed
-				if r := recover(); r != nil {
-					// Channel was already closed, ignore
-				}
-			}()
-			
-			var v interface{}
-			if len(vals) > 0 {
-				v = vals[0]
-			}
-			
-			select {
-			case f <- v:
-			default: // channel full, ignore
-			}
-			close(f)
-			
-			fs.mu.Lock()
-			fs.closed = true
-			fs.mu.Unlock()
-			
-			// Clean up the state map
-			futureStates.Delete(f)
-		})
-	}
+// Reject asynchronously with an error
+func (f *Future) Reject(reason error) {
+    go func() {
+        time.Sleep(0)
+        f.err <- reason
+    }()
 }
 
-// ResolveOngoing sends data without closing the channel (for ongoing updates)
-func (f Future) ResolveOngoing(vals ...interface{}) {
-	if state, ok := futureStates.Load(f); ok {
-		fs := state.(*futureState)
-		fs.mu.Lock()
-		if fs.closed {
-			fs.mu.Unlock()
-			return // already closed
-		}
-		fs.mu.Unlock()
-		
-		var v interface{}
-		if len(vals) > 0 {
-			v = vals[0]
-		}
-		
-		select {
-		case f <- v:
-		default: // channel full, drop message
-		}
-	}
+// Await blocks until either result or error is received
+func (f *Future) Await() (interface{}, error) {
+    select {
+    case res := <-f.result:
+        return res, nil
+    case err := <-f.err:
+        return nil, err
+    }
 }
 
-func (f Future) Reject(err interface{}) { f.Resolve(err) }
-
-// IsClosed safely checks if the Future has been resolved/closed
-func (f Future) IsClosed() bool {
-	if state, ok := futureStates.Load(f); ok {
-		fs := state.(*futureState)
-		fs.mu.Lock()
-		defer fs.mu.Unlock()
-		return fs.closed
-	}
-	return false
+// Wrap an existing channel that returns (interface{}, error) into Future
+func WrapFuture(ch <-chan struct {
+    val interface{}
+    err error
+}) *Future {
+    f := NewFuture()
+    go func() {
+        v := <-ch
+        if v.err != nil {
+            f.Reject(v.err)
+        } else {
+            f.Resolve(v.val)
+        }
+    }()
+    return f
 }
 
-func WrapFuture(aggregatePromise chan interface{}) Future {
-	p := NewFuture()
-	// wrap the promises as a future
-	go func() {
-		result := <-aggregatePromise
-		p.Resolve(result)
-	}()
-	return p
+// Race multiple Futures: returns the first resolved or rejected value/error
+func FutureRace(futures []*Future) *Future {
+    result := NewFuture()
+    for _, f := range futures {
+        go func(fut *Future) {
+            val, err := fut.Await()
+            if err != nil {
+                result.Reject(err)
+            } else {
+                result.Resolve(val)
+            }
+        }(f)
+    }
+    return result
 }
-
-func FutureRace(futures []Future) Future {
-	p := NewFuture()
-	go func() {
-		cases := make([]reflect.SelectCase, len(futures))
-		for i, fut := range futures {
-			cases[i] = reflect.SelectCase{Dir: reflect.SelectRecv, Chan: reflect.ValueOf(fut)}
-		}
-		_, value, _ := reflect.Select(cases)
-		p.Resolve(value.Interface())
-	}()
-	return p
-}
-
-// NOTE: the Client.Future helper is implemented in exchange_client.go

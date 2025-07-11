@@ -1379,7 +1379,7 @@ func (this *Exchange) callEndpointAsync(endpointName string, args ...interface{}
 //   - [message]      subscribe payload (optional)
 //   - [subscribeHash] key for "subscriptions" map (optional)
 //   - [subscription]  arbitrary value stored in subscriptions (optional)
-func (this *Exchange) Watch(args ...interface{}) Future {
+func (this *Exchange) Watch(args ...interface{}) <-chan interface{} {
 
 	url, _ := args[0].(string)
 	messageHash, _ := args[1].(string)
@@ -1414,8 +1414,9 @@ func (this *Exchange) Watch(args ...interface{}) Future {
 	//                             subscribe -----→ receive
 	//
 	if subscribeHash == nil {
-		if val, ok := client.Futures[messageHash]; ok {
-			return val
+		if fut, ok := client.Futures[messageHash]; ok {
+			fmt.Printf("fut.result: %+v\n", fut.result)
+			return fut.result
 		}
 	}
 	future := client.Future(messageHash)
@@ -1437,45 +1438,53 @@ func (this *Exchange) Watch(args ...interface{}) Future {
 	if err != nil {
 		delete(client.Subscriptions, subscribeHash.(string))
 		future.Reject(err)
-		return future
+		return future.result
 	}
 	// the following is executed only if the catch-clause does not
 	// catch any connection-level exceptions from the client
 	// (connection established successfully)
 	if (clientSubscription == nil) {
 		go func() {
-			<-connected
-			options := SafeValue(this.Options, "ws", make(map[string]interface{}))
-			cost := SafeValue(options, "cost", 1)
-			if message != nil {
-				if this.EnableRateLimit && client.Throttle != nil {
-					// add cost here |
-					//               |
-					//               V
-					if throttleFunc, ok := client.Throttle.(func(interface{}) error); ok {
-						if err := throttleFunc(cost); err != nil {
-							client.OnError(err)
-							return
+			select {
+				case <-connected.result:
+					options := SafeValue(this.Options, "ws", make(map[string]interface{}))
+					cost := SafeValue(options, "cost", 1)
+					if message != nil {
+						if this.EnableRateLimit && client.Throttle != nil {
+							// add cost here |
+							//               |
+							//               V
+							if throttleFunc, ok := client.Throttle.(func(interface{}) error); ok {
+								if err := throttleFunc(cost); err != nil {
+									client.OnError(err)
+									return
+								}
+							}
+							sendFuture := client.Send(message)
+							// Wait synchronously for send completion (mimics JS promise .catch).
+							select {
+							case err := <-sendFuture.err:
+								client.OnError(err)
+							case <-sendFuture.result:
+								// send succeeded – nothing else to do
+							}
+						} else {
+							sendFuture := client.Send(message)
+							select {
+							case err := <-sendFuture.err:
+								client.OnError(err)
+							case <-sendFuture.result:
+							}
 						}
 					}
-					sendFuture := client.Send(message)
-					go func() {
-						if err := <-sendFuture; err != nil {
-							client.OnError(err)
-						}
-					}()
-				} else {
-					sendFuture := client.Send(message)
-					go func() {
-						if err := <-sendFuture; err != nil {
-							client.OnError(err)
-						}
-					}()
-				}
+				case err := <-connected.err:
+					delete(client.Subscriptions, subscribeHash.(string))
+					future.Reject(err)
+					return
 			}
 		}()
 	}
-	return future;
+	return future.result;
 }
 
 // ------------------- WS helper wrappers (parity with TS) ------------------
@@ -1684,7 +1693,7 @@ func (this *Exchange) Client(url interface{}) *WSClient {
 	return client
 }
 
-func (this *Exchange) WatchMultiple(args ...interface{}) Future {
+func (this *Exchange) WatchMultiple(args ...interface{}) <-chan interface{} {
 	url, _ := args[0].(string)
 	var messageHashes []string
 	
@@ -1730,7 +1739,7 @@ func (this *Exchange) WatchMultiple(args ...interface{}) Future {
 	//                                 |               |
 	//                             subscribe -----→ receive
 	//
-	futures := make([]Future, len(messageHashes))
+	futures := make([]*Future, len(messageHashes))
 	for i, messageHash := range messageHashes {
 		futures[i] = client.Future(messageHash)
 	}
@@ -1770,72 +1779,68 @@ func (this *Exchange) WatchMultiple(args ...interface{}) Future {
 	connected, err := client.Connect(backoffDelay)
 	if err != nil {
 		future.Reject(err)
-		return future
+		return future.result
 	}
 	// the following is executed only if the catch-clause does not
 	// catch any connection-level exceptions from the client
 	// (connection established successfully)
 	if ((subscribeHashes == nil) || missingSubscriptions != nil) {
 		go func() {
-			defer func() {
-				if r := recover(); r != nil {
-					for _, subscribeHash := range missingSubscriptions {
-						delete(client.Subscriptions, subscribeHash)
-					}
-					future.Reject(r)
-				}
-			}()
-			
-			<-connected
-			options := SafeValue(this.Options, "ws", make(map[string]interface{}))
-			cost := SafeValue(options, "cost", 1)
-			if message != nil {
-				if this.EnableRateLimit && client.Throttle != nil {
-					// add cost here |
-					//               |
-					//               V
-					if throttleFunc, ok := client.Throttle.(func(interface{}) error); ok {
-						if err := throttleFunc(cost); err != nil {
-							for _, subscribeHash := range missingSubscriptions {
-								delete(client.Subscriptions, subscribeHash)
+			select {
+				case <-connected.result:
+					options := SafeValue(this.Options, "ws", make(map[string]interface{}))
+					cost := SafeValue(options, "cost", 1)
+					if message != nil {
+						if this.EnableRateLimit && client.Throttle != nil {
+							// add cost here |
+							//               |
+							//               V
+							if throttleFunc, ok := client.Throttle.(func(interface{}) error); ok {
+								if err := throttleFunc(cost); err != nil {
+									client.OnError(err)
+								}
 							}
-							future.Reject(err)
-							return
+							sendFuture := client.Send(message)
+							select {
+							case err := <-sendFuture.err:
+								for _, subscribeHash := range missingSubscriptions {
+									delete(client.Subscriptions, subscribeHash)
+								}
+								future.Reject(err)
+							case <-sendFuture.result:
+								// success
+							}
+						} else {
+							sendFuture := client.Send(message)
+							select {
+							case err := <-sendFuture.err:
+								for _, subscribeHash := range missingSubscriptions {
+									delete(client.Subscriptions, subscribeHash)
+								}
+								future.Reject(err)
+							case <-sendFuture.result:
+							}
 						}
 					}
-					sendFuture := client.Send(message)
-					go func() {
-						if err := <-sendFuture; err != nil {
-							for _, subscribeHash := range missingSubscriptions {
-								delete(client.Subscriptions, subscribeHash)
-							}
-							future.Reject(err)
-						}
-					}()
-				} else {
-					sendFuture := client.Send(message)
-					go func() {
-						if err := <-sendFuture; err != nil {
-							for _, subscribeHash := range missingSubscriptions {
-								delete(client.Subscriptions, subscribeHash)
-							}
-							future.Reject(err)
-						}
-					}()
+			case err := <-connected.err:
+				for _, subscribeHash := range missingSubscriptions {
+					delete(client.Subscriptions, subscribeHash)
 				}
+				future.Reject(err)
+				return
 			}
 		}()
 	}
-	return future;
+	return future.result;
 }
 
-func (this *Exchange) Spawn(method interface{}, args ...interface{}) Future {
+func (this *Exchange) Spawn(method interface{}, args ...interface{}) *Future {
     future := NewFuture()
 
     go func() {
         defer func() {
             if r := recover(); r != nil {
-                future.Reject(r)
+                future.Reject(r.(error))
             }
         }()
         

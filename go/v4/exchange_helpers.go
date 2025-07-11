@@ -1,8 +1,12 @@
 package ccxt
 
 import (
+	"bytes"
+	"compress/flate"
+	"compress/gzip"
 	"encoding/json"
 	"fmt"
+	"io"
 	"math"
 	"reflect"
 	"runtime"
@@ -3086,4 +3090,19 @@ func HandleDeltas(bookside interface{}, deltas interface{}) interface{} {
 	}
 
 	return bookside
+}
+
+func GunzipSync(data []byte) ([]byte, error) {
+    r, err := gzip.NewReader(bytes.NewReader(data))
+    if err != nil {
+        return nil, err
+    }
+    defer r.Close()
+    return io.ReadAll(r)
+}
+
+func InflateSync(data []byte) ([]byte, error) {
+    r := flate.NewReader(bytes.NewReader(data))
+    defer r.Close()
+    return io.ReadAll(r)
 }
