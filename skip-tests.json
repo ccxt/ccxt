@@ -1947,5 +1947,14 @@
                 "activeMajorCurrencies": "todo"
             }
         }
+    },
+    "bullish": {
+        "skipMethods": {
+            "fetchCurrencies": {
+                "withdraw": "not provided",
+                "deposit": "not provided",
+                "activeMajorCurrencies":"not provided"
+            }
+        }
     }
 }
