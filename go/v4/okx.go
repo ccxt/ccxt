@@ -2771,11 +2771,11 @@ func  (this *okx) ParseTradingBalance(response interface{}) interface{}  {
         // it may be incorrect to use total, free and used for swap accounts
         var eq interface{} = this.SafeString(balance, "eq")
         var availEq interface{} = this.SafeString(balance, "availEq")
-        if IsTrue(IsTrue((IsEqual(eq, nil))) || IsTrue((IsEqual(availEq, nil)))) {
+        AddElementToObject(account, "total", eq)
+        if IsTrue(IsEqual(availEq, nil)) {
             AddElementToObject(account, "free", this.SafeString(balance, "availBal"))
             AddElementToObject(account, "used", this.SafeString(balance, "frozenBal"))
         } else {
-            AddElementToObject(account, "total", eq)
             AddElementToObject(account, "free", availEq)
         }
         AddElementToObject(result, code, account)
