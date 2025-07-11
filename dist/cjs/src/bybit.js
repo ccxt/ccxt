@@ -3911,7 +3911,7 @@ class bybit extends bybit$1 {
         const isTakeProfit = takeProfitPrice !== undefined;
         const orderRequest = this.createOrderRequest(symbol, type, side, amount, price, params, enableUnifiedAccount);
         let defaultMethod = undefined;
-        if (isTrailingAmountOrder || isStopLoss || isTakeProfit) {
+        if ((isTrailingAmountOrder || isStopLoss || isTakeProfit) && !market['spot']) {
             defaultMethod = 'privatePostV5PositionTradingStop';
         }
         else {
@@ -3992,7 +3992,7 @@ class bybit extends bybit$1 {
         const isLimit = lowerCaseType === 'limit';
         const isBuy = side === 'buy';
         let defaultMethod = undefined;
-        if (isTrailingAmountOrder || isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
+        if ((isTrailingAmountOrder || isStopLossTriggerOrder || isTakeProfitTriggerOrder) && !market['spot']) {
             defaultMethod = 'privatePostV5PositionTradingStop';
         }
         else {
