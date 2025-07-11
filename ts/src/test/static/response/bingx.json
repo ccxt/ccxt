@@ -99,29 +99,40 @@
         ],
         "transfer": [
             {
-                "description": "transfer from funding to spot",
+                "description": "transfer LTC from inverse swap to spot using the subType parameter",
                 "method": "transfer",
                 "input": [
-                    "USDT",
-                    10,
-                    "funding",
-                    "spot"
+                    "LTC",
+                    0.05,
+                    "swap",
+                    "spot",
+                    {
+                        "subType": "inverse"
+                    }
                 ],
                 "httpResponse": {
-                    "tranId": 1933134535059443712,
-                    "transferId": "1051450707684874297365"
+                    "code": "0",
+                    "timestamp": "1752202170686",
+                    "data": {
+                        "tranId": "1943502883135819776",
+                        "transferId": "1051461075875997081703"
+                    }
                 },
                 "parsedResponse": {
                     "info": {
-                        "tranId": "1933134535059443712",
-                        "transferId": "1051450707684874297365"
+                        "code": "0",
+                        "timestamp": "1752202170686",
+                        "data": {
+                            "tranId": "1943502883135819776",
+                            "transferId": "1051461075875997081703"
+                        }
                     },
-                    "id": "1933134535059443712",
+                    "id": null,
                     "timestamp": null,
                     "datetime": null,
-                    "currency": "USDT",
-                    "amount": 10,
-                    "fromAccount": "funding",
+                    "currency": "LTC",
+                    "amount": 0.05,
+                    "fromAccount": "swap",
                     "toAccount": "spot",
                     "status": null
                 }

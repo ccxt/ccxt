@@ -4900,7 +4900,7 @@ export default class bingx extends Exchange {
         //
         return {
             'info': response,
-            'id': this.safeString (response, 'transferId'),
+            'id': this.safeString (response, 'tranId'),
             'timestamp': undefined,
             'datetime': undefined,
             'currency': code,

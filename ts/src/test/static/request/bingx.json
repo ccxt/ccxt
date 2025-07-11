@@ -1209,26 +1209,17 @@
         ],
         "transfer": [
             {
-                "description": "transfer from funding to spot",
+                "description": "transfer LTC from inverse swap to spot using the subType parameter",
                 "method": "transfer",
-                "url": "https://open-api.bingx.com/openApi/api/v3/get/asset/transfer?amount=10&asset=USDT&timestamp=1749730163429&type=FUND_SPOT&signature=c667ad589979f420fff6e246b446dc841464461c0d037de3467b0e6f854928eb",
+                "url": "https://open-api.bingx.com/openApi/api/asset/v1/transfer?amount=0.05&asset=LTC&fromAccount=USDTMPerp&timestamp=1752202170056&toAccount=spot&signature=1759012ec5ebbca1ad6a823da98ce4689dbf667aa5a01ee9ea553e23f2f1e010",       
                 "input": [
-                    "USDT",
-                    10,
-                    "funding",
-                    "spot"
-                ],
-                "output": null
-            },
-            {
-                "description": "transfer from spot to swap",
-                "method": "transfer",
-                "url": "https://open-api.bingx.com/openApi/api/v3/get/asset/transfer?amount=1&asset=USDT&timestamp=1699460638047&type=SPOT_PFUTURES&signature=602ba000bf84c64cb933a3d94ed44c0f9260416994d2b2fcf8ab3cf993800c2b",
-                "input": [
-                    "USDT",
-                    1,
+                    "LTC",
+                    0.05,
+                    "swap",
                     "spot",
-                    "swap"
+                    {
+                        "subType": "inverse"
+                    }
                 ]
             }
         ],
