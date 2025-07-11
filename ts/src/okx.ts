@@ -3128,7 +3128,7 @@ export default class okx extends Exchange {
             }
             request = this.omit (request, 'tgtCcy');
             if (this.safeString (request, 'tdMode') === 'cash') {
-                // for some reason tdMode = cash thros
+                // for some reason tdMode = cash throws
                 // {"code":"1","data":[{"algoClOrdId":"","algoId":"","clOrdId":"","sCode":"51000","sMsg":"Parameter tdMode error ","tag":""}],"msg":""}
                 request['tdMode'] = marginMode;
             }
