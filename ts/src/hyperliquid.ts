@@ -412,8 +412,8 @@ export default class hyperliquid extends Exchange {
             promises.push (this.handleBuilderFeeApproval ());
         }
         const resolved = await Promise.all (promises);
-        responseMeta = resolved[0];
-        responseSpotMeta = resolved[1];
+        const responseMeta = resolved[0];
+        const responseSpotMeta = resolved[1];
         const meta = this.safeList (responseMeta, 'universe', []);
         const tokens = this.safeList (responseSpotMeta, 'tokens', []);
         const indexedTokens = this.indexBy (tokens, 'name');
