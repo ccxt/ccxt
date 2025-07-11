@@ -6,6 +6,48 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchBalance": [
+            {
+                "description": "funding balance",
+                "method": "fetchBalance",
+                "url": "https://www.okx.com/api/v5/asset/balances",
+                "input": [
+                    {
+                        "type": "funding"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "funding balance",
+                "method": "fetchBalance",
+                "url": "https://www.okx.com/api/v5/asset/balances",
+                "input": [
+                    {
+                        "type": "funding"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "spot balance",
+                "method": "fetchBalance",
+                "url": "https://www.okx.com/api/v5/account/balance",
+                "input": [
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "spot balance",
+                "method": "fetchBalance",
+                "url": "https://www.okx.com/api/v5/account/balance",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchOpenInterests": [
             {
                 "description": "fetchOpenInterests",
@@ -1370,6 +1412,18 @@
             }
         ],
         "transfer": [
+            {
+                "description": "transfer spot to funding",
+                "method": "transfer",
+                "url": "https://www.okx.com/api/v5/asset/transfer",
+                "input": [
+                    "TUSD",
+                    100,
+                    "spot",
+                    "funding"
+                ],
+                "output": "{\"ccy\":\"TUSD\",\"amt\":\"100\",\"type\":\"0\",\"from\":\"18\",\"to\":\"6\"}"
+            },
             {
                 "description": "transfer from spot to funding",
                 "method": "transfer",
