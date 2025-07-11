@@ -62,6 +62,22 @@
                 "output": "{\"symbol\":\"BTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"category\":\"spot\",\"qty\":\"0.1\",\"price\":\"36000\",\"triggerPrice\":\"36001\",\"orderFilter\":\"StopOrder\"}"
             },
             {
+                "description": "spot limit buy with stopLossPrice",
+                "method": "createOrder",
+                "url": "https://api.bybit.com/v5/order/create",
+                "input": [
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    0.1,
+                    36000,
+                    {
+                        "stopLossPrice": 36001
+                    }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"orderFilter\":\"tpslOrder\",\"price\":\"36000\",\"category\":\"spot\",\"qty\":\"0.1\",\"triggerDirection\":1,\"triggerPrice\":\"36001\",\"reduceOnly\":true}"
+            },
+            {
                 "description": "Swap limit order",
                 "method": "createOrder",
                 "url": "https://api-testnet.bybit.com/v5/order/create",

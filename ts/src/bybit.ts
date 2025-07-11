@@ -3901,7 +3901,7 @@ export default class bybit extends Exchange {
         const isTakeProfit = takeProfitPrice !== undefined;
         const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params, enableUnifiedAccount);
         let defaultMethod = undefined;
-        if (isTrailingAmountOrder || isStopLoss || isTakeProfit) {
+        if (isTrailingAmountOrder || (!market['spot'] && (isStopLoss || isTakeProfit))) {
             defaultMethod = 'privatePostV5PositionTradingStop';
         } else {
             defaultMethod = 'privatePostV5OrderCreate';
@@ -3981,7 +3981,7 @@ export default class bybit extends Exchange {
         const isLimit = lowerCaseType === 'limit';
         const isBuy = side === 'buy';
         let defaultMethod = undefined;
-        if (isTrailingAmountOrder || isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
+        if (isTrailingAmountOrder || (!market['spot'] && (isStopLossTriggerOrder || isTakeProfitTriggerOrder))) {
             defaultMethod = 'privatePostV5PositionTradingStop';
         } else {
             defaultMethod = 'privatePostV5OrderCreate';
