@@ -149,16 +149,16 @@ type Exchange struct {
 	Twofa interface{}
 
 	// WS - updated to use thread-safe sync.Map (except cache objects)
-	Ohlcvs     *sync.Map
-	Trades     *sync.Map
+	Ohlcvs     interface{} // map[string]map[string]*ArrayCacheByTimestamp
+	Trades     interface{} // map[string]*ArrayCache
 	Tickers    *sync.Map
-	Orders     interface{}  // cache object, not a map
-	MyTrades   interface{}  // cache object, not a map
+	Orders     interface{}  // *ArrayCache  // cache object, not a map
+	MyTrades   interface{}  // *ArrayCache  // cache object, not a map
 	Orderbooks *sync.Map
 	Liquidations *sync.Map
 	FundingRates interface{}
 	Bidsasks interface{}
-	TriggerOrders interface{}
+	TriggerOrders interface{} // *ArrayCache
 	Transactions *sync.Map
 	MyLiquidations *sync.Map
 
@@ -173,11 +173,11 @@ type Exchange struct {
 	IsSandboxModeEnabled bool
 
 	// ws
-	WsClients		map[string]*Client	 // one websocket client per URL
+	WsClients		map[string]interface{}	 // one websocket client per URL
 	WsClientsMu 	sync.Mutex
 	Balance    		interface{}
 	Positions 		interface{}
-	Clients 		map[string]*WSClient
+	Clients 		map[string]interface{}
     newUpdates 		bool
     streaming 		map[string]interface{}
 
@@ -222,17 +222,20 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 
 	this.initializeProperties(extendedProperties)
 	
-	// Initialize WebSocket data structures with thread-safe sync.Map (except cache objects)
-	this.Trades = &sync.Map{}
+	limit := 10000
+	// Initialize WebSocket data structures with thread-safe sync.Map
+	this.Trades = make(map[string]*ArrayCache)
 	this.Tickers = &sync.Map{}
 	this.Orderbooks = &sync.Map{}
-	this.Ohlcvs = &sync.Map{}
-	this.Orders = nil  // initialized on demand as cache object
-	this.MyTrades = nil  // initialized on demand as cache object
+	this.Ohlcvs = make(map[string]map[string]*ArrayCacheByTimestamp)
+	this.Orders = NewArrayCache(limit)
+	this.TriggerOrders = NewArrayCache(limit)
+	this.MyTrades = NewArrayCache(limit)
 	this.Transactions = &sync.Map{}
 	this.Liquidations = &sync.Map{}
 	this.MyLiquidations = &sync.Map{}
-	this.Clients = make(map[string]*WSClient)
+	this.Clients = make(map[string]interface{})
+	this.Balance = &sync.Map{}
 
 	// beforeNs := time.Now().UnixNano()
 	// this.WarmUpCache(this.Itf)
@@ -1414,14 +1417,18 @@ func (this *Exchange) Watch(args ...interface{}) <-chan interface{} {
 	//                             subscribe -----→ receive
 	//
 	if subscribeHash == nil {
+		client.FuturesMu.RLock()
+		// Use read lock when checking for existing futures
 		if fut, ok := client.Futures[messageHash]; ok {
-			fmt.Printf("fut.result: %+v\n", fut.result)
-			return fut.result
+			client.FuturesMu.RUnlock()
+			return fut.(*Future).result
 		}
+		client.FuturesMu.RUnlock()
 	}
 	future := client.Future(messageHash)
 	// read and write subscription, this is done before connecting the client
 	// to avoid race conditions when other parts of the code read or write to the client.subscriptions
+	client.SubscriptionsMu.Lock()
 	clientSubscription := SafeValue(client.Subscriptions, subscribeHash, nil)
 	if (clientSubscription == nil) {
 		if subscription != nil {
@@ -1430,6 +1437,7 @@ func (this *Exchange) Watch(args ...interface{}) <-chan interface{} {
 			client.Subscriptions[subscribeHash.(string)] = make(chan interface{})
 		}
 	}
+	client.SubscriptionsMu.Unlock()
 	// we intentionally do not use await here to avoid unhandled exceptions
 	// the policy is to make sure that 100% of promises are resolved or rejected
 	// either with a call to client.resolve or client.reject with
@@ -1492,47 +1500,24 @@ func (this *Exchange) Watch(args ...interface{}) <-chan interface{} {
 // OrderBook returns a new mutable order-book using our Go implementation.
 func (this *Exchange) OrderBook(optionalArgs ...interface{}) *WsOrderBook {
     snapshot := GetArg(optionalArgs, 0, map[string]interface{}{})
-    // Ensure asks and bids are always present and are [][]float64
-    if snapshotMap, ok := snapshot.(map[string]interface{}); ok {
-        if _, ok := snapshotMap["asks"]; !ok {
-            snapshotMap["asks"] = [][]float64{}
-        } else {
-            // Convert to [][]float64 if needed
-            if arr, ok := snapshotMap["asks"].([]interface{}); ok {
-                asks := [][]float64{}
-                for _, v := range arr {
-                    if row, ok := v.([]float64); ok {
-                        asks = append(asks, row)
-                    }
-                }
-                snapshotMap["asks"] = asks
-            }
-        }
-        if _, ok := snapshotMap["bids"]; !ok {
-            snapshotMap["bids"] = [][]float64{}
-        } else {
-            if arr, ok := snapshotMap["bids"].([]interface{}); ok {
-                bids := [][]float64{}
-                for _, v := range arr {
-                    if row, ok := v.([]float64); ok {
-                        bids = append(bids, row)
-                    }
-                }
-                snapshotMap["bids"] = bids
-            }
-        }
-    }
-    orderbook := NewWsOrderBook(snapshot, nil)
-    return &orderbook
+	depth := GetArg(optionalArgs, 1, 9007199254740991)
+	orderBook := NewWsOrderBook(snapshot, depth)
+	return &orderBook
 }
 
 // IndexedOrderBook and CountedOrderBook share the same implementation for now.
-func (this *Exchange) IndexedOrderBook(args ...interface{}) *WsOrderBook {
-	return this.OrderBook(args...)
+func (this *Exchange) IndexedOrderBook(optionalArgs ...interface{}) *IndexedOrderBook {
+	snapshot := GetArg(optionalArgs, 0, map[string]interface{}{})
+	depth := GetArg(optionalArgs, 1, 9007199254740991)
+	orderBook := NewIndexedOrderBook(snapshot, depth)
+	return &orderBook
 }
 
-func (this *Exchange) CountedOrderBook(args ...interface{}) *WsOrderBook {
-	return this.OrderBook(args...)
+func (this *Exchange) CountedOrderBook(optionalArgs ...interface{}) *CountedOrderBook {
+	snapshot := GetArg(optionalArgs, 0, map[string]interface{}{})
+	depth := GetArg(optionalArgs, 1, 9007199254740991)
+	orderBook := NewCountedOrderBook(snapshot, depth)
+	return &orderBook
 }
 
 // func (this *Exchange) setOwner(cli *WSClient) {
@@ -1597,7 +1582,7 @@ func (this *Exchange) GetHttpAgentIfNeeded(url string) (interface{}, error) {
 	return nil, nil // no agent needed
 }
 
-func (this *Exchange) Ping(client *Client) interface{} {
+func (this *Exchange) Ping(client *WSClient) interface{} {
     return nil
 }
 
@@ -1612,7 +1597,7 @@ func (this *Exchange) OnConnected(client interface{}, message interface{}) {
 
 func (this *Exchange) OnError(client interface{}, err interface{}) {
 	this.WsClientsMu.Lock()
-	if c, ok := this.Clients[client.(*Client).Url]; ok && c.Error != nil {
+	if c, ok := this.Clients[client.(*Client).Url]; ok && c.(*Client).Error != nil {
 		delete(this.Clients, client.(*Client).Url)
 	}
 	this.WsClientsMu.Unlock()
@@ -1624,26 +1609,21 @@ func (this *Exchange) OnClose(client interface{}, err interface{}) {
 		// connection closed due to an error, do nothing
 	} else {
 		this.WsClientsMu.Lock()
-		if _, ok := this.Clients[client.(*Client).Url]; ok {
-			delete(this.Clients, client.(*Client).Url)
-		}
+		delete(this.Clients, client.(*Client).Url)
 		this.WsClientsMu.Unlock()
 	}
 }
 
-// Client returns (and caches) a *Client for the given WS URL.
+// Client returns (and caches) a *WSClient for the given WS URL.
 func (this *Exchange) Client(url interface{}) *WSClient {
 	// TODO: what to do with errors
 	this.WsClientsMu.Lock()
 	defer this.WsClientsMu.Unlock()
 	if client, ok := this.Clients[url.(string)]; ok {
-		return client //, nil
+		return client.(*WSClient) //, nil
 	}
 	// TODO: add options to NewWSClient
-	client, err := NewWSClient(url.(string), this.DerivedExchange.HandleMessage, this.DerivedExchange.OnError, this.DerivedExchange.OnClose, this.DerivedExchange.OnConnected, nil)
-	if err != nil {
-		return nil //, err
-	}
+	
 	wsOptions := SafeValue(this.Options, "ws", map[string]interface{}{});
 	// proxy agents
 	proxies := this.CheckWsProxySettings();
@@ -1668,28 +1648,25 @@ func (this *Exchange) Client(url interface{}) *WSClient {
 	} else if httpProxyAgent != nil {
 		finalAgent = httpProxyAgent
 	}
-	//
 	options := DeepExtend(
 		this.streaming,
 		map[string]interface{}{
-			"log": this.Log,
-			"ping": this.Ping,
-			"verbose": this.Verbose,
-			"throttler": NewThrottler(this.TokenBucket),
-			"options": map[string]interface{}{
-				"agent": finalAgent,
+			"Log": this.Log,
+			"Ling": this.Ping,
+			"Verbose": this.Verbose,
+			"Throttle": NewThrottler(this.TokenBucket),
+			"Options": map[string]interface{}{
+				"Agent": finalAgent,
 			},
 		},
 		wsOptions,
 	)
-	
-	// set back-reference so client can dispatch messages
-	// this.setOwner(client)
-	// Throttling can be added later once implemented on Client
-	this.Clients[url.(string)], err = NewWSClient(url.(string), this.DerivedExchange.HandleMessage, this.DerivedExchange.OnError, this.DerivedExchange.OnClose, this.DerivedExchange.OnConnected, options)
+	client, err := NewWSClient(url.(string), this.DerivedExchange.HandleMessage, this.DerivedExchange.OnError, this.DerivedExchange.OnClose, this.DerivedExchange.OnConnected, options)
 	if err != nil {
 		return nil
 	}
+	
+	this.Clients[url.(string)] = client
 	return client
 }
 
@@ -1880,58 +1857,49 @@ func (this *Exchange) Delay(timeout interface{}, method interface{}, args ...int
 }
 
 func (this *Exchange) LoadOrderBook(client interface{}, messageHash interface{}, symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	if _, exists := this.Orderbooks.Load(symbol.(string)); !exists {
-		client.(*Client).Reject(ExchangeError(this.Id + " loadOrderBook() orderbook is not initiated"), messageHash)
-		return nil
-	}
-    maxRetries := this.HandleOption("watchOrderBook", "snapshotMaxRetries", 3)
+	limit := GetArg(optionalArgs, 0, nil)
+	params := GetArg(optionalArgs, 1, map[string]interface{}{})
+	maxRetries := this.HandleOption("watchOrderBook", "snapshotMaxRetries", 3)
 	tries := 0
-	defer func() {
-		if r := recover(); r != nil {
-			client.(*Client).Reject(r, messageHash)
-			this.LoadOrderBook(client, messageHash, symbol, optionalArgs...)
-		}
-	}()
-	
-	if storedValue, ok := this.Orderbooks.Load(symbol.(string)); ok {
-		stored := storedValue
+	if stored, exists := this.Orderbooks.Load(symbol.(string)); exists {
 		for tries < maxRetries.(int) {
 			cache := this.GetProperty(stored, "Cache")
-			limit := GetArg(optionalArgs, 0, nil)
-			params := GetArg(optionalArgs, 1, map[string]interface{}{})
 			orderBook := <-this.FetchRestOrderBookSafe(symbol, limit, params)
 			index := this.GetCacheIndex(orderBook, cache)
 			if index.(int) >= 0 {
 				// Call Reset method on stored orderbook
-				if ob, ok := stored.(interface{ Reset(interface{}) }); ok {
-					ob.Reset(orderBook)
-				}
-				if cacheSlice, ok := cache.([]interface{}); ok {
-					this.HandleDeltas(stored, cacheSlice[index.(int):])
-				}
-				this.SetProperty(cache, "length", 0)
-				client.(*Client).Resolve(stored, messageHash)
+				stored.(*WsOrderBook).Reset(orderBook)
+				this.HandleDeltas(stored, cache.([]interface{})[index.(int):])
+				stored.(*WsOrderBook).Cache = map[string]interface{}{}
+				// this.SetProperty(cache, "length", 0)
+				client.(*WSClient).Resolve(stored, messageHash)
 				return nil
 			}
 			tries++
 		}
 		errorMsg := fmt.Sprintf("%s nonce is behind the cache after %v tries.", this.Id, maxRetries)
-		client.(*Client).Reject(ExchangeError(errorMsg), messageHash)
-		if cli, ok := client.(*Client); ok {
-			delete(this.Clients, cli.Url)
-		}
+		client.(*WSClient).Reject(ExchangeError(errorMsg), messageHash)
+		delete(this.Clients, client.(*WSClient).Url)
+	} else {
+		client.(*WSClient).Reject(ExchangeError(this.Id + " loadOrderBook() orderbook is not initiated"), messageHash)
+		return nil
 	}
+	// TODO: don't know where this fits
+	// catch (e) {
+	// 	client.reject (e, messageHash);
+	// 	await this.loadOrderBook (client, messageHash, symbol, limit, params);
+	// }
 	return nil
 }
 
 func (this *Exchange) Close() []error {
 	this.WsClientsMu.Lock()
-	clients := make([]*Client, 0, len(this.WsClients))
-	for _, c := range this.WsClients { clients = append(clients, c) }
-	this.WsClients = make(map[string]*Client)
+	clients := make([]*WSClient, 0, len(this.WsClients))
+	for _, c := range this.WsClients { clients = append(clients, c.(*WSClient)) }
+	this.WsClients = make(map[string]interface{})
 	this.WsClientsMu.Unlock()
 	errs := make([]error, 0)
-	for _, c := range clients { if err := c.Close(); err != nil { errs = append(errs, err) } }
+	for _, c := range clients { if future := c.Close(); future != nil && future.err != nil { errs = append(errs, <-future.err) } }
 	return errs
 }
 // ---------------- Connection lifecycle helpers ----------------

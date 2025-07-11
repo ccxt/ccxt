@@ -4,9 +4,15 @@ package ccxt
 // 	cache []any
 // }
 
+type OrderBookInterface interface {
+    Limit() interface{}
+    Update(snapshot interface{}) interface{}
+    Reset(snapshot interface{}) interface{}
+}
+
 type WsOrderBook struct {
 	GetsLimit
-	Cache     interface{}
+	Cache     map[string]interface{}
 	Asks      *OrderBookSide
 	Bids      *OrderBookSide
 	Timestamp int64
@@ -184,6 +190,18 @@ func NewCountedOrderBook(snapshot interface{}, depth interface{}) CountedOrderBo
 	}
 }
 
+func (this *CountedOrderBook) Limit() interface{} {
+	return this.WsOrderBook.Limit()
+}
+
+func (this *CountedOrderBook) Update(snapshot interface{}) interface{} {
+	return this.WsOrderBook.Update(snapshot)
+}
+
+func (this *CountedOrderBook) Reset(snapshot interface{}) interface{} {
+	return this.WsOrderBook.Reset(snapshot)
+}
+
 // indexed by order ids (3rd value in a bidask delta)
 type IndexedOrderBook struct {
 	*WsOrderBook
@@ -201,6 +219,18 @@ func NewIndexedOrderBook(snapshot interface{}, depth interface{}) IndexedOrderBo
 	return IndexedOrderBook{
 		WsOrderBook: &ob,
 	}
+}
+
+func (this *IndexedOrderBook) Limit() interface{} {
+	return this.WsOrderBook.Limit()
+}
+
+func (this *IndexedOrderBook) Update(snapshot interface{}) interface{} {
+	return this.WsOrderBook.Update(snapshot)
+}
+
+func (this *IndexedOrderBook) Reset(snapshot interface{}) interface{} {
+	return this.WsOrderBook.Reset(snapshot)
 }
 
 // ----------------------------------------------------------------------------

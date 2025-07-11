@@ -150,7 +150,7 @@ func (this *WSClient) Connect(backoffDelay ...int) (*Future, error) {
 			}
 		}
 	}
-	return this.Connected, nil
+	return this.Connected.(*Future), nil
 }
 
 func (this *WSClient) IsOpen() bool {
@@ -165,5 +165,5 @@ func (this *WSClient) Close() *Future {
 		this.Connection.Close()
 		this.Connection = nil
 	}
-	return this.Disconnected
+	return this.Disconnected.(*Future)
 }

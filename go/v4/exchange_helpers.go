@@ -892,9 +892,8 @@ func AddElementToObject(arrayOrDict interface{}, stringOrInt interface{}, value 
 					orderbook.Cache = make(map[string]interface{})
 				}
 				
-				if cache, ok := orderbook.Cache.(map[string]interface{}); ok {
 					// Check if we already have an OrderBookSide for this key
-					if _, exists := cache[key]; !exists {
+					if _, exists := orderbook.Cache[key]; !exists {
 						// Create new OrderBookSide object
 						isBid := (key == "bids")
 						var orderBookSide interface{}
@@ -903,17 +902,14 @@ func AddElementToObject(arrayOrDict interface{}, stringOrInt interface{}, value 
 						} else {
 							orderBookSide = NewAsks([]interface{}{}, nil)
 						}
-						cache[key] = orderBookSide
+						orderbook.Cache[key] = orderBookSide
 					}
-				}
 			} else {
 				// For other fields, store them in the cache as well for GetValue access
 				if orderbook.Cache == nil {
 					orderbook.Cache = make(map[string]interface{})
 				}
-				if cache, ok := orderbook.Cache.(map[string]interface{}); ok {
-					cache[key] = value
-				}
+				orderbook.Cache[key] = value
 			}
 		}
 		return
@@ -2349,18 +2345,29 @@ func toFixed(number interface{}, decimals interface{}) float64 {
 }
 
 func Remove(dict interface{}, key interface{}) {
-	// Attempt to cast the dict to map[string]interface{}
-	castedDict, ok := dict.(map[string]interface{})
-	if !ok {
-		// Panic if the cast fails
-		panic("provided value is not a map[string]interface{}")
-	}
-
-	// Attempt to cast the key to string
+	// Attempt to cast the key to string first
 	keyStr, ok := key.(string)
 	if !ok {
 		// Panic if the key is not a string
 		panic("provided key is not a string")
+	}
+
+	// Try to handle *sync.Map first
+	if syncMap, ok := dict.(*sync.Map); ok {
+		// Check if the key exists in sync.Map
+		if _, exists := syncMap.Load(keyStr); !exists {
+			panic(fmt.Sprintf("key '%s' does not exist in the sync.Map", keyStr))
+		}
+		// Remove the key from the sync.Map
+		syncMap.Delete(keyStr)
+		return
+	}
+
+	// Attempt to cast the dict to map[string]interface{}
+	castedDict, ok := dict.(map[string]interface{})
+	if !ok {
+		// Panic if the cast fails
+		panic("provided value is not a map[string]interface{} or *sync.Map")
 	}
 
 	// Check if the key exists, panic if it doesn't
