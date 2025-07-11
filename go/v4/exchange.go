@@ -148,19 +148,19 @@ type Exchange struct {
 
 	Twofa interface{}
 
-	// WS
-	Ohlcvs     interface{}
-	Trades     interface{}
-	Tickers    interface{}
-	Orders     interface{}
-	MyTrades   interface{}
-	Orderbooks interface{}
-	Liquidations interface{}
+	// WS - updated to use thread-safe sync.Map (except cache objects)
+	Ohlcvs     *sync.Map
+	Trades     *sync.Map
+	Tickers    *sync.Map
+	Orders     interface{}  // cache object, not a map
+	MyTrades   interface{}  // cache object, not a map
+	Orderbooks *sync.Map
+	Liquidations *sync.Map
 	FundingRates interface{}
 	Bidsasks interface{}
 	TriggerOrders interface{}
-	Transactions interface{}
-	MyLiquidations interface{}
+	Transactions *sync.Map
+	MyLiquidations *sync.Map
 
 	PaddingMode int
 
@@ -222,16 +222,16 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 
 	this.initializeProperties(extendedProperties)
 	
-	// Initialize WebSocket data structures
-	this.Trades = make(map[string]interface{})
-	this.Tickers = make(map[string]interface{})
-	this.Orderbooks = make(map[string]interface{})
-	this.Ohlcvs = make(map[string]interface{})
-	this.Orders = make(map[string]interface{})
-	this.MyTrades = make(map[string]interface{})
-	this.Transactions = make(map[string]interface{})
-	this.Liquidations = make(map[string]interface{})
-	this.MyLiquidations = make(map[string]interface{})
+	// Initialize WebSocket data structures with thread-safe sync.Map (except cache objects)
+	this.Trades = &sync.Map{}
+	this.Tickers = &sync.Map{}
+	this.Orderbooks = &sync.Map{}
+	this.Ohlcvs = &sync.Map{}
+	this.Orders = nil  // initialized on demand as cache object
+	this.MyTrades = nil  // initialized on demand as cache object
+	this.Transactions = &sync.Map{}
+	this.Liquidations = &sync.Map{}
+	this.MyLiquidations = &sync.Map{}
 	this.Clients = make(map[string]*WSClient)
 
 	// beforeNs := time.Now().UnixNano()
@@ -1880,7 +1880,7 @@ func (this *Exchange) Delay(timeout interface{}, method interface{}, args ...int
 }
 
 func (this *Exchange) LoadOrderBook(client interface{}, messageHash interface{}, symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	if _, exists := this.Orderbooks.(map[string]interface{})[symbol.(string)]; !exists {
+	if _, exists := this.Orderbooks.Load(symbol.(string)); !exists {
 		client.(*Client).Reject(ExchangeError(this.Id + " loadOrderBook() orderbook is not initiated"), messageHash)
 		return nil
 	}
@@ -1893,8 +1893,8 @@ func (this *Exchange) LoadOrderBook(client interface{}, messageHash interface{},
 		}
 	}()
 	
-	if obMap, ok := this.Orderbooks.(map[string]interface{}); ok {
-		stored := obMap[symbol.(string)]
+	if storedValue, ok := this.Orderbooks.Load(symbol.(string)); ok {
+		stored := storedValue
 		for tries < maxRetries.(int) {
 			cache := this.GetProperty(stored, "Cache")
 			limit := GetArg(optionalArgs, 0, nil)
