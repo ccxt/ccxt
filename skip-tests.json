@@ -714,6 +714,9 @@
             "ticker": {
                 "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269687705#L3745",
                 "compareOHLC": "todo"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "tmp VXV issue"
             }
         }
     },
