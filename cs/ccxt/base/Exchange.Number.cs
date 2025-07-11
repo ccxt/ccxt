@@ -83,6 +83,21 @@ public partial class Exchange
         {
             var precisionDigitsString = DecimalToPrecision(numPrecisionDigits, ROUND, 22, DECIMAL_PLACES, NO_PADDING);
             var newNumPrecisionDigits = PrecisionFromString(precisionDigitsString);
+            if (roundingMode == TRUNCATE)
+            {
+                var scale = Math.Pow(10, Math.Max(newNumPrecisionDigits, 10));
+                var xScaled = Math.Round(parsedX * scale);
+                var tickScaled = Math.Round(numPrecisionDigits * scale);
+                var ticks = Math.Truncate(xScaled / tickScaled);
+                parsedX = (ticks * tickScaled) / scale;
+                if ((int)paddingMode == NO_PADDING)
+                {
+                    var result = Convert.ToDouble(parsedX.ToString($"F{newNumPrecisionDigits}", CultureInfo.InvariantCulture)).ToString($"F{newNumPrecisionDigits}", CultureInfo.InvariantCulture);
+                    return result.Contains('.') ? result.TrimEnd('0').TrimEnd('.') : result;
+                }
+                return DecimalToPrecision(parsedX, ROUND, newNumPrecisionDigits, DECIMAL_PLACES, paddingMode);
+            }
+
             var missing = parsedX % numPrecisionDigits;
             // See: https://github.com/ccxt/ccxt/pull/6486
             missing = Convert.ToDouble(DecimalToPrecision(missing, ROUND, 8, DECIMAL_PLACES, NO_PADDING), CultureInfo.InvariantCulture);
