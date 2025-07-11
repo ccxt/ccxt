@@ -25,20 +25,21 @@ import (
 // Subscriptions are identified by an arbitrary hash string
 // Each Subscribe call returns a receive-only channel that the caller reads updates from.
 type Client struct {
-	Futures       map[string]*Future
+	Futures       map[string]interface{}
+	FuturesMu     sync.RWMutex 										// protects Futures map
 	Url string
 
 	Connection *websocket.Conn
-	Mu   sync.Mutex 												// protects conn writes
+	ConnectionMu   sync.Mutex 												// protects conn writes
 
-	SubsMu         sync.RWMutex
-	Subscriptions  map[string]chan interface{}
+	Subscriptions  map[string]interface{}
+	SubscriptionsMu sync.RWMutex
 	ReadLoopClosed chan struct{}
 
-	Error error 														// last error, nil if connection considered healthy
+	Error error 													// last error, nil if connection considered healthy
 
-	Connected             *Future	             					// signal channel for connection established
-    Disconnected          *Future                 					// future for disconnection
+	Connected             interface{}	// *Future             		// signal channel for connection established
+    Disconnected          interface{}   // *Future              	// future for disconnection
     Rejections            map[string]interface{} 					// map for rejection info
     KeepAlive             interface{}                  				// number in milliseconds or seconds
     ConnectionTimeout     interface{}            					// e.g. *time.Timer or context.CancelFunc
@@ -67,11 +68,15 @@ func (this *Client) Resolve(data interface{}, subHash interface{}) interface{} {
 		panic(fmt.Sprintf("subHash must be a string, got %T: %v", subHash, subHash))
 	}
 	
+	this.FuturesMu.Lock()
+	
 	// Send to Future channel for ongoing updates (non-blocking)
 	if fut, exists := this.Futures[hash]; exists {
-		fut.Resolve(data)
+		// Normal case: a watcher is already waiting
+		fut.(*Future).Resolve(data)
 		delete(this.Futures, hash)
 	}
+	this.FuturesMu.Unlock()
 	return data
 }
 
@@ -82,32 +87,32 @@ func (this *Client) Future(messageHash interface{}) *Future {
 	}
 	future := this.Futures[hash]
 	if err, ok := this.Rejections[hash]; ok {
-		future.Reject(err.(error))
+		future.(*Future).Reject(err.(error))
 		delete(this.Rejections, hash)
 	}
-    return future
+    return future.(*Future)
 }
 
 // Reject rejects specific future or all
 func (this *Client) Reject(err interface{}, messageHash ...interface{}) {
 	if len(messageHash) == 0 {
 		for hash := range this.Futures {
-			this.Futures[hash].Reject(err.(error))
+			this.Futures[hash].(*Future).Reject(err.(error))
 			delete(this.Futures, hash)
 		}
 		return
 	}
 	hash := messageHash[0]
 	if fut, ok := this.Futures[hash.(string)]; ok {
-		fut.Reject(err.(error))
+		fut.(*Future).Reject(err.(error))
 		delete(this.Futures, hash.(string))
 	}
 }
 
 // Close terminates the underlying websocket connection (if any)
 func (this *Client) Close() error {
-	this.Mu.Lock()
-	defer this.Mu.Unlock()
+	this.ConnectionMu.Lock()
+	defer this.ConnectionMu.Unlock()
 	if this.Connection != nil {
 		err := this.Connection.Close()
 		this.Connection = nil
@@ -115,10 +120,10 @@ func (this *Client) Close() error {
 		
 		// Signal disconnection
 		select {
-		case <-this.Disconnected.result:
+		case <-this.Disconnected.(*Future).result:
 			// Already closed
 		default:
-			close(this.Disconnected.result)
+			close(this.Disconnected.(*Future).result)
 		}
 		
 		return err
@@ -139,8 +144,8 @@ func NewClient(url string, onMessageCallback func(client interface{}, err interf
 		"Verbose":                 false,
 		"Protocols":               nil,
 		"Options":                 nil,
-		"Futures":                 make(map[string]*Future),
-		"Subscriptions":           make(map[string]chan interface{}),
+		"Futures":                 make(map[string]interface{}),
+		"Subscriptions":           make(map[string]interface{}),
 		"Rejections":              make(map[string]interface{}),
 		"Connected":               nil,
 		"Error":                   nil,
@@ -170,8 +175,8 @@ func NewClient(url string, onMessageCallback func(client interface{}, err interf
 	// Create the client with all properties from TypeScript constructor
 	c := &Client{
 		Url:                   url,
-		Futures:               finalConfig["Futures"].(map[string]*Future),
-		Subscriptions:         finalConfig["Subscriptions"].(map[string]chan interface{}),
+		Futures:               finalConfig["Futures"].(map[string]interface{}),
+		Subscriptions:         finalConfig["Subscriptions"].(map[string]interface{}),  // map[string]chan interface{}
 		Rejections:            finalConfig["Rejections"].(map[string]interface{}),
 		Verbose:               finalConfig["Verbose"].(bool),
 		KeepAlive:             int64(finalConfig["KeepAlive"].(int)),
@@ -329,7 +334,7 @@ func (this *Client) SetPingInterval() {
 				select {
 				case <-ticker.C:
 					this.OnPingInterval()
-				case <-this.Disconnected.result: // Exit when client is disconnected
+				case <-this.Disconnected.(*Future).result: // Exit when client is disconnected
 					return
 				}
 			}
@@ -396,10 +401,10 @@ func (this *Client) OnOpen() {
 	this.IsConnected = true
 	// Signal connected channel
 	select {
-	case <-this.Connected.result:
+	case <-this.Connected.(*Future).result:
 		// Already closed
 	default:
-		close(this.Connected.result)
+		close(this.Connected.(*Future).result)
 	}
 	this.ClearConnectionTimeout()
 	this.SetPingInterval()
@@ -446,13 +451,14 @@ func (this *Client) OnClose(event interface{}) {
 	if this.Error == nil {
 		// todo: exception types for server-side disconnects
 		// this.Reset(NetworkError("connection closed by remote server, closing code " + event.code)) // TODO: what type is event?
-		this.Reset(NetworkError("connection closed by remote server, closing code " + event.(string))) // Temp to make error go away
+		eventStr := fmt.Sprintf("%v", event)
+		this.Reset(NetworkError("connection closed by remote server, closing code " + eventStr))
 	}
 	// if err, ok := this.Error.(ExchangeClosedByUser); ok {  // TODO: how to do this
 	// 	this.Reset(err)
 	// }
 	if this.Disconnected != nil {
-		this.Disconnected.Resolve(true)
+		this.Disconnected.(*Future).Resolve(true)
 	}
 	this.OnCloseCallback(this, event)  // TODO: What to do with event? parameter is error
 }
@@ -467,7 +473,6 @@ func (this *Client) OnUpgrade(message interface{}) {
 
 func (this *Client) Send(message interface{}) *Future {
 	// fmt.printf("[DEBUG] Send: sending message=%v\n", message)
-	
 	var msgStr string
 	if str, ok := message.(string); ok {
 		msgStr = str
@@ -477,22 +482,16 @@ func (this *Client) Send(message interface{}) *Future {
 	}
 	
 	future := NewFuture()
-	
 	go func() {
-		this.Mu.Lock()
-		defer this.Mu.Unlock()
-		
-		if this.Connection == nil {
-			future.Reject(fmt.Errorf("websocket connection closed"))
-			return
-		}
-		
+		this.ConnectionMu.Lock()
+		// ? if (isNode)
 		err := this.Connection.WriteMessage(websocket.TextMessage, []byte(msgStr))
 		if err != nil {
 			future.Reject(err)
 		} else {
 			future.Resolve(true)
 		}
+		this.ConnectionMu.Unlock()
 	}()
 	
 	return future
@@ -504,8 +503,8 @@ func (this *Client) Send(message interface{}) *Future {
 // 	ch := make(chan interface{}, 1)
 
 // 	go func() {
-// 		this.Mu.Lock()
-// 		defer this.Mu.Unlock()
+// 		this.ConnectionMu.Lock()
+// 		defer this.ConnectionMu.Unlock()
 
 // 		var err error
 // 		if this.Connection == nil {
@@ -581,6 +580,7 @@ func (this *Client) OnMessage(messageEvent interface{}) {
 		// this.Log(time.Now(), "onMessage", util.inspect(message, false, null, true))
 		// this.Log(time.Now(), "onMessage", JSON.stringify(message, null, 4))
 	}
+	fmt.Printf("onMessage - parsedMessage: %+v\n", parsedMessage)
 	this.OnMessageCallback(this, parsedMessage)
 }
 

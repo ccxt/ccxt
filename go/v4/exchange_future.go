@@ -1,6 +1,7 @@
 package ccxt
 
 import (
+	"sync"
 	"time"
 )
 
@@ -32,6 +33,10 @@ func ToGetsLimit(v interface{}) GetsLimit {
 type Future struct {
     result chan interface{}
     err    chan error
+    resolved bool
+    resolvedValue interface{}
+    resolvedError error
+    mu sync.Mutex
 }
 
 // Create new Future
@@ -44,6 +49,15 @@ func NewFuture() *Future {
 
 // Resolve asynchronously with a value
 func (f *Future) Resolve(value interface{}) {
+    
+    f.mu.Lock()
+    if f.resolved {
+        // Already resolved, ignore
+        f.mu.Unlock()
+        return
+    }
+    f.mu.Unlock()
+    
     go func() {
         time.Sleep(0) // defer to next goroutine scheduling, like setTimeout 0
         f.result <- value
@@ -52,6 +66,14 @@ func (f *Future) Resolve(value interface{}) {
 
 // Reject asynchronously with an error
 func (f *Future) Reject(reason error) {
+    f.mu.Lock()
+    if f.resolved {
+        // Already resolved, ignore
+        f.mu.Unlock()
+        return
+    }
+    f.mu.Unlock()
+    
     go func() {
         time.Sleep(0)
         f.err <- reason
@@ -59,12 +81,35 @@ func (f *Future) Reject(reason error) {
 }
 
 // Await blocks until either result or error is received
-func (f *Future) Await() (interface{}, error) {
+// Returns the resolved value (which could be an error)
+func (f *Future) Await() interface{} {
+    f.mu.Lock()
+    if f.resolved {
+        // Already resolved, return cached value immediately
+        defer f.mu.Unlock()
+        if f.resolvedError != nil {
+            return f.resolvedError
+        }
+        return f.resolvedValue
+    }
+    f.mu.Unlock()
+    
+    // Not resolved yet, wait for it
     select {
     case res := <-f.result:
-        return res, nil
+        f.mu.Lock()
+        f.resolved = true
+        f.resolvedValue = res
+        f.resolvedError = nil
+        f.mu.Unlock()
+        return res
     case err := <-f.err:
-        return nil, err
+        f.mu.Lock()
+        f.resolved = true
+        f.resolvedValue = nil
+        f.resolvedError = err
+        f.mu.Unlock()
+        return err
     }
 }
 
@@ -90,11 +135,11 @@ func FutureRace(futures []*Future) *Future {
     result := NewFuture()
     for _, f := range futures {
         go func(fut *Future) {
-            val, err := fut.Await()
-            if err != nil {
+            futureResponse := fut.Await()
+            if err, isError := futureResponse.(error); isError {
                 result.Reject(err)
             } else {
-                result.Resolve(val)
+                result.Resolve(futureResponse)
             }
         }(f)
     }

@@ -66,7 +66,7 @@ type ArrayCache struct {
 	clearAllUpdates      bool
 }
 
-func NewArrayCache(MaxSize interface{}) interface{} {
+func NewArrayCache(MaxSize interface{}) *ArrayCache {
 	size := 0
 	switch v := MaxSize.(type) {
 	case int:
@@ -232,8 +232,8 @@ func (c *ArrayCacheByTimestamp) GetLimit(symbol interface{}, limit interface{}) 
 
 type ArrayCacheBySymbolById struct{ *ArrayCache }
 
-func NewArrayCacheBySymbolById(MaxSize interface{}) interface{} {
-	return &ArrayCacheBySymbolById{NewArrayCache(MaxSize).(*ArrayCache)}
+func NewArrayCacheBySymbolById(MaxSize interface{}) *ArrayCacheBySymbolById {
+	return &ArrayCacheBySymbolById{NewArrayCache(MaxSize)}
 }
 
 // GetLimit for nested caches delegates to the inner ArrayCache.
@@ -246,7 +246,7 @@ func (c *ArrayCacheBySymbolById) GetLimit(symbol interface{}, limit interface{})
 type ArrayCacheBySymbolBySide struct{ *ArrayCache }
 
 func NewArrayCacheBySymbolBySide() *ArrayCacheBySymbolBySide {
-	return &ArrayCacheBySymbolBySide{NewArrayCache(nil).(*ArrayCache)}
+	return &ArrayCacheBySymbolBySide{NewArrayCache(nil)}
 }
 
 // These specialised caches currently rely on ArrayCache.Append which tracks by

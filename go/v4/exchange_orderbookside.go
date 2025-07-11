@@ -73,7 +73,7 @@ func NewOrderBookSide(deltas interface{}, depth interface{}) *OrderBookSide {
     
     // Set depth
     if depth != nil {
-        obs.depth = *depth.(*int)
+        obs.depth = depth.(int)
     } else {
         obs.depth = math.MaxInt32 // equivalent to Number.MAX_SAFE_INTEGER
     }
@@ -283,7 +283,7 @@ func NewIndexedOrderBookSide(deltas interface{}, depth interface{}) *IndexedOrde
     
     // Set depth
     if depth != nil {
-        iobs.depth = *depth.(*int)
+        iobs.depth = depth.(int)
     } else {
         iobs.depth = math.MaxInt32 // equivalent to Number.MAX_SAFE_INTEGER
     }
