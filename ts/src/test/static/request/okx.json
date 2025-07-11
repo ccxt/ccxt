@@ -53,6 +53,38 @@
         ],
         "createOrder": [
             {
+                "description": "spot takeProfitPrice buy order",
+                "method": "createOrder",
+                "url": "https://www.okx.com/api/v5/trade/order-algo",
+                "input": [
+                    "LTC/USDT",
+                    "market",
+                    "buy",
+                    2,
+                    null,
+                    {
+                        "takeProfitPrice": 90
+                    }
+                ],
+                "output": "{\"instId\":\"LTC-USDT\",\"side\":\"buy\",\"ordType\":\"conditional\",\"sz\":\"2\",\"tdMode\":\"cross\",\"tgtCcy\":\"base_ccy\",\"tpTriggerPx\":\"90\",\"tpOrdPx\":\"-1\",\"tpTriggerPxType\":\"last\",\"clOrdId\":\"e847386590ce4dBC4cde85f3b4698b8e\",\"tag\":\"e847386590ce4dBC\"}"
+            },
+            {
+                "description": "spot stopLossPrice buy order",
+                "method": "createOrder",
+                "url": "https://www.okx.com/api/v5/trade/order-algo",
+                "input": [
+                    "LTC/USDT",
+                    "market",
+                    "buy",
+                    2,
+                    null,
+                    {
+                        "stopLossPrice": 120
+                    }
+                ],
+                "output": "{\"instId\":\"LTC-USDT\",\"side\":\"buy\",\"ordType\":\"conditional\",\"sz\":\"2\",\"tdMode\":\"cross\",\"tgtCcy\":\"base_ccy\",\"slTriggerPx\":\"120\",\"slOrdPx\":\"-1\",\"slTriggerPxType\":\"last\",\"clOrdId\":\"e847386590ce4dBC375c9606140aa425\",\"tag\":\"e847386590ce4dBC\"}"
+            },
+            {
                 "description": "spot stopLossPrice sell order",
                 "method": "createOrder",
                 "url": "https://www.okx.com/api/v5/trade/order-algo",
