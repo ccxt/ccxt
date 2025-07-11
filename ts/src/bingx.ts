@@ -114,6 +114,7 @@ export default class bingx extends Exchange {
                     'account': 'https://open-api.{hostname}/openApi',
                     'copyTrading': 'https://open-api.{hostname}/openApi',
                     'cswap': 'https://open-api.{hostname}/openApi',
+                    'api': 'https://open-api.{hostname}/openApi',
                 },
                 'test': {
                     'swap': 'https://open-api-vst.{hostname}/openApi', // only swap is really "test" but since the API keys are the same, we want to keep all the functionalities when the user enables the sandboxmode
@@ -448,6 +449,15 @@ export default class bingx extends Exchange {
                             },
                             'post': {
                                 'post/asset/transfer': 1,
+                            },
+                        },
+                    },
+                    'asset': {
+                        'v1': {
+                            'private': {
+                                'post': {
+                                    'transfer': 5,
+                                },
                             },
                         },
                     },
@@ -4840,26 +4850,48 @@ export default class bingx extends Exchange {
      * @method
      * @name bingx#transfer
      * @description transfer currency internally between wallets on the same account
-     * @see https://bingx-api.github.io/docs/#/en-us/common/account-api.html#Asset%20Transfer
+     * @see https://bingx-api.github.io/docs/#/en-us/common/account-api.html#Asset%20Transfer%20New
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
      * @param {string} fromAccount account to transfer from (spot, swap, futures, or funding)
-     * @param {string} toAccount account to transfer to (spot, swap, futures, or funding)
+     * @param {string} toAccount account to transfer to (spot, swap (linear or inverse), future, or funding)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
      */
     async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const accountsByType = this.safeDict (this.options, 'accountsByType', {});
-        const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
-        const toId = this.safeString (accountsByType, toAccount, toAccount);
+        const transferAccountsByType = {
+            'funding': 'fund',
+            'spot': 'spot',
+            'swap': 'USDTMPerp',
+            'future': 'stdFutures',
+        };
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('transfer', undefined, params);
+        let fromId = this.safeString (transferAccountsByType, fromAccount, fromAccount);
+        let toId = this.safeString (transferAccountsByType, toAccount, toAccount);
+        if (fromId === 'swap') {
+            if (subType === 'inverse') {
+                fromId = 'coinMPerp';
+            } else {
+                fromId = 'USDTMPerp';
+            }
+        }
+        if (toId === 'swap') {
+            if (subType === 'inverse') {
+                toId = 'coinMPerp';
+            } else {
+                toId = 'USDTMPerp';
+            }
+        }
         const request: Dict = {
+            'fromAccount': fromId,
+            'toAccount': toId,
             'asset': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
-            'type': fromId + '_' + toId,
         };
-        const response = await this.spotV3PrivateGetGetAssetTransfer (this.extend (request, params));
+        const response = await this.apiAssetV1PrivatePostTransfer (this.extend (request, params));
         //
         //     {
         //         "tranId": 1933130865269936128,
@@ -6527,8 +6559,14 @@ export default class bingx extends Exchange {
         }
         let url = this.implodeHostname (this.urls['api'][type]);
         path = this.implodeParams (path, params);
-        if (version === 'transfer') {
-            type = 'account/transfer';
+        const versionIsTransfer = (version === 'transfer');
+        const versionIsAsset = (version === 'asset');
+        if (versionIsTransfer || versionIsAsset) {
+            if (versionIsTransfer) {
+                type = 'account/transfer';
+            } else {
+                type = 'api/asset';
+            }
             version = section[2];
             access = section[3];
         }
