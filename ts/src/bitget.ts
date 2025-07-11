@@ -1619,6 +1619,7 @@ export default class bitget extends Exchange {
                 // fiat currencies on deposit page
                 'fiatCurrencies': [ 'EUR', 'VND', 'PLN', 'CZK', 'HUF', 'DKK', 'AUD', 'CAD', 'NOK', 'SEK', 'CHF', 'MXN', 'COP', 'ARS', 'GBP', 'BRL', 'UAH', 'ZAR' ],
             },
+            'rollingWindowSize': 1000,
             'features': {
                 'spot': {
                     'sandbox': true,
