@@ -18,8 +18,6 @@ import (
 	"sync"
 	"time"
 
-	"runtime/debug"
-
 	"github.com/gorilla/websocket"
 )
 
@@ -27,7 +25,7 @@ import (
 // Subscriptions are identified by an arbitrary hash string
 // Each Subscribe call returns a receive-only channel that the caller reads updates from.
 type Client struct {
-	Futures       map[string]Future
+	Futures       map[string]*Future
 	Url string
 
 	Connection *websocket.Conn
@@ -39,8 +37,8 @@ type Client struct {
 
 	Error error 														// last error, nil if connection considered healthy
 
-	Connected             Future	             					// signal channel for connection established
-    Disconnected          Future                 					// future for disconnection
+	Connected             *Future	             					// signal channel for connection established
+    Disconnected          *Future                 					// future for disconnection
     Rejections            map[string]interface{} 					// map for rejection info
     KeepAlive             interface{}                  				// number in milliseconds or seconds
     ConnectionTimeout     interface{}            					// e.g. *time.Timer or context.CancelFunc
@@ -63,54 +61,45 @@ type Client struct {
     // Owner interface{} 											// pointer to the exchange that created the client
 }
 
-func (this *Client) Resolve(data interface{}, subHash interface{}) {
+func (this *Client) Resolve(data interface{}, subHash interface{}) interface{} {
 	hash, ok := subHash.(string)
 	if !ok {
 		panic(fmt.Sprintf("subHash must be a string, got %T: %v", subHash, subHash))
 	}
 	
-	if ch, exists := this.Subscriptions[hash]; exists {  // checks if the Client.Subscriptions map has a channel for that hash
-		select {
-		case ch <- data:	// Try to deliver the snapshot immediately
-		default:			// if the channel buffer is full (no receiver ready yet) 
-			// fall back to a goroutine so the send will eventually succeed without dropping the message
-			go func(d interface{}) { ch <- d }(data)
-		}
-	}
-	
 	// Send to Future channel for ongoing updates (non-blocking)
 	if fut, exists := this.Futures[hash]; exists {
-		fut.ResolveOngoing(data)
+		fut.Resolve(data)
+		delete(this.Futures, hash)
 	}
+	return data
 }
 
-func (this *Client) Future(hash interface{}) Future {
-    key := hash.(string)
-    if fut, ok := this.Futures[key]; ok { 
-        return fut 
-    }
-
-    fut := NewFuture()
-    this.Futures[key] = fut
-    if err, ok := this.Rejections[key]; ok {
-        fut.Reject(err)
-        delete(this.Rejections, key)
-    }
-    return fut
+func (this *Client) Future(messageHash interface{}) *Future {
+    hash, _ := messageHash.(string)
+    if _, ok := this.Futures[hash]; !ok {
+		this.Futures[hash] = NewFuture()
+	}
+	future := this.Futures[hash]
+	if err, ok := this.Rejections[hash]; ok {
+		future.Reject(err.(error))
+		delete(this.Rejections, hash)
+	}
+    return future
 }
 
 // Reject rejects specific future or all
 func (this *Client) Reject(err interface{}, messageHash ...interface{}) {
 	if len(messageHash) == 0 {
 		for hash := range this.Futures {
-			this.Futures[hash].Reject(err)
+			this.Futures[hash].Reject(err.(error))
 			delete(this.Futures, hash)
 		}
 		return
 	}
 	hash := messageHash[0]
 	if fut, ok := this.Futures[hash.(string)]; ok {
-		fut.Reject(err)
+		fut.Reject(err.(error))
 		delete(this.Futures, hash.(string))
 	}
 }
@@ -126,10 +115,10 @@ func (this *Client) Close() error {
 		
 		// Signal disconnection
 		select {
-		case <-this.Disconnected:
+		case <-this.Disconnected.result:
 			// Already closed
 		default:
-			close(this.Disconnected)
+			close(this.Disconnected.result)
 		}
 		
 		return err
@@ -142,32 +131,32 @@ func (this *Client) Close() error {
 func NewClient(url string, onMessageCallback func(client interface{}, err interface{}), onErrorCallback func(client interface{}, err interface{}), onCloseCallback func(client interface{}, err interface{}), onConnectedCallback func(client interface{}, err interface{}), config ...map[string]interface{}) (interface{}, error) {
 	// Set up defaults exactly like TypeScript constructor
 	defaults := map[string]interface{}{
-		"url":                     url,
-		"onMessageCallback":       onMessageCallback,
-		"onErrorCallback":         onErrorCallback,
-		"onCloseCallback":         onCloseCallback,
-		"onConnectedCallback":     onConnectedCallback,
-		"verbose":                 false,
-		"protocols":               nil,
-		"options":                 nil,
-		"futures":                 make(map[string]Future),
-		"subscriptions":           make(map[string]chan interface{}),
-		"rejections":              make(map[string]interface{}),
-		"connected":               nil,
-		"error":                   nil,
-		"connectionStarted":       nil,
-		"connectionEstablished":   nil,
-		"isConnected":             false,
-		"connectionTimer":         nil,
-		"connectionTimeout":       10000,
-		"pingInterval":            nil,
-		"ping":                    nil,
-		"keepAlive":               30000,
-		"maxPingPongMisses":       2.0,
-		"connection":              nil,
-		"startedConnecting":       false,
-		"gunzip":                  false,
-		"inflate":                 false,
+		"Url":                     url,
+		"OnMessageCallback":       onMessageCallback,
+		"OnErrorCallback":         onErrorCallback,
+		"OnCloseCallback":         onCloseCallback,
+		"OnConnectedCallback":     onConnectedCallback,
+		"Verbose":                 false,
+		"Protocols":               nil,
+		"Options":                 nil,
+		"Futures":                 make(map[string]*Future),
+		"Subscriptions":           make(map[string]chan interface{}),
+		"Rejections":              make(map[string]interface{}),
+		"Connected":               nil,
+		"Error":                   nil,
+		"ConnectionStarted":       nil,
+		"ConnectionEstablished":   nil,
+		"IsConnected":             false,
+		"ConnectionTimer":         nil,
+		"ConnectionTimeout":       10000,
+		"PingInterval":            nil,
+		"Ping":                    nil,
+		"KeepAlive":               30000,
+		"MaxPingPongMisses":       2.0,
+		"Connection":              nil,
+		"StartedConnecting":       false,
+		"Gunzip":                  false,
+		"Inflate":                 false,
 	}
 
 	// Apply config overrides if provided
@@ -181,32 +170,33 @@ func NewClient(url string, onMessageCallback func(client interface{}, err interf
 	// Create the client with all properties from TypeScript constructor
 	c := &Client{
 		Url:                   url,
-		Futures:               finalConfig["futures"].(map[string]Future),
-		Subscriptions:         finalConfig["subscriptions"].(map[string]chan interface{}),
-		Rejections:            finalConfig["rejections"].(map[string]interface{}),
-		Verbose:               finalConfig["verbose"].(bool),
-		KeepAlive:             int64(finalConfig["keepAlive"].(int)),
-		MaxPingPongMisses:     finalConfig["maxPingPongMisses"],
-		IsConnected:           finalConfig["isConnected"],
+		Futures:               finalConfig["Futures"].(map[string]*Future),
+		Subscriptions:         finalConfig["Subscriptions"].(map[string]chan interface{}),
+		Rejections:            finalConfig["Rejections"].(map[string]interface{}),
+		Verbose:               finalConfig["Verbose"].(bool),
+		KeepAlive:             int64(finalConfig["KeepAlive"].(int)),
+		MaxPingPongMisses:     finalConfig["MaxPingPongMisses"],
+		IsConnected:           finalConfig["IsConnected"],
 		OnConnectedCallback:   onConnectedCallback,
 		OnMessageCallback:     onMessageCallback,
 		OnErrorCallback:       onErrorCallback,
 		OnCloseCallback:       onCloseCallback,
-		ConnectionTimeout:     finalConfig["connectionTimeout"],
-		ConnectionTimer:       finalConfig["connectionTimer"],
-		PingInterval:          finalConfig["pingInterval"],
-		Ping:                  finalConfig["ping"],
+		ConnectionTimeout:     finalConfig["ConnectionTimeout"],
+		ConnectionTimer:       finalConfig["ConnectionTimer"],
+		PingInterval:          finalConfig["PingInterval"],
+		Ping:                  finalConfig["Ping"],
 		Connection: func() *websocket.Conn {
 			if finalConfig["connection"] != nil {
-				if conn, ok := finalConfig["connection"].(*websocket.Conn); ok {
+				if conn, ok := finalConfig["Connection"].(*websocket.Conn); ok {
 					return conn
 				}
 			}
 			return nil
 		}(),
-		ConnectionEstablished: finalConfig["connectionEstablished"],
-		Gunzip:                finalConfig["gunzip"],
-		Inflate:               finalConfig["inflate"],
+		ConnectionEstablished: finalConfig["ConnectionEstablished"],
+		Gunzip:                finalConfig["Gunzip"],
+		Inflate:               finalConfig["Inflate"],
+		Throttle:              finalConfig["Throttle"],
 		ReadLoopClosed:        make(chan struct{}),
 		Connected:             NewFuture(),
 		Disconnected:          NewFuture(),
@@ -339,7 +329,7 @@ func (this *Client) SetPingInterval() {
 				select {
 				case <-ticker.C:
 					this.OnPingInterval()
-				case <-this.Disconnected: // Exit when client is disconnected
+				case <-this.Disconnected.result: // Exit when client is disconnected
 					return
 				}
 			}
@@ -382,8 +372,8 @@ func (this *Client) OnPingInterval() {
 				}
 				if message != nil {
 					go func() {
-						ch := this.Send(message)
-						if err := <-ch; err != nil {
+						future := this.Send(message)
+						if err := <-future.result; err != nil {
 							this.OnError(err)
 						}
 					}()
@@ -406,10 +396,10 @@ func (this *Client) OnOpen() {
 	this.IsConnected = true
 	// Signal connected channel
 	select {
-	case <-this.Connected:
+	case <-this.Connected.result:
 		// Already closed
 	default:
-		close(this.Connected)
+		close(this.Connected.result)
 	}
 	this.ClearConnectionTimeout()
 	this.SetPingInterval()
@@ -475,10 +465,8 @@ func (this *Client) OnUpgrade(message interface{}) {
 	}
 }
 
-func (this *Client) Send(message interface{}) Future {
-	if this.Verbose {
-		this.Log(time.Now(), "sending", message)
-	}
+func (this *Client) Send(message interface{}) *Future {
+	// fmt.printf("[DEBUG] Send: sending message=%v\n", message)
 	
 	var msgStr string
 	if str, ok := message.(string); ok {
@@ -503,7 +491,7 @@ func (this *Client) Send(message interface{}) Future {
 		if err != nil {
 			future.Reject(err)
 		} else {
-			future.Resolve(nil)
+			future.Resolve(true)
 		}
 	}()
 	
@@ -579,13 +567,11 @@ func (this *Client) OnMessage(messageEvent interface{}) {
 		re := regexp.MustCompile(`:(\d{15,}),`)
 		messageStr = re.ReplaceAllString(messageStr, `:"$1",`)
 		
-		if err := json.Unmarshal([]byte(messageStr), &parsedMessage); err == nil {
-			message = parsedMessage
-		} else {
+		parsedMessage = ParseJSON(messageStr)
+		if parsedMessage == nil {
 			if this.Verbose {
-				this.Log(time.Now(), "onMessage JSON.parse", err)
+				this.Log(time.Now(), "onMessage JSON.parse", "failed to parse message")
 			}
-			// reset with a json encoding error ?
 		}
 	}
 
@@ -595,18 +581,7 @@ func (this *Client) OnMessage(messageEvent interface{}) {
 		// this.Log(time.Now(), "onMessage", util.inspect(message, false, null, true))
 		// this.Log(time.Now(), "onMessage", JSON.stringify(message, null, 4))
 	}
-
-	defer func() {
-		if r := recover(); r != nil {
-			stack := debug.Stack()
-			panicMsg := fmt.Sprintf("panic: %v\nStack trace:\n%s", r, stack)
-			this.Reject(panicMsg)
-		}
-	}()
-
-	if this.OnMessageCallback != nil {
-		this.OnMessageCallback(this, message)
-	}
+	this.OnMessageCallback(this, parsedMessage)
 }
 
 func (this *Client) IsJsonEncodedObject(str string) bool {

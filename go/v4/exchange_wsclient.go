@@ -125,7 +125,7 @@ func (this *WSClient) handleMessages() {
 	}
 }
 
-func (this *WSClient) Connect(backoffDelay ...int) (Future, error) {
+func (this *WSClient) Connect(backoffDelay ...int) (*Future, error) {
 	if !this.StartedConnecting {
 		this.StartedConnecting = true
 		// exponential backoff for consequent ws connections if necessary
@@ -157,7 +157,7 @@ func (this *WSClient) IsOpen() bool {
 	return this.Connection != nil
 }
 
-func (this *WSClient) Close() Future {
+func (this *WSClient) Close() *Future {
 	if this.Connection != nil {
 		if this.Disconnected == nil {
 			this.Disconnected = NewFuture()

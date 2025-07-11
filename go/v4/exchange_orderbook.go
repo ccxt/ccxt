@@ -20,15 +20,15 @@ func NewWsOrderBook(snapshot interface{}, depth interface{}) WsOrderBook {
     if snapshotMap, ok := snapshot.(map[string]interface{}); ok {
         if _, ok := snapshotMap["asks"]; !ok {
             snapshotMap["asks"] = [][]float64{}
-        } else {
+    } else {
             // Convert to [][]float64 if needed
             if arr, ok := snapshotMap["asks"].([]interface{}); ok {
                 asks := [][]float64{}
                 for _, v := range arr {
                     if row, ok := v.([]float64); ok {
                         asks = append(asks, row)
-                    }
-                }
+        }
+    }
                 snapshotMap["asks"] = asks
             }
         }
