@@ -136,6 +136,42 @@
                     "toAccount": "spot",
                     "status": null
                 }
+            },
+            {
+                "description": "transfer USDT from spot to linear swap",
+                "method": "transfer",
+                "input": [
+                    "USDT",
+                    10,
+                    "spot",
+                    "swap"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "timestamp": "1752202545982",
+                    "data": {
+                        "tranId": "1943504457329414144",
+                        "transferId": "1051461077440303243364"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "0",
+                        "timestamp": "1752202545982",
+                        "data": {
+                            "tranId": "1943504457329414144",
+                            "transferId": "1051461077440303243364"
+                        }
+                    },
+                    "id": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "currency": "USDT",
+                    "amount": 10,
+                    "fromAccount": "spot",
+                    "toAccount": "swap",
+                    "status": null
+                }
             }
         ],
         "fetchCurrencies": [

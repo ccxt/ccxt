@@ -1221,6 +1221,17 @@
                         "subType": "inverse"
                     }
                 ]
+            },
+            {
+                "description": "transfer USDT from spot to linear swap",
+                "method": "transfer",
+                "url": "https://open-api.bingx.com/openApi/api/asset/v1/transfer?amount=10&asset=USDT&fromAccount=spot&timestamp=1752202545401&toAccount=USDTMPerp&signature=a0da8f16bac616605f88b75f7a3200625e35df8693b7ceca4d2872790fda7314",        
+                "input": [
+                    "USDT",
+                    10,
+                    "spot",
+                    "swap"
+                ]
             }
         ],
         "fetchDepositAddress": [
