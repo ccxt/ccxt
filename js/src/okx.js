@@ -2881,7 +2881,7 @@ export default class okx extends Exchange {
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
         const market = this.market(symbol);
-        const request = {
+        let request = {
             'instId': market['id'],
             // 'ccy': currency['id'], // only applicable to cross MARGIN orders in single-currency margin
             // 'clOrdId': clientOrderId, // up to 32 characters, must be unique
@@ -3046,7 +3046,8 @@ export default class okx extends Exchange {
                 if (stopLossTriggerPrice === undefined) {
                     throw new InvalidOrder(this.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"], or params["stopLoss"]["stopPrice"], or params["stopLoss"]["slTriggerPx"] for a stop loss order');
                 }
-                request['slTriggerPx'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
+                const slTriggerPx = this.priceToPrecision(symbol, stopLossTriggerPrice);
+                request['slTriggerPx'] = slTriggerPx;
                 const stopLossLimitPrice = this.safeValueN(stopLoss, ['price', 'stopLossPrice', 'slOrdPx']);
                 const stopLossOrderType = this.safeString(stopLoss, 'type');
                 if (stopLossOrderType !== undefined) {
@@ -3137,6 +3138,14 @@ export default class okx extends Exchange {
             // tpOrdKind is 'condition' which is the default
             if (twoWayCondition) {
                 request['ordType'] = 'oco';
+            }
+            if (side === 'sell') {
+                request = this.omit(request, 'tgtCcy');
+            }
+            if (this.safeString(request, 'tdMode') === 'cash') {
+                // for some reason tdMode = cash throws
+                // {"code":"1","data":[{"algoClOrdId":"","algoId":"","clOrdId":"","sCode":"51000","sMsg":"Parameter tdMode error ","tag":""}],"msg":""}
+                request['tdMode'] = marginMode;
             }
             if (takeProfitPrice !== undefined) {
                 request['tpTriggerPx'] = this.priceToPrecision(symbol, takeProfitPrice);
