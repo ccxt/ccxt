@@ -4965,6 +4965,12 @@ $exchange->create_order($symbol, $type, $side, $amount, $price, array(
 ```
 <!-- tabs:end -->
 
+##### hedge-mode for order
+
+If exchange supports [feature](#features) for `hedged` orders, user can pass `params['hedged'] = true` in `createOrder` to open a `hedged` position instead of default `one-way` mode order.
+
+
+
 ### Editing Orders
 
 To edit an order, you can use the `editOrder` method
