@@ -4172,7 +4172,7 @@ func  (this *bybit) CreateOrder(symbol interface{}, typeVar interface{}, side in
             var isTakeProfit interface{} = !IsEqual(takeProfitPrice, nil)
             var orderRequest interface{} = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params, enableUnifiedAccount)
             var defaultMethod interface{} = nil
-            if IsTrue(IsTrue(IsTrue(isTrailingAmountOrder) || IsTrue(isStopLoss)) || IsTrue(isTakeProfit)) {
+            if IsTrue(IsTrue((IsTrue(IsTrue(isTrailingAmountOrder) || IsTrue(isStopLoss)) || IsTrue(isTakeProfit))) && !IsTrue(GetValue(market, "spot"))) {
                 defaultMethod = "privatePostV5PositionTradingStop"
             } else {
                 defaultMethod = "privatePostV5OrderCreate"
@@ -4246,7 +4246,7 @@ func  (this *bybit) CreateOrderRequest(symbol interface{}, typeVar interface{}, 
     var isLimit interface{} = IsEqual(lowerCaseType, "limit")
     var isBuy interface{} = IsEqual(side, "buy")
     var defaultMethod interface{} = nil
-    if IsTrue(IsTrue(IsTrue(isTrailingAmountOrder) || IsTrue(isStopLossTriggerOrder)) || IsTrue(isTakeProfitTriggerOrder)) {
+    if IsTrue(IsTrue((IsTrue(IsTrue(isTrailingAmountOrder) || IsTrue(isStopLossTriggerOrder)) || IsTrue(isTakeProfitTriggerOrder))) && !IsTrue(GetValue(market, "spot"))) {
         defaultMethod = "privatePostV5PositionTradingStop"
     } else {
         defaultMethod = "privatePostV5OrderCreate"
