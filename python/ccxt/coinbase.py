@@ -13,6 +13,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
@@ -332,12 +333,14 @@ class coinbase(Exchange, ImplicitAPI):
                     'rate_limit_exceeded': RateLimitExceeded,  # 429 Rate limit exceeded
                     'internal_server_error': ExchangeError,  # 500 Internal server error
                     'UNSUPPORTED_ORDER_CONFIGURATION': BadRequest,
-                    'INSUFFICIENT_FUND': BadRequest,
+                    'INSUFFICIENT_FUND': InsufficientFunds,
                     'PERMISSION_DENIED': PermissionDenied,
                     'INVALID_ARGUMENT': BadRequest,
                     'PREVIEW_STOP_PRICE_ABOVE_LAST_TRADE_PRICE': InvalidOrder,
+                    'PREVIEW_INSUFFICIENT_FUND': InsufficientFunds,
                 },
                 'broad': {
+                    'Insufficient balance in source account': InsufficientFunds,
                     'request timestamp expired': InvalidNonce,  # {"errors":[{"id":"authentication_error","message":"request timestamp expired"}]}
                     'order with self orderID was not found': OrderNotFound,  # {"error":"unknown","error_details":"order with self orderID was not found","message":"order with self orderID was not found"}
                 },
