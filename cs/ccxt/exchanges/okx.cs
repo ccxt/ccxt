@@ -3099,7 +3099,8 @@ public partial class okx : Exchange
                 {
                     throw new InvalidOrder ((string)add(this.id, " createOrder() requires a trigger price in params[\"stopLoss\"][\"triggerPrice\"], or params[\"stopLoss\"][\"stopPrice\"], or params[\"stopLoss\"][\"slTriggerPx\"] for a stop loss order")) ;
                 }
-                ((IDictionary<string,object>)request)["slTriggerPx"] = this.priceToPrecision(symbol, stopLossTriggerPrice);
+                object slTriggerPx = this.priceToPrecision(symbol, stopLossTriggerPrice);
+                ((IDictionary<string,object>)request)["slTriggerPx"] = slTriggerPx;
                 object stopLossLimitPrice = this.safeValueN(stopLoss, new List<object>() {"price", "stopLossPrice", "slOrdPx"});
                 object stopLossOrderType = this.safeString(stopLoss, "type");
                 if (isTrue(!isEqual(stopLossOrderType, null)))
@@ -3203,6 +3204,16 @@ public partial class okx : Exchange
             if (isTrue(twoWayCondition))
             {
                 ((IDictionary<string,object>)request)["ordType"] = "oco";
+            }
+            if (isTrue(isEqual(side, "sell")))
+            {
+                request = this.omit(request, "tgtCcy");
+            }
+            if (isTrue(isEqual(this.safeString(request, "tdMode"), "cash")))
+            {
+                // for some reason tdMode = cash throws
+                // {"code":"1","data":[{"algoClOrdId":"","algoId":"","clOrdId":"","sCode":"51000","sMsg":"Parameter tdMode error ","tag":""}],"msg":""}
+                ((IDictionary<string,object>)request)["tdMode"] = marginMode;
             }
             if (isTrue(!isEqual(takeProfitPrice, null)))
             {
