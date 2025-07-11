@@ -57,6 +57,7 @@ export default class hibachi extends Exchange {
                 'createTrailingAmountOrder': false,
                 'createTrailingPercentOrder': false,
                 'createTriggerOrder': false,
+                'editOrder': true,
                 'fetchAccounts': false,
                 'fetchBalance': true,
                 'fetchCanceledOrders': false,
@@ -135,6 +136,9 @@ export default class hibachi extends Exchange {
                 'private': {
                     'get': {
                         'trade/account/info': 1,
+                    },
+                    'put': {
+                        'trade/order': 1,
                     },
                     'delete': {
                         'trade/order': 1,
@@ -540,7 +544,7 @@ export default class hibachi extends Exchange {
             side_code = 1;
         }
         // TODO: it will be safer to use big decimal to avoid rounding errors
-        const eps = 1e-9;
+        const eps = 1e-6;
         const encodedNonce = this.base16ToBinary (this.intToBase16 (nonce).padStart (16, '0'));
         const encodedMarketId = this.base16ToBinary (this.intToBase16 (market.numericId).padStart (8, '0'));
         const encodedQuantity = this.base16ToBinary (this.intToBase16 (Math.floor (amount / market.precision.amount + eps)).padStart (16, '0'));
@@ -568,6 +572,7 @@ export default class hibachi extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const market = this.market (symbol);
         const nonce = this.nonce ();
@@ -603,6 +608,48 @@ export default class hibachi extends Exchange {
         //
         return this.safeOrder ({
             'id': response.orderId,
+            'status': 'pending',
+        });
+    }
+
+    /**
+     * @method
+     * @name hibachi#editOrder
+     * @description edit a limit order that is not matched
+     * @see https://api-doc.hibachi.xyz/#94d2cdaf-1c71-440f-a981-da1112824810
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type must be 'limit'
+     * @param {string} side 'buy' or 'sell', should stay the same with original side
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+        this.checkRequiredCredentials ();
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const nonce = this.nonce ();
+        const fee_rate = Math.max (market.taker, market.maker);
+        const message = this.orderMessage (market, nonce, fee_rate, type, side, amount, price);
+        const signature = this.signMessage (message, this.privateKey);
+        const request = {
+            'accountId': this.accountId,
+            'orderId': id,
+            'nonce': nonce,
+            'updatedQuantity': amount.toString (),
+            'updatedPrice': price.toString (),
+            'maxFeesPercent': fee_rate.toString (),
+            'signature': signature,
+        };
+        await this.privatePutTradeOrder (request);
+        // At this time the response body is empty. A 200 response means the update request is accepted and sent to process
+        //
+        // {}
+        //
+        return this.safeOrder ({
+            'id': id,
             'status': 'pending',
         });
     }
@@ -670,7 +717,7 @@ export default class hibachi extends Exchange {
                 url += '?' + query;
             }
         }
-        if (method === 'POST' || method === 'DELETE') {
+        if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
             headers['content-type'] = 'application/json';
             body = this.json (params);
         }
