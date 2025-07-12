@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/hibachi.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Dict, Market, Str, Ticker, Trade, Int, Num, OrderSide, OrderType } from './base/types.js';
+import type { Balances, Currencies, Dict, Market, Str, Ticker, Trade, Int, Num, OrderSide, OrderType, OrderBook } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
@@ -89,7 +89,7 @@ export default class hibachi extends Exchange {
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': false,
                 'fetchOrder': false,
-                'fetchOrderBook': false,
+                'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchOrderTrades': false,
                 'fetchPosition': false,
@@ -132,6 +132,7 @@ export default class hibachi extends Exchange {
                         'market/data/trades': 1,
                         'market/data/prices': 1,
                         'market/data/stats': 1,
+                        'market/data/orderbook': 1,
                     },
                 },
                 'private': {
@@ -723,6 +724,67 @@ export default class hibachi extends Exchange {
 
     signMessage (message, privateKey) {
         return this.signHash (this.hashMessage (message), privateKey.slice (-64));
+    }
+
+    /**
+     * @method
+     * @name hibachi#fetchOrderBook
+     * @description fetches the state of the open orders on the orderbook
+     * @see https://api-doc.hibachi.xyz/#4abb30c4-e5c7-4b0f-9ade-790111dbfa47
+     * @param {string} symbol unified symbol of the market
+     * @param {int} [limit] currently unused
+     * @param {object} [params] extra parameters to be passed -- see documentation link above
+     * @returns {object} A dictionary containg [orderbook information]{@link https://docs.ccxt.com/#/?id=order-book-structure}
+     */
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        await this.loadMarkets ();
+        const market: Market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetMarketDataOrderbook (this.extend (request, params));
+        const formattedResponse = {};
+        formattedResponse['ask'] = this.safeValue (this.safeValue (response, 'ask'), 'levels');
+        formattedResponse['bid'] = this.safeValue (this.safeValue (response, 'bid'), 'levels');
+        // {
+        //     "ask": {
+        //         "endPrice": "3512.63",
+        //         "levels": [
+        //             {
+        //                 "price": "3511.93",
+        //                 "quantity": "0.284772482"
+        //             },
+        //             {
+        //                 "price": "3512.28",
+        //                 "quantity": "0.569544964"
+        //             },
+        //             {
+        //                 "price": "3512.63",
+        //                 "quantity": "0.854317446"
+        //             }
+        //         ],
+        //         "startPrice": "3511.93"
+        //     },
+        //     "bid": {
+        //         "endPrice": "3510.87",
+        //         "levels": [
+        //             {
+        //                 "price": "3515.39",
+        //                 "quantity": "2.345153070"
+        //             },
+        //             {
+        //                 "price": "3511.22",
+        //                 "quantity": "0.284772482"
+        //             },
+        //             {
+        //                 "price": "3510.87",
+        //                 "quantity": "0.569544964"
+        //             }
+        //         ],
+        //         "startPrice": "3515.39"
+        //     }
+        // }
+        return this.parseOrderBook (formattedResponse, symbol, this.milliseconds (), 'bid', 'ask', 'price', 'quantity');
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
