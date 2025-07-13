@@ -156,7 +156,7 @@ jobs:
       - name: Build tests
         run: cd go && go build ./tests/main.go && cd ..
       - name: Live tests
-        if: env.important_modified == 'true'
+        # if: env.important_modified == 'true'
         run: node run-tests --go
       - name: Live tests (specific)
         if: env.important_modified == 'false'
