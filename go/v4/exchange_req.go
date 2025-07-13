@@ -166,6 +166,13 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 		if err != nil {
 			// panic(fmt.Sprintf("failed to unmarshal response body: %v", err))
 			result = string(respBody)
+		} else {
+			if this.ReturnResponseHeaders {
+				if resultMap, ok := result.(map[string]interface{}); ok {
+					resultMap["responseHeaders"] = resp.Header
+					result = resultMap
+				}
+			}
 		}
 
 		// Log the response (for debugging purposes)
