@@ -1,6 +1,7 @@
 package ccxt
 
 import (
+	"fmt"
 	"time"
 
 	u "github.com/google/uuid"
@@ -55,6 +56,7 @@ func (t *Throttler) Throttle(cost2 interface{}) <-chan bool {
 func (t *Throttler) Loop() {
 
 	lastTimestamp := Milliseconds()
+	throttleAlertSent := false
 	for t.Running {
 		if t.Queue.IsEmpty() {
 			t.Running = false
@@ -78,7 +80,12 @@ func (t *Throttler) Loop() {
 			if t.Queue.IsEmpty() {
 				t.Running = false
 			}
+			throttleAlertSent = false
 		} else {
+			if !throttleAlertSent {
+				fmt.Println(fmt.Sprintf("%d ccxt rate limit exceeded, throttling requests.", time.Now().UnixMilli()))
+				throttleAlertSent = true
+			}
 			sleepTime := ToFloat64(t.Config["delay"]) * 1000
 			time.Sleep(time.Duration(sleepTime) * time.Millisecond)
 			current := Milliseconds()
@@ -89,7 +96,6 @@ func (t *Throttler) Loop() {
 			t.Config["tokens"] = MathMin(tokens, ToFloat64(t.Config["capacity"]))
 		}
 	}
-
 }
 
 func Milliseconds() int64 {
