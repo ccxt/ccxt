@@ -21,6 +21,18 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+type ClientInterface interface {
+	Resolve(data interface{}, subHash interface{}) interface{}
+	Future(messageHash interface{}) *Future
+	Reject(err interface{}, messageHash ...interface{})
+	Send(message interface{}) *Future
+	Reset(err interface{})
+	OnPong()
+	GetError() error
+	SetError(err error)
+	GetUrl() string
+}
+
 // Client is a thin wrapper around a single ws:// or wss:// connection.
 // Subscriptions are identified by an arbitrary hash string
 // Each Subscribe call returns a receive-only channel that the caller reads updates from.
@@ -32,7 +44,7 @@ type Client struct {
 	Connection *websocket.Conn
 	ConnectionMu   sync.Mutex 												// protects conn writes
 
-	Subscriptions  map[string]interface{}
+	Subscriptions  map[string]interface{}  // map[string]chan interface{}
 	SubscriptionsMu sync.RWMutex
 	ReadLoopClosed chan struct{}
 
@@ -145,7 +157,7 @@ func NewClient(url string, onMessageCallback func(client interface{}, err interf
 		"Protocols":               nil,
 		"Options":                 nil,
 		"Futures":                 make(map[string]interface{}),
-		"Subscriptions":           make(map[string]interface{}),
+		"Subscriptions":           make(map[string]interface{}),  // map[string]chan interface{}
 		"Rejections":              make(map[string]interface{}),
 		"Connected":               nil,
 		"Error":                   nil,
@@ -472,7 +484,6 @@ func (this *Client) OnUpgrade(message interface{}) {
 }
 
 func (this *Client) Send(message interface{}) *Future {
-	// fmt.printf("[DEBUG] Send: sending message=%v\n", message)
 	var msgStr string
 	if str, ok := message.(string); ok {
 		msgStr = str
@@ -496,33 +507,6 @@ func (this *Client) Send(message interface{}) *Future {
 	
 	return future
 }
-
-// TODO: Another implementation, maybe it's better?
-// Send writes the payload and returns a channel that yields an error (nil on success).
-// func (this *Client) Send(message interface{}) <-chan interface{} {
-// 	ch := make(chan interface{}, 1)
-
-// 	go func() {
-// 		this.ConnectionMu.Lock()
-// 		defer this.ConnectionMu.Unlock()
-
-// 		var err error
-// 		if this.Connection == nil {
-// 			err = fmt.Errorf("websocket connection closed")
-// 		} else {
-// 			switch v := message.(type) {
-// 			case []byte:
-// 				err = this.Connection.WriteMessage(websocket.BinaryMessage, v)
-// 			default:
-// 				err = this.Connection.WriteJSON(v)
-// 			}
-// 		}
-// 		ch <- err
-// 		close(ch)
-// 	}()
-
-// 	return ch
-// }
 
 func (this *Client) CloseConnection() (interface{}, error) {
 	return nil, NotSupported(this.Url + " close() not implemented yet")
@@ -587,6 +571,18 @@ func (this *Client) IsJsonEncodedObject(str string) bool {
 	str = strings.TrimSpace(str)
 	return (strings.HasPrefix(str, "{") && strings.HasSuffix(str, "}")) ||
 		   (strings.HasPrefix(str, "[") && strings.HasSuffix(str, "]"))
+}
+
+func (this *Client) GetError() error {
+	return this.Error
+}
+
+func (this *Client) SetError(err error) {
+	this.Error = err
+}
+
+func (this *Client) GetUrl() string {
+	return this.Url
 }
 
 type wsMessageHandler interface {

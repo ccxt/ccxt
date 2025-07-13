@@ -1597,11 +1597,11 @@ func (this *Exchange) OnConnected(client interface{}, message interface{}) {
 
 func (this *Exchange) OnError(client interface{}, err interface{}) {
 	this.WsClientsMu.Lock()
-	if c, ok := this.Clients[client.(*WSClient).Url]; ok && c.(*Client).Error != nil {
-		delete(this.Clients, client.(*WSClient).Url)
+	if c, ok := this.Clients[client.(ClientInterface).GetUrl()]; ok && c.(ClientInterface).GetError() != nil {
+		delete(this.Clients, client.(ClientInterface).GetUrl())
 	}
 	this.WsClientsMu.Unlock()
-	client.(*WSClient).Error = fmt.Errorf("%v", err)
+	client.(ClientInterface).SetError(fmt.Errorf("%v", err))
 }
 
 func (this *Exchange) OnClose(client interface{}, err interface{}) {
@@ -1620,10 +1620,9 @@ func (this *Exchange) Client(url interface{}) *WSClient {
 	this.WsClientsMu.Lock()
 	defer this.WsClientsMu.Unlock()
 	if client, ok := this.Clients[url.(string)]; ok {
-		return client.(*WSClient) //, nil
+		return client.(*WSClient)
 	}
 	// TODO: add options to NewWSClient
-	
 	wsOptions := SafeValue(this.Options, "ws", map[string]interface{}{});
 	// proxy agents
 	proxies := this.CheckWsProxySettings();
@@ -1761,7 +1760,7 @@ func (this *Exchange) WatchMultiple(args ...interface{}) <-chan interface{} {
 	// the following is executed only if the catch-clause does not
 	// catch any connection-level exceptions from the client
 	// (connection established successfully)
-	if ((subscribeHashes == nil) || missingSubscriptions != nil) {
+	if len(missingSubscriptions) > 0 {
 		go func() {
 			select {
 				case <-connected.result:
