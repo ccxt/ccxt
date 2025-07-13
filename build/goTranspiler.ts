@@ -187,8 +187,8 @@ class NewTranspiler {
             [/new\s*getValue\((\w+),\s*(\w+)\)\((\w+)\)/g, 'this.NewException(GetValue($1, $2), $3)'],
 
             // Casted access to subscriptions/futures/clients → exported Go field/prop
-            [/\(object\)client\)\.subscriptions/g, 'client.Subscriptions'],
-            [/client\.subscriptions/g, 'client.Subscriptions'],
+            [/\(object\)client\)\.subscriptions/g, 'client.(*Client).Subscriptions'],
+            [/client\.subscriptions/g, 'client.(*Client).Subscriptions'],
             [/Dictionary<string,object>\)client\.futures/g, 'client.Futures'],
             [/this\.safeValue\(client\.futures,/g, 'this.SafeValue(client.Futures,'],
             [/Dictionary<string,object>\)this\.clients/g, 'this.Clients'],
@@ -237,7 +237,7 @@ class NewTranspiler {
             [/bookside\.StoreArray/g, 'bookside.(*OrderBookSide).StoreArray'],
             [/orderbookSide\.StoreArray/g, 'orderbookSide.(*OrderBookSide).StoreArray'],
             [/future\.Reject/g, 'future.(*Future).Reject'],
-            [/FindMessageHashes\(client/g, 'FindMessageHashes\(client.(Client)'],
+            [/FindMessageHashes\(client/g, 'FindMessageHashes\(client.(*Client)'],
             [/client\.Url/g, 'client.(*Client).Url'],
             [/client\.Subscriptions/g, 'client.(*WSClient).Subscriptions'],
             [/client\.Futures/g, 'client.(*WSClient).Futures'],
