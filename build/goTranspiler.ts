@@ -218,49 +218,44 @@ class NewTranspiler {
 
             // callDynamically array wrapper removal
             [/(((?:this\.)?\w+))\.(append|resolve|getLimit)\(/g, 'callDynamically($1, "$3", '],
-
-            // Remove C# generics / casts that are invalid in Go
-            [/Future\)/g, ''],
-
-            // Remove stray semicolons that leak from TS/CS syntax
-            [/;\s*\n/g, '\n'],
-            [/\.Append\(/g, '.(appender).Append('],
-            [/orderbook\.(Reset|Limit)/g, 'orderbook.(*WsOrderBook).$1'],
-            [/promise\.Resolve\(([^)]+)\)/g, 'promise.(*Future).Resolve(ToGetsLimit($1))'],
-            [/future\.Resolve/g, 'future.(*Future).Resolve'],
-            [/([a-zA-Z0-9]+)\.Call\(this, /g, 'callDynamically($1, '], // TODO: maybe put in ast
-            [/\(<\-future\)/g, '<-(future.(*Future).Await())'], // TODO: maybe put in ast
-            [/([a-z]+)\.GetLimit/g, '$1.(GetsLimit).GetLimit'],
-            [/orderbook\.Cache/g, 'orderbook.(*WsOrderBook).Cache'],
-            [/bookside\.Store/g, 'bookside.(*OrderBookSide).Store'],
-            [/bookside\.StoreArray/g, 'bookside.(*OrderBookSide).StoreArray'],
-            [/bookside\.StoreArray/g, 'bookside.(*OrderBookSide).StoreArray'],
-            [/orderbookSide\.StoreArray/g, 'orderbookSide.(*OrderBookSide).StoreArray'],
-            [/future\.Reject/g, 'future.(*Future).Reject'],
-            [/FindMessageHashes\(client/g, 'FindMessageHashes\(client.(*Client)'],
-            [/client\.Url/g, 'client.(*Client).Url'],
-            [/client\.Subscriptions/g, 'client.(*WSClient).Subscriptions'],
-            [/client\.Futures/g, 'client.(*WSClient).Futures'],
-            [/client\.Reject/g, 'client.(*Client).Reject'],
-            [/client\.Resolve/g, 'client.(*Client).Resolve'],
-            [/([a-zA-Z0-9]+).StoreArray/g, '$1.(*OrderBookSide).StoreArray'],
-            [/client\.(KeepAlive|Send|Reset|OnPong|LastPong|Reject|Future|Subscriptions|Resolve)/g, 'client.(*Client).$1'], // TODO: maybe update
-            [/(stored|cached)?([Oo]rders)?\.Hashmap/g, '$1$2.(*ArrayCache).Hashmap'],
-            [/storedOrderBook.Cache/g, 'storedOrderBook.(*WsOrderBook).Cache'],
-            [/(asks|bids|Side).Store/g, '$1.(*OrderBookSide).Store'],
-            [/CleanUnsubscription\(([a-zA-Z0-9]+),/g, 'CleanUnsubscription($1.(Client),'],
-            [/orderbooks.GetLimit/g, 'orderbooks.(GetsLimit).GetLimit'],
-            [/orderbooks.Limit/g, 'orderbooks.(*WsOrderBook).Limit'],
-            [/order.Limit/g, 'orderbooks.(GetsLimit).GetLimit'],
-            [/<-spawaned/g, '<-spawaned.(*Future).Await()'],
-            // [/New([A-Z][a-z0-9]+)Error\(([^)]+)/g, 'panic($1Error($1)'],  // old regex
-            [/New([A-Za-z0-9]+Error)\(/g, '$1('],
-            [/NewNotSupported/g, 'NotSupported'],
-            [/NewInvalidNonce/g, 'InvalidNonce'],
-            [/NewUnsubscribeError/g, 'UnsubscribeError'],
             [/NewGetValue\(([A-Za-z0-9]+), ([A-Za-z0-9]+)\)\(([A-Za-z0-9]+)\)/g, 'callDynamically(GetValue($1, $2), $3)'],
+            [/([a-zA-Z0-9]+)\.Call\(this, /g, 'callDynamically($1, '],
+            
+            [/Future\)/g, ''],  // Remove C# generics / casts that are invalid in Go
+            [/;\s*\n/g, '\n'],  // Remove stray semicolons that leak from TS/CS syntax
+
+            [/\.Append\(/g, '.(appender).Append('],
+            [/(stored|cached)?([Oo]rders)?\.Hashmap/g, '$1$2.(*ArrayCache).Hashmap'],
+            // Futures
+            [/future\.(Resolve|Reject)/g, 'future.(*Future).$1'],
+            [/\(<\-future\)/g, '<-future.(*Future).Await()'],
+            [/<-spawaned/g, '<-spawaned.(*Future).Await()'],
+            [/promise\.Resolve\(([^)]+)\)/g, 'promise.(*Future).Resolve(ToGetsLimit($1))'],
+            // GetsLimit
+            [/([a-z]+)\.GetLimit/g, '$1.(GetsLimit).GetLimit'],
+            [/orderbooks.GetLimit/g, 'orderbooks.(GetsLimit).GetLimit'],
+            [/order.Limit/g, 'orderbooks.(GetsLimit).GetLimit'],  // TODO: check if this is correct
+            // OrderBook
+            [/(storedOrderBook|orderbook)\.Cache/g, '$1.(*WsOrderBook).Cache'],
+            [/bookside\.Store/g, 'bookside.(*OrderBookSide).Store'],
+            [/orderbook\.(Reset|Limit)/g, 'orderbook.(OrderBookInterface).$1'],
+            [/orderbooks.Limit/g, 'orderbooks.(OrderBookInterface).Limit'],
+            [/([a-zA-Z0-9]+).StoreArray/g, '$1.(*OrderBookSide).StoreArray'],
+            [/(asks|bids|Side).Store/g, '$1.(*OrderBookSide).Store'],
+            // Clients
+            [/FindMessageHashes\(client/g, 'FindMessageHashes\(client.(Client)'],
+            [/client\.(LastPong|KeepAlive|Url|Subscriptions)/g, 'client.(*Client).$1'],
+            [/CleanUnsubscription\(([a-zA-Z0-9]+),/g, 'CleanUnsubscription($1.(Client),'],
+            [/client\.Futures/g, 'client.(*WSClient).Futures'],
+            [/<-client\.Future\(([^\)]*)\)/g, '<-client.(ClientInterface).Future($1).result'],
+            [/client\.(Send|Reset|OnPong|Reject|Future|Resolve)/g, 'client.(ClientInterface).$1'],
+            // Error constructors
+            [/New([A-Za-z0-9]+Error)\(/g, '$1('],
+            [/NewInvalidNonce/g, 'InvalidNonce'],
             [/NewOrderBook/g, 'NewWsOrderBook'],
-            // [/New([A-Za-z0-9]+Error)\(/g, '$1('],
+            [/NewNotSupported/g, 'NotSupported'],
+            [/NewUnsubscribeError/g, 'UnsubscribeError'],
+
             [ new RegExp(`\\s*New(${exchangeNamePattern})(?:Rest)?\\(([^)]*)\\)`, 'g'), 'New$1($2).Exchange' ],
         ]
     }

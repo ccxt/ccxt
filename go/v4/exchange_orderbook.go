@@ -8,10 +8,10 @@ type OrderBookInterface interface {
     Limit() interface{}
     Update(snapshot interface{}) interface{}
     Reset(snapshot interface{}) interface{}
+	GetCache() interface{}
 }
 
 type WsOrderBook struct {
-	GetsLimit
 	Cache     map[string]interface{}
 	Asks      *OrderBookSide
 	Bids      *OrderBookSide
@@ -61,11 +61,11 @@ func NewWsOrderBook(snapshot interface{}, depth interface{}) WsOrderBook {
     return ob
 }
 
-func (this *WsOrderBook) Limit() *WsOrderBook {
+func (this *WsOrderBook) Limit() WsOrderBook {
 	// Call limit methods on Asks and Bids if they exist
 	this.Asks.Limit()
 	this.Bids.Limit()
-	return this
+	return *this
 }
 
 func (this *WsOrderBook) Update(snapshot interface{}) *WsOrderBook {
@@ -124,6 +124,10 @@ func (this *WsOrderBook) Reset(snapshot interface{}) *WsOrderBook {
 	}
 	
 	return this
+}
+
+func (this *WsOrderBook) GetCache() interface{} {
+	return this.Cache
 }
 
 func getAsksBids(snapshot interface{}) ([][]float64, [][]float64) {
@@ -202,6 +206,10 @@ func (this *CountedOrderBook) Reset(snapshot interface{}) interface{} {
 	return this.WsOrderBook.Reset(snapshot)
 }
 
+func (this *CountedOrderBook) GetCache() interface{} {
+	return this.WsOrderBook.GetCache()
+}
+
 // indexed by order ids (3rd value in a bidask delta)
 type IndexedOrderBook struct {
 	*WsOrderBook
@@ -233,6 +241,10 @@ func (this *IndexedOrderBook) Reset(snapshot interface{}) interface{} {
 	return this.WsOrderBook.Reset(snapshot)
 }
 
+func (this *IndexedOrderBook) GetCache() interface{} {
+	return this.WsOrderBook.GetCache()
+}
+
 // ----------------------------------------------------------------------------
 // adjusts the volumes by positive or negative relative changes or differences
 
@@ -253,6 +265,22 @@ func (this *IndexedOrderBook) Reset(snapshot interface{}) interface{} {
 // 	}
 // }
 
+// func (this *IncrementalOrderBook) Limit() interface{} {
+// 	return this.WsOrderBook.Limit()
+// }
+
+// func (this *IncrementalOrderBook) Update(snapshot interface{}) interface{} {
+// 	return this.WsOrderBook.Update(snapshot)
+// }
+
+// func (this *IncrementalOrderBook) Reset(snapshot interface{}) interface{} {
+// 	return this.WsOrderBook.Reset(snapshot)
+// }
+
+// func (this *IncrementalOrderBook) GetCache() interface{} {
+// 	return this.WsOrderBook.GetCache()
+// }
+
 
 // // incremental and indexed (2 in 1)
 // type IncrementalIndexedOrderBook struct {
@@ -270,4 +298,20 @@ func (this *IndexedOrderBook) Reset(snapshot interface{}) interface{} {
 // 			depth,
 // 		),
 // 	}
+// }
+
+// func (this *IncrementalIndexedOrderBook) Limit() interface{} {
+// 	return this.WsOrderBook.Limit()
+// }
+
+// func (this *IncrementalIndexedOrderBook) Update(snapshot interface{}) interface{} {
+// 	return this.WsOrderBook.Update(snapshot)
+// }
+
+// func (this *IncrementalIndexedOrderBook) Reset(snapshot interface{}) interface{} {
+// 	return this.WsOrderBook.Reset(snapshot)
+// }
+
+// func (this *IncrementalIndexedOrderBook) GetCache() interface{} {
+// 	return this.WsOrderBook.GetCache()
 // }

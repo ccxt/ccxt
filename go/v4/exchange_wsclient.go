@@ -26,10 +26,10 @@ import (
 type WSClient struct {
 	*Client
 
-	ConnectionStarted    int64          
-    Protocols            interface{}   
-    Options              interface{}   
-    StartedConnecting    bool          
+	ConnectionStarted    int64
+    Protocols            interface{}
+    Options              interface{}
+    StartedConnecting    bool
 }
 
 // NewWSClient dials the given URL and starts the read-loop.
@@ -166,4 +166,40 @@ func (this *WSClient) Close() *Future {
 		this.Connection = nil
 	}
 	return this.Disconnected.(*Future)
+}
+
+func (this *WSClient) Resolve(data interface{}, subHash interface{}) interface{} {
+	return this.Client.Resolve(data, subHash)
+}
+
+func (this *WSClient) Future(messageHash interface{}) *Future {
+	return this.Client.Future(messageHash)
+}
+
+func (this *WSClient) Reject(err interface{}, messageHash ...interface{}) {
+	this.Client.Reject(err, messageHash...)
+}
+
+func (this *WSClient) Send(message interface{}) *Future {
+	return this.Client.Send(message)
+}
+
+func (this *WSClient) Reset(err interface{}) {
+	this.Client.Reset(err)
+}
+
+func (this *WSClient) OnPong() {
+	this.Client.OnPong()
+}
+
+func (this *WSClient) GetError() error {
+	return this.Client.GetError()
+}
+
+func (this *WSClient) SetError(err error) {
+	this.Client.SetError(err)
+}
+
+func (this *WSClient) GetUrl() string {
+	return this.Client.GetUrl()
 }
