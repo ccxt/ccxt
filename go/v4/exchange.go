@@ -1597,11 +1597,11 @@ func (this *Exchange) OnConnected(client interface{}, message interface{}) {
 
 func (this *Exchange) OnError(client interface{}, err interface{}) {
 	this.WsClientsMu.Lock()
-	if c, ok := this.Clients[client.(*Client).Url]; ok && c.(*Client).Error != nil {
-		delete(this.Clients, client.(*Client).Url)
+	if c, ok := this.Clients[client.(*WSClient).Url]; ok && c.(*Client).Error != nil {
+		delete(this.Clients, client.(*WSClient).Url)
 	}
 	this.WsClientsMu.Unlock()
-	client.(*Client).Error = fmt.Errorf("%v", err)
+	client.(*WSClient).Error = fmt.Errorf("%v", err)
 }
 
 func (this *Exchange) OnClose(client interface{}, err interface{}) {

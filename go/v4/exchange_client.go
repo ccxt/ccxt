@@ -580,7 +580,6 @@ func (this *Client) OnMessage(messageEvent interface{}) {
 		// this.Log(time.Now(), "onMessage", util.inspect(message, false, null, true))
 		// this.Log(time.Now(), "onMessage", JSON.stringify(message, null, 4))
 	}
-	fmt.Printf("onMessage - parsedMessage: %+v\n", parsedMessage)
 	this.OnMessageCallback(this, parsedMessage)
 }
 
