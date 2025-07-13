@@ -51,10 +51,10 @@
         ],
         "fetchTransfers": [
             {
-                "description": "fetch transfers from spot to swap",
+                "description": "fetch USDT transfers from spot to swap",
                 "method": "fetchTransfers",
                 "input": [
-                    null,
+                    "USDT",
                     null,
                     null,
                     {
@@ -63,15 +63,25 @@
                     }
                 ],
                 "httpResponse": {
-                    "total": 1,
+                    "total": "2",
                     "rows": [
+                        {
+                            "asset": "LTC",
+                            "amount": "0.05000000000000000000",
+                            "status": "CONFIRMED",
+                            "transferId": "1051461075661819338791",
+                            "timestamp": "1752202092000",
+                            "fromAccount": "spot",
+                            "toAccount": "USDTMPerp"
+                        },
                         {
                             "asset": "USDT",
                             "amount": "10.00000000000000000000",
-                            "type": "SPOT_PFUTURES",
                             "status": "CONFIRMED",
-                            "tranId": 907272517,
-                            "timestamp": 1749731424000
+                            "transferId": "1051461077440303243364",
+                            "timestamp": "1752202546000",
+                            "fromAccount": "spot",
+                            "toAccount": "USDTMPerp"
                         }
                     ]
                 },
@@ -80,18 +90,19 @@
                         "info": {
                             "asset": "USDT",
                             "amount": "10.00000000000000000000",
-                            "type": "SPOT_PFUTURES",
                             "status": "CONFIRMED",
-                            "tranId": "907272517",
-                            "timestamp": "1749731424000"
+                            "transferId": "1051461077440303243364",
+                            "timestamp": "1752202546000",
+                            "fromAccount": "spot",
+                            "toAccount": "USDTMPerp"
                         },
-                        "id": "907272517",
-                        "timestamp": 1749731424000,
-                        "datetime": "2025-06-12T12:30:24.000Z",
-                        "currency": null,
+                        "id": "1051461077440303243364",
+                        "timestamp": 1752202546000,
+                        "datetime": "2025-07-11T02:55:46.000Z",
+                        "currency": "USDT",
                         "amount": 10,
                         "fromAccount": "spot",
-                        "toAccount": "swap",
+                        "toAccount": "linear",
                         "status": "ok"
                     }
                 ]
