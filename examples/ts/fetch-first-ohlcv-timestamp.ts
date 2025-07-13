@@ -79,9 +79,9 @@ if (runExample) {
     const myEx = new ccxt.binance ();
     await myEx.loadMarkets ();
     const symbol = 'TRUMP/USDT';
-    const earliest_timestamp = await fetchFirstBarTimestamp(myEx, symbol, true);
-    console.log ('- Earliest bar timestamp:', earliest_timestamp, ', readable: ', myEx.iso8601(earliest_timestamp));
-    console.log ('- market.created value:', myEx.market(symbol)['created']);
+    const earliest_timestamp = await fetchFirstBarTimestamp (myEx, symbol, true);
+    console.log ('- Earliest bar timestamp:', earliest_timestamp, ', readable: ', myEx.iso8601 (earliest_timestamp));
+    console.log ('- market.created value:', myEx.market (symbol)['created']);
 }
 
 
