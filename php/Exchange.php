@@ -1612,7 +1612,7 @@ class Exchange {
             if ($this->enableLastJsonResponse) {
                 $this->last_json_response = $json_response;
             }
-            if ($this->returnResponseHeaders) {
+            if ($json_response && !array_is_list($json_response) && $this->returnResponseHeaders) {
                 $json_response['responseHeaders'] = $response_headers;
             }
         }
