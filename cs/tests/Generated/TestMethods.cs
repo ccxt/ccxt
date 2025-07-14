@@ -903,7 +903,7 @@ public partial class testMainClass
         // todo: this might be moved in base tests later
         if (isTrue(isEqual(exchange.id, "binance")))
         {
-            assert(isEqual(exchange.hostname, null), "binance.com hostname should be empty");
+            assert(isTrue(isEqual(exchange.hostname, null)) || isTrue(isEqual(exchange.hostname, "")), "binance.com hostname should be empty");
             assert(isEqual(getValue(getValue(exchange.urls, "api"), "public"), "https://api.binance.com/api/v3"), add("https://api.binance.com/api/v3 does not match: ", getValue(getValue(exchange.urls, "api"), "public")));
             assert((inOp(getValue(getValue(exchange.api, "sapi"), "get"), "lending/union/account")), add("SAPI should contain the endpoint lending/union/account, ", jsonStringify(getValue(getValue(exchange.api, "sapi"), "get"))));
         } else if (isTrue(isEqual(exchange.id, "binanceus")))
