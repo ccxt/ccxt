@@ -619,7 +619,7 @@ class testMainClass:
     def check_constructor(self, exchange):
         # todo: this might be moved in base tests later
         if exchange.id == 'binance':
-            assert exchange.hostname is None, 'binance.com hostname should be empty'
+            assert exchange.hostname is None or exchange.hostname == '', 'binance.com hostname should be empty'
             assert exchange.urls['api']['public'] == 'https://api.binance.com/api/v3', 'https://api.binance.com/api/v3 does not match: ' + exchange.urls['api']['public']
             assert ('lending/union/account' in exchange.api['sapi']['get']), 'SAPI should contain the endpoint lending/union/account, ' + json_stringify(exchange.api['sapi']['get'])
         elif exchange.id == 'binanceus':

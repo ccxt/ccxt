@@ -2839,7 +2839,7 @@ class Exchange(object):
         # keep self in mind:
         # in JS: 1 == 1.0 is True;  1 == 1.0 is True
         # in Python: 1 == 1.0 is True
-        # in PHP 1 == 1.0 is True, but 1 == 1.0 is False
+        # in PHP 1 == 1.0 is True, but 1 == 1.0 is False.
         if stringVersion.find('.') >= 0:
             return float(stringVersion)
         return int(stringVersion)
