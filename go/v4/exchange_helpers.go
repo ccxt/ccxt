@@ -893,7 +893,7 @@ func AddElementToObject(arrayOrDict interface{}, stringOrInt interface{}, value 
 				}
 				
 					// Check if we already have an OrderBookSide for this key
-					if _, exists := orderbook.Cache[key]; !exists {
+					if _, exists := orderbook.Cache.(map[string]interface{})[key]; !exists {
 						// Create new OrderBookSide object
 						isBid := (key == "bids")
 						var orderBookSide interface{}
@@ -902,14 +902,14 @@ func AddElementToObject(arrayOrDict interface{}, stringOrInt interface{}, value 
 						} else {
 							orderBookSide = NewAsks([]interface{}{}, nil)
 						}
-						orderbook.Cache[key] = orderBookSide
+						orderbook.Cache.(map[string]interface{})[key] = orderBookSide
 					}
 			} else {
 				// For other fields, store them in the cache as well for GetValue access
 				if orderbook.Cache == nil {
 					orderbook.Cache = make(map[string]interface{})
 				}
-				orderbook.Cache[key] = value
+				orderbook.Cache.(map[string]interface{})[key] = value
 			}
 		}
 		return

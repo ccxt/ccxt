@@ -172,15 +172,19 @@ func (this *WSClient) Resolve(data interface{}, subHash interface{}) interface{}
 	return this.Client.Resolve(data, subHash)
 }
 
-func (this *WSClient) Future(messageHash interface{}) *Future {
+func (this *WSClient) Future(messageHash interface{}) <-chan interface{} {
 	return this.Client.Future(messageHash)
+}
+
+func (this *WSClient) NewFuture(messageHash interface{}) *Future {
+	return this.Client.NewFuture(messageHash)
 }
 
 func (this *WSClient) Reject(err interface{}, messageHash ...interface{}) {
 	this.Client.Reject(err, messageHash...)
 }
 
-func (this *WSClient) Send(message interface{}) *Future {
+func (this *WSClient) Send(message interface{}) <-chan interface{} {
 	return this.Client.Send(message)
 }
 

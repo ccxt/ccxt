@@ -14,7 +14,7 @@ type OrderBookInterface interface {
 }
 
 type WsOrderBook struct {
-	Cache     map[string]interface{}
+	Cache     interface{}
 	Asks      *OrderBookSide
 	Bids      *OrderBookSide
 	Timestamp int64
