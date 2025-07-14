@@ -338,7 +338,7 @@
             {
                 "description": "Fetch deposits",
                 "method": "fetchDeposits",
-                "url": "https://api.woox.io/v1/asset/history?token_side=DEPOSIT&type=BALANCE",
+                "url": "https://api.woox.io/v3/asset/wallet/history?tokenSide=DEPOSIT&type=BALANCE",
                 "input": []
             }
         ],
@@ -346,7 +346,7 @@
             {
                 "description": "Fetch withdrawals",
                 "method": "fetchWithdrawals",
-                "url": "https://api.woox.io/v1/asset/history?token_side=WITHDRAW&type=BALANCE",
+                "url": "https://api.woox.io/v3/asset/wallet/history?tokenSide=WITHDRAW&type=BALANCE",
                 "input": []
             }
         ],
@@ -362,7 +362,7 @@
             {
                 "description": "fetch USDT ledger",
                 "method": "fetchLedger",
-                "url": "https://api.woox.io/v1/asset/history?balance_token=USDT",
+                "url": "https://api.woox.io/v3/asset/wallet/history?token=USDT",
                 "input": [
                     "USDT"
                 ]

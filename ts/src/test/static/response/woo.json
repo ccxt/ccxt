@@ -2070,6 +2070,347 @@
                     }
                 }
             }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "fetchDeposits",
+                "method": "fetchDeposits",
+                "input": [],
+                "httpResponse": {
+                    "success": true,
+                    "data": {
+                        "rows": [
+                            {
+                                "createdTime": "1711198014.126",
+                                "updatedTime": "1721624583.727",
+                                "id": "24032312465400366",
+                                "externalId": "240323124600367",
+                                "applicationId": "251bf5c4-f3c8-4544-bb8b-80001007c3c0",
+                                "token": "TRON_USDT",
+                                "targetAddress": "TTsY9uu2Y3aBH1vSir1md7oRqZe7DscA4v",
+                                "sourceAddress": "TSaRZDiBPD8Rd5vrvX8a4zgunHczM9mj8S",
+                                "extra": "",
+                                "type": "BALANCE",
+                                "tokenSide": "DEPOSIT",
+                                "amount": "5.00000000",
+                                "txId": "dc3dbf3185f519036adfeeb4a2390c7646028e20e06e536fb22f36247111494a",
+                                "feeToken": "",
+                                "feeAmount": "0",
+                                "status": "COMPLETED",
+                                "confirmingThreshold": null,
+                                "confirmedNumber": null
+                            }
+                        ],
+                        "meta": {
+                            "total": 1,
+                            "records_per_page": 25,
+                            "current_page": 1
+                        }
+                    },
+                    "timestamp": 1752495884477
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "createdTime": "1711198014.126",
+                            "updatedTime": "1721624583.727",
+                            "id": "24032312465400366",
+                            "externalId": "240323124600367",
+                            "applicationId": "251bf5c4-f3c8-4544-bb8b-80001007c3c0",
+                            "token": "TRON_USDT",
+                            "targetAddress": "TTsY9uu2Y3aBH1vSir1md7oRqZe7DscA4v",
+                            "sourceAddress": "TSaRZDiBPD8Rd5vrvX8a4zgunHczM9mj8S",
+                            "extra": "",
+                            "type": "BALANCE",
+                            "tokenSide": "DEPOSIT",
+                            "amount": "5.00000000",
+                            "txId": "dc3dbf3185f519036adfeeb4a2390c7646028e20e06e536fb22f36247111494a",
+                            "feeToken": "",
+                            "feeAmount": "0",
+                            "status": "COMPLETED",
+                            "confirmingThreshold": null,
+                            "confirmedNumber": null
+                        },
+                        "id": "24032312465400366",
+                        "txid": "dc3dbf3185f519036adfeeb4a2390c7646028e20e06e536fb22f36247111494a",
+                        "timestamp": 1711198014126,
+                        "datetime": "2024-03-23T12:46:54.126Z",
+                        "address": null,
+                        "addressFrom": "TSaRZDiBPD8Rd5vrvX8a4zgunHczM9mj8S",
+                        "addressTo": "TTsY9uu2Y3aBH1vSir1md7oRqZe7DscA4v",
+                        "tag": null,
+                        "tagFrom": null,
+                        "tagTo": null,
+                        "type": "deposit",
+                        "amount": 5,
+                        "currency": "USDT",
+                        "status": "ok",
+                        "updated": 1721624583727,
+                        "comment": null,
+                        "internal": null,
+                        "fee": {
+                            "cost": "0",
+                            "currency": null
+                        },
+                        "network": null,
+                        "tokenSide": "DEPOSIT"
+                    }
+                ]
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "fetchWithdrawals",
+                "method": "fetchWithdrawals",
+                "input": [],
+                "httpResponse": {
+                    "success": true,
+                    "data": {
+                        "rows": [
+                            {
+                                "createdTime": "1734964440.523",
+                                "updatedTime": "1734964614.081",
+                                "id": "24122314340000585",
+                                "externalId": "241223143600621",
+                                "applicationId": "251bf5c4-f3c8-4544-bb8b-80001007c3c0",
+                                "token": "ARB_USDCNATIVE",
+                                "targetAddress": "0x4d6802d2736daa85e6242ef0dc0f00aa0e68f635",
+                                "sourceAddress": "0x63DFE4e34A3bFC00eB0220786238a7C6cEF8Ffc4",
+                                "extra": "",
+                                "type": "BALANCE",
+                                "tokenSide": "WITHDRAW",
+                                "amount": "10.00000000",
+                                "txId": "0x891ade0a47fd55466bb9d06702bea4edcb75ed9367d9afbc47b93a84f496d2e6",
+                                "feeToken": "USDC",
+                                "feeAmount": "2",
+                                "status": "COMPLETED",
+                                "confirmingThreshold": null,
+                                "confirmedNumber": null
+                            }
+                        ],
+                        "meta": {
+                            "total": 1,
+                            "records_per_page": 25,
+                            "current_page": 1
+                        }
+                    },
+                    "timestamp": 1752495962106
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "createdTime": "1734964440.523",
+                            "updatedTime": "1734964614.081",
+                            "id": "24122314340000585",
+                            "externalId": "241223143600621",
+                            "applicationId": "251bf5c4-f3c8-4544-bb8b-80001007c3c0",
+                            "token": "ARB_USDCNATIVE",
+                            "targetAddress": "0x4d6802d2736daa85e6242ef0dc0f00aa0e68f635",
+                            "sourceAddress": "0x63DFE4e34A3bFC00eB0220786238a7C6cEF8Ffc4",
+                            "extra": "",
+                            "type": "BALANCE",
+                            "tokenSide": "WITHDRAW",
+                            "amount": "10.00000000",
+                            "txId": "0x891ade0a47fd55466bb9d06702bea4edcb75ed9367d9afbc47b93a84f496d2e6",
+                            "feeToken": "USDC",
+                            "feeAmount": "2",
+                            "status": "COMPLETED",
+                            "confirmingThreshold": null,
+                            "confirmedNumber": null
+                        },
+                        "id": "24122314340000585",
+                        "txid": "0x891ade0a47fd55466bb9d06702bea4edcb75ed9367d9afbc47b93a84f496d2e6",
+                        "timestamp": 1734964440523,
+                        "datetime": "2024-12-23T14:34:00.523Z",
+                        "address": null,
+                        "addressFrom": "0x63DFE4e34A3bFC00eB0220786238a7C6cEF8Ffc4",
+                        "addressTo": "0x4d6802d2736daa85e6242ef0dc0f00aa0e68f635",
+                        "tag": null,
+                        "tagFrom": null,
+                        "tagTo": null,
+                        "type": "withdrawal",
+                        "amount": 10,
+                        "currency": "USDCNATIVE",
+                        "status": "ok",
+                        "updated": 1734964614081,
+                        "comment": null,
+                        "internal": null,
+                        "fee": {
+                            "cost": "2",
+                            "currency": "USDC"
+                        },
+                        "network": null,
+                        "tokenSide": "WITHDRAW"
+                    }
+                ]
+            }
+        ],
+        "fetchLedger": [
+            {
+                "description": "fetchLedger",
+                "method": "fetchLedger",
+                "input": [],
+                "httpResponse": {
+                    "success": true,
+                    "data": {
+                        "rows": [
+                            {
+                                "createdTime": "1711198014.126",
+                                "updatedTime": "1721624583.727",
+                                "id": "24032312465400366",
+                                "externalId": "240323124600367",
+                                "applicationId": "251bf5c4-f3c8-4544-bb8b-80001007c3c0",
+                                "token": "TRON_USDT",
+                                "targetAddress": "TTsY9uu2Y3aBH1vSir1md7oRqZe7DscA4v",
+                                "sourceAddress": "TSaRZDiBPD8Rd5vrvX8a4zgunHczM9mj8S",
+                                "extra": "",
+                                "type": "BALANCE",
+                                "tokenSide": "DEPOSIT",
+                                "amount": "5.00000000",
+                                "txId": "dc3dbf3185f519036adfeeb4a2390c7646028e20e06e536fb22f36247111494a",
+                                "feeToken": "",
+                                "feeAmount": "0",
+                                "status": "COMPLETED",
+                                "confirmingThreshold": null,
+                                "confirmedNumber": null
+                            }
+                        ],
+                        "meta": {
+                            "total": 1,
+                            "records_per_page": 25,
+                            "current_page": 1
+                        }
+                    },
+                    "timestamp": 1752495884477
+                },
+                "parsedResponse": [
+                    {
+                        "id": "24032312465400366",
+                        "timestamp": 1711198014126,
+                        "datetime": "2024-03-23T12:46:54.126Z",
+                        "direction": "in",
+                        "account": null,
+                        "referenceId": "dc3dbf3185f519036adfeeb4a2390c7646028e20e06e536fb22f36247111494a",
+                        "referenceAccount": null,
+                        "type": "transaction",
+                        "currency": "TRON_USDT",
+                        "amount": 5,
+                        "before": null,
+                        "after": null,
+                        "status": "ok",
+                        "fee": {
+                            "cost": 0,
+                            "currency": null
+                        },
+                        "info": {
+                            "createdTime": "1711198014.126",
+                            "updatedTime": "1721624583.727",
+                            "id": "24032312465400366",
+                            "externalId": "240323124600367",
+                            "applicationId": "251bf5c4-f3c8-4544-bb8b-80001007c3c0",
+                            "token": "TRON_USDT",
+                            "targetAddress": "TTsY9uu2Y3aBH1vSir1md7oRqZe7DscA4v",
+                            "sourceAddress": "TSaRZDiBPD8Rd5vrvX8a4zgunHczM9mj8S",
+                            "extra": "",
+                            "type": "BALANCE",
+                            "tokenSide": "DEPOSIT",
+                            "amount": "5.00000000",
+                            "txId": "dc3dbf3185f519036adfeeb4a2390c7646028e20e06e536fb22f36247111494a",
+                            "feeToken": "",
+                            "feeAmount": "0",
+                            "status": "COMPLETED",
+                            "confirmingThreshold": null,
+                            "confirmedNumber": null
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchDepositsWithdrawals": [
+            {
+                "description": "fetchDepositsWithdrawals",
+                "method": "fetchDepositsWithdrawals",
+                "input": [],
+                "httpResponse": {
+                    "success": true,
+                    "data": {
+                        "rows": [
+                            {
+                                "createdTime": "1711198014.126",
+                                "updatedTime": "1721624583.727",
+                                "id": "24032312465400366",
+                                "externalId": "240323124600367",
+                                "applicationId": "251bf5c4-f3c8-4544-bb8b-80001007c3c0",
+                                "token": "TRON_USDT",
+                                "targetAddress": "TTsY9uu2Y3aBH1vSir1md7oRqZe7DscA4v",
+                                "sourceAddress": "TSaRZDiBPD8Rd5vrvX8a4zgunHczM9mj8S",
+                                "extra": "",
+                                "type": "BALANCE",
+                                "tokenSide": "DEPOSIT",
+                                "amount": "5.00000000",
+                                "txId": "dc3dbf3185f519036adfeeb4a2390c7646028e20e06e536fb22f36247111494a",
+                                "feeToken": "",
+                                "feeAmount": "0",
+                                "status": "COMPLETED",
+                                "confirmingThreshold": null,
+                                "confirmedNumber": null
+                            }
+                        ],
+                        "meta": {
+                            "total": 1,
+                            "records_per_page": 25,
+                            "current_page": 1
+                        }
+                    },
+                    "timestamp": 1752495884477
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "createdTime": "1711198014.126",
+                            "updatedTime": "1721624583.727",
+                            "id": "24032312465400366",
+                            "externalId": "240323124600367",
+                            "applicationId": "251bf5c4-f3c8-4544-bb8b-80001007c3c0",
+                            "token": "TRON_USDT",
+                            "targetAddress": "TTsY9uu2Y3aBH1vSir1md7oRqZe7DscA4v",
+                            "sourceAddress": "TSaRZDiBPD8Rd5vrvX8a4zgunHczM9mj8S",
+                            "extra": "",
+                            "type": "BALANCE",
+                            "tokenSide": "DEPOSIT",
+                            "amount": "5.00000000",
+                            "txId": "dc3dbf3185f519036adfeeb4a2390c7646028e20e06e536fb22f36247111494a",
+                            "feeToken": "",
+                            "feeAmount": "0",
+                            "status": "COMPLETED",
+                            "confirmingThreshold": null,
+                            "confirmedNumber": null
+                        },
+                        "id": "24032312465400366",
+                        "txid": "dc3dbf3185f519036adfeeb4a2390c7646028e20e06e536fb22f36247111494a",
+                        "timestamp": 1711198014126,
+                        "datetime": "2024-03-23T12:46:54.126Z",
+                        "address": null,
+                        "addressFrom": "TSaRZDiBPD8Rd5vrvX8a4zgunHczM9mj8S",
+                        "addressTo": "TTsY9uu2Y3aBH1vSir1md7oRqZe7DscA4v",
+                        "tag": null,
+                        "tagFrom": null,
+                        "tagTo": null,
+                        "type": "deposit",
+                        "amount": 5,
+                        "currency": "USDT",
+                        "status": "ok",
+                        "updated": 1721624583727,
+                        "comment": null,
+                        "internal": null,
+                        "fee": {
+                            "cost": "0",
+                            "currency": null
+                        },
+                        "network": null
+                    }
+                ]
+            }
         ]
     }
 }

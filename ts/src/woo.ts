@@ -2517,62 +2517,69 @@ export default class woo extends Exchange {
         let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
-            request['balance_token'] = currency['id'];
+            request['token'] = currency['id'];
+        }
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode !== undefined) {
+            request['network'] = this.networkCodeToId (networkCode);
         }
         if (since !== undefined) {
-            request['start_t'] = since;
+            request['startTime'] = since;
         }
         if (limit !== undefined) {
-            request['pageSize'] = limit;
+            request['size'] = Math.min (limit, 1000);
         }
         const transactionType = this.safeString (params, 'type');
         params = this.omit (params, 'type');
         if (transactionType !== undefined) {
             request['type'] = transactionType;
         }
-        const response = await this.v1PrivateGetAssetHistory (this.extend (request, params));
-        // {
-        //     "rows": [
-        //       {
-        //         "id": "22010508193900165",
-        //         "token": "TRON_USDT",
-        //         "extra": '',
-        //         "amount": "13.75848500",
-        //         "status": "COMPLETED",
-        //         "account": null,
-        //         "description": null,
-        //         "user_id": "42222",
-        //         "application_id": "6ad2b303-f354-45c0-8105-9f5f19d0e335",
-        //         "external_id": "220105081900134",
-        //         "target_address": "TXnyFSnAYad3YCaqtwMw9jvXKkeU39NLnK",
-        //         "source_address": "TYDzsYUEpvnYmQk4zGP9sWWcTEd2MiAtW6",
-        //         "type": "BALANCE",
-        //         "token_side": "DEPOSIT",
-        //         "tx_id": "35b0004022f6b3ad07f39a0b7af199f6b258c2c3e2c7cdc93c67efa74fd625ee",
-        //         "fee_token": '',
-        //         "fee_amount": "0.00000000",
-        //         "created_time": "1641370779.442",
-        //         "updated_time": "1641370779.465",
-        //         "is_new_target_address": null,
-        //         "confirmed_number": "29",
-        //         "confirming_threshold": "27",
-        //         "audit_tag": "1",
-        //         "audit_result": "0",
-        //         "balance_token": null, // TODO -write to support, that this seems broken. here should be the token id
-        //         "network_name": null // TODO -write to support, that this seems broken. here should be the network id
-        //       }
-        //     ],
-        //     "meta": { total: '1', records_per_page: "25", current_page: "1" },
-        //     "success": true
-        // }
-        return [ currency, this.safeList (response, 'rows', []) ];
+        const response = await this.v3PrivateGetAssetWalletHistory (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "rows": [
+        //                 {
+        //                     "createdTime": "1734964440.523",
+        //                     "updatedTime": "1734964614.081",
+        //                     "id": "24122314340000585",
+        //                     "externalId": "241223143600621",
+        //                     "applicationId": "251bf5c4-f3c8-4544-bb8b-80001007c3c0",
+        //                     "token": "ARB_USDCNATIVE",
+        //                     "targetAddress": "0x4d6802d2736daa85e6242ef0dc0f00aa0e68f635",
+        //                     "sourceAddress": "0x63DFE4e34A3bFC00eB0220786238a7C6cEF8Ffc4",
+        //                     "extra": "",
+        //                     "type": "BALANCE",
+        //                     "tokenSide": "WITHDRAW",
+        //                     "amount": "10.00000000",
+        //                     "txId": "0x891ade0a47fd55466bb9d06702bea4edcb75ed9367d9afbc47b93a84f496d2e6",
+        //                     "feeToken": "USDC",
+        //                     "feeAmount": "2",
+        //                     "status": "COMPLETED",
+        //                     "confirmingThreshold": null,
+        //                     "confirmedNumber": null
+        //                 }
+        //             ],
+        //             "meta": {
+        //                 "total": 1,
+        //                 "records_per_page": 25,
+        //                 "current_page": 1
+        //             }
+        //         },
+        //         "timestamp": 1752485344719
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return [ currency, this.safeList (data, 'rows', []) ];
     }
 
     /**
      * @method
      * @name woo#fetchLedger
      * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-     * @see https://docs.woox.io/#get-asset-history
+     * @see https://developer.woox.io/api-reference/endpoint/assets/get_wallet_history
      * @param {string} [code] unified currency code, default is undefined
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
@@ -2587,22 +2594,43 @@ export default class woo extends Exchange {
     }
 
     parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
+        //
+        //     {
+        //         "createdTime": "1734964440.523",
+        //         "updatedTime": "1734964614.081",
+        //         "id": "24122314340000585",
+        //         "externalId": "241223143600621",
+        //         "applicationId": "251bf5c4-f3c8-4544-bb8b-80001007c3c0",
+        //         "token": "ARB_USDCNATIVE",
+        //         "targetAddress": "0x4d6802d2736daa85e6242ef0dc0f00aa0e68f635",
+        //         "sourceAddress": "0x63DFE4e34A3bFC00eB0220786238a7C6cEF8Ffc4",
+        //         "extra": "",
+        //         "type": "BALANCE",
+        //         "tokenSide": "WITHDRAW",
+        //         "amount": "10.00000000",
+        //         "txId": "0x891ade0a47fd55466bb9d06702bea4edcb75ed9367d9afbc47b93a84f496d2e6",
+        //         "feeToken": "USDC",
+        //         "feeAmount": "2",
+        //         "status": "COMPLETED",
+        //         "confirmingThreshold": null,
+        //         "confirmedNumber": null
+        //     }
+        //
         const networkizedCode = this.safeString (item, 'token');
-        const currencyDefined = this.getCurrencyFromChaincode (networkizedCode, currency);
-        const code = currencyDefined['code'];
+        const code = this.safeCurrencyCode (networkizedCode, currency);
         currency = this.safeCurrency (code, currency);
         const amount = this.safeNumber (item, 'amount');
-        const side = this.safeString (item, 'token_side');
+        const side = this.safeString (item, 'tokenSide');
         const direction = (side === 'DEPOSIT') ? 'in' : 'out';
-        const timestamp = this.safeTimestamp (item, 'created_time');
-        const fee = this.parseTokenAndFeeTemp (item, [ 'fee_token' ], [ 'fee_amount' ]);
+        const timestamp = this.safeTimestamp (item, 'createdTime');
+        const fee = this.parseTokenAndFeeTemp (item, [ 'feeToken' ], [ 'feeAmount' ]);
         return this.safeLedgerEntry ({
             'info': item,
             'id': this.safeString (item, 'id'),
             'currency': code,
             'account': this.safeString (item, 'account'),
             'referenceAccount': undefined,
-            'referenceId': this.safeString (item, 'tx_id'),
+            'referenceId': this.safeString (item, 'txId'),
             'status': this.parseTransactionStatus (this.safeString (item, 'status')),
             'amount': amount,
             'before': undefined,
@@ -2643,7 +2671,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchDeposits
      * @description fetch all deposits made to an account
-     * @see https://docs.woox.io/#get-asset-history
+     * @see https://developer.woox.io/api-reference/endpoint/assets/get_wallet_history
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -2652,7 +2680,7 @@ export default class woo extends Exchange {
      */
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         const request: Dict = {
-            'token_side': 'DEPOSIT',
+            'tokenSide': 'DEPOSIT',
         };
         return await this.fetchDepositsWithdrawals (code, since, limit, this.extend (request, params));
     }
@@ -2661,7 +2689,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchWithdrawals
      * @description fetch all withdrawals made from an account
-     * @see https://docs.woox.io/#get-asset-history
+     * @see https://developer.woox.io/api-reference/endpoint/assets/get_wallet_history
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -2670,7 +2698,7 @@ export default class woo extends Exchange {
      */
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         const request: Dict = {
-            'token_side': 'WITHDRAW',
+            'tokenSide': 'WITHDRAW',
         };
         return await this.fetchDepositsWithdrawals (code, since, limit, this.extend (request, params));
     }
@@ -2679,7 +2707,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchDepositsWithdrawals
      * @description fetch history of deposits and withdrawals
-     * @see https://docs.woox.io/#get-asset-history
+     * @see https://developer.woox.io/api-reference/endpoint/assets/get_wallet_history
      * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
      * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
      * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
@@ -2693,37 +2721,47 @@ export default class woo extends Exchange {
         const currencyRows = await this.getAssetHistoryRows (code, since, limit, this.extend (request, params));
         const currency = this.safeValue (currencyRows, 0);
         const rows = this.safeList (currencyRows, 1);
-        //
-        //     {
-        //         "rows":[],
-        //         "meta":{
-        //             "total":0,
-        //             "records_per_page":25,
-        //             "current_page":1
-        //         },
-        //         "success":true
-        //     }
-        //
         return this.parseTransactions (rows, currency, since, limit, params);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
-        // example in fetchLedger
+        //
+        //     {
+        //         "createdTime": "1734964440.523",
+        //         "updatedTime": "1734964614.081",
+        //         "id": "24122314340000585",
+        //         "externalId": "241223143600621",
+        //         "applicationId": "251bf5c4-f3c8-4544-bb8b-80001007c3c0",
+        //         "token": "ARB_USDCNATIVE",
+        //         "targetAddress": "0x4d6802d2736daa85e6242ef0dc0f00aa0e68f635",
+        //         "sourceAddress": "0x63DFE4e34A3bFC00eB0220786238a7C6cEF8Ffc4",
+        //         "extra": "",
+        //         "type": "BALANCE",
+        //         "tokenSide": "WITHDRAW",
+        //         "amount": "10.00000000",
+        //         "txId": "0x891ade0a47fd55466bb9d06702bea4edcb75ed9367d9afbc47b93a84f496d2e6",
+        //         "feeToken": "USDC",
+        //         "feeAmount": "2",
+        //         "status": "COMPLETED",
+        //         "confirmingThreshold": null,
+        //         "confirmedNumber": null
+        //     }
+        //
         const networkizedCode = this.safeString (transaction, 'token');
         const currencyDefined = this.getCurrencyFromChaincode (networkizedCode, currency);
         const code = currencyDefined['code'];
-        let movementDirection = this.safeStringLower (transaction, 'token_side');
+        let movementDirection = this.safeStringLower2 (transaction, 'token_side', 'tokenSide');
         if (movementDirection === 'withdraw') {
             movementDirection = 'withdrawal';
         }
-        const fee = this.parseTokenAndFeeTemp (transaction, [ 'fee_token' ], [ 'fee_amount' ]);
-        const addressTo = this.safeString (transaction, 'target_address');
-        const addressFrom = this.safeString (transaction, 'source_address');
-        const timestamp = this.safeTimestamp (transaction, 'created_time');
+        const fee = this.parseTokenAndFeeTemp (transaction, [ 'fee_token', 'feeToken' ], [ 'fee_amount', 'feeAmount' ]);
+        const addressTo = this.safeString2 (transaction, 'target_address', 'targetAddress');
+        const addressFrom = this.safeString2 (transaction, 'source_address', 'sourceAddress');
+        const timestamp = this.safeTimestamp2 (transaction, 'created_time', 'createdTime');
         return {
             'info': transaction,
-            'id': this.safeString2 (transaction, 'id', 'withdraw_id'),
-            'txid': this.safeString (transaction, 'tx_id'),
+            'id': this.safeStringN (transaction, [ 'id', 'withdraw_id', 'withdrawId' ]),
+            'txid': this.safeString2 (transaction, 'tx_id', 'txId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'address': undefined,
@@ -2736,7 +2774,7 @@ export default class woo extends Exchange {
             'amount': this.safeNumber (transaction, 'amount'),
             'currency': code,
             'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
-            'updated': this.safeTimestamp (transaction, 'updated_time'),
+            'updated': this.safeTimestamp2 (transaction, 'updated_time', 'updatedTime'),
             'comment': undefined,
             'internal': undefined,
             'fee': fee,
