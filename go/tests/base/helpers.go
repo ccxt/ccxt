@@ -66,10 +66,6 @@ func Assert(condition2 interface{}, message2 ...interface{}) {
 	}
 }
 
-func AppendToArraySafe(slice interface{}, element interface{}) {
-	ccxt.AppendToArraySafe(slice, element)
-}
-
 // func IsEqual(a, b interface{}) bool {
 // 	return ccxt.IsEqual(a, b)
 // }

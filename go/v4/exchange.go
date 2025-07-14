@@ -1425,7 +1425,7 @@ func (this *Exchange) Watch(args ...interface{}) <-chan interface{} {
 		}
 		client.FuturesMu.RUnlock()
 	}
-	future := client.Future(messageHash)
+	future := client.NewFuture(messageHash)
 	// read and write subscription, this is done before connecting the client
 	// to avoid race conditions when other parts of the code read or write to the client.subscriptions
 	client.SubscriptionsMu.Lock()
@@ -1468,21 +1468,11 @@ func (this *Exchange) Watch(args ...interface{}) <-chan interface{} {
 									return
 								}
 							}
-							sendFuture := client.Send(message)
-							// Wait synchronously for send completion (mimics JS promise .catch).
-							select {
-							case err := <-sendFuture.err:
-								client.OnError(err)
-							case <-sendFuture.result:
-								// send succeeded – nothing else to do
-							}
-						} else {
-							sendFuture := client.Send(message)
-							select {
-							case err := <-sendFuture.err:
-								client.OnError(err)
-							case <-sendFuture.result:
-							}
+						}
+						sendFutureChannel := <-client.Send(message)
+						if err, ok := sendFutureChannel.(error); ok {
+							client.OnError(err)
+							// ? delete(client.Subscriptions, subscribeHash.(string))
 						}
 					}
 				case err := <-connected.err:
@@ -1717,7 +1707,7 @@ func (this *Exchange) WatchMultiple(args ...interface{}) <-chan interface{} {
 	//
 	futures := make([]*Future, len(messageHashes))
 	for i, messageHash := range messageHashes {
-		futures[i] = client.Future(messageHash)
+		futures[i] = client.NewFuture(messageHash)
 	}
 	future := FutureRace(futures)
 	// read and write subscription, this is done before connecting the client
@@ -1776,34 +1766,21 @@ func (this *Exchange) WatchMultiple(args ...interface{}) <-chan interface{} {
 									client.OnError(err)
 								}
 							}
-							sendFuture := client.Send(message)
-							select {
-							case err := <-sendFuture.err:
-								for _, subscribeHash := range missingSubscriptions {
-									delete(client.Subscriptions, subscribeHash)
-								}
-								future.Reject(err)
-							case <-sendFuture.result:
-								// success
+						}
+						sendFutureChannel := <-client.Send(message)
+						if err, ok := sendFutureChannel.(error); ok {
+							for _, subscribeHash := range missingSubscriptions {
+								delete(client.Subscriptions, subscribeHash)
 							}
-						} else {
-							sendFuture := client.Send(message)
-							select {
-							case err := <-sendFuture.err:
-								for _, subscribeHash := range missingSubscriptions {
-									delete(client.Subscriptions, subscribeHash)
-								}
-								future.Reject(err)
-							case <-sendFuture.result:
-							}
+							future.Reject(err)
 						}
 					}
-			case err := <-connected.err:
-				for _, subscribeHash := range missingSubscriptions {
-					delete(client.Subscriptions, subscribeHash)
-				}
-				future.Reject(err)
-				return
+				case err := <-connected.err:
+					for _, subscribeHash := range missingSubscriptions {
+						delete(client.Subscriptions, subscribeHash)
+					}
+					future.Reject(err)
+					return
 			}
 		}()
 	}
@@ -1898,7 +1875,13 @@ func (this *Exchange) Close() []error {
 	this.WsClients = make(map[string]interface{})
 	this.WsClientsMu.Unlock()
 	errs := make([]error, 0)
-	for _, c := range clients { if future := c.Close(); future != nil && future.err != nil { errs = append(errs, <-future.err) } }
+	for _, c := range clients {
+		if future := c.Close(); future != nil && future.err != nil {
+			if errVal, ok := (<-future.err).(error); ok {
+				errs = append(errs, errVal)
+			}
+		}
+	}
 	return errs
 }
 // ---------------- Connection lifecycle helpers ----------------

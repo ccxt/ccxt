@@ -24,7 +24,6 @@ type CacheType interface {
 }
 
 type BaseCache struct {
-	appender
 
 	MaxSize int
 	Mu      sync.Mutex

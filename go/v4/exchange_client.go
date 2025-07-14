@@ -23,9 +23,9 @@ import (
 
 type ClientInterface interface {
 	Resolve(data interface{}, subHash interface{}) interface{}
-	Future(messageHash interface{}) *Future
+	Future(messageHash interface{}) <-chan interface{}
 	Reject(err interface{}, messageHash ...interface{})
-	Send(message interface{}) *Future
+	Send(message interface{}) chan interface{}
 	Reset(err interface{})
 	OnPong()
 	GetError() error
@@ -80,19 +80,23 @@ func (this *Client) Resolve(data interface{}, subHash interface{}) interface{} {
 		panic(fmt.Sprintf("subHash must be a string, got %T: %v", subHash, subHash))
 	}
 	
-	this.FuturesMu.Lock()
-	
 	// Send to Future channel for ongoing updates (non-blocking)
 	if fut, exists := this.Futures[hash]; exists {
-		// Normal case: a watcher is already waiting
 		fut.(*Future).Resolve(data)
 		delete(this.Futures, hash)
 	}
-	this.FuturesMu.Unlock()
 	return data
 }
 
-func (this *Client) Future(messageHash interface{}) *Future {
+func (this *Client) Future(messageHash interface{}) <-chan interface{} {
+    future := this.NewFuture(messageHash)
+	if _, ok := this.Rejections[messageHash.(string)]; ok {
+		return future.err
+	}
+    return future.result
+}
+
+func (this *Client) NewFuture(messageHash interface{}) *Future {
     hash, _ := messageHash.(string)
     if _, ok := this.Futures[hash]; !ok {
 		this.Futures[hash] = NewFuture()
@@ -390,7 +394,7 @@ func (this *Client) OnPingInterval() {
 				if message != nil {
 					go func() {
 						future := this.Send(message)
-						if err := <-future.result; err != nil {
+						if err := <-future; err != nil {
 							this.OnError(err)
 						}
 					}()
@@ -483,7 +487,7 @@ func (this *Client) OnUpgrade(message interface{}) {
 	}
 }
 
-func (this *Client) Send(message interface{}) *Future {
+func (this *Client) Send(message interface{}) <-chan interface{} {
 	var msgStr string
 	if str, ok := message.(string); ok {
 		msgStr = str
@@ -493,19 +497,22 @@ func (this *Client) Send(message interface{}) *Future {
 	}
 	
 	future := NewFuture()
+	ch := make(chan interface{})
 	go func() {
 		this.ConnectionMu.Lock()
 		// ? if (isNode)
 		err := this.Connection.WriteMessage(websocket.TextMessage, []byte(msgStr))
 		if err != nil {
 			future.Reject(err)
+			ch <- future.err
 		} else {
 			future.Resolve(true)
+			ch <- future.result
 		}
 		this.ConnectionMu.Unlock()
 	}()
 	
-	return future
+	return ch
 }
 
 func (this *Client) CloseConnection() (interface{}, error) {
