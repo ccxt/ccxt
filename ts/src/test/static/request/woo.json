@@ -314,7 +314,7 @@
             {
                 "description": "Fetch linear position",
                 "method": "fetchPositions",
-                "url": "https://api.woox.io/v3/positions",
+                "url": "https://api.woox.io/v3/futures/positions",
                 "input": [
                     [
                         "LTC/USDT:USDT"

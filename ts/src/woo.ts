@@ -3708,60 +3708,47 @@ export default class woo extends Exchange {
         return this.parsePosition (response, market);
     }
 
+    /**
+     * @method
+     * @name woo#fetchPositions
+     * @description fetch all open positions
+     * @see https://developer.woox.io/api-reference/endpoint/futures/get_positions
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
-        const response = await this.v3PrivateGetPositions (params);
+        const response = await this.v3PrivateGetFuturesPositions (params);
         //
         //     {
         //         "success": true,
-        //         "data":
-        //         {
+        //         "data": {
         //             "positions": [
         //                 {
-        //                     "symbol": "PERP_ETH_USDT",
-        //                     "holding": -1.0,
-        //                     "pendingLongQty": 0.0,
-        //                     "pendingShortQty": 0.0,
-        //                     "settlePrice": 3143.2,
-        //                     "averageOpenPrice": 3143.2,
-        //                     "pnl24H": 0.0,
-        //                     "fee24H": 1.5716,
-        //                     "markPrice": 3134.97984158,
-        //                     "estLiqPrice": 3436.176349,
-        //                     "timestamp": 1720628031.463,
-        //                     "adlQuantile": 5,
-        //                     "positionSide": "BOTH",
-        //                     "marginMode": "ISOLATED",
-        //                     "isolatedMarginToken": "USDT",
-        //                     "isolatedMarginAmount": 314.62426,
-        //                     "isolatedFrozenLong": 0.0,
-        //                     "isolatedFrozenShort": 0.0,
-        //                     "leverage": 10
-        //                 },
-        //                 {
-        //                     "symbol": "PERP_SOL_USDT",
-        //                     "holding": -1.0,
-        //                     "pendingLongQty": 0.0,
-        //                     "pendingShortQty": 0.0,
-        //                     "settlePrice": 141.89933923,
-        //                     "averageOpenPrice": 171.38,
-        //                     "pnl24H": 0.0,
-        //                     "fee24H": 0.0,
-        //                     "markPrice": 141.65155427,
-        //                     "estLiqPrice": 4242.73548551,
-        //                     "timestamp": 1720616702.68,
-        //                     "adlQuantile": 5,
+        //                     "symbol": "PERP_LTC_USDT",
+        //                     "holding": "0.1",
+        //                     "pendingLongQty": "0",
+        //                     "pendingShortQty": "0",
+        //                     "settlePrice": "96.87",
+        //                     "averageOpenPrice": "96.87",
+        //                     "pnl24H": "0",
+        //                     "fee24H": "0.0048435",
+        //                     "markPrice": "96.83793449",
+        //                     "estLiqPrice": "0",
+        //                     "timestamp": 1752500555823,
+        //                     "adlQuantile": 2,
         //                     "positionSide": "BOTH",
         //                     "marginMode": "CROSS",
         //                     "isolatedMarginToken": "",
-        //                     "isolatedMarginAmount": 0.0,
-        //                     "isolatedFrozenLong": 0.0,
-        //                     "isolatedFrozenShort": 0.0,
+        //                     "isolatedMarginAmount": "0",
+        //                     "isolatedFrozenLong": "0",
+        //                     "isolatedFrozenShort": "0",
         //                     "leverage": 10
         //                 }
         //             ]
         //         },
-        //         "timestamp": 1720628675078
+        //         "timestamp": 1752500579848
         //     }
         //
         const result = this.safeDict (response, 'data', {});
@@ -3797,24 +3784,24 @@ export default class woo extends Exchange {
         //
         // v3PrivateGetPositions
         //     {
-        //         "symbol": "PERP_ETH_USDT",
-        //         "holding": -1.0,
-        //         "pendingLongQty": 0.0, // todo: check
-        //         "pendingShortQty": 0.0, // todo: check
-        //         "settlePrice": 3143.2,
-        //         "averageOpenPrice": 3143.2,
-        //         "pnl24H": 0.0, // todo: check
-        //         "fee24H": 1.5716, // todo: check
-        //         "markPrice": 3134.97984158,
-        //         "estLiqPrice": 3436.176349,
-        //         "timestamp": 1720628031.463,
-        //         "adlQuantile": 5,
+        //         "symbol": "PERP_LTC_USDT",
+        //         "holding": "0.1",
+        //         "pendingLongQty": "0",
+        //         "pendingShortQty": "0",
+        //         "settlePrice": "96.87",
+        //         "averageOpenPrice": "96.87",
+        //         "pnl24H": "0",
+        //         "fee24H": "0.0048435",
+        //         "markPrice": "96.83793449",
+        //         "estLiqPrice": "0",
+        //         "timestamp": 1752500555823,
+        //         "adlQuantile": 2,
         //         "positionSide": "BOTH",
-        //         "marginMode": "ISOLATED",
-        //         "isolatedMarginToken": "USDT", // todo: check
-        //         "isolatedMarginAmount": 314.62426, // todo: check
-        //         "isolatedFrozenLong": 0.0, // todo: check
-        //         "isolatedFrozenShort": 0.0, // todo: check
+        //         "marginMode": "CROSS",
+        //         "isolatedMarginToken": "",
+        //         "isolatedMarginAmount": "0",
+        //         "isolatedFrozenLong": "0",
+        //         "isolatedFrozenShort": "0",
         //         "leverage": 10
         //     }
         //
@@ -3829,7 +3816,15 @@ export default class woo extends Exchange {
         }
         const contractSize = this.safeString (market, 'contractSize');
         const markPrice = this.safeString2 (position, 'markPrice', 'mark_price');
-        const timestamp = this.safeTimestamp (position, 'timestamp');
+        const timestampString = this.safeString (position, 'timestamp');
+        let timestamp = undefined;
+        if (timestampString !== undefined) {
+            if (timestampString.indexOf ('.') > -1) {
+                timestamp = this.safeTimestamp (position, 'timestamp');
+            } else {
+                timestamp = this.safeInteger (position, 'timestamp');
+            }
+        }
         const entryPrice = this.safeString2 (position, 'averageOpenPrice', 'average_open_price');
         const priceDifference = Precise.stringSub (markPrice, entryPrice);
         const unrealisedPnl = Precise.stringMul (priceDifference, size);
