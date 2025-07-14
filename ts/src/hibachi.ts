@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/hibachi.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Dict, Market, Str, Ticker, Trade, Int, Num, OrderSide, OrderType, OrderBook } from './base/types.js';
+import type { Balances, Currencies, Dict, Market, Str, Ticker, Trade, Int, Num, OrderSide, OrderType, OrderBook, Transaction } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
@@ -111,7 +111,7 @@ export default class hibachi extends Exchange {
                 'setMargin': false,
                 'setPositionMode': false,
                 'transfer': false,
-                'withdraw': false,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -147,6 +147,7 @@ export default class hibachi extends Exchange {
                     },
                     'post': {
                         'trade/order': 1,
+                        'capital/withdraw': 1,
                     },
                 },
             },
@@ -702,6 +703,99 @@ export default class hibachi extends Exchange {
             'id': id,
             'status': 'canceled',
         });
+    }
+
+    withdrawMessage (amount: number, maxFees: number, address: string) {
+        // Converting them to internal representation:
+        // - Quantity: Internal = External * (10^6)
+        // - maxFees: Internal = External * (10^6)
+        // We only have USDT as our currency as this time
+        const USDTAssetId = 1;
+        const pUSDTFactor = new Precise ('1000000');
+        const amountStr = amount.toString ();
+        const maxFeesStr = maxFees.toString ();
+        const pOne = new Precise ('1');
+        const pAmount = new Precise (amountStr);
+        const pMaxFees = new Precise (maxFeesStr);
+        const quantityInternal = pAmount.mul (pUSDTFactor).div (pOne, 0);
+        const maxFeesInternal = pMaxFees.mul (pUSDTFactor).div (pOne, 0);
+        // Encoding
+        const encodedAssetId = this.base16ToBinary (this.intToBase16 (USDTAssetId).padStart (8, '0'));
+        const encodedQuantity = this.base16ToBinary (this.intToBase16 (this.parseToInt (quantityInternal.toString ())).padStart (16, '0'));
+        const encodedMaxFees = this.base16ToBinary (this.intToBase16 (this.parseToInt (maxFeesInternal.toString ())).padStart (16, '0'));
+        const encodedAddress = this.base16ToBinary (address);
+        const message = this.binaryConcat (encodedAssetId, encodedQuantity, encodedMaxFees, encodedAddress);
+        return message;
+    }
+
+    /**
+     * @method
+     * @name hibachi#withdraw
+     * @description make a withdrawal
+     * @see https://api-doc.hibachi.xyz/#6421625d-3e45-45fa-be9b-d2a0e780c090
+     * @param {string} code unified currency code, only support USDT
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+        this.checkRequiredCredentials ();
+        const withdrawAddress = address.slice (-40);
+        // Get the withdraw fees
+        const exchangeInfo = await this.publicGetMarketExchangeInfo (params);
+        // {
+        //      "feeConfig": {
+        //          "depositFees": "0.004518",
+        //          "tradeMakerFeeRate": "0.00000000",
+        //          "tradeTakerFeeRate": "0.00020000",
+        //          "transferFeeRate": "0.00010000",
+        //          "withdrawalFees": "0.012050"
+        //    },
+        // }
+        const feeConfig = this.safeDict (exchangeInfo, 'feeConfig');
+        const maxFees = this.safeNumber (feeConfig, 'withdrawalFees');
+        // Generate the signature
+        const message = this.withdrawMessage (amount, maxFees, withdrawAddress);
+        const signature = this.signMessage (message, this.privateKey);
+        const request = {
+            'accountId': this.accountId,
+            'coin': 'USDT',
+            'network': 'ARBITRUM',
+            'withdrawAddress': withdrawAddress,
+            'selfWithdrawal': false,
+            'quantity': amount.toString (),
+            'maxFees': maxFees.toString (),
+            'signature': signature,
+        };
+        await this.privatePostCapitalWithdraw (request);
+        // At this time the response body is empty. A 200 response means the withdraw request is accepted and sent to process
+        //
+        // {}
+        //
+        return {
+            'info': undefined,
+            'id': undefined,
+            'txid': undefined,
+            'timestamp': this.milliseconds (),
+            'datetime': undefined,
+            'address': undefined,
+            'addressFrom': undefined,
+            'addressTo': withdrawAddress,
+            'tag': undefined,
+            'tagFrom': undefined,
+            'tagTo': undefined,
+            'type': 'deposit',
+            'amount': amount,
+            'currency': code,
+            'status': 'pending',
+            'fee': { 'currency': 'USDT', 'cost': maxFees },
+            'network': 'ARBITRUM',
+            'updated': undefined,
+            'comment': undefined,
+            'internal': undefined,
+        } as Transaction;
     }
 
     nonce () {
