@@ -2456,7 +2456,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchDepositAddress
      * @description fetch the deposit address for a currency associated with this account
-     * @see https://docs.woox.io/#get-token-deposit-address
+     * @see https://developer.woox.io/api-reference/endpoint/assets/get_wallet_deposit
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
@@ -2465,18 +2465,25 @@ export default class woo extends Exchange {
         // this method is TODO because of networks unification
         await this.loadMarkets ();
         const currency = this.currency (code);
-        let specialNetworkId: Str = undefined;
-        [ specialNetworkId, params ] = this.getDedicatedNetworkId (currency, params);
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         const request: Dict = {
-            'token': specialNetworkId,
+            'token': currency['id'],
+            'network': this.networkCodeToId (networkCode),
         };
-        const response = await this.v1PrivateGetAssetDeposit (this.extend (request, params));
-        // {
-        //     "success": true,
-        //     "address": "3Jmtjx5544T4smrit9Eroe4PCrRkpDeKjP",
-        //     "extra": ''
-        // }
-        return this.parseDepositAddress (response, currency);
+        const response = await this.v3PrivateGetAssetWalletDeposit (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "address": "0x31d64B3230f8baDD91dE1710A65DF536aF8f7cDa",
+        //             "extra": ""
+        //         },
+        //         "timestamp": 1721300689532
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseDepositAddress (data, currency);
     }
 
     getDedicatedNetworkId (currency, params: Dict): any {

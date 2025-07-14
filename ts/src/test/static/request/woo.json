@@ -409,7 +409,7 @@
             {
                 "description": "fetchDepositAddress USDT on ERC20",
                 "method": "fetchDepositAddress",
-                "url": "https://api.woox.io/v1/asset/deposit?token=ETH_USDT",
+                "url": "https://api.woox.io/v3/asset/wallet/deposit?token=USDT&network=ETH",
                 "input": [
                     "USDT",
                     {
@@ -421,7 +421,7 @@
             {
                 "description": "fetchDepositAddress ETH on ETH",
                 "method": "fetchDepositAddress",
-                "url": "https://api.woox.io/v1/asset/deposit?token=ETH",
+                "url": "https://api.woox.io/v3/asset/wallet/deposit?token=ETH&network=ETH",
                 "input": [
                     "ETH",
                     {
@@ -433,7 +433,7 @@
             {
                 "description": "fetchDepositAddress ETH on ERC20",
                 "method": "fetchDepositAddress",
-                "url": "https://api.woox.io/v1/asset/deposit?token=ETH",
+                "url": "https://api.woox.io/v3/asset/wallet/deposit?token=ETH&network=ETH",
                 "input": [
                     "ETH",
                     {
@@ -445,7 +445,7 @@
             {
                 "description": "fetchDepositAddress BTC on BTC",
                 "method": "fetchDepositAddress",
-                "url": "https://api.woox.io/v1/asset/deposit?token=BTC",
+                "url": "https://api.woox.io/v3/asset/wallet/deposit?token=BTC&network=BTC",
                 "input": [
                     "BTC",
                     {
@@ -457,7 +457,7 @@
             {
                 "description": "fetchDepositAddress USDT on ETH",
                 "method": "fetchDepositAddress",
-                "url": "https://api.woox.io/v1/asset/deposit?token=ETH_USDT",
+                "url": "https://api.woox.io/v3/asset/wallet/deposit?token=USDT&network=ETH",
                 "input": [
                     "USDT",
                     {
