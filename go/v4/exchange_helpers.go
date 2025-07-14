@@ -1403,10 +1403,10 @@ func ObjectKeys(v interface{}) []string {
 		}
 		return keys
 	} else if syncMap, ok := v.(*sync.Map); ok {
-		if syncMap == nil {
-			
-		}
 		keys := []string{}
+		if syncMap == nil {
+			return keys
+		}
 		syncMap.Range(func(k, _ interface{}) bool {
 			if keyStr, ok := k.(string); ok {
 				keys = append(keys, keyStr)
@@ -1442,10 +1442,10 @@ func ObjectValues(v interface{}) []interface{} {
 		}
 		return values
 	} else if syncMap, ok := v.(*sync.Map); ok {
-		if syncMap == nil {
-			return nil
-		}
 		values := []interface{}{}
+		if syncMap == nil {
+			return values
+		}
 		syncMap.Range(func(_, value interface{}) bool {
 			values = append(values, value)
 			return true
