@@ -1,5 +1,7 @@
 package ccxt
 
+import "math"
+
 // type CustomOrderBookProp interface {
 // 	cache []any
 // }
@@ -91,23 +93,47 @@ func (this *WsOrderBook) Reset(snapshot interface{}) *WsOrderBook {
 		snapshot = make(map[string]interface{})
 	}
 	
-	// Reset asks by recreating them
-	var asksData [][]float64
-	if val, ok := snapshot.(map[string]interface{})["asks"].([][]float64); ok && val != nil {
-		asksData = val
-	} else {
-		asksData = make([][]float64, 0)
+	// Reset asks by clearing and repopulating existing object (like TypeScript)
+	if this.Asks != nil {
+		// Clear the existing asks
+		for i := range this.Asks.index {
+			this.Asks.index[i] = math.MaxFloat64
+		}
+		this.Asks.length = 0
+		this.Asks.data = this.Asks.data[:0] // Clear the slice but keep capacity
+		
+		// Repopulate with new data
+		if val, ok := snapshot.(map[string]interface{})["asks"]; ok && val != nil {
+			if asksData, ok := val.([][]float64); ok {
+				for _, ask := range asksData {
+					if len(ask) >= 2 {
+						this.Asks.StoreArray(ask)
+					}
+				}
+			}
+		}
 	}
-	this.Asks = NewAsks(asksData, nil)
 	
-	// Reset bids by recreating them
-	var bidsData [][]float64
-	if val, ok := snapshot.(map[string]interface{})["bids"].([][]float64); ok && val != nil {
-		bidsData = val
-	} else {
-		bidsData = make([][]float64, 0)
+	// Reset bids by clearing and repopulating existing object (like TypeScript)
+	if this.Bids != nil {
+		// Clear the existing bids
+		for i := range this.Bids.index {
+			this.Bids.index[i] = math.MaxFloat64
+		}
+		this.Bids.length = 0
+		this.Bids.data = this.Bids.data[:0] // Clear the slice but keep capacity
+		
+		// Repopulate with new data
+		if val, ok := snapshot.(map[string]interface{})["bids"]; ok && val != nil {
+			if bidsData, ok := val.([][]float64); ok {
+				for _, bid := range bidsData {
+					if len(bid) >= 2 {
+						this.Bids.StoreArray(bid)
+					}
+				}
+			}
+		}
 	}
-	this.Bids = NewBids(bidsData, nil)
 	
 	// Set properties from snapshot
 	if nonce, ok := snapshot.(map[string]interface{})["nonce"].(int64); ok {
@@ -126,6 +152,7 @@ func (this *WsOrderBook) Reset(snapshot interface{}) *WsOrderBook {
 	return this
 }
 
+// Might need if IndexedOrder and CountedOrderBook access the cache
 func (this *WsOrderBook) GetCache() interface{} {
 	return this.Cache
 }
