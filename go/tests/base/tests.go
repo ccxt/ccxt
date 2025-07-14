@@ -950,7 +950,7 @@ func  (this *testMainClass) TestProxies(exchange ccxt.IExchange) <- chan interfa
 func  (this *testMainClass) CheckConstructor(exchange ccxt.IExchange)  {
     // todo: this might be moved in base tests later
     if IsTrue(IsEqual(exchange.GetId(), "binance")) {
-        Assert(IsEqual(exchange.GetHostname(), nil), "binance.com hostname should be empty")
+        Assert(IsTrue(IsEqual(exchange.GetHostname(), nil)) || IsTrue(IsEqual(exchange.GetHostname(), "")), "binance.com hostname should be empty")
         Assert(IsEqual(GetValue(GetValue(exchange.GetUrls(), "api"), "public"), "https://api.binance.com/api/v3"), Add("https://api.binance.com/api/v3 does not match: ", GetValue(GetValue(exchange.GetUrls(), "api"), "public")))
         Assert((InOp(GetValue(GetValue(exchange.GetApi(), "sapi"), "get"), "lending/union/account")), Add("SAPI should contain the endpoint lending/union/account, ", JsonStringify(GetValue(GetValue(exchange.GetApi(), "sapi"), "get"))))
     } else if IsTrue(IsEqual(exchange.GetId(), "binanceus")) {
