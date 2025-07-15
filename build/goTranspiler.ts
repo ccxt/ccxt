@@ -187,12 +187,12 @@ class NewTranspiler {
             // Casted access to subscriptions/futures/clients → exported Go field/prop
             [/\(object\)client\)\.subscriptions/g, 'client.(*Client).Subscriptions'],
             [/client\.subscriptions/g, 'client.(*Client).Subscriptions'],
-            [/Dictionary<string,object>\)client\.futures/g, 'client.Futures'],
-            [/this\.safeValue\(client\.futures,/g, 'this.SafeValue(client.Futures,'],
+            [/Dictionary<string,object>\)client\.futures/g, 'client.(*WSClient).Futures'],
+            [/this\.safeValue\(client\.futures,/g, 'this.SafeValue(client.(*WSClient).Futures,'],
             [/Dictionary<string,object>\)this\.clients/g, 'this.Clients'],
 
             // OrderBook & OrderBookSide casts → plain method/field access with proper capitalisation
-            [/(orderbook)(\.reset)/g, '$1.Reset'],
+            [/(orderbook)(\.reset)/g, '$1.(OrderBookInterface).Reset'],
             [/(\w+)(\.cache)/g, '$1.Cache'],
             [/((\w+)(\.hashmap))/g, '$1.Hashmap'],
             [/(countedBookSide)\.store\(/g, '$1.Store('],
@@ -206,7 +206,7 @@ class NewTranspiler {
             [/(\w+)\.limit\(\)/g, '$1.Limit()'],
 
             // Future/Client Resolve/Reject casts
-            [/(future)\.resolve/g, '$1.Resolve'],
+            [/future\.resolve/g, 'future.(*Future).Resolve'],
             [/(\w+)\.resolve/g, '$1.Resolve'],
             [/(\w+)\.reject/g, '$1.Reject'],
 
@@ -232,8 +232,7 @@ class NewTranspiler {
             [/promise\.Resolve\(([^)]+)\)/g, 'promise.(*Future).Resolve(ToGetsLimit($1))'],
             // GetsLimit
             [/([a-z]+)\.GetLimit/g, '$1.(GetsLimit).GetLimit'],
-            [/orderbooks.GetLimit/g, 'orderbooks.(GetsLimit).GetLimit'],
-            [/order.Limit/g, 'orderbooks.(GetsLimit).GetLimit'],  // TODO: check if this is correct
+            [/order.Limit/g, 'orderbooks.(GetsLimit).Limit'],
             // OrderBook
             [/(storedOrderBook|orderbook)\.Cache/g, '$1.(*WsOrderBook).Cache'],
             [/bookside\.Store/g, 'bookside.(*OrderBookSide).Store'],
@@ -243,9 +242,8 @@ class NewTranspiler {
             [/(asks|bids|Side).Store/g, '$1.(*OrderBookSide).Store'],
             // Clients
             [/FindMessageHashes\(client/g, 'FindMessageHashes\(client.(*Client)'],
-            [/client\.(LastPong|KeepAlive|Url|Subscriptions)/g, 'client.(*Client).$1'],
             [/CleanUnsubscription\(([a-zA-Z0-9]+),/g, 'CleanUnsubscription($1.(*Client),'],
-            [/client\.Futures/g, 'client.(*WSClient).Futures'],
+            [/client\.(LastPong|KeepAlive|Url|Subscriptions)/g, 'client.(*Client).$1'],
             [/<-client\.Future\(([^\)]*)\)/g, '<-client.(ClientInterface).Future($1)'],
             [/client\.(Send|Reset|OnPong|Reject|Future|Resolve)/g, 'client.(ClientInterface).$1'],
             // Error constructors

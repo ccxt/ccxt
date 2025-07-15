@@ -65,7 +65,7 @@ func (f *Future) Resolve(args ...interface{}) {
     f.mu.Unlock()
     
     go func() {
-        time.Sleep(0) // defer to next goroutine scheduling, like setTimeout 0
+        time.Sleep(0)
         f.result <- value
     }()
 }
