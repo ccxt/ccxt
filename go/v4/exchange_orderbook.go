@@ -23,130 +23,135 @@ type WsOrderBook struct {
 	Symbol    string
 }
 
-func NewWsOrderBook(snapshot interface{}, depth interface{}) WsOrderBook {
+func NewWsOrderBook(snapshot interface{}, depth interface{}) *WsOrderBook {
     // Sanitize snapshot to ensure asks and bids are always [][]float64
-    if snapshotMap, ok := snapshot.(map[string]interface{}); ok {
-        if _, ok := snapshotMap["asks"]; !ok {
-            snapshotMap["asks"] = [][]float64{}
-    } else {
-            // Convert to [][]float64 if needed
-            if arr, ok := snapshotMap["asks"].([]interface{}); ok {
-                asks := [][]float64{}
-                for _, v := range arr {
-                    if row, ok := v.([]float64); ok {
-                        asks = append(asks, row)
-        }
-    }
-                snapshotMap["asks"] = asks
-            }
-        }
-        if _, ok := snapshotMap["bids"]; !ok {
-            snapshotMap["bids"] = [][]float64{}
-        } else {
-            if arr, ok := snapshotMap["bids"].([]interface{}); ok {
-                bids := [][]float64{}
-                for _, v := range arr {
-                    if row, ok := v.([]float64); ok {
-                        bids = append(bids, row)
-                    }
-                }
-                snapshotMap["bids"] = bids
-            }
-        }
-    }
-    
-    ob := WsOrderBook{
-        Asks: NewAsks(GetValue(snapshot, "asks"), depth),
-        Bids: NewBids(GetValue(snapshot, "bids"), depth),
-    }
-    
-    return ob
+	orderbook := &WsOrderBook{}
+	if depth == nil {
+		depth = math.MaxInt32
+	}
+	var cache     interface{}
+	var asks      *OrderBookSide
+	var bids      *OrderBookSide
+	var timestamp int64
+	var datetime  interface{}
+	var nonce     int64
+	var symbol    string
+
+	if snapshot == nil {
+		snapshot = make(map[string]interface{})
+	}
+	snapshotMap := snapshot.(map[string]interface{})
+	if snapshotMap["cache"] != nil {
+		cache = snapshotMap["cache"]
+	} else {
+		cache = map[string]interface{}{}
+	}
+	if snapshotMap["bids"] != nil {
+		bids = NewAsks(snapshotMap["bids"], depth)
+	} else {
+		bids = NewAsks(nil, depth)
+	}
+	if snapshotMap["asks"] != nil {
+		asks = NewAsks(snapshotMap["asks"], depth)
+	} else {
+		asks = NewAsks(nil, depth)
+	}
+	if snapshotMap["timestamp"] != nil {
+		timestamp = snapshotMap["timestamp"].(int64)
+		datetime = Iso8601(timestamp)
+	} else {
+		timestamp = 0
+		datetime = nil
+	}
+	if snapshotMap["nonce"] != nil {
+		nonce = snapshotMap["nonce"].(int64)
+	} else {
+		nonce = 0
+	}
+	if snapshotMap["symbol"] != nil {
+		symbol = snapshotMap["symbol"].(string)
+	} else {
+		symbol = ""
+	}
+	orderbook = &WsOrderBook{
+		Cache: cache,
+		Asks: asks,
+		Bids: bids,
+		Timestamp: timestamp,
+		Datetime: datetime,
+		Nonce: nonce,
+		Symbol: symbol,
+	}
+	return orderbook
 }
 
-func (this *WsOrderBook) Limit() WsOrderBook {
-	// Call limit methods on Asks and Bids if they exist
+func (this *WsOrderBook) Limit() *WsOrderBook {
+    // Ensure child sides are depth-limited in-place and return the same pointer
 	this.Asks.Limit()
 	this.Bids.Limit()
-	return *this
+    return this
 }
 
 func (this *WsOrderBook) Update(snapshot interface{}) *WsOrderBook {
 	// Convert JavaScript logic to Go
-	if snapshotNonce, ok := snapshot.(map[string]interface{})["nonce"].(int64); ok {
-		if this.Nonce != 0 && snapshotNonce <= this.Nonce {
+	if snapshotNonce, ok := snapshot.(map[string]interface{})["nonce"]; ok {
+		if this.Nonce != 0 && snapshotNonce.(int64) <= this.Nonce {
 			return this
 		}
-		this.Nonce = snapshotNonce
+		this.Nonce = snapshotNonce.(int64)
 	}
 	
-	if timestamp, ok := snapshot.(map[string]interface{})["timestamp"].(int64); ok {
-		this.Timestamp = timestamp
-		this.Datetime = Iso8601(timestamp)
+	if timestamp, ok := snapshot.(map[string]interface{})["timestamp"]; ok {
+		this.Timestamp = timestamp.(int64)
+		this.Datetime = Iso8601(timestamp.(int64))
 	}
 	
 	return this.Reset(snapshot)
 }
 
 func (this *WsOrderBook) Reset(snapshot interface{}) *WsOrderBook {
-	// Handle default parameter - snapshot defaults to {}
 	if snapshot == nil {
 		snapshot = make(map[string]interface{})
 	}
 	
-	// Reset asks by clearing and repopulating existing object (like TypeScript)
-	if this.Asks != nil {
-		// Clear the existing asks
-		for i := range this.Asks.index {
-			this.Asks.index[i] = math.MaxFloat64
-		}
-		this.Asks.length = 0
-		this.Asks.data = this.Asks.data[:0] // Clear the slice but keep capacity
-		
-		// Repopulate with new data
-		if val, ok := snapshot.(map[string]interface{})["asks"]; ok && val != nil {
-			if asksData, ok := val.([][]float64); ok {
-				for _, ask := range asksData {
-					if len(ask) >= 2 {
-						this.Asks.StoreArray(ask)
-					}
-				}
-			}
+	// Clear the existing asks - exactly like TypeScript index.fill(Number.MAX_VALUE)
+	for i := range this.Asks.Index {
+		this.Asks.Index[i] = math.MaxFloat64
+	}
+	this.Asks.Length = 0
+	this.Asks.Data = this.Asks.Data[:0] // Clear data array
+	
+	// Clear the existing bids - exactly like TypeScript index.fill(Number.MAX_VALUE) 
+	for i := range this.Bids.Index {
+		this.Bids.Index[i] = math.MaxFloat64
+	}
+	this.Bids.Length = 0
+	this.Bids.Data = this.Bids.Data[:0] // Clear data array
+	
+	// Repopulate with new data
+	if val, ok := snapshot.(map[string]interface{})["asks"]; ok && val != nil {
+		for _, ask := range val.([][]float64) {
+			this.Asks.StoreArray(ask)
 		}
 	}
-	
-	// Reset bids by clearing and repopulating existing object (like TypeScript)
-	if this.Bids != nil {
-		// Clear the existing bids
-		for i := range this.Bids.index {
-			this.Bids.index[i] = math.MaxFloat64
-		}
-		this.Bids.length = 0
-		this.Bids.data = this.Bids.data[:0] // Clear the slice but keep capacity
-		
-		// Repopulate with new data
-		if val, ok := snapshot.(map[string]interface{})["bids"]; ok && val != nil {
-			if bidsData, ok := val.([][]float64); ok {
-				for _, bid := range bidsData {
-					if len(bid) >= 2 {
-						this.Bids.StoreArray(bid)
-					}
-				}
-			}
+	if val, ok := snapshot.(map[string]interface{})["bids"]; ok && val != nil {
+		for _, ask := range val.([][]float64) {
+			this.Bids.StoreArray(ask)
 		}
 	}
 	
 	// Set properties from snapshot
-	if nonce, ok := snapshot.(map[string]interface{})["nonce"].(int64); ok {
-		this.Nonce = nonce
+	if nonce, ok := snapshot.(map[string]interface{})["nonce"]; ok {
+		this.Nonce = nonce.(int64)
 	}
 	
-	if timestamp, ok := snapshot.(map[string]interface{})["timestamp"].(int64); ok {
-		this.Timestamp = timestamp
+	if timestamp, ok := snapshot.(map[string]interface{})["timestamp"]; ok {
+		this.Timestamp = timestamp.(int64)
 		this.Datetime = Iso8601(timestamp)
 	}
 	
-	if symbol, ok := snapshot.(map[string]interface{})["symbol"].(string); ok {
-		this.Symbol = symbol
+	if symbol, ok := snapshot.(map[string]interface{})["symbol"]; ok {
+		this.Symbol = symbol.(string)
 	}
 	
 	return this
@@ -207,7 +212,7 @@ type CountedOrderBook struct {
 	*WsOrderBook
 }
 
-func NewCountedOrderBook(snapshot interface{}, depth interface{}) CountedOrderBook {
+func NewCountedOrderBook(snapshot interface{}, depth interface{}) *CountedOrderBook {
 	asks, bids := getAsksBids(snapshot)
 	ob := NewWsOrderBook(
 		DeepExtend(snapshot, map[string]interface{}{
@@ -216,8 +221,8 @@ func NewCountedOrderBook(snapshot interface{}, depth interface{}) CountedOrderBo
 		}),
 		depth,
 	)
-	return CountedOrderBook{
-		WsOrderBook: &ob,
+	return &CountedOrderBook{
+		WsOrderBook: ob,
 	}
 }
 
@@ -242,7 +247,7 @@ type IndexedOrderBook struct {
 	*WsOrderBook
 }
 
-func NewIndexedOrderBook(snapshot interface{}, depth interface{}) IndexedOrderBook {
+func NewIndexedOrderBook(snapshot interface{}, depth interface{}) *IndexedOrderBook {
 	asks, bids := getAsksBids(snapshot)
 	ob := NewWsOrderBook(
 		DeepExtend(snapshot, map[string]interface{}{
@@ -251,8 +256,8 @@ func NewIndexedOrderBook(snapshot interface{}, depth interface{}) IndexedOrderBo
 		}),
 		depth,
 	)
-	return IndexedOrderBook{
-		WsOrderBook: &ob,
+	return &IndexedOrderBook{
+		WsOrderBook: ob,
 	}
 }
 
@@ -279,7 +284,7 @@ func (this *IndexedOrderBook) GetCache() interface{} {
 // 	*WsOrderBook
 // }
 
-// func NewIncrementalOrderBook(snapshot interface{}, depth interface{}) IncrementalOrderBook {
+// func NewIncrementalOrderBook(snapshot interface{}, depth interface{}) *IncrementalOrderBook {
 // 	asks, bids := getAsksBids(snapshot)
 // 	return &IncrementalOrderBook{
 // 		WsOrderBook: NewWsOrderBook(
@@ -314,7 +319,7 @@ func (this *IndexedOrderBook) GetCache() interface{} {
 // 	*WsOrderBook
 // }
 
-// func NewIncrementalIndexedOrderBook(snapshot interface{}, depth interface{}) IncrementalIndexedOrderBook {
+// func NewIncrementalIndexedOrderBook(snapshot interface{}, depth interface{}) *IncrementalIndexedOrderBook {
 // 	asks, bids := getAsksBids(snapshot)
 // 	return &IncrementalIndexedOrderBook{
 // 		WsOrderBook: NewWsOrderBook(

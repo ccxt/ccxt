@@ -10,18 +10,20 @@ import (
  * @param array
  * @param x
  */
-func bisectLeft(array []float64, x float64) int {
-    low := 0
-    high := len(array) - 1
-    for low <= high {
-        mid := (low + high) >> 1
-        if array[mid] - x < 0 {
-            low = mid + 1
-        } else {
-            high = mid - 1
-        }
-    }
-    return low
+ func bisectLeft(array []float64, x float64) int {
+	low := 0
+	high := len(array) - 1
+
+	for low <= high {
+		mid := int(uint32(low+high) >> 1)
+		if array[mid] < x {
+			low = mid + 1
+		} else {
+			high = mid - 1
+		}
+	}
+
+	return low
 }
 
 const SIZE = 1024
@@ -40,120 +42,128 @@ type IOrderBookSide interface {
     Store(price interface{}, size interface{})
     StoreArray(delta interface{})
     Limit()
+    Len() int
+    GetData() [][]float64
 }
 
 // OrderBookSide struct
 type OrderBookSide struct {
-    data   [][]float64  // equivalent to extending Array
-    index  []float64    // string-keyed dictionary of price levels / ids / indices
-    depth  int          // depth limit
-    length int          // current length
-    side   bool         // side flag
+    Data   [][]float64  // equivalent to extending Array
+    Index  []float64    // string-keyed dictionary of price levels / ids / indices
+    Depth  int          // depth limit
+    Length int          // current Length
+    Side   bool         // false is asks, true is bids
 }
 
 // NewOrderBookSide constructor equivalent
 func NewOrderBookSide(deltas interface{}, depth interface{}) *OrderBookSide {
-    // Safety check: ensure SEED is initialized
-    if SEED == nil {
-        SEED = make([]float64, SIZE)
-        for i := range SEED {
-            SEED[i] = math.MaxFloat64
-        }
-    }
     
-    obs := &OrderBookSide{
-        data:   make([][]float64, 0),
-        index:  make([]float64, len(SEED)),
-        length: 0,
-        side:   false,
+    orderBookSide := &OrderBookSide{
+        Data:   make([][]float64, 0),
+        Index:  make([]float64, len(SEED)),
+        Length: 0,
+        Depth:  math.MaxInt32,
     }
     
     // Copy SEED values to index
-    copy(obs.index, SEED)
+    copy(orderBookSide.Index, SEED)
     
     // Set depth
     if depth != nil {
-        obs.depth = depth.(int)
-    } else {
-        obs.depth = math.MaxInt32 // equivalent to Number.MAX_SAFE_INTEGER
+        orderBookSide.Depth = depth.(int)
     }
     
-    // Sort upon initiation
-    var deltasArray [][]float64
-    if deltas != nil {
-        if arr, ok := deltas.([][]float64); ok {
-            deltasArray = arr
+    switch d := deltas.(type) {
+    case [][]float64:
+        for i := 0; i < len(d); i++ {
+            original := d[i]
+            deltaCopy := append([]float64(nil), original...)
+            orderBookSide.StoreArray(deltaCopy)
+        }
+    case IOrderBookSide:
+        for i := 0; i < d.Len(); i++ {
+            original := d.GetData()[i]
+            deltaCopy := append([]float64(nil), original...)
+            orderBookSide.StoreArray(deltaCopy)
         }
     }
-    if deltasArray == nil {
-        deltasArray = [][]float64{}
-    }
-    
-    for i := 0; i < len(deltasArray); i++ {
-        if deltasArray[i] == nil {
-            continue
-        }
-        deltaCopy := make([]float64, len(deltasArray[i]))
-        copy(deltaCopy, deltasArray[i]) // slice is muy importante
-        obs.StoreArray(deltaCopy)
-    }
-    
-    return obs
+    return orderBookSide
+}
+
+func (obs *OrderBookSide) Len() int {
+	return obs.Length
+}
+
+func (obs *OrderBookSide) GetData() [][]float64 {
+	return obs.Data
 }
 
 func (obs *OrderBookSide) StoreArray(delta interface{}) {
-    if delta == nil {
-        return
-    }
     
-    deltaArray, ok := delta.([]float64)
-    if !ok || len(deltaArray) < 2 {
-        return
+    deltaArray, isArray := delta.([]float64)
+    deltaOB, isOB := delta.(IOrderBookSide)
+    deltaInterface, isInterface := delta.([]interface{})
+    var price interface{}
+    var size interface{}
+    if isArray {
+        price = deltaArray[0]
+        size = deltaArray[1]
+    } else if isOB {
+        if len(deltaOB.GetData()) > 0 && len(deltaOB.GetData()[0]) >= 2 {
+            price = deltaOB.GetData()[0][0]
+            size = deltaOB.GetData()[0][1]
+        }
+    } else if isInterface {
+        price = deltaInterface[0]
+        size = deltaInterface[1]
     }
-    
-    price := deltaArray[0]
-    size := deltaArray[1]
     var indexPrice float64
-    if obs.side {
-        indexPrice = -price
+    if obs.Side {
+        indexPrice = -price.(float64)
     } else {
-        indexPrice = price
+        indexPrice = price.(float64)
     }
     
-    index := bisectLeft(obs.index, indexPrice)
+    index := bisectLeft(obs.Index, indexPrice)
     
     if size != 0 {
-        if obs.index[index] == indexPrice {
-            obs.data[index][1] = size
+        if obs.Index[index] == indexPrice {
+            obs.Data[index][1] = size.(float64)
         } else {
-            obs.length++
+            obs.Length++
             // copyWithin equivalent
-            copy(obs.index[index+1:], obs.index[index:len(obs.index)])
-            obs.index[index] = indexPrice
+            copy(obs.Index[index+1:], obs.Index[index:])
+            obs.Index[index] = indexPrice
             
-            // Insert into data array
-            obs.data = append(obs.data, nil)
-            copy(obs.data[index+1:], obs.data[index:len(obs.data)-1])
-            obs.data[index] = deltaArray
+            // Insert into Data array - ensure it grows with Length
+            obs.Data = append(obs.Data, nil)
+            copy(obs.Data[index+1:], obs.Data[index:obs.Len()-1])
+            if isArray {
+                obs.Data[index] = deltaArray
+            } else if isOB {
+                obs.Data[index] = []float64{deltaOB.GetData()[0][0], deltaOB.GetData()[0][1]}
+            } else if isInterface {
+                obs.Data[index] = []float64{deltaInterface[0].(float64), deltaInterface[1].(float64)}
+            }
             
             // In the rare case of very large orderbooks being sent
-            if obs.length > len(obs.index)-1 {
-                newIndex := make([]float64, obs.length*2)
-                copy(newIndex, obs.index)
-                for i := len(obs.index); i < len(newIndex); i++ {
+            if obs.Length > len(obs.Index)-1 {
+                newIndex := make([]float64, len(obs.Index)*2)
+                copy(newIndex, obs.Index)
+                for i := len(obs.Index); i < len(newIndex); i++ {
                     newIndex[i] = math.MaxFloat64
                 }
-                obs.index = newIndex
+                obs.Index = newIndex
             }
         }
-    } else if obs.index[index] == indexPrice {
+    } else if obs.Index[index] == indexPrice {
         // Remove element
-        copy(obs.index[index:], obs.index[index+1:])
-        obs.index[obs.length-1] = math.MaxFloat64
+        copy(obs.Index[index:], obs.Index[index+1:])
+        obs.Index[obs.Length-1] = math.MaxFloat64
         
-        copy(obs.data[index:], obs.data[index+1:])
-        obs.data = obs.data[:len(obs.data)-1]
-        obs.length--
+        copy(obs.Data[index:], obs.Data[index+1:])
+        obs.Data = obs.Data[:obs.Length-1]
+        obs.Length--
     }
 }
 
@@ -164,12 +174,15 @@ func (obs *OrderBookSide) Store(price interface{}, size interface{}) {
 
 // Limit replaces stored orders with new values
 func (obs *OrderBookSide) Limit() {
-    if obs.length > obs.depth {
-        for i := obs.depth; i < obs.length; i++ {
-            obs.index[i] = math.MaxFloat64
+    if obs.Length > obs.Depth {
+        for i := obs.Depth; i < obs.Length; i++ {
+            obs.Index[i] = math.MaxFloat64
         }
-        obs.data = obs.data[:obs.depth]
-        obs.length = obs.depth
+        // Ensure Data array is synchronized with new Length
+        if obs.Length > obs.Depth {
+            obs.Data = obs.Data[:obs.Depth]
+        }
+        obs.Length = obs.Depth
     }
 }
 
@@ -185,80 +198,98 @@ func NewCountedOrderBookSide(deltas interface{}, depth interface{}) *CountedOrde
     }
 }
 
+func (obs *CountedOrderBookSide) Len() int {
+	return obs.Length
+}
+
 // Store is not supported for CountedOrderBookSide
 func (cobs *CountedOrderBookSide) Store(price interface{}, size interface{}) error {
     return errors.New("CountedOrderBookSide.Store() is not supported, use StoreArray([price, size, count]) instead")
 }
 
 // StoreArray handles deltas with count (3 elements: price, size, count)
-func (cobs *CountedOrderBookSide) StoreArray(delta interface{}) {
-    if delta == nil {
-        return
+func (obs *CountedOrderBookSide) StoreArray(delta interface{}) {
+    
+    deltaArray, isArray := delta.([]float64)
+    deltaOB, isOB := delta.(IOrderBookSide)
+    deltaInterface, isInterface := delta.([]interface{})
+    var price interface{}
+    var size interface{}
+    var count interface{}
+    if isArray {
+        price = deltaArray[0]
+        size = deltaArray[1]
+        count = deltaArray[2]
+    } else if isOB {
+        if len(deltaOB.GetData()) > 0 && len(deltaOB.GetData()[0]) >= 2 {
+            price = deltaOB.GetData()[0][0]
+            size = deltaOB.GetData()[0][1]
+            count = deltaOB.GetData()[0][2]
+        }
+    } else if isInterface {
+        price = deltaInterface[0]
+        size = deltaInterface[1]
+        count = deltaInterface[2]
     }
-    
-    deltaArray, ok := delta.([]float64)
-    if !ok || len(deltaArray) < 3 {
-        return
-    }
-    
-    price := deltaArray[0]
-    size := deltaArray[1]
-    count := deltaArray[2]
-    
     var indexPrice float64
-    if cobs.side {
-        indexPrice = -price
+    if obs.Side {
+        indexPrice = -price.(float64)
     } else {
-        indexPrice = price
+        indexPrice = price.(float64)
     }
     
-    index := bisectLeft(cobs.index, indexPrice)
+    index := bisectLeft(obs.Index, indexPrice)
     
     if size != 0 && count != 0 {
-        if cobs.index[index] == indexPrice {
-            entry := cobs.data[index]
-            entry[1] = size
-            entry[2] = count
+        if obs.Index[index] == indexPrice {
+            obs.Data[index][1] = size.(float64)
+            obs.Data[index][2] = count.(float64)
         } else {
-            cobs.length++
+            obs.Length++
             // copyWithin equivalent
-            copy(cobs.index[index+1:], cobs.index[index:len(cobs.index)])
-            cobs.index[index] = indexPrice
+            copy(obs.Index[index+1:], obs.Index[index:])
+            obs.Index[index] = indexPrice
             
-            // Insert into data array
-            cobs.data = append(cobs.data, nil)
-            copy(cobs.data[index+1:], cobs.data[index:len(cobs.data)-1])
-            cobs.data[index] = deltaArray
+            // Insert into Data array - ensure it grows with Length
+            obs.Data = append(obs.Data, nil)
+            copy(obs.Data[index+1:], obs.Data[index:obs.Len()-1])
+            if isArray {
+                obs.Data[index] = deltaArray
+            } else if isOB {
+                obs.Data[index] = []float64{deltaOB.GetData()[0][0], deltaOB.GetData()[0][1]}
+            } else if isInterface {
+                obs.Data[index] = []float64{deltaInterface[0].(float64), deltaInterface[1].(float64)}
+            }
             
             // In the rare case of very large orderbooks being sent
-            if cobs.length > len(cobs.index)-1 {
-                newIndex := make([]float64, cobs.length*2)
-                copy(newIndex, cobs.index)
-                for i := len(cobs.index); i < len(newIndex); i++ {
+            if obs.Length > len(obs.Index)-1 {
+                newIndex := make([]float64, len(obs.Index)*2)
+                copy(newIndex, obs.Index)
+                for i := len(obs.Index); i < len(newIndex); i++ {
                     newIndex[i] = math.MaxFloat64
                 }
-                cobs.index = newIndex
+                obs.Index = newIndex
             }
         }
-    } else if cobs.index[index] == indexPrice {
+    } else if obs.Index[index] == indexPrice {
         // Remove element
-        copy(cobs.index[index:], cobs.index[index+1:])
-        cobs.index[cobs.length-1] = math.MaxFloat64
+        copy(obs.Index[index:], obs.Index[index+1:])
+        obs.Index[obs.Length-1] = math.MaxFloat64
         
-        copy(cobs.data[index:], cobs.data[index+1:])
-        cobs.data = cobs.data[:len(cobs.data)-1]
-        cobs.length--
+        copy(obs.Data[index:], obs.Data[index+1:])
+        obs.Data = obs.Data[:obs.Length-1]
+        obs.Length--
     }
 }
 
 // IndexedOrderBookSide struct
 type IndexedOrderBookSide struct {
-    data    [][]float64                 // equivalent to extending Array
-    hashmap map[interface{}]float64     // string-keyed dictionary of price levels / ids / indices  
-    index   []float64                   // price index array
-    depth   int                         // depth limit
-    length  int                         // current length
-    side    bool                        // side flag
+    Data    [][]float64                 // equivalent to extending Array
+    Hashmap map[interface{}]float64     // string-keyed dictionary of price levels / ids / indices  
+    Index   []float64                   // price index array
+    Depth   int                         // depth limit
+    Length  int                         // current Length
+    Side    bool                        // Side flag
 }
 
 // NewIndexedOrderBookSide constructor
@@ -271,28 +302,28 @@ func NewIndexedOrderBookSide(deltas interface{}, depth interface{}) *IndexedOrde
     }
     
     iobs := &IndexedOrderBookSide{
-        data:    make([][]float64, deltasLength),
-        hashmap: make(map[interface{}]float64),
-        index:   make([]float64, len(SEED)),
-        length:  0,
-        side:    false,
+        Data:    make([][]float64, deltasLength),
+        Hashmap: make(map[interface{}]float64),
+        Index:   make([]float64, len(SEED)),
+        Length:  0,
+        Side:    false,
     }
     
     // Copy SEED values to index
-    copy(iobs.index, SEED)
+    copy(iobs.Index, SEED)
     
     // Set depth
     if depth != nil {
-        iobs.depth = depth.(int)
+        iobs.Depth = depth.(int)
     } else {
-        iobs.depth = math.MaxInt32 // equivalent to Number.MAX_SAFE_INTEGER
+        iobs.Depth = math.MaxInt32 // equivalent to Number.MAX_SAFE_INTEGER
     }
     
     // Sort upon initiation
     if deltas != nil {
         if deltasArray, ok := deltas.([][]float64); ok {
             for i := 0; i < len(deltasArray); i++ {
-                iobs.length = i
+                iobs.Length = i
                 deltaCopy := make([]float64, len(deltasArray[i]))
                 copy(deltaCopy, deltasArray[i]) // slice is muy importante
                 iobs.StoreArray(deltaCopy)
@@ -303,124 +334,129 @@ func NewIndexedOrderBookSide(deltas interface{}, depth interface{}) *IndexedOrde
     return iobs
 }
 
+func (obs *IndexedOrderBookSide) Len() int {
+	return obs.Length
+}
+
 // Store is not supported for IndexedOrderBookSide
 func (iobs *IndexedOrderBookSide) Store(price interface{}, size interface{}) error {
     return errors.New("IndexedOrderBook.Store() is not supported, use StoreArray([price, size, id]) instead")
 }
 
 // StoreArray handles deltas with id (3 elements: price, size, id)
-func (iobs *IndexedOrderBookSide) StoreArray(delta interface{}) {
-    if delta == nil {
-        return
-    }
+func (obs *IndexedOrderBookSide) StoreArray(delta interface{}) {
     
-    deltaArray, ok := delta.([]float64)
-    if !ok || len(deltaArray) < 3 {
-        return
-    }
-    
-    price := deltaArray[0]
-    size := deltaArray[1]
-    id := deltaArray[2]
-    
-    var indexPrice *float64
-    if !math.IsNaN(price) { // equivalent to price !== undefined
-        val := price
-        if iobs.side {
-            val = -price
+    deltaArray, isArray := delta.([]float64)
+    deltaOB, isOB := delta.(IOrderBookSide)
+    deltaInterface, isInterface := delta.([]interface{})
+    var price interface{}
+    var size interface{}
+    var id float64
+    if isArray {
+        price = deltaArray[0]
+        size = deltaArray[1]
+        id = deltaArray[2]
+    } else if isOB {
+        if len(deltaOB.GetData()) > 0 && len(deltaOB.GetData()[0]) >= 2 {
+            price = deltaOB.GetData()[0][0]
+            size = deltaOB.GetData()[0][1]
+            id = deltaOB.GetData()[0][2]
         }
-        indexPrice = &val
+    } else if isInterface {
+        price = deltaInterface[0]
+        size = deltaInterface[1]
+        id = deltaInterface[2].(float64)
+    }
+    var indexPrice float64
+    if (price != nil) {
+        if (obs.Side) {
+            indexPrice = -price.(float64)
+        } else {
+            indexPrice = price.(float64)
+        }
+    } else {
+        indexPrice = math.MaxFloat64
     }
     
+    oldIdPrice, idInHashmap := obs.Hashmap[id]
     if size != 0 {
-        if oldPrice, exists := iobs.hashmap[id]; exists {
-            if indexPrice == nil {
-                indexPrice = &oldPrice
+        if idInHashmap {
+            if indexPrice == 0 {
+                indexPrice = oldIdPrice
             }
-            // in case price is not sent
-            deltaArray[0] = math.Abs(*indexPrice)
-            
-            if *indexPrice == oldPrice {
-                // find index by price and advance till the id is found
-                index := bisectLeft(iobs.index, *indexPrice)
-                for iobs.data[index][2] != id {
+            deltaArray[0] = math.Abs(indexPrice)    // ? TODO: all types
+            if indexPrice == oldIdPrice {
+                var index int = bisectLeft(obs.Index, indexPrice)
+                for obs.Data[index][2] != id {
                     index++
                 }
-                iobs.index[index] = *indexPrice
-                iobs.data[index] = deltaArray
+                obs.Index[index] = indexPrice
+                obs.Data[index] = deltaArray  // ? TODO: all types
                 return
             } else {
-                // remove old price from index
-                // find index by price and advance till the id is found
-                oldIndex := bisectLeft(iobs.index, oldPrice)
-                for iobs.data[oldIndex][2] != id {
+                var oldIndex int = bisectLeft(obs.Index, oldIdPrice)
+                for obs.Data[oldIndex][2] != id {
                     oldIndex++
                 }
-                copy(iobs.index[oldIndex:], iobs.index[oldIndex+1:])
-                iobs.index[iobs.length-1] = math.MaxFloat64
-                copy(iobs.data[oldIndex:], iobs.data[oldIndex+1:])
-                iobs.length--
+                copy(obs.Index[oldIndex:], obs.Index[oldIndex+1:])
+                obs.Index = obs.Index[:len(obs.Index)-1]
+                obs.Index[obs.Length-1] = math.MaxFloat64
+                copy(obs.Data[oldIndex:], obs.Data[oldIndex+1:])
+                obs.Data = obs.Data[:obs.Length-1]
+                obs.Length--
             }
         }
-        
-        // insert new price level
-        iobs.hashmap[id] = *indexPrice
-        // find index by price to insert
-        index := bisectLeft(iobs.index, *indexPrice)
-        // if several with the same price order by id
-        for index < iobs.length && iobs.index[index] == *indexPrice && iobs.data[index][2] < id {
+        obs.Hashmap[id] = indexPrice
+        var index int = bisectLeft (obs.Index, indexPrice)
+        for index < obs.Length && obs.Index[index] == indexPrice && obs.Data[index][2] < id {
             index++
         }
-        
         // insert new price level into index
-        iobs.length++
-        copy(iobs.index[index+1:], iobs.index[index:])
-        iobs.index[index] = *indexPrice
-        
-        // Insert into data array
-        iobs.data = append(iobs.data, nil)
-        copy(iobs.data[index+1:], iobs.data[index:len(iobs.data)-1])
-        iobs.data[index] = deltaArray
-        
+        obs.Length++
+        obs.Index = append(obs.Index, 0) // append a dummy value to make space
+        copy(obs.Index[index+1:], obs.Index[index:len(obs.Index)-1])
+        obs.Index[index] = indexPrice
+        obs.Data = append(obs.Data, nil)
+        copy(obs.Data[index+1:], obs.Data[index:obs.Length-1])
+        obs.Data[index] = deltaArray // ? TODO: all types
         // in the rare case of very large orderbooks being sent
-        if iobs.length > len(iobs.index)-1 {
-            newIndex := make([]float64, iobs.length*2)
-            copy(newIndex, iobs.index)
-            for i := len(iobs.index); i < len(newIndex); i++ {
+        if (obs.Length > len(obs.Index) - 1) {
+            newIndex := make([]float64, len(obs.Index)*2)
+            copy(newIndex, obs.Index)
+            for i := len(obs.Index); i < len(newIndex); i++ {
                 newIndex[i] = math.MaxFloat64
             }
-            iobs.index = newIndex
+            obs.Index = newIndex
         }
-    } else if oldPrice, exists := iobs.hashmap[id]; exists {
-        index := bisectLeft(iobs.index, oldPrice)
-        for iobs.data[index][2] != id {
+    } else if (idInHashmap) {
+        index := bisectLeft(obs.Index, oldIdPrice)
+        for obs.Data[index][2] != id {
             index++
         }
-        copy(iobs.index[index:], iobs.index[index+1:])
-        iobs.index[iobs.length-1] = math.MaxFloat64
-        copy(iobs.data[index:], iobs.data[index+1:])
-        iobs.data = iobs.data[:len(iobs.data)-1]
-        iobs.length--
-        delete(iobs.hashmap, id)
+        copy(obs.Index[index:], obs.Index[index+1:])
+        obs.Index[obs.Length-1] = math.MaxFloat64
+        
+        copy(obs.Data[index:], obs.Data[index+1:])
+        obs.Data = obs.Data[:obs.Length-1]
+        obs.Length--
+        delete(obs.Hashmap, id)
     }
+
+    
 }
 
 // Limit replaces stored orders with new values
 func (iobs *IndexedOrderBookSide) Limit() {
-    if iobs.length > iobs.depth {
-        for i := iobs.depth; i < iobs.length; i++ {
-            // diff: delete from hashmap using the id from data
-            if i < len(iobs.data) && len(iobs.data[i]) > 2 {
-                delete(iobs.hashmap, iobs.data[i][2])
-            }
-            iobs.index[i] = math.MaxFloat64
+    if iobs.Length > iobs.Depth {
+        for i := iobs.Depth; i < iobs.Length; i++ {
+            delete(iobs.Hashmap, iobs.Data[i])
+            iobs.Index[i] = math.MaxFloat64
         }
-        iobs.data = iobs.data[:iobs.depth]
-        iobs.length = iobs.depth
+        iobs.Length = iobs.Depth
     }
 }
 
-// Asks and Bids types - these are just OrderBookSide with different side values
+// Asks and Bids types - these are just OrderBookSide with different Side values
 
 type Asks struct {
 	*OrderBookSide
@@ -441,48 +477,48 @@ type IndexedBids struct {
 	*IndexedOrderBookSide
 }
 
-// NewAsks creates an OrderBookSide with side = false (asks)
+// NewAsks creates an OrderBookSide with Side = false (asks)
 func NewAsks(deltas interface{}, depth interface{}) *OrderBookSide {
     obs := NewOrderBookSide(deltas, depth)
-    obs.side = false
+    obs.Side = false
     return obs
 }
 
-// NewBids creates an OrderBookSide with side = true (bids)  
+// NewBids creates an OrderBookSide with Side = true (bids)  
 func NewBids(deltas interface{}, depth interface{}) *OrderBookSide {
     obs := NewOrderBookSide(deltas, depth)
-    obs.side = true
+    obs.Side = true
     return obs
 }
 
-// NewCountedAsks creates a CountedOrderBookSide with side = false (asks)
+// NewCountedAsks creates a CountedOrderBookSide with Side = false (asks)
 func NewCountedAsks(deltas interface{}, depth interface{}) *CountedOrderBookSide {
     cobs := NewCountedOrderBookSide(deltas, depth)
-    cobs.side = false
+    cobs.Side = false
     return cobs
 }
 
-// NewCountedBids creates a CountedOrderBookSide with side = true (bids)
+// NewCountedBids creates a CountedOrderBookSide with Side = true (bids)
 func NewCountedBids(deltas interface{}, depth interface{}) *CountedOrderBookSide {
     cobs := NewCountedOrderBookSide(deltas, depth)
-    cobs.side = true
+    cobs.Side = true
     return cobs
 }
 
-// NewIndexedAsks creates an IndexedOrderBookSide with side = false (asks)
+// NewIndexedAsks creates an IndexedOrderBookSide with Side = false (asks)
 func NewIndexedAsks(deltas interface{}, depth interface{}) *IndexedOrderBookSide {
     iobs := NewIndexedOrderBookSide(deltas, depth)
-    iobs.side = false
+    iobs.Side = false
     return iobs
 }
 
-// NewIndexedBids creates an IndexedOrderBookSide with side = true (bids)
+// NewIndexedBids creates an IndexedOrderBookSide with Side = true (bids)
 func NewIndexedBids(deltas interface{}, depth interface{}) *IndexedOrderBookSide {
     iobs := NewIndexedOrderBookSide(deltas, depth)
-    iobs.side = true
+    iobs.Side = true
     return iobs
 }
 
 func (ords *OrderBookSide) GetSide() bool {
-	return ords.side
+	return ords.Side
 }
