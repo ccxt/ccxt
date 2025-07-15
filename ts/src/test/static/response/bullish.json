@@ -1,6 +1,9 @@
 {
     "exchange": "bullish",
     "skipKeys": [],
+    "options": {
+        "tokenExpires": 9999999999999
+    },
     "methods": {
         "fetchTrades": [
             {

@@ -1,5 +1,8 @@
 {
     "exchange": "bullish",
+    "options": {
+        "tokenExpires": 9999999999999
+    },
     "skipKeys": [ "createdAtDatetime[gte]", "createdAtDatetime[lte]" ],
     "outputType": "urlencoded",
     "methods": {
