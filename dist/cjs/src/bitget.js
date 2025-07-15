@@ -2000,7 +2000,7 @@ class bitget extends bitget$1 {
                     'cross': hasCrossMargin,
                     'isolated': hasIsolatedMargin,
                 };
-                isMarginTradingAllowed = hasCrossMargin || hasCrossMargin;
+                isMarginTradingAllowed = hasCrossMargin || hasIsolatedMargin;
             }
             else {
                 if (symbolType === 'perpetual') {
