@@ -1766,56 +1766,53 @@
             {
                 "description": "fetchFundingHistory",
                 "method": "fetchFundingHistory",
-                "input": [
-                    "LTC/USDT:USDT",
-                    null,
-                    1
-                ],
+                "input": [],
                 "httpResponse": {
-                    "rows": [
-                        {
-                            "id": "9924010",
-                            "symbol": "PERP_LTC_USDT",
-                            "funding_rate": "0.00076792",
-                            "mark_price": "82.31000000",
-                            "funding_fee": "0.00632075",
-                            "funding_rate_interval_hours": "8",
-                            "payment_type": "Pay",
-                            "status": "COMPLETED",
-                            "created_time": "1709193777.044",
-                            "updated_time": "1709193777.072",
-                            "page": 1
-                        }
-                    ],
-                    "meta": {
-                        "total": "119",
-                        "records_per_page": "1",
-                        "current_page": "1"
+                    "success": true,
+                    "data": {
+                        "meta": {
+                            "total": 670,
+                            "recordsPerPage": 25,
+                            "currentPage": 1
+                        },
+                        "rows": [
+                            {
+                                "id": 1286360,
+                                "symbol": "PERP_BTC_USDT",
+                                "fundingRate": -0.00001445,
+                                "markPrice": "26930.60000000",
+                                "fundingFee": "9.56021744",
+                                "fundingIntervalHours": 8,
+                                "paymentType": "Pay",
+                                "status": "COMPLETED",
+                                "createdTime": 1696060873259,
+                                "updatedTime": 1696060873286
+                            }
+                        ]
                     },
-                    "success": true
+                    "timestamp": 1721351502594
                 },
                 "parsedResponse": [
                     {
                         "info": {
-                            "id": "9924010",
-                            "symbol": "PERP_LTC_USDT",
-                            "funding_rate": "0.00076792",
-                            "mark_price": "82.31000000",
-                            "funding_fee": "0.00632075",
-                            "funding_rate_interval_hours": "8",
-                            "payment_type": "Pay",
+                            "id": 1286360,
+                            "symbol": "PERP_BTC_USDT",
+                            "fundingRate": -0.00001445,
+                            "markPrice": "26930.60000000",
+                            "fundingFee": "9.56021744",
+                            "fundingIntervalHours": 8,
+                            "paymentType": "Pay",
                             "status": "COMPLETED",
-                            "created_time": "1709193777.044",
-                            "updated_time": "1709193777.072",
-                            "page": 1
+                            "createdTime": 1696060873259,
+                            "updatedTime": 1696060873286
                         },
-                        "symbol": "LTC/USDT:USDT",
+                        "symbol": "BTC/USDT:USDT",
                         "code": "USD",
-                        "timestamp": 1709193777072,
-                        "datetime": "2024-02-29T08:02:57.072Z",
-                        "id": "9924010",
-                        "amount": -0.00632075,
-                        "rate": 0.00076792
+                        "timestamp": 1696060873286,
+                        "datetime": "2023-09-30T08:01:13.286Z",
+                        "id": "1286360",
+                        "amount": -9.56021744,
+                        "rate": -0.00001445
                     }
                 ]
             }

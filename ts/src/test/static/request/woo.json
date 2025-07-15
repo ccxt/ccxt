@@ -710,7 +710,7 @@
             {
                 "description": "fetchFundingHistory",
                 "method": "fetchFundingHistory",
-                "url": "https://api.woox.io/v1/funding_fee/history?size=1&symbol=PERP_LTC_USDT",
+                "url": "https://api.woox.io/v3/futures/fundingFee/history?size=1&symbol=PERP_LTC_USDT",
                 "input": [
                     "LTC/USDT:USDT",
                     null,

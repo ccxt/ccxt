@@ -3155,25 +3155,26 @@ export default class woo extends Exchange {
     parseIncome (income, market: Market = undefined) {
         //
         //     {
-        //         "id":666666,
-        //         "symbol":"PERP_BTC_USDT",
-        //         "funding_rate":0.00001198,
-        //         "mark_price":28941.04000000,
-        //         "funding_fee":0.00069343,
-        //         "payment_type":"Pay",
-        //         "status":"COMPLETED",
-        //         "created_time":"1653616000.666",
-        //         "updated_time":"1653616000.605"
+        //         "id": 1286360,
+        //         "symbol": "PERP_BTC_USDT",
+        //         "fundingRate": -0.00001445,
+        //         "markPrice": "26930.60000000",
+        //         "fundingFee": "9.56021744",
+        //         "fundingIntervalHours": 8,
+        //         "paymentType": "Pay",
+        //         "status": "COMPLETED",
+        //         "createdTime": 1696060873259,
+        //         "updatedTime": 1696060873286
         //     }
         //
         const marketId = this.safeString (income, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        let amount = this.safeString (income, 'funding_fee');
+        let amount = this.safeString (income, 'fundingFee');
         const code = this.safeCurrencyCode ('USD');
         const id = this.safeString (income, 'id');
-        const timestamp = this.safeTimestamp (income, 'updated_time');
-        const rate = this.safeNumber (income, 'funding_rate');
-        const paymentType = this.safeString (income, 'payment_type');
+        const timestamp = this.safeInteger (income, 'updatedTime');
+        const rate = this.safeNumber (income, 'fundingRate');
+        const paymentType = this.safeString (income, 'paymentType');
         amount = (paymentType === 'Pay') ? Precise.stringNeg (amount) : amount;
         return {
             'info': income,
@@ -3191,7 +3192,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchFundingHistory
      * @description fetch the history of funding payments paid and received on this account
-     * @see https://docs.woox.io/#get-funding-fee-history
+     * @see https://developer.woox.io/api-reference/endpoint/futures/get_fundingFee_history
      * @param {string} [symbol] unified market symbol
      * @param {int} [since] the earliest time in ms to fetch funding history for
      * @param {int} [limit] the maximum number of funding history structures to retrieve
@@ -3204,7 +3205,7 @@ export default class woo extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchFundingHistory', symbol, since, limit, params, 'page', 'page', 1, 500) as FundingHistory[];
+            return await this.fetchPaginatedCallIncremental ('fetchFundingHistory', symbol, since, limit, params, 'page', 500) as FundingHistory[];
         }
         const request: Dict = {};
         let market: Market = undefined;
@@ -3213,47 +3214,47 @@ export default class woo extends Exchange {
             request['symbol'] = market['id'];
         }
         if (since !== undefined) {
-            request['start_t'] = since;
+            request['startTime'] = since;
+        }
+        const until = this.safeInteger (params, 'until'); // unified in milliseconds
+        params = this.omit (params, [ 'until' ]);
+        if (until !== undefined) {
+            request['endTime'] = until;
         }
         if (limit !== undefined) {
-            request['size'] = limit;
-        } else {
-            request['size'] = 5000;
+            request['size'] = Math.min (limit, 500);
         }
-        const response = await this.v1PrivateGetFundingFeeHistory (this.extend (request, params));
+        const response = await this.v3PrivateGetFuturesFundingFeeHistory (this.extend (request, params));
         //
         //     {
-        //         "rows":[
-        //             {
-        //                 "id":666666,
-        //                 "symbol":"PERP_BTC_USDT",
-        //                 "funding_rate":0.00001198,
-        //                 "mark_price":28941.04000000,
-        //                 "funding_fee":0.00069343,
-        //                 "payment_type":"Pay",
-        //                 "status":"COMPLETED",
-        //                 "created_time":"1653616000.666",
-        //                 "updated_time":"1653616000.605"
-        //             }
-        //         ],
-        //         "meta":{
-        //             "total":235,
-        //             "records_per_page":25,
-        //             "current_page":1
+        //         "success": true,
+        //         "data": {
+        //             "meta": {
+        //                 "total": 670,
+        //                 "recordsPerPage": 25,
+        //                 "currentPage": 1
+        //             },
+        //             "rows": [
+        //                 {
+        //                     "id": 1286360,
+        //                     "symbol": "PERP_BTC_USDT",
+        //                     "fundingRate": -0.00001445,
+        //                     "markPrice": "26930.60000000",
+        //                     "fundingFee": "9.56021744",
+        //                     "fundingIntervalHours": 8,
+        //                     "paymentType": "Pay",
+        //                     "status": "COMPLETED",
+        //                     "createdTime": 1696060873259,
+        //                     "updatedTime": 1696060873286
+        //                 }
+        //             ]
         //         },
-        //         "success":true
+        //         "timestamp": 1721351502594
         //     }
         //
-        const meta = this.safeDict (response, 'meta', {});
-        const cursor = this.safeInteger (meta, 'current_page');
-        const result = this.safeList (response, 'rows', []);
-        const resultLength = result.length;
-        if (resultLength > 0) {
-            const lastItem = result[resultLength - 1];
-            lastItem['page'] = cursor;
-            result[resultLength - 1] = lastItem;
-        }
-        return this.parseIncomes (result, market, since, limit);
+        const data = this.safeDict (response, 'data', {});
+        const rows = this.safeList (data, 'rows', []);
+        return this.parseIncomes (rows, market, since, limit);
     }
 
     parseFundingRate (fundingRate, market: Market = undefined): FundingRate {
