@@ -50,10 +50,8 @@ if (platform === 'win32') {
     }
 }
 
-const GLOBAL_WRAPPER_FILE = './go/v4/base/exchange_wrappers.go';
 const EXCHANGE_WRAPPER_FOLDER = './go/v4/'
 const DYNAMIC_INSTANCE_FILE = './go/v4/exchange_dynamic.go';
-const EXCHANGE_WS_WRAPPER_FOLDER = './go/v4/exchanges'
 const ERRORS_FILE = './go/v4/exchange_errors.go';
 const BASE_METHODS_FILE = './go/v4/exchange_generated.go';
 const EXCHANGES_FOLDER = './go/v4/';
@@ -226,6 +224,7 @@ class NewTranspiler {
 
             [/\.Append\(/g, '.(appender).Append('],
             [/(stored|cached)?([Oo]rders)?\.Hashmap/g, '$1$2.(*ArrayCache).Hashmap'],
+            [/stored := NewArrayCache\(limit\)/g, 'var stored interface{} = NewArrayCache(limit)'],  // needed for cex HandleTradesSnapshot
             // Futures
             [/future\.(Resolve|Reject)/g, 'future.(*Future).$1'],
             [/\(<\-future\)/g, '<-future.(*Future).Await()'],
@@ -243,9 +242,9 @@ class NewTranspiler {
             [/([a-zA-Z0-9]+).StoreArray/g, '$1.(*OrderBookSide).StoreArray'],
             [/(asks|bids|Side).Store/g, '$1.(*OrderBookSide).Store'],
             // Clients
-            [/FindMessageHashes\(client/g, 'FindMessageHashes\(client.(Client)'],
+            [/FindMessageHashes\(client/g, 'FindMessageHashes\(client.(*Client)'],
             [/client\.(LastPong|KeepAlive|Url|Subscriptions)/g, 'client.(*Client).$1'],
-            [/CleanUnsubscription\(([a-zA-Z0-9]+),/g, 'CleanUnsubscription($1.(Client),'],
+            [/CleanUnsubscription\(([a-zA-Z0-9]+),/g, 'CleanUnsubscription($1.(*Client),'],
             [/client\.Futures/g, 'client.(*WSClient).Futures'],
             [/<-client\.Future\(([^\)]*)\)/g, '<-client.(ClientInterface).Future($1)'],
             [/client\.(Send|Reset|OnPong|Reject|Future|Resolve)/g, 'client.(ClientInterface).$1'],
@@ -1050,7 +1049,7 @@ ${constStatements.join('\n')}
         baseClass = baseClass.replaceAll(/callDynamically\(/gm, 'this.callDynamically(') //fix this on the transpiler
         baseClass = baseClass.replaceAll (/currentRestInstance interface\{\},/g, "currentRestInstance Exchange,");
         baseClass = baseClass.replaceAll (/parentRestInstance interface\{\},/g, "parentRestInstance Exchange,");
-        baseClass = baseClass.replaceAll (/client interface\{\},/g, "client Client,");
+        baseClass = baseClass.replaceAll (/client interface\{\},/g, "client *Client,");
         baseClass = baseClass.replaceAll (/this.Number = String/g, 'this.Number = "string"');
         baseClass = baseClass.replaceAll (/(\w+)(\.StoreArray\(.+\))/gm, '($1.(*OrderBookSide))$2'); // tmp fix for c#
         baseClass = baseClass.replaceAll (/ch <- nil\s+\/\/.+/g, '');

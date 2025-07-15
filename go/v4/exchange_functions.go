@@ -120,9 +120,7 @@ func (this *Exchange) Omit(a interface{}, parameters ...interface{}) interface{}
 
 	// Handle variadic parameters as individual keys
 	keys := make([]interface{}, len(parameters))
-	for i, parameter := range parameters {
-		keys[i] = parameter
-	}
+	copy(keys, parameters)
 	return this.OmitMap(a, keys)
 }
 

@@ -1650,10 +1650,7 @@ func (this *Exchange) Client(url interface{}) *WSClient {
 		},
 		wsOptions,
 	)
-	client, err := NewWSClient(url.(string), this.DerivedExchange.HandleMessage, this.DerivedExchange.OnError, this.DerivedExchange.OnClose, this.DerivedExchange.OnConnected, options)
-	if err != nil {
-		return nil
-	}
+	client := NewWSClient(url.(string), this.DerivedExchange.HandleMessage, this.DerivedExchange.OnError, this.DerivedExchange.OnClose, this.DerivedExchange.OnConnected, options)
 	
 	this.Clients[url.(string)] = client
 	return client

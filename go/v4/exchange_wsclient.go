@@ -33,20 +33,17 @@ type WSClient struct {
 }
 
 // NewWSClient dials the given URL and starts the read-loop.
-func NewWSClient(url string, onMessageCallback func(client interface{}, err interface{}), onErrorCallback func(client interface{}, err interface{}), onCloseCallback func(client interface{}, err interface{}), onConnectedCallback func(client interface{}, err interface{}), config ...map[string]interface{}) (*WSClient, error) {
+func NewWSClient(url string, onMessageCallback func(client interface{}, err interface{}), onErrorCallback func(client interface{}, err interface{}), onCloseCallback func(client interface{}, err interface{}), onConnectedCallback func(client interface{}, err interface{}), config ...map[string]interface{}) *WSClient {
 	// Call NewClient to do exactly the same initialization
-	client, err := NewClient(url, onMessageCallback, onErrorCallback, onCloseCallback, onConnectedCallback, config...)
-	if err != nil {
-		return nil, err
-	}
+	client := NewClient(url, onMessageCallback, onErrorCallback, onCloseCallback, onConnectedCallback, config...)
 	
 	// Wrap the Client in a WSClient
 	wsClient := &WSClient{
-		Client: client.(*Client),
+		Client: client,
 	}
 	wsClient.StartedConnecting = false
 	
-	return wsClient, nil
+	return wsClient
 }
 
 func (this *WSClient) CreateConnection() error {
