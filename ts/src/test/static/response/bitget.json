@@ -1811,6 +1811,628 @@
                         ]
                     }
                 ]
+            },
+            {
+                "description": "uta swap fetchClosedOrders",
+                "method": "fetchClosedOrders",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1752554609012",
+                    "data": {
+                        "list": [
+                            {
+                                "orderId": "1328873370820132864",
+                                "clientOid": "1328873370824327168",
+                                "category": "USDT-FUTURES",
+                                "symbol": "BTCUSDT",
+                                "orderType": "limit",
+                                "side": "buy",
+                                "price": "110000",
+                                "qty": "0.001",
+                                "amount": "0",
+                                "cumExecQty": "0",
+                                "cumExecValue": "0",
+                                "avgPrice": "0",
+                                "timeInForce": "gtc",
+                                "orderStatus": "cancelled",
+                                "posSide": "long",
+                                "holdMode": "hedge_mode",
+                                "reduceOnly": "NO",
+                                "feeDetail": [
+                                    {
+                                        "feeCoin": "",
+                                        "fee": ""
+                                    }
+                                ],
+                                "createdTime": "1752554021554",
+                                "updatedTime": "1752554076067",
+                                "cancelReason": "normal_cancel",
+                                "execType": "normal",
+                                "stpMode": "none",
+                                "tpTriggerBy": null,
+                                "slTriggerBy": null,
+                                "takeProfit": null,
+                                "stopLoss": null,
+                                "tpOrderType": null,
+                                "slOrderType": null,
+                                "tpLimitPrice": null,
+                                "slLimitPrice": null
+                            },
+                            {
+                                "orderId": "1322441400976261120",
+                                "clientOid": "1322441400976261121",
+                                "category": "USDT-FUTURES",
+                                "symbol": "BTCUSDT",
+                                "orderType": "market",
+                                "side": "sell",
+                                "price": "0",
+                                "qty": "0.0001",
+                                "amount": "0",
+                                "cumExecQty": "0.0001",
+                                "cumExecValue": "10.7005",
+                                "avgPrice": "107005.4",
+                                "timeInForce": "gtc",
+                                "orderStatus": "filled",
+                                "posSide": "long",
+                                "holdMode": "hedge_mode",
+                                "reduceOnly": "NO",
+                                "feeDetail": [
+                                    {
+                                        "feeCoin": "USDT",
+                                        "fee": "0.00642032"
+                                    }
+                                ],
+                                "createdTime": "1751020520442",
+                                "updatedTime": "1751020520457",
+                                "cancelReason": "",
+                                "execType": "normal",
+                                "stpMode": "none",
+                                "tpTriggerBy": null,
+                                "slTriggerBy": null,
+                                "takeProfit": null,
+                                "stopLoss": null,
+                                "tpOrderType": null,
+                                "slOrderType": null,
+                                "tpLimitPrice": null,
+                                "slLimitPrice": null
+                            },
+                            {
+                                "orderId": "1322441328569991168",
+                                "clientOid": "1322441328574185472",
+                                "category": "USDT-FUTURES",
+                                "symbol": "BTCUSDT",
+                                "orderType": "market",
+                                "side": "buy",
+                                "price": "0",
+                                "qty": "0.0001",
+                                "amount": "0",
+                                "cumExecQty": "0.0001",
+                                "cumExecValue": "10.7003",
+                                "avgPrice": "107003.7",
+                                "timeInForce": "ioc",
+                                "orderStatus": "filled",
+                                "posSide": "long",
+                                "holdMode": "hedge_mode",
+                                "reduceOnly": "NO",
+                                "feeDetail": [
+                                    {
+                                        "feeCoin": "USDT",
+                                        "fee": "0.00642022"
+                                    }
+                                ],
+                                "createdTime": "1751020503180",
+                                "updatedTime": "1751020503195",
+                                "cancelReason": "",
+                                "execType": "normal",
+                                "stpMode": "none",
+                                "tpTriggerBy": null,
+                                "slTriggerBy": null,
+                                "takeProfit": null,
+                                "stopLoss": null,
+                                "tpOrderType": null,
+                                "slOrderType": null,
+                                "tpLimitPrice": null,
+                                "slLimitPrice": null
+                            },
+                            {
+                                "orderId": "1322440134099320832",
+                                "clientOid": "1322440134099320833",
+                                "category": "USDT-FUTURES",
+                                "symbol": "BTCUSDT",
+                                "orderType": "market",
+                                "side": "sell",
+                                "price": "0",
+                                "qty": "0.0011",
+                                "amount": "0",
+                                "cumExecQty": "0.0011",
+                                "cumExecValue": "117.7079",
+                                "avgPrice": "107007.2",
+                                "timeInForce": "gtc",
+                                "orderStatus": "filled",
+                                "posSide": "long",
+                                "holdMode": "hedge_mode",
+                                "reduceOnly": "NO",
+                                "feeDetail": [
+                                    {
+                                        "feeCoin": "USDT",
+                                        "fee": "0.07062475"
+                                    }
+                                ],
+                                "createdTime": "1751020218395",
+                                "updatedTime": "1751020218409",
+                                "cancelReason": "",
+                                "execType": "normal",
+                                "stpMode": "none",
+                                "tpTriggerBy": null,
+                                "slTriggerBy": null,
+                                "takeProfit": null,
+                                "stopLoss": null,
+                                "tpOrderType": null,
+                                "slOrderType": null,
+                                "tpLimitPrice": null,
+                                "slLimitPrice": null
+                            },
+                            {
+                                "orderId": "1322439636793278464",
+                                "clientOid": "1322439636793278465",
+                                "category": "USDT-FUTURES",
+                                "symbol": "BTCUSDT",
+                                "orderType": "market",
+                                "side": "buy",
+                                "price": "0",
+                                "qty": "0.0001",
+                                "amount": "0",
+                                "cumExecQty": "0.0001",
+                                "cumExecValue": "10.6962",
+                                "avgPrice": "106962.2",
+                                "timeInForce": "ioc",
+                                "orderStatus": "filled",
+                                "posSide": "long",
+                                "holdMode": "hedge_mode",
+                                "reduceOnly": "NO",
+                                "feeDetail": [
+                                    {
+                                        "feeCoin": "USDT",
+                                        "fee": "0.00641773"
+                                    }
+                                ],
+                                "createdTime": "1751020099828",
+                                "updatedTime": "1751020099843",
+                                "cancelReason": "",
+                                "execType": "normal",
+                                "stpMode": "none",
+                                "tpTriggerBy": null,
+                                "slTriggerBy": null,
+                                "takeProfit": null,
+                                "stopLoss": null,
+                                "tpOrderType": null,
+                                "slOrderType": null,
+                                "tpLimitPrice": null,
+                                "slLimitPrice": null
+                            },
+                            {
+                                "orderId": "1322061241844613120",
+                                "clientOid": "1322061241848807424",
+                                "category": "USDT-FUTURES",
+                                "symbol": "BTCUSDT",
+                                "orderType": "market",
+                                "side": "buy",
+                                "price": "0",
+                                "qty": "0.001",
+                                "amount": "0",
+                                "cumExecQty": "0.001",
+                                "cumExecValue": "107.4103",
+                                "avgPrice": "107410.3",
+                                "timeInForce": "ioc",
+                                "orderStatus": "filled",
+                                "posSide": "long",
+                                "holdMode": "hedge_mode",
+                                "reduceOnly": "NO",
+                                "feeDetail": [
+                                    {
+                                        "feeCoin": "USDT",
+                                        "fee": "0.06444618"
+                                    }
+                                ],
+                                "createdTime": "1750929883443",
+                                "updatedTime": "1750929883465",
+                                "cancelReason": "",
+                                "execType": "normal",
+                                "stpMode": "none",
+                                "tpTriggerBy": null,
+                                "slTriggerBy": null,
+                                "takeProfit": null,
+                                "stopLoss": null,
+                                "tpOrderType": null,
+                                "slOrderType": null,
+                                "tpLimitPrice": null,
+                                "slLimitPrice": null
+                            }
+                        ],
+                        "cursor": "1322061241941082114"
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "orderId": "1322061241844613120",
+                            "clientOid": "1322061241848807424",
+                            "category": "USDT-FUTURES",
+                            "symbol": "BTCUSDT",
+                            "orderType": "market",
+                            "side": "buy",
+                            "price": "0",
+                            "qty": "0.001",
+                            "amount": "0",
+                            "cumExecQty": "0.001",
+                            "cumExecValue": "107.4103",
+                            "avgPrice": "107410.3",
+                            "timeInForce": "ioc",
+                            "orderStatus": "filled",
+                            "posSide": "long",
+                            "holdMode": "hedge_mode",
+                            "reduceOnly": "NO",
+                            "feeDetail": [
+                                {
+                                    "feeCoin": "USDT",
+                                    "fee": "0.06444618"
+                                }
+                            ],
+                            "createdTime": "1750929883443",
+                            "updatedTime": "1750929883465",
+                            "cancelReason": "",
+                            "execType": "normal",
+                            "stpMode": "none",
+                            "tpTriggerBy": null,
+                            "slTriggerBy": null,
+                            "takeProfit": null,
+                            "stopLoss": null,
+                            "tpOrderType": null,
+                            "slOrderType": null,
+                            "tpLimitPrice": null,
+                            "slLimitPrice": null
+                        },
+                        "id": "1322061241844613120",
+                        "clientOrderId": "1322061241848807424",
+                        "timestamp": 1750929883443,
+                        "datetime": "2025-06-26T09:24:43.443Z",
+                        "lastTradeTimestamp": 1750929883465,
+                        "lastUpdateTimestamp": 1750929883465,
+                        "symbol": "BTC/USDT:USDT",
+                        "type": "market",
+                        "side": "buy",
+                        "price": null,
+                        "amount": 0.001,
+                        "cost": null,
+                        "average": null,
+                        "filled": 0.001,
+                        "remaining": 0,
+                        "timeInForce": "IOC",
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "status": "closed",
+                        "fee": {
+                            "cost": -0.06444618,
+                            "currency": "USDT"
+                        },
+                        "trades": [],
+                        "fees": [
+                            {
+                                "cost": -0.06444618,
+                                "currency": "USDT"
+                            }
+                        ],
+                        "stopPrice": null
+                    },
+                    {
+                        "info": {
+                            "orderId": "1322439636793278464",
+                            "clientOid": "1322439636793278465",
+                            "category": "USDT-FUTURES",
+                            "symbol": "BTCUSDT",
+                            "orderType": "market",
+                            "side": "buy",
+                            "price": "0",
+                            "qty": "0.0001",
+                            "amount": "0",
+                            "cumExecQty": "0.0001",
+                            "cumExecValue": "10.6962",
+                            "avgPrice": "106962.2",
+                            "timeInForce": "ioc",
+                            "orderStatus": "filled",
+                            "posSide": "long",
+                            "holdMode": "hedge_mode",
+                            "reduceOnly": "NO",
+                            "feeDetail": [
+                            {
+                                    "feeCoin": "USDT",
+                                    "fee": "0.00641773"
+                            }
+                            ],
+                            "createdTime": "1751020099828",
+                            "updatedTime": "1751020099843",
+                            "cancelReason": "",
+                            "execType": "normal",
+                            "stpMode": "none",
+                            "tpTriggerBy": null,
+                            "slTriggerBy": null,
+                            "takeProfit": null,
+                            "stopLoss": null,
+                            "tpOrderType": null,
+                            "slOrderType": null,
+                            "tpLimitPrice": null,
+                            "slLimitPrice": null
+                        },
+                        "id": "1322439636793278464",
+                        "clientOrderId": "1322439636793278465",
+                        "timestamp": 1751020099828,
+                        "datetime": "2025-06-27T10:28:19.828Z",
+                        "lastTradeTimestamp": 1751020099843,
+                        "lastUpdateTimestamp": 1751020099843,
+                        "symbol": "BTC/USDT:USDT",
+                        "type": "market",
+                        "side": "buy",
+                        "price": null,
+                        "amount": 0.0001,
+                        "cost": null,
+                        "average": null,
+                        "filled": 0.0001,
+                        "remaining": 0,
+                        "timeInForce": "IOC",
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "status": "closed",
+                        "fee": {
+                            "cost": -0.00641773,
+                            "currency": "USDT"
+                        },
+                        "trades": [],
+                        "fees": [
+                            {
+                                "cost": -0.00641773,
+                                "currency": "USDT"
+                            }
+                        ],
+                        "stopPrice": null
+                    },
+                    {
+                        "info": {
+                            "orderId": "1322440134099320832",
+                            "clientOid": "1322440134099320833",
+                            "category": "USDT-FUTURES",
+                            "symbol": "BTCUSDT",
+                            "orderType": "market",
+                            "side": "sell",
+                            "price": "0",
+                            "qty": "0.0011",
+                            "amount": "0",
+                            "cumExecQty": "0.0011",
+                            "cumExecValue": "117.7079",
+                            "avgPrice": "107007.2",
+                            "timeInForce": "gtc",
+                            "orderStatus": "filled",
+                            "posSide": "long",
+                            "holdMode": "hedge_mode",
+                            "reduceOnly": "NO",
+                            "feeDetail": [
+                                {
+                                    "feeCoin": "USDT",
+                                    "fee": "0.07062475"
+                                }
+                            ],
+                            "createdTime": "1751020218395",
+                            "updatedTime": "1751020218409",
+                            "cancelReason": "",
+                            "execType": "normal",
+                            "stpMode": "none",
+                            "tpTriggerBy": null,
+                            "slTriggerBy": null,
+                            "takeProfit": null,
+                            "stopLoss": null,
+                            "tpOrderType": null,
+                            "slOrderType": null,
+                            "tpLimitPrice": null,
+                            "slLimitPrice": null
+                        },
+                        "id": "1322440134099320832",
+                        "clientOrderId": "1322440134099320833",
+                        "timestamp": 1751020218395,
+                        "datetime": "2025-06-27T10:30:18.395Z",
+                        "lastTradeTimestamp": 1751020218409,
+                        "lastUpdateTimestamp": 1751020218409,
+                        "symbol": "BTC/USDT:USDT",
+                        "type": "market",
+                        "side": "sell",
+                        "price": null,
+                        "amount": 0.0011,
+                        "cost": null,
+                        "average": null,
+                        "filled": 0.0011,
+                        "remaining": 0,
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "status": "closed",
+                        "fee": {
+                            "cost": -0.07062475,
+                            "currency": "USDT"
+                        },
+                        "trades": [],
+                        "fees": [
+                            {
+                                "cost": -0.07062475,
+                                "currency": "USDT"
+                            }
+                        ],
+                        "stopPrice": null
+                    },
+                    {
+                        "info": {
+                            "orderId": "1322441328569991168",
+                            "clientOid": "1322441328574185472",
+                            "category": "USDT-FUTURES",
+                            "symbol": "BTCUSDT",
+                            "orderType": "market",
+                            "side": "buy",
+                            "price": "0",
+                            "qty": "0.0001",
+                            "amount": "0",
+                            "cumExecQty": "0.0001",
+                            "cumExecValue": "10.7003",
+                            "avgPrice": "107003.7",
+                            "timeInForce": "ioc",
+                            "orderStatus": "filled",
+                            "posSide": "long",
+                            "holdMode": "hedge_mode",
+                            "reduceOnly": "NO",
+                            "feeDetail": [
+                                {
+                                    "feeCoin": "USDT",
+                                    "fee": "0.00642022"
+                                }
+                            ],
+                            "createdTime": "1751020503180",
+                            "updatedTime": "1751020503195",
+                            "cancelReason": "",
+                            "execType": "normal",
+                            "stpMode": "none",
+                            "tpTriggerBy": null,
+                            "slTriggerBy": null,
+                            "takeProfit": null,
+                            "stopLoss": null,
+                            "tpOrderType": null,
+                            "slOrderType": null,
+                            "tpLimitPrice": null,
+                            "slLimitPrice": null
+                        },
+                        "id": "1322441328569991168",
+                        "clientOrderId": "1322441328574185472",
+                        "timestamp": 1751020503180,
+                        "datetime": "2025-06-27T10:35:03.180Z",
+                        "lastTradeTimestamp": 1751020503195,
+                        "lastUpdateTimestamp": 1751020503195,
+                        "symbol": "BTC/USDT:USDT",
+                        "type": "market",
+                        "side": "buy",
+                        "price": null,
+                        "amount": 0.0001,
+                        "cost": null,
+                        "average": null,
+                        "filled": 0.0001,
+                        "remaining": 0,
+                        "timeInForce": "IOC",
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "status": "closed",
+                        "fee": {
+                            "cost": -0.00642022,
+                            "currency": "USDT"
+                        },
+                        "trades": [],
+                        "fees": [
+                            {
+                                "cost": -0.00642022,
+                                "currency": "USDT"
+                            }
+                        ],
+                        "stopPrice": null
+                    },
+                    {
+                        "info": {
+                            "orderId": "1322441400976261120",
+                            "clientOid": "1322441400976261121",
+                            "category": "USDT-FUTURES",
+                            "symbol": "BTCUSDT",
+                            "orderType": "market",
+                            "side": "sell",
+                            "price": "0",
+                            "qty": "0.0001",
+                            "amount": "0",
+                            "cumExecQty": "0.0001",
+                            "cumExecValue": "10.7005",
+                            "avgPrice": "107005.4",
+                            "timeInForce": "gtc",
+                            "orderStatus": "filled",
+                            "posSide": "long",
+                            "holdMode": "hedge_mode",
+                            "reduceOnly": "NO",
+                            "feeDetail": [
+                                {
+                                    "feeCoin": "USDT",
+                                    "fee": "0.00642032"
+                                }
+                            ],
+                            "createdTime": "1751020520442",
+                            "updatedTime": "1751020520457",
+                            "cancelReason": "",
+                            "execType": "normal",
+                            "stpMode": "none",
+                            "tpTriggerBy": null,
+                            "slTriggerBy": null,
+                            "takeProfit": null,
+                            "stopLoss": null,
+                            "tpOrderType": null,
+                            "slOrderType": null,
+                            "tpLimitPrice": null,
+                            "slLimitPrice": null
+                        },
+                        "id": "1322441400976261120",
+                        "clientOrderId": "1322441400976261121",
+                        "timestamp": 1751020520442,
+                        "datetime": "2025-06-27T10:35:20.442Z",
+                        "lastTradeTimestamp": 1751020520457,
+                        "lastUpdateTimestamp": 1751020520457,
+                        "symbol": "BTC/USDT:USDT",
+                        "type": "market",
+                        "side": "sell",
+                        "price": null,
+                        "amount": 0.0001,
+                        "cost": null,
+                        "average": null,
+                        "filled": 0.0001,
+                        "remaining": 0,
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "status": "closed",
+                        "fee": {
+                            "cost": -0.00642032,
+                            "currency": "USDT"
+                        },
+                        "trades": [],
+                        "fees": [
+                            {
+                                "cost": -0.00642032,
+                                "currency": "USDT"
+                            }
+                        ],
+                        "stopPrice": null
+                    }
+                ]
             }
         ],
         "fetchOpenOrders": [
@@ -5390,6 +6012,182 @@
                     "baseVolume": null,
                     "quoteVolume": null
                 }
+            }
+        ],
+        "fetchCanceledOrders": [
+            {
+                "description": "uta swap fetchCanceledOrders",
+                "method": "fetchCanceledOrders",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1752554289843",
+                    "data": {
+                        "list": [
+                            {
+                                "orderId": "1328873370820132864",
+                                "clientOid": "1328873370824327168",
+                                "category": "USDT-FUTURES",
+                                "symbol": "BTCUSDT",
+                                "orderType": "limit",
+                                "side": "buy",
+                                "price": "110000",
+                                "qty": "0.001",
+                                "amount": "0",
+                                "cumExecQty": "0",
+                                "cumExecValue": "0",
+                                "avgPrice": "0",
+                                "timeInForce": "gtc",
+                                "orderStatus": "cancelled",
+                                "posSide": "long",
+                                "holdMode": "hedge_mode",
+                                "reduceOnly": "NO",
+                                "feeDetail": [
+                                    {
+                                    "feeCoin": "",
+                                    "fee": ""
+                                    }
+                                ],
+                                "createdTime": "1752554021554",
+                                "updatedTime": "1752554076067",
+                                "cancelReason": "normal_cancel",
+                                "execType": "normal",
+                                "stpMode": "none",
+                                "tpTriggerBy": null,
+                                "slTriggerBy": null,
+                                "takeProfit": null,
+                                "stopLoss": null,
+                                "tpOrderType": null,
+                                "slOrderType": null,
+                                "tpLimitPrice": null,
+                                "slLimitPrice": null
+                            },
+                            {
+                                "orderId": "1322061241844613120",
+                                "clientOid": "1322061241848807424",
+                                "category": "USDT-FUTURES",
+                                "symbol": "BTCUSDT",
+                                "orderType": "market",
+                                "side": "buy",
+                                "price": "0",
+                                "qty": "0.001",
+                                "amount": "0",
+                                "cumExecQty": "0.001",
+                                "cumExecValue": "107.4103",
+                                "avgPrice": "107410.3",
+                                "timeInForce": "ioc",
+                                "orderStatus": "filled",
+                                "posSide": "long",
+                                "holdMode": "hedge_mode",
+                                "reduceOnly": "NO",
+                                "feeDetail": [
+                                    {
+                                    "feeCoin": "USDT",
+                                    "fee": "0.06444618"
+                                    }
+                                ],
+                                "createdTime": "1750929883443",
+                                "updatedTime": "1750929883465",
+                                "cancelReason": "",
+                                "execType": "normal",
+                                "stpMode": "none",
+                                "tpTriggerBy": null,
+                                "slTriggerBy": null,
+                                "takeProfit": null,
+                                "stopLoss": null,
+                                "tpOrderType": null,
+                                "slOrderType": null,
+                                "tpLimitPrice": null,
+                                "slLimitPrice": null
+                            }
+                        ],
+                        "cursor": "1322061241941082114"
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "orderId": "1328873370820132864",
+                            "clientOid": "1328873370824327168",
+                            "category": "USDT-FUTURES",
+                            "symbol": "BTCUSDT",
+                            "orderType": "limit",
+                            "side": "buy",
+                            "price": "110000",
+                            "qty": "0.001",
+                            "amount": "0",
+                            "cumExecQty": "0",
+                            "cumExecValue": "0",
+                            "avgPrice": "0",
+                            "timeInForce": "gtc",
+                            "orderStatus": "cancelled",
+                            "posSide": "long",
+                            "holdMode": "hedge_mode",
+                            "reduceOnly": "NO",
+                            "feeDetail": [
+                                {
+                                    "feeCoin": "",
+                                    "fee": ""
+                                }
+                            ],
+                            "createdTime": "1752554021554",
+                            "updatedTime": "1752554076067",
+                            "cancelReason": "normal_cancel",
+                            "execType": "normal",
+                            "stpMode": "none",
+                            "tpTriggerBy": null,
+                            "slTriggerBy": null,
+                            "takeProfit": null,
+                            "stopLoss": null,
+                            "tpOrderType": null,
+                            "slOrderType": null,
+                            "tpLimitPrice": null,
+                            "slLimitPrice": null
+                        },
+                        "id": "1328873370820132864",
+                        "clientOrderId": "1328873370824327168",
+                        "timestamp": 1752554021554,
+                        "datetime": "2025-07-15T04:33:41.554Z",
+                        "lastTradeTimestamp": 1752554076067,
+                        "lastUpdateTimestamp": 1752554076067,
+                        "symbol": "BTC/USDT:USDT",
+                        "type": "limit",
+                        "side": "buy",
+                        "price": 110000,
+                        "amount": 0.001,
+                        "cost": 0,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 0.001,
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "status": "canceled",
+                        "fee": {
+                            "cost": null,
+                            "currency": "USDT"
+                        },
+                        "trades": [],
+                        "fees": [
+                            {
+                                "cost": null,
+                                "currency": "USDT"
+                            }
+                        ],
+                        "stopPrice": null
+                    }
+                ]
             }
         ]
     }

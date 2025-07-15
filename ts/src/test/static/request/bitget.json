@@ -878,6 +878,19 @@
                         "trailing": true
                     }
                 ]
+            },
+            {
+                "description": "uta swap fetchClosedOrders",
+                "method": "fetchClosedOrders",
+                "url": "https://api.bitget.com/api/v3/trade/history-orders?category=USDT-FUTURES&limit=2",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "uta": true
+                    }
+                ]
             }
         ],
         "fetchCanceledOrders": [
@@ -926,6 +939,19 @@
                     null,
                     {
                         "trailing": true
+                    }
+                ]
+            },
+            {
+                "description": "uta swap fetchCanceledOrders",
+                "method": "fetchCanceledOrders",
+                "url": "https://api.bitget.com/api/v3/trade/history-orders?category=USDT-FUTURES",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "uta": true
                     }
                 ]
             }
