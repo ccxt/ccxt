@@ -88,7 +88,7 @@ export default class bullish extends Exchange {
                 'fetchOrders': true,
                 'fetchOrderTrades': false,
                 'fetchPosition': false,
-                'fetchPositionHistory': true,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': true,
                 'fetchPositionsForSymbol': false,
@@ -1658,10 +1658,10 @@ export default class bullish extends Exchange {
         await this.loadMarkets ();
         await this.handleToken ();
         let request: Dict = {};
-        [ request, params ] = this.handleUntilOption ('updatedAtDatetime[lte]', request, params);
-        const until = this.safeInteger (request, 'updatedAtDatetime[lte]');
+        [ request, params ] = this.handleUntilOption ('createdAtDatetime[lte]', request, params);
+        const until = this.safeInteger (request, 'createdAtDatetime[lte]');
         if (until !== undefined) {
-            request['updatedAtDatetime[lte]'] = this.iso8601 (until);
+            request['createdAtDatetime[lte]'] = this.iso8601 (until);
         }
         if (since !== undefined) {
             request['createdAtDatetime[gte]'] = this.iso8601 (since);
@@ -2097,64 +2097,6 @@ export default class bullish extends Exchange {
         return this.filterByArrayPositions (results, 'symbol', symbols, false);
     }
 
-    /**
-     * @method
-     * @name bullish#fetchPositionHistory
-     * @description fetches historical positions
-     * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/history/derivatives-settlement
-     * @param {string} symbol unified contract symbol
-     * @param {int} [since] the earliest time in ms to fetch positions for
-     * @param {int} [limit] the maximum amount of records to fetch
-     * @param {object} [params] extra parameters specific to the exchange api endpoint
-     * @param {int} params.until the latest time in ms to fetch positions for
-     * @param {string} params.tradingAccountId the trading account id
-     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
-     */
-    async fetchPositionHistory (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
-        await this.loadMarkets ();
-        await this.handleToken ();
-        const market = this.market (symbol);
-        let request: Dict = {
-            'symbol': market['id'],
-        };
-        let tradingAccountId: Str = undefined;
-        [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchPositionHistory', 'tradingAccountId');
-        if (tradingAccountId === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchPositionHistory() requires a tradingAccountId parameter');
-        }
-        request['tradingAccountId'] = tradingAccountId;
-        if (since !== undefined) {
-            request['createdAtDatetime[gte]'] = this.iso8601 (since);
-        }
-        [ request, params ] = this.handleUntilOption ('updatedAtDatetime[lte]', request, params);
-        const until = this.safeInteger (request, 'updatedAtDatetime[lte]');
-        if (until !== undefined) {
-            request['updatedAtDatetime[lte]'] = this.iso8601 (until);
-        }
-        const response = await this.privateGetV1HistoryDerivativesSettlement (this.extend (request, params));
-        //
-        //     [
-        //         {
-        //             "tradingAccountId": "111000000000001",
-        //             "symbol": "BTC-USDC-PERP",
-        //             "side": "BUY",
-        //             "settlementQuantity": "1.00000000",
-        //             "deltaTradingQuantity": "1.00000000",
-        //             "mtmPnl": "1.0000",
-        //             "fundingPnl": "1.0000",
-        //             "eventType": "settlementUpdate",
-        //             "settlementMarkPrice": "1.0000",
-        //             "settlementIndexPrice": "1.0000",
-        //             "settlementFundingRate": "10.0",
-        //             "settlementDatetime": "2021-05-20T01:01:01.000Z",
-        //             "settlementTimestamp": "1621490985000"
-        //         }
-        //     ]
-        //
-        const positions = this.parsePositions (response);
-        return this.filterBySymbolSinceLimit (positions, symbol, since, limit);
-    }
-
     parsePosition (position: Dict, market: Market = undefined) {
         //
         //     [
@@ -2226,8 +2168,8 @@ export default class bullish extends Exchange {
      * @description fetch a history of internal transfers made on an account
      * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/history/transfer
      * @param {string} code unified currency code of the currency transferred
-     * @param {int} [since] the earliest time in ms to fetch transfers for (default 24 hours ago)
-     * @param {int} [limit] the maximum number of transfer structures to retrieve (default 50, max 200)
+     * @param {int} [since] the earliest time in ms to fetch transfers for
+     * @param {int} [limit] the maximum number of transfer structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} params.until the latest time in ms to fetch transfers for (default time now)
      * @param {string} params.tradingAccountId the trading account id
@@ -2249,14 +2191,19 @@ export default class bullish extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchTransfers() requires a tradingAccountId parameter');
         }
         request['tradingAccountId'] = tradingAccountId;
-        if (since !== undefined) {
-            request['createdAtDatetime[gte]'] = this.iso8601 (since);
+        const now = this.milliseconds ();
+        [ request, params ] = this.handleUntilOption ('createdAtDatetime[lte]', request, params);
+        let until = this.safeInteger (request, 'createdAtDatetime[lte]');
+        let startTimestamp = since;
+        // current endpoint requires both since and until parameters
+        if (startTimestamp === undefined) {
+            startTimestamp = now - 1000 * 60 * 60 * 24 * 90; // Only the last 90 days of data is available for querying
         }
-        [ request, params ] = this.handleUntilOption ('updatedAtDatetime[lte]', request, params);
-        const until = this.safeInteger (request, 'updatedAtDatetime[lte]');
-        if (until !== undefined) {
-            request['updatedAtDatetime[lte]'] = this.iso8601 (until);
+        if (until === undefined) {
+            until = now;
         }
+        request['createdAtDatetime[gte]'] = this.iso8601 (startTimestamp);
+        request['createdAtDatetime[lte]'] = this.iso8601 (until);
         const response = await this.privateGetV1HistoryTransfer (this.extend (request, params));
         //
         //     [
@@ -2398,14 +2345,19 @@ export default class bullish extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchBorrowRateHistory() requires a tradingAccountId parameter');
         }
         request['tradingAccountId'] = tradingAccountId;
-        if (since !== undefined) {
-            request['createdAtDatetime[gte]'] = this.iso8601 (since);
+        const now = this.milliseconds ();
+        let startTimestamp = since;
+        [ request, params ] = this.handleUntilOption ('createdAtDatetime[lte]', request, params);
+        let until = this.safeInteger (request, 'createdAtDatetime[lte]');
+        // current endpoint requires both since and until parameters
+        if (startTimestamp === undefined) {
+            startTimestamp = now - 1000 * 60 * 60 * 24 * 90; // Only the last 90 days of data is available for querying
         }
-        [ request, params ] = this.handleUntilOption ('updatedAtDatetime[lte]', request, params);
-        const until = this.safeInteger (request, 'updatedAtDatetime[lte]');
-        if (until !== undefined) {
-            request['updatedAtDatetime[lte]'] = this.iso8601 (until);
+        if (until === undefined) {
+            until = now;
         }
+        request['createdAtDatetime[gte]'] = this.iso8601 (startTimestamp);
+        request['createdAtDatetime[lte]'] = this.iso8601 (until);
         const response = await this.privateGetV1HistoryBorrowInterest (this.extend (request, params));
         //
         //     [
@@ -2490,7 +2442,7 @@ export default class bullish extends Exchange {
             }
         }
         if (method === 'GET') {
-            const query = this.customUrlencode (request);
+            const query = this.urlencode (request);
             if (query.length) {
                 url += '?' + query;
             }
@@ -2530,19 +2482,6 @@ export default class bullish extends Exchange {
         } else {
             return this.token;
         }
-    }
-
-    customUrlencode (params: Dict = {}): Str {
-        let result = this.urlencode (params);
-        result = result.replace ('%5B', '[');
-        result = result.replace ('%5D', ']');
-        result = result.replace ('%3A', ':');
-        result = result.replace ('%3A', ':');
-        result = result.replace ('%5B', '[');
-        result = result.replace ('%5D', ']');
-        result = result.replace ('%3A', ':');
-        result = result.replace ('%3A', ':');
-        return result;
     }
 
     handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
