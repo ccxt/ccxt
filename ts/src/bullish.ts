@@ -837,6 +837,7 @@ export default class bullish extends Exchange {
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
+        await this.handleToken ();
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -1272,6 +1273,7 @@ export default class bullish extends Exchange {
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
+        await this.handleToken ();
         let market = undefined;
         const request: Dict = {
         };
@@ -1332,6 +1334,7 @@ export default class bullish extends Exchange {
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
+        await this.handleToken ();
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1398,6 +1401,7 @@ export default class bullish extends Exchange {
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
+        await this.handleToken ();
         const market = this.market (symbol);
         const request: Dict = {
             'commandType': 'V3CreateOrder',
@@ -1456,6 +1460,7 @@ export default class bullish extends Exchange {
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
+        await this.handleToken ();
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
@@ -1495,6 +1500,7 @@ export default class bullish extends Exchange {
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
+        await this.handleToken ();
         let tradingAccountId: Str = undefined;
         [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'tradingAccountId');
         if (tradingAccountId === undefined) {
@@ -1650,6 +1656,7 @@ export default class bullish extends Exchange {
      */
     async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         await this.loadMarkets ();
+        await this.handleToken ();
         let request: Dict = {};
         [ request, params ] = this.handleUntilOption ('updatedAtDatetime[lte]', request, params);
         const until = this.safeInteger (request, 'updatedAtDatetime[lte]');
@@ -1707,6 +1714,7 @@ export default class bullish extends Exchange {
      */
     async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         await this.loadMarkets ();
+        await this.handleToken ();
         const currency = this.currency (code);
         const request: Dict = {
             'command': {
@@ -1829,6 +1837,7 @@ export default class bullish extends Exchange {
      */
     async fetchAccounts (params = {}): Promise<Account[]> {
         await this.loadMarkets ();
+        await this.handleToken ();
         const response = await this.privateGetV1AccountsTradingAccounts (params);
         //
         //     [
@@ -1932,6 +1941,7 @@ export default class bullish extends Exchange {
      */
     async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         await this.loadMarkets ();
+        await this.handleToken ();
         const currency = this.currency (code);
         const request: Dict = {
             'symbol': currency['id'],
@@ -1978,6 +1988,7 @@ export default class bullish extends Exchange {
      */
     async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
+        await this.handleToken ();
         let tradingAccountId: Str = undefined;
         [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'tradingAccountId');
         if (tradingAccountId === undefined) {
@@ -2051,6 +2062,7 @@ export default class bullish extends Exchange {
      */
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
+        await this.handleToken ();
         let tradingAccountId: Str = undefined;
         [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'tradingAccountId');
         if (tradingAccountId === undefined) {
@@ -2100,6 +2112,7 @@ export default class bullish extends Exchange {
      */
     async fetchPositionHistory (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
+        await this.handleToken ();
         const market = this.market (symbol);
         let request: Dict = {
             'symbol': market['id'],
@@ -2222,6 +2235,7 @@ export default class bullish extends Exchange {
      */
     async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
         await this.loadMarkets ();
+        await this.handleToken ();
         // todo add pagination support
         let request: Dict = {};
         let currency: Currency = undefined;
@@ -2277,6 +2291,7 @@ export default class bullish extends Exchange {
      */
     async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         await this.loadMarkets ();
+        await this.handleToken ();
         const currency = this.currency (code);
         const request: Dict = {
             'command': {
@@ -2372,6 +2387,7 @@ export default class bullish extends Exchange {
      */
     async fetchBorrowRateHistory (code: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
+        await this.handleToken ();
         const currency = this.currency (code);
         let request: Dict = {
             'assetSymbol': currency['id'],
@@ -2502,7 +2518,18 @@ export default class bullish extends Exchange {
         const token = this.safeString (response, 'token');
         this.token = token;
         this.options['tokenExpires'] = this.sum (this.milliseconds (), 1000 * 60 * 60 * 24); // token expires in 24 hours
-        return response;
+        return token;
+    }
+
+    async handleToken (params = {}) {
+        const now = this.milliseconds ();
+        const token = this.token;
+        const tokenExpires = this.safeInteger (this.options, 'tokenExpires');
+        if ((token === undefined) || (tokenExpires === undefined) || (now > tokenExpires)) {
+            return await this.signIn ();
+        } else {
+            return this.token;
+        }
     }
 
     customUrlencode (params: Dict = {}): Str {
