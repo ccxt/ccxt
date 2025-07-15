@@ -245,6 +245,7 @@ class NewTranspiler {
             [/CleanUnsubscription\(([a-zA-Z0-9]+),/g, 'CleanUnsubscription($1.(*Client),'],
             [/client\.(LastPong|KeepAlive|Url|Subscriptions)/g, 'client.(*Client).$1'],
             [/<-client\.Future\(([^\)]*)\)/g, '<-client.(ClientInterface).Future($1)'],
+            [/client\.Futures/g, 'client.(*WSClient).Futures'],
             [/client\.(Send|Reset|OnPong|Reject|Future|Resolve)/g, 'client.(ClientInterface).$1'],
             // Error constructors
             [/New([A-Za-z0-9]+Error)\(/g, '$1('],

@@ -6,6 +6,7 @@ import (
 	j "encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	random2 "math/rand"
 	"net/http"
 	"net/url"
@@ -1490,9 +1491,9 @@ func (this *Exchange) Watch(args ...interface{}) <-chan interface{} {
 // OrderBook returns a new mutable order-book using our Go implementation.
 func (this *Exchange) OrderBook(optionalArgs ...interface{}) *WsOrderBook {
     snapshot := GetArg(optionalArgs, 0, map[string]interface{}{})
-	depth := GetArg(optionalArgs, 1, 9007199254740991)
+	depth := GetArg(optionalArgs, 1, math.MaxInt32)
 	orderBook := NewWsOrderBook(snapshot, depth)
-	return &orderBook
+	return orderBook
 }
 
 // IndexedOrderBook and CountedOrderBook share the same implementation for now.
@@ -1500,14 +1501,14 @@ func (this *Exchange) IndexedOrderBook(optionalArgs ...interface{}) *IndexedOrde
 	snapshot := GetArg(optionalArgs, 0, map[string]interface{}{})
 	depth := GetArg(optionalArgs, 1, 9007199254740991)
 	orderBook := NewIndexedOrderBook(snapshot, depth)
-	return &orderBook
+	return orderBook
 }
 
 func (this *Exchange) CountedOrderBook(optionalArgs ...interface{}) *CountedOrderBook {
 	snapshot := GetArg(optionalArgs, 0, map[string]interface{}{})
 	depth := GetArg(optionalArgs, 1, 9007199254740991)
 	orderBook := NewCountedOrderBook(snapshot, depth)
-	return &orderBook
+	return orderBook
 }
 
 // func (this *Exchange) setOwner(cli *WSClient) {
@@ -1742,12 +1743,15 @@ func (this *Exchange) WatchMultiple(args ...interface{}) <-chan interface{} {
 	connected, err := client.Connect(backoffDelay)
 	if err != nil {
 		future.Reject(err)
-		return future.result
+		for _, h := range missingSubscriptions {
+			delete(client.Subscriptions, h)
+		}
+		return future.err
 	}
 	// the following is executed only if the catch-clause does not
 	// catch any connection-level exceptions from the client
 	// (connection established successfully)
-	if len(missingSubscriptions) > 0 {
+	if subscribeHashes == nil || len(missingSubscriptions) > 0 {
 		go func() {
 			select {
 				case <-connected.result:

@@ -26,6 +26,6 @@ func NewIOrderBook(v interface{}) IOrderBook {
     default:
         // unknown type – create empty orderbook
         ob := NewWsOrderBook(map[string]interface{}{}, nil)
-        return IOrderBook{&ob}
+        return IOrderBook{ob}
     }
 } 
