@@ -718,7 +718,7 @@ func IsEqual(a, b interface{}) bool {
 			return aVal == bVal
 		}
 	case *sync.Map:
-		if aVal == nil && b == nil {
+		if aVal == nil && b == nil {  // TODO: we know that b is not nil from the 4th line of this function
 			return true
 		}
 	}

@@ -149,7 +149,7 @@ func (this *Client) Close() error {
 
 // NewClient creates a new WebSocket client with the given URL and callbacks
 // Matches the TypeScript constructor exactly with all the same properties
-func NewClient(url string, onMessageCallback func(client interface{}, err interface{}), onErrorCallback func(client interface{}, err interface{}), onCloseCallback func(client interface{}, err interface{}), onConnectedCallback func(client interface{}, err interface{}), config ...map[string]interface{}) (interface{}, error) {
+func NewClient(url string, onMessageCallback func(client interface{}, err interface{}), onErrorCallback func(client interface{}, err interface{}), onCloseCallback func(client interface{}, err interface{}), onConnectedCallback func(client interface{}, err interface{}), config ...map[string]interface{}) *Client {
 	// Set up defaults exactly like TypeScript constructor
 	defaults := map[string]interface{}{
 		"Url":                     url,
@@ -223,7 +223,7 @@ func NewClient(url string, onMessageCallback func(client interface{}, err interf
 		Disconnected:          NewFuture(),
 	}
 
-	return c, nil
+	return c
 }
 
 // func (this *Client) readLoop() {
