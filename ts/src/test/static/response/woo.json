@@ -2498,6 +2498,70 @@
                     }
                 ]
             }
+        ],
+        "fetchTransfers": [
+            {
+                "description": "fetchTransfers",
+                "method": "fetchTransfers",
+                "input": [],
+                "httpResponse": {
+                    "success": true,
+                    "data": {
+                        "rows": [
+                            {
+                                "id": 225,
+                                "token": "USDT",
+                                "amount": "1000000",
+                                "status": "COMPLETED",
+                                "from": {
+                                    "applicationId": "046b5c5c-5b44-4d27-9593-ddc32c0a08ae",
+                                    "accountName": "Main"
+                                },
+                                "to": {
+                                    "applicationId": "082ae5ae-e26a-4fb1-be5b-03e5b4867663",
+                                    "accountName": "sub001"
+                                },
+                                "createdTime": "1642660941.534",
+                                "updatedTime": "1642660941.950"
+                            }
+                        ],
+                        "meta": {
+                            "total": 46,
+                            "recordsPerPage": 1,
+                            "currentPage": 1
+                        }
+                    },
+                    "timestamp": 1721295317627
+                },
+                "parsedResponse": [
+                    {
+                        "id": "225",
+                        "timestamp": 1642660941534,
+                        "datetime": "2022-01-20T06:42:21.534Z",
+                        "currency": "USDT",
+                        "amount": 1000000,
+                        "fromAccount": "046b5c5c-5b44-4d27-9593-ddc32c0a08ae",
+                        "toAccount": "082ae5ae-e26a-4fb1-be5b-03e5b4867663",
+                        "status": "ok",
+                        "info": {
+                            "id": 225,
+                            "token": "USDT",
+                            "amount": "1000000",
+                            "status": "COMPLETED",
+                            "from": {
+                                "applicationId": "046b5c5c-5b44-4d27-9593-ddc32c0a08ae",
+                                "accountName": "Main"
+                            },
+                            "to": {
+                                "applicationId": "082ae5ae-e26a-4fb1-be5b-03e5b4867663",
+                                "accountName": "sub001"
+                            },
+                            "createdTime": "1642660941.534",
+                            "updatedTime": "1642660941.950"
+                        }
+                    }
+                ]
+            }
         ]
     }
 }

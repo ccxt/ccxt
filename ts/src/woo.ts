@@ -2836,7 +2836,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchTransfers
      * @description fetch a history of internal transfers made on an account
-     * @see https://docs.woox.io/#get-transfer-history
+     * @see https://developer.woox.io/api-reference/endpoint/assets/get_transfer_history
      * @param {string} code unified currency code of the currency transferred
      * @param {int} [since] the earliest time in ms to fetch transfers for
      * @param {int} [limit] the maximum number of  transfers structures to retrieve
@@ -2846,44 +2846,56 @@ export default class woo extends Exchange {
      */
     async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
         const request: Dict = {};
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
         if (limit !== undefined) {
             request['size'] = limit;
         }
         if (since !== undefined) {
-            request['start_t'] = since;
+            request['startTime'] = since;
         }
         const until = this.safeInteger (params, 'until'); // unified in milliseconds
         params = this.omit (params, [ 'until' ]);
         if (until !== undefined) {
-            request['end_t'] = until;
+            request['endTime'] = until;
         }
-        const response = await this.v1PrivateGetAssetMainSubTransferHistory (this.extend (request, params));
+        const response = await this.v3PrivateGetAssetTransferHistory (this.extend (request, params));
         //
         //     {
-        //         "rows": [
-        //             {
-        //                 "id": 46704,
-        //                 "token": "USDT",
-        //                 "amount": 30000.00000000,
-        //                 "status": "COMPLETED",
-        //                 "from_application_id": "0f1bd3cd-dba2-4563-b8bb-0adb1bfb83a3",
-        //                 "to_application_id": "c01e6940-a735-4022-9b6c-9d3971cdfdfa",
-        //                 "from_user": "LeverageLow",
-        //                 "to_user": "dev",
-        //                 "created_time": "1709022325.427",
-        //                 "updated_time": "1709022325.542"
+        //         "success": true,
+        //         "data": {
+        //             "rows": [
+        //                 {
+        //                     "id": 225,
+        //                     "token": "USDT",
+        //                     "amount": "1000000",
+        //                     "status": "COMPLETED",
+        //                     "from": {
+        //                         "applicationId": "046b5c5c-5b44-4d27-9593-ddc32c0a08ae",
+        //                         "accountName": "Main"
+        //                     },
+        //                     "to": {
+        //                         "applicationId": "082ae5ae-e26a-4fb1-be5b-03e5b4867663",
+        //                         "accountName": "sub001"
+        //                     },
+        //                     "createdTime": "1642660941.534",
+        //                     "updatedTime": "1642660941.950"
+        //                 }
+        //             ],
+        //             "meta": {
+        //                 "total": 46,
+        //                 "recordsPerPage": 1,
+        //                 "currentPage": 1
         //             }
-        //         ],
-        //         "meta": {
-        //             "total": 50,
-        //             "records_per_page": 25,
-        //             "current_page": 1
         //         },
-        //         "success": true
+        //         "timestamp": 1721295317627
         //     }
         //
-        const data = this.safeList (response, 'rows', []);
-        return this.parseTransfers (data, undefined, since, limit, params);
+        const data = this.safeDict (response, 'data', {});
+        const rows = this.safeList (data, 'rows', []);
+        return this.parseTransfers (rows, currency, since, limit, params);
     }
 
     parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
@@ -2901,6 +2913,22 @@ export default class woo extends Exchange {
         //         "created_time": "1709022325.427",
         //         "updated_time": "1709022325.542"
         //     }
+        //     {
+        //         "id": 225,
+        //         "token": "USDT",
+        //         "amount": "1000000",
+        //         "status": "COMPLETED",
+        //         "from": {
+        //             "applicationId": "046b5c5c-5b44-4d27-9593-ddc32c0a08ae",
+        //             "accountName": "Main"
+        //         },
+        //         "to": {
+        //             "applicationId": "082ae5ae-e26a-4fb1-be5b-03e5b4867663",
+        //             "accountName": "sub001"
+        //         },
+        //         "createdTime": "1642660941.534",
+        //         "updatedTime": "1642660941.950"
+        //     }
         //
         //    transfer
         //        {
@@ -2908,23 +2936,23 @@ export default class woo extends Exchange {
         //            "id": 200
         //        }
         //
-        const networkizedCode = this.safeString (transfer, 'token');
-        const currencyDefined = this.getCurrencyFromChaincode (networkizedCode, currency);
-        const code = currencyDefined['code'];
-        const timestamp = this.safeTimestamp (transfer, 'created_time');
+        const code = this.safeCurrencyCode (this.safeString (transfer, 'token'), currency);
+        const timestamp = this.safeTimestamp (transfer, 'createdTime');
         const success = this.safeBool (transfer, 'success');
         let status: Str = undefined;
         if (success !== undefined) {
             status = success ? 'ok' : 'failed';
         }
+        const fromAccount = this.safeDict (transfer, 'from', {});
+        const toAccount = this.safeDict (transfer, 'to', {});
         return {
             'id': this.safeString (transfer, 'id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'currency': code,
             'amount': this.safeNumber (transfer, 'amount'),
-            'fromAccount': this.safeString (transfer, 'from_application_id'),
-            'toAccount': this.safeString (transfer, 'to_application_id'),
+            'fromAccount': this.safeString (fromAccount, 'applicationId'),
+            'toAccount': this.safeString (toAccount, 'applicationId'),
             'status': this.parseTransferStatus (this.safeString (transfer, 'status', status)),
             'info': transfer,
         };

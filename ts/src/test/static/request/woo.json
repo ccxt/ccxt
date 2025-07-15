@@ -364,7 +364,7 @@
             {
                 "description": "fetch USDT transfers",
                 "method": "fetchTransfers",
-                "url": "https://api.woox.io/v1/asset/main_sub_transfer_history",
+                "url": "https://api.woox.io/v3/asset/transfer/history",
                 "input": []
             }
         ],
