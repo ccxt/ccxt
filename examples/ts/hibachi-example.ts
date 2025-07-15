@@ -45,10 +45,13 @@ async function example () {
     const order5 = await exchange.cancelOrder(order3.id);
     console.log('create, edit and cancel limit order', order3.id, order4.id, order5.id);
     
-    const orderbook = await exchange.fetchOrderBook('BTC/USDT:USDT');
+    const orderbook = await exchange.fetchOrderBook ('BTC/USDT:USDT');
     console.log ('fetchOrderBook', orderbook);
 
     const withdrawResponse = await exchange.withdraw('USDT', 0.02, keys.hibachi.withdrawAddress);
     console.log(withdrawResponse);
+    
+    const tradingFees = await exchange.fetchTradingFees ();
+    console.log ('fetchTradingFees', tradingFees);
 }
 example ();
