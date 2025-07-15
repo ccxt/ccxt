@@ -83,7 +83,7 @@ export default class hibachi extends Exchange {
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
-                'fetchMyTrades': false,
+                'fetchMyTrades': true,
                 'fetchOHLCV': false,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': false,
@@ -139,6 +139,7 @@ export default class hibachi extends Exchange {
                 'private': {
                     'get': {
                         'trade/account/info': 1,
+                        'trade/account/trades': 1,
                     },
                     'put': {
                         'trade/order': 1,
@@ -438,26 +439,64 @@ export default class hibachi extends Exchange {
         //          "takerSide": "Buy",
         //          "timestamp": 1712692147
         //      }
-        const timestamp = this.safeTimestamp (trade, 'timestamp'); // in seconds
+        //
+        // private fetchMyTrades:
+        //      {
+        //          "askAccountId": 221,
+        //          "askOrderId": 589168494921909200,
+        //          "bidAccountId": 132,
+        //          "bidOrderId": 589168494829895700,
+        //          "fee": "0.000477",
+        //          "id": 199511136,
+        //          "orderType": "MARKET",
+        //          "price": "119257.90000",
+        //          "quantity": "0.0000200000",
+        //          "realizedPnl": "-0.000352",
+        //          "side": "Sell",
+        //          "symbol": "BTC/USDT-P",
+        //          "timestamp": 1752543391
+        //      }
+        const marketId = this.safeString (trade, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const id = this.safeString (trade, 'id');
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'quantity');
-        let side = this.safeString (trade, 'takerSide');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
+        const timestamp = this.safeInteger (trade, 'timestamp') * 1000;
+        const cost = Precise.stringMul (price, amount);
+        let side = undefined;
+        let fee = undefined;
+        let orderType = undefined;
+        let orderId = undefined;
+        let takerOrMaker = undefined;
+        if (id === undefined) {
+            // public trades
+            side = this.safeStringLower (trade, 'takerSide');
+            takerOrMaker = 'taker';
+        } else {
+            // private trades
+            side = this.safeStringLower (trade, 'side');
+            fee = { 'cost': this.safeString (trade, 'fee'), 'currency': 'USDT' };
+            orderType = this.safeStringLower (trade, 'orderType');
+            if (side === 'buy') {
+                orderId = this.safeString (trade, 'bidOrderId');
+            } else {
+                orderId = this.safeString (trade, 'askOrderId');
+            }
         }
         return this.safeTrade ({
-            'id': undefined,
-            'order': undefined,
+            'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': this.safeSymbol (undefined, market),
-            'type': undefined,
+            'symbol': symbol,
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': undefined,
-            'takerOrMaker': 'taker',
-            'fee': undefined,
+            'cost': cost,
+            'order': orderId,
+            'takerOrMaker': takerOrMaker,
+            'type': orderType,
+            'fee': fee,
             'info': trade,
         }, market);
     }
@@ -935,6 +974,50 @@ export default class hibachi extends Exchange {
         //     }
         // }
         return this.parseOrderBook (formattedResponse, symbol, this.milliseconds (), 'bid', 'ask', 'price', 'quantity');
+    }
+
+    /**
+     * @method
+     * @name hibachi#fetchMyTrades
+     * @see https://api-doc.hibachi.xyz/#0adbf143-189f-40e0-afdc-88af4cba3c79
+     * @description fetch all trades made by the user
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const request = { 'accountId': this.accountId };
+        const response = await this.privateGetTradeAccountTrades (request);
+        //
+        // {
+        //     "trades": [
+        //         {
+        //             "askAccountId": 221,
+        //             "askOrderId": 589168494921909200,
+        //             "bidAccountId": 132,
+        //             "bidOrderId": 589168494829895700,
+        //             "fee": "0.000477",
+        //             "id": 199511136,
+        //             "orderType": "MARKET",
+        //             "price": "119257.90000",
+        //             "quantity": "0.0000200000",
+        //             "realizedPnl": "-0.000352",
+        //             "side": "Sell",
+        //             "symbol": "BTC/USDT-P",
+        //             "timestamp": 1752543391
+        //         }
+        //     ]
+        // }
+        //
+        const trades = this.safeList (response, 'trades');
+        return this.parseTrades (trades, market, since, limit, params);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

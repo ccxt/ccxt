@@ -51,7 +51,10 @@ async function example () {
 
     const withdrawResponse = await exchange.withdraw('USDT', 0.02, keys.hibachi.withdrawAddress);
     console.log(withdrawResponse);
-    
+
+    const myTrades = await exchange.fetchMyTrades('BTC/USDT:USDT', undefined, 1);
+    console.log('fetchMyTrades', myTrades);
+
     const tradingFees = await exchange.fetchTradingFees ();
     console.log ('fetchTradingFees', tradingFees);
 }
