@@ -461,7 +461,7 @@ public partial class bybit
     /// <item>
     /// <term>params.triggerDirection</term>
     /// <description>
-    /// string : *contract only* the direction for trigger orders, 'above' or 'below'
+    /// string : *contract only* the direction for trigger orders, 'ascending' or 'descending'
     /// </description>
     /// </item>
     /// <item>
@@ -2394,6 +2394,32 @@ public partial class bybit
     {
         var res = await this.fetchGreeks(symbol, parameters);
         return new Greeks(res);
+    }
+    /// <summary>
+    /// fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://bybit-exchange.github.io/docs/api-explorer/v5/market/tickers"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.baseCoin</term>
+    /// <description>
+    /// string : the baseCoin of the symbol, default is BTC
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}.</returns>
+    public async Task<List<Greeks>> FetchAllGreeks(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchAllGreeks(symbols, parameters);
+        return ((IList<object>)res).Select(item => new Greeks(item)).ToList<Greeks>();
     }
     /// <summary>
     /// retrieves the users liquidated positions

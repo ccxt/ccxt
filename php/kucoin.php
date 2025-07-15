@@ -2696,7 +2696,7 @@ class kucoin extends Exchange {
          */
         $this->load_markets();
         $request = array();
-        $trigger = $this->safe_bool($params, 'stop', false);
+        $trigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
         $hf = null;
         list($hf, $params) = $this->handle_hf_and_params($params);
         $params = $this->omit($params, 'stop');

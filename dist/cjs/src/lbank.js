@@ -669,7 +669,7 @@ class lbank extends lbank$1 {
                 'active': true,
                 'contract': true,
                 'linear': true,
-                'inverse': undefined,
+                'inverse': false,
                 'contractSize': this.safeNumber(market, 'volumeMultiple'),
                 'expiry': undefined,
                 'expiryDatetime': undefined,

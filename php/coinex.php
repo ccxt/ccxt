@@ -782,7 +782,7 @@ class coinex extends Exchange {
                         'max' => null,
                     ),
                 ),
-                'networks' => array(),
+                'networks' => $networks,
                 'type' => 'crypto',
                 'info' => $coin,
             ));
@@ -816,18 +816,20 @@ class coinex extends Exchange {
         //     {
         //         "code" => 0,
         //         "data" => array(
-        //             array(
-        //                 "base_ccy" => "SORA",
-        //                 "base_ccy_precision" => 8,
-        //                 "is_amm_available" => true,
-        //                 "is_margin_available" => false,
-        //                 "maker_fee_rate" => "0.003",
-        //                 "market" => "SORAUSDT",
-        //                 "min_amount" => "500",
+        //             {
+        //                 "market" => "BTCUSDT",
+        //                 "taker_fee_rate" => "0.002",
+        //                 "maker_fee_rate" => "0.002",
+        //                 "min_amount" => "0.0005",
+        //                 "base_ccy" => "BTC",
         //                 "quote_ccy" => "USDT",
-        //                 "quote_ccy_precision" => 6,
-        //                 "taker_fee_rate" => "0.003"
-        //             ),
+        //                 "base_ccy_precision" => 8,
+        //                 "quote_ccy_precision" => 2,
+        //                 "is_amm_available" => true,
+        //                 "is_margin_available" => true,
+        //                 "is_pre_trading_available" => true,
+        //                 "is_api_trading_available" => true
+        //             }
         //         ),
         //         "message" => "OK"
         //     }
@@ -853,11 +855,11 @@ class coinex extends Exchange {
                 'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
-                'margin' => null,
+                'margin' => $this->safe_bool($market, 'is_margin_available'),
                 'swap' => false,
                 'future' => false,
                 'option' => false,
-                'active' => null,
+                'active' => $this->safe_bool($market, 'is_api_trading_available'),
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,

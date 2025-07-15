@@ -2625,7 +2625,7 @@ class kucoin(Exchange, ImplicitAPI):
         """
         self.load_markets()
         request: dict = {}
-        trigger = self.safe_bool(params, 'stop', False)
+        trigger = self.safe_bool_2(params, 'trigger', 'stop', False)
         hf = None
         hf, params = self.handle_hf_and_params(params)
         params = self.omit(params, 'stop')

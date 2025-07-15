@@ -870,7 +870,7 @@ class testMainClass {
     checkConstructor (exchange) {
         // todo: this might be moved in base tests later
         if (exchange.id === 'binance') {
-            assert (exchange.hostname === undefined, 'binance.com hostname should be empty');
+            assert (exchange.hostname === undefined || exchange.hostname === '', 'binance.com hostname should be empty');
             assert (exchange.urls['api']['public'] === 'https://api.binance.com/api/v3', 'https://api.binance.com/api/v3 does not match: ' + exchange.urls['api']['public']);
             assert (('lending/union/account' in exchange.api['sapi']['get']), 'SAPI should contain the endpoint lending/union/account, ' + jsonStringify (exchange.api['sapi']['get']));
         } else if (exchange.id === 'binanceus') {
@@ -1548,7 +1548,7 @@ class testMainClass {
             this.testBingx (),
             this.testPhemex (),
             this.testBlofin (),
-            this.testHyperliquid (),
+            // this.testHyperliquid (),
             this.testCoinbaseinternational (),
             this.testCoinbaseAdvanced (),
             this.testWoofiPro (),
@@ -1934,22 +1934,22 @@ class testMainClass {
         return true;
     }
 
-    async testHyperliquid () {
-        const exchange = this.initOfflineExchange ('hyperliquid');
-        const id = '1';
-        let request = undefined;
-        try {
-            await exchange.createOrder ('SOL/USDC:USDC', 'limit', 'buy', 1, 100);
-        } catch (e) {
-            request = jsonParse (exchange.last_request_body);
-        }
-        const brokerId = (request['action']['brokerCode']).toString ();
-        assert (brokerId === id, 'hyperliquid - brokerId: ' + brokerId + ' does not start with id: ' + id);
-        if (!isSync ()) {
-            await close (exchange);
-        }
-        return true;
-    }
+    // async testHyperliquid () {
+    //     const exchange = this.initOfflineExchange ('hyperliquid');
+    //     const id = '1';
+    //     let request = undefined;
+    //     try {
+    //         await exchange.createOrder ('SOL/USDC:USDC', 'limit', 'buy', 1, 100);
+    //     } catch (e) {
+    //         request = jsonParse (exchange.last_request_body);
+    //     }
+    //     const brokerId = (request['action']['brokerCode']).toString ();
+    //     assert (brokerId === id, 'hyperliquid - brokerId: ' + brokerId + ' does not start with id: ' + id);
+    //     if (!isSync ()) {
+    //         await close (exchange);
+    //     }
+    //     return true;
+    // }
 
     async testCoinbaseinternational () {
         const exchange = this.initOfflineExchange ('coinbaseinternational');

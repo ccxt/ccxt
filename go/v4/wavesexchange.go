@@ -2575,11 +2575,22 @@ func  (this *wavesexchange) ParseTrade(trade interface{}, optionalArgs ...interf
     var order1 interface{} = this.SafeValue(data, "order1")
     var order2 interface{} = this.SafeValue(data, "order2")
     var order interface{} = nil
-    // order2 arrived after order1
+    // at first, detect if response is from `fetch_my_trades`
     if IsTrue(IsEqual(this.SafeString(order1, "senderPublicKey"), this.ApiKey)) {
         order = order1
-    } else {
+    } else if IsTrue(IsEqual(this.SafeString(order2, "senderPublicKey"), this.ApiKey)) {
         order = order2
+    } else {
+        // response is from `fetch_trades`, so find only taker order
+        var date1 interface{} = this.SafeString(order1, "timestamp")
+        var date2 interface{} = this.SafeString(order2, "timestamp")
+        var ts1 interface{} = this.Parse8601(date1)
+        var ts2 interface{} = this.Parse8601(date2)
+        if IsTrue(IsGreaterThan(ts1, ts2)) {
+            order = order1
+        } else {
+            order = order2
+        }
     }
     var symbol interface{} = nil
     var assetPair interface{} = this.SafeValue(order, "assetPair")
@@ -2707,8 +2718,8 @@ func  (this *wavesexchange) FetchDepositWithdrawFees(optionalArgs ...interface{}
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes24618 := (<-this.LoadMarkets())
-            PanicOnError(retRes24618)
+            retRes24728 := (<-this.LoadMarkets())
+            PanicOnError(retRes24728)
             var data interface{} = []interface{}{}
             var promises interface{} = []interface{}{}
             AppendToArray(&promises,this.PrivateGetDepositCurrencies(params))
@@ -2841,8 +2852,8 @@ func  (this *wavesexchange) Withdraw(code interface{}, amount interface{}, addre
                 }
             }
         
-            retRes25768 := (<-this.LoadMarkets())
-            PanicOnError(retRes25768)
+            retRes25878 := (<-this.LoadMarkets())
+            PanicOnError(retRes25878)
             var hexChars interface{} = []interface{}{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"}
             var set interface{} = map[string]interface{} {}
             for i := 0; IsLessThan(i, GetArrayLength(hexChars)); i++ {
@@ -2861,8 +2872,8 @@ func  (this *wavesexchange) Withdraw(code interface{}, amount interface{}, addre
                 }
             }
         
-            retRes25948 := (<-this.SignIn())
-            PanicOnError(retRes25948)
+            retRes26058 := (<-this.SignIn())
+            PanicOnError(retRes26058)
             var proxyAddress interface{} = nil
             if IsTrue(IsTrue(IsEqual(code, "WAVES")) && !IsTrue(isErc20)) {
                 proxyAddress = address

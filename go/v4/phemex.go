@@ -2886,16 +2886,16 @@ func  (this *phemex) CreateOrder(symbol interface{}, typeVar interface{}, side i
                     triggerDirection = GetValue(triggerDirectionparamsVariable,0);
                     params = GetValue(triggerDirectionparamsVariable,1)
                     if IsTrue(IsEqual(triggerDirection, nil)) {
-                        panic(ArgumentsRequired(Add(this.Id, " createOrder() also requires a \\'triggerDirection\\' parameter with either \\'up\\' or \\'down\\' value")))
+                        panic(ArgumentsRequired(Add(this.Id, " createOrder() also requires a \\'triggerDirection\\' parameter with either \\'ascending\\' or \\'descending\\' value")))
                     }
                     // the flow defined per https://phemex-docs.github.io/#more-order-type-examples
-                    if IsTrue(IsEqual(triggerDirection, "up")) {
+                    if IsTrue(IsTrue(IsEqual(triggerDirection, "ascending")) || IsTrue(IsEqual(triggerDirection, "up"))) {
                         if IsTrue(IsEqual(side, "sell")) {
                             AddElementToObject(request, "ordType", Ternary(IsTrue((IsEqual(typeVar, "Market"))), "MarketIfTouched", "LimitIfTouched"))
                         } else if IsTrue(IsEqual(side, "buy")) {
                             AddElementToObject(request, "ordType", Ternary(IsTrue((IsEqual(typeVar, "Market"))), "Stop", "StopLimit"))
                         }
-                    } else if IsTrue(IsEqual(triggerDirection, "down")) {
+                    } else if IsTrue(IsTrue(IsEqual(triggerDirection, "descending")) || IsTrue(IsEqual(triggerDirection, "down"))) {
                         if IsTrue(IsEqual(side, "sell")) {
                             AddElementToObject(request, "ordType", Ternary(IsTrue((IsEqual(typeVar, "Market"))), "Stop", "StopLimit"))
                         } else if IsTrue(IsEqual(side, "buy")) {

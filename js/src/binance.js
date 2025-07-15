@@ -11541,6 +11541,7 @@ export default class binance extends Exchange {
         const request = {};
         if (symbol !== undefined) {
             request['symbol'] = market['id'];
+            symbol = market['symbol'];
         }
         if (since !== undefined) {
             request['startTime'] = since;
@@ -11571,7 +11572,7 @@ export default class binance extends Exchange {
         //
         const settlements = this.parseSettlements(response, market);
         const sorted = this.sortBy(settlements, 'timestamp');
-        return this.filterBySymbolSinceLimit(sorted, market['symbol'], since, limit);
+        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
     parseSettlement(settlement, market) {
         //
