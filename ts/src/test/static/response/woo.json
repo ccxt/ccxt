@@ -496,6 +496,93 @@
                 }
             }
         ],
+        "fetchPosition": [
+            {
+                "description": "Linear swap position",
+                "method": "fetchPosition",
+                "input": [
+                    "LTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "data": {
+                        "positions": [
+                            {
+                                "symbol": "PERP_LTC_USDT",
+                                "holding": "0.1",
+                                "pendingLongQty": "0",
+                                "pendingShortQty": "0",
+                                "settlePrice": "96.87",
+                                "averageOpenPrice": "96.87",
+                                "pnl24H": "0",
+                                "fee24H": "0.0048435",
+                                "markPrice": "96.83793449",
+                                "estLiqPrice": "0",
+                                "timestamp": 1752500555823,
+                                "adlQuantile": 2,
+                                "positionSide": "BOTH",
+                                "marginMode": "CROSS",
+                                "isolatedMarginToken": "",
+                                "isolatedMarginAmount": "0",
+                                "isolatedFrozenLong": "0",
+                                "isolatedFrozenShort": "0",
+                                "leverage": 10
+                            }
+                        ]
+                    },
+                    "timestamp": 1752500579848
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "PERP_LTC_USDT",
+                        "holding": "0.1",
+                        "pendingLongQty": "0",
+                        "pendingShortQty": "0",
+                        "settlePrice": "96.87",
+                        "averageOpenPrice": "96.87",
+                        "pnl24H": "0",
+                        "fee24H": "0.0048435",
+                        "markPrice": "96.83793449",
+                        "estLiqPrice": "0",
+                        "timestamp": 1752500555823,
+                        "adlQuantile": 2,
+                        "positionSide": "BOTH",
+                        "marginMode": "CROSS",
+                        "isolatedMarginToken": "",
+                        "isolatedMarginAmount": "0",
+                        "isolatedFrozenLong": "0",
+                        "isolatedFrozenShort": "0",
+                        "leverage": 10
+                    },
+                    "id": null,
+                    "symbol": "LTC/USDT:USDT",
+                    "timestamp": 1752500555823,
+                    "datetime": "2025-07-14T13:42:35.823Z",
+                    "lastUpdateTimestamp": null,
+                    "initialMargin": null,
+                    "initialMarginPercentage": null,
+                    "maintenanceMargin": null,
+                    "maintenanceMarginPercentage": null,
+                    "entryPrice": 96.87,
+                    "notional": 9.683793449,
+                    "leverage": 10,
+                    "unrealizedPnl": -0.003206551,
+                    "contracts": 0.1,
+                    "contractSize": 1,
+                    "marginRatio": null,
+                    "liquidationPrice": 0,
+                    "markPrice": 96.83793449,
+                    "lastPrice": null,
+                    "collateral": null,
+                    "marginMode": "cross",
+                    "side": "long",
+                    "percentage": null,
+                    "hedged": false,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null
+                }
+            }
+        ],
         "fetchPositions": [
             {
                 "description": "Linear swap position",

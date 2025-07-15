@@ -310,6 +310,16 @@
                 ]
             }
         ],
+        "fetchPosition": [
+            {
+                "description": "Fetch linear position",
+                "method": "fetchPosition",
+                "url": "https://api.woox.io/v3/futures/positions?symbol=PERP_LTC_USDT",
+                "input": [
+                    "LTC/USDT:USDT"
+                ]
+            }
+        ],
         "fetchPositions": [
             {
                 "description": "Fetch linear position",

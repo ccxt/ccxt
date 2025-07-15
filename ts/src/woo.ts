@@ -3674,38 +3674,57 @@ export default class woo extends Exchange {
         return await this.v1PrivatePostClientIsolatedMargin (this.extend (request, params)) as MarginModification;
     }
 
+    /**
+     * @method
+     * @name woo#fetchPosition
+     * @description fetch data on an open position
+     * @see https://developer.woox.io/api-reference/endpoint/futures/get_positions
+     * @param {string} symbol unified market symbol of the market the position is held in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     async fetchPosition (symbol: Str, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
         };
-        const response = await this.v1PrivateGetPositionSymbol (this.extend (request, params));
+        const response = await this.v3PrivateGetFuturesPositions (this.extend (request, params));
         //
         //     {
-        //         "symbol": "PERP_ETH_USDT",
-        //         "position_side": "BOTH",
-        //         "leverage": 10,
-        //         "margin_mode": "CROSS",
-        //         "average_open_price": 3139.9,
-        //         "isolated_margin_amount": 0.0,
-        //         "isolated_margin_token": "",
-        //         "opening_time": "1720627963.094",
-        //         "mark_price": 3155.19169891,
-        //         "pending_short_qty": 0.0,
-        //         "pending_long_qty": 0.0,
-        //         "holding": -0.7,
-        //         "pnl_24_h": 0.0,
-        //         "est_liq_price": 9107.40055552,
-        //         "settle_price": 3151.0319904,
         //         "success": true,
-        //         "fee_24_h": 0.0,
-        //         "isolated_frozen_long": 0.0,
-        //         "isolated_frozen_short": 0.0,
-        //         "timestamp": "1720867502.544"
+        //         "data": {
+        //             "positions": [
+        //                 {
+        //                     "symbol": "PERP_LTC_USDT",
+        //                     "holding": "0.1",
+        //                     "pendingLongQty": "0",
+        //                     "pendingShortQty": "0",
+        //                     "settlePrice": "96.87",
+        //                     "averageOpenPrice": "96.87",
+        //                     "pnl24H": "0",
+        //                     "fee24H": "0.0048435",
+        //                     "markPrice": "96.83793449",
+        //                     "estLiqPrice": "0",
+        //                     "timestamp": 1752500555823,
+        //                     "adlQuantile": 2,
+        //                     "positionSide": "BOTH",
+        //                     "marginMode": "CROSS",
+        //                     "isolatedMarginToken": "",
+        //                     "isolatedMarginAmount": "0",
+        //                     "isolatedFrozenLong": "0",
+        //                     "isolatedFrozenShort": "0",
+        //                     "leverage": 10
+        //                 }
+        //             ]
+        //         },
+        //         "timestamp": 1752500579848
         //     }
         //
-        return this.parsePosition (response, market);
+        const result = this.safeDict (response, 'data', {});
+        const positions = this.safeList (result, 'positions', []);
+        const first = this.safeDict (positions, 0, {});
+        return this.parsePosition (first, market);
     }
 
     /**
