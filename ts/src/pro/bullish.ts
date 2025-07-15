@@ -101,13 +101,7 @@ export default class bullish extends bullishRest {
 
     async watchPrivate (messageHash: string, subscribeHash: string, request = {}, params = {}): Promise<any> {
         const url = this.urls['api']['ws']['private'];
-        let token = this.token;
-        const now = this.milliseconds ();
-        const tokenExpires = this.safeInteger (this.options, 'tokenExpires');
-        if ((token === undefined) || (tokenExpires === undefined) || (now > tokenExpires)) {
-            await this.signIn ();
-            token = this.token;
-        }
+        const token = await this.handleToken ();
         const cookies = {
             'JWT_COOKIE': token,
         };
