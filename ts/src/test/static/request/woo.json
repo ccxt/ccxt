@@ -535,20 +535,20 @@
             {
                 "description": "set position mode to hedge mode",
                 "method": "setPositionMode",
-                "url": "https://api.woox.io/v1/client/position_mode",
+                "url": "https://api.woox.io/v3/futures/positionMode",
                 "input": [
                     true
                 ],
-                "output": "position_mode=HEDGE_MODE"
+                "output": "{\"positionMode\":\"HEDGE_MODE\"}"
             },
             {
                 "description": "set position mode to one way mode",
                 "method": "setPositionMode",
-                "url": "https://api.woox.io/v1/client/position_mode",
+                "url": "https://api.woox.io/v3/futures/positionMode",
                 "input": [
                     false
                 ],
-                "output": "position_mode=ONE_WAY"
+                "output": "{\"positionMode\":\"ONE_WAY\"}"
             }
         ],
         "fetchTrades": [

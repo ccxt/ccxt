@@ -3469,7 +3469,7 @@ export default class woo extends Exchange {
      * @method
      * @name woo#setPositionMode
      * @description set hedged to true or false for a market
-     * @see https://docs.woox.io/#update-position-mode
+     * @see https://developer.woox.io/api-reference/endpoint/futures/position_mode
      * @param {bool} hedged set to true to use HEDGE_MODE, false for ONE_WAY
      * @param {string} symbol not used by woo setPositionMode
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3483,14 +3483,13 @@ export default class woo extends Exchange {
             hedgeMode = 'ONE_WAY';
         }
         const request: Dict = {
-            'position_mode': hedgeMode,
+            'positionMode': hedgeMode,
         };
-        const response = await this.v1PrivatePostClientPositionMode (this.extend (request, params));
+        const response = await this.v3PrivatePutFuturesPositionMode (this.extend (request, params));
         //
         //     {
         //         "success": true,
-        //         "data": {},
-        //         "timestamp": "1709195608551"
+        //         "timestamp": 1752550492845
         //     }
         //
         return response;
