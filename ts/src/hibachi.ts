@@ -4,7 +4,7 @@
 import Exchange from './abstract/hibachi.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import type { Balances, Currencies, Dict, Market, Str, Ticker, Trade, Int, Num, OrderSide, OrderType, OrderBook, TradingFees, Transaction } from './base/types.js';
-import { ecdsa } from './base/functions/crypto.js';
+import { ecdsa, hmac } from './base/functions/crypto.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { Precise } from './base/Precise.js';
@@ -861,22 +861,19 @@ export default class hibachi extends Exchange {
         return this.milliseconds ();
     }
 
-    hashMessage (message) {
-        return this.hash (message, sha256, 'hex');
-    }
-
-    signHash (hash, privateKey) {
-        // We only support ECDSA signature for trustless account for now
-        // TODO: add support for HMAC signature for exchange managed account
-        const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
-        const r = signature['r'];
-        const s = signature['s'];
-        const v = signature['v'];
-        return r.padStart (64, '0') + s.padStart (64, '0') + v.toString (16).padStart (2, '0');
-    }
-
     signMessage (message, privateKey) {
-        return this.signHash (this.hashMessage (message), privateKey.slice (-64));
+        if (privateKey.length === 44) {
+            // For Exchange Managed account, the key length is 44 and we use HMAC to sign the message
+            return hmac (message, privateKey, sha256);
+        } else {
+            // For Trustless account, the key length is 66 including '0x' and we use ECDSA to sign the message
+            const hash = this.hash (message, sha256, 'hex');
+            const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
+            const r = signature['r'];
+            const s = signature['s'];
+            const v = signature['v'];
+            return r.padStart (64, '0') + s.padStart (64, '0') + v.toString (16).padStart (2, '0');
+        }
     }
 
     /**
