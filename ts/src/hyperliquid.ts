@@ -3836,7 +3836,7 @@ export default class hyperliquid extends Exchange {
         if (coin.indexOf ('/') > -1 || coin.indexOf ('@') > -1) {
             return coin; // spot
         }
-        return coin + '/USDC:USDC';
+        return this.safeCurrencyCode (coin) + '/USDC:USDC';
     }
 
     handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
