@@ -784,17 +784,15 @@ export default class kraken extends krakenRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
-        const request: Dict = {};
+        const requiredParams: Dict = {};
         if (limit !== undefined) {
             if (this.inArray (limit, [ 10, 25, 100, 500, 1000 ])) {
-                request['params'] = {
-                    'depth': limit, // default 10, valid options 10, 25, 100, 500, 1000
-                };
+                requiredParams['limit'] = limit; // default 10, valid options 10, 25, 100, 500, 1000
             } else {
                 throw new NotSupported (this.id + ' watchOrderBook accepts limit values of 10, 25, 100, 500 and 1000 only');
             }
         }
-        const orderbook = await this.watchMultiHelper ('orderbook', 'book', symbols, { 'limit': limit }, this.extend (request, params));
+        const orderbook = await this.watchMultiHelper ('orderbook', 'book', symbols, { 'limit': limit }, this.extend (requiredParams, params));
         return orderbook.limit ();
     }
 
