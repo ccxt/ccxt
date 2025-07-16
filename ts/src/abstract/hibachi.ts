@@ -13,6 +13,7 @@ interface Exchange {
     publicGetMarketDataTrades (params?: {}): Promise<implicitReturnType>;
     publicGetMarketDataPrices (params?: {}): Promise<implicitReturnType>;
     publicGetMarketDataStats (params?: {}): Promise<implicitReturnType>;
+    publicGetMarketDataKlines (params?: {}): Promise<implicitReturnType>;
     publicGetMarketDataOrderbook (params?: {}): Promise<implicitReturnType>;
     privateGetCapitalDepositInfo (params?: {}): Promise<implicitReturnType>;
     privateGetTradeAccountInfo (params?: {}): Promise<implicitReturnType>;
