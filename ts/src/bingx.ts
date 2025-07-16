@@ -822,7 +822,7 @@ export default class bingx extends Exchange {
             const currency = result[code];
             result[code] = this.safeCurrencyStructure (currency);
         }
-        return result['USDT'];
+        return result;
     }
 
     async fetchSpotMarkets (params): Promise<Market[]> {
