@@ -2559,6 +2559,121 @@
                     }
                 ]
             }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "fetchLeverage",
+                "method": "fetchLeverage",
+                "input": [
+                    "LTC/USDT"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "data": {
+                        "applicationId": "251bf5c4-f3c8-4544-bb8b-80001007c3c0",
+                        "account": "carlos_jose_lima@yahoo.com",
+                        "alias": "carlos_jose_lima@yahoo.com",
+                        "otpauth": true,
+                        "accountMode": "FUTURES",
+                        "positionMode": "ONE_WAY",
+                        "leverage": 0,
+                        "marginRatio": "10",
+                        "openMarginRatio": "10",
+                        "initialMarginRatio": "10",
+                        "maintenanceMarginRatio": "0.03",
+                        "totalCollateral": "165.60282626",
+                        "freeCollateral": "165.60282626",
+                        "totalAccountValue": "167.51599846",
+                        "totalTradingValue": "167.51599846",
+                        "totalVaultValue": "0",
+                        "totalStakingValue": "0",
+                        "totalLaunchpadValue": "0",
+                        "totalEarnValue": "0",
+                        "referrerID": null,
+                        "accountType": "Main"
+                    },
+                    "timestamp": 1752646332743
+                },
+                "parsedResponse": {
+                    "info": {
+                        "applicationId": "251bf5c4-f3c8-4544-bb8b-80001007c3c0",
+                        "account": "carlos_jose_lima@yahoo.com",
+                        "alias": "carlos_jose_lima@yahoo.com",
+                        "otpauth": true,
+                        "accountMode": "FUTURES",
+                        "positionMode": "ONE_WAY",
+                        "leverage": 0,
+                        "marginRatio": "10",
+                        "openMarginRatio": "10",
+                        "initialMarginRatio": "10",
+                        "maintenanceMarginRatio": "0.03",
+                        "totalCollateral": "165.60282626",
+                        "freeCollateral": "165.60282626",
+                        "totalAccountValue": "167.51599846",
+                        "totalTradingValue": "167.51599846",
+                        "totalVaultValue": "0",
+                        "totalStakingValue": "0",
+                        "totalLaunchpadValue": "0",
+                        "totalEarnValue": "0",
+                        "referrerID": null,
+                        "accountType": "Main"
+                    },
+                    "symbol": "LTC/USDT",
+                    "marginMode": null,
+                    "longLeverage": null,
+                    "shortLeverage": null
+                }
+            },
+            {
+                "description": "fetchLeverage - swap",
+                "method": "fetchLeverage",
+                "input": [
+                    "LTC/USDT:USDT",
+                    {
+                        "positionMode": "ONE_WAY"
+                    }
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "data": {
+                        "symbol": "PERP_LTC_USDT",
+                        "marginMode": "CROSS",
+                        "positionMode": "ONE_WAY",
+                        "details": [
+                            {
+                                "positionSide": "LONG",
+                                "leverage": 10
+                            },
+                            {
+                                "positionSide": "SHORT",
+                                "leverage": 10
+                            }
+                        ]
+                    },
+                    "timestamp": 1752646198704
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "PERP_LTC_USDT",
+                        "marginMode": "CROSS",
+                        "positionMode": "ONE_WAY",
+                        "details": [
+                            {
+                                "positionSide": "LONG",
+                                "leverage": 10
+                            },
+                            {
+                                "positionSide": "SHORT",
+                                "leverage": 10
+                            }
+                        ]
+                    },
+                    "symbol": "LTC/USDT:USDT",
+                    "marginMode": "cross",
+                    "longLeverage": 10,
+                    "shortLeverage": 10
+                }
+            }
         ]
     }
 }

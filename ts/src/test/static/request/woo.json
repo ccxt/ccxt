@@ -879,6 +879,27 @@
                     }
                 ]
             }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "fetchLeverage",
+                "method": "fetchLeverage",
+                "url": "https://api.woox.io/v3/account/info",
+                "input": [
+                    "LTC/USDT"
+                ]
+            },
+            {
+                "description": "fetchLeverage - swap",
+                "method": "fetchLeverage",
+                "url": "https://api.woox.io/v3/futures/leverage?marginMode=CROSS&positionMode=ONE_WAY&symbol=PERP_LTC_USDT",
+                "input": [
+                    "LTC/USDT:USDT",
+                    {
+                        "positionMode": "ONE_WAY"
+                    }
+                ]
+            }
         ]
     }
 }

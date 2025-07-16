@@ -3499,11 +3499,12 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchLeverage
      * @description fetch the set leverage for a market
-     * @see https://docs.woox.io/#get-account-information-new
+     * @see https://developer.woox.io/api-reference/endpoint/account/get_account_info
+     * @see https://developer.woox.io/api-reference/endpoint/futures/get_leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] *for swap markets only* 'cross' or 'isolated'
-     * @param {string} [params.position_mode] *for swap markets only* 'ONE_WAY' or 'HEDGE_MODE'
+     * @param {string} [params.positionMode] *for swap markets only* 'ONE_WAY' or 'HEDGE_MODE'
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
      */
     async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
@@ -3511,7 +3512,7 @@ export default class woo extends Exchange {
         const market = this.market (symbol);
         let response: Dict = undefined;
         if (market['spot']) {
-            response = await this.v3PrivateGetAccountinfo (params);
+            response = await this.v3PrivateGetAccountInfo (params);
             //
             //     {
             //         "success": true,
@@ -3519,25 +3520,26 @@ export default class woo extends Exchange {
             //             "applicationId": "dsa",
             //             "account": "dsa",
             //             "alias": "haha",
-            //             "accountMode": "MARGIN",
-            //             "leverage": 1,
-            //             "takerFeeRate": 1,
-            //             "makerFeeRate": 1,
-            //             "interestRate": 1,
-            //             "futuresTakerFeeRate": 1,
-            //             "futuresMakerFeeRate": 1,
             //             "otpauth": true,
-            //             "marginRatio": 1,
-            //             "openMarginRatio": 1,
-            //             "initialMarginRatio": 1,
-            //             "maintenanceMarginRatio": 1,
-            //             "totalCollateral": 1,
-            //             "freeCollateral": 1,
-            //             "totalAccountValue": 1,
-            //             "totalVaultValue": 1,
-            //             "totalStakingValue": 1
+            //             "accountMode": "FUTURES",
+            //             "positionMode": "ONE_WAY",
+            //             "leverage": 0,
+            //             "marginRatio": "10",
+            //             "openMarginRatio": "10",
+            //             "initialMarginRatio": "10",
+            //             "maintenanceMarginRatio": "0.03",
+            //             "totalCollateral": "165.6115334",
+            //             "freeCollateral": "165.6115334",
+            //             "totalAccountValue": "167.52723093",
+            //             "totalTradingValue": "167.52723093",
+            //             "totalVaultValue": "0",
+            //             "totalStakingValue": "0",
+            //             "totalLaunchpadValue": "0",
+            //             "totalEarnValue": "0",
+            //             "referrerID": null,
+            //             "accountType": "Main"
             //         },
-            //         "timestamp": 1673323685109
+            //         "timestamp": 1752645129054
             //     }
             //
         } else if (market['swap']) {
@@ -3546,8 +3548,8 @@ export default class woo extends Exchange {
             };
             let marginMode: Str = undefined;
             [ marginMode, params ] = this.handleMarginModeAndParams ('fetchLeverage', params, 'cross');
-            request['margin_mode'] = this.encodeMarginMode (marginMode);
-            response = await this.v1PrivateGetClientFuturesLeverage (this.extend (request, params));
+            request['marginMode'] = this.encodeMarginMode (marginMode);
+            response = await this.v3PrivateGetFuturesLeverage (this.extend (request, params));
             //
             // HEDGE_MODE
             //     {
@@ -3555,15 +3557,15 @@ export default class woo extends Exchange {
             //         "data":
             //             {
             //                 "symbol": "PERP_ETH_USDT",
-            //                 "default_margin_mode": "CROSS",
-            //                 "position_mode": "HEDGE_MODE",
+            //                 "marginMode": "CROSS",
+            //                 "positionMode": "HEDGE_MODE",
             //                 "details":  [
             //                     {
-            //                         "position_side": "LONG",
+            //                         "positionSide": "LONG",
             //                         "leverage": 10
             //                     },
             //                     {
-            //                         "position_side": "SHORT",
+            //                         "positionSide": "SHORT",
             //                         "leverage": 10
             //                     }
             //                 ]
@@ -3576,11 +3578,11 @@ export default class woo extends Exchange {
             //         "success": true,
             //         "data": {
             //             "symbol": "PERP_ETH_USDT",
-            //             "default_margin_mode": "ISOLATED",
-            //             "position_mode": "ONE_WAY",
+            //             "marginMode": "ISOLATED",
+            //             "positionMode": "ONE_WAY",
             //             "details": [
             //                 {
-            //                     "position_side": "BOTH",
+            //                     "positionSide": "BOTH",
             //                     "leverage": 10
             //                 }
             //             ]
@@ -3598,15 +3600,18 @@ export default class woo extends Exchange {
     parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         const marketId = this.safeString (leverage, 'symbol');
         market = this.safeMarket (marketId, market);
-        const marginMode = this.safeStringLower (leverage, 'default_margin_mode');
-        const spotLeverage = this.safeInteger (leverage, 'leverage');
+        const marginMode = this.safeStringLower (leverage, 'marginMode');
+        let spotLeverage = this.safeInteger (leverage, 'leverage');
+        if (spotLeverage === 0) {
+            spotLeverage = null;
+        }
         let longLeverage = spotLeverage;
         let shortLeverage = spotLeverage;
         const details = this.safeList (leverage, 'details', []);
         for (let i = 0; i < details.length; i++) {
             const position = this.safeDict (details, i, {});
             const positionLeverage = this.safeInteger (position, 'leverage');
-            const side = this.safeString (position, 'position_side');
+            const side = this.safeString (position, 'positionSide');
             if (side === 'BOTH') {
                 longLeverage = positionLeverage;
                 shortLeverage = positionLeverage;
