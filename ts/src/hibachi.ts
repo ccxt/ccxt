@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/hibachi.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Dict, Market, Str, Ticker, Trade, Int, Num, OrderSide, OrderType, OrderBook, TradingFees, Transaction } from './base/types.js';
+import type { Balances, Currencies, Dict, Market, Str, Ticker, Trade, Int, Num, OrderSide, OrderType, OrderBook, TradingFees, Transaction, DepositAddress } from './base/types.js';
 import { ecdsa, hmac } from './base/functions/crypto.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
@@ -67,7 +67,7 @@ export default class hibachi extends Exchange {
                 'fetchConvertCurrencies': false,
                 'fetchConvertQuote': false,
                 'fetchCurrencies': true,
-                'fetchDepositAddress': false,
+                'fetchDepositAddress': true,
                 'fetchDeposits': false,
                 'fetchDepositsWithdrawals': false,
                 'fetchFundingHistory': false,
@@ -138,6 +138,7 @@ export default class hibachi extends Exchange {
                 },
                 'private': {
                     'get': {
+                        'capital/deposit-info': 1,
                         'trade/account/info': 1,
                         'trade/account/trades': 1,
                     },
@@ -1039,5 +1040,38 @@ export default class hibachi extends Exchange {
             headers['Authorization'] = this.apiKey;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    derivePublicKeyFromPrivate () {
+        this.checkRequiredCredentials ();
+        return secp256k1.getPublicKey (this.privateKey.slice (-64), false).slice (1, 65);
+    }
+
+    /**
+     * @method
+     * @name hibachi#fetchDepositAddress
+     * @description fetch deposit address for given currency and chain. currently, we have a single EVM address across multiple EVM chains. Note: This method is currently only supported for trustless accounts
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters for API
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+        this.checkRequiredCredentials ();
+        const publicKey = this.derivePublicKeyFromPrivate ();
+        const request = {
+            'publicKey': '0x' + this.binaryToBase16 (publicKey),
+            'accountId': this.accountId,
+        };
+        const response = await this.privateGetCapitalDepositInfo (request);
+        // {
+        //     "depositAddressEvm": "0x0b95d90b9345dadf1460bd38b9f4bb0d2f4ed788"
+        // }
+        return {
+            'info': response,
+            'currency': 'USDT',
+            'network': 'ARBITRUM',
+            'address': this.safeString (response, 'depositAddressEvm'),
+            'tag': undefined,
+        };
     }
 }
