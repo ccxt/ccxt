@@ -770,6 +770,10 @@ export default class bingx extends Exchange {
                         'min': this.safeNumber (rawNetwork, 'withdrawMin'),
                         'max': this.safeNumber (rawNetwork, 'withdrawMax'),
                     },
+                    'deposit': {
+                        'min': this.safeNumber (rawNetwork, 'depositMin'),
+                        'max': undefined,
+                    },
                 };
                 const precision = this.parseNumber (this.parsePrecision (this.safeString (rawNetwork, 'withdrawPrecision')));
                 networks[networkCode] = {
@@ -784,22 +788,41 @@ export default class bingx extends Exchange {
                     'limits': limits,
                 };
             }
-            result[code] = this.safeCurrencyStructure ({
-                'info': entry,
-                'code': code,
-                'id': currencyId,
-                'precision': undefined,
-                'name': name,
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'networks': networks,
-                'fee': undefined,
-                'limits': undefined,
-                'type': 'crypto', // only cryptos now
-            });
+            if (!(code in result)) { // the exchange could return the same currency with different networks
+                result[code] = {
+                    'info': entry,
+                    'code': code,
+                    'id': currencyId,
+                    'precision': undefined,
+                    'name': name,
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'networks': networks,
+                    'fee': undefined,
+                    'limits': undefined,
+                    'type': 'crypto', // only cryptos now
+                };
+            } else {
+                const existing = result[code];
+                const existingNetworks = this.safeDict (existing, 'networks', {});
+                const newNetworkCodes = Object.keys (networks);
+                for (let j = 0; j < newNetworkCodes.length; j++) {
+                    const newNetworkCode = newNetworkCodes[j];
+                    if (!(newNetworkCode in existingNetworks)) {
+                        existingNetworks[newNetworkCode] = networks[newNetworkCode];
+                    }
+                }
+                result[code]['networks'] = existingNetworks;
+            }
         }
-        return result;
+        const codes = Object.keys (result);
+        for (let i = 0; i < codes.length; i++) {
+            const code = codes[i];
+            const currency = result[code];
+            result[code] = this.safeCurrencyStructure (currency);
+        }
+        return result['USDT'];
     }
 
     async fetchSpotMarkets (params): Promise<Market[]> {
@@ -5710,37 +5733,13 @@ export default class bingx extends Exchange {
 
     parseDepositWithdrawFee (fee, currency: Currency = undefined) {
         //
-        //    {
-        //        "coin": "BTC",
-        //        "name": "BTC",
-        //        "networkList": [
-        //          {
-        //            "name": "BTC",
-        //            "network": "BTC",
-        //            "isDefault": true,
-        //            "minConfirm": "2",
-        //            "withdrawEnable": true,
-        //            "withdrawFee": "0.00035",
-        //            "withdrawMax": "1.62842",
-        //            "withdrawMin": "0.0005"
-        //          },
-        //          {
-        //            "name": "BTC",
-        //            "network": "BEP20",
-        //            "isDefault": false,
-        //            "minConfirm": "15",
-        //            "withdrawEnable": true,
-        //            "withdrawFee": "0.00001",
-        //            "withdrawMax": "1.62734",
-        //            "withdrawMin": "0.0001"
-        //          }
-        //        ]
-        //    }
+        // currencie structure
         //
-        const networkList = this.safeList (fee, 'networkList', []);
-        const networkListLength = networkList.length;
+        const networks = this.safeDict (fee, 'networks', {});
+        const networkCodes = Object.keys (networks);
+        const networksLength = networkCodes.length;
         const result: Dict = {
-            'info': fee,
+            'info': networks,
             'withdraw': {
                 'fee': undefined,
                 'percentage': undefined,
@@ -5751,18 +5750,15 @@ export default class bingx extends Exchange {
             },
             'networks': {},
         };
-        if (networkListLength !== 0) {
-            for (let i = 0; i < networkListLength; i++) {
-                const network = networkList[i];
-                const networkId = this.safeString (network, 'network');
-                const isDefault = this.safeBool (network, 'isDefault');
-                const currencyCode = this.safeString (currency, 'code');
-                const networkCode = this.networkIdToCode (networkId, currencyCode);
+        if (networksLength !== 0) {
+            for (let i = 0; i < networksLength; i++) {
+                const networkCode = networkCodes[i];
+                const network = networks[networkCode];
                 result['networks'][networkCode] = {
                     'deposit': { 'fee': undefined, 'percentage': undefined },
-                    'withdraw': { 'fee': this.safeNumber (network, 'withdrawFee'), 'percentage': false },
+                    'withdraw': { 'fee': this.safeNumber (network, 'fee'), 'percentage': false },
                 };
-                if (isDefault) {
+                if (networksLength === 1) {
                     result['withdraw']['fee'] = this.safeNumber (network, 'withdrawFee');
                     result['withdraw']['percentage'] = false;
                 }
@@ -5782,9 +5778,17 @@ export default class bingx extends Exchange {
      */
     async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.walletsV1PrivateGetCapitalConfigGetall (params);
-        const coins = this.safeList (response, 'data');
-        return this.parseDepositWithdrawFees (coins, codes, 'coin');
+        const response = await this.fetchCurrencies (params);
+        const depositWithdrawFees: Dict = {};
+        const responseCodes = Object.keys (response);
+        for (let i = 0; i < responseCodes.length; i++) {
+            const code = responseCodes[i];
+            if ((codes === undefined) || (this.inArray (code, codes))) {
+                const entry = response[code];
+                depositWithdrawFees[code] = this.parseDepositWithdrawFee (entry);
+            }
+        }
+        return depositWithdrawFees;
     }
 
     /**
