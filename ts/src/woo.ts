@@ -1560,15 +1560,14 @@ export default class woo extends Exchange {
         await this.loadMarkets ();
         const trigger = this.safeBool2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
-        if (trigger) {
-            return await this.v3PrivateDeleteTradeAlgoOrders (params);
-        }
         const request: Dict = {};
         if (symbol !== undefined) {
             const market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const response = await this.v3PrivateDeleteTradeOrders (this.extend (request, params));
+        if (trigger) {
+            return await this.v3PrivateDeleteTradeAlgoOrders (params);
+        }
         //
         //     {
         //         "success": true,
@@ -1578,7 +1577,7 @@ export default class woo extends Exchange {
         //         "timestamp": 1751941988134
         //     }
         //
-        return response;
+        return await this.v3PrivateDeleteTradeOrders (this.extend (request, params));
     }
 
     /**
@@ -3109,6 +3108,7 @@ export default class woo extends Exchange {
                 if (method === 'POST' || method === 'PUT') {
                     body = this.json (params);
                     auth += body;
+                    headers['content-type'] = 'application/json';
                 } else {
                     if (Object.keys (params).length) {
                         const query = this.urlencode (params);
@@ -3116,7 +3116,6 @@ export default class woo extends Exchange {
                         auth += '?' + query;
                     }
                 }
-                headers['content-type'] = 'application/json';
             } else {
                 auth = this.urlencode (params);
                 if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
