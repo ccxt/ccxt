@@ -334,14 +334,23 @@
         ],
         "setLeverage": [
             {
-                "description": "Set linear leverage for spot margin market",
+                "description": "setLeverage",
                 "method": "setLeverage",
-                "url": "https://api.woox.io/v1/client/leverage",
+                "url": "https://api.woox.io/v3/spotMargin/leverage",
+                "input": [
+                    5
+                ],
+                "output": "{\"leverage\":5}"
+            },
+            {
+                "description": "setLeverage - swap",
+                "method": "setLeverage",
+                "url": "https://api.woox.io/v3/futures/leverage",
                 "input": [
                     5,
-                    "LTC/USDT"
+                    "LTC/USDT:USDT"
                 ],
-                "output": "leverage=5"
+                "output": "{\"leverage\":5,\"marginMode\":\"CROSS\",\"symbol\":\"PERP_LTC_USDT\"}"
             }
         ],
         "fetchDeposits": [
