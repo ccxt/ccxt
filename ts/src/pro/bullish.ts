@@ -41,6 +41,7 @@ export default class bullish extends bullishRest {
             'options': {
                 'ws': {
                     'cookies': {},
+                    'headers': {},
                 },
             },
             'streaming': {
@@ -749,7 +750,7 @@ export default class bullish extends bullishRest {
 
     handleMessage (client: Client, message) {
         const dataType = this.safeString (message, 'dataType');
-        const result = this.safeDict (message, 'result', {});
+        const result = this.safeDict (message, 'result');
         if (result !== undefined) {
             const response = this.safeString (result, 'message');
             if (response === 'Keep alive pong') {
