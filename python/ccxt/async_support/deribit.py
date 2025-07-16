@@ -2596,21 +2596,21 @@ class deribit(Exchange, ImplicitAPI):
         unrealizedPnl = self.safe_string(position, 'floating_profit_loss')
         initialMarginString = self.safe_string(position, 'initial_margin')
         notionalString = self.safe_string(position, 'size_currency')
+        notionalStringAbs = Precise.string_abs(notionalString)
         maintenanceMarginString = self.safe_string(position, 'maintenance_margin')
-        currentTime = self.milliseconds()
         return self.safe_position({
             'info': position,
             'id': None,
             'symbol': self.safe_string(market, 'symbol'),
-            'timestamp': currentTime,
-            'datetime': self.iso8601(currentTime),
+            'timestamp': None,
+            'datetime': None,
             'lastUpdateTimestamp': None,
             'initialMargin': self.parse_number(initialMarginString),
-            'initialMarginPercentage': self.parse_number(Precise.string_mul(Precise.string_div(initialMarginString, notionalString), '100')),
+            'initialMarginPercentage': self.parse_number(Precise.string_mul(Precise.string_div(initialMarginString, notionalStringAbs), '100')),
             'maintenanceMargin': self.parse_number(maintenanceMarginString),
-            'maintenanceMarginPercentage': self.parse_number(Precise.string_mul(Precise.string_div(maintenanceMarginString, notionalString), '100')),
+            'maintenanceMarginPercentage': self.parse_number(Precise.string_mul(Precise.string_div(maintenanceMarginString, notionalStringAbs), '100')),
             'entryPrice': self.safe_number(position, 'average_price'),
-            'notional': self.parse_number(notionalString),
+            'notional': self.parse_number(notionalStringAbs),
             'leverage': self.safe_integer(position, 'leverage'),
             'unrealizedPnl': self.parse_number(unrealizedPnl),
             'contracts': None,

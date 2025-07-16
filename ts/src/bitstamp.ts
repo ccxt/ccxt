@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/bitstamp.js';
-import { AuthenticationError, BadRequest, ExchangeError, NotSupported, PermissionDenied, InvalidNonce, OrderNotFound, InsufficientFunds, InvalidAddress, InvalidOrder, OnMaintenance, ExchangeNotAvailable } from './base/errors.js';
+import { AccountSuspended, AuthenticationError, BadRequest, ExchangeError, NotSupported, PermissionDenied, InvalidNonce, OrderNotFound, InsufficientFunds, InvalidAddress, InvalidOrder, OnMaintenance, ExchangeNotAvailable } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -520,6 +520,7 @@ export default class bitstamp extends Exchange {
                     "Bitstamp.net is under scheduled maintenance. We'll be back soon.": OnMaintenance, // { "error": "Bitstamp.net is under scheduled maintenance. We'll be back soon." }
                     'Order could not be placed.': ExchangeNotAvailable, // Order could not be placed (perhaps due to internal error or trade halt). Please retry placing order.
                     'Invalid offset.': BadRequest,
+                    'Trading is currently unavailable for your account.': AccountSuspended, // {"status": "error", "reason": {"__all__": ["Trading is currently unavailable for your account."]}, "response_code": "403.004"}
                 },
                 'broad': {
                     'Minimum order size is': InvalidOrder, // Minimum order size is 5.0 EUR.

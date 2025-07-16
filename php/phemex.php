@@ -2749,16 +2749,16 @@ class phemex extends Exchange {
                 $triggerDirection = null;
                 list($triggerDirection, $params) = $this->handle_param_string($params, 'triggerDirection');
                 if ($triggerDirection === null) {
-                    throw new ArgumentsRequired($this->id . " createOrder() also requires a 'triggerDirection' parameter with either 'up' or 'down' value");
+                    throw new ArgumentsRequired($this->id . " createOrder() also requires a 'triggerDirection' parameter with either 'ascending' or 'descending' value");
                 }
                 // the flow defined per https://phemex-docs.github.io/#more-order-$type-examples
-                if ($triggerDirection === 'up') {
+                if ($triggerDirection === 'ascending' || $triggerDirection === 'up') {
                     if ($side === 'sell') {
                         $request['ordType'] = ($type === 'Market') ? 'MarketIfTouched' : 'LimitIfTouched';
                     } elseif ($side === 'buy') {
                         $request['ordType'] = ($type === 'Market') ? 'Stop' : 'StopLimit';
                     }
-                } elseif ($triggerDirection === 'down') {
+                } elseif ($triggerDirection === 'descending' || $triggerDirection === 'down') {
                     if ($side === 'sell') {
                         $request['ordType'] = ($type === 'Market') ? 'Stop' : 'StopLimit';
                     } elseif ($side === 'buy') {

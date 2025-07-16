@@ -2743,7 +2743,8 @@ public partial class bybit : ccxt.bybit
                 {
                     object unsubHash = getValue(messageHashes, j);
                     object subHash = getValue(subMessageHashes, j);
-                    this.cleanUnsubscription(client as WebSocketClient, subHash, unsubHash);
+                    object usePrefix = isTrue((isEqual(subHash, "orders"))) || isTrue((isEqual(subHash, "myTrades")));
+                    this.cleanUnsubscription(client as WebSocketClient, subHash, unsubHash, usePrefix);
                 }
                 this.cleanCache(subscription);
             }

@@ -1377,7 +1377,7 @@ public partial class Exchange
         // keep this in mind:
         // in JS: 1 == 1.0 is true;  1 === 1.0 is true
         // in Python: 1 == 1.0 is true
-        // in PHP 1 == 1.0 is true, but 1 === 1.0 is false
+        // in PHP 1 == 1.0 is true, but 1 === 1.0 is false.
         if (isTrue(isGreaterThanOrEqual(getIndexOf(stringVersion, "."), 0)))
         {
             return parseFloat(stringVersion);
@@ -2730,8 +2730,7 @@ public partial class Exchange
     public virtual object safeTicker(object ticker, object market = null)
     {
         object open = this.omitZero(this.safeString(ticker, "open"));
-        object close = this.omitZero(this.safeString(ticker, "close"));
-        object last = this.omitZero(this.safeString(ticker, "last"));
+        object close = this.omitZero(this.safeString2(ticker, "close", "last"));
         object change = this.omitZero(this.safeString(ticker, "change"));
         object percentage = this.omitZero(this.safeString(ticker, "percentage"));
         object average = this.omitZero(this.safeString(ticker, "average"));
@@ -2742,20 +2741,66 @@ public partial class Exchange
         {
             vwap = Precise.stringDiv(this.omitZero(quoteVolume), baseVolume);
         }
-        if (isTrue(isTrue((!isEqual(last, null))) && isTrue((isEqual(close, null)))))
+        // calculate open
+        if (isTrue(!isEqual(change, null)))
         {
-            close = last;
-        } else if (isTrue(isTrue((isEqual(last, null))) && isTrue((!isEqual(close, null)))))
-        {
-            last = close;
-        }
-        if (isTrue(isTrue((!isEqual(last, null))) && isTrue((!isEqual(open, null)))))
-        {
-            if (isTrue(isEqual(change, null)))
+            if (isTrue(isTrue(isEqual(close, null)) && isTrue(!isEqual(average, null))))
             {
-                change = Precise.stringSub(last, open);
+                close = Precise.stringAdd(average, Precise.stringDiv(change, "2"));
             }
-            if (isTrue(isEqual(average, null)))
+            if (isTrue(isTrue(isEqual(open, null)) && isTrue(!isEqual(close, null))))
+            {
+                open = Precise.stringSub(close, change);
+            }
+        } else if (isTrue(!isEqual(percentage, null)))
+        {
+            if (isTrue(isTrue(isEqual(close, null)) && isTrue(!isEqual(average, null))))
+            {
+                object openAddClose = Precise.stringMul(average, "2");
+                // openAddClose = open * (1 + (100 + percentage)/100)
+                object denominator = Precise.stringAdd("2", Precise.stringDiv(percentage, "100"));
+                object calcOpen = ((bool) isTrue((!isEqual(open, null)))) ? open : Precise.stringDiv(openAddClose, denominator);
+                close = Precise.stringMul(calcOpen, Precise.stringAdd("1", Precise.stringDiv(percentage, "100")));
+            }
+            if (isTrue(isTrue(isEqual(open, null)) && isTrue(!isEqual(close, null))))
+            {
+                open = Precise.stringDiv(close, Precise.stringAdd("1", Precise.stringDiv(percentage, "100")));
+            }
+        }
+        // change
+        if (isTrue(isEqual(change, null)))
+        {
+            if (isTrue(isTrue(!isEqual(close, null)) && isTrue(!isEqual(open, null))))
+            {
+                change = Precise.stringSub(close, open);
+            } else if (isTrue(isTrue(!isEqual(close, null)) && isTrue(!isEqual(percentage, null))))
+            {
+                change = Precise.stringMul(Precise.stringDiv(percentage, "100"), Precise.stringDiv(close, "100"));
+            } else if (isTrue(isTrue(!isEqual(open, null)) && isTrue(!isEqual(percentage, null))))
+            {
+                change = Precise.stringMul(open, Precise.stringDiv(percentage, "100"));
+            }
+        }
+        // calculate things according to "open" (similar can be done with "close")
+        if (isTrue(!isEqual(open, null)))
+        {
+            // percentage (using change)
+            if (isTrue(isTrue(isEqual(percentage, null)) && isTrue(!isEqual(change, null))))
+            {
+                percentage = Precise.stringMul(Precise.stringDiv(change, open), "100");
+            }
+            // close (using change)
+            if (isTrue(isTrue(isEqual(close, null)) && isTrue(!isEqual(change, null))))
+            {
+                close = Precise.stringAdd(open, change);
+            }
+            // close (using average)
+            if (isTrue(isTrue(isEqual(close, null)) && isTrue(!isEqual(average, null))))
+            {
+                close = Precise.stringMul(average, "2");
+            }
+            // average
+            if (isTrue(isTrue(isEqual(average, null)) && isTrue(!isEqual(close, null))))
             {
                 object precision = 18;
                 if (isTrue(isTrue(!isEqual(market, null)) && isTrue(this.isTickPrecision())))
@@ -2767,23 +2812,12 @@ public partial class Exchange
                         precision = this.precisionFromString(precisionPrice);
                     }
                 }
-                average = Precise.stringDiv(Precise.stringAdd(last, open), "2", precision);
+                average = Precise.stringDiv(Precise.stringAdd(open, close), "2", precision);
             }
-        }
-        if (isTrue(isTrue(isTrue(isTrue((isEqual(percentage, null))) && isTrue((!isEqual(change, null)))) && isTrue((!isEqual(open, null)))) && isTrue(Precise.stringGt(open, "0"))))
-        {
-            percentage = Precise.stringMul(Precise.stringDiv(change, open), "100");
-        }
-        if (isTrue(isTrue(isTrue((isEqual(change, null))) && isTrue((!isEqual(percentage, null)))) && isTrue((!isEqual(open, null)))))
-        {
-            change = Precise.stringDiv(Precise.stringMul(percentage, open), "100");
-        }
-        if (isTrue(isTrue(isTrue((isEqual(open, null))) && isTrue((!isEqual(last, null)))) && isTrue((!isEqual(change, null)))))
-        {
-            open = Precise.stringSub(last, change);
         }
         // timestamp and symbol operations don't belong in safeTicker
         // they should be done in the derived classes
+        object closeParsed = this.parseNumber(this.omitZero(close));
         return this.extend(ticker, new Dictionary<string, object>() {
             { "bid", this.parseNumber(this.omitZero(this.safeString(ticker, "bid"))) },
             { "bidVolume", this.safeNumber(ticker, "bidVolume") },
@@ -2792,8 +2826,8 @@ public partial class Exchange
             { "high", this.parseNumber(this.omitZero(this.safeString(ticker, "high"))) },
             { "low", this.parseNumber(this.omitZero(this.safeString(ticker, "low"))) },
             { "open", this.parseNumber(this.omitZero(open)) },
-            { "close", this.parseNumber(this.omitZero(close)) },
-            { "last", this.parseNumber(this.omitZero(last)) },
+            { "close", closeParsed },
+            { "last", closeParsed },
             { "change", this.parseNumber(change) },
             { "percentage", this.parseNumber(percentage) },
             { "average", this.parseNumber(average) },
@@ -3402,7 +3436,7 @@ public partial class Exchange
 
     public virtual object parseLeverageTiers(object response, object symbols = null, object marketIdKey = null)
     {
-        // marketIdKey should only be undefined when response is a dictionary
+        // marketIdKey should only be undefined when response is a dictionary.
         symbols = this.marketSymbols(symbols);
         object tiers = new Dictionary<string, object>() {};
         object symbolsLength = 0;
@@ -5393,6 +5427,12 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " fetchGreeks() is not supported yet")) ;
     }
 
+    public async virtual Task<object> fetchAllGreeks(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchAllGreeks() is not supported yet")) ;
+    }
+
     public async virtual Task<object> fetchOptionChain(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -5820,12 +5860,23 @@ public partial class Exchange
         {
             return "1";
         }
-        object parsedPrecision = "0.";
-        for (object i = 0; isLessThan(i, subtract(precisionNumber, 1)); postFixIncrement(ref i))
+        if (isTrue(isGreaterThan(precisionNumber, 0)))
         {
-            parsedPrecision = add(parsedPrecision, "0");
+            object parsedPrecision = "0.";
+            for (object i = 0; isLessThan(i, subtract(precisionNumber, 1)); postFixIncrement(ref i))
+            {
+                parsedPrecision = add(parsedPrecision, "0");
+            }
+            return add(parsedPrecision, "1");
+        } else
+        {
+            object parsedPrecision = "1";
+            for (object i = 0; isLessThan(i, subtract(multiply(precisionNumber, -1), 1)); postFixIncrement(ref i))
+            {
+                parsedPrecision = add(parsedPrecision, "0");
+            }
+            return add(parsedPrecision, "0");
         }
-        return add(parsedPrecision, "1");
     }
 
     public virtual object integerPrecisionToAmount(object precision)
@@ -7371,6 +7422,37 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " parseGreeks () is not supported yet")) ;
     }
 
+    public virtual object parseAllGreeks(object greeks, object symbols = null, object parameters = null)
+    {
+        //
+        // the value of greeks is either a dict or a list
+        //
+        parameters ??= new Dictionary<string, object>();
+        object results = new List<object>() {};
+        if (isTrue(((greeks is IList<object>) || (greeks.GetType().IsGenericType && greeks.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        {
+            for (object i = 0; isLessThan(i, getArrayLength(greeks)); postFixIncrement(ref i))
+            {
+                object parsedTicker = this.parseGreeks(getValue(greeks, i));
+                object greek = this.extend(parsedTicker, parameters);
+                ((IList<object>)results).Add(greek);
+            }
+        } else
+        {
+            object marketIds = new List<object>(((IDictionary<string,object>)greeks).Keys);
+            for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+            {
+                object marketId = getValue(marketIds, i);
+                object market = this.safeMarket(marketId);
+                object parsed = this.parseGreeks(getValue(greeks, marketId), market);
+                object greek = this.extend(parsed, parameters);
+                ((IList<object>)results).Add(greek);
+            }
+        }
+        symbols = this.marketSymbols(symbols);
+        return this.filterByArray(results, "symbol", symbols);
+    }
+
     public virtual object parseOption(object chain, object currency = null, object market = null)
     {
         throw new NotSupported ((string)add(this.id, " parseOption () is not supported yet")) ;
@@ -7636,20 +7718,45 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " fetchTransfers () is not supported yet")) ;
     }
 
-    public virtual void cleanUnsubscription(WebSocketClient client, object subHash, object unsubHash)
+    public virtual void cleanUnsubscription(WebSocketClient client, object subHash, object unsubHash, object subHashIsPrefix = null)
     {
+        subHashIsPrefix ??= false;
         if (isTrue(inOp(client.subscriptions, unsubHash)))
         {
             ((IDictionary<string,object>)client.subscriptions).Remove((string)unsubHash);
         }
-        if (isTrue(inOp(client.subscriptions, subHash)))
+        if (!isTrue(subHashIsPrefix))
         {
-            ((IDictionary<string,object>)client.subscriptions).Remove((string)subHash);
-        }
-        if (isTrue(inOp(client.futures, subHash)))
+            if (isTrue(inOp(client.subscriptions, subHash)))
+            {
+                ((IDictionary<string,object>)client.subscriptions).Remove((string)subHash);
+            }
+            if (isTrue(inOp(client.futures, subHash)))
+            {
+                var error = new UnsubscribeError(add(add(this.id, " "), subHash));
+                client.reject(error, subHash);
+            }
+        } else
         {
-            var error = new UnsubscribeError(add(add(this.id, " "), subHash));
-            client.reject(error, subHash);
+            object clientSubscriptions = new List<object>(((IDictionary<string,object>)client.subscriptions).Keys);
+            for (object i = 0; isLessThan(i, getArrayLength(clientSubscriptions)); postFixIncrement(ref i))
+            {
+                object sub = getValue(clientSubscriptions, i);
+                if (isTrue(((string)sub).StartsWith(((string)subHash))))
+                {
+                    ((IDictionary<string,object>)client.subscriptions).Remove((string)sub);
+                }
+            }
+            object clientFutures = new List<object>(((IDictionary<string, ccxt.Exchange.Future>)client.futures).Keys);
+            for (object i = 0; isLessThan(i, getArrayLength(clientFutures)); postFixIncrement(ref i))
+            {
+                object future = getValue(clientFutures, i);
+                if (isTrue(((string)future).StartsWith(((string)subHash))))
+                {
+                    var error = new UnsubscribeError(add(add(this.id, " "), future));
+                    client.reject(error, future);
+                }
+            }
         }
         // client.resolve(true, unsubHash);
     }

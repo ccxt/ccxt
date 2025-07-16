@@ -1403,6 +1403,8 @@ class ascendex(Exchange, ImplicitAPI):
         #         "timestamp": 1573576916201
         #     }
         #
+        #  & linear(fetchClosedOrders)
+        #
         #     {
         #         "ac": "FUTURES",
         #         "accountId": "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
@@ -1410,7 +1412,7 @@ class ascendex(Exchange, ImplicitAPI):
         #         "orderId": "a17e0874ecbdU0711043490bbtcpDU5X",
         #         "seqNum": -1,
         #         "orderType": "Limit",
-        #         "execInst": "NULL_VAL",
+        #         "execInst": "NULL_VAL",  # NULL_VAL, ReduceOnly , ...
         #         "side": "Buy",
         #         "symbol": "BTC-PERP",
         #         "price": "30000",
@@ -1499,13 +1501,13 @@ class ascendex(Exchange, ImplicitAPI):
         status = self.parse_order_status(self.safe_string(order, 'status'))
         marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market, '/')
-        timestamp = self.safe_integer_2(order, 'timestamp', 'sendingTime')
+        timestamp = self.safe_integer_n(order, ['timestamp', 'sendingTime', 'time'])
         lastTradeTimestamp = self.safe_integer(order, 'lastExecTime')
         if timestamp is None:
             timestamp = lastTradeTimestamp
         price = self.safe_string(order, 'price')
         amount = self.safe_string(order, 'orderQty')
-        average = self.safe_string(order, 'avgPx')
+        average = self.safe_string_2(order, 'avgPx', 'avgFilledPx')
         filled = self.safe_string_n(order, ['cumFilledQty', 'cumQty', 'fillQty'])
         id = self.safe_string(order, 'orderId')
         clientOrderId = self.safe_string(order, 'id')
@@ -1531,11 +1533,11 @@ class ascendex(Exchange, ImplicitAPI):
             }
         triggerPrice = self.omit_zero(self.safe_string(order, 'stopPrice'))
         reduceOnly = None
-        execInst = self.safe_string(order, 'execInst')
-        if execInst == 'reduceOnly':
+        execInst = self.safe_string_lower(order, 'execInst')
+        if execInst == 'reduceonly':
             reduceOnly = True
         postOnly = None
-        if execInst == 'Post':
+        if execInst == 'post':
             postOnly = True
         return self.safe_order({
             'info': order,
@@ -2246,8 +2248,7 @@ class ascendex(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        isArray = isinstance(data, list)
-        if not isArray:
+        if not isinstance(data, list):
             data = self.safe_list(data, 'data', [])
         return self.parse_orders(data, market, since, limit)
 

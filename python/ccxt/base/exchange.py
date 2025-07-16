@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.92'
+__version__ = '4.4.94'
 
 # -----------------------------------------------------------------------------
 
@@ -2839,7 +2839,7 @@ class Exchange(object):
         # keep self in mind:
         # in JS: 1 == 1.0 is True;  1 == 1.0 is True
         # in Python: 1 == 1.0 is True
-        # in PHP 1 == 1.0 is True, but 1 == 1.0 is False
+        # in PHP 1 == 1.0 is True, but 1 == 1.0 is False.
         if stringVersion.find('.') >= 0:
             return float(stringVersion)
         return int(stringVersion)
@@ -3808,8 +3808,7 @@ class Exchange(object):
 
     def safe_ticker(self, ticker: dict, market: Market = None):
         open = self.omit_zero(self.safe_string(ticker, 'open'))
-        close = self.omit_zero(self.safe_string(ticker, 'close'))
-        last = self.omit_zero(self.safe_string(ticker, 'last'))
+        close = self.omit_zero(self.safe_string_2(ticker, 'close', 'last'))
         change = self.omit_zero(self.safe_string(ticker, 'change'))
         percentage = self.omit_zero(self.safe_string(ticker, 'percentage'))
         average = self.omit_zero(self.safe_string(ticker, 'average'))
@@ -3818,29 +3817,52 @@ class Exchange(object):
         quoteVolume = self.safe_string(ticker, 'quoteVolume')
         if vwap is None:
             vwap = Precise.string_div(self.omit_zero(quoteVolume), baseVolume)
-        if (last is not None) and (close is None):
-            close = last
-        elif (last is None) and (close is not None):
-            last = close
-        if (last is not None) and (open is not None):
-            if change is None:
-                change = Precise.string_sub(last, open)
-            if average is None:
+        # calculate open
+        if change is not None:
+            if close is None and average is not None:
+                close = Precise.string_add(average, Precise.string_div(change, '2'))
+            if open is None and close is not None:
+                open = Precise.string_sub(close, change)
+        elif percentage is not None:
+            if close is None and average is not None:
+                openAddClose = Precise.string_mul(average, '2')
+                # openAddClose = open * (1 + (100 + percentage)/100)
+                denominator = Precise.string_add('2', Precise.string_div(percentage, '100'))
+                calcOpen = open if (open is not None) else Precise.string_div(openAddClose, denominator)
+                close = Precise.string_mul(calcOpen, Precise.string_add('1', Precise.string_div(percentage, '100')))
+            if open is None and close is not None:
+                open = Precise.string_div(close, Precise.string_add('1', Precise.string_div(percentage, '100')))
+        # change
+        if change is None:
+            if close is not None and open is not None:
+                change = Precise.string_sub(close, open)
+            elif close is not None and percentage is not None:
+                change = Precise.string_mul(Precise.string_div(percentage, '100'), Precise.string_div(close, '100'))
+            elif open is not None and percentage is not None:
+                change = Precise.string_mul(open, Precise.string_div(percentage, '100'))
+        # calculate things according to "open"(similar can be done with "close")
+        if open is not None:
+            # percentage(using change)
+            if percentage is None and change is not None:
+                percentage = Precise.string_mul(Precise.string_div(change, open), '100')
+            # close(using change)
+            if close is None and change is not None:
+                close = Precise.string_add(open, change)
+            # close(using average)
+            if close is None and average is not None:
+                close = Precise.string_mul(average, '2')
+            # average
+            if average is None and close is not None:
                 precision = 18
                 if market is not None and self.is_tick_precision():
                     marketPrecision = self.safe_dict(market, 'precision')
                     precisionPrice = self.safe_string(marketPrecision, 'price')
                     if precisionPrice is not None:
                         precision = self.precision_from_string(precisionPrice)
-                average = Precise.string_div(Precise.string_add(last, open), '2', precision)
-        if (percentage is None) and (change is not None) and (open is not None) and Precise.string_gt(open, '0'):
-            percentage = Precise.string_mul(Precise.string_div(change, open), '100')
-        if (change is None) and (percentage is not None) and (open is not None):
-            change = Precise.string_div(Precise.string_mul(percentage, open), '100')
-        if (open is None) and (last is not None) and (change is not None):
-            open = Precise.string_sub(last, change)
+                average = Precise.string_div(Precise.string_add(open, close), '2', precision)
         # timestamp and symbol operations don't belong in safeTicker
         # they should be done in the derived classes
+        closeParsed = self.parse_number(self.omit_zero(close))
         return self.extend(ticker, {
             'bid': self.parse_number(self.omit_zero(self.safe_string(ticker, 'bid'))),
             'bidVolume': self.safe_number(ticker, 'bidVolume'),
@@ -3849,8 +3871,8 @@ class Exchange(object):
             'high': self.parse_number(self.omit_zero(self.safe_string(ticker, 'high'))),
             'low': self.parse_number(self.omit_zero(self.safe_string(ticker, 'low'))),
             'open': self.parse_number(self.omit_zero(open)),
-            'close': self.parse_number(self.omit_zero(close)),
-            'last': self.parse_number(self.omit_zero(last)),
+            'close': closeParsed,
+            'last': closeParsed,
             'change': self.parse_number(change),
             'percentage': self.parse_number(percentage),
             'average': self.parse_number(average),
@@ -4229,7 +4251,7 @@ class Exchange(object):
         return self.filter_by_since_limit(sorted, since, limit, 0, tail)
 
     def parse_leverage_tiers(self, response: Any, symbols: List[str] = None, marketIdKey=None):
-        # marketIdKey should only be None when response is a dictionary
+        # marketIdKey should only be None when response is a dictionary.
         symbols = self.market_symbols(symbols)
         tiers = {}
         symbolsLength = 0
@@ -5450,6 +5472,9 @@ class Exchange(object):
     def fetch_greeks(self, symbol: str, params={}):
         raise NotSupported(self.id + ' fetchGreeks() is not supported yet')
 
+    def fetch_all_greeks(self, symbols: Strings = None, params={}):
+        raise NotSupported(self.id + ' fetchAllGreeks() is not supported yet')
+
     def fetch_option_chain(self, code: str, params={}):
         raise NotSupported(self.id + ' fetchOptionChain() is not supported yet')
 
@@ -5703,10 +5728,16 @@ class Exchange(object):
         precisionNumber = int(precision)
         if precisionNumber == 0:
             return '1'
-        parsedPrecision = '0.'
-        for i in range(0, precisionNumber - 1):
-            parsedPrecision = parsedPrecision + '0'
-        return parsedPrecision + '1'
+        if precisionNumber > 0:
+            parsedPrecision = '0.'
+            for i in range(0, precisionNumber - 1):
+                parsedPrecision = parsedPrecision + '0'
+            return parsedPrecision + '1'
+        else:
+            parsedPrecision = '1'
+            for i in range(0, precisionNumber * -1 - 1):
+                parsedPrecision = parsedPrecision + '0'
+            return parsedPrecision + '0'
 
     def integer_precision_to_amount(self, precision: Str):
         """
@@ -6682,6 +6713,27 @@ class Exchange(object):
     def parse_greeks(self, greeks: dict, market: Market = None):
         raise NotSupported(self.id + ' parseGreeks() is not supported yet')
 
+    def parse_all_greeks(self, greeks, symbols: Strings = None, params={}):
+        #
+        # the value of greeks is either a dict or a list
+        #
+        results = []
+        if isinstance(greeks, list):
+            for i in range(0, len(greeks)):
+                parsedTicker = self.parse_greeks(greeks[i])
+                greek = self.extend(parsedTicker, params)
+                results.append(greek)
+        else:
+            marketIds = list(greeks.keys())
+            for i in range(0, len(marketIds)):
+                marketId = marketIds[i]
+                market = self.safe_market(marketId)
+                parsed = self.parse_greeks(greeks[marketId], market)
+                greek = self.extend(parsed, params)
+                results.append(greek)
+        symbols = self.market_symbols(symbols)
+        return self.filter_by_array(results, 'symbol', symbols)
+
     def parse_option(self, chain: dict, currency: Currency = None, market: Market = None):
         raise NotSupported(self.id + ' parseOption() is not supported yet')
 
@@ -6883,14 +6935,27 @@ class Exchange(object):
         """
         raise NotSupported(self.id + ' fetchTransfers() is not supported yet')
 
-    def clean_unsubscription(self, client, subHash: str, unsubHash: str):
+    def clean_unsubscription(self, client, subHash: str, unsubHash: str, subHashIsPrefix=False):
         if unsubHash in client.subscriptions:
             del client.subscriptions[unsubHash]
-        if subHash in client.subscriptions:
-            del client.subscriptions[subHash]
-        if subHash in client.futures:
-            error = UnsubscribeError(self.id + ' ' + subHash)
-            client.reject(error, subHash)
+        if not subHashIsPrefix:
+            if subHash in client.subscriptions:
+                del client.subscriptions[subHash]
+            if subHash in client.futures:
+                error = UnsubscribeError(self.id + ' ' + subHash)
+                client.reject(error, subHash)
+        else:
+            clientSubscriptions = list(client.subscriptions.keys())
+            for i in range(0, len(clientSubscriptions)):
+                sub = clientSubscriptions[i]
+                if sub.startswith(subHash):
+                    del client.subscriptions[sub]
+            clientFutures = list(client.futures.keys())
+            for i in range(0, len(clientFutures)):
+                future = clientFutures[i]
+                if future.startswith(subHash):
+                    error = UnsubscribeError(self.id + ' ' + future)
+                    client.reject(error, future)
         client.resolve(True, unsubHash)
 
     def clean_cache(self, subscription: dict):

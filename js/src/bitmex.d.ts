@@ -206,7 +206,7 @@ export default class bitmex extends Exchange {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {object} [params.triggerPrice] the price at which a trigger order is triggered at
-     * @param {object} [params.triggerDirection] the direction whenever the trigger happens with relation to price - 'above' or 'below'
+     * @param {object} [params.triggerDirection] the direction whenever the trigger happens with relation to price - 'ascending' or 'descending'
      * @param {float} [params.trailingAmount] the quote amount to trail away from the current market price
      * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */

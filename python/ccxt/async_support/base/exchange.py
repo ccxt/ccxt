@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.92'
+__version__ = '4.4.94'
 
 # -----------------------------------------------------------------------------
 
@@ -1572,6 +1572,9 @@ class Exchange(BaseExchange):
 
     async def fetch_greeks(self, symbol: str, params={}):
         raise NotSupported(self.id + ' fetchGreeks() is not supported yet')
+
+    async def fetch_all_greeks(self, symbols: Strings = None, params={}):
+        raise NotSupported(self.id + ' fetchAllGreeks() is not supported yet')
 
     async def fetch_option_chain(self, code: str, params={}):
         raise NotSupported(self.id + ' fetchOptionChain() is not supported yet')

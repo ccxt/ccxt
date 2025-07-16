@@ -2658,14 +2658,14 @@ class phemex(Exchange, ImplicitAPI):
                 triggerDirection = None
                 triggerDirection, params = self.handle_param_string(params, 'triggerDirection')
                 if triggerDirection is None:
-                    raise ArgumentsRequired(self.id + " createOrder() also requires a 'triggerDirection' parameter with either 'up' or 'down' value")
+                    raise ArgumentsRequired(self.id + " createOrder() also requires a 'triggerDirection' parameter with either 'ascending' or 'descending' value")
                 # the flow defined per https://phemex-docs.github.io/#more-order-type-examples
-                if triggerDirection == 'up':
+                if triggerDirection == 'ascending' or triggerDirection == 'up':
                     if side == 'sell':
                         request['ordType'] = 'MarketIfTouched' if (type == 'Market') else 'LimitIfTouched'
                     elif side == 'buy':
                         request['ordType'] = 'Stop' if (type == 'Market') else 'StopLimit'
-                elif triggerDirection == 'down':
+                elif triggerDirection == 'descending' or triggerDirection == 'down':
                     if side == 'sell':
                         request['ordType'] = 'Stop' if (type == 'Market') else 'StopLimit'
                     elif side == 'buy':

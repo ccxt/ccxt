@@ -138,7 +138,7 @@ class lbank(Exchange, ImplicitAPI):
                             'accuracy': 2.5,
                             'usdToCny': 2.5,
                             'assetConfigs': 2.5,
-                            'withdrawConfigs': 2.5,
+                            'withdrawConfigs': 2.5 * 1.5,  # frequently rate-limits, so increase self endpoint RL
                             'timestamp': 2.5,
                             'ticker/24hr': 2.5,
                             'ticker': 2.5,
@@ -675,7 +675,7 @@ class lbank(Exchange, ImplicitAPI):
                 'active': True,
                 'contract': True,
                 'linear': True,
-                'inverse': None,
+                'inverse': False,
                 'contractSize': self.safe_number(market, 'volumeMultiple'),
                 'expiry': None,
                 'expiryDatetime': None,

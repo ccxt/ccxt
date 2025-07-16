@@ -518,6 +518,7 @@ class bitstamp extends bitstamp$1 {
                     "Bitstamp.net is under scheduled maintenance. We'll be back soon.": errors.OnMaintenance,
                     'Order could not be placed.': errors.ExchangeNotAvailable,
                     'Invalid offset.': errors.BadRequest,
+                    'Trading is currently unavailable for your account.': errors.AccountSuspended, // {"status": "error", "reason": {"__all__": ["Trading is currently unavailable for your account."]}, "response_code": "403.004"}
                 },
                 'broad': {
                     'Minimum order size is': errors.InvalidOrder,

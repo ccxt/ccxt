@@ -74,6 +74,7 @@ class bybit(Exchange, ImplicitAPI):
                 'createTriggerOrder': True,
                 'editOrder': True,
                 'editOrders': True,
+                'fetchAllGreeks': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': 'emulated',
                 'fetchBorrowInterest': False,  # temporarily disabled, doesn't work
@@ -1172,6 +1173,7 @@ class bybit(Exchange, ImplicitAPI):
                     '4h': '4h',
                     '1d': '1d',
                 },
+                'useMarkPriceForPositionCollateral': False,  # use mark price for position collateral
             },
             'features': {
                 'default': {
@@ -3725,7 +3727,7 @@ class bybit(Exchange, ImplicitAPI):
         :param int [params.isLeverage]: *unified spot only* False then spot trading True then margin trading
         :param str [params.tpslMode]: *contract only* 'full' or 'partial'
         :param str [params.mmp]: *option only* market maker protection
-        :param str [params.triggerDirection]: *contract only* the direction for trigger orders, 'above' or 'below'
+        :param str [params.triggerDirection]: *contract only* the direction for trigger orders, 'ascending' or 'descending'
         :param float [params.triggerPrice]: The price at which a trigger order is triggered at
         :param float [params.stopLossPrice]: The price at which a stop loss order is triggered at
         :param float [params.takeProfitPrice]: The price at which a take profit order is triggered at
@@ -3749,7 +3751,7 @@ class bybit(Exchange, ImplicitAPI):
         isTakeProfit = takeProfitPrice is not None
         orderRequest = self.create_order_request(symbol, type, side, amount, price, params, enableUnifiedAccount)
         defaultMethod = None
-        if isTrailingAmountOrder or isStopLoss or isTakeProfit:
+        if (isTrailingAmountOrder or isStopLoss or isTakeProfit) and not market['spot']:
             defaultMethod = 'privatePostV5PositionTradingStop'
         else:
             defaultMethod = 'privatePostV5OrderCreate'
@@ -3825,7 +3827,7 @@ class bybit(Exchange, ImplicitAPI):
         isLimit = lowerCaseType == 'limit'
         isBuy = side == 'buy'
         defaultMethod = None
-        if isTrailingAmountOrder or isStopLossTriggerOrder or isTakeProfitTriggerOrder:
+        if (isTrailingAmountOrder or isStopLossTriggerOrder or isTakeProfitTriggerOrder) and not market['spot']:
             defaultMethod = 'privatePostV5PositionTradingStop'
         else:
             defaultMethod = 'privatePostV5OrderCreate'
@@ -3935,8 +3937,8 @@ class bybit(Exchange, ImplicitAPI):
                     raise NotSupported(self.id + ' createOrder() : trigger order does not support triggerDirection for spot markets yet')
             else:
                 if triggerDirection is None:
-                    raise ArgumentsRequired(self.id + ' stop/trigger orders require a triggerDirection parameter, either "above" or "below" to determine the direction of the trigger.')
-                isAsending = ((triggerDirection == 'above') or (triggerDirection == '1'))
+                    raise ArgumentsRequired(self.id + ' stop/trigger orders require a triggerDirection parameter, either "ascending" or "descending" to determine the direction of the trigger.')
+                isAsending = ((triggerDirection == 'ascending') or (triggerDirection == 'above') or (triggerDirection == '1'))
                 request['triggerDirection'] = 1 if isAsending else 2
             request['triggerPrice'] = self.get_price(symbol, triggerPrice)
         elif (isStopLossTriggerOrder or isTakeProfitTriggerOrder) and not isAlternativeEndpoint:
@@ -6213,12 +6215,14 @@ classic accounts only/ spot not supported*  fetches information on an order made
                 marginMode = 'isolated' if (tradeMode == 1) else 'cross'
         collateralString = self.safe_string(position, 'positionBalance')
         entryPrice = self.omit_zero(self.safe_string_n(position, ['entryPrice', 'avgPrice', 'avgEntryPrice']))
+        markPrice = self.safe_string(position, 'markPrice')
         liquidationPrice = self.omit_zero(self.safe_string(position, 'liqPrice'))
         leverage = self.safe_string(position, 'leverage')
         if liquidationPrice is not None:
             if market['settle'] == 'USDC':
                 #  (Entry price - Liq price) * Contracts + Maintenance Margin + (unrealised pnl) = Collateral
-                difference = Precise.string_abs(Precise.string_sub(entryPrice, liquidationPrice))
+                price = markPrice if self.safe_bool(self.options, 'useMarkPriceForPositionCollateral', False) else entryPrice
+                difference = Precise.string_abs(Precise.string_sub(price, liquidationPrice))
                 collateralString = Precise.string_add(Precise.string_add(Precise.string_mul(difference, size), maintenanceMarginString), unrealisedPnl)
             else:
                 bustPrice = self.safe_string(position, 'bustPrice')
@@ -6267,7 +6271,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'contractSize': self.safe_number(market, 'contractSize'),
             'marginRatio': self.parse_number(marginRatio),
             'liquidationPrice': self.parse_number(liquidationPrice),
-            'markPrice': self.safe_number(position, 'markPrice'),
+            'markPrice': self.parse_number(markPrice),
             'lastPrice': self.safe_number(position, 'avgExitPrice'),
             'collateral': self.parse_number(collateralString),
             'marginMode': marginMode,
@@ -7624,6 +7628,75 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'datetime': self.iso8601(timestamp),
         })
 
+    def fetch_all_greeks(self, symbols: Strings = None, params={}) -> List[Greeks]:
+        """
+        fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+
+        https://bybit-exchange.github.io/docs/api-explorer/v5/market/tickers
+
+        :param str[] [symbols]: unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.baseCoin]: the baseCoin of the symbol, default is BTC
+        :returns dict: a `greeks structure <https://docs.ccxt.com/#/?id=greeks-structure>`
+        """
+        self.load_markets()
+        symbols = self.market_symbols(symbols, None, True, True, True)
+        baseCoin = self.safe_string(params, 'baseCoin', 'BTC')
+        request: dict = {
+            'category': 'option',
+            'baseCoin': baseCoin,
+        }
+        market = None
+        if symbols is not None:
+            symbolsLength = len(symbols)
+            if symbolsLength == 1:
+                market = self.market(symbols[0])
+                request['symbol'] = market['id']
+        response = self.publicGetV5MarketTickers(self.extend(request, params))
+        #
+        #     {
+        #         "retCode": 0,
+        #         "retMsg": "SUCCESS",
+        #         "result": {
+        #             "category": "option",
+        #             "list": [
+        #                 {
+        #                     "symbol": "BTC-26JAN24-39000-C",
+        #                     "bid1Price": "3205",
+        #                     "bid1Size": "7.1",
+        #                     "bid1Iv": "0.5478",
+        #                     "ask1Price": "3315",
+        #                     "ask1Size": "1.98",
+        #                     "ask1Iv": "0.5638",
+        #                     "lastPrice": "3230",
+        #                     "highPrice24h": "3255",
+        #                     "lowPrice24h": "3200",
+        #                     "markPrice": "3273.02263032",
+        #                     "indexPrice": "36790.96",
+        #                     "markIv": "0.5577",
+        #                     "underlyingPrice": "37649.67254894",
+        #                     "openInterest": "19.67",
+        #                     "turnover24h": "170140.33875912",
+        #                     "volume24h": "4.56",
+        #                     "totalVolume": "22",
+        #                     "totalTurnover": "789305",
+        #                     "delta": "0.49640971",
+        #                     "gamma": "0.00004131",
+        #                     "vega": "69.08651675",
+        #                     "theta": "-24.9443226",
+        #                     "predictedDeliveryPrice": "0",
+        #                     "change24h": "0.18532111"
+        #                 }
+        #             ]
+        #         },
+        #         "retExtInfo": {},
+        #         "time": 1699584008326
+        #     }
+        #
+        result = self.safe_dict(response, 'result', {})
+        data = self.safe_list(result, 'list', [])
+        return self.parse_all_greeks(data, symbols)
+
     def parse_greeks(self, greeks: dict, market: Market = None) -> Greeks:
         #
         #     {
@@ -8730,7 +8803,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
                     authFull = auth_base + body
                 else:
                     authFull = auth_base + queryEncoded
-                    url += '?' + self.rawencode(query)
+                    url += '?' + queryEncoded
                 signature = None
                 if self.secret.find('PRIVATE KEY') > -1:
                     signature = self.rsa(authFull, self.secret, 'sha256')
@@ -8744,7 +8817,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
                     'timestamp': timestamp,
                 })
                 sortedQuery = self.keysort(query)
-                auth = self.rawencode(sortedQuery)
+                auth = self.rawencode(sortedQuery, True)
                 signature = None
                 if self.secret.find('PRIVATE KEY') > -1:
                     signature = self.rsa(auth, self.secret, 'sha256')
@@ -8766,7 +8839,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
                             'Content-Type': 'application/json',
                         }
                 else:
-                    url += '?' + self.rawencode(sortedQuery)
+                    url += '?' + self.rawencode(sortedQuery, True)
                     url += '&sign=' + signature
         if method == 'POST':
             brokerId = self.safe_string(self.options, 'brokerId')

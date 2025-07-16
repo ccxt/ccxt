@@ -137,6 +137,7 @@ const VIRTUAL_BASE_METHODS: any = {
     "parsePosition": false,
     "parseTicker": false,
     "parseTrade": false,
+    "parseGreeks": false,
     "parseTransaction": false,
     "parseTransfer": false,
     "parseWithdrawal": false,
