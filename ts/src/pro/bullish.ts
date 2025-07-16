@@ -41,7 +41,6 @@ export default class bullish extends bullishRest {
             'options': {
                 'ws': {
                     'cookies': {},
-                    'headers': {},
                 },
             },
             'streaming': {
