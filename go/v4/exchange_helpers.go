@@ -881,39 +881,6 @@ func AppendToArray(slicePtr *interface{}, element interface{}) {
 
 // without reflection
 func AddElementToObject(arrayOrDict interface{}, stringOrInt interface{}, value interface{}) {
-	
-	// Special handling for OrderBook objects to create OrderBookSide objects for WebSocket compatibility
-	if orderbook, ok := arrayOrDict.(*WsOrderBook); ok {
-		if key, ok := stringOrInt.(string); ok {
-			if key == "asks" || key == "bids" {
-				// If we're setting asks or bids on an OrderBook, create OrderBookSide objects
-				// and store them in the Cache for WebSocket access
-				if orderbook.Cache == nil {
-					orderbook.Cache = make(map[string]interface{})
-				}
-				
-					// Check if we already have an OrderBookSide for this key
-					if _, exists := orderbook.Cache.(map[string]interface{})[key]; !exists {
-						// Create new OrderBookSide object
-						isBid := (key == "bids")
-						var orderBookSide interface{}
-						if (isBid) {
-							orderBookSide = NewBids([]interface{}{}, nil)
-						} else {
-							orderBookSide = NewAsks([]interface{}{}, nil)
-						}
-						orderbook.Cache.(map[string]interface{})[key] = orderBookSide
-					}
-			} else {
-				// For other fields, store them in the cache as well for GetValue access
-				if orderbook.Cache == nil {
-					orderbook.Cache = make(map[string]interface{})
-				}
-				orderbook.Cache.(map[string]interface{})[key] = value
-			}
-		}
-		return
-	}
 
 	switch obj := arrayOrDict.(type) {
 	case []string:
@@ -998,6 +965,27 @@ func AddElementToObject(arrayOrDict interface{}, stringOrInt interface{}, value 
 			// return fmt.Errorf("invalid key type for sync.Map: expected string")
 		}
 	default:
+		// Handle OrderBookInterface types using type assertion
+		if orderbook, ok := arrayOrDict.(OrderBookInterface); ok {
+			// Use reflection to dynamically set the field
+			val := reflect.ValueOf(orderbook)
+			// If it's an interface, get the underlying value
+			if val.Kind() == reflect.Interface {
+				val = val.Elem()
+			}
+			// If it's a pointer, get the element
+			if val.Kind() == reflect.Ptr {
+				val = val.Elem()
+			}
+			field := val.FieldByName(Capitalize(stringOrInt.(string)))
+			if field.IsValid() && field.CanSet() {
+				// Convert value to the correct type
+				valueVal := reflect.ValueOf(value)
+				if valueVal.Type().ConvertibleTo(field.Type()) {
+					field.Set(valueVal.Convert(field.Type()))
+				}
+			}
+		}
 		// return fmt.Errorf("unsupported type: %T", arrayOrDict)
 	}
 }
