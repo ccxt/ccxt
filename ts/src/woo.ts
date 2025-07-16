@@ -884,39 +884,42 @@ export default class woo extends Exchange {
      * @method
      * @name woo#fetchTradingFees
      * @description fetch the trading fees for multiple markets
-     * @see https://docs.woox.io/#get-account-information-new
+     * @see https://developer.woox.io/api-reference/endpoint/account/get_account_info
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFees (params = {}): Promise<TradingFees> {
         await this.loadMarkets ();
-        const response = await this.v3PrivateGetAccountinfo (params);
+        const response = await this.v3PrivateGetAccountInfo (params);
         //
         //     {
         //         "success": true,
         //         "data": {
-        //             "applicationId": "dsa",
-        //             "account": "dsa",
-        //             "alias": "haha",
-        //             "accountMode": "MARGIN",
-        //             "leverage": 1,
-        //             "takerFeeRate": 1,
-        //             "makerFeeRate": 1,
-        //             "interestRate": 1,
-        //             "futuresTakerFeeRate": 1,
-        //             "futuresMakerFeeRate": 1,
+        //             "applicationId": "251bf5c4-f3c8-4544-bb8b-80001007c3c0",
+        //             "account": "carlos_jose_lima@yahoo.com",
+        //             "alias": "carlos_jose_lima@yahoo.com",
         //             "otpauth": true,
-        //             "marginRatio": 1,
-        //             "openMarginRatio": 1,
-        //             "initialMarginRatio": 1,
-        //             "maintenanceMarginRatio": 1,
-        //             "totalCollateral": 1,
-        //             "freeCollateral": 1,
-        //             "totalAccountValue": 1,
-        //             "totalVaultValue": 1,
-        //             "totalStakingValue": 1
+        //             "accountMode": "FUTURES",
+        //             "positionMode": "ONE_WAY",
+        //             "leverage": 0,
+        //             "makerFeeRate": 0,
+        //             "takerFeeRate": 0,
+        //             "marginRatio": "10",
+        //             "openMarginRatio": "10",
+        //             "initialMarginRatio": "10",
+        //             "maintenanceMarginRatio": "0.03",
+        //             "totalCollateral": "165.55629469",
+        //             "freeCollateral": "165.55629469",
+        //             "totalAccountValue": "167.32418611",
+        //             "totalTradingValue": "167.32418611",
+        //             "totalVaultValue": "0",
+        //             "totalStakingValue": "0",
+        //             "totalLaunchpadValue": "0",
+        //             "totalEarnValue": "0",
+        //             "referrerID": null,
+        //             "accountType": "Main"
         //         },
-        //         "timestamp": 1673323685109
+        //         "timestamp": 1752062807915
         //     }
         //
         const data = this.safeDict (response, 'data', {});

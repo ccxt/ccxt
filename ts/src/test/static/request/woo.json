@@ -639,7 +639,7 @@
             {
                 "description": "fetchTradingFees",
                 "method": "fetchTradingFees",
-                "url": "https://api.woox.io/v3/accountinfo",
+                "url": "https://api.woox.io/v3/account/info",
                 "input": []
             }
         ],
