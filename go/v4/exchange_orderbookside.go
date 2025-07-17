@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"reflect"
 	"strings"
 )
 
@@ -68,7 +69,14 @@ func NewOrderBookSide(deltas interface{}, depth interface{}) *OrderBookSide {
     
     // Set depth
     if depth != nil {
-        orderBookSide.Depth = depth.(int)
+        switch d := depth.(type) {
+            case int:
+                orderBookSide.Depth = d
+            case int64:
+                orderBookSide.Depth = int(d)
+            default:
+                panic(fmt.Sprintf("New depth type %v", reflect.TypeOf(depth)))
+        }
     }
     
     switch d := deltas.(type) {
@@ -516,7 +524,7 @@ func (obs *OrderBookSide) String() string {
 	// Show the actual order data (price/amount pairs)
 	if obs.Length > 0 {
 		result.WriteString(" Orders:[")
-		for i := 0; i < obs.Length && i < len(obs.Data); i++ {
+        for i := 0; i < obs.Length && i < len(obs.Data); i++ {
 			if i > 0 {
 				result.WriteString(" ")
 			}
