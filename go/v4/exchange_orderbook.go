@@ -11,6 +11,7 @@ type OrderBookInterface interface {
     Update(snapshot interface{}) interface{}
     Reset(snapshot interface{}) interface{}
 	GetCache() interface{}
+	SetCache(cache interface{})
 }
 
 type WsOrderBook struct {
@@ -162,6 +163,10 @@ func (this *WsOrderBook) GetCache() interface{} {
 	return this.Cache
 }
 
+func (this *WsOrderBook) SetCache(cache interface{}) {
+	this.Cache = cache
+}
+
 func getAsksBids(snapshot interface{}) ([][]float64, [][]float64) {
 	asks, ok := snapshot.(map[string]interface{})["asks"].([][]float64)
 	if !ok {
@@ -242,6 +247,10 @@ func (this *CountedOrderBook) GetCache() interface{} {
 	return this.WsOrderBook.GetCache()
 }
 
+func (this *CountedOrderBook) SetCache(cache interface{}) {
+	this.WsOrderBook.SetCache(cache)
+}
+
 // indexed by order ids (3rd value in a bidask delta)
 type IndexedOrderBook struct {
 	*WsOrderBook
@@ -275,6 +284,10 @@ func (this *IndexedOrderBook) Reset(snapshot interface{}) interface{} {
 
 func (this *IndexedOrderBook) GetCache() interface{} {
 	return this.WsOrderBook.GetCache()
+}
+
+func (this *IndexedOrderBook) SetCache(cache interface{}) {
+	this.WsOrderBook.SetCache(cache)
 }
 
 // ----------------------------------------------------------------------------
@@ -313,6 +326,10 @@ func (this *IndexedOrderBook) GetCache() interface{} {
 // 	return this.WsOrderBook.GetCache()
 // }
 
+// func (this *IncrementalOrderBook) SetCache(cache interface{}) {
+// 	this.WsOrderBook.SetCache(cache)
+// }
+
 
 // // incremental and indexed (2 in 1)
 // type IncrementalIndexedOrderBook struct {
@@ -346,4 +363,8 @@ func (this *IndexedOrderBook) GetCache() interface{} {
 
 // func (this *IncrementalIndexedOrderBook) GetCache() interface{} {
 // 	return this.WsOrderBook.GetCache()
+// }
+
+// func (this *IncrementalIndexedOrderBook) SetCache(cache interface{}) {
+// 	this.WsOrderBook.SetCache(cache)
 // }
