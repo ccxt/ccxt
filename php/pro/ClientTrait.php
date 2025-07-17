@@ -5,6 +5,7 @@ namespace ccxt\pro;
 use ccxt\async\Throttler;
 use ccxt\BaseError;
 use ccxt\ExchangeError;
+use ccxt\NetworkError;
 use Exception;
 use React\Async;
 use React\EventLoop\Loop;
@@ -19,6 +20,7 @@ trait ClientTrait {
         'heartbeat' => true,
         'ping' => null,
         'maxPingPongMisses' => 2.0,
+        'maxMessagesPerTopic' => 0,
     );
 
     public $newUpdates = true;
@@ -78,7 +80,6 @@ trait ClientTrait {
         });
         return $future;
     }
-
     public function delay($timeout, $method, ... $args) {
         Loop::addTimer($timeout / 1000, function () use ($method, $args) {
             $this->spawn($method, ...$args);
@@ -208,6 +209,7 @@ trait ClientTrait {
     }
 
     public function on_error(Client $client, $error) {
+        $this->stream->produce('errors', 'on_error', $error);
         if (array_key_exists($client->url, $this->clients) && $this->clients[$client->url]->error) {
             unset($this->clients[$client->url]);
         }
@@ -215,12 +217,14 @@ trait ClientTrait {
 
     public function on_close(Client $client, $message) {
         if ($client->error) {
-            // connection closed due to an error, do nothing
+            $this->streamProduce('errors', null, $client->error);
+            // connection closed by the user or due to an error, do nothing
         } else {
             // server disconnected a working connection
             if (array_key_exists($client->url, $this->clients)) {
                 unset($this->clients[$client->url]);
             }
+            $this->streamProduce('errors', null, new NetworkError('connection closed by remote server'));
         }
     }
 
@@ -230,6 +234,7 @@ trait ClientTrait {
         foreach ($this->clients as $client) {
             $client->close();
         }
+        $this->stream = new Stream();
         // empty the array
         array_splice($this->clients, 0);
     }

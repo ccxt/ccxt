@@ -61,6 +61,7 @@ class Client {
     public $log = null;
     public $heartbeat = null;
     public int $cost = 1;
+    public $maxMessagesPerTopic = null;
     public $timeframes = null;
     public $watchTradesForSymbols = null;
     public $watchOrderBookForSymbols = null;
