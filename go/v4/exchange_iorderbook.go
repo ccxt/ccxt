@@ -16,16 +16,16 @@ type IOrderBook struct {
 // The input is expected to be either an *OrderBook already, or a snapshot
 // map[string]interface{} coming from REST/WS which will be used to seed a
 // fresh order-book.
-func NewIOrderBook(v interface{}) *IOrderBook {
+func NewIOrderBook(v interface{}) IOrderBook {
     switch t := v.(type) {
     case *WsOrderBook:
-        return &IOrderBook{t}
+        return IOrderBook{t}
     case map[string]interface{}:
         ob := (&Exchange{}).OrderBook(t) // depth defaults to max-int
-        return &IOrderBook{ob}
+        return IOrderBook{ob}
     default:
         // unknown type – create empty orderbook
         ob := NewWsOrderBook(map[string]interface{}{}, nil)
-        return &IOrderBook{ob}
+        return IOrderBook{ob}
     }
 } 

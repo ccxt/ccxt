@@ -928,8 +928,6 @@ class NewTranspiler {
             wrappersIndented,
             // Wrapper regex replacements
         ].join('\n')
-        .replaceAll('return NewIOrderBook', 'return *NewIOrderBook')
-        .replaceAll('return NewBalance', 'return *NewBalance')
         log.magenta ('→', (path as any).yellow)
 
         overwriteFileAndFolder (path, file);
