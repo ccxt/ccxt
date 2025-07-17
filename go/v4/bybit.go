@@ -9914,7 +9914,7 @@ func  (this *bybit) ParseIncome(income interface{}, optionalArgs ...interface{})
         "timestamp": timestamp,
         "datetime": this.Iso8601(timestamp),
         "id": this.SafeString(income, "execId"),
-        "amount": this.SafeNumber(income, "execQty"),
+        "amount": this.SafeNumber(income, "execFee"),
         "rate": this.SafeNumber(income, "feeRate"),
     }
 }
