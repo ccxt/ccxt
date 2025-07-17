@@ -19,6 +19,7 @@ interface Exchange {
     privateGetCapitalHistory (params?: {}): Promise<implicitReturnType>;
     privateGetTradeAccountTradingHistory (params?: {}): Promise<implicitReturnType>;
     privateGetTradeAccountInfo (params?: {}): Promise<implicitReturnType>;
+    privateGetTradeOrder (params?: {}): Promise<implicitReturnType>;
     privateGetTradeAccountTrades (params?: {}): Promise<implicitReturnType>;
     privatePutTradeOrder (params?: {}): Promise<implicitReturnType>;
     privateDeleteTradeOrder (params?: {}): Promise<implicitReturnType>;
