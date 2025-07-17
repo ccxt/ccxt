@@ -10779,6 +10779,7 @@ class binance(Exchange, ImplicitAPI):
         request: dict = {}
         if symbol is not None:
             request['symbol'] = market['id']
+            symbol = market['symbol']
         if since is not None:
             request['startTime'] = since
         if limit is not None:
@@ -10806,7 +10807,7 @@ class binance(Exchange, ImplicitAPI):
         #
         settlements = self.parse_settlements(response, market)
         sorted = self.sort_by(settlements, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
+        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
     def parse_settlement(self, settlement, market):
         #

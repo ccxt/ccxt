@@ -2059,6 +2059,26 @@ public partial class okx
         return new Greeks(res);
     }
     /// <summary>
+    /// fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.okx.com/docs-v5/en/#public-data-rest-api-get-option-market-data"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}.</returns>
+    public async Task<List<Greeks>> FetchAllGreeks(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchAllGreeks(symbols, parameters);
+        return ((IList<object>)res).Select(item => new Greeks(item)).ToList<Greeks>();
+    }
+    /// <summary>
     /// fetches option data that is commonly found in an option chain
     /// </summary>
     /// <remarks>

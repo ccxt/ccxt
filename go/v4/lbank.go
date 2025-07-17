@@ -701,7 +701,7 @@ func  (this *lbank) FetchSwapMarkets(optionalArgs ...interface{}) <- chan interf
                     "active": true,
                     "contract": true,
                     "linear": true,
-                    "inverse": nil,
+                    "inverse": false,
                     "contractSize": this.SafeNumber(market, "volumeMultiple"),
                     "expiry": nil,
                     "expiryDatetime": nil,

@@ -3965,7 +3965,7 @@ class gate extends Exchange {
                 $request['from'] = $start;
                 $request['to'] = $this->sum($start, 30 * 24 * 60 * 60);
             }
-            list($request, $params) = $this->handle_until_option('to', $request, $params);
+            list($request, $params) = $this->handle_until_option('to', $request, $params, 0.001);
             $response = Async\await($this->privateWalletGetDeposits ($this->extend($request, $params)));
             return $this->parse_transactions($response, $currency);
         }) ();

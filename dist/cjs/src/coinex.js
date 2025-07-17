@@ -722,6 +722,7 @@ class coinex extends coinex$1 {
             const canWithdraw = this.safeBool(asset, 'withdraw_enabled');
             const firstChain = this.safeDict(chains, 0, {});
             const firstPrecisionString = this.parsePrecision(this.safeString(firstChain, 'withdrawal_precision'));
+            const networks = {};
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString(chain, 'chain');
@@ -734,7 +735,7 @@ class coinex extends coinex$1 {
                 const minNetworkWithdrawString = this.safeString(chain, 'min_withdraw_amount');
                 const canDepositChain = this.safeBool(chain, 'deposit_enabled');
                 const canWithdrawChain = this.safeBool(chain, 'withdraw_enabled');
-                ({
+                const network = {
                     'id': networkId,
                     'network': networkId,
                     'name': undefined,
@@ -758,7 +759,8 @@ class coinex extends coinex$1 {
                         },
                     },
                     'info': chain,
-                });
+                };
+                networks[networkId] = network;
             }
             result[code] = this.safeCurrencyStructure({
                 'id': currencyId,
@@ -783,7 +785,7 @@ class coinex extends coinex$1 {
                         'max': undefined,
                     },
                 },
-                'networks': {},
+                'networks': networks,
                 'type': 'crypto',
                 'info': coin,
             });
@@ -816,17 +818,19 @@ class coinex extends coinex$1 {
         //         "code": 0,
         //         "data": [
         //             {
-        //                 "base_ccy": "SORA",
-        //                 "base_ccy_precision": 8,
-        //                 "is_amm_available": true,
-        //                 "is_margin_available": false,
-        //                 "maker_fee_rate": "0.003",
-        //                 "market": "SORAUSDT",
-        //                 "min_amount": "500",
+        //                 "market": "BTCUSDT",
+        //                 "taker_fee_rate": "0.002",
+        //                 "maker_fee_rate": "0.002",
+        //                 "min_amount": "0.0005",
+        //                 "base_ccy": "BTC",
         //                 "quote_ccy": "USDT",
-        //                 "quote_ccy_precision": 6,
-        //                 "taker_fee_rate": "0.003"
-        //             },
+        //                 "base_ccy_precision": 8,
+        //                 "quote_ccy_precision": 2,
+        //                 "is_amm_available": true,
+        //                 "is_margin_available": true,
+        //                 "is_pre_trading_available": true,
+        //                 "is_api_trading_available": true
+        //             }
         //         ],
         //         "message": "OK"
         //     }
@@ -856,7 +860,7 @@ class coinex extends coinex$1 {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'active': undefined,
+                'active': this.safeBool(market, 'is_api_trading_available'),
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,

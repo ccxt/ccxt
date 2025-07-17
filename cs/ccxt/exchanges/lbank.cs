@@ -652,7 +652,7 @@ public partial class lbank : Exchange
                 { "active", true },
                 { "contract", true },
                 { "linear", true },
-                { "inverse", null },
+                { "inverse", false },
                 { "contractSize", this.safeNumber(market, "volumeMultiple") },
                 { "expiry", null },
                 { "expiryDatetime", null },

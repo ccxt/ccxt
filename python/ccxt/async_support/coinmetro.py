@@ -5,6 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinmetro import ImplicitAPI
+import asyncio
 from ccxt.base.types import Any, Balances, Currencies, Currency, IndexType, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -220,6 +221,7 @@ class coinmetro(Exchange, ImplicitAPI):
             'options': {
                 'currenciesByIdForParseMarket': None,
                 'currencyIdsListForParseMarket': ['QRDO'],
+                'skippedMarkets': ['VXVUSDT'],  # broken markets which do not have enough info in API
             },
             'features': {
                 'spot': {
@@ -439,9 +441,12 @@ class coinmetro(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        response = await self.publicGetMarkets(params)
+        promises = []
+        promises.append(self.publicGetMarkets(params))
         if self.safe_value(self.options, 'currenciesByIdForParseMarket') is None:
-            await self.fetch_currencies()
+            promises.append(self.fetch_currencies())
+        responses = await asyncio.gather(*promises)
+        response = responses[0]
         #
         #     [
         #         {
@@ -457,7 +462,14 @@ class coinmetro(Exchange, ImplicitAPI):
         #         ...
         #     ]
         #
-        return self.parse_markets(response)
+        skippedMarkets = self.safe_list(self.options, 'skippedMarkets', [])
+        result = []
+        for i in range(0, len(response)):
+            market = self.parse_market(response[i])
+            if self.in_array(market['id'], skippedMarkets):
+                continue
+            result.append(market)
+        return result
 
     def parse_market(self, market: dict) -> Market:
         id = self.safe_string(market, 'pair')

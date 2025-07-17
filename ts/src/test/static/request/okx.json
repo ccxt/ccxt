@@ -6,6 +6,48 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchBalance": [
+            {
+                "description": "funding balance",
+                "method": "fetchBalance",
+                "url": "https://www.okx.com/api/v5/asset/balances",
+                "input": [
+                    {
+                        "type": "funding"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "funding balance",
+                "method": "fetchBalance",
+                "url": "https://www.okx.com/api/v5/asset/balances",
+                "input": [
+                    {
+                        "type": "funding"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "spot balance",
+                "method": "fetchBalance",
+                "url": "https://www.okx.com/api/v5/account/balance",
+                "input": [
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "spot balance",
+                "method": "fetchBalance",
+                "url": "https://www.okx.com/api/v5/account/balance",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchOpenInterests": [
             {
                 "description": "fetchOpenInterests",
@@ -52,6 +94,90 @@
             }
         ],
         "createOrder": [
+            {
+                "description": "spot takeProfitPrice buy order",
+                "method": "createOrder",
+                "url": "https://www.okx.com/api/v5/trade/order-algo",
+                "input": [
+                    "LTC/USDT",
+                    "market",
+                    "buy",
+                    2,
+                    null,
+                    {
+                        "takeProfitPrice": 90
+                    }
+                ],
+                "output": "{\"instId\":\"LTC-USDT\",\"side\":\"buy\",\"ordType\":\"conditional\",\"sz\":\"2\",\"tdMode\":\"cross\",\"tgtCcy\":\"base_ccy\",\"tpTriggerPx\":\"90\",\"tpOrdPx\":\"-1\",\"tpTriggerPxType\":\"last\",\"clOrdId\":\"e847386590ce4dBC4cde85f3b4698b8e\",\"tag\":\"e847386590ce4dBC\"}"
+            },
+            {
+                "description": "spot stopLossPrice buy order",
+                "method": "createOrder",
+                "url": "https://www.okx.com/api/v5/trade/order-algo",
+                "input": [
+                    "LTC/USDT",
+                    "market",
+                    "buy",
+                    2,
+                    null,
+                    {
+                        "stopLossPrice": 120
+                    }
+                ],
+                "output": "{\"instId\":\"LTC-USDT\",\"side\":\"buy\",\"ordType\":\"conditional\",\"sz\":\"2\",\"tdMode\":\"cross\",\"tgtCcy\":\"base_ccy\",\"slTriggerPx\":\"120\",\"slOrdPx\":\"-1\",\"slTriggerPxType\":\"last\",\"clOrdId\":\"e847386590ce4dBC375c9606140aa425\",\"tag\":\"e847386590ce4dBC\"}"
+            },
+            {
+                "description": "spot stopLossPrice sell order",
+                "method": "createOrder",
+                "url": "https://www.okx.com/api/v5/trade/order-algo",
+                "input": [
+                    "LTC/USDT",
+                    "market",
+                    "sell",
+                    0.1,
+                    null,
+                    {
+                        "stopLossPrice": 90
+                    }
+                ],
+                "output": "{\"instId\":\"LTC-USDT\",\"side\":\"sell\",\"ordType\":\"conditional\",\"sz\":\"0.1\",\"tdMode\":\"cross\",\"slTriggerPx\":\"90\",\"slOrdPx\":\"-1\",\"slTriggerPxType\":\"last\",\"clOrdId\":\"e847386590ce4dBCcc2d5dddb4cf99b1\",\"tag\":\"e847386590ce4dBC\"}"
+            },
+            {
+                "description": "sell order with stopLoss",
+                "method": "createOrder",
+                "url": "https://www.okx.com/api/v5/trade/batch-orders",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "limit",
+                    "sell",
+                    0.4,
+                    100,
+                    {
+                        "stopLoss": {
+                            "triggerPrice": 120
+                        }
+                    }
+                ],
+                "output": "[{\"instId\":\"LTC-USDT-SWAP\",\"side\":\"sell\",\"ordType\":\"limit\",\"sz\":\"0.4\",\"tdMode\":\"cross\",\"px\":\"100\",\"slTriggerPx\":\"120\",\"slOrdPx\":\"-1\",\"slTriggerPxType\":\"last\",\"clOrdId\":\"e847386590ce4dBCa5258823e453a117\",\"tag\":\"e847386590ce4dBC\"}]"
+            },
+            {
+                "description": "sell order with stopLoss",
+                "method": "createOrder",
+                "url": "https://www.okx.com/api/v5/trade/batch-orders",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "limit",
+                    "sell",
+                    0.4,
+                    100,
+                    {
+                        "stopLoss": {
+                            "triggerPrice": 120
+                        }
+                    }
+                ],
+                "output": "[{\"instId\":\"LTC-USDT-SWAP\",\"side\":\"sell\",\"ordType\":\"limit\",\"sz\":\"0.4\",\"tdMode\":\"cross\",\"px\":\"100\",\"slTriggerPx\":\"120\",\"slOrdPx\":\"-1\",\"slTriggerPxType\":\"last\",\"clOrdId\":\"e847386590ce4dBC07979b70a40dbf86\",\"tag\":\"e847386590ce4dBC\"}]"
+            },
             {
                 "description": "Spot limit buy order",
                 "method": "createOrder",
@@ -1287,6 +1413,18 @@
         ],
         "transfer": [
             {
+                "description": "transfer spot to funding",
+                "method": "transfer",
+                "url": "https://www.okx.com/api/v5/asset/transfer",
+                "input": [
+                    "TUSD",
+                    100,
+                    "spot",
+                    "funding"
+                ],
+                "output": "{\"ccy\":\"TUSD\",\"amt\":\"100\",\"type\":\"0\",\"from\":\"18\",\"to\":\"6\"}"
+            },
+            {
                 "description": "transfer from spot to funding",
                 "method": "transfer",
                 "url": "https://www.okx.com/api/v5/asset/transfer",
@@ -1628,6 +1766,21 @@
                 "url": "https://www.okx.com/api/v5/rubik/stat/contracts/long-short-account-ratio-contract?instId=BTC-USDT-SWAP",
                 "input": [
                   "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchAllGreeks": [
+            {
+                "description": "fetchAllGreeks with one symbol and a uly parameter",
+                "method": "fetchAllGreeks",
+                "url": "https://www.okx.com/api/v5/public/opt-summary?uly=BTC-USD&instFamily=BTC-USD&expTime=241227",
+                "input": [
+                    [
+                        "BTC/USD:BTC-241227-60000-P"
+                    ],
+                    {
+                        "uly": "BTC-USD"
+                    }
                 ]
             }
         ]
