@@ -379,6 +379,16 @@ function testDecimalToPrecision () {
 
     // ----------------------------------------------------------------------------
 
+    // https://github.com/ccxt/ccxt/issues/11765
+    assert (exchange.decimalToPrecision ('123456.12345678912', TRUNCATE, 0.00000001, TICK_SIZE) === '123456.12345678');
+    assert (exchange.decimalToPrecision ('123456.12345674999', TRUNCATE, 0.00000005, TICK_SIZE) === '123456.1234567');
+    assert (exchange.decimalToPrecision ('123456.12345674999', TRUNCATE, 0.00000005, TICK_SIZE, PAD_WITH_ZERO) === '123456.12345670');
+    assert (exchange.decimalToPrecision ('123456.12345675001', TRUNCATE, 0.00000005, TICK_SIZE) === '123456.12345675');
+    assert (exchange.decimalToPrecision ('123456.50000000001', TRUNCATE, 0.5, TICK_SIZE, PAD_WITH_ZERO) === '123456.5');
+    assert (exchange.decimalToPrecision ('123456.49999999999', TRUNCATE, 0.5, TICK_SIZE, PAD_WITH_ZERO) === '123456.0');
+
+    assert (exchange.decimalToPrecision ('123456.12345678912', TRUNCATE, '0.00000001', TICK_SIZE) === '123456.12345678');
+
     // todo
     // $this->assertSame (0,   Exchange::sum ());
     // $this->assertSame (2,   Exchange::sum (2));
