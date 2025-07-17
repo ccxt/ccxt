@@ -1683,7 +1683,7 @@ class testMainClass {
         try {
             $exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch(\Throwable $e) {
-            $spot_order_request = $this->urlencoded_to_dict($exchange->last_request_body);
+            $spot_order_request = json_parse($exchange->last_request_body);
         }
         $broker_id = $spot_order_request['broker_id'];
         $id_string = ((string) $id);
