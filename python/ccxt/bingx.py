@@ -779,6 +779,10 @@ class bingx(Exchange, ImplicitAPI):
                         'min': self.safe_number(rawNetwork, 'withdrawMin'),
                         'max': self.safe_number(rawNetwork, 'withdrawMax'),
                     },
+                    'deposit': {
+                        'min': self.safe_number(rawNetwork, 'depositMin'),
+                        'max': None,
+                    },
                 }
                 precision = self.parse_number(self.parse_precision(self.safe_string(rawNetwork, 'withdrawPrecision')))
                 networks[networkCode] = {
@@ -792,20 +796,35 @@ class bingx(Exchange, ImplicitAPI):
                     'precision': precision,
                     'limits': limits,
                 }
-            result[code] = self.safe_currency_structure({
-                'info': entry,
-                'code': code,
-                'id': currencyId,
-                'precision': None,
-                'name': name,
-                'active': None,
-                'deposit': None,
-                'withdraw': None,
-                'networks': networks,
-                'fee': None,
-                'limits': None,
-                'type': 'crypto',  # only cryptos now
-            })
+            if not (code in result):  # the exchange could return the same currency with different networks
+                result[code] = {
+                    'info': entry,
+                    'code': code,
+                    'id': currencyId,
+                    'precision': None,
+                    'name': name,
+                    'active': None,
+                    'deposit': None,
+                    'withdraw': None,
+                    'networks': networks,
+                    'fee': None,
+                    'limits': None,
+                    'type': 'crypto',  # only cryptos now
+                }
+            else:
+                existing = result[code]
+                existingNetworks = self.safe_dict(existing, 'networks', {})
+                newNetworkCodes = list(networks.keys())
+                for j in range(0, len(newNetworkCodes)):
+                    newNetworkCode = newNetworkCodes[j]
+                    if not (newNetworkCode in existingNetworks):
+                        existingNetworks[newNetworkCode] = networks[newNetworkCode]
+                result[code]['networks'] = existingNetworks
+        codes = list(result.keys())
+        for i in range(0, len(codes)):
+            code = codes[i]
+            currency = result[code]
+            result[code] = self.safe_currency_structure(currency)
         return result
 
     def fetch_spot_markets(self, params) -> List[Market]:
@@ -5458,37 +5477,13 @@ class bingx(Exchange, ImplicitAPI):
 
     def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
         #
-        #    {
-        #        "coin": "BTC",
-        #        "name": "BTC",
-        #        "networkList": [
-        #          {
-        #            "name": "BTC",
-        #            "network": "BTC",
-        #            "isDefault": True,
-        #            "minConfirm": "2",
-        #            "withdrawEnable": True,
-        #            "withdrawFee": "0.00035",
-        #            "withdrawMax": "1.62842",
-        #            "withdrawMin": "0.0005"
-        #          },
-        #          {
-        #            "name": "BTC",
-        #            "network": "BEP20",
-        #            "isDefault": False,
-        #            "minConfirm": "15",
-        #            "withdrawEnable": True,
-        #            "withdrawFee": "0.00001",
-        #            "withdrawMax": "1.62734",
-        #            "withdrawMin": "0.0001"
-        #          }
-        #        ]
-        #    }
+        # currencie structure
         #
-        networkList = self.safe_list(fee, 'networkList', [])
-        networkListLength = len(networkList)
+        networks = self.safe_dict(fee, 'networks', {})
+        networkCodes = list(networks.keys())
+        networksLength = len(networkCodes)
         result: dict = {
-            'info': fee,
+            'info': networks,
             'withdraw': {
                 'fee': None,
                 'percentage': None,
@@ -5499,18 +5494,15 @@ class bingx(Exchange, ImplicitAPI):
             },
             'networks': {},
         }
-        if networkListLength != 0:
-            for i in range(0, networkListLength):
-                network = networkList[i]
-                networkId = self.safe_string(network, 'network')
-                isDefault = self.safe_bool(network, 'isDefault')
-                currencyCode = self.safe_string(currency, 'code')
-                networkCode = self.network_id_to_code(networkId, currencyCode)
+        if networksLength != 0:
+            for i in range(0, networksLength):
+                networkCode = networkCodes[i]
+                network = networks[networkCode]
                 result['networks'][networkCode] = {
                     'deposit': {'fee': None, 'percentage': None},
-                    'withdraw': {'fee': self.safe_number(network, 'withdrawFee'), 'percentage': False},
+                    'withdraw': {'fee': self.safe_number(network, 'fee'), 'percentage': False},
                 }
-                if isDefault:
+                if networksLength == 1:
                     result['withdraw']['fee'] = self.safe_number(network, 'withdrawFee')
                     result['withdraw']['percentage'] = False
         return result
@@ -5526,9 +5518,15 @@ class bingx(Exchange, ImplicitAPI):
         :returns dict: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         self.load_markets()
-        response = self.walletsV1PrivateGetCapitalConfigGetall(params)
-        coins = self.safe_list(response, 'data')
-        return self.parse_deposit_withdraw_fees(coins, codes, 'coin')
+        response = self.fetch_currencies(params)
+        depositWithdrawFees: dict = {}
+        responseCodes = list(response.keys())
+        for i in range(0, len(responseCodes)):
+            code = responseCodes[i]
+            if (codes is None) or (self.in_array(code, codes)):
+                entry = response[code]
+                depositWithdrawFees[code] = self.parse_deposit_withdraw_fee(entry)
+        return depositWithdrawFees
 
     def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
