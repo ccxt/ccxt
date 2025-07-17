@@ -200,3 +200,7 @@ func (this *WSClient) SetError(err error) {
 func (this *WSClient) GetUrl() string {
 	return this.Client.GetUrl()
 }
+
+func (this *WSClient) GetSubscriptions() map[string]interface{} {
+	return this.Client.GetSubscriptions()
+}

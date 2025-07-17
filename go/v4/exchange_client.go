@@ -25,12 +25,13 @@ type ClientInterface interface {
 	Resolve(data interface{}, subHash interface{}) interface{}
 	Future(messageHash interface{}) <-chan interface{}
 	Reject(err interface{}, messageHash ...interface{})
-	Send(message interface{}) chan interface{}
+	Send(message interface{}) <-chan interface{}
 	Reset(err interface{})
 	OnPong()
 	GetError() error
 	SetError(err error)
 	GetUrl() string
+	GetSubscriptions() map[string]interface{}
 }
 
 // Client is a thin wrapper around a single ws:// or wss:// connection.
@@ -587,6 +588,10 @@ func (this *Client) SetError(err error) {
 
 func (this *Client) GetUrl() string {
 	return this.Url
+}
+
+func (this *Client) GetSubscriptions() map[string]interface{} {
+	return this.Subscriptions
 }
 
 type wsMessageHandler interface {

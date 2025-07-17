@@ -3,6 +3,7 @@ package ccxt
 import (
 	"fmt"
 	"math"
+	"strings"
 	"time"
 )
 
@@ -616,8 +617,35 @@ type Balance struct {
 	Total *float64
 }
 
+// String returns a string representation of the Balance struct
+func (b *Balance) String() string {
+	var result strings.Builder
+	result.WriteString("Balance{")
+	
+	if b.Free != nil {
+		result.WriteString(fmt.Sprintf(" Free:%v", *b.Free))
+	} else {
+		result.WriteString(" Free:nil")
+	}
+	
+	if b.Used != nil {
+		result.WriteString(fmt.Sprintf(" Used:%v", *b.Used))
+	} else {
+		result.WriteString(" Used:nil")
+	}
+	
+	if b.Total != nil {
+		result.WriteString(fmt.Sprintf(" Total:%v", *b.Total))
+	} else {
+		result.WriteString(" Total:nil")
+	}
+	
+	result.WriteString("}")
+	return result.String()
+}
+
 type Balances struct {
-	Balances map[string]Balance
+	Balances map[string]*Balance
 	Free     map[string]*float64
 	Used     map[string]*float64
 	Total    map[string]*float64
@@ -625,8 +653,8 @@ type Balances struct {
 }
 
 // NewBalance initializes a Balance struct from a map.
-func NewBalance(balanceData map[string]interface{}) Balance {
-	return Balance{
+func NewBalance(balanceData map[string]interface{}) *Balance {
+	return &Balance{
 		Free:  SafeFloatTyped(balanceData, "free"),
 		Used:  SafeFloatTyped(balanceData, "used"),
 		Total: SafeFloatTyped(balanceData, "total"),
@@ -634,9 +662,9 @@ func NewBalance(balanceData map[string]interface{}) Balance {
 }
 
 // NewBalances initializes a Balances struct from a map.
-func NewBalances(balancesData2 interface{}) Balances {
+func NewBalances(balancesData2 interface{}) *Balances {
 	balancesData := balancesData2.(map[string]interface{})
-	balancesMap := make(map[string]Balance)
+	balancesMap := make(map[string]*Balance)
 	freeBalances := make(map[string]*float64)
 	usedBalances := make(map[string]*float64)
 	totalBalances := make(map[string]*float64)
@@ -688,7 +716,7 @@ func NewBalances(balancesData2 interface{}) Balances {
 	// Extract "info"
 	info := GetInfo(balancesData) // Assuming GetInfo is implemented
 
-	return Balances{
+	return &Balances{
 		Balances: balancesMap,
 		Free:     freeBalances,
 		Used:     usedBalances,
@@ -698,17 +726,86 @@ func NewBalances(balancesData2 interface{}) Balances {
 }
 
 // GetBalance retrieves a Balance by key.
-func (b *Balances) GetBalance(key string) (Balance, error) {
+func (b *Balances) GetBalance(key string) (*Balance, error) {
 	balance, exists := b.Balances[key]
 	if !exists {
-		return Balance{}, fmt.Errorf("the key '%s' was not found in the balances", key)
+		return &Balance{}, fmt.Errorf("the key '%s' was not found in the balances", key)
 	}
 	return balance, nil
 }
 
 // SetBalance sets or updates a Balance by key.
-func (b *Balances) SetBalance(key string, balance Balance) {
+func (b *Balances) SetBalance(key string, balance *Balance) {
 	b.Balances[key] = balance
+}
+
+// String returns a string representation of the Balances struct
+func (b *Balances) String() string {
+	var result strings.Builder
+	result.WriteString("Balances{")
+	
+	if len(b.Balances) > 0 {
+		result.WriteString(" Balances:{")
+		for key, balance := range b.Balances {
+			result.WriteString(fmt.Sprintf(" %s:%s", key, balance.String()))
+		}
+		result.WriteString("}")
+	}
+	
+	if len(b.Free) > 0 {
+		result.WriteString(" Free:{")
+		for key, value := range b.Free {
+			if value != nil {
+				result.WriteString(fmt.Sprintf(" %s:%v", key, *value))
+			} else {
+				result.WriteString(fmt.Sprintf(" %s:nil", key))
+			}
+		}
+		result.WriteString("}")
+	}
+	
+	if len(b.Used) > 0 {
+		result.WriteString(" Used:{")
+		for key, value := range b.Used {
+			if value != nil {
+				result.WriteString(fmt.Sprintf(" %s:%v", key, *value))
+			} else {
+				result.WriteString(fmt.Sprintf(" %s:nil", key))
+			}
+		}
+		result.WriteString("}")
+	}
+	
+	if len(b.Total) > 0 {
+		result.WriteString(" Total:{")
+		for key, value := range b.Total {
+			if value != nil {
+				result.WriteString(fmt.Sprintf(" %s:%v", key, *value))
+			} else {
+				result.WriteString(fmt.Sprintf(" %s:nil", key))
+			}
+		}
+		result.WriteString("}")
+	}
+	
+	result.WriteString("}")
+	return result.String()
+}
+
+// ConvertBalanceMap converts a raw balance map (from SafeBalance) to a Balances struct
+func ConvertBalanceMap(balanceMap interface{}) *Balances {
+	if balanceMap == nil {
+		return &Balances{}
+	}
+	
+	// Convert interface{} to map[string]interface{}
+	rawMap, ok := balanceMap.(map[string]interface{})
+	if !ok {
+		return &Balances{}
+	}
+	
+	balances := NewBalances(rawMap)
+	return balances
 }
 
 // funding rate
