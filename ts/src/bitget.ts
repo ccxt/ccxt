@@ -807,6 +807,7 @@ export default class bitget extends Exchange {
                         'get': {
                             'v3/account/assets': 1,
                             'v3/account/settings': 1,
+                            'v3/account/deposit-records': 2,
                             'v3/account/financial-records': 1,
                             'v3/account/repayable-coins': 2,
                             'v3/account/payment-coins': 2,
@@ -2485,11 +2486,13 @@ export default class bitget extends Exchange {
      * @see https://www.bitget.com/api-doc/contract/position/Get-Query-Position-Lever
      * @see https://www.bitget.com/api-doc/margin/cross/account/Cross-Tier-Data
      * @see https://www.bitget.com/api-doc/margin/isolated/account/Isolated-Tier-Data
+     * @see https://www.bitget.com/api-doc/uta/public/Get-Position-Tier-Data
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] for spot margin 'cross' or 'isolated', default is 'isolated'
      * @param {string} [params.code] required for cross spot margin
-     * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+     * @param {string} [params.productType] *contract and uta only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
      */
     async fetchMarketLeverageTiers (symbol: string, params = {}): Promise<LeverageTier[]> {
@@ -2498,10 +2501,16 @@ export default class bitget extends Exchange {
         const request: Dict = {};
         let response = undefined;
         let marginMode = undefined;
+        let productType = undefined;
+        let uta = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMarketLeverageTiers', params, 'isolated');
-        if ((market['swap']) || (market['future'])) {
-            let productType = undefined;
-            [ productType, params ] = this.handleProductTypeAndParams (market, params);
+        [ productType, params ] = this.handleProductTypeAndParams (market, params);
+        [ uta, params ] = this.handleOptionAndParams (params, 'fetchMarketLeverageTiers', 'uta', false);
+        if (uta) {
+            request['symbol'] = market['id'];
+            request['category'] = productType;
+            response = await this.publicUtaGetV3MarketPositionTier (this.extend (request, params));
+        } else if ((market['swap']) || (market['future'])) {
             request['productType'] = productType;
             request['symbol'] = market['id'];
             response = await this.publicMixGetV2MixMarketQueryPositionLever (this.extend (request, params));
@@ -2577,6 +2586,23 @@ export default class bitget extends Exchange {
         //         ]
         //     }
         //
+        // uta
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1752735673127,
+        //         "data": [
+        //             {
+        //                 "tier": "1",
+        //                 "minTierValue": "0",
+        //                 "maxTierValue": "150000",
+        //                 "leverage": "125",
+        //                 "mmr": "0.004"
+        //             },
+        //         ]
+        //     }
+        //
         const result = this.safeValue (response, 'data', []);
         return this.parseMarketLeverageTiers (result, market);
     }
@@ -2618,15 +2644,25 @@ export default class bitget extends Exchange {
         //         "maintainMarginRate": "0.1"
         //     }
         //
+        // uta
+        //
+        //     {
+        //         "tier": "1",
+        //         "minTierValue": "0",
+        //         "maxTierValue": "150000",
+        //         "leverage": "125",
+        //         "mmr": "0.004"
+        //     }
+        //
         const tiers = [];
         let minNotional = 0;
         for (let i = 0; i < info.length; i++) {
             const item = info[i];
-            const minimumNotional = this.safeNumber (item, 'startUnit');
+            const minimumNotional = this.safeNumber2 (item, 'startUnit', 'minTierValue');
             if (minimumNotional !== undefined) {
                 minNotional = minimumNotional;
             }
-            const maxNotional = this.safeNumberN (item, [ 'endUnit', 'maxBorrowableAmount', 'baseMaxBorrowableAmount' ]);
+            const maxNotional = this.safeNumberN (item, [ 'endUnit', 'maxBorrowableAmount', 'baseMaxBorrowableAmount', 'maxTierValue' ]);
             const marginCurrency = this.safeString2 (item, 'coin', 'baseCoin');
             const currencyId = (marginCurrency !== undefined) ? marginCurrency : market['base'];
             const marketId = this.safeString (item, 'symbol');
@@ -2636,7 +2672,7 @@ export default class bitget extends Exchange {
                 'currency': this.safeCurrencyCode (currencyId),
                 'minNotional': minNotional,
                 'maxNotional': maxNotional,
-                'maintenanceMarginRate': this.safeNumber2 (item, 'keepMarginRate', 'maintainMarginRate'),
+                'maintenanceMarginRate': this.safeNumberN (item, [ 'keepMarginRate', 'maintainMarginRate', 'mmr' ]),
                 'maxLeverage': this.safeNumber (item, 'leverage'),
                 'info': item,
             });

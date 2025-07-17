@@ -882,7 +882,7 @@
             {
                 "description": "uta swap fetchClosedOrders",
                 "method": "fetchClosedOrders",
-                "url": "https://api.bitget.com/api/v3/trade/history-orders?category=USDT-FUTURES&limit=2",
+                "url": "https://api.bitget.com/api/v3/trade/history-orders?category=USDT-FUTURES",
                 "input": [
                     "BTC/USDT:USDT",
                     null,
@@ -2334,6 +2334,19 @@
                 "method": "fetchFundingRates",
                 "url": "https://api.bitget.com/api/v2/mix/market/tickers?productType=USDT-FUTURES",
                 "input": []
+            }
+        ],
+        "fetchMarketLeverageTiers": [
+            {
+                "description": "uta fetch the market leverage tiers for a trading pair",
+                "method": "fetchMarketLeverageTiers",
+                "url": "https://api.bitget.com/api/v3/market/position-tier?symbol=BTCUSDT&category=USDT-FUTURES",
+                "input": [
+                    "BTC/USDT:USDT",
+                    {
+                        "uta": true
+                    }
+                ]
             }
         ]
     }

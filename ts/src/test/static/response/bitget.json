@@ -6189,6 +6189,280 @@
                     }
                 ]
             }
+        ],
+        "fetchMarketLeverageTiers": [
+            {
+                "description": "uta fetchMarketLeverageTiers",
+                "method": "fetchMarketLeverageTiers",
+                "input": [
+                    "BTC/USDT:USDT",
+                    {
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1752736051917",
+                    "data": [
+                        {
+                            "tier": "1",
+                            "minTierValue": "0",
+                            "maxTierValue": "150000",
+                            "leverage": "125",
+                            "mmr": "0.004"
+                        },
+                        {
+                            "tier": "2",
+                            "minTierValue": "150000",
+                            "maxTierValue": "900000",
+                            "leverage": "100",
+                            "mmr": "0.005"
+                        },
+                        {
+                            "tier": "3",
+                            "minTierValue": "900000",
+                            "maxTierValue": "12000000",
+                            "leverage": "50",
+                            "mmr": "0.01"
+                        },
+                        {
+                            "tier": "4",
+                            "minTierValue": "12000000",
+                            "maxTierValue": "70000000",
+                            "leverage": "25",
+                            "mmr": "0.015"
+                        },
+                        {
+                            "tier": "5",
+                            "minTierValue": "70000000",
+                            "maxTierValue": "100000000",
+                            "leverage": "20",
+                            "mmr": "0.02"
+                        },
+                        {
+                            "tier": "6",
+                            "minTierValue": "100000000",
+                            "maxTierValue": "230000000",
+                            "leverage": "10",
+                            "mmr": "0.03"
+                        },
+                        {
+                            "tier": "7",
+                            "minTierValue": "230000000",
+                            "maxTierValue": "480000000",
+                            "leverage": "5",
+                            "mmr": "0.045"
+                        },
+                        {
+                            "tier": "8",
+                            "minTierValue": "480000000",
+                            "maxTierValue": "600000000",
+                            "leverage": "4",
+                            "mmr": "0.125"
+                        },
+                        {
+                            "tier": "9",
+                            "minTierValue": "600000000",
+                            "maxTierValue": "800000000",
+                            "leverage": "3",
+                            "mmr": "0.1666"
+                        },
+                        {
+                            "tier": "10",
+                            "minTierValue": "800000000",
+                            "maxTierValue": "1200000000",
+                            "leverage": "2",
+                            "mmr": "0.25"
+                        },
+                        {
+                            "tier": "11",
+                            "minTierValue": "1200000000",
+                            "maxTierValue": "1800000000",
+                            "leverage": "1",
+                            "mmr": "0.5"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "tier": 1,
+                        "symbol": "BTC/USDT:USDT",
+                        "currency": "BTC",
+                        "minNotional": 0,
+                        "maxNotional": 150000,
+                        "maintenanceMarginRate": 0.004,
+                        "maxLeverage": 125,
+                        "info": {
+                            "tier": "1",
+                            "minTierValue": "0",
+                            "maxTierValue": "150000",
+                            "leverage": "125",
+                            "mmr": "0.004"
+                        }
+                    },
+                    {
+                        "tier": 2,
+                        "symbol": "BTC/USDT:USDT",
+                        "currency": "BTC",
+                        "minNotional": 150000,
+                        "maxNotional": 900000,
+                        "maintenanceMarginRate": 0.005,
+                        "maxLeverage": 100,
+                        "info": {
+                            "tier": "2",
+                            "minTierValue": "150000",
+                            "maxTierValue": "900000",
+                            "leverage": "100",
+                            "mmr": "0.005"
+                        }
+                    },
+                    {
+                        "tier": 3,
+                        "symbol": "BTC/USDT:USDT",
+                        "currency": "BTC",
+                        "minNotional": 900000,
+                        "maxNotional": 12000000,
+                        "maintenanceMarginRate": 0.01,
+                        "maxLeverage": 50,
+                        "info": {
+                            "tier": "3",
+                            "minTierValue": "900000",
+                            "maxTierValue": "12000000",
+                            "leverage": "50",
+                            "mmr": "0.01"
+                        }
+                    },
+                    {
+                        "tier": 4,
+                        "symbol": "BTC/USDT:USDT",
+                        "currency": "BTC",
+                        "minNotional": 12000000,
+                        "maxNotional": 70000000,
+                        "maintenanceMarginRate": 0.015,
+                        "maxLeverage": 25,
+                        "info": {
+                            "tier": "4",
+                            "minTierValue": "12000000",
+                            "maxTierValue": "70000000",
+                            "leverage": "25",
+                            "mmr": "0.015"
+                        }
+                    },
+                    {
+                        "tier": 5,
+                        "symbol": "BTC/USDT:USDT",
+                        "currency": "BTC",
+                        "minNotional": 70000000,
+                        "maxNotional": 100000000,
+                        "maintenanceMarginRate": 0.02,
+                        "maxLeverage": 20,
+                        "info": {
+                            "tier": "5",
+                            "minTierValue": "70000000",
+                            "maxTierValue": "100000000",
+                            "leverage": "20",
+                            "mmr": "0.02"
+                        }
+                    },
+                    {
+                        "tier": 6,
+                        "symbol": "BTC/USDT:USDT",
+                        "currency": "BTC",
+                        "minNotional": 100000000,
+                        "maxNotional": 230000000,
+                        "maintenanceMarginRate": 0.03,
+                        "maxLeverage": 10,
+                        "info": {
+                            "tier": "6",
+                            "minTierValue": "100000000",
+                            "maxTierValue": "230000000",
+                            "leverage": "10",
+                            "mmr": "0.03"
+                        }
+                    },
+                    {
+                        "tier": 7,
+                        "symbol": "BTC/USDT:USDT",
+                        "currency": "BTC",
+                        "minNotional": 230000000,
+                        "maxNotional": 480000000,
+                        "maintenanceMarginRate": 0.045,
+                        "maxLeverage": 5,
+                        "info": {
+                            "tier": "7",
+                            "minTierValue": "230000000",
+                            "maxTierValue": "480000000",
+                            "leverage": "5",
+                            "mmr": "0.045"
+                        }
+                    },
+                    {
+                        "tier": 8,
+                        "symbol": "BTC/USDT:USDT",
+                        "currency": "BTC",
+                        "minNotional": 480000000,
+                        "maxNotional": 600000000,
+                        "maintenanceMarginRate": 0.125,
+                        "maxLeverage": 4,
+                        "info": {
+                            "tier": "8",
+                            "minTierValue": "480000000",
+                            "maxTierValue": "600000000",
+                            "leverage": "4",
+                            "mmr": "0.125"
+                        }
+                    },
+                    {
+                        "tier": 9,
+                        "symbol": "BTC/USDT:USDT",
+                        "currency": "BTC",
+                        "minNotional": 600000000,
+                        "maxNotional": 800000000,
+                        "maintenanceMarginRate": 0.1666,
+                        "maxLeverage": 3,
+                        "info": {
+                            "tier": "9",
+                            "minTierValue": "600000000",
+                            "maxTierValue": "800000000",
+                            "leverage": "3",
+                            "mmr": "0.1666"
+                        }
+                    },
+                    {
+                        "tier": 10,
+                        "symbol": "BTC/USDT:USDT",
+                        "currency": "BTC",
+                        "minNotional": 800000000,
+                        "maxNotional": 1200000000,
+                        "maintenanceMarginRate": 0.25,
+                        "maxLeverage": 2,
+                        "info": {
+                            "tier": "10",
+                            "minTierValue": "800000000",
+                            "maxTierValue": "1200000000",
+                            "leverage": "2",
+                            "mmr": "0.25"
+                        }
+                    },
+                    {
+                        "tier": 11,
+                        "symbol": "BTC/USDT:USDT",
+                        "currency": "BTC",
+                        "minNotional": 1200000000,
+                        "maxNotional": 1800000000,
+                        "maintenanceMarginRate": 0.5,
+                        "maxLeverage": 1,
+                        "info": {
+                            "tier": "11",
+                            "minTierValue": "1200000000",
+                            "maxTierValue": "1800000000",
+                            "leverage": "1",
+                            "mmr": "0.5"
+                        }
+                    }
+                ]
+            }
         ]
     }
 }
