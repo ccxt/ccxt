@@ -90,10 +90,7 @@ func (this *Client) Resolve(data interface{}, subHash interface{}) interface{} {
 
 func (this *Client) Future(messageHash interface{}) <-chan interface{} {
     future := this.NewFuture(messageHash)
-	if _, ok := this.Rejections[messageHash.(string)]; ok {
-		return future.err
-	}
-    return future.result
+	return future.Await()
 }
 
 func (this *Client) NewFuture(messageHash interface{}) *Future {
