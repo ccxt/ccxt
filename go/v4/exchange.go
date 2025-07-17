@@ -1731,7 +1731,7 @@ func (this *Exchange) WatchMultiple(args ...interface{}) <-chan interface{} {
 				if _, exists := client.Subscriptions[hashStr]; !exists {
 					missingSubscriptions = append(missingSubscriptions, hashStr)
 					if subscription != nil {
-						client.Subscriptions[hashStr] = subscription.(chan interface{})
+						client.Subscriptions[hashStr] = subscription
 					} else {
 						client.Subscriptions[hashStr] = make(chan interface{})
 					}
