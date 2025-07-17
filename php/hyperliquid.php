@@ -159,6 +159,7 @@ class hyperliquid extends Exchange {
                                 'orderStatus' => 2,
                                 'spotClearinghouseState' => 2,
                                 'exchangeStatus' => 2,
+                                'candleSnapshot' => 3,
                             ),
                         ),
                     ),
