@@ -1621,7 +1621,10 @@ export default class woo extends Exchange {
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
         await this.loadMarkets();
-        const market = (symbol !== undefined) ? this.market(symbol) : undefined;
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+        }
         const trigger = this.safeBool2(params, 'stop', 'trigger');
         params = this.omit(params, ['stop', 'trigger']);
         const request = {};
