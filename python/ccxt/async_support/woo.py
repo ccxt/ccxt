@@ -1556,7 +1556,9 @@ class woo(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        market = self.market(symbol) if (symbol is not None) else None
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
         trigger = self.safe_bool_2(params, 'stop', 'trigger')
         params = self.omit(params, ['stop', 'trigger'])
         request: dict = {}
