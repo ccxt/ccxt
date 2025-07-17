@@ -143,8 +143,12 @@ const _decimalToPrecision = (x: any, roundingMode: number, numPrecisionDigits: a
         const newNumPrecisionDigits = precisionFromString (precisionDigitsString);
         
         if (roundingMode === TRUNCATE) {
-            const scale = Math.pow (10, Math.max (newNumPrecisionDigits, 10));
-            const xScaled = Math.round (Number(x) * scale);
+            // First, truncate the string to avoid floating-point precision issues
+            const xStr = numberToString(x);
+            const truncatedX = truncate_to_string(xStr, Math.max(0, newNumPrecisionDigits));
+            const xNum = Number(truncatedX);
+            const scale = Math.pow (10, newNumPrecisionDigits);
+            const xScaled = Math.round (xNum * scale);
             const tickScaled = Math.round (numPrecisionDigits * scale);
             const ticks = Math.trunc (xScaled / tickScaled);
             x = (ticks * tickScaled) / scale;

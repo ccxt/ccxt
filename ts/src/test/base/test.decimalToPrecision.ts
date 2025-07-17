@@ -381,6 +381,7 @@ function testDecimalToPrecision () {
 
     // https://github.com/ccxt/ccxt/issues/11765
     assert (exchange.decimalToPrecision ('123456.12345678912', TRUNCATE, 0.00000001, TICK_SIZE) === '123456.12345678');
+    // todo: not sure about below
     assert (exchange.decimalToPrecision ('123456.12345674999', TRUNCATE, 0.00000005, TICK_SIZE) === '123456.1234567');
     assert (exchange.decimalToPrecision ('123456.12345674999', TRUNCATE, 0.00000005, TICK_SIZE, PAD_WITH_ZERO) === '123456.12345670');
     assert (exchange.decimalToPrecision ('123456.12345675001', TRUNCATE, 0.00000005, TICK_SIZE) === '123456.12345675');
