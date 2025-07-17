@@ -4645,7 +4645,7 @@ func  (this *hyperliquid) CoinToMarketId(coin interface{}) interface{}  {
     if IsTrue(IsTrue(IsGreaterThan(GetIndexOf(coin, "/"), OpNeg(1))) || IsTrue(IsGreaterThan(GetIndexOf(coin, "@"), OpNeg(1)))) {
         return coin  // spot
     }
-    return Add(coin, "/USDC:USDC")
+    return Add(this.SafeCurrencyCode(coin), "/USDC:USDC")
 }
 func  (this *hyperliquid) HandleErrors(code interface{}, reason interface{}, url interface{}, method interface{}, headers interface{}, body interface{}, response interface{}, requestHeaders interface{}, requestBody interface{}) interface{}  {
     if !IsTrue(response) {
