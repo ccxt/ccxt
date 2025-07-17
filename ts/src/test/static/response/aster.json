@@ -805,7 +805,7 @@
                     "previousClose": null,
                     "change": 1969.7,
                     "percentage": 187.3,
-                    "average": 106136.4,
+                    "average": 106136,
                     "baseVolume": 8707.774,
                     "quoteVolume": 918896966.74,
                     "markPrice": null,
@@ -878,7 +878,7 @@
                         "previousClose": null,
                         "change": 1969.7,
                         "percentage": 187.3,
-                        "average": 106136.4,
+                        "average": 106136,
                         "baseVolume": 8707.774,
                         "quoteVolume": 918896966.74,
                         "markPrice": null,
@@ -1469,6 +1469,61 @@
                         "stopLossPrice": null
                     }
                 ]
+            }
+        ],
+        "fetchLeverages": [
+            {
+                "description": "fetchLeverages",
+                "method": "fetchLeverages",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "BTCUSDT",
+                        "positionAmt": "0.000",
+                        "entryPrice": "0.0",
+                        "markPrice": "0.00000000",
+                        "unRealizedProfit": "0.00000000",
+                        "liquidationPrice": "0",
+                        "leverage": "20",
+                        "maxNotionalValue": "2500000",
+                        "marginType": "cross",
+                        "isolatedMargin": "0.00000000",
+                        "isAutoAddMargin": "false",
+                        "positionSide": "BOTH",
+                        "notional": "0",
+                        "isolatedWallet": "0",
+                        "updateTime": 0
+                    }
+                ],
+                "parsedResponse": {
+                    "BTC/USDT:USDT": {
+                        "info": {
+                            "symbol": "BTCUSDT",
+                            "positionAmt": "0.000",
+                            "entryPrice": "0.0",
+                            "markPrice": "0.00000000",
+                            "unRealizedProfit": "0.00000000",
+                            "liquidationPrice": "0",
+                            "leverage": "20",
+                            "maxNotionalValue": "2500000",
+                            "marginType": "cross",
+                            "isolatedMargin": "0.00000000",
+                            "isAutoAddMargin": "false",
+                            "positionSide": "BOTH",
+                            "notional": "0",
+                            "isolatedWallet": "0",
+                            "updateTime": 0
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "marginMode": "cross",
+                        "longLeverage": 20,
+                        "shortLeverage": 20
+                    }
+                }
             }
         ]
     }

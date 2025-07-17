@@ -4,7 +4,7 @@ import Exchange from './abstract/aster.js';
 import { AccountNotEnabled, AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSymbol, DuplicateOrderId, ExchangeClosedByUser, ExchangeError, InsufficientFunds, InvalidNonce, InvalidOrder, MarketClosed, NetworkError, NoChange, NotSupported, OperationFailed, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { Balances, Currencies, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface } from './base/types.js';
+import type { Balances, Currencies, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, Leverage, Leverages, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface } from './base/types.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------xs
@@ -1883,6 +1883,85 @@ export default class aster extends Exchange {
         }
         const requestParams = this.omit (params, [ 'newClientOrderId', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'trailingDelta' ]);
         return this.extend (request, requestParams);
+    }
+
+    /**
+     * @method
+     * @name aster#fetchLeverages
+     * @description fetch the set leverage for all markets
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#position-information-v2-user_data
+     * @param {string[]} [symbols] a list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     */
+    async fetchLeverages (symbols: Strings = undefined, params = {}): Promise<Leverages> {
+        await this.loadMarkets ();
+        const response = await this.privateGetFapiV2PositionRisk (params);
+        //
+        //     [
+        //         {
+        //             "symbol": "INJUSDT",
+        //             "positionAmt": "0.0",
+        //             "entryPrice": "0.0",
+        //             "markPrice": "0.00000000",
+        //             "unRealizedProfit": "0.00000000",
+        //             "liquidationPrice": "0",
+        //             "leverage": "20",
+        //             "maxNotionalValue": "25000",
+        //             "marginType": "cross",
+        //             "isolatedMargin": "0.00000000",
+        //             "isAutoAddMargin": "false",
+        //             "positionSide": "BOTH",
+        //             "notional": "0",
+        //             "isolatedWallet": "0",
+        //             "updateTime": 0
+        //         }
+        //     ]
+        //
+        return this.parseLeverages (response, symbols, 'symbol');
+    }
+
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+        //
+        //     {
+        //         "symbol": "INJUSDT",
+        //         "positionAmt": "0.0",
+        //         "entryPrice": "0.0",
+        //         "markPrice": "0.00000000",
+        //         "unRealizedProfit": "0.00000000",
+        //         "liquidationPrice": "0",
+        //         "leverage": "20",
+        //         "maxNotionalValue": "25000",
+        //         "marginType": "cross",
+        //         "isolatedMargin": "0.00000000",
+        //         "isAutoAddMargin": "false",
+        //         "positionSide": "BOTH",
+        //         "notional": "0",
+        //         "isolatedWallet": "0",
+        //         "updateTime": 0
+        //     }
+        //
+        const marketId = this.safeString (leverage, 'symbol');
+        const marginMode = this.safeStringLower (leverage, 'marginType');
+        const side = this.safeStringLower (leverage, 'positionSide');
+        let longLeverage = undefined;
+        let shortLeverage = undefined;
+        const leverageValue = this.safeInteger (leverage, 'leverage');
+        if ((side === undefined) || (side === 'both')) {
+            longLeverage = leverageValue;
+            shortLeverage = leverageValue;
+        } else if (side === 'long') {
+            longLeverage = leverageValue;
+        } else if (side === 'short') {
+            shortLeverage = leverageValue;
+        }
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol (marketId, market),
+            'marginMode': marginMode,
+            'longLeverage': longLeverage,
+            'shortLeverage': shortLeverage,
+        } as Leverage;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
