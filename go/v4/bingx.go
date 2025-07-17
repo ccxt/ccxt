@@ -4965,7 +4965,7 @@ func  (this *bingx) Transfer(code interface{}, amount interface{}, fromAccount i
                 "amount": this.CurrencyToPrecision(code, amount),
             }
         
-            response:= (<-this.ApiAssetV1PrivatePostTransfer(this.Extend(request, params)))
+            response:= (<-this.callDynamically("apiAssetV1PrivatePostTransfer", this.Extend(request, params)))
             PanicOnError(response)
         
                 //
@@ -5062,7 +5062,7 @@ func  (this *bingx) FetchTransfers(optionalArgs ...interface{}) <- chan interfac
             request = GetValue(requestparamsVariable,0);
             params = GetValue(requestparamsVariable,1)
         
-            response:= (<-this.ApiV3PrivateGetAssetTransferRecord(this.Extend(request, params)))
+            response:= (<-this.callDynamically("apiV3PrivateGetAssetTransferRecord", this.Extend(request, params)))
             PanicOnError(response)
             //
             //     {
