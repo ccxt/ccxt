@@ -2776,16 +2776,16 @@ class phemex extends Exchange {
                     $triggerDirection = null;
                     list($triggerDirection, $params) = $this->handle_param_string($params, 'triggerDirection');
                     if ($triggerDirection === null) {
-                        throw new ArgumentsRequired($this->id . " createOrder() also requires a 'triggerDirection' parameter with either 'up' or 'down' value");
+                        throw new ArgumentsRequired($this->id . " createOrder() also requires a 'triggerDirection' parameter with either 'ascending' or 'descending' value");
                     }
                     // the flow defined per https://phemex-docs.github.io/#more-order-$type-examples
-                    if ($triggerDirection === 'up') {
+                    if ($triggerDirection === 'ascending' || $triggerDirection === 'up') {
                         if ($side === 'sell') {
                             $request['ordType'] = ($type === 'Market') ? 'MarketIfTouched' : 'LimitIfTouched';
                         } elseif ($side === 'buy') {
                             $request['ordType'] = ($type === 'Market') ? 'Stop' : 'StopLimit';
                         }
-                    } elseif ($triggerDirection === 'down') {
+                    } elseif ($triggerDirection === 'descending' || $triggerDirection === 'down') {
                         if ($side === 'sell') {
                             $request['ordType'] = ($type === 'Market') ? 'Stop' : 'StopLimit';
                         } elseif ($side === 'buy') {
@@ -3535,6 +3535,7 @@ class phemex extends Exchange {
              * fetch the deposit $address for a $currency associated with this account
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->network] the chain name to fetch the deposit $address e.g. ETH, TRX, EOS, SOL, etc.
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
              */
             Async\await($this->load_markets());
@@ -3545,10 +3546,10 @@ class phemex extends Exchange {
             $defaultNetworks = $this->safe_dict($this->options, 'defaultNetworks');
             $defaultNetwork = $this->safe_string_upper($defaultNetworks, $code);
             $networks = $this->safe_dict($this->options, 'networks', array());
-            $network = $this->safe_string_upper($params, 'network', $defaultNetwork);
+            $network = $this->safe_string_upper_2($params, 'network', 'chainName', $defaultNetwork);
             $network = $this->safe_string($networks, $network, $network);
             if ($network === null) {
-                $request['chainName'] = $currency['id'];
+                throw new ArgumentsRequired($this->id . ' fetchDepositAddress() requires a $network parameter');
             } else {
                 $request['chainName'] = $network;
                 $params = $this->omit($params, 'network');

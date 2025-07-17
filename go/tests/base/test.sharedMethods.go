@@ -582,6 +582,16 @@ import "github.com/ccxt/ccxt/go/v4"
             return
         }
     }
+    func GetActiveMarkets(exchange ccxt.IExchange, optionalArgs ...interface{}) interface{}  {
+        includeUnknown := GetArg(optionalArgs, 0, true)
+        _ = includeUnknown
+        var filteredActive interface{} = exchange.FilterBy(exchange.GetMarkets(), "active", true)
+        if IsTrue(includeUnknown) {
+            var filteredUndefined interface{} = exchange.FilterBy(exchange.GetMarkets(), "active", nil)
+            return exchange.ArrayConcat(filteredActive, filteredUndefined)
+        }
+        return filteredActive
+    }
     func RemoveProxyOptions(exchange ccxt.IExchange, skippedProperties interface{}) interface{}  {
         var proxyUrl interface{} = exchange.CheckProxyUrlSettings()
         httpProxyhttpsProxysocksProxyVariable := exchange.CheckProxySettings();

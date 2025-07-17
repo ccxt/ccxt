@@ -2658,14 +2658,14 @@ class phemex(Exchange, ImplicitAPI):
                 triggerDirection = None
                 triggerDirection, params = self.handle_param_string(params, 'triggerDirection')
                 if triggerDirection is None:
-                    raise ArgumentsRequired(self.id + " createOrder() also requires a 'triggerDirection' parameter with either 'up' or 'down' value")
+                    raise ArgumentsRequired(self.id + " createOrder() also requires a 'triggerDirection' parameter with either 'ascending' or 'descending' value")
                 # the flow defined per https://phemex-docs.github.io/#more-order-type-examples
-                if triggerDirection == 'up':
+                if triggerDirection == 'ascending' or triggerDirection == 'up':
                     if side == 'sell':
                         request['ordType'] = 'MarketIfTouched' if (type == 'Market') else 'LimitIfTouched'
                     elif side == 'buy':
                         request['ordType'] = 'Stop' if (type == 'Market') else 'StopLimit'
-                elif triggerDirection == 'down':
+                elif triggerDirection == 'descending' or triggerDirection == 'down':
                     if side == 'sell':
                         request['ordType'] = 'Stop' if (type == 'Market') else 'StopLimit'
                     elif side == 'buy':
@@ -3322,6 +3322,7 @@ class phemex(Exchange, ImplicitAPI):
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.network]: the chain name to fetch the deposit address e.g. ETH, TRX, EOS, SOL, etc.
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         self.load_markets()
@@ -3332,10 +3333,10 @@ class phemex(Exchange, ImplicitAPI):
         defaultNetworks = self.safe_dict(self.options, 'defaultNetworks')
         defaultNetwork = self.safe_string_upper(defaultNetworks, code)
         networks = self.safe_dict(self.options, 'networks', {})
-        network = self.safe_string_upper(params, 'network', defaultNetwork)
+        network = self.safe_string_upper_2(params, 'network', 'chainName', defaultNetwork)
         network = self.safe_string(networks, network, network)
         if network is None:
-            request['chainName'] = currency['id']
+            raise ArgumentsRequired(self.id + ' fetchDepositAddress() requires a network parameter')
         else:
             request['chainName'] = network
             params = self.omit(params, 'network')

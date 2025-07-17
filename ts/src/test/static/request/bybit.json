@@ -18,6 +18,23 @@
         ],
         "createOrder": [
             {
+                "description": "spot stopLossPrice order",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/order/create",
+                "input": [
+                    "LTC/USDT",
+                    "market",
+                    "sell",
+                    0.2,
+                    null,
+                    {
+                        "reduceOnly": true,
+                        "stopLossPrice": 90
+                    }
+                ],
+                "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Sell\",\"orderType\":\"Market\",\"orderFilter\":\"tpslOrder\",\"category\":\"spot\",\"marketUnit\":\"baseCoin\",\"qty\":\"0.2\",\"triggerDirection\":2,\"triggerPrice\":\"90\",\"reduceOnly\":true}"
+            },
+            {
                 "description": "spot market buy order",
                 "method": "createOrder",
                 "url": "https://api-testnet.bybit.com/v5/order/create",
@@ -534,6 +551,16 @@
             }
         ],
         "createMarketBuyOrderWithCost": [
+            {
+                "description": "order with cost, using a decimal amount",
+                "method": "createMarketBuyOrderWithCost",
+                "url": "https://api.bybit.com/v5/order/create",
+                "input": [
+                    "DOGE/USDT",
+                    12.45
+                ],
+                "output": "{\"symbol\":\"DOGEUSDT\",\"side\":\"Buy\",\"orderType\":\"Market\",\"category\":\"spot\",\"qty\":\"12.45\"}"
+            },
             {
                 "description": "Spot market buy with createMarketBuyOrderWithCost",
                 "method": "createMarketBuyOrderWithCost",
@@ -1629,6 +1656,21 @@
                 "url": "https://api-testnet.bybit.com/v5/market/open-interest?symbol=BTCUSD&intervalTime=1h&category=inverse",
                 "input": [
                   "BTC/USD:BTC"
+                ]
+            }
+        ],
+        "fetchAllGreeks": [
+            {
+                "description": "fetch all greeks with a single symbol argument and baseCoin parameter",
+                "method": "fetchAllGreeks",
+                "url": "https://api-testnet.bybit.com/v5/market/tickers?category=option&baseCoin=BTC&symbol=BTC-30MAY25-70000-C-USDT",
+                "input": [
+                    [
+                        "BTC/USDT:USDT-250530-70000-C"
+                    ],
+                    {
+                        "baseCoin": "BTC"
+                    }
                 ]
             }
         ]

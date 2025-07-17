@@ -4731,7 +4731,7 @@
         ],
         "fetchTickers": [
             {
-                "description": "fetch tickers",
+                "description": "with symbol",
                 "method": "fetchTickers",
                 "input": [
                     [
@@ -4743,10 +4743,10 @@
                         "ticker_id": "ETH-PERP_USDC",
                         "base_currency": "ETH-PERP",
                         "quote_currency": "USDC",
-                        "last_price": 3806.4,
-                        "base_volume": 30851.79,
-                        "quote_volume": "117809333.88248695",
-                        "price_change_percent_24h": -1.153435031837553
+                        "last_price": "2584.4",
+                        "base_volume": "8537.68",
+                        "quote_volume": "22213446.163605437",
+                        "price_change_percent_24h": "0.5619659915447128"
                     }
                 },
                 "parsedResponse": {
@@ -4760,27 +4760,27 @@
                         "bidVolume": null,
                         "ask": null,
                         "askVolume": null,
-                        "vwap": 3818.557493179065,
-                        "open": null,
-                        "close": 3806.4,
-                        "last": 3806.4,
+                        "vwap": 2601.8129238394313,
+                        "open": 2569.957711663371,
+                        "close": 2584.4,
+                        "last": 2584.4,
                         "previousClose": null,
-                        "change": null,
-                        "percentage": -1.153435031837553,
-                        "average": null,
-                        "baseVolume": 30851.79,
-                        "quoteVolume": 117809333.88248695,
-                        "markPrice":  null,
-                        "indexPrice": null,
+                        "change": 14.442288336628875,
+                        "percentage": 0.5619659915447128,
+                        "average": 2577.1788558316857,
+                        "baseVolume": 8537.68,
+                        "quoteVolume": 22213446.163605437,
                         "info": {
                             "ticker_id": "ETH-PERP_USDC",
                             "base_currency": "ETH-PERP",
                             "quote_currency": "USDC",
-                            "last_price": 3806.4,
-                            "base_volume": 30851.79,
-                            "quote_volume": "117809333.88248695",
-                            "price_change_percent_24h": -1.153435031837553
-                        }
+                            "last_price": "2584.4",
+                            "base_volume": "8537.68",
+                            "quote_volume": "22213446.163605437",
+                            "price_change_percent_24h": "0.5619659915447128"
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
                     }
                 }
             }

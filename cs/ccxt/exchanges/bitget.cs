@@ -166,6 +166,7 @@ public partial class bitget : Exchange
                     { "convert", "https://api.{hostname}" },
                     { "copy", "https://api.{hostname}" },
                     { "earn", "https://api.{hostname}" },
+                    { "uta", "https://api.{hostname}" },
                 } },
                 { "www", "https://www.bitget.com" },
                 { "doc", new List<object>() {"https://www.bitget.com/api-doc/common/intro", "https://www.bitget.com/api-doc/spot/intro", "https://www.bitget.com/api-doc/contract/intro", "https://www.bitget.com/api-doc/broker/intro", "https://www.bitget.com/api-doc/margin/intro", "https://www.bitget.com/api-doc/copytrading/intro", "https://www.bitget.com/api-doc/earn/intro", "https://bitgetlimited.github.io/apidoc/en/mix", "https://bitgetlimited.github.io/apidoc/en/spot", "https://bitgetlimited.github.io/apidoc/en/broker", "https://bitgetlimited.github.io/apidoc/en/margin"} },
@@ -268,6 +269,24 @@ public partial class bitget : Exchange
                         { "get", new Dictionary<string, object>() {
                             { "v2/earn/loan/public/coinInfos", 2 },
                             { "v2/earn/loan/public/hour-interest", 2 },
+                        } },
+                    } },
+                    { "uta", new Dictionary<string, object>() {
+                        { "get", new Dictionary<string, object>() {
+                            { "v3/market/instruments", 1 },
+                            { "v3/market/tickers", 1 },
+                            { "v3/market/orderbook", 1 },
+                            { "v3/market/fills", 1 },
+                            { "v3/market/open-interest", 1 },
+                            { "v3/market/candles", 1 },
+                            { "v3/market/history-candles", 1 },
+                            { "v3/market/current-fund-rate", 1 },
+                            { "v3/market/history-fund-rate", 1 },
+                            { "v3/market/risk-reserve", 1 },
+                            { "v3/market/discount-rate", 1 },
+                            { "v3/market/margin-loans", 1 },
+                            { "v3/market/position-tier", 1 },
+                            { "v3/market/oi-limit", 2 },
                         } },
                     } },
                 } },
@@ -761,6 +780,56 @@ public partial class bitget : Exchange
                     { "common", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
                             { "v2/common/trade-rate", 2 },
+                        } },
+                    } },
+                    { "uta", new Dictionary<string, object>() {
+                        { "get", new Dictionary<string, object>() {
+                            { "v3/account/assets", 1 },
+                            { "v3/account/settings", 1 },
+                            { "v3/account/financial-records", 1 },
+                            { "v3/account/repayable-coins", 2 },
+                            { "v3/account/payment-coins", 2 },
+                            { "v3/account/convert-records", 1 },
+                            { "v3/account/transferable-coins", 2 },
+                            { "v3/account/sub-transfer-record", 4 },
+                            { "v3/ins-loan/transfered", 6.6667 },
+                            { "v3/ins-loan/symbols", 6.6667 },
+                            { "v3/ins-loan/risk-unit", 6.6667 },
+                            { "v3/ins-loan/repaid-history", 6.6667 },
+                            { "v3/ins-loan/product-infos", 6.6667 },
+                            { "v3/ins-loan/loan-order", 6.6667 },
+                            { "v3/ins-loan/ltv-convert", 6.6667 },
+                            { "v3/ins-loan/ensure-coins-convert", 6.6667 },
+                            { "v3/position/current-position", 1 },
+                            { "v3/position/history-position", 1 },
+                            { "v3/trade/order-info", 1 },
+                            { "v3/trade/unfilled-orders", 1 },
+                            { "v3/trade/history-orders", 1 },
+                            { "v3/trade/fills", 1 },
+                            { "v3/user/sub-list", 2 },
+                            { "v3/user/sub-api-list", 2 },
+                        } },
+                        { "post", new Dictionary<string, object>() {
+                            { "v3/account/set-leverage", 2 },
+                            { "v3/account/set-hold-mode", 2 },
+                            { "v3/account/repay", 4 },
+                            { "v3/account/transfer", 4 },
+                            { "v3/account/sub-transfer", 4 },
+                            { "v3/account/max-open-available", 4 },
+                            { "v3/ins-loan/bind-uid", 6.6667 },
+                            { "v3/trade/place-order", 2 },
+                            { "v3/trade/modify-order", 2 },
+                            { "v3/trade/cancel-order", 2 },
+                            { "v3/trade/place-batch", 4 },
+                            { "v3/trade/batch-modify-order", 2 },
+                            { "v3/trade/cancel-batch", 4 },
+                            { "v3/trade/cancel-symbol-order", 4 },
+                            { "v3/trade/close-positions", 4 },
+                            { "v3/user/create-sub", 2 },
+                            { "v3/user/freeze-sub", 2 },
+                            { "v3/user/create-sub-api", 2 },
+                            { "v3/user/update-sub-api", 2 },
+                            { "v3/user/delete-sub-api", 2 },
                         } },
                     } },
                 } },
@@ -1286,6 +1355,7 @@ public partial class bitget : Exchange
                 { "TONCOIN", "TON" },
             } },
             { "options", new Dictionary<string, object>() {
+                { "uta", false },
                 { "timeDifference", 0 },
                 { "adjustForTimeDifference", false },
                 { "timeframes", new Dictionary<string, object>() {
@@ -1320,7 +1390,9 @@ public partial class bitget : Exchange
                         { "1M", "1Mutc" },
                     } },
                 } },
-                { "fetchMarkets", new List<object>() {"spot", "swap"} },
+                { "fetchMarkets", new Dictionary<string, object>() {
+                    { "types", new List<object>() {"spot", "swap"} },
+                } },
                 { "defaultType", "spot" },
                 { "defaultSubType", "linear" },
                 { "createMarketBuyOrderRequiresPrice", true },
@@ -1706,7 +1778,9 @@ public partial class bitget : Exchange
      * @see https://www.bitget.com/api-doc/spot/market/Get-Symbols
      * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbols-Contracts
      * @see https://www.bitget.com/api-doc/margin/common/support-currencies
+     * @see https://www.bitget.bike/api-doc/uta/public/Instruments
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.uta] set to true to fetch markets for the unified trading account (uta), defaults to false
      * @returns {object[]} an array of objects representing market data
      */
     public async override Task<object> fetchMarkets(object parameters = null)
@@ -1716,7 +1790,32 @@ public partial class bitget : Exchange
         {
             await this.loadTimeDifference();
         }
-        object types = this.safeValue(this.options, "fetchMarkets", new List<object>() {"spot", "swap"});
+        object uta = null;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchMarkets", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        if (isTrue(uta))
+        {
+            return await this.fetchUtaMarkets(parameters);
+        } else
+        {
+            return await this.fetchDefaultMarkets(parameters);
+        }
+    }
+
+    public async virtual Task<object> fetchDefaultMarkets(object parameters)
+    {
+        object types = null;
+        object fetchMarketsOptions = this.safeDict(this.options, "fetchMarkets");
+        object defaultMarkets = new List<object>() {"spot", "swap"};
+        if (isTrue(!isEqual(fetchMarketsOptions, null)))
+        {
+            types = this.safeList(fetchMarketsOptions, "types", defaultMarkets);
+        } else
+        {
+            // for backward-compatibility
+            types = this.safeList(this.options, "fetchMarkets", defaultMarkets);
+        }
         object promises = new List<object>() {};
         object fetchMargins = false;
         for (object i = 0; isLessThan(i, getArrayLength(types)); postFixIncrement(ref i))
@@ -1761,16 +1860,6 @@ public partial class bitget : Exchange
                 markets = this.arrayConcat(markets, data);
             }
         }
-        object result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
-        {
-            ((IList<object>)result).Add(this.parseMarket(getValue(markets, i)));
-        }
-        return result;
-    }
-
-    public override object parseMarket(object market)
-    {
         //
         // spot
         //
@@ -1828,160 +1917,428 @@ public partial class bitget : Exchange
         //         "maintainTime": ""
         //     }
         //
-        object marketId = this.safeString(market, "symbol");
-        object quoteId = this.safeString(market, "quoteCoin");
-        object baseId = this.safeString(market, "baseCoin");
-        object quote = this.safeCurrencyCode(quoteId);
-        object bs = this.safeCurrencyCode(baseId);
-        object supportMarginCoins = this.safeValue(market, "supportMarginCoins", new List<object>() {});
-        object settleId = null;
-        if (isTrue(this.inArray(baseId, supportMarginCoins)))
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
-            settleId = baseId;
-        } else if (isTrue(this.inArray(quoteId, supportMarginCoins)))
-        {
-            settleId = quoteId;
-        } else
-        {
-            settleId = this.safeString(supportMarginCoins, 0);
+            object market = getValue(markets, i);
+            object marketId = this.safeString(market, "symbol");
+            object quoteId = this.safeString(market, "quoteCoin");
+            object baseId = this.safeString(market, "baseCoin");
+            object quote = this.safeCurrencyCode(quoteId);
+            object bs = this.safeCurrencyCode(baseId);
+            object supportMarginCoins = this.safeValue(market, "supportMarginCoins", new List<object>() {});
+            object settleId = null;
+            if (isTrue(this.inArray(baseId, supportMarginCoins)))
+            {
+                settleId = baseId;
+            } else if (isTrue(this.inArray(quoteId, supportMarginCoins)))
+            {
+                settleId = quoteId;
+            } else
+            {
+                settleId = this.safeString(supportMarginCoins, 0);
+            }
+            object settle = this.safeCurrencyCode(settleId);
+            object symbol = add(add(bs, "/"), quote);
+            object type = null;
+            object swap = false;
+            object spot = false;
+            object future = false;
+            object contract = false;
+            object pricePrecision = null;
+            object amountPrecision = null;
+            object linear = null;
+            object inverse = null;
+            object expiry = null;
+            object expiryDatetime = null;
+            object symbolType = this.safeString(market, "symbolType");
+            object marginModes = null;
+            object isMarginTradingAllowed = false;
+            if (isTrue(isEqual(symbolType, null)))
+            {
+                type = "spot";
+                spot = true;
+                pricePrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "pricePrecision")));
+                amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "quantityPrecision")));
+                object hasCrossMargin = this.inArray(marketId, getValue(this.options, "crossMarginPairsData"));
+                object hasIsolatedMargin = this.inArray(marketId, getValue(this.options, "isolatedMarginPairsData"));
+                marginModes = new Dictionary<string, object>() {
+                    { "cross", hasCrossMargin },
+                    { "isolated", hasIsolatedMargin },
+                };
+                isMarginTradingAllowed = isTrue(hasCrossMargin) || isTrue(hasIsolatedMargin);
+            } else
+            {
+                if (isTrue(isEqual(symbolType, "perpetual")))
+                {
+                    type = "swap";
+                    swap = true;
+                    symbol = add(add(symbol, ":"), settle);
+                } else if (isTrue(isEqual(symbolType, "delivery")))
+                {
+                    expiry = this.safeInteger(market, "deliveryTime");
+                    expiryDatetime = this.iso8601(expiry);
+                    object expiryParts = ((string)expiryDatetime).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+                    object yearPart = this.safeString(expiryParts, 0);
+                    object dayPart = this.safeString(expiryParts, 2);
+                    object year = slice(yearPart, 2, 4);
+                    object month = this.safeString(expiryParts, 1);
+                    object day = slice(dayPart, 0, 2);
+                    object expiryString = add(add(year, month), day);
+                    type = "future";
+                    future = true;
+                    symbol = add(add(add(add(symbol, ":"), settle), "-"), expiryString);
+                }
+                contract = true;
+                inverse = (isEqual(bs, settle));
+                linear = !isTrue(inverse);
+                object priceDecimals = this.safeInteger(market, "pricePlace");
+                object amountDecimals = this.safeInteger(market, "volumePlace");
+                object priceStep = this.safeString(market, "priceEndStep");
+                object amountStep = this.safeString(market, "sizeMultiplier");
+                var precise = new Precise(priceStep);
+                precise.decimals = mathMax(precise.decimals, priceDecimals);
+                precise.reduce();
+                object priceString = ((object)precise).ToString();
+                pricePrecision = this.parseNumber(priceString);
+                var preciseAmount = new Precise(amountStep);
+                preciseAmount.decimals = mathMax(preciseAmount.decimals, amountDecimals);
+                preciseAmount.reduce();
+                object amountString = ((object)preciseAmount).ToString();
+                amountPrecision = this.parseNumber(amountString);
+                marginModes = new Dictionary<string, object>() {
+                    { "cross", true },
+                    { "isolated", true },
+                };
+            }
+            object status = this.safeString2(market, "status", "symbolStatus");
+            object active = null;
+            if (isTrue(!isEqual(status, null)))
+            {
+                active = (isTrue((isEqual(status, "online"))) || isTrue((isEqual(status, "normal"))));
+            }
+            object minCost = null;
+            if (isTrue(isEqual(quote, "USDT")))
+            {
+                minCost = this.safeNumber(market, "minTradeUSDT");
+            }
+            object contractSize = ((bool) isTrue(contract)) ? 1 : null;
+            ((IList<object>)result).Add(this.safeMarketStructure(new Dictionary<string, object>() {
+                { "id", marketId },
+                { "symbol", symbol },
+                { "base", bs },
+                { "quote", quote },
+                { "settle", settle },
+                { "baseId", baseId },
+                { "quoteId", quoteId },
+                { "settleId", settleId },
+                { "type", type },
+                { "spot", spot },
+                { "margin", isTrue(spot) && isTrue(isMarginTradingAllowed) },
+                { "marginModes", marginModes },
+                { "swap", swap },
+                { "future", future },
+                { "option", false },
+                { "active", active },
+                { "contract", contract },
+                { "linear", linear },
+                { "inverse", inverse },
+                { "taker", this.safeNumber(market, "takerFeeRate") },
+                { "maker", this.safeNumber(market, "makerFeeRate") },
+                { "contractSize", contractSize },
+                { "expiry", expiry },
+                { "expiryDatetime", expiryDatetime },
+                { "strike", null },
+                { "optionType", null },
+                { "precision", new Dictionary<string, object>() {
+                    { "amount", amountPrecision },
+                    { "price", pricePrecision },
+                } },
+                { "limits", new Dictionary<string, object>() {
+                    { "leverage", new Dictionary<string, object>() {
+                        { "min", this.safeNumber(market, "minLever") },
+                        { "max", this.safeNumber(market, "maxLever") },
+                    } },
+                    { "amount", new Dictionary<string, object>() {
+                        { "min", this.safeNumber2(market, "minTradeNum", "minTradeAmount") },
+                        { "max", this.safeNumber(market, "maxTradeAmount") },
+                    } },
+                    { "price", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                    { "cost", new Dictionary<string, object>() {
+                        { "min", minCost },
+                        { "max", null },
+                    } },
+                } },
+                { "created", this.safeInteger(market, "launchTime") },
+                { "info", market },
+            }));
         }
-        object settle = this.safeCurrencyCode(settleId);
-        object symbol = add(add(bs, "/"), quote);
-        object type = null;
-        object swap = false;
-        object spot = false;
-        object future = false;
-        object contract = false;
-        object pricePrecision = null;
-        object amountPrecision = null;
-        object linear = null;
-        object inverse = null;
-        object expiry = null;
-        object expiryDatetime = null;
-        object symbolType = this.safeString(market, "symbolType");
-        object marginModes = null;
-        object isMarginTradingAllowed = false;
-        if (isTrue(isEqual(symbolType, null)))
+        return result;
+    }
+
+    public async virtual Task<object> fetchUtaMarkets(object parameters)
+    {
+        object subTypes = new List<object>() {"SPOT", "USDT-FUTURES", "COIN-FUTURES", "USDC-FUTURES"};
+        object promises = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(subTypes)); postFixIncrement(ref i))
         {
-            type = "spot";
-            spot = true;
+            object req = this.extend(parameters, new Dictionary<string, object>() {
+                { "category", getValue(subTypes, i) },
+            });
+            ((IList<object>)promises).Add(this.publicUtaGetV3MarketInstruments(req));
+        }
+        object results = await promiseAll(promises);
+        object markets = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(results)); postFixIncrement(ref i))
+        {
+            object res = this.safeDict(results, i);
+            object data = this.safeList(res, "data", new List<object>() {});
+            markets = this.arrayConcat(markets, data);
+        }
+        //
+        // spot uta
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "category": "SPOT",
+        //         "baseCoin": "BTC",
+        //         "quoteCoin": "USDT",
+        //         "buyLimitPriceRatio": "0.05",
+        //         "sellLimitPriceRatio": "0.05",
+        //         "minOrderQty": "0.000001",
+        //         "maxOrderQty": "0",
+        //         "pricePrecision": "2",
+        //         "quantityPrecision": "6",
+        //         "quotePrecision": "8",
+        //         "minOrderAmount": "1",
+        //         "maxSymbolOrderNum": "400",
+        //         "maxProductOrderNum": "400",
+        //         "status": "online",
+        //         "maintainTime": ""
+        //     }
+        //
+        // margin uta
+        //
+        //     {
+        //         "symbol": "BTCUSDC",
+        //         "category": "MARGIN",
+        //         "baseCoin": "BTC",
+        //         "quoteCoin": "USDC",
+        //         "buyLimitPriceRatio": "0.05",
+        //         "sellLimitPriceRatio": "0.05",
+        //         "minOrderQty": "0.00001",
+        //         "maxOrderQty": "0",
+        //         "pricePrecision": "2",
+        //         "quantityPrecision": "5",
+        //         "quotePrecision": "7",
+        //         "minOrderAmount": "1",
+        //         "maxSymbolOrderNum": "400",
+        //         "maxProductOrderNum": "400",
+        //         "status": "online",
+        //         "maintainTime": "",
+        //         "isIsolatedBaseBorrowable": "NO",
+        //         "isIsolatedQuotedBorrowable": "NO",
+        //         "warningRiskRatio": "0.8",
+        //         "liquidationRiskRatio": "1",
+        //         "maxCrossedLeverage": "3",
+        //         "maxIsolatedLeverage": "0",
+        //         "userMinBorrow": "0.00000001",
+        //         "areaSymbol": "no"
+        //     }
+        //
+        // swap and future uta
+        //
+        //     {
+        //         "symbol": "BTCPERP",
+        //         "category": "USDC-FUTURES",
+        //         "baseCoin": "BTC",
+        //         "quoteCoin": "USDC",
+        //         "buyLimitPriceRatio": "0.02",
+        //         "sellLimitPriceRatio": "0.02",
+        //         "feeRateUpRatio": "0.005",
+        //         "makerFeeRate": "0.0002",
+        //         "takerFeeRate": "0.0006",
+        //         "openCostUpRatio": "0.01",
+        //         "minOrderQty": "0.0001",
+        //         "maxOrderQty": "",
+        //         "pricePrecision": "1",
+        //         "quantityPrecision": "4",
+        //         "quotePrecision": null,
+        //         "priceMultiplier": "0.5",
+        //         "quantityMultiplier": "0.0001",
+        //         "type": "perpetual",
+        //         "minOrderAmount": "5",
+        //         "maxSymbolOrderNum": "200",
+        //         "maxProductOrderNum": "1000",
+        //         "maxPositionNum": "150",
+        //         "status": "online",
+        //         "offTime": "-1",
+        //         "limitOpenTime": "-1",
+        //         "deliveryTime": "",
+        //         "deliveryStartTime": "",
+        //         "deliveryPeriod": "",
+        //         "launchTime": "",
+        //         "fundInterval": "8",
+        //         "minLeverage": "1",
+        //         "maxLeverage": "125",
+        //         "maintainTime": ""
+        //     }
+        //
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
+        {
+            object market = getValue(markets, i);
+            object category = this.safeString(market, "category");
+            object marketId = this.safeString(market, "symbol");
+            object quoteId = this.safeString(market, "quoteCoin");
+            object baseId = this.safeString(market, "baseCoin");
+            object quote = this.safeCurrencyCode(quoteId);
+            object bs = this.safeCurrencyCode(baseId);
+            object settleId = null;
+            object settle = null;
+            if (isTrue(isEqual(category, "USDT-FUTURES")))
+            {
+                settleId = "USDT";
+            } else if (isTrue(isEqual(category, "USDC-FUTURES")))
+            {
+                settleId = "USDC";
+            } else if (isTrue(isEqual(category, "COIN-FUTURES")))
+            {
+                settleId = bs;
+            }
+            if (isTrue(!isEqual(settleId, null)))
+            {
+                settle = this.safeCurrencyCode(settleId);
+            }
+            object symbol = add(add(bs, "/"), quote);
+            object type = null;
+            object swap = false;
+            object spot = false;
+            object future = false;
+            object contract = false;
+            object pricePrecision = null;
+            object amountPrecision = null;
+            object linear = null;
+            object inverse = null;
+            object expiry = null;
+            object expiryDatetime = null;
+            object symbolType = this.safeString(market, "type");
+            object marginModes = null;
+            object isMarginTradingAllowed = false;
+            object isUtaMargin = (isEqual(category, "MARGIN"));
+            if (isTrue(isTrue(isUtaMargin) || isTrue((isEqual(category, "SPOT")))))
+            {
+                type = "spot";
+                spot = true;
+                if (isTrue(isUtaMargin))
+                {
+                    object isolatedBase = this.safeString(market, "isIsolatedBaseBorrowable");
+                    object isolatedQuote = this.safeString(market, "isIsolatedQuotedBorrowable");
+                    object isolated = isTrue((isEqual(isolatedBase, "YES"))) || isTrue((isEqual(isolatedQuote, "YES")));
+                    object maxCrossLeverage = this.safeString(market, "maxCrossedLeverage");
+                    object cross = (!isEqual(maxCrossLeverage, "0"));
+                    marginModes = new Dictionary<string, object>() {
+                        { "cross", cross },
+                        { "isolated", isolated },
+                    };
+                    isMarginTradingAllowed = true;
+                }
+            } else
+            {
+                if (isTrue(isEqual(symbolType, "perpetual")))
+                {
+                    type = "swap";
+                    swap = true;
+                    symbol = add(add(symbol, ":"), settle);
+                } else if (isTrue(isEqual(symbolType, "delivery")))
+                {
+                    expiry = this.safeInteger(market, "deliveryTime");
+                    expiryDatetime = this.iso8601(expiry);
+                    object expiryParts = ((string)expiryDatetime).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+                    object yearPart = this.safeString(expiryParts, 0);
+                    object dayPart = this.safeString(expiryParts, 2);
+                    object year = slice(yearPart, 2, 4);
+                    object month = this.safeString(expiryParts, 1);
+                    object day = slice(dayPart, 0, 2);
+                    object expiryString = add(add(year, month), day);
+                    type = "future";
+                    future = true;
+                    symbol = add(add(add(add(symbol, ":"), settle), "-"), expiryString);
+                }
+                contract = true;
+                inverse = (isEqual(bs, settle));
+                linear = !isTrue(inverse);
+                marginModes = new Dictionary<string, object>() {
+                    { "cross", true },
+                    { "isolated", true },
+                };
+            }
             pricePrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "pricePrecision")));
             amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "quantityPrecision")));
-            object hasCrossMargin = this.inArray(marketId, getValue(this.options, "crossMarginPairsData"));
-            object hasIsolatedMargin = this.inArray(marketId, getValue(this.options, "isolatedMarginPairsData"));
-            marginModes = new Dictionary<string, object>() {
-                { "cross", hasCrossMargin },
-                { "isolated", hasIsolatedMargin },
-            };
-            isMarginTradingAllowed = isTrue(hasCrossMargin) || isTrue(hasCrossMargin);
-        } else
-        {
-            if (isTrue(isEqual(symbolType, "perpetual")))
+            object status = this.safeString(market, "status");
+            object active = null;
+            if (isTrue(!isEqual(status, null)))
             {
-                type = "swap";
-                swap = true;
-                symbol = add(add(symbol, ":"), settle);
-            } else if (isTrue(isEqual(symbolType, "delivery")))
-            {
-                expiry = this.safeInteger(market, "deliveryTime");
-                expiryDatetime = this.iso8601(expiry);
-                object expiryParts = ((string)expiryDatetime).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
-                object yearPart = this.safeString(expiryParts, 0);
-                object dayPart = this.safeString(expiryParts, 2);
-                object year = slice(yearPart, 2, 4);
-                object month = this.safeString(expiryParts, 1);
-                object day = slice(dayPart, 0, 2);
-                object expiryString = add(add(year, month), day);
-                type = "future";
-                future = true;
-                symbol = add(add(add(add(symbol, ":"), settle), "-"), expiryString);
+                active = (isTrue((isEqual(status, "online"))) || isTrue((isEqual(status, "normal"))));
             }
-            contract = true;
-            inverse = (isEqual(bs, settle));
-            linear = !isTrue(inverse);
-            object priceDecimals = this.safeInteger(market, "pricePlace");
-            object amountDecimals = this.safeInteger(market, "volumePlace");
-            object priceStep = this.safeString(market, "priceEndStep");
-            object amountStep = this.safeString(market, "sizeMultiplier");
-            var precise = new Precise(priceStep);
-            precise.decimals = mathMax(precise.decimals, priceDecimals);
-            precise.reduce();
-            object priceString = ((object)precise).ToString();
-            pricePrecision = this.parseNumber(priceString);
-            var preciseAmount = new Precise(amountStep);
-            preciseAmount.decimals = mathMax(preciseAmount.decimals, amountDecimals);
-            preciseAmount.reduce();
-            object amountString = ((object)preciseAmount).ToString();
-            amountPrecision = this.parseNumber(amountString);
-            marginModes = new Dictionary<string, object>() {
-                { "cross", true },
-                { "isolated", true },
-            };
+            object contractSize = ((bool) isTrue(contract)) ? 1 : null;
+            ((IList<object>)result).Add(this.safeMarketStructure(new Dictionary<string, object>() {
+                { "id", marketId },
+                { "symbol", symbol },
+                { "base", bs },
+                { "quote", quote },
+                { "settle", settle },
+                { "baseId", baseId },
+                { "quoteId", quoteId },
+                { "settleId", settleId },
+                { "type", type },
+                { "spot", spot },
+                { "margin", isTrue(spot) && isTrue(isMarginTradingAllowed) },
+                { "marginModes", marginModes },
+                { "swap", swap },
+                { "future", future },
+                { "option", false },
+                { "active", active },
+                { "contract", contract },
+                { "linear", linear },
+                { "inverse", inverse },
+                { "taker", this.safeNumber(market, "takerFeeRate") },
+                { "maker", this.safeNumber(market, "makerFeeRate") },
+                { "contractSize", contractSize },
+                { "expiry", expiry },
+                { "expiryDatetime", expiryDatetime },
+                { "strike", null },
+                { "optionType", null },
+                { "precision", new Dictionary<string, object>() {
+                    { "amount", amountPrecision },
+                    { "price", pricePrecision },
+                } },
+                { "limits", new Dictionary<string, object>() {
+                    { "leverage", new Dictionary<string, object>() {
+                        { "min", this.safeNumber(market, "minLeverage") },
+                        { "max", this.safeNumber(market, "maxLeverage") },
+                    } },
+                    { "amount", new Dictionary<string, object>() {
+                        { "min", this.safeNumber(market, "minOrderQty") },
+                        { "max", this.safeNumber(market, "maxOrderQty") },
+                    } },
+                    { "price", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                    { "cost", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                } },
+                { "created", this.safeInteger(market, "launchTime") },
+                { "info", market },
+            }));
         }
-        object status = this.safeString2(market, "status", "symbolStatus");
-        object active = null;
-        if (isTrue(!isEqual(status, null)))
-        {
-            active = (isTrue((isEqual(status, "online"))) || isTrue((isEqual(status, "normal"))));
-        }
-        object minCost = null;
-        if (isTrue(isEqual(quote, "USDT")))
-        {
-            minCost = this.safeNumber(market, "minTradeUSDT");
-        }
-        object contractSize = ((bool) isTrue(contract)) ? 1 : null;
-        return new Dictionary<string, object>() {
-            { "id", marketId },
-            { "symbol", symbol },
-            { "base", bs },
-            { "quote", quote },
-            { "settle", settle },
-            { "baseId", baseId },
-            { "quoteId", quoteId },
-            { "settleId", settleId },
-            { "type", type },
-            { "spot", spot },
-            { "margin", isTrue(spot) && isTrue(isMarginTradingAllowed) },
-            { "marginModes", marginModes },
-            { "swap", swap },
-            { "future", future },
-            { "option", false },
-            { "active", active },
-            { "contract", contract },
-            { "linear", linear },
-            { "inverse", inverse },
-            { "taker", this.safeNumber(market, "takerFeeRate") },
-            { "maker", this.safeNumber(market, "makerFeeRate") },
-            { "contractSize", contractSize },
-            { "expiry", expiry },
-            { "expiryDatetime", expiryDatetime },
-            { "strike", null },
-            { "optionType", null },
-            { "precision", new Dictionary<string, object>() {
-                { "amount", amountPrecision },
-                { "price", pricePrecision },
-            } },
-            { "limits", new Dictionary<string, object>() {
-                { "leverage", new Dictionary<string, object>() {
-                    { "min", this.safeNumber(market, "minLever") },
-                    { "max", this.safeNumber(market, "maxLever") },
-                } },
-                { "amount", new Dictionary<string, object>() {
-                    { "min", this.safeNumber2(market, "minTradeNum", "minTradeAmount") },
-                    { "max", this.safeNumber(market, "maxTradeAmount") },
-                } },
-                { "price", new Dictionary<string, object>() {
-                    { "min", null },
-                    { "max", null },
-                } },
-                { "cost", new Dictionary<string, object>() {
-                    { "min", minCost },
-                    { "max", null },
-                } },
-            } },
-            { "created", this.safeInteger(market, "openTime") },
-            { "info", market },
-        };
+        return result;
     }
 
     /**

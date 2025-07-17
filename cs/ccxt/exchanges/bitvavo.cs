@@ -651,7 +651,7 @@ public partial class bitvavo : Exchange
             });
         }
         // set currencies here to avoid calling publicGetAssets twice
-        this.currencies = this.deepExtend(this.currencies, result);
+        this.currencies = this.mapToSafeMap(this.deepExtend(this.currencies, result));
         return result;
     }
 
@@ -1281,6 +1281,9 @@ public partial class bitvavo : Exchange
         if (isTrue(!isEqual(operatorId, null)))
         {
             ((IDictionary<string,object>)request)["operatorId"] = this.parseToInt(operatorId);
+        } else
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
         }
         return this.extend(request, parameters);
     }
@@ -1400,6 +1403,9 @@ public partial class bitvavo : Exchange
         if (isTrue(!isEqual(operatorId, null)))
         {
             ((IDictionary<string,object>)request)["operatorId"] = this.parseToInt(operatorId);
+        } else
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " editOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
         }
         ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
         return request;
@@ -1452,6 +1458,9 @@ public partial class bitvavo : Exchange
         if (isTrue(!isEqual(operatorId, null)))
         {
             ((IDictionary<string,object>)request)["operatorId"] = this.parseToInt(operatorId);
+        } else
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
         }
         return this.extend(request, parameters);
     }

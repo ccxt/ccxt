@@ -361,71 +361,47 @@ public partial class cryptomus : Exchange
         //     }
         //
         object coins = this.safeList(response, "result");
+        object groupedById = this.groupBy(coins, "currency_code");
+        object keys = new List<object>(((IDictionary<string,object>)groupedById).Keys);
         object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(coins)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
-            object networkEntry = getValue(coins, i);
-            object currencyId = this.safeString(networkEntry, "currency_code");
-            object code = this.safeCurrencyCode(currencyId);
-            if (!isTrue((inOp(result, code))))
+            object id = getValue(keys, i);
+            object code = this.safeCurrencyCode(id);
+            object networks = new Dictionary<string, object>() {};
+            object networkEntries = getValue(groupedById, id);
+            for (object j = 0; isLessThan(j, getArrayLength(networkEntries)); postFixIncrement(ref j))
             {
-                ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
-                    { "id", currencyId },
-                    { "code", code },
-                    { "precision", null },
-                    { "type", null },
-                    { "name", null },
-                    { "active", null },
-                    { "deposit", null },
-                    { "withdraw", null },
-                    { "fee", null },
+                object networkEntry = getValue(networkEntries, j);
+                object networkId = this.safeString(networkEntry, "network_code");
+                object networkCode = this.networkIdToCode(networkId);
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "id", networkId },
+                    { "network", networkCode },
                     { "limits", new Dictionary<string, object>() {
                         { "withdraw", new Dictionary<string, object>() {
-                            { "min", null },
-                            { "max", null },
+                            { "min", this.safeNumber(networkEntry, "min_withdraw") },
+                            { "max", this.safeNumber(networkEntry, "max_withdraw") },
                         } },
                         { "deposit", new Dictionary<string, object>() {
-                            { "min", null },
-                            { "max", null },
+                            { "min", this.safeNumber(networkEntry, "min_deposit") },
+                            { "max", this.safeNumber(networkEntry, "max_deposit") },
                         } },
                     } },
-                    { "networks", new Dictionary<string, object>() {} },
-                    { "info", new Dictionary<string, object>() {} },
+                    { "active", null },
+                    { "deposit", this.safeBool(networkEntry, "can_withdraw") },
+                    { "withdraw", this.safeBool(networkEntry, "can_deposit") },
+                    { "fee", null },
+                    { "precision", null },
+                    { "info", networkEntry },
                 };
             }
-            object networkId = this.safeString(networkEntry, "network_code");
-            object networkCode = this.networkIdToCode(networkId);
-            ((IDictionary<string,object>)getValue(getValue(result, code), "networks"))[(string)networkCode] = new Dictionary<string, object>() {
-                { "id", networkId },
-                { "network", networkCode },
-                { "limits", new Dictionary<string, object>() {
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(networkEntry, "min_withdraw") },
-                        { "max", this.safeNumber(networkEntry, "max_withdraw") },
-                    } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(networkEntry, "min_deposit") },
-                        { "max", this.safeNumber(networkEntry, "max_deposit") },
-                    } },
-                } },
-                { "active", null },
-                { "deposit", this.safeBool(networkEntry, "can_withdraw") },
-                { "withdraw", this.safeBool(networkEntry, "can_deposit") },
-                { "fee", null },
-                { "precision", null },
-                { "info", networkEntry },
-            };
-            // add entry in info
-            object info = this.safeList(getValue(result, code), "info", new List<object>() {});
-            ((IList<object>)info).Add(networkEntry);
-            ((IDictionary<string,object>)getValue(result, code))["info"] = info;
-        }
-        // only after all entries are formed in currencies, restructure each entry
-        object allKeys = new List<object>(((IDictionary<string,object>)result).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(allKeys)); postFixIncrement(ref i))
-        {
-            object code = getValue(allKeys, i);
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(getValue(result, code)); // this is needed after adding network entry
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
+                { "id", id },
+                { "code", code },
+                { "networks", networks },
+                { "info", networkEntries },
+            });
         }
         return result;
     }
@@ -466,7 +442,7 @@ public partial class cryptomus : Exchange
         //
         //     {
         //         "currency_pair": "XMR_USDT",
-        //         "last_price": "158.04829771",
+        //         "last_price": "158.04829772",
         //         "base_volume": "0.35185785",
         //         "quote_volume": "55.523761128544"
         //     }

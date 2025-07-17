@@ -500,6 +500,8 @@ export default class bingx extends Exchange {
                     '100437': BadRequest, // {"code":100437,"msg":"The withdrawal amount is lower than the minimum limit, please re-enter.","timestamp":1689258588845}
                     '101204': InsufficientFunds, // {"code":101204,"msg":"","data":{}}
                     '110425': InvalidOrder, // {"code":110425,"msg":"Please ensure that the minimum nominal value of the order placed must be greater than 2u","data":{}}
+                    'Insufficient assets': InsufficientFunds, // {"transferErrorMsg":"Insufficient assets"}
+                    'illegal transferType': BadRequest, // {"transferErrorMsg":"illegal transferType"}
                 },
                 'broad': {},
             },
@@ -513,12 +515,14 @@ export default class bingx extends Exchange {
             'options': {
                 'defaultType': 'spot',
                 'accountsByType': {
-                    'spot': 'FUND',
+                    'funding': 'FUND',
+                    'spot': 'SPOT',
                     'swap': 'PFUTURES',
                     'future': 'SFUTURES',
                 },
                 'accountsById': {
-                    'FUND': 'spot',
+                    'FUND': 'funding',
+                    'SPOT': 'spot',
                     'PFUTURES': 'swap',
                     'SFUTURES': 'future',
                 },
@@ -1564,7 +1568,7 @@ export default class bingx extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeDict (response, 'data');
         return this.parseFundingRate (data, market);
     }
 
@@ -4836,11 +4840,11 @@ export default class bingx extends Exchange {
      * @method
      * @name bingx#transfer
      * @description transfer currency internally between wallets on the same account
-     * @see https://bingx-api.github.io/docs/#/spot/account-api.html#User%20Universal%20Transfer
+     * @see https://bingx-api.github.io/docs/#/en-us/common/account-api.html#Asset%20Transfer
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
-     * @param {string} fromAccount account to transfer from
-     * @param {string} toAccount account to transfer to
+     * @param {string} fromAccount account to transfer from (spot, swap, futures, or funding)
+     * @param {string} toAccount account to transfer to (spot, swap, futures, or funding)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
      */
@@ -4857,9 +4861,10 @@ export default class bingx extends Exchange {
         };
         const response = await this.spotV3PrivateGetGetAssetTransfer (this.extend (request, params));
         //
-        //    {
-        //        "tranId":13526853623
-        //    }
+        //     {
+        //         "tranId": 1933130865269936128,
+        //         "transferId": "1051450703949464903736"
+        //     }
         //
         return {
             'info': response,
@@ -4881,8 +4886,11 @@ export default class bingx extends Exchange {
      * @see https://bingx-api.github.io/docs/#/spot/account-api.html#Query%20User%20Universal%20Transfer%20History%20(USER_DATA)
      * @param {string} [code] unified currency code of the currency transferred
      * @param {int} [since] the earliest time in ms to fetch transfers for
-     * @param {int} [limit] the maximum number of transfers structures to retrieve
+     * @param {int} [limit] the maximum number of transfers structures to retrieve (default 10, max 100)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.fromAccount (mandatory) transfer from (spot, swap, futures, or funding)
+     * @param {string} params.toAccount (mandatory) transfer to (spot, swap, futures, or funding)
+     * @param {boolean} [params.paginate] whether to paginate the results (default false)
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
      */
     async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
@@ -4899,7 +4907,14 @@ export default class bingx extends Exchange {
         if (fromId === undefined || toId === undefined) {
             throw new ExchangeError (this.id + ' fromAccount & toAccount parameter are required');
         }
-        const request: Dict = {
+        params = this.omit (params, [ 'fromAccount', 'toAccount' ]);
+        const maxLimit = 100;
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate', false);
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchTransfers', undefined, since, limit, params, maxLimit);
+        }
+        let request: Dict = {
             'type': fromId + '_' + toId,
         };
         if (since !== undefined) {
@@ -4908,18 +4923,19 @@ export default class bingx extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit;
         }
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
         const response = await this.spotV3PrivateGetAssetTransfer (this.extend (request, params));
         //
         //     {
         //         "total": 3,
         //         "rows": [
         //             {
-        //                 "asset":"USDT",
-        //                 "amount":"-100.00000000000000000000",
-        //                 "type":"FUND_SFUTURES",
-        //                 "status":"CONFIRMED",
-        //                 "tranId":1067594500957016069,
-        //                 "timestamp":1658388859000
+        //                 "asset": "USDT",
+        //                 "amount": "100.00000000000000000000",
+        //                 "type": "FUND_SFUTURES",
+        //                 "status": "CONFIRMED",
+        //                 "tranId": 1067594500957016069,
+        //                 "timestamp": 1658388859000
         //             },
         //         ]
         //     }
@@ -4937,7 +4953,7 @@ export default class bingx extends Exchange {
         const typeId = this.safeString (transfer, 'type');
         const typeIdSplit = typeId.split ('_');
         const fromId = this.safeString (typeIdSplit, 0);
-        const toId = this.safeString (typeId, 1);
+        const toId = this.safeString (typeIdSplit, 1);
         const fromAccount = this.safeString (accountsById, fromId, fromId);
         const toAccount = this.safeString (accountsById, toId, toId);
         return {
@@ -4949,8 +4965,15 @@ export default class bingx extends Exchange {
             'amount': this.safeNumber (transfer, 'amount'),
             'fromAccount': fromAccount,
             'toAccount': toAccount,
-            'status': status,
+            'status': this.parseTransferStatus (status),
         };
+    }
+
+    parseTransferStatus (status: Str): string {
+        const statuses: Dict = {
+            'CONFIRMED': 'ok',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     /**
@@ -5810,11 +5833,12 @@ export default class bingx extends Exchange {
     }
 
     parseParams (params) {
-        const sortedParams = this.keysort (params);
-        const keys = Object.keys (sortedParams);
+        // const sortedParams = this.keysort (params);
+        const rawKeys = Object.keys (params);
+        const keys = this.sort (rawKeys);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const value = sortedParams[key];
+            const value = params[key];
             if (Array.isArray (value)) {
                 let arrStr = '[';
                 for (let j = 0; j < value.length; j++) {
@@ -5825,10 +5849,10 @@ export default class bingx extends Exchange {
                     arrStr += arrayElement.toString ();
                 }
                 arrStr += ']';
-                sortedParams[key] = arrStr;
+                params[key] = arrStr;
             }
         }
-        return sortedParams;
+        return params;
     }
 
     /**
@@ -6454,13 +6478,14 @@ export default class bingx extends Exchange {
     }
 
     customEncode (params) {
-        const sortedParams = this.keysort (params);
-        const keys = Object.keys (sortedParams);
+        // const sortedParams = this.keysort (params);
+        const rawKeys = Object.keys (params);
+        const keys = this.sort (rawKeys);
         let adjustedValue = undefined;
         let result = undefined;
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            let value = sortedParams[key];
+            let value = params[key];
             if (Array.isArray (value)) {
                 let arrStr = undefined;
                 for (let j = 0; j < value.length; j++) {
@@ -6531,7 +6556,7 @@ export default class bingx extends Exchange {
                 encodeRequest = this.customEncode (params);
             } else {
                 parsedParams = this.parseParams (params);
-                encodeRequest = this.rawencode (parsedParams);
+                encodeRequest = this.rawencode (parsedParams, true);
             }
             const signature = this.hmac (this.encode (encodeRequest), this.encode (this.secret), sha256);
             headers = {
@@ -6543,7 +6568,7 @@ export default class bingx extends Exchange {
                 params['signature'] = signature;
                 body = this.json (params);
             } else {
-                const query = this.urlencode (parsedParams);
+                const query = this.urlencode (parsedParams, true);
                 url += '?' + query + '&' + 'signature=' + signature;
             }
         }
@@ -6572,8 +6597,12 @@ export default class bingx extends Exchange {
         //    }
         //
         const code = this.safeString (response, 'code');
-        const message = this.safeString (response, 'msg');
-        if (code !== undefined && code !== '0') {
+        let message = this.safeString (response, 'msg');
+        const transferErrorMsg = this.safeString (response, 'transferErrorMsg'); // handling with errors from transfer endpoint
+        if ((transferErrorMsg !== undefined) || (code !== undefined && code !== '0')) {
+            if (transferErrorMsg !== undefined) {
+                message = transferErrorMsg;
+            }
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);

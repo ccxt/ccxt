@@ -18,6 +18,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import OperationFailed
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import RequestTimeout
@@ -670,6 +671,7 @@ class coinex(Exchange, ImplicitAPI):
                 'broad': {
                     'ip not allow visit': PermissionDenied,
                     'service too busy': ExchangeNotAvailable,
+                    'Service is not available during funding fee settlement': OperationFailed,
                 },
             },
         })
@@ -794,7 +796,7 @@ class coinex(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
-                'networks': {},
+                'networks': networks,
                 'type': 'crypto',
                 'info': coin,
             })
@@ -826,17 +828,19 @@ class coinex(Exchange, ImplicitAPI):
         #         "code": 0,
         #         "data": [
         #             {
-        #                 "base_ccy": "SORA",
-        #                 "base_ccy_precision": 8,
-        #                 "is_amm_available": True,
-        #                 "is_margin_available": False,
-        #                 "maker_fee_rate": "0.003",
-        #                 "market": "SORAUSDT",
-        #                 "min_amount": "500",
+        #                 "market": "BTCUSDT",
+        #                 "taker_fee_rate": "0.002",
+        #                 "maker_fee_rate": "0.002",
+        #                 "min_amount": "0.0005",
+        #                 "base_ccy": "BTC",
         #                 "quote_ccy": "USDT",
-        #                 "quote_ccy_precision": 6,
-        #                 "taker_fee_rate": "0.003"
-        #             },
+        #                 "base_ccy_precision": 8,
+        #                 "quote_ccy_precision": 2,
+        #                 "is_amm_available": True,
+        #                 "is_margin_available": True,
+        #                 "is_pre_trading_available": True,
+        #                 "is_api_trading_available": True
+        #             }
         #         ],
         #         "message": "OK"
         #     }
@@ -862,11 +866,11 @@ class coinex(Exchange, ImplicitAPI):
                 'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'margin': None,
+                'margin': self.safe_bool(market, 'is_margin_available'),
                 'swap': False,
                 'future': False,
                 'option': False,
-                'active': None,
+                'active': self.safe_bool(market, 'is_api_trading_available'),
                 'contract': False,
                 'linear': None,
                 'inverse': None,
