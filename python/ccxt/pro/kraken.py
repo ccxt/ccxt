@@ -745,15 +745,13 @@ class kraken(ccxt.async_support.kraken):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
-        request: dict = {}
+        requiredParams: dict = {}
         if limit is not None:
             if self.in_array(limit, [10, 25, 100, 500, 1000]):
-                request['params'] = {
-                    'depth': limit,  # default 10, valid options 10, 25, 100, 500, 1000
-                }
+                requiredParams['depth'] = limit  # default 10, valid options 10, 25, 100, 500, 1000
             else:
                 raise NotSupported(self.id + ' watchOrderBook accepts limit values of 10, 25, 100, 500 and 1000 only')
-        orderbook = await self.watch_multi_helper('orderbook', 'book', symbols, {'limit': limit}, self.extend(request, params))
+        orderbook = await self.watch_multi_helper('orderbook', 'book', symbols, {'limit': limit}, self.extend(requiredParams, params))
         return orderbook.limit()
 
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
@@ -1614,17 +1612,20 @@ class kraken(ccxt.async_support.kraken):
         #
         errorMessage = self.safe_string_2(message, 'errorMessage', 'error')
         if errorMessage is not None:
-            requestId = self.safe_value_2(message, 'reqid', 'req_id')
-            if requestId is not None:
-                broad = self.exceptions['ws']['broad']
-                broadKey = self.find_broadly_matched_key(broad, errorMessage)
-                exception = None
-                if broadKey is None:
-                    exception = ExchangeError(errorMessage)  # c# requirement to convert the errorMessage to string
-                else:
-                    exception = broad[broadKey](errorMessage)
-                client.reject(exception, requestId)
-                return False
+            # requestId = self.safe_value_2(message, 'reqid', 'req_id')
+            broad = self.exceptions['ws']['broad']
+            broadKey = self.find_broadly_matched_key(broad, errorMessage)
+            exception = None
+            if broadKey is None:
+                exception = ExchangeError(errorMessage)  # c# requirement to convert the errorMessage to string
+            else:
+                exception = broad[broadKey](errorMessage)
+            # if requestId is not None:
+            #     client.reject(exception, requestId)
+            # else:
+            client.reject(exception)
+            # }
+            return False
         return True
 
     def handle_message(self, client: Client, message):

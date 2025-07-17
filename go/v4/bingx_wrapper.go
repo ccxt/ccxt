@@ -1177,11 +1177,11 @@ func (this *Bingx) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClose
  * @method
  * @name bingx#transfer
  * @description transfer currency internally between wallets on the same account
- * @see https://bingx-api.github.io/docs/#/en-us/common/account-api.html#Asset%20Transfer
+ * @see https://bingx-api.github.io/docs/#/en-us/common/account-api.html#Asset%20Transfer%20New
  * @param {string} code unified currency code
  * @param {float} amount amount to transfer
  * @param {string} fromAccount account to transfer from (spot, swap, futures, or funding)
- * @param {string} toAccount account to transfer to (spot, swap, futures, or funding)
+ * @param {string} toAccount account to transfer to (spot, swap (linear or inverse), future, or funding)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
  */
@@ -1207,13 +1207,13 @@ func (this *Bingx) Transfer(code string, amount float64, fromAccount string, toA
  * @method
  * @name bingx#fetchTransfers
  * @description fetch a history of internal transfers made on an account
- * @see https://bingx-api.github.io/docs/#/spot/account-api.html#Query%20User%20Universal%20Transfer%20History%20(USER_DATA)
+ * @see https://bingx-api.github.io/docs/#/en-us/common/account-api.html#Asset%20transfer%20records%20new
  * @param {string} [code] unified currency code of the currency transferred
  * @param {int} [since] the earliest time in ms to fetch transfers for
  * @param {int} [limit] the maximum number of transfers structures to retrieve (default 10, max 100)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} params.fromAccount (mandatory) transfer from (spot, swap, futures, or funding)
- * @param {string} params.toAccount (mandatory) transfer to (spot, swap, futures, or funding)
+ * @param {string} params.fromAccount (mandatory) transfer from (spot, swap (linear or inverse), future, or funding)
+ * @param {string} params.toAccount (mandatory) transfer to (spot, swap(linear or inverse), future, or funding)
  * @param {boolean} [params.paginate] whether to paginate the results (default false)
  * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
  */

@@ -44,11 +44,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.4.94';
+$version = '4.4.95';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.4.94';
+    const VERSION = '4.4.95';
 
     public $browser;
     public $marketsLoading = null;
@@ -2579,7 +2579,7 @@ class Exchange extends \ccxt\Exchange {
         for ($i = 0; $i < count($fees); $i++) {
             $fee = $fees[$i];
             $code = $this->safe_string($fee, 'currency');
-            $feeCurrencyCode = $code !== null ? $code : (string) $i;
+            $feeCurrencyCode = ($code !== null) ? $code : (string) $i;
             if ($feeCurrencyCode !== null) {
                 $rate = $this->safe_string($fee, 'rate');
                 $cost = $this->safe_string($fee, 'cost');

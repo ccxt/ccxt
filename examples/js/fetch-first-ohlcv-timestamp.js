@@ -60,6 +60,7 @@ async function fetchFirstBarTimestamp(exchange, symbol, useMinuteTimeframe = fal
             const response = allResponses[i];
             if (response.length > 0) {
                 foundStartTime = response[0][0];
+                break;
             }
         }
     }

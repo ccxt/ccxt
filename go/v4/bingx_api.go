@@ -2423,6 +2423,22 @@ func (this *bingx) ApiV3PrivateGetAssetTransfer (args ...interface{}) <-chan int
    return ch
 }
 
+func (this *bingx) ApiV3PrivateGetAssetTransferRecord (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("apiV3PrivateGetAssetTransferRecord", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
 func (this *bingx) ApiV3PrivateGetCapitalDepositHisrec (args ...interface{}) <-chan interface{} {
    parameters := GetArg(args, 0, nil)
    ch := make(chan interface{})
@@ -2466,6 +2482,38 @@ func (this *bingx) ApiV3PrivatePostPostAssetTransfer (args ...interface{}) <-cha
            }
        }()
        ch <- (<-this.callEndpoint ("apiV3PrivatePostPostAssetTransfer", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *bingx) ApiAssetV1PrivatePostTransfer (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("apiAssetV1PrivatePostTransfer", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *bingx) ApiAssetV1PublicGetTransferSupportCoins (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("apiAssetV1PublicGetTransferSupportCoins", parameters))
        PanicOnError(ch)
    }()
    return ch

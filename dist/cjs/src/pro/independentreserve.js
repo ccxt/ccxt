@@ -4,7 +4,7 @@ var independentreserve$1 = require('../independentreserve.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class independentreserve extends independentreserve$1 {
     describe() {

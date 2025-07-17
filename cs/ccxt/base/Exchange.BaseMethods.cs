@@ -2687,7 +2687,7 @@ public partial class Exchange
         {
             object fee = getValue(fees, i);
             object code = this.safeString(fee, "currency");
-            object feeCurrencyCode = ((bool) isTrue(!isEqual(code, null))) ? code : ((object)i).ToString();
+            object feeCurrencyCode = ((bool) isTrue((!isEqual(code, null)))) ? code : ((object)i).ToString();
             if (isTrue(!isEqual(feeCurrencyCode, null)))
             {
                 object rate = this.safeString(fee, "rate");

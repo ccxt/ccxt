@@ -935,6 +935,214 @@ func (this *woo) V2PrivateGetClientHolding (args ...interface{}) <-chan interfac
    return ch
 }
 
+func (this *woo) V3PublicGetSystemInfo (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PublicGetSystemInfo", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PublicGetInstruments (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PublicGetInstruments", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PublicGetToken (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PublicGetToken", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PublicGetTokenNetwork (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PublicGetTokenNetwork", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PublicGetTokenInfo (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PublicGetTokenInfo", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PublicGetMarketTrades (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PublicGetMarketTrades", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PublicGetMarketTradesHistory (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PublicGetMarketTradesHistory", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PublicGetOrderbook (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PublicGetOrderbook", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PublicGetKline (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PublicGetKline", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PublicGetKlineHistory (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PublicGetKlineHistory", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PublicGetFutures (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PublicGetFutures", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PublicGetFundingRate (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PublicGetFundingRate", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PublicGetFundingRateHistory (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PublicGetFundingRateHistory", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
 func (this *woo) V3PublicGetInsuranceFund (args ...interface{}) <-chan interface{} {
    parameters := GetArg(args, 0, nil)
    ch := make(chan interface{})
@@ -946,6 +1154,438 @@ func (this *woo) V3PublicGetInsuranceFund (args ...interface{}) <-chan interface
            }
        }()
        ch <- (<-this.callEndpoint ("v3PublicGetInsuranceFund", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PrivateGetTradeOrder (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PrivateGetTradeOrder", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PrivateGetTradeOrders (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PrivateGetTradeOrders", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PrivateGetTradeAlgoOrder (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PrivateGetTradeAlgoOrder", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PrivateGetTradeAlgoOrders (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PrivateGetTradeAlgoOrders", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PrivateGetTradeTransaction (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PrivateGetTradeTransaction", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PrivateGetTradeTransactionHistory (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PrivateGetTradeTransactionHistory", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PrivateGetTradeTradingFee (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PrivateGetTradeTradingFee", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PrivateGetAccountInfo (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PrivateGetAccountInfo", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PrivateGetAccountTokenConfig (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PrivateGetAccountTokenConfig", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PrivateGetAccountSymbolConfig (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PrivateGetAccountSymbolConfig", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PrivateGetAccountSubAccountsAll (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PrivateGetAccountSubAccountsAll", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PrivateGetAccountReferralSummary (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PrivateGetAccountReferralSummary", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PrivateGetAccountReferralRewardHistory (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PrivateGetAccountReferralRewardHistory", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PrivateGetAccountCredentials (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PrivateGetAccountCredentials", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PrivateGetAssetBalances (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PrivateGetAssetBalances", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PrivateGetAssetTokenHistory (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PrivateGetAssetTokenHistory", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PrivateGetAssetTransferHistory (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PrivateGetAssetTransferHistory", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PrivateGetAssetWalletHistory (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PrivateGetAssetWalletHistory", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PrivateGetAssetWalletDeposit (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PrivateGetAssetWalletDeposit", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PrivateGetAssetStakingYieldHistory (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PrivateGetAssetStakingYieldHistory", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PrivateGetFuturesPositions (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PrivateGetFuturesPositions", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PrivateGetFuturesLeverage (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PrivateGetFuturesLeverage", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PrivateGetFuturesDefaultMarginMode (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PrivateGetFuturesDefaultMarginMode", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PrivateGetFuturesFundingFeeHistory (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PrivateGetFuturesFundingFeeHistory", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PrivateGetSpotMarginInterestRate (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PrivateGetSpotMarginInterestRate", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PrivateGetSpotMarginInterestHistory (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PrivateGetSpotMarginInterestHistory", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PrivateGetSpotMarginMaxMargin (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PrivateGetSpotMarginMaxMargin", parameters))
        PanicOnError(ch)
    }()
    return ch
@@ -999,22 +1639,6 @@ func (this *woo) V3PrivateGetBalances (args ...interface{}) <-chan interface{} {
    return ch
 }
 
-func (this *woo) V3PrivateGetAccountinfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v3PrivateGetAccountinfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
 func (this *woo) V3PrivateGetPositions (args ...interface{}) <-chan interface{} {
    parameters := GetArg(args, 0, nil)
    ch := make(chan interface{})
@@ -1042,38 +1666,6 @@ func (this *woo) V3PrivateGetBuypower (args ...interface{}) <-chan interface{} {
            }
        }()
        ch <- (<-this.callEndpoint ("v3PrivateGetBuypower", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *woo) V3PrivateGetReferrals (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v3PrivateGetReferrals", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *woo) V3PrivateGetReferralRewards (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v3PrivateGetReferralRewards", parameters))
        PanicOnError(ch)
    }()
    return ch
@@ -1159,6 +1751,150 @@ func (this *woo) V3PrivateGetConvertTrades (args ...interface{}) <-chan interfac
    return ch
 }
 
+func (this *woo) V3PrivatePostTradeOrder (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PrivatePostTradeOrder", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PrivatePostTradeAlgoOrder (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PrivatePostTradeAlgoOrder", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PrivatePostTradeCancelAllAfter (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PrivatePostTradeCancelAllAfter", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PrivatePostAccountTradingMode (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PrivatePostAccountTradingMode", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PrivatePostAccountListenKey (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PrivatePostAccountListenKey", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PrivatePostAssetTransfer (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PrivatePostAssetTransfer", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PrivatePostAssetWalletWithdraw (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PrivatePostAssetWalletWithdraw", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PrivatePostSpotMarginLeverage (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PrivatePostSpotMarginLeverage", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PrivatePostSpotMarginInterestRepay (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PrivatePostSpotMarginInterestRepay", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
 func (this *woo) V3PrivatePostAlgoOrder (args ...interface{}) <-chan interface{} {
    parameters := GetArg(args, 0, nil)
    ch := make(chan interface{})
@@ -1186,6 +1922,70 @@ func (this *woo) V3PrivatePostConvertRft (args ...interface{}) <-chan interface{
            }
        }()
        ch <- (<-this.callEndpoint ("v3PrivatePostConvertRft", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PrivatePutTradeOrder (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PrivatePutTradeOrder", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PrivatePutTradeAlgoOrder (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PrivatePutTradeAlgoOrder", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PrivatePutFuturesLeverage (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PrivatePutFuturesLeverage", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PrivatePutFuturesPositionMode (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PrivatePutFuturesPositionMode", parameters))
        PanicOnError(ch)
    }()
    return ch
@@ -1250,6 +2050,86 @@ func (this *woo) V3PrivatePutAlgoOrderClientClientOrderId (args ...interface{}) 
            }
        }()
        ch <- (<-this.callEndpoint ("v3PrivatePutAlgoOrderClientClientOrderId", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PrivateDeleteTradeOrder (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PrivateDeleteTradeOrder", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PrivateDeleteTradeOrders (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PrivateDeleteTradeOrders", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PrivateDeleteTradeAlgoOrder (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PrivateDeleteTradeAlgoOrder", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PrivateDeleteTradeAlgoOrders (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PrivateDeleteTradeAlgoOrders", parameters))
+       PanicOnError(ch)
+   }()
+   return ch
+}
+
+func (this *woo) V3PrivateDeleteTradeAllOrders (args ...interface{}) <-chan interface{} {
+   parameters := GetArg(args, 0, nil)
+   ch := make(chan interface{})
+   go func() {
+       defer close(ch)
+       defer func() {
+           if r := recover(); r != nil {
+               ch <- "panic:" + ToString(r)
+           }
+       }()
+       ch <- (<-this.callEndpoint ("v3PrivateDeleteTradeAllOrders", parameters))
        PanicOnError(ch)
    }()
    return ch

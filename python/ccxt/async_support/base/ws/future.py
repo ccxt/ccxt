@@ -36,6 +36,8 @@ class Future(asyncio.Future):
             elif cancelled:
                 future.cancel()
             else:
+                if future.cancelled():
+                    return
                 first_result = list(complete)[0].result()
                 future.set_result(first_result)
         task.add_done_callback(callback)

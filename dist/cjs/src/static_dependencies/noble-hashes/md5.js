@@ -4,7 +4,6 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var utils = require('./utils.js');
 
-// ----------------------------------------------------------------------------
 /*
  * Fastest md5 implementation around (JKM md5).
  * Credits: Joseph Myers

@@ -12,7 +12,6 @@ var CairoOption = require('./enum/CairoOption.js');
 var CairoResult = require('./enum/CairoResult.js');
 var tuple = require('./tuple.js');
 
-// ----------------------------------------------------------------------------
 /**
  * Parse base types
  * @param type type of element

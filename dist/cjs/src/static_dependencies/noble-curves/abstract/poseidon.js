@@ -4,7 +4,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var modular = require('./modular.js');
 
-// ----------------------------------------------------------------------------
+/*! noble-curves - MIT License (c) 2022 Paul Miller (paulmillr.com) */
 function validateOpts(opts) {
     const { Fp } = opts;
     modular.validateField(Fp);

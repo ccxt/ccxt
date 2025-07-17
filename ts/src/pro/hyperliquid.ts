@@ -170,7 +170,7 @@ export default class hyperliquid extends hyperliquidRest {
             'method': 'subscribe',
             'subscription': {
                 'type': 'l2Book',
-                'coin': market['swap'] ? market['base'] : market['id'],
+                'coin': market['swap'] ? market['baseName'] : market['id'],
             },
         };
         const message = this.extend (request, params);
@@ -200,7 +200,7 @@ export default class hyperliquid extends hyperliquidRest {
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'l2Book',
-                'coin': market['swap'] ? market['base'] : market['id'],
+                'coin': market['swap'] ? market['baseName'] : market['id'],
             },
         };
         const message = this.extend (request, params);
@@ -520,7 +520,7 @@ export default class hyperliquid extends hyperliquidRest {
             'method': 'subscribe',
             'subscription': {
                 'type': 'trades',
-                'coin': market['swap'] ? market['base'] : market['id'],
+                'coin': market['swap'] ? market['baseName'] : market['id'],
             },
         };
         const message = this.extend (request, params);
@@ -551,7 +551,7 @@ export default class hyperliquid extends hyperliquidRest {
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'trades',
-                'coin': market['swap'] ? market['base'] : market['id'],
+                'coin': market['swap'] ? market['baseName'] : market['id'],
             },
         };
         const message = this.extend (request, params);
@@ -681,7 +681,7 @@ export default class hyperliquid extends hyperliquidRest {
             'method': 'subscribe',
             'subscription': {
                 'type': 'candle',
-                'coin': market['swap'] ? market['base'] : market['id'],
+                'coin': market['swap'] ? market['baseName'] : market['id'],
                 'interval': timeframe,
             },
         };
@@ -713,7 +713,7 @@ export default class hyperliquid extends hyperliquidRest {
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'candle',
-                'coin': market['swap'] ? market['base'] : market['id'],
+                'coin': market['swap'] ? market['baseName'] : market['id'],
                 'interval': timeframe,
             },
         };

@@ -4,7 +4,11 @@ var headers = require('./headers.js');
 var body = require('./body.js');
 var isRedirect = require('./utils/is-redirect.js');
 
-// ----------------------------------------------------------------------------
+/**
+ * Response.js
+ *
+ * Response class provides content decoding
+ */
 const INTERNALS = Symbol('Response internals');
 /**
  * Response class

@@ -167,6 +167,7 @@ class hyperliquid extends Exchange {
                                 'orderStatus' => 2,
                                 'spotClearinghouseState' => 2,
                                 'exchangeStatus' => 2,
+                                'candleSnapshot' => 3,
                             ),
                         ),
                     ),
@@ -3894,7 +3895,7 @@ class hyperliquid extends Exchange {
         if (mb_strpos($coin, '/') > -1 || mb_strpos($coin, '@') > -1) {
             return $coin; // spot
         }
-        return $coin . '/USDC:USDC';
+        return $this->safe_currency_code($coin) . '/USDC:USDC';
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {

@@ -5,7 +5,6 @@ Object.defineProperty(exports, '__esModule', { value: true });
 var modular = require('./modular.js');
 var utils = require('./utils.js');
 
-// ----------------------------------------------------------------------------
 function validateDST(dst) {
     if (dst instanceof Uint8Array)
         return dst;

@@ -2518,7 +2518,7 @@ func  (this *testMainClass) TestWoo() <- chan interface{} {
         			    }
         				ret_ = func(this *testMainClass) interface{} {
         					// catch block:
-                                spotOrderRequest = this.UrlencodedToDict(exchange.GetLast_request_body())
+                                spotOrderRequest = JsonParse(exchange.GetLast_request_body())
                             return nil
         				}(this)
         			}

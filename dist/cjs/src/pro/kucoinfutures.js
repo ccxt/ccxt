@@ -4,7 +4,7 @@ var kucoinfutures$1 = require('../kucoinfutures.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class kucoinfutures extends kucoinfutures$1 {
     describe() {

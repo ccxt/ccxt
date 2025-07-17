@@ -179,7 +179,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
                 'method' => 'subscribe',
                 'subscription' => array(
                     'type' => 'l2Book',
-                    'coin' => $market['swap'] ? $market['base'] : $market['id'],
+                    'coin' => $market['swap'] ? $market['baseName'] : $market['id'],
                 ),
             );
             $message = $this->extend($request, $params);
@@ -211,7 +211,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
                 'method' => 'unsubscribe',
                 'subscription' => array(
                     'type' => 'l2Book',
-                    'coin' => $market['swap'] ? $market['base'] : $market['id'],
+                    'coin' => $market['swap'] ? $market['baseName'] : $market['id'],
                 ),
             );
             $message = $this->extend($request, $params);
@@ -541,7 +541,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
                 'method' => 'subscribe',
                 'subscription' => array(
                     'type' => 'trades',
-                    'coin' => $market['swap'] ? $market['base'] : $market['id'],
+                    'coin' => $market['swap'] ? $market['baseName'] : $market['id'],
                 ),
             );
             $message = $this->extend($request, $params);
@@ -574,7 +574,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
                 'method' => 'unsubscribe',
                 'subscription' => array(
                     'type' => 'trades',
-                    'coin' => $market['swap'] ? $market['base'] : $market['id'],
+                    'coin' => $market['swap'] ? $market['baseName'] : $market['id'],
                 ),
             );
             $message = $this->extend($request, $params);
@@ -706,7 +706,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
                 'method' => 'subscribe',
                 'subscription' => array(
                     'type' => 'candle',
-                    'coin' => $market['swap'] ? $market['base'] : $market['id'],
+                    'coin' => $market['swap'] ? $market['baseName'] : $market['id'],
                     'interval' => $timeframe,
                 ),
             );
@@ -740,7 +740,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
                 'method' => 'unsubscribe',
                 'subscription' => array(
                     'type' => 'candle',
-                    'coin' => $market['swap'] ? $market['base'] : $market['id'],
+                    'coin' => $market['swap'] ? $market['baseName'] : $market['id'],
                     'interval' => $timeframe,
                 ),
             );

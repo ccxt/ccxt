@@ -3478,7 +3478,7 @@ class Exchange {
         for (let i = 0; i < fees.length; i++) {
             const fee = fees[i];
             const code = this.safeString(fee, 'currency');
-            const feeCurrencyCode = code !== undefined ? code : i.toString();
+            const feeCurrencyCode = (code !== undefined) ? code : i.toString();
             if (feeCurrencyCode !== undefined) {
                 const rate = this.safeString(fee, 'rate');
                 const cost = this.safeString(fee, 'cost');

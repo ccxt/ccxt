@@ -170,7 +170,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             'method': 'subscribe',
             'subscription': {
                 'type': 'l2Book',
-                'coin': market['base'] if market['swap'] else market['id'],
+                'coin': market['baseName'] if market['swap'] else market['id'],
             },
         }
         message = self.extend(request, params)
@@ -199,7 +199,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'l2Book',
-                'coin': market['base'] if market['swap'] else market['id'],
+                'coin': market['baseName'] if market['swap'] else market['id'],
             },
         }
         message = self.extend(request, params)
@@ -500,7 +500,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             'method': 'subscribe',
             'subscription': {
                 'type': 'trades',
-                'coin': market['base'] if market['swap'] else market['id'],
+                'coin': market['baseName'] if market['swap'] else market['id'],
             },
         }
         message = self.extend(request, params)
@@ -529,7 +529,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'trades',
-                'coin': market['base'] if market['swap'] else market['id'],
+                'coin': market['baseName'] if market['swap'] else market['id'],
             },
         }
         message = self.extend(request, params)
@@ -653,7 +653,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             'method': 'subscribe',
             'subscription': {
                 'type': 'candle',
-                'coin': market['base'] if market['swap'] else market['id'],
+                'coin': market['baseName'] if market['swap'] else market['id'],
                 'interval': timeframe,
             },
         }
@@ -683,7 +683,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'candle',
-                'coin': market['base'] if market['swap'] else market['id'],
+                'coin': market['baseName'] if market['swap'] else market['id'],
                 'interval': timeframe,
             },
         }

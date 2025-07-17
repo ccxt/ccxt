@@ -5,7 +5,14 @@ Object.defineProperty(exports, '__esModule', { value: true });
 var data = require('./data.js');
 var errors = require('./errors.js');
 
-// ----------------------------------------------------------------------------
+/**
+ *  Using strings in Ethereum (or any security-basd system) requires
+ *  additional care. These utilities attempt to mitigate some of the
+ *  safety issues as well as provide the ability to recover and analyse
+ *  strings.
+ *
+ *  @_subsection api/utils:Strings and UTF-8  [about-strings]
+ */
 function errorFunc(reason, offset, bytes, output, badCodepoint) {
     errors.assertArgument(false, `invalid codepoint at offset ${offset}; ${reason}`, "bytes", bytes);
 }
