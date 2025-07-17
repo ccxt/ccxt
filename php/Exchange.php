@@ -4513,7 +4513,7 @@ class Exchange {
         for ($i = 0; $i < count($fees); $i++) {
             $fee = $fees[$i];
             $code = $this->safe_string($fee, 'currency');
-            $feeCurrencyCode = $code !== null ? $code : (string) $i;
+            $feeCurrencyCode = ($code !== null) ? $code : (string) $i;
             if ($feeCurrencyCode !== null) {
                 $rate = $this->safe_string($fee, 'rate');
                 $cost = $this->safe_string($fee, 'cost');
