@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/bullish.js';
-import { AuthenticationError, ArgumentsRequired, BadRequest, BadSymbol, BaseError, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InvalidNonce, InvalidOrder, InsufficientFunds, OperationFailed, OperationRejected, OrderNotFound, RateLimitExceeded, UnsubscribeError } from './base/errors.js';
+import { AuthenticationError, ArgumentsRequired, BadRequest, BadSymbol, DuplicateOrderId, ExchangeError, InvalidAddress, InvalidNonce, InvalidOrder, InsufficientFunds, MarketClosed, NotSupported, OperationRejected, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Account, Balances, Bool, Currencies, Currency, DepositAddress, Dict, Int, int, FundingRateHistory, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry } from './base/types.js';
@@ -225,89 +225,83 @@ export default class bullish extends Exchange {
             },
             'exceptions': {
                 'exact': {
-                    '400': BadRequest,
-                    '1': BadSymbol,
-                    '5': InvalidOrder,
-                    '6': DuplicateOrderId,
-                    '13': BadRequest,
-                    '15': BadRequest,
-                    '18': BadRequest,
-                    '1002': BadRequest,
-                    '2001': BadRequest,
-                    '2002': BadRequest,
-                    '2003': BadRequest,
-                    '2004': BadRequest,
-                    '2005': ExchangeError,
-                    '2006': BadRequest,
-                    '2007': AuthenticationError,
-                    '2008': BadRequest,
-                    '2009': BadRequest,
-                    '2010': AuthenticationError,
-                    '2011': BadRequest,
-                    '2012': BadRequest,
-                    '2013': BadRequest,
-                    '2015': RateLimitExceeded,
-                    '2016': BadRequest,
-                    '2017': InvalidOrder,
-                    '2018': BadRequest,
-                    '2020': OperationRejected,
-                    '2021': RateLimitExceeded,
-                    '2029': BadRequest,
-                    '2035': InvalidNonce,
-                    '3001': InsufficientFunds,
-                    '3002': OrderNotFound,
-                    '3003': ExchangeNotAvailable,
-                    '3004': ExchangeNotAvailable,
-                    '3005': InsufficientFunds,
-                    '3006': InsufficientFunds,
-                    '3007': DuplicateOrderId,
-                    '3020': OperationFailed,
-                    '3021': OperationFailed,
-                    '3023': DuplicateOrderId,
-                    '3031': BadRequest,
-                    '3032': OperationRejected,
-                    '3033': OperationRejected,
-                    '3034': RateLimitExceeded,
-                    '3035': RateLimitExceeded,
-                    '3064': OperationFailed,
-                    '3065': RateLimitExceeded,
-                    '3066': RateLimitExceeded,
-                    '3067': ExchangeError,
-                    '6002': ExchangeError,
-                    '6003': ExchangeError,
-                    '6004': ExchangeError,
-                    '6005': BaseError,
-                    '6007': BaseError,
-                    '6011': BaseError,
-                    '6012': BaseError,
-                    '6023': BadRequest,
-                    '6105': OperationRejected,
-                    '8301': UnsubscribeError,
-                    '8305': OperationFailed,
-                    '8306': AuthenticationError,
-                    '8307': OperationFailed,
-                    '8310': OperationFailed,
-                    '8311': BadRequest,
-                    '8313': BadRequest,
-                    '8315': BadRequest,
-                    '8316': ExchangeError,
-                    '8317': ExchangeError,
-                    '8318': ExchangeError,
-                    '8319': ExchangeError,
-                    '8320': AuthenticationError,
-                    '8322': BadRequest,
-                    '8327': AuthenticationError,
-                    '8329': ExchangeError,
-                    '8331': BadRequest,
-                    '8332': BadRequest,
-                    '8333': BadSymbol,
-                    '8334': BadRequest,
-                    '8335': BadRequest,
-                    '8336': BadRequest,
-                    '8399': UnsubscribeError,
-                    '20999': ExchangeError,
-                    '23001': BadRequest,
-                    '30001': BadRequest,
+                    '1': BadRequest, // Unknown symbol
+                    '5': InvalidOrder, // Unknown order
+                    '6': DuplicateOrderId, // Duplicate order
+                    '13': BadRequest, // Incorrect quantity
+                    '15': BadRequest, // Invalid account
+                    '18': BadRequest, // Invalid price
+                    '1002': BadRequest, // Unable to place request
+                    '2001': BadRequest, // Bad incoming request
+                    '2002': BadRequest, // Invalid user's client id
+                    '2003': BadRequest, // Invalid handle
+                    '2004': BadRequest, // Invalid quantity
+                    '2005': ExchangeError, // Unknown error
+                    '2006': BadRequest, // Invalid account type, //  account must be spot
+                    '2007': BadRequest, // Account already exist
+                    '2008': BadRequest, // Invalid side, //  side must me from buy or sell
+                    '2009': BadSymbol, // Invalid market
+                    '2010': AuthenticationError, // Account doesn't exist
+                    '2011': AuthenticationError, // Account types are different
+                    '2012': BadRequest, // Invalid price
+                    '2013': InvalidOrder, // Invalid order type, //  type must be from limit, //  market, //  stop-limit
+                    '2015': OperationRejected, // Exceeded maximum amount of allowed open margin orders
+                    '2016': BadRequest, // Unknown request type
+                    '2017': BadRequest, // Invalid order id
+                    '2018': BadRequest, // Unknown time in force option
+                    '2020': PermissionDenied, // Margin trading is not allowed
+                    '2021': OperationRejected, // Exceeded maximum amount of allowed open spot orders
+                    '2029': InvalidNonce, // Invalid request id
+                    '2035': InvalidNonce, // Invalid nonce
+                    '3001': InsufficientFunds, // Account doesn't have sufficient balance
+                    '3002': OrderNotFound, // Order is not found
+                    '3003': PermissionDenied, // Borrowing is unavailable
+                    '3004': InsufficientFunds, // Unable to adjust balance
+                    '3005': InsufficientFunds, // Insufficient balance
+                    '3006': InsufficientFunds, // Insufficient collateral
+                    '3007': DuplicateOrderId, // Duplicated order id
+                    '3031': BadRequest, // Price is out of range
+                    '3032': BadRequest, // Order is either closed or rejected
+                    '3033': PermissionDenied, // Leverage increase not permitted
+                    '3034': RateLimitExceeded, // Rate limit exceeded
+                    '3035': RateLimitExceeded, // Global rate limit exceeded
+                    '3047': OperationRejected, // Leverage increase not permitted
+                    '3048': OperationRejected, // Reached max borrowing
+                    '3049': OperationRejected, // No more open loans available
+                    '3051': InsufficientFunds, // Insufficient iou balance
+                    '3052': InsufficientFunds, // Insufficient uoi balance
+                    '3063': BadRequest, // Missing request id
+                    '3064': OrderNotFillable, // Incoming order failed to make or take
+                    '3065': MarketClosed, // Market open interest limit exceeded
+                    '3066': ExchangeError, // Account concentration limit exceeded
+                    '3067': MarketClosed, // MarketClosed
+                    '6007': InvalidOrder, // Self cross prevention
+                    '6011': InvalidOrder, // Self cross prevention amend
+                    '6012': InvalidOrder, // Stop limit amend
+                    '6013': InvalidOrder, // Partially filled
+                    '8301': ExchangeError, // Unexpected Error
+                    '8305': ExchangeError, // Withdraw assertion failed
+                    '8306': ExchangeError, // Custody bad user
+                    '8307': ExchangeError, // Unexpected withdraw exception
+                    '8310': InvalidAddress, // Cannot find withdrawal destination
+                    '8311': BadRequest, // Missing fields in withdraw
+                    '8313': BadRequest, // Unsupported coin
+                    '8315': OperationRejected, // Crypto deposit not found
+                    '8316': OperationRejected, // Unable to allocate deposit address
+                    '8317': OperationRejected, // Swift code is on the restricted list
+                    '8318': NotSupported, // Unsupported operation
+                    '8319': NotSupported, // Custody operation has been disabled
+                    '8320': InvalidAddress, // Address failed validation
+                    '8322': BadRequest, // Bad withdrawal amount
+                    '8327': AuthenticationError, // Invalid Login
+                    '8329': ExchangeError, // Unexpected destination exception
+                    '8331': InvalidAddress, // Invalid Destination
+                    '8332': BadRequest, // Bad network specified
+                    '8333': BadRequest, // Bad symbol specified
+                    '8334': BadRequest, // Bad authentication type
+                    '8335': InvalidAddress, // Withdrawal destination does not belong to user
+                    '8336': InvalidAddress, // Withdrawal destination not whitelisted
+                    '8399': ExchangeError, // Unknown error
                 },
                 'broad': {
                     'HttpInvalidParameterException': BadRequest,
