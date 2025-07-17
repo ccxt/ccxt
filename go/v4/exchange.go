@@ -1704,13 +1704,16 @@ func (this *Exchange) WatchMultiple(args ...interface{}) <-chan interface{} {
 	//                             subscribe -----→ receive
 	//
 	futures := make([]*Future, len(messageHashes))
+	client.FuturesMu.Lock()
 	for i, messageHash := range messageHashes {
 		futures[i] = client.NewFuture(messageHash)
 	}
 	future := FutureRace(futures)
+	client.FuturesMu.Unlock()
 	// read and write subscription, this is done before connecting the client
 	// to avoid race conditions when other parts of the code read or write to the client.subscriptions
 	missingSubscriptions := []string{}
+	client.SubscriptionsMu.Lock()
 	if subscribeHashes != nil {
 		// Handle both []string and []interface{} for subscribeHashes
 		var subscribeHashesList []interface{}
@@ -1736,6 +1739,7 @@ func (this *Exchange) WatchMultiple(args ...interface{}) <-chan interface{} {
 			}
 		}
 	}
+	client.SubscriptionsMu.Unlock()
 	// we intentionally do not use await here to avoid unhandled exceptions
 	// the policy is to make sure that 100% of promises are resolved or rejected
 	// either with a call to client.resolve or client.reject with
