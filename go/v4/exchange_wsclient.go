@@ -173,10 +173,6 @@ func (this *WSClient) Future(messageHash interface{}) <-chan interface{} {
 	return this.Client.Future(messageHash)
 }
 
-func (this *WSClient) NewFuture(messageHash interface{}) *Future {
-	return this.Client.NewFuture(messageHash)
-}
-
 func (this *WSClient) Reject(err interface{}, messageHash ...interface{}) {
 	this.Client.Reject(err, messageHash...)
 }

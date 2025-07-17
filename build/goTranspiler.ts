@@ -185,8 +185,7 @@ class NewTranspiler {
             [/new\s*getValue\((\w+),\s*(\w+)\)\((\w+)\)/g, 'this.NewException(GetValue($1, $2), $3)'],
 
             // Casted access to subscriptions/futures/clients → exported Go field/prop
-            [/\(object\)client\)\.subscriptions/g, 'client.(*Client).Subscriptions'],
-            [/client\.subscriptions/g, 'client.(*Client).Subscriptions'],
+            [/client\.subscriptions/g, 'client.(*WSClient).Subscriptions'],
             [/Dictionary<string,object>\)client\.futures/g, 'client.(*WSClient).Futures'],
             [/this\.safeValue\(client\.futures,/g, 'this.SafeValue(client.(*WSClient).Futures,'],
             [/Dictionary<string,object>\)this\.clients/g, 'this.Clients'],
@@ -227,8 +226,8 @@ class NewTranspiler {
             [/stored := NewArrayCache\(limit\)/g, 'var stored interface{} = NewArrayCache(limit)'],  // needed for cex HandleTradesSnapshot
             // Futures
             [/future\.(Resolve|Reject)/g, 'future.(*Future).$1'],
-            [/\(<\-future\)/g, '<-future.(*Future).Await()'],
-            [/<-spawaned/g, '<-spawaned.(*Future).Await()'],
+            [/\(<\-future\)/g, '<-future.(<-chan interface{})'],
+            [/<-spawaned/g, '<-spawaned.(<-chan interface{})'],
             [/promise\.Resolve\(([^)]+)\)/g, 'promise.(*Future).Resolve(ToGetsLimit($1))'],
             // GetsLimit
             [/([a-z]+)\.GetLimit/g, '$1.(GetsLimit).GetLimit'],
@@ -243,9 +242,10 @@ class NewTranspiler {
             // Clients
             [/FindMessageHashes\(client/g, 'FindMessageHashes\(client.(*Client)'],
             [/CleanUnsubscription\(([a-zA-Z0-9]+),/g, 'CleanUnsubscription($1.(*Client),'],
-            [/client\.(LastPong|KeepAlive|Url|Subscriptions)/g, 'client.(*Client).$1'],
+            [/client\.Subscriptions/g, 'client.(*WSClient).Subscriptions'],
+            [/client\.(LastPong|KeepAlive|Url)/g, 'client.(*Client).$1'],
             [/<-client\.Future\(([^\)]*)\)/g, '<-client.(ClientInterface).Future($1)'],
-            [/client\.Futures/g, 'client.(*WSClient).Futures'],
+            [/client\.Futures/g, 'client.(*Client).Futures'],
             [/client\.(Send|Reset|OnPong|Reject|Future|Resolve)/g, 'client.(ClientInterface).$1'],
             // Error constructors
             [/New([A-Za-z0-9]+Error)\(/g, '$1('],
