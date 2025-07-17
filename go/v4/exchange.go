@@ -175,7 +175,7 @@ type Exchange struct {
 	// ws
 	WsClients		map[string]interface{}	 // one websocket client per URL
 	WsClientsMu 	sync.Mutex
-	Balance    		map[string]interface{}
+	Balance    		interface{}
 	Positions 		interface{}
 	Clients 		map[string]interface{}
     newUpdates 		bool
