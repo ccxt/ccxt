@@ -242,6 +242,16 @@
                 ]
             }
         ],
+        "fetchLeverage": [
+            {
+                "description": "fetchLeverage",
+                "method": "fetchLeverage",
+                "url": "https://fapi.asterdex.com/fapi/v2/positionRisk?timestamp=timestamp&recvWindow=recvWindow&signature=signature",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
         "fetchLeverages": [
             {
                 "description": "fetchLeverages",

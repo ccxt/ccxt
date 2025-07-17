@@ -1887,6 +1887,22 @@ export default class aster extends Exchange {
 
     /**
      * @method
+     * @name aster#fetchLeverage
+     * @description fetch the set leverage for a market
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#position-information-v2-user_data
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     */
+    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
+        await this.loadMarkets ();
+        symbol = this.symbol (symbol);
+        const response = await this.fetchLeverages ([ symbol ], params);
+        return this.safeDict (response, symbol) as Leverage;
+    }
+
+    /**
+     * @method
      * @name aster#fetchLeverages
      * @description fetch the set leverage for all markets
      * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#position-information-v2-user_data

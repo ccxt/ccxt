@@ -1471,6 +1471,57 @@
                 ]
             }
         ],
+        "fetchLeverage": [
+            {
+                "description": "fetchLeverage",
+                "method": "fetchLeverage",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "BTCUSDT",
+                        "positionAmt": "0.000",
+                        "entryPrice": "0.0",
+                        "markPrice": "0.00000000",
+                        "unRealizedProfit": "0.00000000",
+                        "liquidationPrice": "0",
+                        "leverage": "20",
+                        "maxNotionalValue": "2500000",
+                        "marginType": "cross",
+                        "isolatedMargin": "0.00000000",
+                        "isAutoAddMargin": "false",
+                        "positionSide": "BOTH",
+                        "notional": "0",
+                        "isolatedWallet": "0",
+                        "updateTime": 0
+                    }
+                ],
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "BTCUSDT",
+                        "positionAmt": "0.000",
+                        "entryPrice": "0.0",
+                        "markPrice": "0.00000000",
+                        "unRealizedProfit": "0.00000000",
+                        "liquidationPrice": "0",
+                        "leverage": "20",
+                        "maxNotionalValue": "2500000",
+                        "marginType": "cross",
+                        "isolatedMargin": "0.00000000",
+                        "isAutoAddMargin": "false",
+                        "positionSide": "BOTH",
+                        "notional": "0",
+                        "isolatedWallet": "0",
+                        "updateTime": 0
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "marginMode": "cross",
+                    "longLeverage": 20,
+                    "shortLeverage": 20
+                }
+            }
+        ],
         "fetchLeverages": [
             {
                 "description": "fetchLeverages",
