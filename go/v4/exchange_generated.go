@@ -2905,7 +2905,7 @@ func  (this *Exchange) ReduceFeesByCurrency(fees interface{}) interface{}  {
     for i := 0; IsLessThan(i, GetArrayLength(fees)); i++ {
         var fee interface{} = GetValue(fees, i)
         var code interface{} = this.SafeString(fee, "currency")
-        var feeCurrencyCode interface{} = Ternary(IsTrue(!IsEqual(code, nil)), code, ToString(i))
+        var feeCurrencyCode interface{} = Ternary(IsTrue((!IsEqual(code, nil))), code, ToString(i))
         if IsTrue(!IsEqual(feeCurrencyCode, nil)) {
             var rate interface{} = this.SafeString(fee, "rate")
             var cost interface{} = this.SafeString(fee, "cost")
