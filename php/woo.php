@@ -1615,7 +1615,10 @@ class woo extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
-        $market = ($symbol !== null) ? $this->market($symbol) : null;
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $params = $this->omit($params, array( 'stop', 'trigger' ));
         $request = array();
