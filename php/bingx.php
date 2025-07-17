@@ -765,6 +765,10 @@ class bingx extends Exchange {
                         'min' => $this->safe_number($rawNetwork, 'withdrawMin'),
                         'max' => $this->safe_number($rawNetwork, 'withdrawMax'),
                     ),
+                    'deposit' => array(
+                        'min' => $this->safe_number($rawNetwork, 'depositMin'),
+                        'max' => null,
+                    ),
                 );
                 $precision = $this->parse_number($this->parse_precision($this->safe_string($rawNetwork, 'withdrawPrecision')));
                 $networks[$networkCode] = array(
@@ -779,20 +783,39 @@ class bingx extends Exchange {
                     'limits' => $limits,
                 );
             }
-            $result[$code] = $this->safe_currency_structure(array(
-                'info' => $entry,
-                'code' => $code,
-                'id' => $currencyId,
-                'precision' => null,
-                'name' => $name,
-                'active' => null,
-                'deposit' => null,
-                'withdraw' => null,
-                'networks' => $networks,
-                'fee' => null,
-                'limits' => null,
-                'type' => 'crypto', // only cryptos now
-            ));
+            if (!(is_array($result) && array_key_exists($code, $result))) { // the exchange could return the same $currency with different $networks
+                $result[$code] = array(
+                    'info' => $entry,
+                    'code' => $code,
+                    'id' => $currencyId,
+                    'precision' => null,
+                    'name' => $name,
+                    'active' => null,
+                    'deposit' => null,
+                    'withdraw' => null,
+                    'networks' => $networks,
+                    'fee' => null,
+                    'limits' => null,
+                    'type' => 'crypto', // only cryptos now
+                );
+            } else {
+                $existing = $result[$code];
+                $existingNetworks = $this->safe_dict($existing, 'networks', array());
+                $newNetworkCodes = is_array($networks) ? array_keys($networks) : array();
+                for ($j = 0; $j < count($newNetworkCodes); $j++) {
+                    $newNetworkCode = $newNetworkCodes[$j];
+                    if (!(is_array($existingNetworks) && array_key_exists($newNetworkCode, $existingNetworks))) {
+                        $existingNetworks[$newNetworkCode] = $networks[$newNetworkCode];
+                    }
+                }
+                $result[$code]['networks'] = $existingNetworks;
+            }
+        }
+        $codes = is_array($result) ? array_keys($result) : array();
+        for ($i = 0; $i < count($codes); $i++) {
+            $code = $codes[$i];
+            $currency = $result[$code];
+            $result[$code] = $this->safe_currency_structure($currency);
         }
         return $result;
     }
@@ -5697,37 +5720,13 @@ class bingx extends Exchange {
 
     public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
         //
-        //    {
-        //        "coin" => "BTC",
-        //        "name" => "BTC",
-        //        "networkList" => array(
-        //          array(
-        //            "name" => "BTC",
-        //            "network" => "BTC",
-        //            "isDefault" => true,
-        //            "minConfirm" => "2",
-        //            "withdrawEnable" => true,
-        //            "withdrawFee" => "0.00035",
-        //            "withdrawMax" => "1.62842",
-        //            "withdrawMin" => "0.0005"
-        //          ),
-        //          {
-        //            "name" => "BTC",
-        //            "network" => "BEP20",
-        //            "isDefault" => false,
-        //            "minConfirm" => "15",
-        //            "withdrawEnable" => true,
-        //            "withdrawFee" => "0.00001",
-        //            "withdrawMax" => "1.62734",
-        //            "withdrawMin" => "0.0001"
-        //          }
-        //        )
-        //    }
+        // currencie structure
         //
-        $networkList = $this->safe_list($fee, 'networkList', array());
-        $networkListLength = count($networkList);
+        $networks = $this->safe_dict($fee, 'networks', array());
+        $networkCodes = is_array($networks) ? array_keys($networks) : array();
+        $networksLength = count($networkCodes);
         $result = array(
-            'info' => $fee,
+            'info' => $networks,
             'withdraw' => array(
                 'fee' => null,
                 'percentage' => null,
@@ -5738,18 +5737,15 @@ class bingx extends Exchange {
             ),
             'networks' => array(),
         );
-        if ($networkListLength !== 0) {
-            for ($i = 0; $i < $networkListLength; $i++) {
-                $network = $networkList[$i];
-                $networkId = $this->safe_string($network, 'network');
-                $isDefault = $this->safe_bool($network, 'isDefault');
-                $currencyCode = $this->safe_string($currency, 'code');
-                $networkCode = $this->network_id_to_code($networkId, $currencyCode);
+        if ($networksLength !== 0) {
+            for ($i = 0; $i < $networksLength; $i++) {
+                $networkCode = $networkCodes[$i];
+                $network = $networks[$networkCode];
                 $result['networks'][$networkCode] = array(
                     'deposit' => array( 'fee' => null, 'percentage' => null ),
-                    'withdraw' => array( 'fee' => $this->safe_number($network, 'withdrawFee'), 'percentage' => false ),
+                    'withdraw' => array( 'fee' => $this->safe_number($network, 'fee'), 'percentage' => false ),
                 );
-                if ($isDefault) {
+                if ($networksLength === 1) {
                     $result['withdraw']['fee'] = $this->safe_number($network, 'withdrawFee');
                     $result['withdraw']['percentage'] = false;
                 }
@@ -5769,9 +5765,17 @@ class bingx extends Exchange {
          * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
          */
         $this->load_markets();
-        $response = $this->walletsV1PrivateGetCapitalConfigGetall ($params);
-        $coins = $this->safe_list($response, 'data');
-        return $this->parse_deposit_withdraw_fees($coins, $codes, 'coin');
+        $response = $this->fetch_currencies($params);
+        $depositWithdrawFees = array();
+        $responseCodes = is_array($response) ? array_keys($response) : array();
+        for ($i = 0; $i < count($responseCodes); $i++) {
+            $code = $responseCodes[$i];
+            if (($codes === null) || ($this->in_array($code, $codes))) {
+                $entry = $response[$code];
+                $depositWithdrawFees[$code] = $this->parse_deposit_withdraw_fee($entry);
+            }
+        }
+        return $depositWithdrawFees;
     }
 
     public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
