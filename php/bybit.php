@@ -8525,7 +8525,7 @@ class bybit extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'id' => $this->safe_string($income, 'execId'),
-            'amount' => $this->safe_number($income, 'execQty'),
+            'amount' => $this->safe_number($income, 'execFee'),
             'rate' => $this->safe_number($income, 'feeRate'),
         );
     }

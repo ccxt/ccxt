@@ -3780,7 +3780,7 @@ class Exchange(object):
         for i in range(0, len(fees)):
             fee = fees[i]
             code = self.safe_string(fee, 'currency')
-            feeCurrencyCode = code is not code if None else str(i)
+            feeCurrencyCode = code if (code is not None) else str(i)
             if feeCurrencyCode is not None:
                 rate = self.safe_string(fee, 'rate')
                 cost = self.safe_string(fee, 'cost')
