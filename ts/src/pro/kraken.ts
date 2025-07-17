@@ -787,7 +787,7 @@ export default class kraken extends krakenRest {
         const requiredParams: Dict = {};
         if (limit !== undefined) {
             if (this.inArray (limit, [ 10, 25, 100, 500, 1000 ])) {
-                requiredParams['limit'] = limit; // default 10, valid options 10, 25, 100, 500, 1000
+                requiredParams['depth'] = limit; // default 10, valid options 10, 25, 100, 500, 1000
             } else {
                 throw new NotSupported (this.id + ' watchOrderBook accepts limit values of 10, 25, 100, 500 and 1000 only');
             }
@@ -1730,19 +1730,21 @@ export default class kraken extends krakenRest {
         //
         const errorMessage = this.safeString2 (message, 'errorMessage', 'error');
         if (errorMessage !== undefined) {
-            const requestId = this.safeValue2 (message, 'reqid', 'req_id');
-            if (requestId !== undefined) {
-                const broad = this.exceptions['ws']['broad'];
-                const broadKey = this.findBroadlyMatchedKey (broad, errorMessage);
-                let exception = undefined;
-                if (broadKey === undefined) {
-                    exception = new ExchangeError ((errorMessage as string)); // c# requirement to convert the errorMessage to string
-                } else {
-                    exception = new broad[broadKey] (errorMessage);
-                }
-                client.reject (exception, requestId);
-                return false;
+            // const requestId = this.safeValue2 (message, 'reqid', 'req_id');
+            const broad = this.exceptions['ws']['broad'];
+            const broadKey = this.findBroadlyMatchedKey (broad, errorMessage);
+            let exception = undefined;
+            if (broadKey === undefined) {
+                exception = new ExchangeError ((errorMessage as string)); // c# requirement to convert the errorMessage to string
+            } else {
+                exception = new broad[broadKey] (errorMessage);
             }
+            // if (requestId !== undefined) {
+            //     client.reject (exception, requestId);
+            // } else {
+            client.reject (exception);
+            // }
+            return false;
         }
         return true;
     }
