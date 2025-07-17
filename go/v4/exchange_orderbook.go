@@ -1,6 +1,10 @@
 package ccxt
 
-import "math"
+import (
+	"fmt"
+	"math"
+	"strings"
+)
 
 // type CustomOrderBookProp interface {
 // 	cache []any
@@ -165,6 +169,46 @@ func (this *WsOrderBook) GetCache() interface{} {
 
 func (this *WsOrderBook) SetCache(cache interface{}) {
 	this.Cache = cache
+}
+
+// String returns a formatted string representation of the WsOrderBook struct
+func (this *WsOrderBook) String() string {
+	var result strings.Builder
+	result.WriteString("WsOrderBook{")
+	
+	if this.Symbol != "" {
+		result.WriteString(fmt.Sprintf(" Symbol:%s", this.Symbol))
+	}
+	
+	if this.Timestamp != 0 {
+		result.WriteString(fmt.Sprintf(" Timestamp:%d", this.Timestamp))
+	}
+	
+	if this.Datetime != nil {
+		result.WriteString(fmt.Sprintf(" Datetime:%v", this.Datetime))
+	}
+	
+	if this.Nonce != 0 {
+		result.WriteString(fmt.Sprintf(" Nonce:%d", this.Nonce))
+	}
+	
+	result.WriteString(fmt.Sprintf(" Cache:%v", this.Cache))
+	
+	// Format Asks and Bids properly
+	if this.Asks != nil {
+		result.WriteString(fmt.Sprintf(" Asks:%s", this.Asks.String()))
+	} else {
+		result.WriteString(" Asks:nil")
+	}
+	
+	if this.Bids != nil {
+		result.WriteString(fmt.Sprintf(" Bids:%s", this.Bids.String()))
+	} else {
+		result.WriteString(" Bids:nil")
+	}
+	
+	result.WriteString("}")
+	return result.String()
 }
 
 func getAsksBids(snapshot interface{}) ([][]float64, [][]float64) {

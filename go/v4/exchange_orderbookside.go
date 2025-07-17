@@ -2,7 +2,9 @@ package ccxt
 
 import (
 	"errors"
+	"fmt"
 	"math"
+	"strings"
 )
 
 /**
@@ -37,7 +39,6 @@ func init() {
     }
 }
 
-// IOrderBookSide interface
 type IOrderBookSide interface {
     Store(price interface{}, size interface{})
     StoreArray(delta interface{})
@@ -46,7 +47,6 @@ type IOrderBookSide interface {
     GetData() [][]float64
 }
 
-// OrderBookSide struct
 type OrderBookSide struct {
     Data   [][]float64  // equivalent to extending Array
     Index  []float64    // string-keyed dictionary of price levels / ids / indices
@@ -55,7 +55,6 @@ type OrderBookSide struct {
     Side   bool         // false is asks, true is bids
 }
 
-// NewOrderBookSide constructor equivalent
 func NewOrderBookSide(deltas interface{}, depth interface{}) *OrderBookSide {
     
     orderBookSide := &OrderBookSide{
@@ -65,7 +64,6 @@ func NewOrderBookSide(deltas interface{}, depth interface{}) *OrderBookSide {
         Depth:  math.MaxInt32,
     }
     
-    // Copy SEED values to index
     copy(orderBookSide.Index, SEED)
     
     // Set depth
@@ -186,7 +184,6 @@ func (obs *OrderBookSide) Limit() {
     }
 }
 
-// CountedOrderBookSide struct that embeds OrderBookSide
 type CountedOrderBookSide struct {
     *OrderBookSide
 }
@@ -202,7 +199,6 @@ func (obs *CountedOrderBookSide) Len() int {
 	return obs.Length
 }
 
-// Store is not supported for CountedOrderBookSide
 func (cobs *CountedOrderBookSide) Store(price interface{}, size interface{}) error {
     return errors.New("CountedOrderBookSide.Store() is not supported, use StoreArray([price, size, count]) instead")
 }
@@ -282,7 +278,6 @@ func (obs *CountedOrderBookSide) StoreArray(delta interface{}) {
     }
 }
 
-// IndexedOrderBookSide struct
 type IndexedOrderBookSide struct {
     Data    [][]float64                 // equivalent to extending Array
     Hashmap map[interface{}]float64     // string-keyed dictionary of price levels / ids / indices  
@@ -292,7 +287,6 @@ type IndexedOrderBookSide struct {
     Side    bool                        // Side flag
 }
 
-// NewIndexedOrderBookSide constructor
 func NewIndexedOrderBookSide(deltas interface{}, depth interface{}) *IndexedOrderBookSide {
     var deltasLength int
     if deltas != nil {
@@ -309,10 +303,8 @@ func NewIndexedOrderBookSide(deltas interface{}, depth interface{}) *IndexedOrde
         Side:    false,
     }
     
-    // Copy SEED values to index
     copy(iobs.Index, SEED)
     
-    // Set depth
     if depth != nil {
         iobs.Depth = depth.(int)
     } else {
@@ -338,7 +330,6 @@ func (obs *IndexedOrderBookSide) Len() int {
 	return obs.Length
 }
 
-// Store is not supported for IndexedOrderBookSide
 func (iobs *IndexedOrderBookSide) Store(price interface{}, size interface{}) error {
     return errors.New("IndexedOrderBook.Store() is not supported, use StoreArray([price, size, id]) instead")
 }
@@ -477,42 +468,36 @@ type IndexedBids struct {
 	*IndexedOrderBookSide
 }
 
-// NewAsks creates an OrderBookSide with Side = false (asks)
 func NewAsks(deltas interface{}, depth interface{}) *OrderBookSide {
     obs := NewOrderBookSide(deltas, depth)
     obs.Side = false
     return obs
 }
 
-// NewBids creates an OrderBookSide with Side = true (bids)  
 func NewBids(deltas interface{}, depth interface{}) *OrderBookSide {
     obs := NewOrderBookSide(deltas, depth)
     obs.Side = true
     return obs
 }
 
-// NewCountedAsks creates a CountedOrderBookSide with Side = false (asks)
 func NewCountedAsks(deltas interface{}, depth interface{}) *CountedOrderBookSide {
     cobs := NewCountedOrderBookSide(deltas, depth)
     cobs.Side = false
     return cobs
 }
 
-// NewCountedBids creates a CountedOrderBookSide with Side = true (bids)
 func NewCountedBids(deltas interface{}, depth interface{}) *CountedOrderBookSide {
     cobs := NewCountedOrderBookSide(deltas, depth)
     cobs.Side = true
     return cobs
 }
 
-// NewIndexedAsks creates an IndexedOrderBookSide with Side = false (asks)
 func NewIndexedAsks(deltas interface{}, depth interface{}) *IndexedOrderBookSide {
     iobs := NewIndexedOrderBookSide(deltas, depth)
     iobs.Side = false
     return iobs
 }
 
-// NewIndexedBids creates an IndexedOrderBookSide with Side = true (bids)
 func NewIndexedBids(deltas interface{}, depth interface{}) *IndexedOrderBookSide {
     iobs := NewIndexedOrderBookSide(deltas, depth)
     iobs.Side = true
@@ -521,4 +506,33 @@ func NewIndexedBids(deltas interface{}, depth interface{}) *IndexedOrderBookSide
 
 func (ords *OrderBookSide) GetSide() bool {
 	return ords.Side
+}
+
+// String returns a formatted string representation of the OrderBookSide struct
+func (obs *OrderBookSide) String() string {
+	var result strings.Builder
+	result.WriteString("OrderBookSide{")
+	
+	// Show the actual order data (price/amount pairs)
+	if obs.Length > 0 {
+		result.WriteString(" Orders:[")
+		for i := 0; i < obs.Length && i < len(obs.Data); i++ {
+			if i > 0 {
+				result.WriteString(" ")
+			}
+			if len(obs.Data[i]) >= 2 {
+				result.WriteString(fmt.Sprintf("[%.4f %.4f]", obs.Data[i][0], obs.Data[i][1]))
+			}
+		}
+		result.WriteString("]")
+	} else {
+		result.WriteString(" Orders:[]")
+	}
+	
+	result.WriteString(fmt.Sprintf(" Length:%d", obs.Length))
+	result.WriteString(fmt.Sprintf(" Depth:%d", obs.Depth))
+	result.WriteString(fmt.Sprintf(" Side:%v", obs.Side))
+	result.WriteString("}")
+	
+	return result.String()
 }

@@ -242,7 +242,7 @@ class NewTranspiler {
             // Clients
             [/FindMessageHashes\(client/g, 'FindMessageHashes\(client.(*Client)'],
             [/CleanUnsubscription\(([a-zA-Z0-9]+),/g, 'CleanUnsubscription($1.(*Client),'],
-            [/client\.Subscriptions/g, 'client.(*WSClient).Subscriptions'],
+            [/client\.Subscriptions/g, 'client.(ClientInterface).GetSubscriptions()'],
             [/client\.(LastPong|KeepAlive|Url)/g, 'client.(*Client).$1'],
             [/<-client\.Future\(([^\)]*)\)/g, '<-client.(ClientInterface).Future($1)'],
             [/client\.Futures/g, 'client.(*Client).Futures'],
@@ -253,8 +253,9 @@ class NewTranspiler {
             [/NewOrderBook/g, 'NewWsOrderBook'],
             [/NewNotSupported/g, 'NotSupported'],
             [/NewUnsubscribeError/g, 'UnsubscribeError'],
-
+            
             [ new RegExp(`\\s*New(${exchangeNamePattern})(?:Rest)?\\(([^)]*)\\)`, 'g'), 'New$1($2).Exchange' ],
+            
         ]
     }
     
@@ -925,7 +926,10 @@ class NewTranspiler {
             this.createGeneratedHeader().join('\n'),
             '',
             wrappersIndented,
+            // Wrapper regex replacements
         ].join('\n')
+        .replaceAll('return NewIOrderBook', 'return *NewIOrderBook')
+        .replaceAll('return NewBalance', 'return *NewBalance')
         log.magenta ('→', (path as any).yellow)
 
         overwriteFileAndFolder (path, file);

@@ -176,7 +176,7 @@ type Exchange struct {
 	// ws
 	WsClients		map[string]interface{}	 // one websocket client per URL
 	WsClientsMu 	sync.Mutex
-	Balance    		interface{}
+	Balance    		map[string]interface{}
 	Positions 		interface{}
 	Clients 		map[string]interface{}
     newUpdates 		bool
@@ -236,7 +236,7 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 	this.Liquidations = &sync.Map{}
 	this.MyLiquidations = &sync.Map{}
 	this.Clients = make(map[string]interface{})
-	this.Balance = &sync.Map{}
+	this.Balance = make(map[string]interface{})
 
 	// beforeNs := time.Now().UnixNano()
 	// this.WarmUpCache(this.Itf)
