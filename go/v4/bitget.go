@@ -1976,7 +1976,7 @@ func  (this *bitget) FetchDefaultMarkets(params interface{}) <- chan interface{}
                         "cross": hasCrossMargin,
                         "isolated": hasIsolatedMargin,
                     }
-                    isMarginTradingAllowed = IsTrue(hasCrossMargin) || IsTrue(hasCrossMargin)
+                    isMarginTradingAllowed = IsTrue(hasCrossMargin) || IsTrue(hasIsolatedMargin)
                 } else {
                     if IsTrue(IsEqual(symbolType, "perpetual")) {
                         typeVar = "swap"

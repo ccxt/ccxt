@@ -1996,7 +1996,7 @@ export default class bitget extends Exchange {
                     'cross': hasCrossMargin,
                     'isolated': hasIsolatedMargin,
                 };
-                isMarginTradingAllowed = hasCrossMargin || hasCrossMargin;
+                isMarginTradingAllowed = hasCrossMargin || hasIsolatedMargin;
             } else {
                 if (symbolType === 'perpetual') {
                     type = 'swap';

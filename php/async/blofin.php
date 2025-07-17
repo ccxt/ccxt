@@ -934,6 +934,7 @@ class blofin extends Exchange {
              * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/#/?id=funding-$rate-history-structure funding $rate structures~ to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+             * @param {int} [$params->until] $timestamp in ms of the latest funding $rate to fetch
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-$rate-history-structure funding $rate structures~
              */
             if ($symbol === null) {
@@ -943,7 +944,7 @@ class blofin extends Exchange {
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
             if ($paginate) {
-                return Async\await($this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params));
+                return Async\await($this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params, 100));
             }
             $market = $this->market($symbol);
             $request = array(
@@ -954,6 +955,11 @@ class blofin extends Exchange {
             }
             if ($limit !== null) {
                 $request['limit'] = $limit;
+            }
+            $until = $this->safe_integer($params, 'until');
+            if ($until !== null) {
+                $request['after'] = $until;
+                $params = $this->omit($params, 'until');
             }
             $response = Async\await($this->publicGetMarketFundingRateHistory ($this->extend($request, $params)));
             $rates = array();

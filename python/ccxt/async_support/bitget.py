@@ -1998,7 +1998,7 @@ class bitget(Exchange, ImplicitAPI):
                     'cross': hasCrossMargin,
                     'isolated': hasIsolatedMargin,
                 }
-                isMarginTradingAllowed = hasCrossMargin or hasCrossMargin
+                isMarginTradingAllowed = hasCrossMargin or hasIsolatedMargin
             else:
                 if symbolType == 'perpetual':
                     type = 'swap'
