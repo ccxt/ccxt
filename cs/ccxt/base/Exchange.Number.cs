@@ -92,7 +92,8 @@ public partial class Exchange
                 parsedX = (ticks * tickScaled) / scale;
                 if ((int)paddingMode == NO_PADDING)
                 {
-                    var result = Convert.ToDouble(parsedX.ToString($"F{newNumPrecisionDigits}", CultureInfo.InvariantCulture)).ToString($"F{newNumPrecisionDigits}", CultureInfo.InvariantCulture);
+                    // Fixed: avoid the Convert.ToDouble() that loses precision
+                    var result = parsedX.ToString($"F{newNumPrecisionDigits}", CultureInfo.InvariantCulture);
                     return result.Contains('.') ? result.TrimEnd('0').TrimEnd('.') : result;
                 }
                 return DecimalToPrecision(parsedX, ROUND, newNumPrecisionDigits, DECIMAL_PLACES, paddingMode);
