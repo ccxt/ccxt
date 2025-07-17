@@ -752,7 +752,7 @@ export default class bullish extends bullishRest {
             this.throwBroadlyMatchedException (this.exceptions['broad'], errorCodeName, feedback);
             throw new ExchangeError (feedback); // unknown message
         } catch (e) {
-            client.reject (e, message);
+            client.reject (e);
         }
     }
 
