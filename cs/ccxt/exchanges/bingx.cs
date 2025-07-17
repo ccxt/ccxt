@@ -768,6 +768,10 @@ public partial class bingx : Exchange
                         { "min", this.safeNumber(rawNetwork, "withdrawMin") },
                         { "max", this.safeNumber(rawNetwork, "withdrawMax") },
                     } },
+                    { "deposit", new Dictionary<string, object>() {
+                        { "min", this.safeNumber(rawNetwork, "depositMin") },
+                        { "max", null },
+                    } },
                 };
                 object precision = this.parseNumber(this.parsePrecision(this.safeString(rawNetwork, "withdrawPrecision")));
                 ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
@@ -782,20 +786,44 @@ public partial class bingx : Exchange
                     { "limits", limits },
                 };
             }
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "info", entry },
-                { "code", code },
-                { "id", currencyId },
-                { "precision", null },
-                { "name", name },
-                { "active", null },
-                { "deposit", null },
-                { "withdraw", null },
-                { "networks", networks },
-                { "fee", null },
-                { "limits", null },
-                { "type", "crypto" },
-            });
+            if (!isTrue((inOp(result, code))))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+                    { "info", entry },
+                    { "code", code },
+                    { "id", currencyId },
+                    { "precision", null },
+                    { "name", name },
+                    { "active", null },
+                    { "deposit", null },
+                    { "withdraw", null },
+                    { "networks", networks },
+                    { "fee", null },
+                    { "limits", null },
+                    { "type", "crypto" },
+                };
+            } else
+            {
+                object existing = getValue(result, code);
+                object existingNetworks = this.safeDict(existing, "networks", new Dictionary<string, object>() {});
+                object newNetworkCodes = new List<object>(((IDictionary<string,object>)networks).Keys);
+                for (object j = 0; isLessThan(j, getArrayLength(newNetworkCodes)); postFixIncrement(ref j))
+                {
+                    object newNetworkCode = getValue(newNetworkCodes, j);
+                    if (!isTrue((inOp(existingNetworks, newNetworkCode))))
+                    {
+                        ((IDictionary<string,object>)existingNetworks)[(string)newNetworkCode] = getValue(networks, newNetworkCode);
+                    }
+                }
+                ((IDictionary<string,object>)getValue(result, code))["networks"] = existingNetworks;
+            }
+        }
+        object codes = new List<object>(((IDictionary<string,object>)result).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
+        {
+            object code = getValue(codes, i);
+            object currency = getValue(result, code);
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(currency);
         }
         return result;
     }
@@ -5341,37 +5369,13 @@ public partial class bingx : Exchange
     public override object parseDepositWithdrawFee(object fee, object currency = null)
     {
         //
-        //    {
-        //        "coin": "BTC",
-        //        "name": "BTC",
-        //        "networkList": [
-        //          {
-        //            "name": "BTC",
-        //            "network": "BTC",
-        //            "isDefault": true,
-        //            "minConfirm": "2",
-        //            "withdrawEnable": true,
-        //            "withdrawFee": "0.00035",
-        //            "withdrawMax": "1.62842",
-        //            "withdrawMin": "0.0005"
-        //          },
-        //          {
-        //            "name": "BTC",
-        //            "network": "BEP20",
-        //            "isDefault": false,
-        //            "minConfirm": "15",
-        //            "withdrawEnable": true,
-        //            "withdrawFee": "0.00001",
-        //            "withdrawMax": "1.62734",
-        //            "withdrawMin": "0.0001"
-        //          }
-        //        ]
-        //    }
+        // currencie structure
         //
-        object networkList = this.safeList(fee, "networkList", new List<object>() {});
-        object networkListLength = getArrayLength(networkList);
+        object networks = this.safeDict(fee, "networks", new Dictionary<string, object>() {});
+        object networkCodes = new List<object>(((IDictionary<string,object>)networks).Keys);
+        object networksLength = getArrayLength(networkCodes);
         object result = new Dictionary<string, object>() {
-            { "info", fee },
+            { "info", networks },
             { "withdraw", new Dictionary<string, object>() {
                 { "fee", null },
                 { "percentage", null },
@@ -5382,26 +5386,23 @@ public partial class bingx : Exchange
             } },
             { "networks", new Dictionary<string, object>() {} },
         };
-        if (isTrue(!isEqual(networkListLength, 0)))
+        if (isTrue(!isEqual(networksLength, 0)))
         {
-            for (object i = 0; isLessThan(i, networkListLength); postFixIncrement(ref i))
+            for (object i = 0; isLessThan(i, networksLength); postFixIncrement(ref i))
             {
-                object network = getValue(networkList, i);
-                object networkId = this.safeString(network, "network");
-                object isDefault = this.safeBool(network, "isDefault");
-                object currencyCode = this.safeString(currency, "code");
-                object networkCode = this.networkIdToCode(networkId, currencyCode);
+                object networkCode = getValue(networkCodes, i);
+                object network = getValue(networks, networkCode);
                 ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
                     { "deposit", new Dictionary<string, object>() {
                         { "fee", null },
                         { "percentage", null },
                     } },
                     { "withdraw", new Dictionary<string, object>() {
-                        { "fee", this.safeNumber(network, "withdrawFee") },
+                        { "fee", this.safeNumber(network, "fee") },
                         { "percentage", false },
                     } },
                 };
-                if (isTrue(isDefault))
+                if (isTrue(isEqual(networksLength, 1)))
                 {
                     ((IDictionary<string,object>)getValue(result, "withdraw"))["fee"] = this.safeNumber(network, "withdrawFee");
                     ((IDictionary<string,object>)getValue(result, "withdraw"))["percentage"] = false;
@@ -5424,9 +5425,19 @@ public partial class bingx : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object response = await this.walletsV1PrivateGetCapitalConfigGetall(parameters);
-        object coins = this.safeList(response, "data");
-        return this.parseDepositWithdrawFees(coins, codes, "coin");
+        object response = await this.fetchCurrencies(parameters);
+        object depositWithdrawFees = new Dictionary<string, object>() {};
+        object responseCodes = new List<object>(((IDictionary<string,object>)response).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(responseCodes)); postFixIncrement(ref i))
+        {
+            object code = getValue(responseCodes, i);
+            if (isTrue(isTrue((isEqual(codes, null))) || isTrue((this.inArray(code, codes)))))
+            {
+                object entry = getValue(response, code);
+                ((IDictionary<string,object>)depositWithdrawFees)[(string)code] = this.parseDepositWithdrawFee(entry);
+            }
+        }
+        return depositWithdrawFees;
     }
 
     /**
