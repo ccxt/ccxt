@@ -1818,12 +1818,19 @@ class Exchange {
             $newNumPrecisionDigits = static::precisionFromString($precisionDigitsString);
 
             if ($roundingMode === TRUNCATE) {
-                $scale = pow(10, max($newNumPrecisionDigits, 10));
-                $xScaled = round(floatval($x) * $scale);
+                $xStr = static::number_to_string($x);
+                $dotIndex = strpos($xStr, '.');
+                if ($dotIndex && $newNumPrecisionDigits >= 0) {
+                    list($before, $after) = explode('.', $xStr);
+                    $truncatedX = $before . '.' . substr($after, 0, max(0, $newNumPrecisionDigits));
+                } else {
+                    $truncatedX = $xStr;
+                }
+                $scale = pow(10, $newNumPrecisionDigits);
+                $xScaled = round(floatval($truncatedX) * $scale);
                 $tickScaled = round($numPrecisionDigits * $scale);
                 $ticks = intval($xScaled / $tickScaled); // PHP's intval truncates towards zero
                 $x = ($ticks * $tickScaled) / $scale;
-                
                 if ($paddingMode === NO_PADDING) {
                     $formatted = number_format($x, $newNumPrecisionDigits, '.', '');
                     // Only remove trailing zeros after decimal point
