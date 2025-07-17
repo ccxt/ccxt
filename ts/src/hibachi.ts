@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/hibachi.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Dict, Market, Str, Ticker, Trade, Int, Num, OrderSide, OrderType, OrderBook, TradingFees, Transaction, DepositAddress, OHLCV } from './base/types.js';
+import type { Balances, Currencies, Dict, Market, Str, Ticker, Trade, Int, Num, OrderSide, OrderType, OrderBook, TradingFees, Transaction, DepositAddress, OHLCV, LedgerEntry, Currency } from './base/types.js';
 import { ecdsa, hmac } from './base/functions/crypto.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
@@ -77,7 +77,7 @@ export default class hibachi extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
-                'fetchLedger': false,
+                'fetchLedger': true,
                 'fetchLeverage': false,
                 'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
@@ -144,6 +144,8 @@ export default class hibachi extends Exchange {
                 'private': {
                     'get': {
                         'capital/deposit-info': 1,
+                        'capital/history': 1,
+                        'trade/account/trading_history': 1,
                         'trade/account/info': 1,
                         'trade/account/trades': 1,
                     },
@@ -1121,6 +1123,186 @@ export default class hibachi extends Exchange {
     derivePublicKeyFromPrivate () {
         this.checkRequiredCredentials ();
         return secp256k1.getPublicKey (this.privateKey.slice (-64), false).slice (1, 65);
+    }
+
+    parseTransactionType (type) {
+        const types: Dict = {
+            'deposit': 'transaction',
+            'withdrawal': 'transaction',
+            'transfer-in': 'transfer',
+            'transfer-out': 'transfer',
+        };
+        return this.safeString (types, type, type);
+    }
+
+    parseTransactionStatus (status) {
+        const statuses: Dict = {
+            'pending': 'pending',
+            'claimable': 'pending',
+            'completed': 'ok',
+            'failed': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
+        const transactionType = this.safeString (item, 'transactionType');
+        let timestamp = undefined;
+        let type = undefined;
+        let direction = undefined;
+        let amount = undefined;
+        let fee = undefined;
+        let referenceId = undefined;
+        let referenceAccount = undefined;
+        let status = undefined;
+        if (transactionType === undefined) {
+            // response from TradeAccountTradingHistory
+            timestamp = this.safeInteger (item, 'timestamp') * 1000;
+            type = 'trade';
+            let amountStr = this.safeString (item, 'realizedPnl');
+            if (Precise.stringLt (amountStr, '0')) {
+                direction = 'out';
+                amountStr = Precise.stringNeg (amountStr);
+            } else {
+                direction = 'in';
+            }
+            amount = this.parseNumber (amountStr);
+            fee = { 'currency': 'USDT', 'cost': this.safeNumber (item, 'fee') };
+            status = 'ok';
+        } else {
+            // response from CapitalHistory
+            timestamp = this.safeInteger (item, 'timestampSec') * 1000;
+            amount = this.safeNumber (item, 'quantity');
+            direction = (transactionType === 'deposit' || transactionType === 'transfer-in') ? 'in' : 'out';
+            type = this.parseTransactionType (transactionType);
+            status = this.parseTransactionStatus (this.safeString (item, 'status'));
+            if (transactionType === 'transfer-in') {
+                referenceAccount = this.safeString (item, 'srcAccountId');
+            } else if (transactionType === 'transfer-out') {
+                referenceAccount = this.safeString (item, 'receivingAccountId');
+            }
+            referenceId = this.safeString (item, 'transactionHash');
+        }
+        return this.safeLedgerEntry ({
+            'id': this.safeString (item, 'id'),
+            'currency': this.currency ('USDT'),
+            'account': this.accountId.toString (),
+            'referenceAccount': referenceAccount,
+            'referenceId': referenceId,
+            'status': status,
+            'amount': amount,
+            'before': undefined,
+            'after': undefined,
+            'fee': fee,
+            'direction': direction,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'type': type,
+            'info': item,
+        }, currency) as LedgerEntry;
+    }
+
+    /**
+     * @method
+     * @name hibachi#fetchLedger
+     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+     * @see https://api-doc.hibachi.xyz/#35125e3f-d154-4bfd-8276-a48bb1c62020
+     * @param {string} [code] unified currency code, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+     * @param {int} [limit] max number of ledger entries to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+     */
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
+        this.checkRequiredCredentials ();
+        await this.loadMarkets ();
+        const currency = this.currency ('USDT');
+        const request = { 'accountId': this.accountId };
+        const responseCapitalHistory = await this.privateGetCapitalHistory (request);
+        //
+        // {
+        //     "transactions": [
+        //         {
+        //             "assetId": 1,
+        //             "blockNumber": 358396669,
+        //             "chain": "Arbitrum",
+        //             "etaTsSec": null,
+        //             "id": 358396669,
+        //             "quantity": "0.999500",
+        //             "status": "pending",
+        //             "timestampSec": 1752692872,
+        //             "token": "USDT",
+        //             "transactionHash": "0x408e48881e0ba77d8638e3fe57bc06bdec513ddaa8b672e0aefa7e22e2f18b5e",
+        //             "transactionType": "deposit"
+        //         },
+        //         {
+        //             "assetId": 1,
+        //             "etaTsSec": null,
+        //             "id": 13116,
+        //             "instantWithdrawalChain": null,
+        //             "instantWithdrawalToken": null,
+        //             "isInstantWithdrawal": false,
+        //             "quantity": "0.040000",
+        //             "status": "completed",
+        //             "timestampSec": 1752542708,
+        //             "transactionHash": "0xe89cf90b2408d1a273dc9427654145def102d9449e5e2cfc10690ccffc3d7e28",
+        //             "transactionType": "withdrawal",
+        //             "withdrawalAddress": "0x23625d5fc6a6e32638d908eb4c3a3415e5121f76"
+        //         },
+        //         {
+        //             "assetId": 1,
+        //             "id": 167,
+        //             "quantity": "10.000000",
+        //             "srcAccountId": 175,
+        //             "srcAddress": "0xc2f77ce029438a3fdfe68ddee25991a9fb985a86",
+        //             "status": "completed",
+        //             "timestampSec": 1732224729,
+        //             "transactionType": "transfer-in"
+        //         },
+        //         {
+        //             "assetId": 1,
+        //             "id": 170,
+        //             "quantity": "10.000000",
+        //             "receivingAccountId": 175,
+        //             "receivingAddress": "0xc2f77ce029438a3fdfe68ddee25991a9fb985a86",
+        //             "status": "completed",
+        //             "timestampSec": 1732225631,
+        //             "transactionType": "transfer-out"
+        //         },
+        //     ]
+        // }
+        //
+        const rowsCapitalHistory = this.safeList (responseCapitalHistory, 'transactions');
+        const responseTradingHistory = await this.privateGetTradeAccountTradingHistory (request);
+        //
+        // {
+        //     "tradingHistory": [
+        //         {
+        //             "eventType": "MARKET",
+        //             "fee": "0.000008",
+        //             "priceOrFundingRate": "119687.82481",
+        //             "quantity": "0.0000003727",
+        //             "realizedPnl": "0.004634",
+        //             "side": "Sell",
+        //             "symbol": "BTC/USDT-P",
+        //             "timestamp": 1752522571
+        //         },
+        //         {
+        //             "eventType": "FundingEvent",
+        //             "fee": "0",
+        //             "priceOrFundingRate": "0.000203",
+        //             "quantity": "0.0000003727",
+        //             "realizedPnl": "-0.000009067899008751979",
+        //             "side": "Long",
+        //             "symbol": "BTC/USDT-P",
+        //             "timestamp": 1752508800
+        //         },
+        //     ]
+        // }
+        //
+        const rowsTradingHistory = this.safeList (responseTradingHistory, 'tradingHistory');
+        const rows = this.arrayConcat (rowsCapitalHistory, rowsTradingHistory);
+        return this.parseLedger (rows, currency, since, limit, params);
     }
 
     /**

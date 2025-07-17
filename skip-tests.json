@@ -1013,6 +1013,11 @@
             },
             "fetchCurrencies": {
                 "amountOfCurrencies": "exchange has only 1 currency"
+            },
+            "fetchLedger": {
+                "before": "not provided",
+                "after": "not provided",
+                "fee": "not provided for transaction"
             }
         }
     },

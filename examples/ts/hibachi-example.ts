@@ -64,7 +64,13 @@ async function example () {
     const tradingFees = await exchange.fetchTradingFees ();
     console.log ('fetchTradingFees', tradingFees);
 
-    const depositAddress = await exchange.fetchDepositAddress ('USDT');
-    console.log ('fetchDepositAddress', depositAddress);
+    // Only run this for trustless account
+    if (exchange.privateKey.length !== 44) {
+        const depositAddress = await exchange.fetchDepositAddress ('USDT');
+        console.log ('fetchDepositAddress', depositAddress);
+    }
+
+    const ledger = await exchange.fetchLedger('USDT', undefined, 2);
+    console.log('fetchLedger', ledger);
 }
 example ();
