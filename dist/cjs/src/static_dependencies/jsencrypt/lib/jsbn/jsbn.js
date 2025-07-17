@@ -4,7 +4,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var util = require('./util.js');
 
-// ----------------------------------------------------------------------------
+// Copyright (c) 2005  Tom Wu
 // Bits per digit
 let dbits;
 // JavaScript engine analysis

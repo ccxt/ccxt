@@ -25,7 +25,6 @@ function _interopNamespace(e) {
 
 var http__namespace = /*#__PURE__*/_interopNamespace(http);
 
-// ----------------------------------------------------------------------------
 function isSecureEndpoint() {
     const { stack } = new Error();
     if (typeof stack !== 'string')
