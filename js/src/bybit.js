@@ -8516,7 +8516,7 @@ export default class bybit extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'id': this.safeString(income, 'execId'),
-            'amount': this.safeNumber(income, 'execQty'),
+            'amount': this.safeNumber(income, 'execFee'),
             'rate': this.safeNumber(income, 'feeRate'),
         };
     }
