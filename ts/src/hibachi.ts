@@ -184,16 +184,16 @@ export default class hibachi extends Exchange {
                     'sandbox': false,
                     'createOrder': {
                         'marginMode': false,
-                        'triggerPrice': false,
+                        'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': undefined,
                         'stopLossPrice': false,
                         'takeProfitPrice': false,
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
-                            'IOC': false,
+                            'IOC': true,
                             'FOK': false,
-                            'PO': false,
+                            'PO': true,
                             'GTD': false,
                         },
                         'hedged': false,
@@ -880,6 +880,21 @@ export default class hibachi extends Exchange {
             'signature': signature,
             'maxFeesPercent': feeRate.toString (),
         };
+        const postOnly = this.isPostOnly (type.toUpperCase () === 'MARKET', undefined, params);
+        const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
+        const timeInForce = this.safeStringLower (params, 'timeInForce');
+        const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        if (postOnly) {
+            request['orderFlags'] = 'POST_ONLY';
+        } else if (timeInForce === 'ioc') {
+            request['orderFlags'] = 'IOC';
+        } else if (reduceOnly) {
+            request['orderFlags'] = 'REDUCE_ONLY';
+        }
+        if (triggerPrice !== undefined) {
+            request['triggerPrice'] = triggerPrice;
+        }
+        params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice' ]);
         const response = await this.privatePostTradeOrder (this.extend (request, params));
         //
         // {

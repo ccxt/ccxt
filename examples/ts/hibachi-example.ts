@@ -52,6 +52,16 @@ async function example () {
     const order5 = await exchange.cancelOrder(order3.id);
     console.log('create, edit and cancel limit order', order3.id, order4.id, order5.id);
 
+    // advanced order parameters
+    const postOnlyOrder = await exchange.createOrder('BTC/USDT:USDT', 'limit', 'buy', 2.0, 2.0, {'timeInForce': 'PO'});
+    await exchange.cancelOrder(postOnlyOrder.id);
+    const iocOrder = await exchange.createOrder('BTC/USDT:USDT', 'limit', 'buy', 2.0, 2.0, {'timeInForce': 'IOC'});
+    await exchange.createOrder('BTC/USDT:USDT', 'market', 'buy', 0.00002);
+    const reduceOnlyOrder = await exchange.createOrder('BTC/USDT:USDT', 'market', 'sell', 0.00002, undefined, {'reduceOnly': true});
+    const triggerOrder = await exchange.createOrder('BTC/USDT:USDT', 'limit', 'sell', 2.0, 2.0, {'triggerPrice': '2.0'});
+    await exchange.cancelOrder(triggerOrder.id);
+    console.log('postOnly, IOC, reduceOnly, trigger order', postOnlyOrder.id, iocOrder.id, reduceOnlyOrder.id, triggerOrder.id);
+
     const order1_info = await exchange.fetchOrder (order1.id, 'BTC/USDT:USDT');
     console.log ('fetchOrder', order1_info);
     
