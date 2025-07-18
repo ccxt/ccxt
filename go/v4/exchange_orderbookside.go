@@ -19,7 +19,7 @@ import (
 
 	for low <= high {
 		mid := int(uint32(low+high) >> 1)
-		if array[mid] < x {
+		if array[mid] - x < 0 {
 			low = mid + 1
 		} else {
 			high = mid - 1
