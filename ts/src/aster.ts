@@ -117,7 +117,7 @@ export default class aster extends Exchange {
                 'fetchLongShortRatio': false,
                 'fetchLongShortRatioHistory': false,
                 'fetchMarginAdjustmentHistory': false,
-                'fetchMarginMode': false,
+                'fetchMarginMode': true,
                 'fetchMarginModes': true,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
@@ -1978,6 +1978,22 @@ export default class aster extends Exchange {
             'longLeverage': longLeverage,
             'shortLeverage': shortLeverage,
         } as Leverage;
+    }
+
+    /**
+     * @method
+     * @name aster#fetchMarginMode
+     * @description fetches the margin mode of the trading pair
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#position-information-v2-user_data
+     * @param {string} symbol unified symbol of the market to fetch the margin mode for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+     */
+    async fetchMarginMode (symbol: string, params = {}): Promise<MarginMode> {
+        await this.loadMarkets ();
+        symbol = this.symbol (symbol);
+        const response = await this.fetchMarginModes ([ symbol ], params);
+        return this.safeDict (response, symbol) as MarginMode;
     }
 
     /**
