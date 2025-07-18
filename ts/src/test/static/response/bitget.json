@@ -6674,6 +6674,31 @@
                     }
                 ]
             }
+        ],
+        "setLeverage": [
+            {
+                "description": "uta swap setLeverage",
+                "method": "setLeverage",
+                "input": [
+                    20,
+                    "BTC/USDT:USDT",
+                    {
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1752815940833",
+                    "data": "success"
+                },
+                "parsedResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1752815940833",
+                    "data": "success"
+                }
+            }
         ]
     }
 }

@@ -8559,10 +8559,13 @@ export default class bitget extends Exchange {
      * @name bitget#setLeverage
      * @description set the level of leverage for a market
      * @see https://www.bitget.com/api-doc/contract/account/Change-Leverage
+     * @see https://www.bitget.com/api-doc/uta/account/Change-Leverage
      * @param {int} leverage the rate of leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.holdSide] *isolated only* position direction, 'long' or 'short'
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.posSide] required for uta isolated margin, long or short
      * @returns {object} response from the exchange
      */
     async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
@@ -8575,27 +8578,43 @@ export default class bitget extends Exchange {
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
         const request: Dict = {
             'symbol': market['id'],
-            'marginCoin': market['settleId'],
             'leverage': this.numberToString (leverage),
-            'productType': productType,
-            // 'holdSide': 'long',
         };
-        const response = await this.privateMixPostV2MixAccountSetLeverage (this.extend (request, params));
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1700864711517,
-        //         "data": {
-        //             "symbol": "BTCUSDT",
-        //             "marginCoin": "USDT",
-        //             "longLeverage": "25",
-        //             "shortLeverage": "25",
-        //             "crossMarginLeverage": "25",
-        //             "marginMode": "crossed"
-        //         }
-        //     }
-        //
+        let uta = undefined;
+        let response = undefined;
+        [ uta, params ] = this.handleOptionAndParams (params, 'setLeverage', 'uta', false);
+        if (uta) {
+            request['coin'] = market['settleId'];
+            request['category'] = productType;
+            response = await this.privateUtaPostV3AccountSetLeverage (this.extend (request, params));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1752815940833,
+            //         "data": "success"
+            //     }
+            //
+        } else {
+            request['marginCoin'] = market['settleId'];
+            request['productType'] = productType;
+            response = await this.privateMixPostV2MixAccountSetLeverage (this.extend (request, params));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1700864711517,
+            //         "data": {
+            //             "symbol": "BTCUSDT",
+            //             "marginCoin": "USDT",
+            //             "longLeverage": "25",
+            //             "shortLeverage": "25",
+            //             "crossMarginLeverage": "25",
+            //             "marginMode": "crossed"
+            //         }
+            //     }
+            //
+        }
         return response;
     }
 

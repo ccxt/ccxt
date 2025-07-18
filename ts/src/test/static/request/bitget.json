@@ -1158,6 +1158,19 @@
                     }
                 ],
                 "output": "{\"symbol\":\"BTCUSD\",\"marginCoin\":\"BTC\",\"leverage\":\"20\",\"productType\":\"COIN-FUTURES\",\"holdSide\":\"long\"}"
+            },
+            {
+                "description": "uta swap setLeverage",
+                "method": "setLeverage",
+                "url": "https://api.bitget.com/api/v3/account/set-leverage",
+                "input": [
+                    20,
+                    "BTC/USDT:USDT",
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"leverage\":\"20\",\"coin\":\"USDT\",\"category\":\"USDT-FUTURES\"}"
             }
         ],
         "setPositionMode": [
