@@ -3,11 +3,12 @@
 
 import Exchange from './abstract/hibachi.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Dict, Market, Str, Ticker, Trade, Int, Num, OrderSide, OrderType, OrderBook, TradingFees, Transaction, DepositAddress, OHLCV, Order, LedgerEntry, Currency } from './base/types.js';
+import type { Balances, Currencies, Dict, Market, Str, Ticker, Trade, Int, Num, OrderSide, OrderType, OrderBook, TradingFees, Transaction, DepositAddress, OHLCV, Order, LedgerEntry, Currency, int } from './base/types.js';
 import { ecdsa, hmac } from './base/functions/crypto.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { Precise } from './base/Precise.js';
+import { ExchangeError } from './base/errors.js';
 
 // ---------------------------------------------------------------------------
 
@@ -26,7 +27,6 @@ export default class hibachi extends Exchange {
             'certified': false,
             'pro': false,
             'dex': true,
-            // TODO: flip it to `true` once we implement the handler
             'has': {
                 'CORS': undefined,
                 'spot': false,
@@ -123,7 +123,7 @@ export default class hibachi extends Exchange {
                 '1w': '1w',
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/xxx', // TODO: upload logo
+                'logo': 'https://github.com/user-attachments/assets/1e2179d0-b6a8-44a0-b466-66103ae2de9c',
                 'api': {
                     'public': 'https://data-api.hibachi.xyz',
                     'private': 'https://api.hibachi.xyz',
@@ -180,10 +180,66 @@ export default class hibachi extends Exchange {
             },
             'features': {
                 'default': {
-                    // TODO: add settings here
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': false,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': undefined,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': false,
+                            'FOK': false,
+                            'PO': false,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': undefined,
+                    'fetchOHLCV': {
+                        'limit': undefined,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': undefined,
                 },
                 'future': {
-                    'linear': undefined,
+                    'linear': {
+                        'extends': 'default',
+                    },
                     'inverse': undefined,
                 },
             },
@@ -209,6 +265,7 @@ export default class hibachi extends Exchange {
         const settleId: Str = this.safeString (market, 'settlementSymbol');
         const settle: Str = this.safeCurrencyCode (settleId);
         const symbol = base + '/' + quote + ':' + settle;
+        const created = this.safeInteger (market, 'marketCreationTimestamp') * 1000;
         return {
             'id': marketId,
             'numericId': numericId,
@@ -256,9 +313,7 @@ export default class hibachi extends Exchange {
                     'max': undefined,
                 },
             },
-            // We don't expose this timestamp yet. Hardcode to the launch date of our exchange: 2024/10/10
-            // TODO: use the real timestamp once we have it
-            'created': 1728561600000,
+            'created': created,
             'info': market,
         };
     }
@@ -559,7 +614,7 @@ export default class hibachi extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        const pricesResponse = await this.publicGetMarketDataPrices (this.extend (request));
+        const pricesResponse = await this.publicGetMarketDataPrices (this.extend (request, params));
         // {
         //     "askPrice": "3514.650296",
         //     "bidPrice": "3513.596112",
@@ -572,7 +627,7 @@ export default class hibachi extends Exchange {
         //     "symbol": "ETH/USDT-P",
         //     "tradePrice": "2372.746570"
         // }
-        const statsResponse = await this.publicGetMarketDataStats (this.extend (request));
+        const statsResponse = await this.publicGetMarketDataStats (this.extend (request, params));
         // {
         //     "high24h": "3819.507827",
         //     "low24h": "3754.474162",
@@ -741,7 +796,7 @@ export default class hibachi extends Exchange {
 
     orderMessage (market, nonce: number, feeRate: number, type: OrderType, side: OrderSide, amount: number, price: Num = undefined) {
         let sideInternal = 0;
-        if (side === 'ask') {
+        if (side === 'sell') {
             sideInternal = 0;
         } else if (side === 'buy') {
             sideInternal = 1;
@@ -823,7 +878,7 @@ export default class hibachi extends Exchange {
             'signature': signature,
             'maxFeesPercent': feeRate.toString (),
         };
-        const response = await this.privatePostTradeOrder (request);
+        const response = await this.privatePostTradeOrder (this.extend (request, params));
         //
         // {
         //     "orderId": "578721673790138368"
@@ -866,7 +921,7 @@ export default class hibachi extends Exchange {
             'maxFeesPercent': feeRate.toString (),
             'signature': signature,
         };
-        await this.privatePutTradeOrder (request);
+        await this.privatePutTradeOrder (this.extend (request, params));
         // At this time the response body is empty. A 200 response means the update request is accepted and sent to process
         //
         // {}
@@ -971,7 +1026,7 @@ export default class hibachi extends Exchange {
             'maxFees': maxFees.toString (),
             'signature': signature,
         };
-        await this.privatePostCapitalWithdraw (request);
+        await this.privatePostCapitalWithdraw (this.extend (request, params));
         // At this time the response body is empty. A 200 response means the withdraw request is accepted and sent to process
         //
         // {}
@@ -988,7 +1043,7 @@ export default class hibachi extends Exchange {
             'tag': undefined,
             'tagFrom': undefined,
             'tagTo': undefined,
-            'type': 'deposit',
+            'type': 'withdrawal',
             'amount': amount,
             'currency': code,
             'status': 'pending',
@@ -1092,13 +1147,14 @@ export default class hibachi extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        this.checkRequiredCredentials ();
         await this.loadMarkets ();
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
         const request = { 'accountId': this.accountId };
-        const response = await this.privateGetTradeAccountTrades (request);
+        const response = await this.privateGetTradeAccountTrades (this.extend (request, params));
         //
         // {
         //     "trades": [
@@ -1207,13 +1263,35 @@ export default class hibachi extends Exchange {
             }
         }
         if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
-            headers['content-type'] = 'application/json';
+            headers['Content-Type'] = 'application/json';
             body = this.json (params);
         }
         if (api === 'private') {
             headers['Authorization'] = this.apiKey;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return undefined; // fallback to default error handler
+        }
+        if ('status' in response) {
+            //
+            //     {"errorCode":4,"message":"Invalid input: Invalid quantity: 0","status":"failed"}
+            //
+            const status = this.safeString (response, 'status');
+            if (status === 'failed') {
+                const code = this.safeString (response, 'errorCode');
+                const feedback = this.id + ' ' + body;
+                this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
+                this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+                const message = this.safeString (response, 'message');
+                this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+                throw new ExchangeError (feedback);
+            }
+        }
+        return undefined;
     }
 
     derivePublicKeyFromPrivate () {
@@ -1314,7 +1392,7 @@ export default class hibachi extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency ('USDT');
         const request = { 'accountId': this.accountId };
-        const responseCapitalHistory = await this.privateGetCapitalHistory (request);
+        const responseCapitalHistory = await this.privateGetCapitalHistory (this.extend (request, params));
         //
         // {
         //     "transactions": [
@@ -1369,7 +1447,7 @@ export default class hibachi extends Exchange {
         // }
         //
         const rowsCapitalHistory = this.safeList (responseCapitalHistory, 'transactions');
-        const responseTradingHistory = await this.privateGetTradeAccountTradingHistory (request);
+        const responseTradingHistory = await this.privateGetTradeAccountTradingHistory (this.extend (request, params));
         //
         // {
         //     "tradingHistory": [
@@ -1416,7 +1494,7 @@ export default class hibachi extends Exchange {
             'publicKey': '0x' + this.binaryToBase16 (publicKey),
             'accountId': this.accountId,
         };
-        const response = await this.privateGetCapitalDepositInfo (request);
+        const response = await this.privateGetCapitalDepositInfo (this.extend (request, params));
         // {
         //     "depositAddressEvm": "0x0b95d90b9345dadf1460bd38b9f4bb0d2f4ed788"
         // }
