@@ -619,7 +619,7 @@ class testMainClass:
     def check_constructor(self, exchange):
         # todo: this might be moved in base tests later
         if exchange.id == 'binance':
-            assert exchange.hostname is None, 'binance.com hostname should be empty'
+            assert exchange.hostname is None or exchange.hostname == '', 'binance.com hostname should be empty'
             assert exchange.urls['api']['public'] == 'https://api.binance.com/api/v3', 'https://api.binance.com/api/v3 does not match: ' + exchange.urls['api']['public']
             assert ('lending/union/account' in exchange.api['sapi']['get']), 'SAPI should contain the endpoint lending/union/account, ' + json_stringify(exchange.api['sapi']['get'])
         elif exchange.id == 'binanceus':
@@ -1392,7 +1392,7 @@ class testMainClass:
         try:
             exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
-            spot_order_request = self.urlencoded_to_dict(exchange.last_request_body)
+            spot_order_request = json_parse(exchange.last_request_body)
         broker_id = spot_order_request['broker_id']
         id_string = str(id)
         assert broker_id.startswith(id_string), 'woo - broker_id: ' + broker_id + ' does not start with id: ' + id_string

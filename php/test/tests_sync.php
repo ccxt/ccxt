@@ -757,7 +757,7 @@ class testMainClass {
     public function check_constructor($exchange) {
         // todo: this might be moved in base tests later
         if ($exchange->id === 'binance') {
-            assert($exchange->hostname === null, 'binance.com hostname should be empty');
+            assert($exchange->hostname === null || $exchange->hostname === '', 'binance.com hostname should be empty');
             assert($exchange->urls['api']['public'] === 'https://api.binance.com/api/v3', 'https://api.binance.com/api/v3 does not match: ' . $exchange->urls['api']['public']);
             assert((is_array($exchange->api['sapi']['get']) && array_key_exists('lending/union/account', $exchange->api['sapi']['get'])), 'SAPI should contain the endpoint lending/union/account, ' . json_stringify($exchange->api['sapi']['get']));
         } elseif ($exchange->id === 'binanceus') {
@@ -1683,7 +1683,7 @@ class testMainClass {
         try {
             $exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch(\Throwable $e) {
-            $spot_order_request = $this->urlencoded_to_dict($exchange->last_request_body);
+            $spot_order_request = json_parse($exchange->last_request_body);
         }
         $broker_id = $spot_order_request['broker_id'];
         $id_string = ((string) $id);

@@ -8083,7 +8083,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'id': self.safe_string(income, 'execId'),
-            'amount': self.safe_number(income, 'execQty'),
+            'amount': self.safe_number(income, 'execFee'),
             'rate': self.safe_number(income, 'feeRate'),
         }
 

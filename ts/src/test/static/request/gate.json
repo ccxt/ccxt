@@ -908,6 +908,20 @@
         ],
         "fetchDeposits": [
             {
+                "description": "fetchDeposits with since and until",
+                "method": "fetchDeposits",
+                "url": "https://api.gateio.ws/api/v4/wallet/deposits?from=1721692800&to=1722297600",
+                "input": [
+                    null,
+                    1721692800000,
+                    null,
+                    {
+                        "until": 1722297600000
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "Fetch deposits",
                 "method": "fetchDeposits",
                 "url": "https://api.gateio.ws/api/v4/wallet/deposits",

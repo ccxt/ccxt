@@ -43,7 +43,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.4.94';
+$version = '4.4.95';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -62,7 +62,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.4.94';
+    const VERSION = '4.4.95';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -3412,7 +3412,7 @@ class Exchange {
         // keep this in mind:
         // in JS => 1 == 1.0 is true;  1 === 1.0 is true
         // in Python => 1 == 1.0 is true
-        // in PHP 1 == 1.0 is true, but 1 === 1.0 is false
+        // in PHP 1 == 1.0 is true, but 1 === 1.0 is false.
         if (mb_strpos($stringVersion, '.') !== false) {
             return floatval($stringVersion);
         }
@@ -4517,7 +4517,7 @@ class Exchange {
         for ($i = 0; $i < count($fees); $i++) {
             $fee = $fees[$i];
             $code = $this->safe_string($fee, 'currency');
-            $feeCurrencyCode = $code !== null ? $code : (string) $i;
+            $feeCurrencyCode = ($code !== null) ? $code : (string) $i;
             if ($feeCurrencyCode !== null) {
                 $rate = $this->safe_string($fee, 'rate');
                 $cost = $this->safe_string($fee, 'cost');

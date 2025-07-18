@@ -1779,7 +1779,7 @@ func  (this *Exchange) ParseToNumeric(number interface{}) interface{}  {
     // keep this in mind:
     // in JS: 1 == 1.0 is true;  1 === 1.0 is true
     // in Python: 1 == 1.0 is true
-    // in PHP 1 == 1.0 is true, but 1 === 1.0 is false
+    // in PHP 1 == 1.0 is true, but 1 === 1.0 is false.
     if IsTrue(IsGreaterThanOrEqual(GetIndexOf(stringVersion, "."), 0)) {
         return ParseFloat(stringVersion)
     }
@@ -2905,7 +2905,7 @@ func  (this *Exchange) ReduceFeesByCurrency(fees interface{}) interface{}  {
     for i := 0; IsLessThan(i, GetArrayLength(fees)); i++ {
         var fee interface{} = GetValue(fees, i)
         var code interface{} = this.SafeString(fee, "currency")
-        var feeCurrencyCode interface{} = Ternary(IsTrue(!IsEqual(code, nil)), code, ToString(i))
+        var feeCurrencyCode interface{} = Ternary(IsTrue((!IsEqual(code, nil))), code, ToString(i))
         if IsTrue(!IsEqual(feeCurrencyCode, nil)) {
             var rate interface{} = this.SafeString(fee, "rate")
             var cost interface{} = this.SafeString(fee, "cost")

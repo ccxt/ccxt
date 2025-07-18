@@ -1966,7 +1966,7 @@ public partial class bitget : Exchange
                     { "cross", hasCrossMargin },
                     { "isolated", hasIsolatedMargin },
                 };
-                isMarginTradingAllowed = isTrue(hasCrossMargin) || isTrue(hasCrossMargin);
+                isMarginTradingAllowed = isTrue(hasCrossMargin) || isTrue(hasIsolatedMargin);
             } else
             {
                 if (isTrue(isEqual(symbolType, "perpetual")))

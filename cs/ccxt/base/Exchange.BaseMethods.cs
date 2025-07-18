@@ -1377,7 +1377,7 @@ public partial class Exchange
         // keep this in mind:
         // in JS: 1 == 1.0 is true;  1 === 1.0 is true
         // in Python: 1 == 1.0 is true
-        // in PHP 1 == 1.0 is true, but 1 === 1.0 is false
+        // in PHP 1 == 1.0 is true, but 1 === 1.0 is false.
         if (isTrue(isGreaterThanOrEqual(getIndexOf(stringVersion, "."), 0)))
         {
             return parseFloat(stringVersion);
@@ -2687,7 +2687,7 @@ public partial class Exchange
         {
             object fee = getValue(fees, i);
             object code = this.safeString(fee, "currency");
-            object feeCurrencyCode = ((bool) isTrue(!isEqual(code, null))) ? code : ((object)i).ToString();
+            object feeCurrencyCode = ((bool) isTrue((!isEqual(code, null)))) ? code : ((object)i).ToString();
             if (isTrue(!isEqual(feeCurrencyCode, null)))
             {
                 object rate = this.safeString(fee, "rate");

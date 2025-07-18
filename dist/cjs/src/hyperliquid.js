@@ -164,6 +164,7 @@ class hyperliquid extends hyperliquid$1 {
                                 'orderStatus': 2,
                                 'spotClearinghouseState': 2,
                                 'exchangeStatus': 2,
+                                'candleSnapshot': 3,
                             },
                         },
                     },
@@ -3766,7 +3767,7 @@ class hyperliquid extends hyperliquid$1 {
         if (coin.indexOf('/') > -1 || coin.indexOf('@') > -1) {
             return coin; // spot
         }
-        return coin + '/USDC:USDC';
+        return this.safeCurrencyCode(coin) + '/USDC:USDC';
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {

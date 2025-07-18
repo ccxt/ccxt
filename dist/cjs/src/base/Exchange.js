@@ -2374,7 +2374,7 @@ class Exchange {
         // keep this in mind:
         // in JS: 1 == 1.0 is true;  1 === 1.0 is true
         // in Python: 1 == 1.0 is true
-        // in PHP 1 == 1.0 is true, but 1 === 1.0 is false
+        // in PHP 1 == 1.0 is true, but 1 === 1.0 is false.
         if (stringVersion.indexOf('.') >= 0) {
             return parseFloat(stringVersion);
         }
@@ -3478,7 +3478,7 @@ class Exchange {
         for (let i = 0; i < fees.length; i++) {
             const fee = fees[i];
             const code = this.safeString(fee, 'currency');
-            const feeCurrencyCode = code !== undefined ? code : i.toString();
+            const feeCurrencyCode = (code !== undefined) ? code : i.toString();
             if (feeCurrencyCode !== undefined) {
                 const rate = this.safeString(fee, 'rate');
                 const cost = this.safeString(fee, 'cost');

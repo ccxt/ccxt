@@ -833,7 +833,7 @@ class testMainClass {
     checkConstructor(exchange) {
         // todo: this might be moved in base tests later
         if (exchange.id === 'binance') {
-            assert(exchange.hostname === undefined, 'binance.com hostname should be empty');
+            assert(exchange.hostname === undefined || exchange.hostname === '', 'binance.com hostname should be empty');
             assert(exchange.urls['api']['public'] === 'https://api.binance.com/api/v3', 'https://api.binance.com/api/v3 does not match: ' + exchange.urls['api']['public']);
             assert(('lending/union/account' in exchange.api['sapi']['get']), 'SAPI should contain the endpoint lending/union/account, ' + jsonStringify(exchange.api['sapi']['get']));
         }
@@ -1788,7 +1788,7 @@ class testMainClass {
             await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
         }
         catch (e) {
-            spotOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+            spotOrderRequest = jsonParse(exchange.last_request_body);
         }
         const brokerId = spotOrderRequest['broker_id'];
         const idString = id.toString();
