@@ -169,7 +169,7 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 		} else {
 			if this.ReturnResponseHeaders {
 				if resultMap, ok := result.(map[string]interface{}); ok {
-					resultMap["responseHeaders"] = resp.Header
+					resultMap["responseHeaders"] = HeaderToMap(resp.Header)
 					result = resultMap
 				}
 			}
@@ -216,4 +216,16 @@ func (this *Exchange) HandleHttpStatusCode(code interface{}, reason interface{},
 		panic(functionError(errorMessage))
 	}
 
+}
+
+func HeaderToMap(header http.Header) map[string]interface{} {
+	result := make(map[string]interface{})
+	for key, values := range header {
+		if len(values) == 1 {
+			result[key] = values[0]
+		} else {
+			result[key] = values
+		}
+	}
+	return result
 }
