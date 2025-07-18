@@ -4,7 +4,7 @@ import Exchange from './abstract/aster.js';
 import { AccountNotEnabled, AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSymbol, DuplicateOrderId, ExchangeClosedByUser, ExchangeError, InsufficientFunds, InvalidNonce, InvalidOrder, MarketClosed, NetworkError, NoChange, NotSupported, OperationFailed, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { Balances, Currencies, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, Leverage, Leverages, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface } from './base/types.js';
+import type { Balances, Currencies, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, Leverage, Leverages, MarginMode, MarginModes, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface } from './base/types.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------xs
@@ -110,15 +110,15 @@ export default class aster extends Exchange {
                 'fetchLastPrices': false,
                 'fetchLedger': false,
                 'fetchLedgerEntry': false,
-                'fetchLeverage': 'emulated',
-                'fetchLeverages': false,
+                'fetchLeverage': true,
+                'fetchLeverages': true,
                 'fetchLeverageTiers': false,
                 'fetchLiquidations': false,
                 'fetchLongShortRatio': false,
                 'fetchLongShortRatioHistory': false,
                 'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
-                'fetchMarginModes': false,
+                'fetchMarginModes': true,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
@@ -1978,6 +1978,73 @@ export default class aster extends Exchange {
             'longLeverage': longLeverage,
             'shortLeverage': shortLeverage,
         } as Leverage;
+    }
+
+    /**
+     * @method
+     * @name aster#fetchMarginModes
+     * @description fetches margin mode of the user
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#position-information-v2-user_data
+     * @param {string[]} symbols unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+     */
+    async fetchMarginModes (symbols: Strings = undefined, params = {}): Promise<MarginModes> {
+        await this.loadMarkets ();
+        const response = await this.privateGetFapiV2PositionRisk (params);
+        //
+        //
+        //     [
+        //         {
+        //             "symbol": "INJUSDT",
+        //             "positionAmt": "0.0",
+        //             "entryPrice": "0.0",
+        //             "markPrice": "0.00000000",
+        //             "unRealizedProfit": "0.00000000",
+        //             "liquidationPrice": "0",
+        //             "leverage": "20",
+        //             "maxNotionalValue": "25000",
+        //             "marginType": "cross",
+        //             "isolatedMargin": "0.00000000",
+        //             "isAutoAddMargin": "false",
+        //             "positionSide": "BOTH",
+        //             "notional": "0",
+        //             "isolatedWallet": "0",
+        //             "updateTime": 0
+        //         }
+        //     ]
+        //
+        //
+        return this.parseMarginModes (response, symbols, 'symbol', 'swap');
+    }
+
+    parseMarginMode (marginMode: Dict, market = undefined): MarginMode {
+        //
+        //     {
+        //         "symbol": "INJUSDT",
+        //         "positionAmt": "0.0",
+        //         "entryPrice": "0.0",
+        //         "markPrice": "0.00000000",
+        //         "unRealizedProfit": "0.00000000",
+        //         "liquidationPrice": "0",
+        //         "leverage": "20",
+        //         "maxNotionalValue": "25000",
+        //         "marginType": "cross",
+        //         "isolatedMargin": "0.00000000",
+        //         "isAutoAddMargin": "false",
+        //         "positionSide": "BOTH",
+        //         "notional": "0",
+        //         "isolatedWallet": "0",
+        //         "updateTime": 0
+        //     }
+        //
+        const marketId = this.safeString (marginMode, 'symbol');
+        market = this.safeMarket (marketId, market);
+        return {
+            'info': marginMode,
+            'symbol': market['symbol'],
+            'marginMode': this.safeStringLower (marginMode, 'marginType'),
+        } as MarginMode;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

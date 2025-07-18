@@ -263,6 +263,18 @@
                     ]
                 ]
             }
+        ],
+        "fetchMarginModes": [
+            {
+                "description": "fetchMarginModes",
+                "method": "fetchMarginModes",
+                "url": "https://fapi.asterdex.com/fapi/v2/positionRisk?timestamp=timestamp&recvWindow=recvWindow&signature=signature",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ]
+            }
         ]
     }
 }
