@@ -6699,6 +6699,31 @@
                     "data": "success"
                 }
             }
+        ],
+        "setPositionMode": [
+            {
+                "description": "uta setPositionMode",
+                "method": "setPositionMode",
+                "input": [
+                    false,
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1752816734592",
+                    "data": "success"
+                },
+                "parsedResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1752816734592",
+                    "data": "success"
+                }
+            }
         ]
     }
 }

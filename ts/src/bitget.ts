@@ -8672,36 +8672,53 @@ export default class bitget extends Exchange {
      * @name bitget#setPositionMode
      * @description set hedged to true or false for a market
      * @see https://www.bitget.com/api-doc/contract/account/Change-Hold-Mode
+     * @see https://www.bitget.com/api-doc/uta/account/Change-Position-Mode
      * @param {bool} hedged set to true to use dualSidePosition
      * @param {string} symbol not used by bitget setPositionMode ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.productType] required if symbol is undefined: 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+     * @param {string} [params.productType] required if not uta and symbol is undefined: 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} response from the exchange
      */
     async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         const posMode = hedged ? 'hedge_mode' : 'one_way_mode';
+        const request: Dict = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
         let productType = undefined;
+        let uta = undefined;
+        let response = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
-        const request: Dict = {
-            'posMode': posMode,
-            'productType': productType,
-        };
-        const response = await this.privateMixPostV2MixAccountSetPositionMode (this.extend (request, params));
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1700865608009,
-        //         "data": {
-        //             "posMode": "hedge_mode"
-        //         }
-        //     }
-        //
+        [ uta, params ] = this.handleOptionAndParams (params, 'setLeverage', 'uta', false);
+        if (uta) {
+            request['holdMode'] = posMode;
+            response = await this.privateUtaPostV3AccountSetHoldMode (this.extend (request, params));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1752816734592,
+            //         "data": "success"
+            //     }
+            //
+        } else {
+            request['posMode'] = posMode;
+            request['productType'] = productType;
+            response = await this.privateMixPostV2MixAccountSetPositionMode (this.extend (request, params));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1700865608009,
+            //         "data": {
+            //             "posMode": "hedge_mode"
+            //         }
+            //     }
+            //
+        }
         return response;
     }
 

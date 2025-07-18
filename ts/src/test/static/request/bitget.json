@@ -547,7 +547,7 @@
                         "uta": true
                     }
                 ],
-                "output": "[{\"category\":\"USDT-FUTURES\",\"symbol\":\"BTCUSDT\",\"orderType\":\"limit\",\"qty\":\"0.001\",\"price\":\"100000\",\"timeInForce\":\"gtc\",\"side\":\"buy\",\"posSide\":\"long\",\"uta\":true},{\"category\":\"USDT-FUTURES\",\"symbol\":\"BTCUSDT\",\"orderType\":\"limit\",\"qty\":\"0.001\",\"price\":\"101000\",\"timeInForce\":\"gtc\",\"side\":\"buy\",\"posSide\":\"long\",\"uta\":true}]"
+                "output": "[{\"category\":\"USDT-FUTURES\",\"symbol\":\"BTCUSDT\",\"orderType\":\"limit\",\"qty\":\"0.001\",\"price\":\"100000\",\"timeInForce\":\"gtc\",\"side\":\"buy\",\"posSide\":\"long\",\"uta\":true},{\"category\":\"USDT-FUTURES\",\"symbol\":\"BTCUSDT\",\"orderType\":\"limit\",\"qty\":\"0.001\",\"price\":\"101000\",\"timeInForce\":\"gtc\",\"side\":\"buy\",\"posSide\":\"long\"}]"
             }
         ],
         "editOrder": [
@@ -1183,6 +1183,19 @@
                     "LTC/USDT:USDT"
                 ],
                 "output": "{\"posMode\":\"hedge_mode\",\"productType\":\"USDT-FUTURES\"}"
+            },
+            {
+                "description": "uta setPositionMode",
+                "method": "setPositionMode",
+                "url": "https://api.bitget.com/api/v3/account/set-hold-mode",
+                "input": [
+                    false,
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": "{\"holdMode\":\"one_way_mode\"}"
             }
         ],
         "setMarginMode": [
