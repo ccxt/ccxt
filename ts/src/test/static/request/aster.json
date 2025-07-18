@@ -285,6 +285,16 @@
                     ]
                 ]
             }
+        ],
+        "fetchMarginAdjustmentHistory": [
+            {
+                "description": "fetchMarginAdjustmentHistory",
+                "method": "fetchMarginAdjustmentHistory",
+                "url": "https://fapi.asterdex.com/fapi/v1/positionMargin/history?symbol=BTCUSDT&timestamp=timestamp&recvWindow=recvWindow&signature=signature",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
         ]
     }
 }

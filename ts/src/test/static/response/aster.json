@@ -1678,6 +1678,46 @@
                     }
                 }
             }
+        ],
+        "fetchMarginAdjustmentHistory": [
+            {
+                "description": "fetchMarginAdjustmentHistory",
+                "method": "fetchMarginAdjustmentHistory",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": [
+                    {
+                        "amount": "100",
+                        "asset": "USDT",
+                        "symbol": "BTCUSDT",
+                        "time": 1578047900425,
+                        "type": 1,
+                        "positionSide": "LONG"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "amount": "100",
+                            "asset": "USDT",
+                            "symbol": "BTCUSDT",
+                            "time": 1578047900425,
+                            "type": 1,
+                            "positionSide": "LONG"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "type": "add",
+                        "marginMode": "isolated",
+                        "amount": 100,
+                        "code": "USDT",
+                        "total": null,
+                        "status": "ok",
+                        "timestamp": 1578047900425,
+                        "datetime": "2020-01-03T10:38:20.425Z"
+                    }
+                ]
+            }
         ]
     }
 }

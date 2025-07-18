@@ -4,7 +4,7 @@ import Exchange from './abstract/aster.js';
 import { AccountNotEnabled, AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSymbol, DuplicateOrderId, ExchangeClosedByUser, ExchangeError, InsufficientFunds, InvalidNonce, InvalidOrder, MarketClosed, NetworkError, NoChange, NotSupported, OperationFailed, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { Balances, Currencies, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, Leverage, Leverages, MarginMode, MarginModes, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface } from './base/types.js';
+import type { Balances, Currencies, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface } from './base/types.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------xs
@@ -116,7 +116,7 @@ export default class aster extends Exchange {
                 'fetchLiquidations': false,
                 'fetchLongShortRatio': false,
                 'fetchLongShortRatioHistory': false,
-                'fetchMarginAdjustmentHistory': false,
+                'fetchMarginAdjustmentHistory': true,
                 'fetchMarginMode': true,
                 'fetchMarginModes': true,
                 'fetchMarketLeverageTiers': 'emulated',
@@ -137,7 +137,7 @@ export default class aster extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
-                'fetchOrders': false,
+                'fetchOrders': true,
                 'fetchOrderTrades': false,
                 'fetchPosition': false,
                 'fetchPositionHistory': false,
@@ -2061,6 +2061,88 @@ export default class aster extends Exchange {
             'symbol': market['symbol'],
             'marginMode': this.safeStringLower (marginMode, 'marginType'),
         } as MarginMode;
+    }
+
+    /**
+     * @method
+     * @name aster#fetchMarginAdjustmentHistory
+     * @description fetches the history of margin added or reduced from contract isolated positions
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#get-position-margin-change-history-trade
+     * @param {string} symbol unified market symbol
+     * @param {string} [type] "add" or "reduce"
+     * @param {int} [since] timestamp in ms of the earliest change to fetch
+     * @param {int} [limit] the maximum amount of changes to fetch
+     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {int} [params.until] timestamp in ms of the latest change to fetch
+     * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+     */
+    async fetchMarginAdjustmentHistory (symbol: Str = undefined, type: Str = undefined, since: Num = undefined, limit: Num = undefined, params = {}): Promise<MarginModification[]> {
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMarginAdjustmentHistory () requires a symbol argument');
+        }
+        const market = this.market (symbol);
+        const until = this.safeInteger (params, 'until');
+        params = this.omit (params, 'until');
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        if (type !== undefined) {
+            request['type'] = (type === 'add') ? 1 : 2;
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (until !== undefined) {
+            request['endTime'] = until;
+        }
+        const response = await this.privateGetFapiV1PositionMarginHistory (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "amount": "23.36332311",
+        //             "asset": "USDT",
+        //             "symbol": "BTCUSDT",
+        //             "time": 1578047897183,
+        //             "type": 1,
+        //             "positionSide": "BOTH"
+        //         }
+        //     ]
+        //
+        const modifications = this.parseMarginModifications (response);
+        return this.filterBySymbolSinceLimit (modifications, symbol, since, limit);
+    }
+
+    parseMarginModification (data: Dict, market: Market = undefined): MarginModification {
+        //
+        //     {
+        //         "amount": "100",
+        //         "asset": "USDT",
+        //         "symbol": "BTCUSDT",
+        //         "time": 1578047900425,
+        //         "type": 1,
+        //         "positionSide": "LONG"
+        //     }
+        //
+        const rawType = this.safeInteger (data, 'type');
+        const marketId = this.safeString (data, 'symbol');
+        const timestamp = this.safeInteger (data, 'time');
+        market = this.safeMarket (marketId, market);
+        return {
+            'info': data,
+            'symbol': market['symbol'],
+            'type': (rawType === 1) ? 'add' : 'reduce',
+            'marginMode': 'isolated',
+            'amount': this.safeNumber (data, 'amount'),
+            'code': this.safeString (data, 'asset'),
+            'total': undefined,
+            'status': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
