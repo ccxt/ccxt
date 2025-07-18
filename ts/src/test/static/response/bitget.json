@@ -6477,8 +6477,7 @@
                             "amount": 0.001,
                             "price": 100000,
                             "params": {
-                                "posSide": "long",
-                                "uta": true
+                                "posSide": "long"
                             }
                         },
                         {
@@ -6488,16 +6487,115 @@
                             "amount": 0.001,
                             "price": 101000,
                             "params": {
-                                "posSide": "long",
-                                "uta": true
+                                "posSide": "long"
                             }
                         }
-                    ]
+                    ],
+                    {
+                        "uta": true
+                    }
                 ],
                 "httpResponse": {
                     "code": "00000",
                     "msg": "success",
                     "requestTime": "1752810449938",
+                    "data": [
+                        {
+                            "orderId": "1329948909442023424",
+                            "clientOid": "1329948909446217728"
+                        },
+                        {
+                            "orderId": "1329948909442023425",
+                            "clientOid": "1329948909446217729"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "orderId": "1329948909442023424",
+                            "clientOid": "1329948909446217728"
+                        },
+                        "id": "1329948909442023424",
+                        "clientOrderId": "1329948909446217728",
+                        "timestamp": null,
+                        "datetime": null,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "symbol": "BTC/USDT:USDT",
+                        "type": null,
+                        "side": null,
+                        "price": null,
+                        "amount": null,
+                        "cost": null,
+                        "average": null,
+                        "filled": null,
+                        "remaining": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "reduceOnly": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "status": null,
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "stopPrice": null
+                    },
+                    {
+                        "info": {
+                            "orderId": "1329948909442023425",
+                            "clientOid": "1329948909446217729"
+                        },
+                        "id": "1329948909442023425",
+                        "clientOrderId": "1329948909446217729",
+                        "timestamp": null,
+                        "datetime": null,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "symbol": "BTC/USDT:USDT",
+                        "type": null,
+                        "side": null,
+                        "price": null,
+                        "amount": null,
+                        "cost": null,
+                        "average": null,
+                        "filled": null,
+                        "remaining": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "reduceOnly": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "status": null,
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "stopPrice": null
+                    }
+                ]
+            }
+        ],
+        "cancelOrders": [
+            {
+                "description": "uta cancel orders",
+                "method": "cancelOrders",
+                "input": [
+                    [
+                        "1329948909442023424",
+                        "1329948909442023425"
+                    ],
+                    "BTC/USDT:USDT",
+                    {
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1752813731517",
                     "data": [
                         {
                             "orderId": "1329948909442023424",

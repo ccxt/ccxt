@@ -5378,6 +5378,7 @@ export default class bitget extends Exchange {
      * @see https://www.bitget.com/api-doc/uta/trade/Place-Batch
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the api endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrders (orders: OrderRequest[], params = {}) {
@@ -5785,6 +5786,42 @@ export default class bitget extends Exchange {
         return this.parseOrder (order, market);
     }
 
+    async cancelUtaOrders (ids, symbol: Str = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let productType = undefined;
+        [ productType, params ] = this.handleProductTypeAndParams (market, params);
+        const requestList = [];
+        for (let i = 0; i < ids.length; i++) {
+            const individualId = ids[i];
+            const order: Dict = {
+                'orderId': individualId,
+                'symbol': market['id'],
+                'category': productType,
+            };
+            requestList.push (order);
+        }
+        const response = await this.privateUtaPostV3TradeCancelBatch (requestList);
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1752813731517,
+        //         "data": [
+        //             {
+        //                 "orderId": "1329948909442023424",
+        //                 "clientOid": "1329948909446217728"
+        //             },
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseOrders (data, market);
+    }
+
     /**
      * @method
      * @name bitget#cancelOrders
@@ -5794,11 +5831,13 @@ export default class bitget extends Exchange {
      * @see https://www.bitget.com/api-doc/contract/plan/Cancel-Plan-Order
      * @see https://www.bitget.com/api-doc/margin/cross/trade/Cross-Batch-Cancel-Order
      * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Batch-Cancel-Orders
+     * @see https://www.bitget.com/api-doc/uta/trade/Cancel-Batch
      * @param {string[]} ids order ids
      * @param {string} symbol unified market symbol, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'isolated' or 'cross' for spot margin trading
      * @param {boolean} [params.trigger] *contract only* set to true for canceling trigger orders
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} an array of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrders (ids, symbol: Str = undefined, params = {}) {
@@ -5807,6 +5846,11 @@ export default class bitget extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        let uta = undefined;
+        [ uta, params ] = this.handleOptionAndParams (params, 'cancelOrders', 'uta', false);
+        if (uta) {
+            return await this.cancelUtaOrders (ids, symbol, params);
+        }
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('cancelOrders', params);
         const trigger = this.safeValue2 (params, 'stop', 'trigger');

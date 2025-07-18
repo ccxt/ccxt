@@ -529,8 +529,7 @@
                             "amount": 0.001,
                             "price": 100000,
                             "params": {
-                                "posSide": "long",
-                                "uta": true
+                                "posSide": "long"
                             }
                         },
                         {
@@ -540,11 +539,13 @@
                             "amount": 0.001,
                             "price": 101000,
                             "params": {
-                                "posSide": "long",
-                                "uta": true
+                                "posSide": "long"
                             }
                         }
-                    ]
+                    ],
+                    {
+                        "uta": true
+                    }
                 ],
                 "output": "[{\"category\":\"USDT-FUTURES\",\"symbol\":\"BTCUSDT\",\"orderType\":\"limit\",\"qty\":\"0.001\",\"price\":\"100000\",\"timeInForce\":\"gtc\",\"side\":\"buy\",\"posSide\":\"long\",\"uta\":true},{\"category\":\"USDT-FUTURES\",\"symbol\":\"BTCUSDT\",\"orderType\":\"limit\",\"qty\":\"0.001\",\"price\":\"101000\",\"timeInForce\":\"gtc\",\"side\":\"buy\",\"posSide\":\"long\",\"uta\":true}]"
             }
@@ -1341,6 +1342,22 @@
                     }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT\",\"orderIdList\":[{\"orderId\":\"1112207614827704321\"},{\"orderId\":\"1112207614982893571\"}]}"
+            },
+            {
+                "description": "uta cancel orders",
+                "method": "cancelOrders",
+                "url": "https://api.bitget.com/api/v3/trade/cancel-batch",
+                "input": [
+                        [
+                        "1329948909442023424",
+                        "1329948909442023425"
+                    ],
+                    "BTC/USDT:USDT",
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": "[{\"orderId\":\"1329948909442023424\",\"symbol\":\"BTCUSDT\",\"category\":\"USDT-FUTURES\"},{\"orderId\":\"1329948909442023425\",\"symbol\":\"BTCUSDT\",\"category\":\"USDT-FUTURES\"}]"
             }
         ],
         "cancelAllOrders": [
