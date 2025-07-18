@@ -786,6 +786,24 @@ class testMainClass {
         }
     }
 
+    public function test_return_response_headers($exchange) {
+        return Async\async(function () use ($exchange) {
+            if ($exchange->id !== 'binance') {
+                return false;  // this test is only for binance exchange for now
+            }
+            $exchange->return_response_headers = true;
+            $ticker = Async\await($exchange->fetch_ticker('BTC/USDT'));
+            $info = $ticker['info'];
+            $headers = $info['responseHeaders'];
+            $headers_keys = is_array($headers) ? array_keys($headers) : array();
+            assert(count($headers_keys) > 0, 'Response headers should not be empty');
+            $header_values = is_array($headers) ? array_values($headers) : array();
+            assert(count($header_values) > 0, 'Response headers values should not be empty');
+            $exchange->return_response_headers = false;
+            return true;
+        }) ();
+    }
+
     public function start_test($exchange, $symbol) {
         // we do not need to test aliases
         return Async\async(function () use ($exchange, $symbol) {
@@ -793,6 +811,7 @@ class testMainClass {
                 return true;
             }
             $this->check_constructor($exchange);
+            Async\await($this->test_return_response_headers($exchange));
             if ($this->sandbox || get_exchange_prop($exchange, 'sandbox')) {
                 $exchange->set_sandbox_mode(true);
             }
