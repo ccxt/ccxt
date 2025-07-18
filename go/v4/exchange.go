@@ -87,6 +87,7 @@ type Exchange struct {
 	Last_request_url         interface{}
 	LastRequestUrl           interface{}
 	Headers                  interface{}
+	ReturnResponseHeaders    bool
 
 	// type check this
 	Number interface{}

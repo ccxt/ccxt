@@ -220,6 +220,9 @@ class Exchange extends \ccxt\Exchange {
                 if ($this->enableLastJsonResponse) {
                     $this->last_json_response = $json_response;
                 }
+                if ($this->returnResponseHeaders) {
+                    $json_response['responseHeaders'] = $response_headers;
+                }
             }
 
             $response_body = $response_body ? $response_body : '';

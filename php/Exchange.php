@@ -117,6 +117,7 @@ class Exchange {
     );
     public $headers = array();
     public $origin = '*'; // CORS origin
+    public $returnResponseHeaders = false;
     public $MAX_VALUE = PHP_INT_MAX;
     //
 
@@ -1610,6 +1611,9 @@ class Exchange {
             $json_response = $this->parse_json($result);
             if ($this->enableLastJsonResponse) {
                 $this->last_json_response = $json_response;
+            }
+            if ($json_response && !array_is_list($json_response) && $this->returnResponseHeaders) {
+                $json_response['responseHeaders'] = $response_headers;
             }
         }
 
