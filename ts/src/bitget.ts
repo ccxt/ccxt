@@ -8692,7 +8692,7 @@ export default class bitget extends Exchange {
         let uta = undefined;
         let response = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
-        [ uta, params ] = this.handleOptionAndParams (params, 'setLeverage', 'uta', false);
+        [ uta, params ] = this.handleOptionAndParams (params, 'setPositionMode', 'uta', false);
         if (uta) {
             request['holdMode'] = posMode;
             response = await this.privateUtaPostV3AccountSetHoldMode (this.extend (request, params));
@@ -9574,9 +9574,10 @@ export default class bitget extends Exchange {
      * @name bitget#fetchCrossBorrowRate
      * @description fetch the rate of interest to borrow a currency for margin trading
      * @see https://www.bitget.com/api-doc/margin/cross/account/Get-Cross-Margin-Interest-Rate-And-Borrowable
+     * @see https://www.bitget.com/api-doc/uta/public/Get-Margin-Loans
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.symbol] required for isolated margin
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [borrow rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}
      */
     async fetchCrossBorrowRate (code: string, params = {}): Promise<CrossBorrowRate> {
@@ -9585,41 +9586,64 @@ export default class bitget extends Exchange {
         const request: Dict = {
             'coin': currency['id'],
         };
-        const response = await this.privateMarginGetV2MarginCrossedInterestRateAndLimit (this.extend (request, params));
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1700879047861,
-        //         "data": [
-        //             {
-        //                 "coin": "BTC",
-        //                 "leverage": "3",
-        //                 "transferable": true,
-        //                 "borrowable": true,
-        //                 "dailyInterestRate": "0.00007",
-        //                 "annualInterestRate": "0.02555",
-        //                 "maxBorrowableAmount": "26",
-        //                 "vipList": [
-        //                     {"level":"0","limit":"26","dailyInterestRate":"0.00007","annualInterestRate":"0.02555","discountRate":"1"},
-        //                     {"level":"1","limit":"26.78","dailyInterestRate":"0.0000679","annualInterestRate":"0.0247835","discountRate":"0.97"},
-        //                     {"level":"2","limit":"28.08","dailyInterestRate":"0.0000644","annualInterestRate":"0.023506","discountRate":"0.92"},
-        //                     {"level":"3","limit":"30.16","dailyInterestRate":"0.0000602","annualInterestRate":"0.021973","discountRate":"0.86"},
-        //                     {"level":"4","limit":"34.58","dailyInterestRate":"0.0000525","annualInterestRate":"0.0191625","discountRate":"0.75"},
-        //                     {"level":"5","limit":"43.16","dailyInterestRate":"0.000042","annualInterestRate":"0.01533","discountRate":"0.6"}
-        //                 ]
-        //             }
-        //         ]
-        //     }
-        //
+        let uta = undefined;
+        let response = undefined;
+        let result = undefined;
+        [ uta, params ] = this.handleOptionAndParams (params, 'fetchCrossBorrowRate', 'uta', false);
+        if (uta) {
+            response = await this.publicUtaGetV3MarketMarginLoans (this.extend (request, params));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1752817798893,
+            //         "data": {
+            //             "dailyInterest": "0.00100008",
+            //             "annualInterest": "0.3650292",
+            //             "limit": "100"
+            //         }
+            //     }
+            //
+            result = this.safeDict (response, 'data', {});
+        } else {
+            response = await this.privateMarginGetV2MarginCrossedInterestRateAndLimit (this.extend (request, params));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1700879047861,
+            //         "data": [
+            //             {
+            //                 "coin": "BTC",
+            //                 "leverage": "3",
+            //                 "transferable": true,
+            //                 "borrowable": true,
+            //                 "dailyInterestRate": "0.00007",
+            //                 "annualInterestRate": "0.02555",
+            //                 "maxBorrowableAmount": "26",
+            //                 "vipList": [
+            //                     {"level":"0","limit":"26","dailyInterestRate":"0.00007","annualInterestRate":"0.02555","discountRate":"1"},
+            //                     {"level":"1","limit":"26.78","dailyInterestRate":"0.0000679","annualInterestRate":"0.0247835","discountRate":"0.97"},
+            //                     {"level":"2","limit":"28.08","dailyInterestRate":"0.0000644","annualInterestRate":"0.023506","discountRate":"0.92"},
+            //                     {"level":"3","limit":"30.16","dailyInterestRate":"0.0000602","annualInterestRate":"0.021973","discountRate":"0.86"},
+            //                     {"level":"4","limit":"34.58","dailyInterestRate":"0.0000525","annualInterestRate":"0.0191625","discountRate":"0.75"},
+            //                     {"level":"5","limit":"43.16","dailyInterestRate":"0.000042","annualInterestRate":"0.01533","discountRate":"0.6"}
+            //                 ]
+            //             }
+            //         ]
+            //     }
+            //
+            const data = this.safeValue (response, 'data', []);
+            result = this.safeValue (data, 0, {});
+        }
         const timestamp = this.safeInteger (response, 'requestTime');
-        const data = this.safeValue (response, 'data', []);
-        const first = this.safeValue (data, 0, {});
-        first['timestamp'] = timestamp;
-        return this.parseBorrowRate (first, currency);
+        result['timestamp'] = timestamp;
+        return this.parseBorrowRate (result, currency);
     }
 
     parseBorrowRate (info, currency: Currency = undefined) {
+        //
+        // default
         //
         //     {
         //         "coin": "BTC",
@@ -9639,11 +9663,19 @@ export default class bitget extends Exchange {
         //         ]
         //     }
         //
+        // uta
+        //
+        //     {
+        //         "dailyInterest": "0.00100008",
+        //         "annualInterest": "0.3650292",
+        //         "limit": "100"
+        //     }
+        //
         const currencyId = this.safeString (info, 'coin');
         const timestamp = this.safeInteger (info, 'timestamp');
         return {
             'currency': this.safeCurrencyCode (currencyId, currency),
-            'rate': this.safeNumber (info, 'dailyInterestRate'),
+            'rate': this.safeNumber2 (info, 'dailyInterestRate', 'dailyInterest'),
             'period': 86400000, // 1-Day
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -9895,7 +9927,7 @@ export default class bitget extends Exchange {
         let uta = undefined;
         let response = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (undefined, params);
-        [ uta, params ] = this.handleOptionAndParams (params, 'closePosition', 'uta', false);
+        [ uta, params ] = this.handleOptionAndParams (params, 'closeAllPositions', 'uta', false);
         if (uta) {
             request['category'] = productType;
             response = await this.privateUtaPostV3TradeClosePositions (this.extend (request, params));

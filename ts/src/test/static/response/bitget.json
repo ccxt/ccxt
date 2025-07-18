@@ -6724,6 +6724,41 @@
                     "data": "success"
                 }
             }
+        ],
+        "fetchCrossBorrowRate": [
+            {
+                "description": "uta fetchCrossBorrowRate",
+                "method": "fetchCrossBorrowRate",
+                "input": [
+                    "BTC",
+                    {
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1752817798893",
+                    "data": {
+                        "dailyInterest": "0.00100008",
+                        "annualInterest": "0.3650292",
+                        "limit": "100"
+                    }
+                },
+                "parsedResponse": {
+                    "currency": "BTC",
+                    "rate": 0.00100008,
+                    "period": 86400000,
+                    "timestamp": 1752817798893,
+                    "datetime": "2025-07-18T05:49:58.893Z",
+                    "info": {
+                        "dailyInterest": "0.00100008",
+                        "annualInterest": "0.3650292",
+                        "limit": "100",
+                        "timestamp": 1752817798893
+                    }
+                }
+            }
         ]
     }
 }
