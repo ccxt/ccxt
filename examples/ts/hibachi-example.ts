@@ -66,6 +66,18 @@ async function example () {
     const tradingFees = await exchange.fetchTradingFees ();
     console.log ('fetchTradingFees', tradingFees);
 
+    const depositAddress = await exchange.fetchDepositAddress ('USDT');
+    console.log ('fetchDepositAddress', depositAddress);
+
+    const openOrders = await exchange.fetchOpenOrders ();
+    console.log ('fetchOpenOrders', openOrders);
+    const openOrdersWithLimit = await exchange.fetchOpenOrders (undefined, undefined, 1);
+    console.log ('fetchOpenOrdersWithLimit', openOrdersWithLimit);
+    const openOrdersBTC = await exchange.fetchOpenOrders ('BTC/USDT:USDT');
+    console.log ('fetchOpenOrdersBTC', openOrdersBTC);
+    const openOrdersSince = await exchange.fetchOpenOrders (undefined, 1752552000000); // 7/15/2025 00:00 UTC
+    console.log ('fetchOpenOrdersSince', openOrdersSince);
+    
     // Only run this for trustless account
     if (exchange.privateKey.length !== 44) {
         const depositAddress = await exchange.fetchDepositAddress ('USDT');

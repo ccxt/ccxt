@@ -86,7 +86,7 @@ export default class hibachi extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': false,
-                'fetchOpenOrders': false,
+                'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
@@ -149,6 +149,7 @@ export default class hibachi extends Exchange {
                         'trade/account/info': 1,
                         'trade/order': 1,
                         'trade/account/trades': 1,
+                        'trade/orders': 1,
                     },
                     'put': {
                         'trade/order': 1,
@@ -680,15 +681,16 @@ export default class hibachi extends Exchange {
         const orderFlags = this.safeValue (order, 'orderFlags');
         let postOnly = false;
         let reduceOnly = false;
-        if (orderFlags === 'PostOnly') {
+        if (orderFlags === 'POST_ONLY') {
             timeInForce = 'PO';
             postOnly = true;
-        } else if (orderFlags === 'Ioc') {
+        } else if (orderFlags === 'IOC') {
             timeInForce = 'IOC';
-        } else if (orderFlags === 'ReduceOnly') {
+        } else if (orderFlags === 'REDUCE_ONLY') {
             reduceOnly = true;
         }
         return this.safeOrder ({
+            'info': order,
             'id': this.safeString (order, 'orderId'),
             'clientOrderId': undefined,
             'datetime': undefined,
@@ -710,7 +712,7 @@ export default class hibachi extends Exchange {
             'fee': undefined,
             'reduceOnly': reduceOnly,
             'postOnly': postOnly,
-            'info': order,
+            'triggerPrice': this.safeNumber (order, 'triggerPrice'),
         }, market);
     }
 
@@ -1206,6 +1208,57 @@ export default class hibachi extends Exchange {
 
     /**
      * @method
+     * @name hibachi#fetchOpenOrders
+     * @description fetches all current open orders
+     * @see https://api-doc.hibachi.xyz/#3243f8a0-086c-44c5-ab8a-71bbb7bab403
+     * @param {string} [symbol] unified market symbol to filter by
+     * @param {int} [since] milisecond timestamp of the earliest order
+     * @param {int} [limit] the maximum number of open orders to return
+     * @param {object} [params] extra parameters
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const request = {
+            'accountId': this.accountId,
+        };
+        const response = await this.privateGetTradeOrders (request);
+        // [
+        //     {
+        //         "accountId": 12452,
+        //         "availableQuantity": "0.0000230769",
+        //         "contractId": 2,
+        //         "creationTime": 1752684501,
+        //         "orderId": "589205486123876352",
+        //         "orderType": "LIMIT",
+        //         "price": "130000.00000",
+        //         "side": "ASK",
+        //         "status": "PLACED",
+        //         "symbol": "BTC/USDT-P",
+        //         "totalQuantity": "0.0000230769"
+        //     },
+        //     {
+        //         "accountId": 12452,
+        //         "availableQuantity": "1.234000000",
+        //         "contractId": 1,
+        //         "creationTime": 1752240682,
+        //         "orderId": "589089141754429441",
+        //         "orderType": "LIMIT",
+        //         "price": "1.234000",
+        //         "side": "BID",
+        //         "status": "PLACED",
+        //         "symbol": "ETH/USDT-P",
+        //         "totalQuantity": "1.234000000"
+        //     }
+        // ]
+        return this.parseOrders (response, market, since, limit, params);
+    }
+
+    /**
      * @name hibachi#fetchOHLCV
      * @see  https://api-doc.hibachi.xyz/#4f0eacec-c61e-4d51-afb3-23c51c2c6bac
      * @description fetches historical candlestick data containing the close, high, low, open prices, interval and the volumeNotional
