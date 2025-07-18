@@ -85,7 +85,7 @@ public partial class Exchange
             var newNumPrecisionDigits = PrecisionFromString(precisionDigitsString);
             if (roundingMode == TRUNCATE)
             {
-                var scale = Math.Pow(10, Math.Max(newNumPrecisionDigits, 10));
+                var scale = Math.Pow(10, newNumPrecisionDigits);
                 var xScaled = Math.Round(parsedX * scale);
                 var tickScaled = Math.Round(numPrecisionDigits * scale);
                 var ticks = Math.Truncate(xScaled / tickScaled);
