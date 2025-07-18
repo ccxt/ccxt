@@ -3913,6 +3913,7 @@ export default class binance extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
         }
+        const ms = this.milliseconds ();
         let response = undefined;
         if (market['option']) {
             response = await this.eapiPublicGetDepth (this.extend (request, params));
@@ -3962,6 +3963,7 @@ export default class binance extends Exchange {
         const timestamp = this.safeInteger (response, 'T');
         const orderbook = this.parseOrderBook (response, symbol, timestamp);
         orderbook['nonce'] = this.safeInteger2 (response, 'lastUpdateId', 'u');
+        orderbook['requestTimestamp'] = ms;
         return orderbook;
     }
 
