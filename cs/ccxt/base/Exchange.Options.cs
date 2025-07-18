@@ -293,5 +293,7 @@ public partial class Exchange
         this.newUpdates = SafeValue(extendedProperties, "newUpdates") as bool? ?? true;
         this.accounts = SafeValue(extendedProperties, "accounts") as List<object>;
         this.features = SafeValue(extendedProperties, "features", features) as dict;
+
+        this.returnResponseHeaders = SafeValue(extendedProperties, "returnResponseHeaders", false) as bool;
     }
 }
