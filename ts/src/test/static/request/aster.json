@@ -295,6 +295,30 @@
                     "BTC/USDT:USDT"
                 ]
             }
+        ],
+        "addMargin": [
+            {
+                "description": "addMargin",
+                "method": "addMargin",
+                "url": "https://fapi.asterdex.com/fapi/v1/positionMargin",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1
+                ],
+                "output": "symbol=BTCUSDT&amount=1&type=1&timestamp=timestamp&recvWindow=recvWindow&signature=signature"
+            }
+        ],
+        "reduceMargin": [
+            {
+                "description": "reduceMargin",
+                "method": "reduceMargin",
+                "url": "https://fapi.asterdex.com/fapi/v1/positionMargin",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1
+                ],
+                "output": "symbol=BTCUSDT&amount=1&type=2&timestamp=timestamp&recvWindow=recvWindow&signature=signature"
+            }
         ]
     }
 }

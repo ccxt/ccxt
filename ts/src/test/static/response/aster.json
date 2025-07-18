@@ -805,7 +805,7 @@
                     "previousClose": null,
                     "change": 1969.7,
                     "percentage": 187.3,
-                    "average": 106136,
+                    "average": 106136.4,
                     "baseVolume": 8707.774,
                     "quoteVolume": 918896966.74,
                     "markPrice": null,
@@ -878,7 +878,7 @@
                         "previousClose": null,
                         "change": 1969.7,
                         "percentage": 187.3,
-                        "average": 106136,
+                        "average": 106136.4,
                         "baseVolume": 8707.774,
                         "quoteVolume": 918896966.74,
                         "markPrice": null,
@@ -1717,6 +1717,72 @@
                         "datetime": "2020-01-03T10:38:20.425Z"
                     }
                 ]
+            }
+        ],
+        "addMargin": [
+            {
+                "description": "addMargin",
+                "method": "addMargin",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1
+                ],
+                "httpResponse": {
+                    "amount": 1,
+                    "code": 200,
+                    "msg": "Successfully modify position margin.",
+                    "type": 1
+                },
+                "parsedResponse": {
+                    "info": {
+                        "amount": 1,
+                        "code": 200,
+                        "msg": "Successfully modify position margin.",
+                        "type": 1
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "type": "add",
+                    "marginMode": "isolated",
+                    "amount": 1,
+                    "code": "USDT",
+                    "total": null,
+                    "status": "ok",
+                    "timestamp": null,
+                    "datetime": null
+                }
+            }
+        ],
+        "reduceMargin": [
+            {
+                "description": "reduceMargin",
+                "method": "reduceMargin",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1
+                ],
+                "httpResponse": {
+                    "amount": 1,
+                    "code": 200,
+                    "msg": "Successfully modify position margin.",
+                    "type": 2
+                },
+                "parsedResponse": {
+                    "info": {
+                        "amount": 1,
+                        "code": 200,
+                        "msg": "Successfully modify position margin.",
+                        "type": 2
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "type": "reduce",
+                    "marginMode": "isolated",
+                    "amount": 1,
+                    "code": "USDT",
+                    "total": null,
+                    "status": "ok",
+                    "timestamp": null,
+                    "datetime": null
+                }
             }
         ]
     }
