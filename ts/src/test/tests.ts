@@ -892,7 +892,7 @@ class testMainClass {
         assert (headersKeys.length > 0, 'Response headers should not be empty');
         const headerValues = Object.values (headers);
         assert (headerValues.length > 0, 'Response headers values should not be empty');
-        exchange.returnResponseHeaders = false; // reset it back to false
+        exchange.returnResponseHeaders = false;
         return true;
     }
 
