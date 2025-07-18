@@ -513,12 +513,13 @@ func NewTransaction(transaction2 interface{}) Transaction {
 // orderbook
 
 type OrderBook struct {
-	Bids      [][]float64
-	Asks      [][]float64
-	Symbol    *string
-	Timestamp *int64
-	Datetime  *string
-	Nonce     *int64
+	Bids             [][]float64
+	Asks             [][]float64
+	Symbol           *string
+	Timestamp        *int64
+	RequestTimestamp *int64
+	Datetime         *string
+	Nonce            *int64
 }
 
 // NewOrderBook initializes an OrderBook struct from a map.
