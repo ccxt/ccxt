@@ -294,6 +294,6 @@ public partial class Exchange
         this.accounts = SafeValue(extendedProperties, "accounts") as List<object>;
         this.features = SafeValue(extendedProperties, "features", features) as dict;
 
-        this.returnResponseHeaders = SafeValue(extendedProperties, "returnResponseHeaders", false) as bool;
+        this.returnResponseHeaders = (bool)SafeValue(extendedProperties, "returnResponseHeaders", false);
     }
 }
