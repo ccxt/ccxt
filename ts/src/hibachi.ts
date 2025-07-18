@@ -68,7 +68,7 @@ export default class hibachi extends Exchange {
                 'fetchConvertQuote': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
-                'fetchDeposits': false,
+                'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
                 'fetchFundingHistory': false,
                 'fetchFundingInterval': false,
@@ -105,7 +105,7 @@ export default class hibachi extends Exchange {
                 'fetchTradingLimits': false,
                 'fetchTransactions': 'emulated',
                 'fetchTransfers': false,
-                'fetchWithdrawals': false,
+                'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMargin': false,
@@ -1573,5 +1573,156 @@ export default class hibachi extends Exchange {
             'address': this.safeString (response, 'depositAddressEvm'),
             'tag': undefined,
         };
+    }
+
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+        const timestamp = this.safeInteger (transaction, 'timestampSec') * 1000;
+        const address = this.safeString (transaction, 'withdrawalAddress');
+        let transactionType = this.safeString (transaction, 'transactionType');
+        if (transactionType !== 'deposit' && transactionType !== 'withdrawal') {
+            transactionType = this.parseTransactionType (transactionType);
+        }
+        return {
+            'info': transaction,
+            'id': this.safeString (transaction, 'id'),
+            'txid': this.safeString (transaction, 'transactionHash'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'network': 'ARBITRUM', // Currently the exchange only exists on Arbitrum,
+            'address': address,
+            'addressTo': address,
+            'addressFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'tagFrom': undefined,
+            'type': transactionType,
+            'amount': this.safeNumber (transaction, 'quantity'),
+            'currency': 'USDT',
+            'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
+            'updated': undefined,
+            'internal': undefined,
+            'comment': undefined,
+            'fee': undefined,
+        };
+    }
+
+    /**
+     * @method
+     * @name hibachi#fetchDeposits
+     * @description fetch deposits made to account
+     * @see https://api-doc.hibachi.xyz/#35125e3f-d154-4bfd-8276-a48bb1c62020
+     * @param {string} [code] unified currency code
+     * @param {int} [since] filter by earliest timestamp (ms)
+     * @param {int} [limit] maximum number of deposits to be returned
+     * @param {object} [params] extra parameters to be passed to API
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        this.checkRequiredCredentials ();
+        const currency = this.safeCurrency (code);
+        const request = {
+            'accountId': this.accountId,
+        };
+        const response = await this.privateGetCapitalHistory (this.extend (request, params));
+        // {
+        //     "transactions": [
+        //         {
+        //             "assetId": 1,
+        //             "blockNumber": 0,
+        //             "chain": null,
+        //             "etaTsSec": 1752758789,
+        //             "id": 42688,
+        //             "quantity": "6.130000",
+        //             "status": "completed",
+        //             "timestampSec": 1752758788,
+        //             "token": null,
+        //             "transactionHash": "0x8dcd7bd1155b5624fb5e38a1365888f712ec633a57434340e05080c70b0e3bba",
+        //             "transactionType": "deposit"
+        //         },
+        //         {
+        //             "assetId": 1,
+        //             "etaTsSec": null,
+        //             "id": 12993,
+        //             "instantWithdrawalChain": null,
+        //             "instantWithdrawalToken": null,
+        //             "isInstantWithdrawal": false,
+        //             "quantity": "0.111930",
+        //             "status": "completed",
+        //             "timestampSec": 1752387891,
+        //             "transactionHash": "0x32ab5fe5b90f6d753bab83523ebc8465eb9daef54580e13cb9ff031d400c5620",
+        //             "transactionType": "withdrawal",
+        //             "withdrawalAddress": "0x43f15ef2ef2ab5e61e987ee3d652a5872aea8a6c"
+        //         },
+        //     ]
+        // }
+        const transactions = this.safeList (response, 'transactions');
+        const deposits = [];
+        for (let i = 0; i < transactions.length; i++) {
+            const transaction = transactions[i];
+            if (this.safeString (transaction, 'transactionType') === 'deposit') {
+                deposits.push (transaction);
+            }
+        }
+        return this.parseTransactions (deposits, currency, since, limit, params);
+    }
+
+    /**
+     * @method
+     * @name hibachi#fetchWithdrawals
+     * @description fetch withdrawals made from account
+     * @see https://api-doc.hibachi.xyz/#35125e3f-d154-4bfd-8276-a48bb1c62020
+     * @param {string} [code] unified currency code
+     * @param {int} [since] filter by earliest timestamp (ms)
+     * @param {int} [limit] maximum number of deposits to be returned
+     * @param {object} [params] extra parameters to be passed to API
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        this.checkRequiredCredentials ();
+        const currency = this.safeCurrency (code);
+        const request = {
+            'accountId': this.accountId,
+        };
+        const response = await this.privateGetCapitalHistory (this.extend (request, params));
+        // {
+        //     "transactions": [
+        //         {
+        //             "assetId": 1,
+        //             "blockNumber": 0,
+        //             "chain": null,
+        //             "etaTsSec": 1752758789,
+        //             "id": 42688,
+        //             "quantity": "6.130000",
+        //             "status": "completed",
+        //             "timestampSec": 1752758788,
+        //             "token": null,
+        //             "transactionHash": "0x8dcd7bd1155b5624fb5e38a1365888f712ec633a57434340e05080c70b0e3bba",
+        //             "transactionType": "deposit"
+        //         },
+        //         {
+        //             "assetId": 1,
+        //             "etaTsSec": null,
+        //             "id": 12993,
+        //             "instantWithdrawalChain": null,
+        //             "instantWithdrawalToken": null,
+        //             "isInstantWithdrawal": false,
+        //             "quantity": "0.111930",
+        //             "status": "completed",
+        //             "timestampSec": 1752387891,
+        //             "transactionHash": "0x32ab5fe5b90f6d753bab83523ebc8465eb9daef54580e13cb9ff031d400c5620",
+        //             "transactionType": "withdrawal",
+        //             "withdrawalAddress": "0x43f15ef2ef2ab5e61e987ee3d652a5872aea8a6c"
+        //         },
+        //     ]
+        // }
+        const transactions = this.safeList (response, 'transactions');
+        const withdrawals = [];
+        for (let i = 0; i < transactions.length; i++) {
+            const transaction = transactions[i];
+            if (this.safeString (transaction, 'transactionType') === 'withdrawal') {
+                withdrawals.push (transaction);
+            }
+        }
+        return this.parseTransactions (withdrawals, currency, since, limit, params);
     }
 }

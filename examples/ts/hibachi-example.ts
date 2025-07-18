@@ -96,5 +96,11 @@ async function example () {
 
     const ledger = await exchange.fetchLedger('USDT', undefined, 2);
     console.log('fetchLedger', ledger);
+
+    const deposits = await exchange.fetchDeposits ();
+    console.log ('fetchDeposits', deposits);
+
+    const withdrawals = await exchange.fetchWithdrawals ();
+    console.log ('fetchWithdrawals', withdrawals);
 }
 example ();
