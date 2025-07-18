@@ -297,7 +297,7 @@ func NewMarket(data interface{}) Market {
 		Precision:     precision,
 		MarginModes:   marginModes,
 		Limits:        limits,
-		Info:          m,
+		Info:          GetInfo(m),
 		Created:       created,
 	}
 }
@@ -450,7 +450,7 @@ func NewTicker(data interface{}) Ticker {
 		Average:       SafeFloatTyped(m, "average"),
 		BaseVolume:    SafeFloatTyped(m, "baseVolume"),
 		QuoteVolume:   SafeFloatTyped(m, "quoteVolume"),
-		Info:          m,
+		Info:          GetInfo(m),
 	}
 }
 
