@@ -515,6 +515,38 @@
                     ]
                 ],
                 "output": "{\"symbol\":\"BTCUSDT\",\"orderList\":[{\"symbol\":\"BTCUSDT\",\"orderType\":\"limit\",\"price\":\"25000\",\"force\":\"GTC\",\"marginCoin\":\"USDT\",\"size\":\"0.001\",\"productType\":\"USDT-FUTURES\",\"marginMode\":\"crossed\",\"side\":\"buy\"},{\"symbol\":\"BTCUSDT\",\"orderType\":\"limit\",\"price\":\"27000\",\"force\":\"GTC\",\"marginCoin\":\"USDT\",\"size\":\"0.001\",\"productType\":\"USDT-FUTURES\",\"marginMode\":\"crossed\",\"side\":\"buy\"}],\"marginMode\":\"crossed\",\"marginCoin\":\"USDT\",\"productType\":\"USDT-FUTURES\"}"
+            },
+            {
+                "description": "uta swap create multiple orders",
+                "method": "createOrders",
+                "url": "https://api.bitget.com/api/v3/trade/place-batch",
+                "input": [
+                    [
+                        {
+                            "symbol": "BTC/USDT:USDT",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 0.001,
+                            "price": 100000,
+                            "params": {
+                                "posSide": "long",
+                                "uta": true
+                            }
+                        },
+                        {
+                            "symbol": "BTC/USDT:USDT",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 0.001,
+                            "price": 101000,
+                            "params": {
+                                "posSide": "long",
+                                "uta": true
+                            }
+                        }
+                    ]
+                ],
+                "output": "[{\"category\":\"USDT-FUTURES\",\"symbol\":\"BTCUSDT\",\"orderType\":\"limit\",\"qty\":\"0.001\",\"price\":\"100000\",\"timeInForce\":\"gtc\",\"side\":\"buy\",\"posSide\":\"long\",\"uta\":true},{\"category\":\"USDT-FUTURES\",\"symbol\":\"BTCUSDT\",\"orderType\":\"limit\",\"qty\":\"0.001\",\"price\":\"101000\",\"timeInForce\":\"gtc\",\"side\":\"buy\",\"posSide\":\"long\",\"uta\":true}]"
             }
         ],
         "editOrder": [

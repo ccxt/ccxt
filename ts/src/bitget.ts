@@ -5314,6 +5314,59 @@ export default class bitget extends Exchange {
         return this.extend (request, params);
     }
 
+    async createUtaOrders (orders: OrderRequest[], params = {}) {
+        await this.loadMarkets ();
+        const ordersRequests = [];
+        let symbol = undefined;
+        let marginMode = undefined;
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const marketId = this.safeString (rawOrder, 'symbol');
+            if (symbol === undefined) {
+                symbol = marketId;
+            } else {
+                if (symbol !== marketId) {
+                    throw new BadRequest (this.id + ' createOrders() requires all orders to have the same symbol');
+                }
+            }
+            const type = this.safeString (rawOrder, 'type');
+            const side = this.safeString (rawOrder, 'side');
+            const amount = this.safeValue (rawOrder, 'amount');
+            const price = this.safeValue (rawOrder, 'price');
+            const orderParams = this.safeValue (rawOrder, 'params', {});
+            const marginResult = this.handleMarginModeAndParams ('createOrders', orderParams);
+            const currentMarginMode = marginResult[0];
+            if (currentMarginMode !== undefined) {
+                if (marginMode === undefined) {
+                    marginMode = currentMarginMode;
+                } else {
+                    if (marginMode !== currentMarginMode) {
+                        throw new BadRequest (this.id + ' createOrders() requires all orders to have the same margin mode (isolated or cross)');
+                    }
+                }
+            }
+            const orderRequest = this.createUtaOrderRequest (marketId, type, side, amount, price, orderParams);
+            ordersRequests.push (orderRequest);
+        }
+        const market = this.market (symbol);
+        const response = await this.privateUtaPostV3TradePlaceBatch (ordersRequests);
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1752810184560,
+        //         "data": [
+        //             {
+        //                 "orderId": "1329947796441513984",
+        //                 "clientOid": "1329947796483457024"
+        //             },
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseOrders (data, market);
+    }
+
     /**
      * @method
      * @name bitget#createOrders
@@ -5322,12 +5375,18 @@ export default class bitget extends Exchange {
      * @see https://www.bitget.com/api-doc/contract/trade/Batch-Order
      * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Batch-Order
      * @see https://www.bitget.com/api-doc/margin/cross/trade/Cross-Batch-Order
+     * @see https://www.bitget.com/api-doc/uta/trade/Place-Batch
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the api endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrders (orders: OrderRequest[], params = {}) {
         await this.loadMarkets ();
+        let uta = undefined;
+        [ uta, params ] = this.handleOptionAndParams (params, 'createOrders', 'uta', false);
+        if (uta) {
+            return await this.createUtaOrders (orders, params);
+        }
         const ordersRequests = [];
         let symbol = undefined;
         let marginMode = undefined;
