@@ -1792,49 +1792,25 @@ func (this *Exchange) WatchMultiple(args ...interface{}) <-chan interface{} {
 	return future.result;
 }
 
-func (this *Exchange) Spawn(method interface{}, args ...interface{}) *Future {
+func (this *Exchange) Spawn(method interface{}, args ...interface{}) <-chan interface{} {
     future := NewFuture()
 
-    go func() {
-        defer func() {
-            if r := recover(); r != nil {
-                future.Reject(r.(error))
-            }
-        }()
-        
-        // Handle different function signatures
-        if fn, ok := method.(func(args ...interface{}) (interface{}, error)); ok {
-            // Function that returns (interface{}, error)
-            result, err := fn(args...)
-            if err != nil {
-                future.Reject(err)
-            } else {
-                future.Resolve(result)
-            }
-        } else if fn, ok := method.(func(interface{}, interface{}, interface{}) <-chan interface{}); ok {
-            // Function that returns <-chan interface{}
-            if len(args) >= 3 {
-                result := <-fn(args[0], args[1], args[2])
-                future.Resolve(result)
-            } else {
-                future.Reject(fmt.Errorf("insufficient arguments for function"))
-            }
-        } else {
-            // Try to call dynamically using reflection
-            result := callDynamically(method, args...)
-            future.Resolve(result)
-        }
-    }()
-
-    return future
+	go func() {
+		response := callDynamically(method, args...)
+		if err, ok := response.(error); ok {
+			future.Reject(err)
+		} else {
+			future.Resolve(response)
+		}
+	}()
+    return future.Await()
 }
 
 
 func (this *Exchange) Delay(timeout interface{}, method interface{}, args ...interface{}) {
-	go func() {
-		time.Sleep(time.Duration(timeout.(int)) * time.Millisecond)
-		this.Spawn(method.(func(args ...interface{}) (interface{}, error)), args...)
-	}()
+	time.AfterFunc(time.Duration(timeout.(int)) * time.Millisecond, func() {
+		this.Spawn(method, args...)
+	})
 }
 
 func (this *Exchange) LoadOrderBook(client interface{}, messageHash interface{}, symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
@@ -1850,7 +1826,7 @@ func (this *Exchange) LoadOrderBook(client interface{}, messageHash interface{},
 			if index.(int) >= 0 {
 				// Call Reset method on stored orderbook
 				stored.(*WsOrderBook).Reset(orderBook)
-				this.HandleDeltas(stored, cache.([]interface{})[index.(int):])
+				this.DerivedExchange.HandleDeltas(stored, cache.([]interface{})[index.(int):])
 				stored.(*WsOrderBook).Cache = map[string]interface{}{}
 				// this.SetProperty(cache, "length", 0)
 				client.(*WSClient).Resolve(stored, messageHash)
