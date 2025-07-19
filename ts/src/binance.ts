@@ -3961,9 +3961,8 @@ export default class binance extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (response, 'T');
-        const orderbook = this.parseOrderBook (response, symbol, timestamp);
+        const orderbook = this.parseOrderBookWithMs (response, symbol, timestamp, ms);
         orderbook['nonce'] = this.safeInteger2 (response, 'lastUpdateId', 'u');
-        orderbook['ccxtTimestamp'] = ms;
         return orderbook;
     }
 

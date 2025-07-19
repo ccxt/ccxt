@@ -4501,6 +4501,12 @@ export default class Exchange {
         } as any;
     }
 
+    parseOrderBookWithMs (orderbook: object, symbol: string, timestamp: Int = undefined, ccxtTimestamp: Int = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2): OrderBook {
+        const parsed = this.parseOrderBook (orderbook, symbol, timestamp, bidsKey, asksKey, priceKey, amountKey, countOrIdKey);
+        parsed['ccxtTimestamp'] = ccxtTimestamp;
+        return parsed;
+    }
+
     parseOHLCVs (ohlcvs: object[], market: any = undefined, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, tail: Bool = false): OHLCV[] {
         const results = [];
         for (let i = 0; i < ohlcvs.length; i++) {
