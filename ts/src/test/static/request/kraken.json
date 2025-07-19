@@ -36,10 +36,10 @@
                     "BTC/USDT",
                     "limit",
                     "buy",
-                    0.000123412345,
+                    0.00012345678,
                     12345.123456789
                 ],
-                "output": "nonce=1749616648149&pair=XBTUSDT&type=buy&ordertype=limit&volume=0.00012341&price=12345.1"
+                "output": "nonce=1749616648149&pair=XBTUSDT&type=buy&ordertype=limit&volume=0.00012345&price=12345.1"
             },
             {
                 "description": "Spot market buy",
