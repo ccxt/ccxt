@@ -610,6 +610,8 @@ class NewTranspiler {
             'createContractOrder',
             'createSwapOrder',
             'fetchPortfolioDetails',
+            'createMarginOrder',
+            'editMarginOrder',
             'createVault'
         ] // improve this later
         if (isWs) {
