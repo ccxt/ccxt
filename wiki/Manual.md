@@ -6627,7 +6627,7 @@ Returns
 
 #### Liquidation Price
 
-When the prices goes in the opposite direction of your position, then your [`collateral`](#margin) reduces. The price, when `collateral` amount will reach `maintenanceMargin` amount, is called a **liquidation price**. You should always place a stop-loss for your position before liquidation price level, otherwise your position will be under the risk of liquidation.
+When the price goes in the opposite direction of your position, then your [`collateral`](#margin) reduces. **Liquidation price** (in many cases, exchanges use `mark price` for reference, however depends on specific exchange) is the price  where `collateral` amount would reach `maintenanceMargin` amount. At that moment, your position will be liquidated, so it's recommended to use stop-loss order accordingly to avoid liquidation.
 
 ```javascript
 // if long
