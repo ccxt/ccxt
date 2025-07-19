@@ -2923,6 +2923,215 @@
                         "FON": 2.997
                     }
                 }
+            },
+            {
+                "description": "Fetch the uta balance",
+                "method": "fetchBalance",
+                "input": [
+                    {
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1750098758334",
+                    "data": {
+                        "accountEquity": "368444.3177744",
+                        "usdtEquity": "368319.08928405",
+                        "btcEquity": "3.40736757",
+                        "unrealisedPnl": "0",
+                        "usdtUnrealisedPnl": "0",
+                        "btcUnrealizedPnl": "0",
+                        "effEquity": "256783.39028097",
+                        "mmr": "0",
+                        "imr": "0",
+                        "mgnRatio": "0",
+                        "positionMgnRatio": "0",
+                        "assets": [
+                            {
+                                "coin": "BTC",
+                                "equity": "1",
+                                "usdValue": "108131.66156274",
+                                "balance": "1",
+                                "available": "1",
+                                "debt": "0",
+                                "locked": "0"
+                            },
+                            {
+                                "coin": "WBTC",
+                                "equity": "1",
+                                "usdValue": "108079.95252426",
+                                "balance": "1",
+                                "available": "1",
+                                "debt": "0",
+                                "locked": "0"
+                            },
+                            {
+                                "coin": "USDC",
+                                "equity": "100000",
+                                "usdValue": "100000",
+                                "balance": "100000",
+                                "available": "100000",
+                                "debt": "0",
+                                "locked": "0"
+                            },
+                            {
+                                "coin": "ETH",
+                                "equity": "10",
+                                "usdValue": "26437.44821529",
+                                "balance": "10",
+                                "available": "10",
+                                "debt": "0",
+                                "locked": "0"
+                            },
+                            {
+                                "coin": "SOL",
+                                "equity": "100",
+                                "usdValue": "15791.8554721",
+                                "balance": "100",
+                                "available": "100",
+                                "debt": "0",
+                                "locked": "0"
+                            },
+                            {
+                                "coin": "USDT",
+                                "equity": "10000",
+                                "usdValue": "10003.4",
+                                "balance": "10000",
+                                "available": "10000",
+                                "debt": "0",
+                                "locked": "0"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "coin": "BTC",
+                            "equity": "1",
+                            "usdValue": "108131.66156274",
+                            "balance": "1",
+                            "available": "1",
+                            "debt": "0",
+                            "locked": "0"
+                        },
+                        {
+                            "coin": "WBTC",
+                            "equity": "1",
+                            "usdValue": "108079.95252426",
+                            "balance": "1",
+                            "available": "1",
+                            "debt": "0",
+                            "locked": "0"
+                        },
+                        {
+                            "coin": "USDC",
+                            "equity": "100000",
+                            "usdValue": "100000",
+                            "balance": "100000",
+                            "available": "100000",
+                            "debt": "0",
+                            "locked": "0"
+                        },
+                        {
+                            "coin": "ETH",
+                            "equity": "10",
+                            "usdValue": "26437.44821529",
+                            "balance": "10",
+                            "available": "10",
+                            "debt": "0",
+                            "locked": "0"
+                        },
+                        {
+                            "coin": "SOL",
+                            "equity": "100",
+                            "usdValue": "15791.8554721",
+                            "balance": "100",
+                            "available": "100",
+                            "debt": "0",
+                            "locked": "0"
+                        },
+                        {
+                            "coin": "USDT",
+                            "equity": "10000",
+                            "usdValue": "10003.4",
+                            "balance": "10000",
+                            "available": "10000",
+                            "debt": "0",
+                            "locked": "0"
+                        }
+                    ],
+                    "BTC": {
+                        "free": 1,
+                        "used": 0,
+                        "total": 1,
+                        "debt": 0
+                    },
+                    "WBTC": {
+                        "free": 1,
+                        "used": 0,
+                        "total": 1,
+                        "debt": 0
+                    },
+                    "USDC": {
+                        "free": 100000,
+                        "used": 0,
+                        "total": 100000,
+                        "debt": 0
+                    },
+                    "ETH": {
+                        "free": 10,
+                        "used": 0,
+                        "total": 10,
+                        "debt": 0
+                    },
+                    "SOL": {
+                        "free": 100,
+                        "used": 0,
+                        "total": 100,
+                        "debt": 0
+                    },
+                    "USDT": {
+                        "free": 10000,
+                        "used": 0,
+                        "total": 10000,
+                        "debt": 0
+                    },
+                    "free": {
+                        "BTC": 1,
+                        "WBTC": 1,
+                        "USDC": 100000,
+                        "ETH": 10,
+                        "SOL": 100,
+                        "USDT": 10000
+                    },
+                    "used": {
+                        "BTC": 0,
+                        "WBTC": 0,
+                        "USDC": 0,
+                        "ETH": 0,
+                        "SOL": 0,
+                        "USDT": 0
+                    },
+                    "total": {
+                        "BTC": 1,
+                        "WBTC": 1,
+                        "USDC": 100000,
+                        "ETH": 10,
+                        "SOL": 100,
+                        "USDT": 10000
+                    },
+                    "debt": {
+                        "BTC": 0,
+                        "WBTC": 0,
+                        "USDC": 0,
+                        "ETH": 0,
+                        "SOL": 0,
+                        "USDT": 0
+                    }
+                }
             }
         ],
         "fetchPositions": [
