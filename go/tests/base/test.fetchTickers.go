@@ -10,13 +10,14 @@ import "github.com/ccxt/ccxt/go/v4"
                 go func() interface{} {
                     defer close(ch)
                     defer ReturnPanicError(ch)
-                        // const withoutSymbol = testFetchTickersHelper (exchange, skippedProperties, undefined);
-                // const withSymbol = testFetchTickersHelper (exchange, skippedProperties, [ symbol ]);
+                        var withoutSymbol interface{} = TestFetchTickersHelper(exchange, skippedProperties, nil)
+                var withSymbol interface{} = TestFetchTickersHelper(exchange, skippedProperties, []interface{}{symbol})
             
-                retRes84 := (<-promiseAll([]interface{}{TestFetchTickersHelper(exchange, skippedProperties, nil), TestFetchTickersHelper(exchange, skippedProperties, []interface{}{symbol})}))
-                PanicOnError(retRes84)
+                results:= (<-promiseAll([]interface{}{withoutSymbol, withSymbol}))
+                PanicOnError(results)
+                TestFetchTickersAmounts(exchange, skippedProperties, GetValue(results, 0))
             
-                ch <- true
+                ch <- results
                 return nil
             
                 }()
@@ -46,9 +47,28 @@ import "github.com/ccxt/ccxt/go/v4"
                     TestTicker(exchange, skippedProperties, method, ticker, checkedSymbol)
                 }
             
-                ch <- true
+                ch <- response
                 return nil
             
                 }()
                 return ch
             }
+    func TestFetchTickersAmounts(exchange ccxt.IExchange, skippedProperties interface{}, tickers interface{})  {
+        var tickersValues interface{} = ObjectValues(tickers)
+        if !IsTrue((InOp(skippedProperties, "checkActiveSymbols"))) {
+            //
+            // ensure all "active" symbols have tickers
+            //
+            var nonInactiveMarkets interface{} = GetActiveMarkets(exchange)
+            var notInactiveSymbolsLength interface{} =         GetArrayLength(nonInactiveMarkets)
+            var obtainedTickersLength interface{} =         GetArrayLength(tickersValues)
+            var toleranceCoefficient interface{} = 0.01 // 1% tolerance, eg. when 100 active markets, we should have at least 99 tickers
+            Assert(IsGreaterThanOrEqual(obtainedTickersLength, Multiply(notInactiveSymbolsLength, (Subtract(1, toleranceCoefficient)))), Add(Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), "fetchTickers"), " must return tickers for all active markets. but returned: "), ToString(obtainedTickersLength)), " tickers, "), ToString(notInactiveSymbolsLength)), " active markets"))
+            //
+            // ensure tickers length is less than markets length
+            //
+            var allMarkets interface{} = exchange.GetMarkets()
+            var allMarketsLength interface{} =         GetArrayLength(ObjectKeys(allMarkets))
+            Assert(IsLessThanOrEqual(obtainedTickersLength, allMarketsLength), Add(Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), "fetchTickers"), " must return <= than all markets, but returned: "), ToString(obtainedTickersLength)), " tickers, "), ToString(allMarketsLength)), " markets"))
+        }
+    }

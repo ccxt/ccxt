@@ -631,6 +631,17 @@ public partial class testMainClass : BaseTest
                 return;
             }
         }
+        public object getActiveMarkets(Exchange exchange, object includeUnknown = null)
+        {
+            includeUnknown ??= true;
+            object filteredActive = exchange.filterBy(exchange.markets, "active", true);
+            if (isTrue(includeUnknown))
+            {
+                object filteredUndefined = exchange.filterBy(exchange.markets, "active", null);
+                return exchange.arrayConcat(filteredActive, filteredUndefined);
+            }
+            return filteredActive;
+        }
         public object removeProxyOptions(Exchange exchange, object skippedProperties)
         {
             object proxyUrl = exchange.checkProxyUrlSettings();

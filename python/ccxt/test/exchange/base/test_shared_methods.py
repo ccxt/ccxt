@@ -477,6 +477,14 @@ def assert_order_state(exchange, skipped_properties, method, order, asserted_sta
         return
 
 
+def get_active_markets(exchange, include_unknown=True):
+    filtered_active = exchange.filter_by(exchange.markets, 'active', True)
+    if include_unknown:
+        filtered_undefined = exchange.filter_by(exchange.markets, 'active', None)
+        return exchange.array_concat(filtered_active, filtered_undefined)
+    return filtered_active
+
+
 def remove_proxy_options(exchange, skipped_properties):
     proxy_url = exchange.check_proxy_url_settings()
     [http_proxy, https_proxy, socks_proxy] = exchange.check_proxy_settings()

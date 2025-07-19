@@ -503,7 +503,29 @@ public partial class cryptocom : Exchange
         {
             return null;
         }
-        object response = await this.v1PrivatePostPrivateGetCurrencyNetworks(parameters);
+        object skipFetchCurrencies = false;
+        var skipFetchCurrenciesparametersVariable = this.handleOptionAndParams(parameters, "fetchCurrencies", "skipFetchCurrencies", false);
+        skipFetchCurrencies = ((IList<object>)skipFetchCurrenciesparametersVariable)[0];
+        parameters = ((IList<object>)skipFetchCurrenciesparametersVariable)[1];
+        if (isTrue(skipFetchCurrencies))
+        {
+            // sub-accounts can't access this endpoint
+            return null;
+        }
+        object response = new Dictionary<string, object>() {};
+        try
+        {
+            response = await this.v1PrivatePostPrivateGetCurrencyNetworks(parameters);
+        } catch(Exception e)
+        {
+            if (isTrue(e is ExchangeError))
+            {
+                // sub-accounts can't access this endpoint
+                // {"code":"10001","msg":"SYS_ERROR"}
+                return null;
+            }
+            throw e;
+        }
         //
         //    {
         //        "id": "1747502328559",

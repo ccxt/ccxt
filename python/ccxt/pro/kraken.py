@@ -56,6 +56,7 @@ class kraken(ccxt.async_support.kraken):
                         'public': 'wss://ws.kraken.com',
                         'private': 'wss://ws-auth.kraken.com',
                         'privateV2': 'wss://ws-auth.kraken.com/v2',
+                        'publicV2': 'wss://ws.kraken.com/v2',
                         'beta': 'wss://beta-ws.kraken.com',
                         'beta-private': 'wss://beta-ws-auth.kraken.com',
                     },
@@ -70,8 +71,12 @@ class kraken(ccxt.async_support.kraken):
                 'ordersLimit': 1000,
                 'symbolsByOrderId': {},
                 'watchOrderBook': {
-                    'checksum': True,
+                    'checksum': False,
                 },
+            },
+            'streaming': {
+                'ping': self.ping,
+                'keepAlive': 6000,
             },
             'exceptions': {
                 'ws': {
@@ -123,6 +128,7 @@ class kraken(ccxt.async_support.kraken):
                         'EService:Market in post_only mode': NotSupported,
                         'EService:Unavailable': ExchangeNotAvailable,
                         'ETrade:Invalid request': BadRequest,
+                        'ESession:Invalid session': AuthenticationError,
                     },
                 },
             },
@@ -349,10 +355,10 @@ class kraken(ccxt.async_support.kraken):
 
     async def cancel_orders_ws(self, ids: List[str], symbol: Str = None, params={}):
         """
-
-        https://docs.kraken.com/api/docs/websocket-v1/cancelorder
-
         cancel multiple orders
+
+        https://docs.kraken.com/api/docs/websocket-v2/cancel_order
+
         :param str[] ids: order ids
         :param str [symbol]: unified market symbol, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -377,10 +383,10 @@ class kraken(ccxt.async_support.kraken):
 
     async def cancel_order_ws(self, id: str, symbol: Str = None, params={}) -> Order:
         """
-
-        https://docs.kraken.com/api/docs/websocket-v1/cancelorder
-
         cancels an open order
+
+        https://docs.kraken.com/api/docs/websocket-v2/cancel_order
+
         :param str id: order id
         :param str [symbol]: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -421,10 +427,10 @@ class kraken(ccxt.async_support.kraken):
 
     async def cancel_all_orders_ws(self, symbol: Str = None, params={}):
         """
-
-        https://docs.kraken.com/api/docs/websocket-v1/cancelall
-
         cancel all open orders
+
+        https://docs.kraken.com/api/docs/websocket-v2/cancel_all
+
         :param str [symbol]: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
@@ -461,53 +467,56 @@ class kraken(ccxt.async_support.kraken):
         reqId = self.safe_value(message, 'req_id')
         client.resolve(message, reqId)
 
-    def handle_ticker(self, client, message, subscription):
+    def handle_ticker(self, client, message):
         #
-        #     [
-        #         0,  # channelID
-        #         {
-        #             "a": ["5525.40000", 1, "1.000"],  # ask, wholeAskVolume, askVolume
-        #             "b": ["5525.10000", 1, "1.000"],  # bid, wholeBidVolume, bidVolume
-        #             "c": ["5525.10000", "0.00398963"],  # closing price, volume
-        #             "h": ["5783.00000", "5783.00000"],  # high price today, high price 24h ago
-        #             "l": ["5505.00000", "5505.00000"],  # low price today, low price 24h ago
-        #             "o": ["5760.70000", "5763.40000"],  # open price today, open price 24h ago
-        #             "p": ["5631.44067", "5653.78939"],  # vwap today, vwap 24h ago
-        #             "t": [11493, 16267],  # number of trades today, 24 hours ago
-        #             "v": ["2634.11501494", "3591.17907851"],  # volume today, volume 24 hours ago
-        #         },
-        #         "ticker",
-        #         "XBT/USD"
-        #     ]
+        #     {
+        #         "channel": "ticker",
+        #         "type": "snapshot",
+        #         "data": [
+        #             {
+        #                 "symbol": "BTC/USD",
+        #                 "bid": 108359.8,
+        #                 "bid_qty": 0.01362603,
+        #                 "ask": 108359.9,
+        #                 "ask_qty": 17.17988863,
+        #                 "last": 108359.8,
+        #                 "volume": 2158.32346723,
+        #                 "vwap": 108894.5,
+        #                 "low": 106824,
+        #                 "high": 111300,
+        #                 "change": -2679.9,
+        #                 "change_pct": -2.41
+        #             }
+        #         ]
+        #     }
         #
-        wsName = message[3]
-        market = self.safe_value(self.options['marketsByWsName'], wsName)
-        symbol = market['symbol']
+        data = self.safe_list(message, 'data', [])
+        ticker = data[0]
+        symbol = self.safe_string(ticker, 'symbol')
         messageHash = self.get_message_hash('ticker', None, symbol)
-        ticker = message[1]
-        vwap = self.safe_string(ticker['p'], 0)
+        vwap = self.safe_string(ticker, 'vwap')
         quoteVolume = None
-        baseVolume = self.safe_string(ticker['v'], 0)
+        baseVolume = self.safe_string(ticker, 'volume')
         if baseVolume is not None and vwap is not None:
             quoteVolume = Precise.string_mul(baseVolume, vwap)
-        last = self.safe_string(ticker['c'], 0)
+        last = self.safe_string(ticker, 'last')
         result = self.safe_ticker({
             'symbol': symbol,
             'timestamp': None,
             'datetime': None,
-            'high': self.safe_string(ticker['h'], 0),
-            'low': self.safe_string(ticker['l'], 0),
-            'bid': self.safe_string(ticker['b'], 0),
-            'bidVolume': self.safe_string(ticker['b'], 2),
-            'ask': self.safe_string(ticker['a'], 0),
-            'askVolume': self.safe_string(ticker['a'], 2),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'bid'),
+            'bidVolume': self.safe_string(ticker, 'bid_qty'),
+            'ask': self.safe_string(ticker, 'ask'),
+            'askVolume': self.safe_string(ticker, 'ask_qty'),
             'vwap': vwap,
-            'open': self.safe_string(ticker['o'], 0),
+            'open': None,
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': None,
-            'percentage': None,
+            'change': self.safe_string(ticker, 'change'),
+            'percentage': self.safe_string(ticker, 'change_pct'),
             'average': None,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
@@ -516,30 +525,35 @@ class kraken(ccxt.async_support.kraken):
         self.tickers[symbol] = result
         client.resolve(result, messageHash)
 
-    def handle_trades(self, client: Client, message, subscription):
+    def handle_trades(self, client: Client, message):
         #
-        #     [
-        #         0,  # channelID
-        #         [ #     price        volume         time             side type misc
-        #             ["5541.20000", "0.15850568", "1534614057.321596", "s", "l", ""],
-        #             ["6060.00000", "0.02455000", "1534614057.324998", "b", "l", ""],
-        #         ],
-        #         "trade",
-        #         "XBT/USD"
-        #     ]
+        #     {
+        #         "channel": "trade",
+        #         "type": "update",
+        #         "data": [
+        #             {
+        #                 "symbol": "MATIC/USD",
+        #                 "side": "sell",
+        #                 "price": 0.5117,
+        #                 "qty": 40.0,
+        #                 "ord_type": "market",
+        #                 "trade_id": 4665906,
+        #                 "timestamp": "2023-09-25T07:49:37.708706Z"
+        #             }
+        #         ]
+        #     }
         #
-        wsName = self.safe_string(message, 3)
-        name = self.safe_string(message, 2)
-        market = self.safe_value(self.options['marketsByWsName'], wsName)
-        symbol = market['symbol']
-        messageHash = self.get_message_hash(name, None, symbol)
+        data = self.safe_list(message, 'data', [])
+        trade = data[0]
+        symbol = self.safe_string(trade, 'symbol')
+        messageHash = self.get_message_hash('trade', None, symbol)
         stored = self.safe_value(self.trades, symbol)
         if stored is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             stored = ArrayCache(limit)
             self.trades[symbol] = stored
-        trades = self.safe_value(message, 1, [])
-        parsed = self.parse_trades(trades, market)
+        market = self.market(symbol)
+        parsed = self.parse_trades(data, market)
         for i in range(0, len(parsed)):
             stored.append(parsed[i])
         client.resolve(stored, messageHash)
@@ -624,7 +638,7 @@ class kraken(ccxt.async_support.kraken):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
-        https://docs.kraken.com/api/docs/websocket-v1/ticker
+        https://docs.kraken.com/api/docs/websocket-v2/ticker
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -639,7 +653,7 @@ class kraken(ccxt.async_support.kraken):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
-        https://docs.kraken.com/api/docs/websocket-v1/ticker
+        https://docs.kraken.com/api/docs/websocket-v2/ticker
 
         :param str[] symbols:
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -656,66 +670,29 @@ class kraken(ccxt.async_support.kraken):
 
     async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
         """
-
-        https://docs.kraken.com/api/docs/websocket-v1/spread
-
         watches best bid & ask for symbols
+
+        https://docs.kraken.com/api/docs/websocket-v2/ticker
+
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
-        ticker = await self.watch_multi_helper('bidask', 'spread', symbols, None, params)
+        params['event_trigger'] = 'bbo'
+        ticker = await self.watch_multi_helper('bidask', 'ticker', symbols, None, params)
         if self.newUpdates:
             result: dict = {}
             result[ticker['symbol']] = ticker
             return result
         return self.filter_by_array(self.bidsasks, 'symbol', symbols)
 
-    def handle_bid_ask(self, client: Client, message, subscription):
-        #
-        #     [
-        #         7208974,  # channelID
-        #         [
-        #             "63758.60000",  # bid
-        #             "63759.10000",  # ask
-        #             "1726814731.089778",  # timestamp
-        #             "0.00057917",  # bid_volume
-        #             "0.15681688"  # ask_volume
-        #         ],
-        #         "spread",
-        #         "XBT/USDT"
-        #     ]
-        #
-        parsedTicker = self.parse_ws_bid_ask(message)
-        symbol = parsedTicker['symbol']
-        self.bidsasks[symbol] = parsedTicker
-        messageHash = self.get_message_hash('bidask', None, symbol)
-        client.resolve(parsedTicker, messageHash)
-
-    def parse_ws_bid_ask(self, ticker, market=None):
-        data = self.safe_list(ticker, 1, [])
-        marketId = self.safe_string(ticker, 3)
-        market = self.safe_value(self.options['marketsByWsName'], marketId)
-        symbol = self.safe_string(market, 'symbol')
-        timestamp = self.parse_to_int(self.safe_integer(data, 2)) * 1000
-        return self.safe_ticker({
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'ask': self.safe_string(data, 1),
-            'askVolume': self.safe_string(data, 4),
-            'bid': self.safe_string(data, 0),
-            'bidVolume': self.safe_string(data, 3),
-            'info': ticker,
-        }, market)
-
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
-        https://docs.kraken.com/api/docs/websocket-v1/trade
+        https://docs.kraken.com/api/docs/websocket-v2/trade
 
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -727,10 +704,10 @@ class kraken(ccxt.async_support.kraken):
 
     async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
-
-        https://docs.kraken.com/api/docs/websocket-v1/trade
-
         get the list of most recent trades for a list of symbols
+
+        https://docs.kraken.com/api/docs/websocket-v2/trade
+
         :param str[] symbols: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -748,7 +725,7 @@ class kraken(ccxt.async_support.kraken):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
-        https://docs.kraken.com/api/docs/websocket-v1/book
+        https://docs.kraken.com/api/docs/websocket-v2/book
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
@@ -761,22 +738,20 @@ class kraken(ccxt.async_support.kraken):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
-        https://docs.kraken.com/api/docs/websocket-v1/book
+        https://docs.kraken.com/api/docs/websocket-v2/book
 
         :param str[] symbols: unified array of symbols
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
-        request: dict = {}
+        requiredParams: dict = {}
         if limit is not None:
             if self.in_array(limit, [10, 25, 100, 500, 1000]):
-                request['subscription'] = {
-                    'depth': limit,  # default 10, valid options 10, 25, 100, 500, 1000
-                }
+                requiredParams['depth'] = limit  # default 10, valid options 10, 25, 100, 500, 1000
             else:
                 raise NotSupported(self.id + ' watchOrderBook accepts limit values of 10, 25, 100, 500 and 1000 only')
-        orderbook = await self.watch_multi_helper('orderbook', 'book', symbols, {'limit': limit}, self.extend(request, params))
+        orderbook = await self.watch_multi_helper('orderbook', 'book', symbols, {'limit': limit}, self.extend(requiredParams, params))
         return orderbook.limit()
 
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
@@ -831,6 +806,19 @@ class kraken(ccxt.async_support.kraken):
             self.options['marketsByWsName'] = marketsByWsName
         return markets
 
+    def ping(self, client: Client):
+        url = client.url
+        request = {}
+        if url.find('v2') >= 0:
+            request['method'] = 'ping'
+        else:
+            request['event'] = 'ping'
+        return request
+
+    def handle_pong(self, client: Client, message):
+        client.lastPong = self.milliseconds()
+        return message
+
     async def watch_heartbeat(self, params={}):
         await self.load_markets()
         event = 'heartbeat'
@@ -846,157 +834,151 @@ class kraken(ccxt.async_support.kraken):
         event = self.safe_string(message, 'event')
         client.resolve(message, event)
 
-    def handle_order_book(self, client: Client, message, subscription):
+    def handle_order_book(self, client: Client, message):
         #
         # first message(snapshot)
         #
-        #     [
-        #         1234,  # channelID
-        #         {
-        #             "as": [
-        #                 ["5541.30000", "2.50700000", "1534614248.123678"],
-        #                 ["5541.80000", "0.33000000", "1534614098.345543"],
-        #                 ["5542.70000", "0.64700000", "1534614244.654432"]
-        #             ],
-        #             "bs": [
-        #                 ["5541.20000", "1.52900000", "1534614248.765567"],
-        #                 ["5539.90000", "0.30000000", "1534614241.769870"],
-        #                 ["5539.50000", "5.00000000", "1534613831.243486"]
-        #             ]
-        #         },
-        #         "book-10",
-        #         "XBT/USD"
-        #     ]
+        #     {
+        #         "channel": "book",
+        #         "type": "snapshot",
+        #         "data": [
+        #             {
+        #                 "symbol": "MATIC/USD",
+        #                 "bids": [
+        #                     {
+        #                         "price": 0.5666,
+        #                         "qty": 4831.75496356
+        #                     },
+        #                     {
+        #                         "price": 0.5665,
+        #                         "qty": 6658.22734739
+        #                     }
+        #                 ],
+        #                 "asks": [
+        #                     {
+        #                         "price": 0.5668,
+        #                         "qty": 4410.79769741
+        #                     },
+        #                     {
+        #                         "price": 0.5669,
+        #                         "qty": 4655.40412487
+        #                     }
+        #                 ],
+        #                 "checksum": 2439117997
+        #             }
+        #         ]
+        #     }
         #
         # subsequent updates
         #
-        #     [
-        #         1234,
-        #         { # optional
-        #             "a": [
-        #                 ["5541.30000", "2.50700000", "1534614248.456738"],
-        #                 ["5542.50000", "0.40100000", "1534614248.456738"]
-        #             ]
-        #         },
-        #         { # optional
-        #             "b": [
-        #                 ["5541.30000", "0.00000000", "1534614335.345903"]
-        #             ]
-        #         },
-        #         "book-10",
-        #         "XBT/USD"
-        #     ]
+        #     {
+        #         "channel": "book",
+        #         "type": "update",
+        #         "data": [
+        #             {
+        #                 "symbol": "MATIC/USD",
+        #                 "bids": [
+        #                     {
+        #                         "price": 0.5657,
+        #                         "qty": 1098.3947558
+        #                     }
+        #                 ],
+        #                 "asks": [],
+        #                 "checksum": 2114181697,
+        #                 "timestamp": "2023-10-06T17:35:55.440295Z"
+        #             }
+        #         ]
+        #     }
         #
-        messageLength = len(message)
-        wsName = message[messageLength - 1]
-        bookDepthString = message[messageLength - 2]
-        parts = bookDepthString.split('-')
-        depth = self.safe_integer(parts, 1, 10)
-        market = self.safe_value(self.options['marketsByWsName'], wsName)
-        symbol = market['symbol']
-        timestamp = None
+        type = self.safe_string(message, 'type')
+        data = self.safe_list(message, 'data', [])
+        first = self.safe_dict(data, 0, {})
+        symbol = self.safe_string(first, 'symbol')
+        a = self.safe_value(first, 'asks', [])
+        b = self.safe_value(first, 'bids', [])
+        c = self.safe_integer(first, 'checksum')
         messageHash = self.get_message_hash('orderbook', None, symbol)
-        # if self is a snapshot
-        if 'as' in message[1]:
-            # todo get depth from marketsByWsName
-            self.orderbooks[symbol] = self.order_book({}, depth)
+        orderbook = None
+        if type == 'update':
             orderbook = self.orderbooks[symbol]
-            sides: dict = {
-                'as': 'asks',
-                'bs': 'bids',
-            }
-            keys = list(sides.keys())
-            for i in range(0, len(keys)):
-                key = keys[i]
-                side = sides[key]
-                bookside = orderbook[side]
-                deltas = self.safe_value(message[1], key, [])
-                timestamp = self.custom_handle_deltas(bookside, deltas, timestamp)
-            orderbook['symbol'] = symbol
-            orderbook['timestamp'] = timestamp
-            orderbook['datetime'] = self.iso8601(timestamp)
-            client.resolve(orderbook, messageHash)
-        else:
-            orderbook = self.orderbooks[symbol]
-            # else, if self is an orderbook update
-            a = None
-            b = None
-            c = None
-            if messageLength == 5:
-                a = self.safe_value(message[1], 'a', [])
-                b = self.safe_value(message[2], 'b', [])
-                c = self.safe_integer(message[1], 'c')
-                c = self.safe_integer(message[2], 'c', c)
-            else:
-                c = self.safe_integer(message[1], 'c')
-                if 'a' in message[1]:
-                    a = self.safe_value(message[1], 'a', [])
-                else:
-                    b = self.safe_value(message[1], 'b', [])
             storedAsks = orderbook['asks']
             storedBids = orderbook['bids']
-            example = None
             if a is not None:
-                timestamp = self.custom_handle_deltas(storedAsks, a, timestamp)
-                example = self.safe_value(a, 0)
+                self.custom_handle_deltas(storedAsks, a)
             if b is not None:
-                timestamp = self.custom_handle_deltas(storedBids, b, timestamp)
-                example = self.safe_value(b, 0)
-            # don't remove self line or I will poop on your face
-            orderbook.limit()
-            checksum = self.handle_option('watchOrderBook', 'checksum', True)
-            if checksum:
-                priceString = self.safe_string(example, 0)
-                amountString = self.safe_string(example, 1)
-                priceParts = priceString.split('.')
-                amountParts = amountString.split('.')
-                priceLength = len(priceParts[1]) - 0
-                amountLength = len(amountParts[1]) - 0
-                payloadArray = []
-                if c is not None:
-                    for i in range(0, 10):
-                        formatted = self.format_number(storedAsks[i][0], priceLength) + self.format_number(storedAsks[i][1], amountLength)
-                        payloadArray.append(formatted)
-                    for i in range(0, 10):
-                        formatted = self.format_number(storedBids[i][0], priceLength) + self.format_number(storedBids[i][1], amountLength)
-                        payloadArray.append(formatted)
-                payload = ''.join(payloadArray)
-                localChecksum = self.crc32(payload, False)
-                if localChecksum != c:
-                    error = ChecksumError(self.id + ' ' + self.orderbook_checksum_message(symbol))
-                    del client.subscriptions[messageHash]
-                    del self.orderbooks[symbol]
-                    client.reject(error, messageHash)
-                    return
+                self.custom_handle_deltas(storedBids, b)
+            datetime = self.safe_string(first, 'timestamp')
             orderbook['symbol'] = symbol
-            orderbook['timestamp'] = timestamp
-            orderbook['datetime'] = self.iso8601(timestamp)
-            client.resolve(orderbook, messageHash)
-
-    def format_number(self, n, length):
-        stringNumber = self.number_to_string(n)
-        parts = stringNumber.split('.')
-        integer = self.safe_string(parts, 0)
-        decimals = self.safe_string(parts, 1, '')
-        paddedDecimals = decimals.ljust(length, '0')
-        joined = integer + paddedDecimals
-        i = 0
-        while(joined[i] == '0'):
-            i += 1
-        if i > 0:
-            return joined[i:]
+            orderbook['timestamp'] = self.parse8601(datetime)
+            orderbook['datetime'] = datetime
         else:
-            return joined
+            # snapshot
+            depth = len(a)
+            self.orderbooks[symbol] = self.order_book({}, depth)
+            orderbook = self.orderbooks[symbol]
+            keys = ['asks', 'bids']
+            for i in range(0, len(keys)):
+                key = keys[i]
+                bookside = orderbook[key]
+                deltas = self.safe_value(first, key, [])
+                if len(deltas) > 0:
+                    self.custom_handle_deltas(bookside, deltas)
+            orderbook['symbol'] = symbol
+        orderbook.limit()
+        # checksum temporarily disabled because the exchange checksum was not reliable
+        checksum = self.handle_option('watchOrderBook', 'checksum', False)
+        if checksum:
+            payloadArray = []
+            if c is not None:
+                checkAsks = orderbook['asks']
+                checkBids = orderbook['bids']
+                # checkAsks = asks.map((elem) => [elem['price'], elem['qty']])
+                # checkBids = bids.map((elem) => [elem['price'], elem['qty']])
+                for i in range(0, 10):
+                    currentAsk = self.safe_value(checkAsks, i, {})
+                    formattedAsk = self.format_number(currentAsk[0]) + self.format_number(currentAsk[1])
+                    payloadArray.append(formattedAsk)
+                for i in range(0, 10):
+                    currentBid = self.safe_value(checkBids, i, {})
+                    formattedBid = self.format_number(currentBid[0]) + self.format_number(currentBid[1])
+                    payloadArray.append(formattedBid)
+            payload = ''.join(payloadArray)
+            localChecksum = self.crc32(payload, False)
+            if localChecksum != c:
+                error = ChecksumError(self.id + ' ' + self.orderbook_checksum_message(symbol))
+                del client.subscriptions[messageHash]
+                del self.orderbooks[symbol]
+                client.reject(error, messageHash)
+                return
+        client.resolve(orderbook, messageHash)
 
-    def custom_handle_deltas(self, bookside, deltas, timestamp=None):
+    def custom_handle_deltas(self, bookside, deltas):
+        # sortOrder = True if (key == 'bids') else False
         for j in range(0, len(deltas)):
             delta = deltas[j]
-            price = self.parse_number(delta[0])
-            amount = self.parse_number(delta[1])
-            oldTimestamp = timestamp if timestamp else 0
-            timestamp = max(oldTimestamp, self.parse_to_int(float(delta[2]) * 1000))
+            price = self.safe_number(delta, 'price')
+            amount = self.safe_number(delta, 'qty')
             bookside.store(price, amount)
-        return timestamp
+            # if amount == 0:
+            #     index = bookside.findIndex((x: Int) => x[0] == price)
+            #     bookside.splice(index, 1)
+            # else:
+            #     bookside.store(price, amount)
+            # }
+            # bookside = self.sort_by(bookside, 0, sortOrder)
+            # bookside[0:9]
+
+    def format_number(self, data):
+        parts = data.split('.')
+        integer = self.safe_string(parts, 0)
+        decimals = self.safe_string(parts, 1, '')
+        joinedResult = integer + decimals
+        i = 0
+        while(joinedResult[i] == '0'):
+            i += 1
+        if i > 0:
+            joinedResult = joinedResult[i:]
+        return joinedResult
 
     def handle_system_status(self, client: Client, message):
         #
@@ -1032,7 +1014,11 @@ class kraken(ccxt.async_support.kraken):
         client = self.client(url)
         authenticated = 'authenticated'
         subscription = self.safe_value(client.subscriptions, authenticated)
-        if subscription is None:
+        now = self.seconds()
+        start = self.safe_integer(subscription, 'start')
+        expires = self.safe_integer(subscription, 'expires')
+        if (subscription is None) or ((subscription is not None) and (start + expires) <= now):
+            # https://docs.kraken.com/api/docs/rest-api/get-websockets-token
             response = await self.privatePostGetWebSocketsToken(params)
             #
             #     {
@@ -1043,7 +1029,8 @@ class kraken(ccxt.async_support.kraken):
             #         }
             #     }
             #
-            subscription = self.safe_value(response, 'result')
+            subscription = self.safe_dict(response, 'result')
+            subscription['start'] = now
             client.subscriptions[authenticated] = subscription
         return self.safe_string(subscription, 'token')
 
@@ -1477,23 +1464,22 @@ class kraken(ccxt.async_support.kraken):
         symbols = self.market_symbols(symbols, None, False, True, False)
         messageHashes = []
         for i in range(0, len(symbols)):
-            messageHashes.append(self.get_message_hash(unifiedName, None, self.symbol(symbols[i])))
-        # for WS subscriptions, we can't use .marketIds(symbols), instead a custom is field needed
-        markets = self.markets_for_symbols(symbols)
-        wsMarketIds = []
-        for i in range(0, len(markets)):
-            wsMarketId = self.safe_string(markets[i]['info'], 'wsname')
-            wsMarketIds.append(wsMarketId)
+            eventTrigger = self.safe_string(params, 'event_trigger')
+            if eventTrigger is not None:
+                messageHashes.append(self.get_message_hash(channelName, None, self.symbol(symbols[i])))
+            else:
+                messageHashes.append(self.get_message_hash(unifiedName, None, self.symbol(symbols[i])))
         request: dict = {
-            'event': 'subscribe',
-            'reqid': self.request_id(),
-            'pair': wsMarketIds,
-            'subscription': {
-                'name': channelName,
+            'method': 'subscribe',
+            'params': {
+                'channel': channelName,
+                'symbol': symbols,
             },
+            'req_id': self.request_id(),
         }
-        url = self.urls['api']['ws']['public']
-        return await self.watch_multiple(url, messageHashes, self.deep_extend(request, params), messageHashes, subscriptionArgs)
+        request['params'] = self.deep_extend(request['params'], params)
+        url = self.urls['api']['ws']['publicV2']
+        return await self.watch_multiple(url, messageHashes, request, messageHashes, subscriptionArgs)
 
     async def watch_balance(self, params={}) -> Balances:
         """
@@ -1626,17 +1612,20 @@ class kraken(ccxt.async_support.kraken):
         #
         errorMessage = self.safe_string_2(message, 'errorMessage', 'error')
         if errorMessage is not None:
-            requestId = self.safe_value_2(message, 'reqid', 'req_id')
-            if requestId is not None:
-                broad = self.exceptions['ws']['broad']
-                broadKey = self.find_broadly_matched_key(broad, errorMessage)
-                exception = None
-                if broadKey is None:
-                    exception = ExchangeError(errorMessage)  # c# requirement to convert the errorMessage to string
-                else:
-                    exception = broad[broadKey](errorMessage)
-                client.reject(exception, requestId)
-                return False
+            # requestId = self.safe_value_2(message, 'reqid', 'req_id')
+            broad = self.exceptions['ws']['broad']
+            broadKey = self.find_broadly_matched_key(broad, errorMessage)
+            exception = None
+            if broadKey is None:
+                exception = ExchangeError(errorMessage)  # c# requirement to convert the errorMessage to string
+            else:
+                exception = broad[broadKey](errorMessage)
+            # if requestId is not None:
+            #     client.reject(exception, requestId)
+            # else:
+            client.reject(exception)
+            # }
+            return False
         return True
 
     def handle_message(self, client: Client, message):
@@ -1649,11 +1638,7 @@ class kraken(ccxt.async_support.kraken):
             name = self.safe_string(info, 'name')
             methods: dict = {
                 # public
-                'book': self.handle_order_book,
                 'ohlc': self.handle_ohlcv,
-                'ticker': self.handle_ticker,
-                'spread': self.handle_bid_ask,
-                'trade': self.handle_trades,
                 # private
                 'openOrders': self.handle_orders,
                 'ownTrades': self.handle_my_trades,
@@ -1666,6 +1651,9 @@ class kraken(ccxt.async_support.kraken):
             if channel is not None:
                 methods: dict = {
                     'balances': self.handle_balance,
+                    'book': self.handle_order_book,
+                    'ticker': self.handle_ticker,
+                    'trade': self.handle_trades,
                 }
                 method = self.safe_value(methods, channel)
                 if method is not None:
@@ -1680,6 +1668,7 @@ class kraken(ccxt.async_support.kraken):
                     'amend_order': self.handle_create_edit_order,
                     'cancel_order': self.handle_cancel_order,
                     'cancel_all': self.handle_cancel_all_orders,
+                    'pong': self.handle_pong,
                 }
                 method = self.safe_value(methods, event)
                 if method is not None:

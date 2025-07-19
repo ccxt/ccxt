@@ -63,6 +63,7 @@ class bybit extends Exchange {
                 'createTriggerOrder' => true,
                 'editOrder' => true,
                 'editOrders' => true,
+                'fetchAllGreeks' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => 'emulated',
                 'fetchBorrowInterest' => false, // temporarily disabled, doesn't work
@@ -1161,6 +1162,7 @@ class bybit extends Exchange {
                     '4h' => '4h',
                     '1d' => '1d',
                 ),
+                'useMarkPriceForPositionCollateral' => false, // use mark price for position collateral
             ),
             'features' => array(
                 'default' => array(
@@ -3916,7 +3918,7 @@ class bybit extends Exchange {
              * @param {int} [$params->isLeverage] *unified spot only* false then spot trading true then margin trading
              * @param {string} [$params->tpslMode] *contract only* 'full' or 'partial'
              * @param {string} [$params->mmp] *option only* $market maker protection
-             * @param {string} [$params->triggerDirection] *contract only* the direction for trigger orders, 'above' or 'below'
+             * @param {string} [$params->triggerDirection] *contract only* the direction for trigger orders, 'ascending' or 'descending'
              * @param {float} [$params->triggerPrice] The $price at which a trigger $order is triggered at
              * @param {float} [$params->stopLossPrice] The $price at which a stop loss $order is triggered at
              * @param {float} [$params->takeProfitPrice] The $price at which a take profit $order is triggered at
@@ -3940,7 +3942,7 @@ class bybit extends Exchange {
             $isTakeProfit = $takeProfitPrice !== null;
             $orderRequest = $this->create_order_request($symbol, $type, $side, $amount, $price, $params, $enableUnifiedAccount);
             $defaultMethod = null;
-            if ($isTrailingAmountOrder || $isStopLoss || $isTakeProfit) {
+            if (($isTrailingAmountOrder || $isStopLoss || $isTakeProfit) && !$market['spot']) {
                 $defaultMethod = 'privatePostV5PositionTradingStop';
             } else {
                 $defaultMethod = 'privatePostV5OrderCreate';
@@ -4021,7 +4023,7 @@ class bybit extends Exchange {
         $isLimit = $lowerCaseType === 'limit';
         $isBuy = $side === 'buy';
         $defaultMethod = null;
-        if ($isTrailingAmountOrder || $isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
+        if (($isTrailingAmountOrder || $isStopLossTriggerOrder || $isTakeProfitTriggerOrder) && !$market['spot']) {
             $defaultMethod = 'privatePostV5PositionTradingStop';
         } else {
             $defaultMethod = 'privatePostV5OrderCreate';
@@ -4152,9 +4154,9 @@ class bybit extends Exchange {
                 }
             } else {
                 if ($triggerDirection === null) {
-                    throw new ArgumentsRequired($this->id . ' stop/trigger orders require a $triggerDirection parameter, either "above" or "below" to determine the direction of the trigger.');
+                    throw new ArgumentsRequired($this->id . ' stop/trigger orders require a $triggerDirection parameter, either "ascending" or "descending" to determine the direction of the trigger.');
                 }
-                $isAsending = (($triggerDirection === 'above') || ($triggerDirection === '1'));
+                $isAsending = (($triggerDirection === 'ascending') || ($triggerDirection === 'above') || ($triggerDirection === '1'));
                 $request['triggerDirection'] = $isAsending ? 1 : 2;
             }
             $request['triggerPrice'] = $this->get_price($symbol, $triggerPrice);
@@ -6645,20 +6647,22 @@ class bybit extends Exchange {
         }
         $collateralString = $this->safe_string($position, 'positionBalance');
         $entryPrice = $this->omit_zero($this->safe_string_n($position, array( 'entryPrice', 'avgPrice', 'avgEntryPrice' )));
+        $markPrice = $this->safe_string($position, 'markPrice');
         $liquidationPrice = $this->omit_zero($this->safe_string($position, 'liqPrice'));
         $leverage = $this->safe_string($position, 'leverage');
         if ($liquidationPrice !== null) {
             if ($market['settle'] === 'USDC') {
-                //  (Entry price - Liq price) * Contracts . Maintenance Margin . (unrealised pnl) = Collateral
-                $difference = Precise::string_abs(Precise::string_sub($entryPrice, $liquidationPrice));
+                //  (Entry $price - Liq $price) * Contracts . Maintenance Margin . (unrealised pnl) = Collateral
+                $price = $this->safe_bool($this->options, 'useMarkPriceForPositionCollateral', false) ? $markPrice : $entryPrice;
+                $difference = Precise::string_abs(Precise::string_sub($price, $liquidationPrice));
                 $collateralString = Precise::string_add(Precise::string_add(Precise::string_mul($difference, $size), $maintenanceMarginString), $unrealisedPnl);
             } else {
                 $bustPrice = $this->safe_string($position, 'bustPrice');
                 if ($market['linear']) {
                     // derived from the following formulas
-                    //  (Entry price - Bust price) * Contracts = Collateral
-                    //  (Entry price - Liq price) * Contracts = Collateral - Maintenance Margin
-                    // Maintenance Margin = (Bust price - Liq price) x Contracts
+                    //  (Entry $price - Bust $price) * Contracts = Collateral
+                    //  (Entry $price - Liq $price) * Contracts = Collateral - Maintenance Margin
+                    // Maintenance Margin = (Bust $price - Liq $price) x Contracts
                     $maintenanceMarginPriceDifference = Precise::string_abs(Precise::string_sub($liquidationPrice, $bustPrice));
                     $maintenanceMarginString = Precise::string_mul($maintenanceMarginPriceDifference, $size);
                     // Initial Margin = Contracts x Entry Price / Leverage
@@ -6666,10 +6670,10 @@ class bybit extends Exchange {
                         $initialMarginString = Precise::string_div(Precise::string_mul($size, $entryPrice), $leverage);
                     }
                 } else {
-                    // Contracts * (1 / Entry price - 1 / Bust price) = Collateral
-                    // Contracts * (1 / Entry price - 1 / Liq price) = Collateral - Maintenance Margin
-                    // Maintenance Margin = Contracts * (1 / Liq price - 1 / Bust price)
-                    // Maintenance Margin = Contracts * (Bust price - Liq price) / (Liq price x Bust price)
+                    // Contracts * (1 / Entry $price - 1 / Bust $price) = Collateral
+                    // Contracts * (1 / Entry $price - 1 / Liq $price) = Collateral - Maintenance Margin
+                    // Maintenance Margin = Contracts * (1 / Liq $price - 1 / Bust $price)
+                    // Maintenance Margin = Contracts * (Bust $price - Liq $price) / (Liq $price x Bust $price)
                     $difference = Precise::string_abs(Precise::string_sub($bustPrice, $liquidationPrice));
                     $multiply = Precise::string_mul($bustPrice, $liquidationPrice);
                     $maintenanceMarginString = Precise::string_div(Precise::string_mul($size, $difference), $multiply);
@@ -6704,7 +6708,7 @@ class bybit extends Exchange {
             'contractSize' => $this->safe_number($market, 'contractSize'),
             'marginRatio' => $this->parse_number($marginRatio),
             'liquidationPrice' => $this->parse_number($liquidationPrice),
-            'markPrice' => $this->safe_number($position, 'markPrice'),
+            'markPrice' => $this->parse_number($markPrice),
             'lastPrice' => $this->safe_number($position, 'avgExitPrice'),
             'collateral' => $this->parse_number($collateralString),
             'marginMode' => $marginMode,
@@ -8190,6 +8194,80 @@ class bybit extends Exchange {
         }) ();
     }
 
+    public function fetch_all_greeks(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+             *
+             * @see https://bybit-exchange.github.io/docs/api-explorer/v5/market/tickers
+             *
+             * @param {string[]} [$symbols] unified $symbols of the markets to fetch greeks for, all markets are returned if not assigned
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->baseCoin] the $baseCoin of the symbol, default is BTC
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=greeks-structure greeks structure~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, true, true, true);
+            $baseCoin = $this->safe_string($params, 'baseCoin', 'BTC');
+            $request = array(
+                'category' => 'option',
+                'baseCoin' => $baseCoin,
+            );
+            $market = null;
+            if ($symbols !== null) {
+                $symbolsLength = count($symbols);
+                if ($symbolsLength === 1) {
+                    $market = $this->market($symbols[0]);
+                    $request['symbol'] = $market['id'];
+                }
+            }
+            $response = Async\await($this->publicGetV5MarketTickers ($this->extend($request, $params)));
+            //
+            //     {
+            //         "retCode" => 0,
+            //         "retMsg" => "SUCCESS",
+            //         "result" => {
+            //             "category" => "option",
+            //             "list" => array(
+            //                 array(
+            //                     "symbol" => "BTC-26JAN24-39000-C",
+            //                     "bid1Price" => "3205",
+            //                     "bid1Size" => "7.1",
+            //                     "bid1Iv" => "0.5478",
+            //                     "ask1Price" => "3315",
+            //                     "ask1Size" => "1.98",
+            //                     "ask1Iv" => "0.5638",
+            //                     "lastPrice" => "3230",
+            //                     "highPrice24h" => "3255",
+            //                     "lowPrice24h" => "3200",
+            //                     "markPrice" => "3273.02263032",
+            //                     "indexPrice" => "36790.96",
+            //                     "markIv" => "0.5577",
+            //                     "underlyingPrice" => "37649.67254894",
+            //                     "openInterest" => "19.67",
+            //                     "turnover24h" => "170140.33875912",
+            //                     "volume24h" => "4.56",
+            //                     "totalVolume" => "22",
+            //                     "totalTurnover" => "789305",
+            //                     "delta" => "0.49640971",
+            //                     "gamma" => "0.00004131",
+            //                     "vega" => "69.08651675",
+            //                     "theta" => "-24.9443226",
+            //                     "predictedDeliveryPrice" => "0",
+            //                     "change24h" => "0.18532111"
+            //                 }
+            //             )
+            //         ),
+            //         "retExtInfo" => array(),
+            //         "time" => 1699584008326
+            //     }
+            //
+            $result = $this->safe_dict($response, 'result', array());
+            $data = $this->safe_list($result, 'list', array());
+            return $this->parse_all_greeks($data, $symbols);
+        }) ();
+    }
+
     public function parse_greeks(array $greeks, ?array $market = null): array {
         //
         //     {
@@ -8609,7 +8687,7 @@ class bybit extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'id' => $this->safe_string($income, 'execId'),
-            'amount' => $this->safe_number($income, 'execQty'),
+            'amount' => $this->safe_number($income, 'execFee'),
             'rate' => $this->safe_number($income, 'feeRate'),
         );
     }
@@ -9377,7 +9455,7 @@ class bybit extends Exchange {
                     $authFull = $auth_base . $body;
                 } else {
                     $authFull = $auth_base . $queryEncoded;
-                    $url .= '?' . $this->rawencode($query);
+                    $url .= '?' . $queryEncoded;
                 }
                 $signature = null;
                 if (mb_strpos($this->secret, 'PRIVATE KEY') > -1) {
@@ -9393,7 +9471,7 @@ class bybit extends Exchange {
                     'timestamp' => $timestamp,
                 ));
                 $sortedQuery = $this->keysort($query);
-                $auth = $this->rawencode($sortedQuery);
+                $auth = $this->rawencode($sortedQuery, true);
                 $signature = null;
                 if (mb_strpos($this->secret, 'PRIVATE KEY') > -1) {
                     $signature = $this->rsa($auth, $this->secret, 'sha256');
@@ -9417,7 +9495,7 @@ class bybit extends Exchange {
                         );
                     }
                 } else {
-                    $url .= '?' . $this->rawencode($sortedQuery);
+                    $url .= '?' . $this->rawencode($sortedQuery, true);
                     $url .= '&sign=' . $signature;
                 }
             }

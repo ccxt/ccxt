@@ -1366,7 +1366,20 @@ class kraken(Exchange, ImplicitAPI):
         #         "maker": False
         #     }
         #
+        # watchTrades
+        #
+        #     {
+        #         "symbol": "BTC/USD",
+        #         "side": "buy",
+        #         "price": 109601.2,
+        #         "qty": 0.04561994,
+        #         "ord_type": "market",
+        #         "trade_id": 83449369,
+        #         "timestamp": "2025-05-27T11:24:03.847761Z"
+        #     }
+        #
         timestamp = None
+        datetime = None
         side = None
         type = None
         price = None
@@ -1409,6 +1422,14 @@ class kraken(Exchange, ImplicitAPI):
                     'cost': self.safe_string(trade, 'fee'),
                     'currency': currency,
                 }
+        else:
+            symbol = self.safe_string(trade, 'symbol')
+            datetime = self.safe_string(trade, 'timestamp')
+            id = self.safe_string(trade, 'trade_id')
+            side = self.safe_string(trade, 'side')
+            type = self.safe_string(trade, 'ord_type')
+            price = self.safe_string(trade, 'price')
+            amount = self.safe_string(trade, 'qty')
         if market is not None:
             symbol = market['symbol']
         cost = self.safe_string(trade, 'cost')
@@ -1416,12 +1437,16 @@ class kraken(Exchange, ImplicitAPI):
         takerOrMaker = None
         if maker is not None:
             takerOrMaker = 'maker' if maker else 'taker'
+        if datetime is None:
+            datetime = self.iso8601(timestamp)
+        else:
+            timestamp = self.parse8601(datetime)
         return self.safe_trade({
             'id': id,
             'order': orderId,
             'info': trade,
             'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'datetime': datetime,
             'symbol': symbol,
             'type': type,
             'side': side,

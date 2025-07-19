@@ -51,7 +51,7 @@ func benchmarks() {
 	orderBookContent := IoFileRead(orderBookFile, true)
 	tradesContent := IoFileRead(tradesFile, true)
 
-	exchange.Markets = marketsContent.(map[string]interface{})
+	exchange.Markets = exchange.MapToSafeMap(marketsContent.(map[string]interface{}))
 
 	beforeTickerNs := time.Now().UnixNano()
 	_ = exchange.ParseTickers(tickersContent)

@@ -36,6 +36,20 @@ func (this *Lbank) FetchTime(params ...interface{}) ( int64, error) {
 }
 /**
  * @method
+ * @name lbank#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @param {dict} [params] extra parameters specific to the exchange API endpoint
+ * @returns {dict} an associative dictionary of currencies
+ */
+func (this *Lbank) FetchCurrencies(params ...interface{}) (Currencies, error) {
+    res := <- this.Core.FetchCurrencies(params...)
+    if IsError(res) {
+        return Currencies{}, CreateReturnError(res)
+    }
+    return NewCurrencies(res), nil
+}
+/**
+ * @method
  * @name lbank#fetchMarkets
  * @description retrieves data on all markets for lbank
  * @see https://www.lbank.com/en-US/docs/index.html#trading-pairs

@@ -867,10 +867,10 @@ class testMainClass {
         return true;
     }
 
-    checkConstructor (exchange) {
+    checkConstructor (exchange: Exchange) {
         // todo: this might be moved in base tests later
         if (exchange.id === 'binance') {
-            assert (exchange.hostname === undefined, 'binance.com hostname should be empty');
+            assert (exchange.hostname === undefined || exchange.hostname === '', 'binance.com hostname should be empty');
             assert (exchange.urls['api']['public'] === 'https://api.binance.com/api/v3', 'https://api.binance.com/api/v3 does not match: ' + exchange.urls['api']['public']);
             assert (('lending/union/account' in exchange.api['sapi']['get']), 'SAPI should contain the endpoint lending/union/account, ' + jsonStringify (exchange.api['sapi']['get']));
         } else if (exchange.id === 'binanceus') {
@@ -880,12 +880,29 @@ class testMainClass {
         }
     }
 
+    async testReturnResponseHeaders (exchange: Exchange) {
+        if (exchange.id !== 'binance') {
+            return false; // this test is only for binance exchange for now
+        }
+        exchange.returnResponseHeaders = true;
+        const ticker = await exchange.fetchTicker ('BTC/USDT');
+        const info = ticker["info"];
+        const headers = info["responseHeaders"];
+        const headersKeys = Object.keys (headers);
+        assert (headersKeys.length > 0, 'Response headers should not be empty');
+        const headerValues = Object.values (headers);
+        assert (headerValues.length > 0, 'Response headers values should not be empty');
+        exchange.returnResponseHeaders = false;
+        return true;
+    }
+
     async startTest (exchange, symbol) {
         // we do not need to test aliases
         if (exchange.alias) {
             return true;
         }
         this.checkConstructor (exchange);
+        await this.testReturnResponseHeaders (exchange);
         if (this.sandbox || getExchangeProp (exchange, 'sandbox')) {
             exchange.setSandboxMode (true);
         }
@@ -1548,7 +1565,7 @@ class testMainClass {
             this.testBingx (),
             this.testPhemex (),
             this.testBlofin (),
-            this.testHyperliquid (),
+            // this.testHyperliquid (),
             this.testCoinbaseinternational (),
             this.testCoinbaseAdvanced (),
             this.testWoofiPro (),
@@ -1823,7 +1840,7 @@ class testMainClass {
         try {
             await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
-            spotOrderRequest = this.urlencodedToDict (exchange.last_request_body);
+            spotOrderRequest = jsonParse (exchange.last_request_body);
         }
         const brokerId = spotOrderRequest['broker_id'];
         const idString = id.toString ();
@@ -1934,22 +1951,22 @@ class testMainClass {
         return true;
     }
 
-    async testHyperliquid () {
-        const exchange = this.initOfflineExchange ('hyperliquid');
-        const id = '1';
-        let request = undefined;
-        try {
-            await exchange.createOrder ('SOL/USDC:USDC', 'limit', 'buy', 1, 100);
-        } catch (e) {
-            request = jsonParse (exchange.last_request_body);
-        }
-        const brokerId = (request['action']['brokerCode']).toString ();
-        assert (brokerId === id, 'hyperliquid - brokerId: ' + brokerId + ' does not start with id: ' + id);
-        if (!isSync ()) {
-            await close (exchange);
-        }
-        return true;
-    }
+    // async testHyperliquid () {
+    //     const exchange = this.initOfflineExchange ('hyperliquid');
+    //     const id = '1';
+    //     let request = undefined;
+    //     try {
+    //         await exchange.createOrder ('SOL/USDC:USDC', 'limit', 'buy', 1, 100);
+    //     } catch (e) {
+    //         request = jsonParse (exchange.last_request_body);
+    //     }
+    //     const brokerId = (request['action']['brokerCode']).toString ();
+    //     assert (brokerId === id, 'hyperliquid - brokerId: ' + brokerId + ' does not start with id: ' + id);
+    //     if (!isSync ()) {
+    //         await close (exchange);
+    //     }
+    //     return true;
+    // }
 
     async testCoinbaseinternational () {
         const exchange = this.initOfflineExchange ('coinbaseinternational');

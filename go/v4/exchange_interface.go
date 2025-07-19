@@ -29,14 +29,16 @@ type IExchange interface {
 	GetLast_request_url() interface{}
 	GetLast_request_body() interface{}
 	GetLast_request_headers() map[string]interface{}
+	GetReturnResponseHeaders() bool
+	SetReturnResponseHeaders(val interface{})
 	GetHas() map[string]interface{}
 	GetId() string
 	GetHostname() string
 	GetUrls() interface{}
 	GetApi() map[string]interface{}
 	GetOptions() *sync.Map
-	GetCurrencies() map[string]interface{}
-	GetMarkets() map[string]interface{}
+	GetCurrencies() *sync.Map
+	GetMarkets() *sync.Map
 	CheckRequiredCredentials(optionalArgs ...interface{}) interface{}
 	Sleep(milliseconds interface{}) <-chan bool
 	Json(object interface{}) interface{}
@@ -87,6 +89,7 @@ type IExchange interface {
 	FetchDeposits(optionalArgs ...interface{}) <-chan interface{}
 	Milliseconds() int64
 	ParseNumber(v interface{}, a ...interface{}) interface{}
+	OmitZero(v interface{}) interface{}
 	FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
 	ParseTimeframe(timeframe interface{}) interface{}
 	FetchLeverageTiers(optionalArgs ...interface{}) <-chan interface{}
@@ -181,6 +184,7 @@ type IDerivedExchange interface {
 	ParseLeverage(leverage interface{}, optionalArgs ...interface{}) interface{}
 	ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{}) interface{}
 	ParseTrade(trade interface{}, optionalArgs ...interface{}) interface{}
+	ParseGreeks(greeks interface{}, optionalArgs ...interface{}) interface{}
 	ParseMarket(market interface{}) interface{}
 	ParseCurrency(rawCurrency interface{}) interface{}
 	ParseTransaction(transaction interface{}, optionalArgs ...interface{}) interface{}

@@ -599,6 +599,8 @@ Below is a detailed description of each of the base exchange properties:
   import logging
   logging.basicConfig(level=logging.DEBUG)
   ```
+- `returnResponseHeaders`: If set to `true`, the HTTP response headers from the exchange will be included in the `responseHeaders` property inside the `info` field of the returned result for REST API calls. This can be useful for accessing metadata such as rate limit information or exchange-specific headers. By default, this is `false` and headers are not included in the response. Note: it's only supported when response is an object and not a list or string
+
 
 - `markets`: An associative array of markets indexed by common trading pairs or symbols. Markets should be loaded prior to accessing this property. Markets are unavailable until you call the `loadMarkets() / load_markets()` method on exchange instance.
 
@@ -1827,6 +1829,7 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 - `fetchLiquidations (symbol, since, limit, params)`
 - `fetchMyLiquidations (symbol, since, limit, params)`
 - `fetchGreeks (symbol, params)`
+- `fetchAllGreeks (symbols, params)`
 - `fetchCrossBorrowRate (code, params)`
 - `fetchCrossBorrowRates (params)`
 - `fetchIsolatedBorrowRate (symbol, params)`
@@ -3469,7 +3472,7 @@ Returns
 
 *option only*
 
-Use the `fetchGreeks` method to get the public greeks and implied volatility of an options trading pair from the exchange.
+Use the `fetchGreeks` method to get the public greeks and implied volatility of an options trading pair from the exchange. Use `fetchAllGreeks` to get the greeks for all symbols or multiple symbols.
 The greeks measure how factors like the underlying assets price, time to expiration, volatility, and interest rates, affect the price of an options contract.
 
 ```javascript
@@ -3484,6 +3487,23 @@ Parameters
 Returns
 
 - A [greeks structure](#greeks-structure)
+
+```javascript
+fetchAllGreeks (symbols = undefined, params = {})
+```
+
+Parameters
+
+- **symbols** (String) Unified CCXT symbol (e.g. `"BTC/USD:BTC-240927-40000-C"`)
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"category": "options"}`)
+
+// for example
+fetchAllGreeks () // all symbols
+fetchAllGreeks ([ 'BTC/USD:BTC-240927-40000-C', 'ETH/USD:ETH-240927-4000-C' ]) // an array of specific symbols
+
+Returns
+
+- A list of [greeks structure](#greeks-structure)
 
 ### Greeks Structure
 
@@ -4946,6 +4966,12 @@ $exchange->create_order($symbol, $type, $side, $amount, $price, array(
 ))
 ```
 <!-- tabs:end -->
+
+##### Hedge mode for order
+
+If exchange supports [feature](#features) for `hedged` orders, user can pass `params['hedged'] = true` in `createOrder` to open a `hedged` position instead of default `one-way` mode order. However, if exchange supports `.has['setPositionMode']` then those exchanges might not support `hedged` param directly through `createOrder`, instead on such exchange you need to change teh account-mode at first using [setPositionMode()](#set-position-mode) and then run `createOrder` (without `hedged` param) and it will place hedged order by default.
+
+
 
 ### Editing Orders
 
