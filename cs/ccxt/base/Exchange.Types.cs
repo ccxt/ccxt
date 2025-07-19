@@ -627,7 +627,7 @@ public struct OrderBook
 
     public string? symbol;
     public Int64? timestamp;
-    public Int64? requestTimestamp;
+    public Int64? ccxtTimestamp;
     public string? datetime;
     public Int64? nonce;
 
@@ -638,7 +638,7 @@ public struct OrderBook
         asks = orderbook.ContainsKey("asks") ? ((IEnumerable<object>)orderbook["asks"]).Select(x => ((IEnumerable<object>)x).Select(y => Convert.ToDouble(y)).ToList()).ToList() : null;
         symbol = Exchange.SafeString(orderbook, "symbol");
         timestamp = Exchange.SafeInteger(orderbook, "timestamp");
-        requestTimestamp = Exchange.SafeInteger(orderbook, "requestTimestamp");
+        ccxtTimestamp = Exchange.SafeInteger(orderbook, "ccxtTimestamp");
         datetime = Exchange.SafeString(orderbook, "datetime");
         nonce = Exchange.SafeInteger(orderbook, "nonce");
     }
