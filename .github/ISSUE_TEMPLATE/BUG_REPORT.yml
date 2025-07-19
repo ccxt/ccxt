@@ -6,27 +6,21 @@ body:
   - type: markdown
     attributes:
       value: |
-        ## If you want your issue to be resolved quickly, we strongly recommend that you
+        ## Ensure :
+        - You have already searched across the existing issues
+        - Your local CCXT version is up to date (check the [latest available version](https://github.com/ccxt/ccxt/blob/master/package.json#L3) )
+        - Read the [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) or search for the specific subject in the [Manual](https://github.com/ccxt/ccxt/wiki/Manual) (eg: `Exchange Properties`, `Rate Limit`, `Authentication`, `API keys`, etc).
+        - Read the [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting) to better understand your issue.
 
-        - Read the [Manual](https://github.com/ccxt/ccxt/wiki/Manual), and give special attention to the following sections:
-          - [Exchange Properties](https://github.com/ccxt/ccxt/wiki/Manual#exchange-properties)
-          - [Rate Limit](https://github.com/ccxt/ccxt/wiki/Manual#rate-limit)
-          - [DDoS Protection](https://github.com/ccxt/ccxt/wiki/Manual#ddos-protection-by-cloudflare--incapsula)
-          - [Authentication](https://github.com/ccxt/ccxt/wiki/Manual#authentication)
-          - [API Keys Setup](https://github.com/ccxt/ccxt/wiki/Manual#api-keys-setup)
-        - Read the [API docs](https://github.com/ccxt/ccxt/wiki/Exchange-Markets) for your exchange.
-
-        ---
-
-        ## Ensure
-        - You have already searched for [existing issues](https://github.com/ccxt/ccxt/issues) and confirmed that this issue is not a duplicate
-        - This question is directly related to ccxt
-        - You have read the [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) for most frequently asked questions
-        - You have read the [How to submit a good issue](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-submit-an-issue)
-        - Make sure your local version of CCXT is up to date. Check by comparing the output of `ccxt.version` to https://github.com/ccxt/ccxt/blob/master/package.json#L3
-        - You have read the [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting) section of the manual and followed troubleshooting steps
-
-        ---
+        ## Please:
+        - Set `exchange.verbose = true` property before calling exchange functions
+        - Provide the minimal, reproducible example/code
+        - Surround your code/output with triple backticks:
+          ````markdown
+          ```
+          your data here
+          ```
+        - Hide the keys & credentials.
 
   - type: input
     id: operating-system
@@ -39,12 +33,13 @@ body:
     id: language
     attributes:
       multiple: true
-      label: Programming Languages
-      description: Which language are you using?
+      label: Programming Language
       options:
         - JavaScript
         - Python
         - PHP
+        - C#
+        - GO
     validations:
       required: false
 
@@ -58,18 +53,5 @@ body:
   - type: textarea
     attributes:
       label: Description
-      description: Describe the issue that you're having precisely. Include clear steps for how to reproduce the issue.
-    validations:
-      required: false
-
-  - type: textarea
-    attributes:
-      label: Code
-      description: Don't post your API keys or secret keys!
-      value: |
-        ```
-          
-
-        ```
     validations:
       required: false
