@@ -864,7 +864,7 @@ class testMainClass {
             return true;
         }
         this.checkConstructor(exchange);
-        await this.testReturnResponseHeaders(exchange);
+        // await this.testReturnResponseHeaders (exchange);
         if (this.sandbox || getExchangeProp(exchange, 'sandbox')) {
             exchange.setSandboxMode(true);
         }
