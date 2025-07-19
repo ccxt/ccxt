@@ -13,6 +13,7 @@ class OrderBook(dict):
             'bids': [],
             'asks': [],
             'timestamp': None,
+            'requestTimestamp': None,
             'datetime': None,
             'nonce': None,
             'symbol': None,
@@ -42,6 +43,7 @@ class OrderBook(dict):
         for bid in snapshot.get('bids', []):
             self['bids'].storeArray(bid)
         self['nonce'] = snapshot.get('nonce')
+        self['requestTimestamp'] = snapshot.get('requestTimestamp')
         self['timestamp'] = snapshot.get('timestamp')
         self['datetime'] = Exchange.iso8601(self['timestamp'])
         self['symbol'] = snapshot.get('symbol')
