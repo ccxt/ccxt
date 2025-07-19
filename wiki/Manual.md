@@ -6200,14 +6200,12 @@ Returns
 
 ## Margin
 
-*margin and contract markets only*
+*margin and contract only*
 
-Note: across the manual we use term "collateral" which means current margin balance, but do not confuse it with "initial margin" or "maintenance margin":
-- `collateral (current margin balance) = initial margin + position profit (realized & unrealized) + cross-margin balance (only when it's not an isolated mode, but a cross-margin mode)`
+Note: through the manual we use term "collateral" which means current margin balance, but do not confuse it with "initial margin" or "maintenance margin":
+- `collateral (current margin balance) = initial margin + realized & unrealized profit`.
 
-For example, when you had opened an isolated position with **50$** initial margin (with eg. `4x` leverage, so position's notional size is **200$**) and the position got an unrealized profit of **-15$**, then your position's **collateral** will be **35$**. However, an exchange would show **Maintenance Margin** requirement (to keep the position open) eg.  if MM is **$20** for that position, so your collateral should not drop below it, otherwise the position will be liquidated and you'd better to place a stop-loss before that level.
-
-### addMargin, reduceMargin, setMargin
+For example, when you had opened an isolated position with **50$** initial margin and the position has unrealized profit of **-15$**, then your position's **collateral** will be **35$**. However, if we take that Maintenance Margin requirement (to keep the position open) by exchange hints **$25** for that position, then your collateral should not drop below it, otherwise the position will be liquidated.
 
 To increase, reduce or set your margin balance (collateral) in an open leveraged position, use `addMargin`, `reduceMargin` and `setMargin` respectively. This is kind of like adjusting the amount of leverage you're using with a position that's already open.
 
