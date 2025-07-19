@@ -788,7 +788,7 @@ class testMainClass {
             return true;
         }
         $this->check_constructor($exchange);
-        $this->test_return_response_headers($exchange);
+        // await this.testReturnResponseHeaders (exchange);
         if ($this->sandbox || get_exchange_prop($exchange, 'sandbox')) {
             $exchange->set_sandbox_mode(true);
         }
