@@ -152,6 +152,7 @@ export interface OrderBook {
     bids: [Num, Num][];
     datetime: Str;
     timestamp: Int;
+    ccxtTimestamp: Int;
     nonce: Int;
     symbol: Str;
 }
