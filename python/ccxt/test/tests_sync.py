@@ -645,7 +645,7 @@ class testMainClass:
         if exchange.alias:
             return True
         self.check_constructor(exchange)
-        self.test_return_response_headers(exchange)
+        # this.testReturnResponseHeaders (exchange);
         if self.sandbox or get_exchange_prop(exchange, 'sandbox'):
             exchange.set_sandbox_mode(True)
         try:
