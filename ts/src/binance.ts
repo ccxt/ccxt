@@ -10263,7 +10263,7 @@ export default class binance extends Exchange {
         }
         let marginRatio = undefined;
         let percentage = undefined;
-        if (!Precise.stringEquals (collateralString, '0')) {
+        if (collateralString !== undefined && !Precise.stringEquals (collateralString, '0')) {
             marginRatio = this.parseNumber (Precise.stringDiv (Precise.stringAdd (Precise.stringDiv (maintenanceMarginString, collateralString), '5e-5'), '1', 4));
             percentage = this.parseNumber (Precise.stringMul (Precise.stringDiv (unrealizedPnlString, initialMarginString, 4), '100'));
         }
