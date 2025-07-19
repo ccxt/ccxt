@@ -3,7 +3,7 @@
 import poloniexRest from '../poloniex.js';
 import { BadRequest, AuthenticationError, ExchangeError, InvalidOrder } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Tickers, Int, OHLCV, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Balances, Num, Dict } from '../base/types.js';
+import type { Tickers, Int, OHLCV, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Balances, Num, Dict, Bool } from '../base/types.js';
 import { Precise } from '../base/Precise.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import Client from '../base/ws/Client.js';
@@ -443,7 +443,7 @@ export default class poloniex extends poloniexRest {
                 messageHashes.push (name + '::' + symbols[i]);
             }
         }
-        const trades = await this.watchMultiple (url, messageHashes, request, messageHashes);
+        const trades = await this.watchMultiple (url, messageHashes, request, messageHashes, undefined);
         if (this.newUpdates) {
             const first = this.safeValue (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
@@ -1250,7 +1250,7 @@ export default class poloniex extends poloniexRest {
         }
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message): Bool {
         //
         //    {
         //        message: 'Invalid channel value ["ordersss"]',
@@ -1287,11 +1287,11 @@ export default class poloniex extends poloniexRest {
         const orderId = this.safeString (first, 'orderId');
         if ((event === 'error') || (orderId === '0')) {
             try {
-                const error = this.safeString (first, 'message');
+                const err = this.safeString (first, 'message');
                 const code = this.safeString (first, 'code');
                 const feedback = this.id + ' ' + this.json (message);
                 this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
-                this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
+                this.throwBroadlyMatchedException (this.exceptions['broad'], err, feedback);
                 throw new ExchangeError (feedback);
             } catch (e) {
                 if (e instanceof AuthenticationError) {
@@ -1324,8 +1324,8 @@ export default class poloniex extends poloniexRest {
         if (success) {
             client.resolve (message, messageHash);
         } else {
-            const error = new AuthenticationError (this.id + ' ' + this.json (message));
-            client.reject (error, messageHash);
+            const err = new AuthenticationError (this.id + ' ' + this.json (message));
+            client.reject (err, messageHash);
             if (messageHash in client.subscriptions) {
                 delete client.subscriptions[messageHash];
             }

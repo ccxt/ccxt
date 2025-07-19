@@ -2420,16 +2420,16 @@ export default class bitstamp extends Exchange {
         //     reuse of a nonce gives: { status: 'error', reason: 'Invalid nonce', code: 'API0004' }
         //
         const status = this.safeString (response, 'status');
-        const error = this.safeValue (response, 'error');
-        if ((status === 'error') || (error !== undefined)) {
+        const err = this.safeValue (response, 'error');
+        if ((status === 'error') || (err !== undefined)) {
             let errors = [];
-            if (typeof error === 'string') {
-                errors.push (error);
-            } else if (error !== undefined) {
-                const keys = Object.keys (error);
+            if (typeof err === 'string') {
+                errors.push (err);
+            } else if (err !== undefined) {
+                const keys = Object.keys (err);
                 for (let i = 0; i < keys.length; i++) {
                     const key = keys[i];
-                    const value = this.safeValue (error, key);
+                    const value = this.safeValue (err, key);
                     if (Array.isArray (value)) {
                         errors = this.arrayConcat (errors, value);
                     } else {

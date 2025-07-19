@@ -3,7 +3,7 @@
 import probitRest from '../probit.js';
 import { NotSupported, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, Balances, Dict } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, Balances, Dict, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -490,7 +490,7 @@ export default class probit extends probitRest {
         this.handleBidAsks (storedAsks, asks);
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message): Bool {
         //
         //     {
         //         "errorCode": "INVALID_ARGUMENT",
@@ -581,8 +581,8 @@ export default class probit extends probitRest {
             handler.call (this, client, message);
             return;
         }
-        const error = new NotSupported (this.id + ' handleMessage: unknown message: ' + this.json (message));
-        client.reject (error);
+        const err = new NotSupported (this.id + ' handleMessage: unknown message: ' + this.json (message));
+        client.reject (err);
     }
 
     async authenticate (params = {}) {

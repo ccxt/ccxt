@@ -480,7 +480,7 @@ export default class binance extends binanceRest {
         await this.authenticate (params);
         const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
         const message = undefined;
-        const newLiquidations = await this.watchMultiple (url, messageHashes, message, [ type ]);
+        const newLiquidations = await this.watchMultiple (url, messageHashes, message, [ type ], undefined);
         if (this.newUpdates) {
             return newLiquidations;
         }
@@ -2360,7 +2360,7 @@ export default class binance extends binanceRest {
     }
 
     async authenticate (params = {}) {
-        const time = this.milliseconds ();
+        const now = this.milliseconds ();
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('authenticate', undefined, params);
         let subType = undefined;
@@ -2382,7 +2382,7 @@ export default class binance extends binanceRest {
         const lastAuthenticatedTime = this.safeInteger (options, 'lastAuthenticatedTime', 0);
         const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 1200000);
         const delay = this.sum (listenKeyRefreshRate, 10000);
-        if (time - lastAuthenticatedTime > delay) {
+        if (now - lastAuthenticatedTime > delay) {
             let response = undefined;
             if (isPortfolioMargin) {
                 response = await this.papiPostListenKey (params);
@@ -2405,7 +2405,7 @@ export default class binance extends binanceRest {
             }
             this.options[type] = this.extend (options, {
                 'listenKey': this.safeString (response, 'listenKey'),
-                'lastAuthenticatedTime': time,
+                'lastAuthenticatedTime': now,
             });
             this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
         }
@@ -2433,7 +2433,7 @@ export default class binance extends binanceRest {
         const request: Dict = {};
         const symbol = this.safeString (params, 'symbol');
         params = this.omit (params, [ 'type', 'symbol' ]);
-        const time = this.milliseconds ();
+        const now = this.milliseconds ();
         try {
             if (isPortfolioMargin) {
                 await this.papiPutListenKey (this.extend (request, params));
@@ -2451,7 +2451,7 @@ export default class binance extends binanceRest {
                     await this.publicPutUserDataStream (this.extend (request, params));
                 }
             }
-        } catch (error) {
+        } catch (e) {
             let urlType = type;
             if (isPortfolioMargin) {
                 urlType = 'papi';
@@ -2461,7 +2461,7 @@ export default class binance extends binanceRest {
             const messageHashes = Object.keys (client.futures);
             for (let i = 0; i < messageHashes.length; i++) {
                 const messageHash = messageHashes[i];
-                client.reject (error, messageHash);
+                client.reject (e, messageHash);
             }
             this.options[type] = this.extend (options, {
                 'listenKey': undefined,
@@ -2471,7 +2471,7 @@ export default class binance extends binanceRest {
         }
         this.options[type] = this.extend (options, {
             'listenKey': listenKey,
-            'lastAuthenticatedTime': time,
+            'lastAuthenticatedTime': now,
         });
         // whether or not to schedule another listenKey keepAlive request
         const clients = Object.values (this.clients);
@@ -2851,15 +2851,15 @@ export default class binance extends binanceRest {
             const currencyId = this.safeString (message, 'a');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            const delta = this.safeString (message, 'd');
+            const deltaFree = this.safeString (message, 'd');
             if (code in this.balance[accountType]) {
                 let previousValue = this.balance[accountType][code]['free'];
                 if (typeof previousValue !== 'string') {
                     previousValue = this.numberToString (previousValue);
                 }
-                account['free'] = Precise.stringAdd (previousValue, delta);
+                account['free'] = Precise.stringAdd (previousValue, deltaFree);
             } else {
-                account['free'] = delta;
+                account['free'] = deltaFree;
             }
             this.balance[accountType][code] = account;
         } else {
@@ -4300,11 +4300,11 @@ export default class binance extends binanceRest {
         //
         const id = this.safeString (message, 'id');
         let rejected = false;
-        const error = this.safeDict (message, 'error', {});
-        const code = this.safeInteger (error, 'code');
-        const msg = this.safeString (error, 'msg');
+        const err = this.safeDict (message, 'error', {});
+        const code = this.safeInteger (err, 'code');
+        const msg = this.safeString (err, 'msg');
         try {
-            this.handleErrors (code, msg, client.url, undefined, undefined, this.json (error), error, undefined, undefined);
+            this.handleErrors (code, msg, client.url, undefined, undefined, this.json (err), err, undefined, undefined);
         } catch (e) {
             rejected = true;
             // private endpoint uses id as messageHash
@@ -4323,7 +4323,7 @@ export default class binance extends binanceRest {
             client.reject (message, id);
         }
         // reset connection if 5xx error
-        const codeString = this.safeString (error, 'code');
+        const codeString = this.safeString (err, 'code');
         if ((codeString !== undefined) && (codeString[0] === '5')) {
             client.reset (message);
         }
@@ -4332,8 +4332,8 @@ export default class binance extends binanceRest {
     handleMessage (client: Client, message) {
         // handle WebSocketAPI
         const status = this.safeString (message, 'status');
-        const error = this.safeValue (message, 'error');
-        if ((error !== undefined) || (status !== undefined && status !== '200')) {
+        const err = this.safeValue (message, 'error');
+        if ((err !== undefined) || (status !== undefined && status !== '200')) {
             this.handleWsError (client, message);
             return;
         }

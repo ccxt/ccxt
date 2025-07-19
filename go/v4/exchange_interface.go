@@ -240,4 +240,9 @@ type IDerivedExchange interface {
 	ParseConversion(conversion interface{}, optionalArgs ...interface{}) interface{}
 	SafeCurrencyCode(currencyId interface{}, optionalArgs ...interface{}) interface{}
 	HandleErrors(statusCode interface{}, statusText interface{}, url interface{}, method interface{}, responseHeaders interface{}, responseBody interface{}, response interface{}, requestHeaders interface{}, requestBody interface{}) interface{}
+	HandleMessage(client interface{}, message interface{})
+	OnError(client interface{}, err interface{})
+	OnClose(client interface{}, err interface{})
+	OnConnected(client interface{}, err interface{})
 }
+

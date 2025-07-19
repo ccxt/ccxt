@@ -4,7 +4,7 @@
 import bitstampRest from '../bitstamp.js';
 import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Trade, Dict } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Dict, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Precise } from '../base/Precise.js';
 
@@ -497,7 +497,7 @@ export default class bitstamp extends bitstampRest {
         }
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message): Bool {
         // {
         //     "event": "bts:error",
         //     "channel": '',
@@ -559,9 +559,9 @@ export default class bitstamp extends bitstampRest {
 
     async authenticate (params = {}) {
         this.checkRequiredCredentials ();
-        const time = this.milliseconds ();
+        const now = this.milliseconds ();
         const expiresIn = this.safeInteger (this.options, 'expiresIn');
-        if ((expiresIn === undefined) || (time > expiresIn)) {
+        if ((expiresIn === undefined) || (now > expiresIn)) {
             const response = await this.privatePostWebsocketsToken (params);
             //
             // {
@@ -574,7 +574,7 @@ export default class bitstamp extends bitstampRest {
             if (sessionToken !== undefined) {
                 const userId = this.safeString (response, 'user_id');
                 const validity = this.safeIntegerProduct (response, 'valid_sec', 1000);
-                this.options['expiresIn'] = this.sum (time, validity);
+                this.options['expiresIn'] = this.sum (now, validity);
                 this.options['userId'] = userId;
                 this.options['wsSessionToken'] = sessionToken;
             }

@@ -2,7 +2,7 @@
 
 import cexRest from '../cex.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Strings, Str, OrderBook, Trade, Ticker, Tickers, OHLCV, Order, Balances, Num, Dict } from '../base/types.js';
+import type { Int, OrderSide, OrderType, Strings, Str, OrderBook, Trade, Ticker, Tickers, OHLCV, Order, Balances, Num, Dict, Bool } from '../base/types.js';
 import { ArgumentsRequired, ExchangeError, BadRequest } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp, ArrayCache } from '../base/ws/Cache.js';
@@ -843,10 +843,10 @@ export default class cex extends cexRest {
             symbol = base + '/' + quote;
         }
         market = this.safeMarket (symbol, market);
-        const time = this.safeInteger (order, 'time', this.milliseconds ());
-        let timestamp = time;
+        const orderTime = this.safeInteger (order, 'time', this.milliseconds ());
+        let timestamp = orderTime;
         if (isTransaction) {
-            timestamp = this.parse8601 (time);
+            timestamp = this.parse8601 (orderTime);
         }
         const canceled = this.safeBool (order, 'cancel', false);
         let status = 'open';
@@ -1471,7 +1471,7 @@ export default class cex extends cexRest {
         return message;
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message): Bool {
         //
         //     {
         //         "e": "get-balance",
@@ -1482,19 +1482,20 @@ export default class cex extends cexRest {
         //
         try {
             const data = this.safeValue (message, 'data', {});
-            const error = this.safeString (data, 'error');
+            const err = this.safeString (data, 'error');
             const event = this.safeString (message, 'e', '');
-            const feedback = this.id + ' ' + event + ' ' + error;
-            this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
+            const feedback = this.id + ' ' + event + ' ' + err;
+            this.throwExactlyMatchedException (this.exceptions['exact'], err, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], err, feedback);
             throw new ExchangeError (feedback);
-        } catch (error) {
+        } catch (e) {
             const messageHash = this.safeString (message, 'oid');
             const future = this.safeValue (client['futures'], messageHash);
             if (future !== undefined) {
-                client.reject (error, messageHash);
+                client.reject (e, messageHash);
+                return true;
             } else {
-                throw error;
+                throw e;
             }
         }
     }

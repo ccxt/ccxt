@@ -3,7 +3,7 @@
 import p2bRest from '../p2b.js';
 import { BadRequest, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, OHLCV, OrderBook, Trade, Ticker, Dict, Strings, Tickers } from '../base/types.js';
+import type { Int, OHLCV, OrderBook, Trade, Ticker, Dict, Strings, Tickers, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -169,7 +169,7 @@ export default class p2b extends p2bRest {
             'params': args,
             'id': this.milliseconds (),
         };
-        await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, undefined);
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
@@ -216,7 +216,7 @@ export default class p2b extends p2bRest {
             'id': this.milliseconds (),
         };
         const query = this.extend (subscribe, params);
-        const trades = await this.watchMultiple (url, messageHashes, query, messageHashes);
+        const trades = await this.watchMultiple (url, messageHashes, query, messageHashes, undefined);
         if (this.newUpdates) {
             const first = this.safeValue (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
@@ -477,10 +477,10 @@ export default class p2b extends p2bRest {
         }
     }
 
-    handleErrorMessage (client: Client, message) {
-        const error = this.safeString (message, 'error');
-        if (error !== undefined) {
-            throw new ExchangeError (this.id + ' error: ' + this.json (error));
+    handleErrorMessage (client: Client, message): Bool {
+        const err = this.safeString (message, 'error');
+        if (err !== undefined) {
+            throw new ExchangeError (this.id + ' error: ' + this.json (err));
         }
         return false;
     }

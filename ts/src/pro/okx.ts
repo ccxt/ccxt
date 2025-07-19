@@ -5,7 +5,7 @@ import okxRest from '../okx.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, ChecksumError, AuthenticationError, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num, FundingRate, FundingRates, Dict, Liquidation } from '../base/types.js';
+import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num, FundingRate, FundingRates, Dict, Liquidation, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -147,7 +147,7 @@ export default class okx extends okxRest {
             'op': 'subscribe',
             'args': args,
         };
-        return await this.watchMultiple (url, messageHashes, request, messageHashes);
+        return await this.watchMultiple (url, messageHashes, request, messageHashes, undefined);
     }
 
     async subscribe (access, messageHash, channel, symbol, params = {}) {
@@ -219,7 +219,7 @@ export default class okx extends okxRest {
             'args': topics,
         };
         const url = this.getUrl (channel, 'public');
-        const trades = await this.watchMultiple (url, messageHashes, request, messageHashes);
+        const trades = await this.watchMultiple (url, messageHashes, request, messageHashes, undefined);
         if (this.newUpdates) {
             const first = this.safeValue (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
@@ -257,7 +257,7 @@ export default class okx extends okxRest {
             'args': topics,
         };
         const url = this.getUrl (channel, 'public');
-        return await this.watchMultiple (url, messageHashes, request, messageHashes);
+        return await this.watchMultiple (url, messageHashes, request, messageHashes, undefined);
     }
 
     /**
@@ -352,7 +352,7 @@ export default class okx extends okxRest {
             'args': topics,
         };
         const url = this.getUrl (channel, 'public');
-        const fundingRate = await this.watchMultiple (url, messageHashes, request, messageHashes);
+        const fundingRate = await this.watchMultiple (url, messageHashes, request, messageHashes, undefined);
         if (this.newUpdates) {
             const symbol = this.safeString (fundingRate, 'symbol');
             const result: Dict = {};
@@ -522,7 +522,7 @@ export default class okx extends okxRest {
             'args': topics,
         };
         const url = this.getUrl (channel, 'public');
-        return await this.watchMultiple (url, messageHashes, request, messageHashes);
+        return await this.watchMultiple (url, messageHashes, request, messageHashes, undefined);
     }
 
     handleTicker (client: Client, message) {
@@ -598,7 +598,7 @@ export default class okx extends okxRest {
             'op': 'subscribe',
             'args': args,
         };
-        const newTickers = await this.watchMultiple (url, messageHashes, request, messageHashes);
+        const newTickers = await this.watchMultiple (url, messageHashes, request, messageHashes, undefined);
         if (this.newUpdates) {
             const tickers: Dict = {};
             tickers[newTickers['symbol']] = newTickers;
@@ -703,7 +703,7 @@ export default class okx extends okxRest {
             ],
         };
         const url = this.getUrl (channel, 'public');
-        const newLiquidations = await this.watchMultiple (url, messageHashes, request, messageHashes);
+        const newLiquidations = await this.watchMultiple (url, messageHashes, request, messageHashes, undefined);
         if (this.newUpdates) {
             return newLiquidations;
         }
@@ -766,7 +766,7 @@ export default class okx extends okxRest {
      * @param {object} [params] exchange specific parameters for the okx api endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    async watchMyLiquidationsForSymbols (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
+    async watchMyLiquidationsForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
         await this.loadMarkets ();
         const isTrigger = this.safeValue2 (params, 'stop', 'trigger', false);
         params = this.omit (params, [ 'stop', 'trigger' ]);
@@ -792,7 +792,7 @@ export default class okx extends okxRest {
             ],
         };
         const url = this.getUrl (channel, 'private');
-        const newLiquidations = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes);
+        const newLiquidations = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes, undefined);
         if (this.newUpdates) {
             return newLiquidations;
         }
@@ -1015,7 +1015,7 @@ export default class okx extends okxRest {
             'args': topics,
         };
         const url = this.getUrl ('candle', 'public');
-        const [ symbol, timeframe, candles ] = await this.watchMultiple (url, messageHashes, request, messageHashes);
+        const [ symbol, timeframe, candles ] = await this.watchMultiple (url, messageHashes, request, messageHashes, undefined);
         if (this.newUpdates) {
             limit = candles.getLimit (symbol, limit);
         }
@@ -1058,7 +1058,7 @@ export default class okx extends okxRest {
             'args': topics,
         };
         const url = this.getUrl ('candle', 'public');
-        return await this.watchMultiple (url, messageHashes, request, messageHashes);
+        return await this.watchMultiple (url, messageHashes, request, messageHashes, undefined);
     }
 
     handleOHLCV (client: Client, message) {
@@ -1195,7 +1195,7 @@ export default class okx extends okxRest {
             'args': topics,
         };
         const url = this.getUrl (depth, 'public');
-        const orderbook = await this.watchMultiple (url, messageHashes, request, messageHashes);
+        const orderbook = await this.watchMultiple (url, messageHashes, request, messageHashes, undefined);
         return orderbook.limit ();
     }
 
@@ -1246,7 +1246,7 @@ export default class okx extends okxRest {
             'args': topics,
         };
         const url = this.getUrl (depth, 'public');
-        return await this.watchMultiple (url, messageHashes, request, messageHashes);
+        return await this.watchMultiple (url, messageHashes, request, messageHashes, undefined);
     }
 
     /**
@@ -1333,17 +1333,17 @@ export default class okx extends okxRest {
             const payload = payloadArray.join (':');
             const responseChecksum = this.safeInteger (message, 'checksum');
             const localChecksum = this.crc32 (payload, true);
-            let error = undefined;
+            let err = undefined;
             if (prevSeqId !== -1 && nonce !== prevSeqId) {
-                error = new InvalidNonce (this.id + ' watchOrderBook received invalid nonce');
+                err = new InvalidNonce (this.id + ' watchOrderBook received invalid nonce');
             }
             if (responseChecksum !== localChecksum) {
-                error = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
+                err = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
             }
-            if (error !== undefined) {
+            if (err !== undefined) {
                 delete client.subscriptions[messageHash];
                 delete this.orderbooks[symbol];
-                client.reject (error, messageHash);
+                client.reject (err, messageHash);
             }
         }
         const timestamp = this.safeInteger (message, 'ts');
@@ -2303,7 +2303,7 @@ export default class okx extends okxRest {
         return message;
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message): Bool {
         //
         //     { event: 'error', msg: "Illegal request: {"op":"subscribe","args":["spot/ticker:BTC-USDT"]}", code: "60012" }
         //     { event: 'error", msg: "channel:ticker,instId:BTC-USDT doesn"t exist", code: "60018" }

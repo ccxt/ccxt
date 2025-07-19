@@ -1,11 +1,16 @@
 package ccxt
 
 import (
+	"bytes"
+	"compress/flate"
+	"compress/gzip"
 	"encoding/json"
 	"fmt"
+	"io"
 	"math"
 	"reflect"
 	"runtime"
+	"runtime/debug"
 	"strconv"
 	"strings"
 	"sync"
@@ -713,7 +718,7 @@ func IsEqual(a, b interface{}) bool {
 			return aVal == bVal
 		}
 	case *sync.Map:
-		if aVal == nil && b == nil {
+		if aVal == nil && b == nil {  // TODO: we know that b is not nil from the 4th line of this function
 			return true
 		}
 	}
@@ -852,6 +857,13 @@ func PlusEqual(a, value interface{}) interface{} {
 // }
 
 func AppendToArray(slicePtr *interface{}, element interface{}) {
+	// // Check if slicePtr is nil, which indicates we received a function return value
+	// // In this case, we need to handle it differently
+	// if slicePtr == nil {
+	// 	// This shouldn't happen with proper usage, but we'll handle it gracefully
+	// 	return
+	// }
+	
 	switch array := (*slicePtr).(type) {
 	case []interface{}:
 		*slicePtr = append(array, element)
@@ -869,6 +881,7 @@ func AppendToArray(slicePtr *interface{}, element interface{}) {
 
 // without reflection
 func AddElementToObject(arrayOrDict interface{}, stringOrInt interface{}, value interface{}) {
+
 	switch obj := arrayOrDict.(type) {
 	case []string:
 		if index, ok := stringOrInt.(int); ok {
@@ -952,6 +965,27 @@ func AddElementToObject(arrayOrDict interface{}, stringOrInt interface{}, value 
 			// return fmt.Errorf("invalid key type for sync.Map: expected string")
 		}
 	default:
+		// Handle OrderBookInterface types using type assertion
+		if orderbook, ok := arrayOrDict.(OrderBookInterface); ok {
+			// Use reflection to dynamically set the field
+			val := reflect.ValueOf(orderbook)
+			// If it's an interface, get the underlying value
+			if val.Kind() == reflect.Interface {
+				val = val.Elem()
+			}
+			// If it's a pointer, get the element
+			if val.Kind() == reflect.Ptr {
+				val = val.Elem()
+			}
+			field := val.FieldByName(Capitalize(stringOrInt.(string)))
+			if field.IsValid() && field.CanSet() {
+				// Convert value to the correct type
+				valueVal := reflect.ValueOf(value)
+				if valueVal.Type().ConvertibleTo(field.Type()) {
+					field.Set(valueVal.Convert(field.Type()))
+				}
+			}
+		}
 		// return fmt.Errorf("unsupported type: %T", arrayOrDict)
 	}
 }
@@ -2299,18 +2333,29 @@ func toFixed(number interface{}, decimals interface{}) float64 {
 }
 
 func Remove(dict interface{}, key interface{}) {
-	// Attempt to cast the dict to map[string]interface{}
-	castedDict, ok := dict.(map[string]interface{})
-	if !ok {
-		// Panic if the cast fails
-		panic("provided value is not a map[string]interface{}")
-	}
-
-	// Attempt to cast the key to string
+	// Attempt to cast the key to string first
 	keyStr, ok := key.(string)
 	if !ok {
 		// Panic if the key is not a string
 		panic("provided key is not a string")
+	}
+
+	// Try to handle *sync.Map first
+	if syncMap, ok := dict.(*sync.Map); ok {
+		// Check if the key exists in sync.Map
+		if _, exists := syncMap.Load(keyStr); !exists {
+			panic(fmt.Sprintf("key '%s' does not exist in the sync.Map", keyStr))
+		}
+		// Remove the key from the sync.Map
+		syncMap.Delete(keyStr)
+		return
+	}
+
+	// Attempt to cast the dict to map[string]interface{}
+	castedDict, ok := dict.(map[string]interface{})
+	if !ok {
+		// Panic if the cast fails
+		panic("provided value is not a map[string]interface{} or *sync.Map")
 	}
 
 	// Check if the key exists, panic if it doesn't
@@ -2937,14 +2982,16 @@ func PanicOnError(msg interface{}) {
 	switch v := msg.(type) {
 	case string:
 		if strings.HasPrefix(v, "panic:") {
-			panic(fmt.Sprintf("panic:%v:%v", caller, msg))
-			// panic(v)
+			stack := debug.Stack()
+			panicMsg := fmt.Sprintf("panic:%v:%v\nStack trace:\n%s", caller, msg, stack)
+			panic(panicMsg)
 		}
 	case []interface{}:
 		for _, item := range v {
 			if str, ok := item.(string); ok && strings.HasPrefix(str, "panic:") {
-				// panic(fmt.Sprintf("panic:%v:%v", caller, str))
-				panic(str)
+				stack := debug.Stack()
+				panicMsg := fmt.Sprintf("%s\nStack trace:\n%s", str, stack)
+				panic(panicMsg)
 			} else if nestedSlice, ok := item.([]interface{}); ok {
 				// Handle nested []interface{} cases recursively
 				PanicOnError(nestedSlice)
@@ -2959,12 +3006,15 @@ func ReturnPanicError(ch chan interface{}) {
 	// https://stackoverflow.com/questions/72651899/why-golang-can-not-recover-from-a-panic-in-a-function-called-by-the-defer-functi
 	if r := recover(); r != nil {
 		if r != "break" {
+			stack := debug.Stack()
 			strErr := ToString(r)
+			var panicMsg string
 			if !strings.HasPrefix(strErr, "panic:") {
-				ch <- "panic:" + strErr
+				panicMsg = fmt.Sprintf("panic:%s\nStack trace:\n%s", strErr, stack)
 			} else {
-				ch <- strErr
+				panicMsg = fmt.Sprintf("%s\nStack trace:\n%s", strErr, stack)
 			}
+			ch <- panicMsg
 		}
 	}
 }
@@ -2990,4 +3040,64 @@ func getCallerName() string {
 
 func Print(v interface{}) {
 	fmt.Println(v)
+}
+
+func HandleDelta(bookside interface{}, delta interface{}) interface{} {
+	if bookside == nil {
+		return nil
+	}
+
+	// Cast bookside to *OrderBookSide
+	orderbookSide, ok := bookside.(*OrderBookSide)
+	if !ok {
+		return bookside
+	}
+
+	// Cast delta to []interface{}
+	deltaSlice, ok := delta.([]interface{})
+	if !ok || len(deltaSlice) < 2 {
+		return bookside
+	}
+
+	// Extract price and size from delta
+	price := ToFloat64(deltaSlice[0])
+	size := ToFloat64(deltaSlice[1])
+
+	// Create a new entry [price, size]
+	entry := []interface{}{price, size}
+
+	// Store the entry in the OrderBookSide
+	orderbookSide.StoreArray(entry)
+
+	return orderbookSide
+}
+
+func HandleDeltas(bookside interface{}, deltas interface{}) interface{} {
+	// Cast deltas to []interface{}
+	deltasSlice, ok := deltas.([]interface{})
+	if !ok {
+		return bookside
+	}
+
+	// Process each delta
+	for _, delta := range deltasSlice {
+		bookside = HandleDelta(bookside, delta)
+	}
+
+	return bookside
+}
+
+func GunzipSync(data []byte) ([]byte, error) {
+    r, err := gzip.NewReader(bytes.NewReader(data))
+    if err != nil {
+        return nil, err
+    }
+    defer r.Close()
+    return io.ReadAll(r)
+}
+
+func InflateSync(data []byte) ([]byte, error) {
+    r := flate.NewReader(bytes.NewReader(data))
+    defer r.Close()
+    return io.ReadAll(r)
 }

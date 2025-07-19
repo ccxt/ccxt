@@ -74,7 +74,7 @@ export default class defx extends defxRest {
             'topics': topics,
         };
         const message = this.extend (request, params);
-        return await this.watchMultiple (url, messageHashes, message, messageHashes);
+        return await this.watchMultiple (url, messageHashes, message, messageHashes, undefined);
     }
 
     async unWatchPublic (topics, messageHashes, params = {}) {
@@ -85,7 +85,7 @@ export default class defx extends defxRest {
             'topics': topics,
         };
         const message = this.extend (request, params);
-        return await this.watchMultiple (url, messageHashes, message, messageHashes);
+        return await this.watchMultiple (url, messageHashes, message, messageHashes, undefined);
     }
 
     /**
@@ -653,13 +653,13 @@ export default class defx extends defxRest {
         }
         try {
             await this.v1PrivatePutApiUsersSocketListenKeysListenKey ({ 'listenKey': listenKey }); // extend the expiry
-        } catch (error) {
+        } catch (e) {
             const url = this.urls['api']['ws']['private'] + '?listenKey=' + listenKey;
             const client = this.client (url);
             const messageHashes = Object.keys (client.futures);
             for (let j = 0; j < messageHashes.length; j++) {
                 const messageHash = messageHashes[j];
-                client.reject (error, messageHash);
+                client.reject (e, messageHash);
             }
             this.options['listenKey'] = undefined;
             this.options['lastAuthenticatedTime'] = 0;
@@ -671,13 +671,13 @@ export default class defx extends defxRest {
     }
 
     async authenticate (params = {}) {
-        const time = this.milliseconds ();
+        const now = this.milliseconds ();
         const lastAuthenticatedTime = this.safeInteger (this.options, 'lastAuthenticatedTime', 0);
         const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 3540000); // 1 hour
-        if (time - lastAuthenticatedTime > listenKeyRefreshRate) {
+        if (now - lastAuthenticatedTime > listenKeyRefreshRate) {
             const response = await this.v1PrivatePostApiUsersSocketListenKeys ();
             this.options['listenKey'] = this.safeString (response, 'listenKey');
-            this.options['lastAuthenticatedTime'] = time;
+            this.options['lastAuthenticatedTime'] = now;
             this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
         }
     }
@@ -827,7 +827,7 @@ export default class defx extends defxRest {
                 const symbol = symbols[i];
                 messageHashes.push (channel + ':' + symbol);
             }
-            newPosition = await this.watchMultiple (url, messageHashes, undefined, messageHashes);
+            newPosition = await this.watchMultiple (url, messageHashes, undefined, messageHashes, undefined);
         } else {
             newPosition = await this.watch (url, channel, undefined, channel);
         }
@@ -859,7 +859,7 @@ export default class defx extends defxRest {
         const channel = 'positions';
         const data = this.safeDict (message, 'data', {});
         if (this.positions === undefined) {
-            this.positions = new ArrayCacheBySymbolById ();
+            this.positions = new ArrayCacheBySymbolById (undefined);
         }
         const cache = this.positions;
         const parsedPosition = this.parsePosition (data);
@@ -873,8 +873,8 @@ export default class defx extends defxRest {
     }
 
     handleMessage (client: Client, message) {
-        const error = this.safeString (message, 'code');
-        if (error !== undefined) {
+        const err = this.safeString (message, 'code');
+        if (err !== undefined) {
             const errorMsg = this.safeString (message, 'msg');
             throw new ExchangeError (this.id + ' ' + errorMsg);
         }

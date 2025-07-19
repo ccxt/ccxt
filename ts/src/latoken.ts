@@ -1785,10 +1785,10 @@ export default class latoken extends Exchange {
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
         }
-        const error = this.safeValue (response, 'error');
-        const errorMessage = this.safeString (error, 'message');
-        if ((error !== undefined) || (errorMessage !== undefined)) {
-            this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
+        const err = this.safeValue (response, 'error');
+        const errorMessage = this.safeString (err, 'message');
+        if ((err !== undefined) || (errorMessage !== undefined)) {
+            this.throwExactlyMatchedException (this.exceptions['exact'], err, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
             throw new ExchangeError (feedback); // unknown message
         }

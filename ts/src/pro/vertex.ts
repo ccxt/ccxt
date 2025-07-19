@@ -4,7 +4,7 @@ import vertexRest from '../vertex.js';
 import { AuthenticationError, NotSupported, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCacheBySymbolById, ArrayCache, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Market, Position, Dict } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Market, Position, Dict, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 // ----------------------------------------------------------------------------
@@ -750,8 +750,8 @@ export default class vertex extends vertexRest {
         // { result: null, id: 1 }
         //
         const messageHash = 'authenticated';
-        const error = this.safeString (message, 'error');
-        if (error === undefined) {
+        const err = this.safeString (message, 'error');
+        if (err === undefined) {
             // client.resolve (message, messageHash);
             const future = this.safeValue (client.futures, 'authenticated');
             future.resolve (true);
@@ -962,7 +962,7 @@ export default class vertex extends vertexRest {
         }
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message): Bool {
         //
         // {
         //     result: null,
@@ -977,15 +977,15 @@ export default class vertex extends vertexRest {
                 this.throwExactlyMatchedException (this.exceptions['exact'], errorMessage, feedback);
             }
             return false;
-        } catch (error) {
-            if (error instanceof AuthenticationError) {
+        } catch (e) {
+            if (e instanceof AuthenticationError) {
                 const messageHash = 'authenticated';
-                client.reject (error, messageHash);
+                client.reject (e, messageHash);
                 if (messageHash in client.subscriptions) {
                     delete client.subscriptions[messageHash];
                 }
             } else {
-                client.reject (error);
+                client.reject (e);
             }
             return true;
         }

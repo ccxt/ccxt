@@ -69,7 +69,7 @@ export default class oxfun extends oxfunRest {
             'op': 'subscribe',
             'args': argsArray,
         };
-        return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, undefined);
     }
 
     /**
@@ -1079,8 +1079,8 @@ export default class oxfun extends oxfunRest {
             const future = this.safeDict (client.futures, messageHash);
             future.resolve (true);
         } else {
-            const error = new AuthenticationError (this.json (message));
-            client.reject (error, messageHash);
+            const err = new AuthenticationError (this.json (message));
+            client.reject (err, messageHash);
             if (messageHash in client.subscriptions) {
                 delete client.subscriptions[messageHash];
             }

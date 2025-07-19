@@ -4,7 +4,7 @@
 import kucoinRest from '../kucoin.js';
 import { ExchangeError, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Dict } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Dict, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -374,7 +374,7 @@ export default class kucoin extends kucoinRest {
             'response': true,
         };
         const message = this.extend (request, params);
-        return await this.watchMultiple (url, messageHashes, message, messageHashes);
+        return await this.watchMultiple (url, messageHashes, message, messageHashes, undefined);
     }
 
     handleBidAsk (client: Client, message) {
@@ -827,7 +827,7 @@ export default class kucoin extends kucoinRest {
                 this.orderbooks[symbol] = this.orderBook ();
             } else {
                 const orderbook = this.orderbooks[symbol];
-                orderbook.reset ();
+                orderbook.reset ({});
             }
             this.orderbooks[symbol]['symbol'] = symbol;
         } else {
@@ -1428,7 +1428,7 @@ export default class kucoin extends kucoinRest {
         // https://docs.kucoin.com/#ping
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message): Bool {
         //
         //    {
         //        "id": "1",
@@ -1446,6 +1446,7 @@ export default class kucoin extends kucoinRest {
             this.options['urls'][type] = undefined;
         }
         this.handleErrors (undefined, undefined, client.url, undefined, undefined, data, message, undefined, undefined);
+        return false;
     }
 
     handleMessage (client: Client, message) {

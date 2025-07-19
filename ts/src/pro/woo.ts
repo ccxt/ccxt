@@ -5,7 +5,7 @@ import { ExchangeError, AuthenticationError } from '../base/errors.js';
 import { ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCache, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Dict } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Dict, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 // ----------------------------------------------------------------------------
@@ -1235,7 +1235,7 @@ export default class woo extends wooRest {
         client.resolve (this.balance, 'balance');
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message): Bool {
         //
         // {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
         //
@@ -1253,15 +1253,15 @@ export default class woo extends wooRest {
                 this.throwExactlyMatchedException (this.exceptions['exact'], errorMessage, feedback);
             }
             return false;
-        } catch (error) {
-            if (error instanceof AuthenticationError) {
+        } catch (e) {
+            if (e instanceof AuthenticationError) {
                 const messageHash = 'authenticated';
-                client.reject (error, messageHash);
+                client.reject (e, messageHash);
                 if (messageHash in client.subscriptions) {
                     delete client.subscriptions[messageHash];
                 }
             } else {
-                client.reject (error);
+                client.reject (e);
             }
             return true;
         }
@@ -1372,8 +1372,8 @@ export default class woo extends wooRest {
             const future = this.safeValue (client.futures, 'authenticated');
             future.resolve (true);
         } else {
-            const error = new AuthenticationError (this.json (message));
-            client.reject (error, messageHash);
+            const err = new AuthenticationError (this.json (message));
+            client.reject (err, messageHash);
             // allows further authentication attempts
             if (messageHash in client.subscriptions) {
                 delete client.subscriptions['authenticated'];

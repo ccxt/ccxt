@@ -5,7 +5,7 @@ import { AuthenticationError, BadRequest, ArgumentsRequired, ChecksumError, Exch
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances, Dict } from '../base/types.js';
+import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances, Dict, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -738,8 +738,8 @@ export default class bitget extends bitgetRest {
 
     async handleCheckSumError (client: Client, symbol: string, messageHash: string) {
         await this.unWatchOrderBook (symbol);
-        const error = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
-        client.reject (error, messageHash);
+        const err = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
+        client.reject (err, messageHash);
     }
 
     handleDelta (bookside, delta) {
@@ -1576,7 +1576,7 @@ export default class bitget extends bitgetRest {
         [ type, params ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
         let instType = undefined;
         if (market === undefined && type === 'spot') {
-            instType = 'SPOT';
+            instType = 'spot';
         } else {
             [ instType, params ] = this.getInstType (market, params);
         }
@@ -1859,7 +1859,7 @@ export default class bitget extends bitgetRest {
             'args': argsArray,
         };
         const message = this.extend (request, params);
-        return await this.watchMultiple (url, messageHashes, message, messageHashes);
+        return await this.watchMultiple (url, messageHashes, message, messageHashes, undefined);
     }
 
     async authenticate (params = {}) {
@@ -1918,7 +1918,7 @@ export default class bitget extends bitgetRest {
         future.resolve (true);
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message): Bool {
         //
         //    { event: "error", code: 30015, msg: "Invalid sign" }
         //
@@ -2087,8 +2087,8 @@ export default class bitget extends bitgetRest {
         if (messageHash in client.subscriptions) {
             delete client.subscriptions[messageHash];
         }
-        const error = new UnsubscribeError (this.id + ' orderbook ' + symbol);
-        client.reject (error, subMessageHash);
+        const err = new UnsubscribeError (this.id + ' orderbook ' + symbol);
+        client.reject (err, subMessageHash);
         client.resolve (true, messageHash);
     }
 
@@ -2113,8 +2113,8 @@ export default class bitget extends bitgetRest {
         if (messageHash in client.subscriptions) {
             delete client.subscriptions[messageHash];
         }
-        const error = new UnsubscribeError (this.id + ' trades ' + symbol);
-        client.reject (error, subMessageHash);
+        const err = new UnsubscribeError (this.id + ' trades ' + symbol);
+        client.reject (err, subMessageHash);
         client.resolve (true, messageHash);
     }
 
@@ -2139,8 +2139,8 @@ export default class bitget extends bitgetRest {
         if (messageHash in client.subscriptions) {
             delete client.subscriptions[messageHash];
         }
-        const error = new UnsubscribeError (this.id + ' ticker ' + symbol);
-        client.reject (error, subMessageHash);
+        const err = new UnsubscribeError (this.id + ' ticker ' + symbol);
+        client.reject (err, subMessageHash);
         client.resolve (true, messageHash);
     }
 

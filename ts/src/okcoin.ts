@@ -3184,9 +3184,9 @@ export default class okcoin extends Exchange {
             const feedback = this.id + ' ' + body;
             const data = this.safeValue (response, 'data', []);
             for (let i = 0; i < data.length; i++) {
-                const error = data[i];
-                const errorCode = this.safeString (error, 'sCode');
-                const message = this.safeString (error, 'sMsg');
+                const err = data[i];
+                const errorCode = this.safeString (err, 'sCode');
+                const message = this.safeString (err, 'sMsg');
                 this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
                 this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             }

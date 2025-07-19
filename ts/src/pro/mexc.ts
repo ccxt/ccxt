@@ -259,7 +259,7 @@ export default class mexc extends mexcRest {
             request['params'] = {};
             messageHashes.push ('ticker');
         }
-        const ticker = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        const ticker = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, undefined);
         if (isSpot && this.newUpdates) {
             const result: Dict = {};
             result[ticker['symbol']] = ticker;
@@ -448,7 +448,7 @@ export default class mexc extends mexcRest {
             'method': 'SUBSCRIPTION',
             'params': topics,
         };
-        const ticker = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        const ticker = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, undefined);
         if (this.newUpdates) {
             const tickers: Dict = {};
             tickers[ticker['symbol']] = ticker;
@@ -1531,7 +1531,7 @@ export default class mexc extends mexcRest {
             messageHashes.push ('unsubscribe:ticker');
         }
         const client = this.client (url);
-        await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, undefined);
         this.handleUnsubscriptions (client, messageHashes);
         return undefined;
     }
@@ -1572,7 +1572,7 @@ export default class mexc extends mexcRest {
             'params': topics,
         };
         const client = this.client (url);
-        await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, undefined);
         this.handleUnsubscriptions (client, messageHashes);
         return undefined;
     }
@@ -1753,11 +1753,11 @@ export default class mexc extends mexcRest {
             await this.spotPrivatePutUserDataStream (this.extend (request, params));
             const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 1200000);
             this.delay (listenKeyRefreshRate, this.keepAliveListenKey, listenKey, params);
-        } catch (error) {
+        } catch (e) {
             const url = this.urls['api']['ws']['spot'] + '?listenKey=' + listenKey;
             const client = this.client (url);
             this.options['listenKey'] = undefined;
-            client.reject (error);
+            client.reject (e);
             delete this.clients[url];
         }
     }
@@ -1794,8 +1794,8 @@ export default class mexc extends mexcRest {
     handleMessage (client: Client, message) {
         if (typeof message === 'string') {
             if (message === 'Invalid listen key') {
-                const error = new AuthenticationError (this.id + ' invalid listen key');
-                client.reject (error);
+                const err = new AuthenticationError (this.id + ' invalid listen key');
+                client.reject (err);
             }
             return;
         }

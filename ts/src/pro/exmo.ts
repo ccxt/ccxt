@@ -902,17 +902,17 @@ export default class exmo extends exmoRest {
         const client = this.client (url);
         let future = this.safeValue (client.subscriptions, messageHash);
         if (future === undefined) {
-            const time = this.milliseconds ();
+            const now = this.milliseconds ();
             this.checkRequiredCredentials ();
             const requestId = this.requestId ();
-            const signData = this.apiKey + time.toString ();
+            const signData = this.apiKey + now.toString ();
             const sign = this.hmac (this.encode (signData), this.encode (this.secret), sha512, 'base64');
             const request: Dict = {
                 'method': 'login',
                 'id': requestId,
                 'api_key': this.apiKey,
                 'sign': sign,
-                'nonce': time,
+                'nonce': now,
             };
             const message = this.extend (request, query);
             future = await this.watch (url, messageHash, message, messageHash);
