@@ -10073,9 +10073,9 @@ export default class binance extends Exchange {
         //     markPrice: "2.39560000",
         //     unRealizedProfit: "0.23650000",
         //     liquidationPrice: "0",
-        //     isolatedMargin: "0",
+        //     isolatedMargin: "0", // zero in case of cross-margin
         //     notional: "11.97800000",
-        //     isolatedWallet: "0",
+        //     isolatedWallet: "0", // zero in case of cross-margin
         //     updateTime: "1722062678998",
         //     initialMargin: "2.39560000",         // not in v2
         //     maintMargin: "0.07186800",           // not in v2
@@ -10085,13 +10085,13 @@ export default class binance extends Exchange {
         //     bidNotional: "0",                    // not in v2
         //     askNotional: "0",                    // not in v2
         //     marginAsset: "USDT",                 // not in v2
-        //     // the below fields are only in v2
-        //     leverage: "5",
-        //     maxNotionalValue: "6000000",
-        //     marginType: "cross",
-        //     isAutoAddMargin: "false",
-        //     isolated: false,
-        //     adlQuantile: "2",
+        //     leverage: "5",                       // only in v2
+        //     maxQty: "1000",                      // only in v2
+        //     maxNotionalValue: "6000000",         // only in v2
+        //     marginType: "cross",                 // only in v2
+        //     isAutoAddMargin: "false",            // only in v2
+        //     isolated: false,                     // only in v2
+        //     adlQuantile: "2",                    // only in v2
         //
         // coinm
         //
@@ -10854,9 +10854,9 @@ export default class binance extends Exchange {
                 //     markPrice: "2.39560000",
                 //     unRealizedProfit: "0.23650000",
                 //     liquidationPrice: "0",
-                //     isolatedMargin: "0",
+                //     isolatedMargin: "0", // zero in case of cross-margin
                 //     notional: "11.97800000",
-                //     isolatedWallet: "0",
+                //     isolatedWallet: "0", // zero in case of cross-margin
                 //     updateTime: "1722062678998",
                 //     initialMargin: "2.39560000",         // added in v3
                 //     maintMargin: "0.07186800",           // added in v3
