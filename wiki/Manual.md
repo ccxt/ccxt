@@ -5032,7 +5032,7 @@ cancelOrders (ids, symbol = undefined, params = {})
 Parameters
 
 - **ids** (\[String\]) *required* Order ids (e.g. `1645807945000`)
-- **symbol** (String) Unified CCXT market symbol **required** on some exchanges (e.g. `"BTC/USDT"`)
+- **symbol** (String) Unified CCXT market symbol (e.g. `"BTC/USDT"`). Optional, but **required on some exchanges**
 - **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"settle": "usdt"}`)
 
 Returns
@@ -5045,7 +5045,7 @@ async cancelAllOrders (symbol = undefined, params = {})
 
 Parameters
 
-- **symbol** (String) Unified CCXT market symbol **required** on some exchanges (e.g. `"BTC/USDT"`)
+- **symbol** (String) Unified CCXT market symbol (e.g. `"BTC/USDT"`). Optional, but **required on some exchanges**
 - **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"settle": "usdt"}`)
 
 Returns
