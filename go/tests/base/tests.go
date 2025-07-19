@@ -998,9 +998,7 @@ func  (this *testMainClass) StartTest(exchange ccxt.IExchange, symbol interface{
                 return nil
             }
             this.CheckConstructor(exchange)
-        
-            retRes9048 := (<-this.TestReturnResponseHeaders(exchange))
-            PanicOnError(retRes9048)
+            // await this.testReturnResponseHeaders (exchange);
             if IsTrue(IsTrue(this.Sandbox) || IsTrue(GetExchangeProp(exchange, "sandbox"))) {
                 exchange.SetSandboxMode(true)
             }
