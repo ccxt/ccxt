@@ -10193,23 +10193,7 @@ export default class binance extends Exchange {
             const quotePrecisionValue = this.safeString2 (precision, 'quote', 'price');
             const precisionIsUndefined = (basePrecisionValue === undefined) && (quotePrecisionValue === undefined);
             if (!precisionIsUndefined) {
-                if (linear) {
-                    // walletBalance = (liquidationPrice * (±1 + mmp) ± entryPrice) * contracts
-                    let onePlusMaintenanceMarginPercentageString = undefined;
-                    let entryPriceSignString = entryPriceString;
-                    if (side === 'short') {
-                        onePlusMaintenanceMarginPercentageString = Precise.stringAdd ('1', maintenanceMarginPercentageString);
-                        entryPriceSignString = Precise.stringMul ('-1', entryPriceSignString);
-                    } else {
-                        onePlusMaintenanceMarginPercentageString = Precise.stringAdd ('-1', maintenanceMarginPercentageString);
-                    }
-                    const inner = Precise.stringMul (liquidationPriceString, onePlusMaintenanceMarginPercentageString);
-                    const leftSide = Precise.stringAdd (inner, entryPriceSignString);
-                    const quotePrecision = this.precisionFromString (this.safeString2 (precision, 'quote', 'price'));
-                    if (quotePrecision !== undefined) {
-                        collateralString = Precise.stringDiv (Precise.stringMul (leftSide, contractsAbs), '1', quotePrecision);
-                    }
-                } else {
+                if (!linear) {
                     // walletBalance = (contracts * contractSize) * (±1/entryPrice - (±1 - mmp) / liquidationPrice)
                     let onePlusMaintenanceMarginPercentageString = undefined;
                     let entryPriceSignString = entryPriceString;
