@@ -6200,7 +6200,7 @@ Returns
 
 ## Margin
 
-*margin and contract markets only*
+*applies to margin and contract markets only*
 
 Note: across the manual we use term "collateral" which means current margin balance, but do not confuse it with "initial margin" or "maintenance margin":
 - `collateral (current margin balance) = initial margin + position profit (realized & unrealized) + cross-margin balance (only when it's not an isolated mode, but a cross-margin mode)`
@@ -6627,7 +6627,7 @@ Returns
 
 #### Liquidation Price
 
-It is the price at which the `initialMargin + unrealized = collateral = maintenanceMargin`. The price has gone in the opposite direction of your position to the point where the is only maintenanceMargin collateral left and if it goes any further the position will have negative collateral.
+When the prices goes in the opposite direction of your position, then your [`collateral`](#margin) reduces. The price, when `collateral` amount will reach `maintenanceMargin` amount, is called a **liquidation price**. You should always place a stop-loss for your position before liquidation price level, otherwise your position will be under the risk of liquidation.
 
 ```javascript
 // if long
