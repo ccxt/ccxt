@@ -233,12 +233,11 @@ class NewTranspiler {
             [/([a-z]+)\.GetLimit/g, '$1.(GetsLimit).GetLimit'],
             [/order.Limit/g, 'orderbooks.(GetsLimit).Limit'],
             // OrderBook
-            [/(storedOrderBook|orderbook)\.Cache/g, '$1.(*WsOrderBook).Cache'],
-            [/bookside\.Store/g, 'bookside.(*OrderBookSide).Store'],
-            [/orderbook\.(Reset|Limit)/g, 'orderbook.(OrderBookInterface).$1'],
-            [/orderbooks.Limit/g, 'orderbooks.(OrderBookInterface).Limit'],
-            [/([a-zA-Z0-9]+).StoreArray/g, '$1.(*OrderBookSide).StoreArray'],
-            [/(asks|bids|Side).Store/g, '$1.(*OrderBookSide).Store'],
+            [/\.Cache\s*=\s*(.+)/g, '.(OrderBookInterface).SetCache($1)'],
+            [/(?:&)?(storedOrderBook|orderbook)\.Cache/g, '$1.(OrderBookInterface).GetCache()'],
+            [/orderbook(s)?\.(Reset|Limit)/g, 'orderbook$1.(OrderBookInterface).$2'],
+            [/([a-zA-Z0-9]+).StoreArray/g, '$1.(IOrderBookSide).StoreArray'],
+            [/(bookside|asks|bids|Side).Store/g, '$1.(IOrderBookSide).Store'],
             // Clients
             [/FindMessageHashes\(client/g, 'FindMessageHashes\(client.(*Client)'],
             [/CleanUnsubscription\(([a-zA-Z0-9]+),/g, 'CleanUnsubscription($1.(*Client),'],
@@ -247,6 +246,8 @@ class NewTranspiler {
             [/<-client\.Future\(([^\)]*)\)/g, '<-client.(ClientInterface).Future($1)'],
             [/client\.Futures/g, 'client.(*Client).Futures'],
             [/client\.(Send|Reset|OnPong|Reject|Future|Resolve)/g, 'client.(ClientInterface).$1'],
+            [/orderbook, "nonce"/g, 'orderbook, "Nonce"'],
+            [/AddElementToObject\(orderbook, "Nonce"/g, 'AddElementToObject(orderbook, "nonce"'],
             // Error constructors
             [/New([A-Za-z0-9]+Error)\(/g, '$1('],
             [/NewInvalidNonce/g, 'InvalidNonce'],

@@ -1825,9 +1825,9 @@ func (this *Exchange) LoadOrderBook(client interface{}, messageHash interface{},
 			index := this.GetCacheIndex(orderBook, cache)
 			if index.(int) >= 0 {
 				// Call Reset method on stored orderbook
-				stored.(*WsOrderBook).Reset(orderBook)
+				stored.(OrderBookInterface).Reset(orderBook)
 				this.DerivedExchange.HandleDeltas(stored, cache.([]interface{})[index.(int):])
-				stored.(*WsOrderBook).Cache = map[string]interface{}{}
+				stored.(OrderBookInterface).SetCache(map[string]interface{}{})
 				// this.SetProperty(cache, "length", 0)
 				client.(*WSClient).Resolve(stored, messageHash)
 				return nil

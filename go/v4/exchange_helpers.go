@@ -346,6 +346,11 @@ func GetValue(collection interface{}, key interface{}) interface{} {
 		if keyNum >= 0 && keyNum < len(v) {
 			return string(v[keyNum])
 		}
+	default:
+		// In typescript OrderBookSide extends Array, so some work arounds are made so that the expected behaviour is achieved in the transpiled code
+		if obs, ok := collection.(IOrderBookSide); ok {
+			return (*obs.GetData())[keyNum]
+		}
 	}
 
 	// this is needed in checkRequiredCredentials or alike
@@ -530,6 +535,8 @@ func GetArrayLength(value interface{}) int {
 	}
 
 	switch v := value.(type) {
+	case [][]interface{}:  // TODO: double/triple arrays of all the types
+		return len(v)
 	case []interface{}:
 		return len(v)
 	case []string:
@@ -544,6 +551,11 @@ func GetArrayLength(value interface{}) int {
 		return len(v)
 	case string:
 		return len(v) // should we do it here?
+	default:
+		// In typescript OrderBookSide extends Array, so some work arounds are made so that the expected behaviour is achieved in the transpiled code
+		if obs, ok := value.(IOrderBookSide); ok {
+			return obs.Len()
+		}
 	}
 
 	// val := reflect.ValueOf(value)
@@ -875,6 +887,10 @@ func AppendToArray(slicePtr *interface{}, element interface{}) {
 			// fmt.Println("Error: element is not a string")
 		}
 	default:
+		// In typescript OrderBookSide extends Array, so some work arounds are made so that the expected behaviour is achieved in the transpiled code
+		if obs, ok := (*slicePtr).(IOrderBookSide); ok {
+			*slicePtr = append(*obs.GetData(), element.([]interface{}))
+		}
 		// fmt.Println("Error: Unsupported slice type")
 	}
 }

@@ -219,6 +219,12 @@ func SafeValueN(obj interface{}, keys []interface{}, defaultValue ...interface{}
 	case []float64:
 		return getValueFromList(list, keys, defVal)
 	default:
+		if ob, ok := obj.(OrderBookInterface); ok { // TODO: should takes keys and not keys[0]
+			return ob.GetValue(keys[0].(string), defVal)
+		}
+		if obs, ok := obj.(IOrderBookSide); ok { // TODO: should takes keys and not keys[0]
+			return obs.GetValue(keys[0].(string), defVal)
+		}
 		return defVal
 	}
 }
@@ -352,6 +358,14 @@ func SafeFloat2(obj interface{}, key interface{}, key2 interface{}, defaultValue
 // SafeInteger retrieves an int64 value from a nested structure
 func SafeInteger(obj interface{}, key interface{}, defaultValue interface{}) interface{} {
 	return SafeIntegerN(obj, []interface{}{key}, defaultValue)
+}
+
+func SafeInt64(obj interface{}, key interface{}, defaultValue interface{}) interface{} {
+	res := SafeInteger(obj, key, defaultValue)
+	if res != nil {
+		return res.(int64)
+	}
+	return nil
 }
 
 func SafeInteger2(obj interface{}, key interface{}, key2 interface{}, defaultValue interface{}) interface{} {

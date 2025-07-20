@@ -181,6 +181,7 @@ type IExchange interface {
 }
 
 type IDerivedExchange interface {
+	HandleDeltas(orderbook interface{}, deltas interface{})
 	ParseLeverage(leverage interface{}, optionalArgs ...interface{}) interface{}
 	ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{}) interface{}
 	ParseTrade(trade interface{}, optionalArgs ...interface{}) interface{}
