@@ -1607,6 +1607,7 @@ An implicit method takes a dictionary of parameters, sends the request to the ex
 
 The recommended way of working with exchanges is using the unified ccxt methods (instead of exchange-specific implicit methods, because they should be used as a fallback in cases when a corresponding unified method isn't implemented yet).
 
+### View implicit methods list
 To get a list of all available methods with an exchange instance, including implicit methods and unified methods you can simply do the following:
 
 ```text
