@@ -4419,7 +4419,7 @@ export default class bitget extends Exchange {
         const isBuyMarket = (side === 'buy') && (orderType === 'market');
         if (market['spot'] && isBuyMarket) {
             // as noted in top comment, for 'buy market' the 'size' field is COST, not AMOUNT
-            size = undefined;
+            size = this.safeString (order, 'baseVolume');
         }
         return this.safeOrder ({
             'info': order,
