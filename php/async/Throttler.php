@@ -61,7 +61,7 @@ class Throttler {
     public function __invoke($cost = null) {
         $future = new Deferred();
         if ($this->queue->count() > $this->config['maxCapacity']) {
-            throw new \RuntimeException('throttle queue is over maxCapacity (' . strval($this->config['maxCapacity']) . '), see https://github.com/ccxt/ccxt/issues/11645#issuecomment-1195695526');
+            throw new \RuntimeException('throttle queue is over maxCapacity (' . strval($this->config['maxCapacity']) . '), see https://docs.ccxt.com/#/README?id=maximum-requests-capacity');
         }
         $this->queue->enqueue(array($future, $cost));
         if (!$this->running) {
