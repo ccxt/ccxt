@@ -1046,6 +1046,10 @@ class testMainClass {
             // iterate over the keys
             for (let i = 0; i < storedOutputKeys.length; i++) {
                 const key = storedOutputKeys[i];
+                if (key === 'ccxtTimestamp') {
+                    // as that field it is dynamically added, the value would be different
+                    continue;
+                }
                 if (exchange.inArray (key, skipKeys)) {
                     continue;
                 }

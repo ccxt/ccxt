@@ -2404,7 +2404,8 @@
                     ],
                     "timestamp": null,
                     "datetime": null,
-                    "nonce": 25445101
+                    "nonce": 25445101,
+                    "ccxtTimestamp": 1752938694926
                 }
             },
             {
@@ -2511,7 +2512,8 @@
                     ],
                     "timestamp": 1706803917258,
                     "datetime": "2024-02-01T16:11:57.258Z",
-                    "nonce": 35263532345
+                    "nonce": 35263532345,
+                    "ccxtTimestamp": 1752938694932
                 }
             }
         ],
